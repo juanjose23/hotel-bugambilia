@@ -1,58 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Hotel Bugambilias - Sistema de Gestión
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este proyecto es un sistema de administración integral para el **Hotel Bugambilias**, ubicado en la ciudad de **Estelí, Nicaragua**.
 
-## About Laravel
+## 📍 Ubicación y Referencias
+El **Hotel Bugambilias** es un referente de hospitalidad en la ciudad de **Estelí, Nicaragua**. 
+- **Servicios**: Restaurante, bar, piscina, hot tub y traslados al aeropuerto.
+- **Entorno**: Ubicado estratégicamente para viajeros de negocios y turistas en la región norte.
+- **Referencia**: [Información del Hotel](https://www.bugambiliashotel.com/)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📖 Documentación del Proyecto
+Para mantener la consistencia y calidad, este proyecto sigue estándares estrictos definidos en la carpeta `docs/`:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **[Convenciones de Desarrollo](docs/conventions.md)**: Estándares de nombres, estructura de carpetas y reglas de idioma (Español).
+- **[Arquitectura de Casos de Uso](docs/use-case-architecture.md)**: Guía sobre la implementación de Clean Architecture simplificada.
+- **[Manual de Estilo](docs/README.md)**: Resumen general de la metodología de diseño y patrones recomendados.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Tecnologías
+Este sistema está construido con el stack moderno de Laravel:
+- **PHP 8.3+**
+- **Laravel 13**
+- **Filament PHP v3** (Panel de Administración)
+- **Tailwind CSS** (Estilizado)
+- **MySQL / PostgreSQL** (Base de Datos)
 
-## Learning Laravel
+## 🏗️ Arquitectura y Flujo
+El proyecto sigue un flujo basado en Casos de Uso (Use Case Driven Development):
+`Controller` → `UseCase / Service` → `Model`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Esto garantiza que la lógica de negocio esté aislada y sea fácil de testear.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Instalación y Configuración
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Sigue estos pasos para configurar el entorno de desarrollo:
 
-## Agentic Development
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/juanjose23/hotel-bugambilia.git
+   cd hotel-bugambilia
+   ```
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+2. **Instalar dependencias de PHP:**
+   ```bash
+   composer install
+   ```
 
-```bash
-composer require laravel/boost --dev
+3. **Instalar dependencias de Node:**
+   ```bash
+   npm install
+   ```
 
-php artisan boost:install
-```
+4. **Configurar el entorno:**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+5. **Ejecutar migraciones y seeders:**
+   ```bash
+   php artisan migrate --seed
+   ```
 
-## Contributing
+6. **Compilar activos:**
+   ```bash
+   npm run dev
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🛡️ Estándares de Código y Desarrollo
 
-## Code of Conduct
+Mantenemos la calidad del código mediante las siguientes herramientas automatizadas (configuradas con Husky):
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Laravel Pint**: Para el estilo de código PHP.
+- **PHPStan**: Para el análisis estático y prevención de errores.
+- **Prettier**: Para el formato de archivos JS/CSS.
 
-## Security Vulnerabilities
+### Comandos Útiles
+- Ejecutar análisis estático: `composer run phpstan`
+- Corregir estilo de código: `composer run pint`
+- Corregir formato JS: `npm run format:js`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 👥 Contribución
+Para contribuir al proyecto, asegúrate de seguir los estándares de **Conventional Commits**. El sistema utiliza `commitlint` para validar los mensajes de commit.
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+© 2026 Hotel Bugambilias - Estelí, Nicaragua.
