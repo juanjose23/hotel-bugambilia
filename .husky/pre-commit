@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -e
+
+echo "[pre-commit] Verificando formato JS con Prettier..."
+npm run check:prettier
+
+echo "[pre-commit] Verificando formato PHP con Pint..."
+composer run --no-interaction pint:test
+
+echo "[pre-commit] Ejecutando analisis estatico con PHPStan..."
+composer run --no-interaction phpstan
