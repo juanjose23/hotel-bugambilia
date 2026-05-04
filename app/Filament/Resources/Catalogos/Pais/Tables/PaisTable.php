@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Catalogos\Pais\Tables;
 
 use App\Enums\EstadoCatalogo;
-use App\Models\Pais;
+use App\Models\Catalogos\Pais;
 use App\UseCases\Pais\ActualizarPais;
 use App\UseCases\Pais\EliminarPais;
 use Filament\Actions\ActionGroup;
