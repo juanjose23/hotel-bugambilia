@@ -16,12 +16,10 @@ return new class extends Migration {
             $table->id();
             $table->string('codigo_iso2', 2)->unique();
             $table->string('codigo_iso3', 3)->unique();
-            $table->string('nombre', 150);
+            $table->string('nombre', 150)->unique();
             $table->string('codigo_telefono', 10)->nullable();
             $table->integer('estado')->default(1);
             $table->timestamps();
-
-
         });
     }
 
