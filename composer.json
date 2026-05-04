@@ -7,10 +7,12 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "caresome/filament-auth-designer": "^3.1",
         "filament/filament": "~5.0",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "owen-it/laravel-auditing": "^14.0",
+        "stefangabos/world_countries": "^3.3",
         "webpatser/laravel-countries": "^2.1"
     },
     "require-dev": {
