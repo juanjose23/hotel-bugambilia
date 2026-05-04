@@ -13,7 +13,7 @@ return new class extends Migration {
         //
         Schema::create('paises', function (Blueprint $table) {
 
-            $table->increments('id');
+            $table->id();
             $table->string('codigo_iso2', 2)->unique();
             $table->string('codigo_iso3', 3)->unique();
             $table->string('nombre', 150);
