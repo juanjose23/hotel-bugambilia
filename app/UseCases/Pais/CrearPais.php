@@ -2,7 +2,7 @@
 
 namespace App\UseCases\Pais;
 
-use App\Models\Pais;
+use App\Models\Catalogos\Pais;
 
 class CrearPais
 {

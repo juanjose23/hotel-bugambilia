@@ -15,7 +15,8 @@ class ComandoGenerarModulo extends Command
         {modulo : Nombre del modulo (Clientes, Productos, etc)}
         {--force : Sobrescribe archivos existentes}
         {--cases= : Casos de uso personalizados separados por coma}
-        {--filament : Genera recurso de Filament}';
+        {--filament : Genera recurso de Filament}
+        {--controller : Genera recurso de Filament}';
 
     protected $description = 'Generador basado en UseCases + Filament (nivel 5)';
 
@@ -26,6 +27,34 @@ class ComandoGenerarModulo extends Command
 
     public function handle(): int
     {
+        $color = "\e[38;2;163;44;110m";
+        $reset = "\e[0m";
+        $banner = '
+        ████████╗███████╗███████╗██╗███████╗
+        ╚══██╔══╝██╔════╝██╔════╝██║██╔════╝
+           ██║   █████╗  ███████╗██║███████╗
+           ██║   ██╔══╝  ╚════██║██║╚════██║
+           ██║   ███████╗███████║██║███████║
+           ╚═╝   ╚══════╝╚══════╝╚═╝╚══════╝
+
+            ██╗  ██╗ ██████╗ ████████╗███████╗██╗     
+            ██║  ██║██╔═══██╗╚══██╔══╝██╔════╝██║     
+            ███████║██║   ██║   ██║   █████╗  ██║     
+            ██╔══██║██║   ██║   ██║   ██╔══╝  ██║     
+            ██║  ██║╚██████╔╝   ██║   ███████╗███████╗
+            ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+            
+            ██████╗ ██╗   ██╗ ██████╗  █████╗ ███╗   ███╗██████╗ ██╗██╗     ██╗ █████╗ ███████╗
+            ██╔══██╗██║   ██║██╔════╝ ██╔══██╗████╗ ████║██╔══██╗██║██║     ██║██╔══██╗██╔════╝
+            ██████╔╝██║   ██║██║  ███╗███████║██╔████╔██║██████╔╝██║██║     ██║███████║███████╗
+            ██╔══██╗██║   ██║██║   ██║██╔══██║██║╚██╔╝██║██╔══██╗██║██║     ██║██╔══██║╚════██║
+            ██████╔╝╚██████╔╝╚██████╔╝██║  ██║██║ ╚═╝ ██║██████╔╝██║███████╗██║██║  ██║███████║
+            ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝ ╚═╝╚══════╝╚═╝╚═╝  ╚═╝╚══════╝
+
+        ';
+        $this->line($color . $banner . $reset);
+
+
         $modulo = Str::studly($this->argument('modulo'));
         $entidad = Str::studly(Str::singular($modulo));
         $force = (bool) $this->option('force');
@@ -52,17 +81,18 @@ class ComandoGenerarModulo extends Command
          */
         $files = [
             app_path("Models/$entidad.php") => $this->model($entidad),
-            app_path("UseCases/$modulo/Crear$entidad.php") => $this->useCaseCrear($entidad),
-            app_path("UseCases/$modulo/Actualizar$entidad.php") => $this->useCaseActualizar($entidad),
-            app_path("UseCases/$modulo/Eliminar$entidad.php") => $this->useCaseEliminar($entidad),
-            app_path("Http/Controllers/{$entidad}Controller.php") => $this->controller($entidad),
+            app_path("UseCases/$modulo/Commands/Crear$entidad.php") => $this->useCaseCrear($entidad),
+            app_path("UseCases/$modulo/Commands/Actualizar$entidad.php") => $this->useCaseActualizar($entidad),
+            app_path("UseCases/$modulo/Commands/Eliminar$entidad.php") => $this->useCaseEliminar($entidad),
+            app_path("UseCases/$modulo/Queries/Obtener$entidad.php") => $this->UseCaseQueries("Obtener" . $entidad, $entidad),
+            app_path("UseCases/$modulo/Queries/Listar{$modulo}.php") => $this->UseCaseQueries("Listar" . $modulo, $entidad),
         ];
 
         /**
          * USECASES PERSONALIZADOS
          */
         foreach ($customCases as $case) {
-            $class = $case.$entidad;
+            $class = $case . $entidad;
 
             $files[app_path("UseCases/$modulo/$class.php")] =
                 $this->customUseCase($class, $entidad);
@@ -80,12 +110,21 @@ class ComandoGenerarModulo extends Command
             $this->info("Filament Resource creado para $entidad");
         }
 
+        /***
+         * CONTROLLER (OPCIONAL)
+         */
+
+        if ($this->option("controller")) {
+            $files[app_path("Http/Controllers/{$entidad}Controller.php")] = $this->controller($entidad);
+
+        }
+
         /**
          * CREAR ARCHIVOS
          */
         foreach ($files as $path => $content) {
-            if ($this->files->exists($path) && ! $force) {
-                $this->warn('Existe: '.basename($path));
+            if ($this->files->exists($path) && !$force) {
+                $this->warn('Existe: ' . basename($path));
 
                 continue;
             }
@@ -93,7 +132,7 @@ class ComandoGenerarModulo extends Command
             $this->files->ensureDirectoryExists(dirname($path));
             $this->files->put($path, $content);
 
-            $this->info('Creado: '.basename($path));
+            $this->info('Creado: ' . basename($path));
         }
 
         $this->info("Modulo $modulo generado correctamente.");
@@ -131,7 +170,7 @@ PHP;
         return <<<PHP
 <?php
 
-namespace App\UseCases\\$entidad;
+namespace App\UseCases\\$entidad\Commands ;
 
 use App\Models\\$entidad;
 
@@ -150,7 +189,7 @@ PHP;
         return <<<PHP
 <?php
 
-namespace App\UseCases\\$entidad;
+namespace App\UseCases\\$entidad\Commands ;
 
 use App\Models\\$entidad;
 
@@ -170,7 +209,7 @@ PHP;
         return <<<PHP
 <?php
 
-namespace App\UseCases;
+namespace App\UseCases\\$entidad\Commands ;
 
 use App\Models\\$entidad\\$entidad;
 
@@ -185,6 +224,28 @@ PHP;
     }
 
     /**
+     * USECASE QUERIES
+     */
+    private function UseCaseQueries(string $class, string $entidad): string
+    {
+        return <<<PHP
+<?php
+
+namespace App\UseCases\\$entidad\Queries ;
+
+use App\Models\\$entidad;
+
+class {$class}
+{
+    public function execute(array \$data)
+    {
+        // Lógica de negocio personalizada
+        
+    }
+}
+PHP;
+    }
+    /**
      * USECASE PERSONALIZADO
      */
     private function customUseCase(string $class, string $entidad): string
@@ -194,7 +255,7 @@ PHP;
 
 namespace App\UseCases;
 
-use App\Models\\$entidad\\$entidad;
+use App\Models\\$entidad;
 
 class {$class}
 {
@@ -254,9 +315,9 @@ PHP;
     private function parseCustomCases(): Collection
     {
         return collect(explode(',', (string) $this->option('cases')))
-            ->map(fn (string $c): string => trim($c))
-            ->filter(fn (string $c): bool => $c !== '')
-            ->map(fn (string $c): string => Str::studly($c))
+            ->map(fn(string $c): string => trim($c))
+            ->filter(fn(string $c): bool => $c !== '')
+            ->map(fn(string $c): string => Str::studly($c))
             ->values();
     }
 }
