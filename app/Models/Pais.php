@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable;
 
-class Pais extends Model
+class Pais extends Model implements AuditableContract
 {
     /** @use HasFactory<\Database\Factories\PaisFactory> */
     use HasFactory, Auditable;

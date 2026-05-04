@@ -10,7 +10,7 @@ return new class extends Migration {
     {
 
         Schema::create('colaboradores', function (Blueprint $table) {
-            $table->increments('id');
+            $table->id();
             $table->foreignId('persona_id')
                 ->constrained('personas')
                 ->cascadeOnDelete();
@@ -26,7 +26,7 @@ return new class extends Migration {
 
         Schema::create('colaborador_datos_medicos', function (Blueprint $table) {
 
-            $table->increments('id');
+            $table->id();
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
                 ->cascadeOnDelete();
@@ -40,7 +40,7 @@ return new class extends Migration {
 
         Schema::create('colaborador_contactos_emergencia', function (Blueprint $table) {
 
-            $table->increments('id');
+            $table->id();
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
                 ->cascadeOnDelete();
@@ -53,7 +53,7 @@ return new class extends Migration {
         });
 
         Schema::create('colaborador_salarios', function (Blueprint $table) {
-            $table->increments('id');
+            $table->id();
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
                 ->cascadeOnDelete();
@@ -68,7 +68,7 @@ return new class extends Migration {
 
         Schema::create('colaborador_cargos_historial', function (Blueprint $table) {
 
-            $table->increments('id');
+            $table->id();
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
                 ->cascadeOnDelete();
@@ -90,7 +90,7 @@ return new class extends Migration {
 
         Schema::create('colaborador_documentos', function (Blueprint $table) {
 
-            $table->increments('id');
+            $table->id();
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
                 ->cascadeOnDelete();
@@ -108,6 +108,7 @@ return new class extends Migration {
 
         Schema::dropIfExists('colaborador_documentos');
         Schema::dropIfExists('colaborador_cargos_historial');
+        Schema::dropIfExists('colaborador_contactos_emergencia');
         Schema::dropIfExists('colaborador_salarios');
         Schema::dropIfExists('colaborador_datos_medicos');
         Schema::dropIfExists('colaboradores');
