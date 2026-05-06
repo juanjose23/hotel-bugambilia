@@ -20,6 +20,7 @@ abstract class HotelException extends Exception implements HttpExceptionInterfac
 
     /**
      * Get the headers.
+     * @return array<string, string>
      */
     public function getHeaders(): array
     {
