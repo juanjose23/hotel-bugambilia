@@ -75,7 +75,7 @@ class CatalogoInfolist
                             ->icon(Heroicon::DocumentText)
                             ->schema([
                                 TextEntry::make('descripcion')
-                                    ->label(false)
+                                    ->hiddenLabel()
                                     ->placeholder('Sin descripción registrada.')
                                     ->prose(),
                             ])
@@ -107,7 +107,7 @@ class CatalogoInfolist
                         Group::make([
                             TextEntry::make('nombre_raiz')
                                 ->state(fn($record) => $record->nombre)
-                                ->label(false)
+                                ->hiddenLabel()
                                 ->weight(FontWeight::Black)
                                 ->size(TextSize::Large)
                                 ->color('primary')
@@ -124,8 +124,6 @@ class CatalogoInfolist
                             ->extraAttributes([
                                 'class' => 'h-12 w-1 bg-primary-500 mx-auto'
                             ]),
-
-                        // NODOS HIJOS (Grid de Tarjetas)
                         RepeatableEntry::make('children')
                             ->label('Subcategorias')
                             ->visible(fn($record) => $record?->children()->exists())
@@ -137,25 +135,25 @@ class CatalogoInfolist
                             ->schema([
                                 Group::make([
                                     TextEntry::make('nombre')
-                                        ->label(false)
+                                        ->hiddenLabel()
                                         ->weight(FontWeight::Bold)
                                         ->color('primary')
                                         ->icon(Heroicon::ChevronRight)
                                     ,
-                                    
+
                                     Group::make([
                                         TextEntry::make('codigo')
                                             ->badge()
                                             ->color('gray')
                                             ->size(TextSize::ExtraSmall),
-                                        
+
                                         TextEntry::make('cantidad_hijos')
                                             ->badge()
                                             ->color('info')
                                             ->formatStateUsing(fn ($state) => "{$state} ramas")
                                             ->visible(fn ($state) => $state > 0),
                                     ])
-                                
+
                                     ->columns(2),
                                 ])
                                 ->extraAttributes([

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Pais;
+use App\Models\Catalogos\Pais;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PaisFactory extends Factory
 {
+    /** @var class-string<Pais> */
+    protected $model = Pais::class;
     /**
      * Define the model's default state.
      *

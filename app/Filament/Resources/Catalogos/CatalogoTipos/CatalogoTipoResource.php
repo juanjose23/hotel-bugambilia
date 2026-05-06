@@ -5,12 +5,6 @@ namespace App\Filament\Resources\Catalogos\CatalogoTipos;
 use App\Enums\EstadoCatalogo;
 use App\Filament\Resources\Catalogos\CatalogoTipos\Pages\ManageCatalogoTipos;
 use App\Models\Catalogos\CatalogoTipo;
-use App\UseCases\CatalogoTipo\Commands\ActualizarCatalogoTipo;
-use App\UseCases\CatalogoTipo\Commands\EliminarCatalogoTipo;
-use App\UseCases\CatalogoTipo\Queries\ListarCatalogoTipoes;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Support\Enums\TextSize;
-use Illuminate\Database\Eloquent\Builder;
 use BackedEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -20,20 +14,31 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
+
 class CatalogoTipoResource extends Resource
 {
     protected static ?string $model = CatalogoTipo::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
+    public static function getNavigationGroup(): string|UnitEnum|null
+    {
+        return 'Gestión de Catálogos';
+    }
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::Bookmark;
+    public static function getNavigationIcon(): string|BackedEnum|null
+    {
+        return Heroicon::Bookmark;
+    }
+
     protected static ?string $modelLabel = 'Tipos de catálogos';
     protected static ?string $pluralModelLabel = 'Tipos de catálogo';
     public static function form(Schema $schema): Schema
@@ -105,15 +110,18 @@ class CatalogoTipoResource extends Resource
                         TextEntry::make('estado')
                             ->label('Estado')
                             ->badge()
-                            ->icon(fn ($state) => $state
+                            ->icon(
+                                fn($state) => $state
                                 ? Heroicon::CheckCircle
                                 : Heroicon::CheckBadge
                             )
-                            ->color(fn ($state): string =>
-                            EstadoCatalogo::colorFor($state)
+                            ->color(
+                                fn($state): string =>
+                                EstadoCatalogo::colorFor($state)
                             )
-                            ->formatStateUsing(fn ($state): string =>
-                            EstadoCatalogo::labelFor($state)
+                            ->formatStateUsing(
+                                fn($state): string =>
+                                EstadoCatalogo::labelFor($state)
                             ),
                     ]),
 
@@ -158,10 +166,8 @@ class CatalogoTipoResource extends Resource
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
-                    EditAction::make()
-                        ->using(fn(CatalogoTipo $record, array $data) => app(ActualizarCatalogoTipo::class)->execute($record, $data)),
-                    DeleteAction::make()
-                        ->using(fn(CatalogoTipo $record) => app(EliminarCatalogoTipo::class)->execute($record)),
+                    EditAction::make(),
+                    DeleteAction::make(),
                 ])->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
@@ -179,10 +185,10 @@ class CatalogoTipoResource extends Resource
     }
 
     /**
-     * @return Builder
+     * @return Builder<CatalogoTipo>
      */
     public static function getEloquentQuery(): Builder
     {
-        return app(ListarCatalogoTipoes::class)->execute([]);
+        return CatalogoTipo::query()->orderBy('nombre');
     }
 }
