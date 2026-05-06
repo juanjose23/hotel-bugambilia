@@ -4,8 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-
+return new class extends Migration
+{
     public function up(): void
     {
 
@@ -23,9 +23,7 @@ return new class extends Migration {
             $table->index(['estado']);
         });
 
-
         Schema::create('colaborador_datos_medicos', function (Blueprint $table) {
-
             $table->id();
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
@@ -57,7 +55,7 @@ return new class extends Migration {
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
                 ->cascadeOnDelete();
-            $table->decimal('salario', 12, 2);
+            $table->decimal('salario', 12);
             $table->date('fecha_inicio');
             $table->date('fecha_fin')->nullable();
             $table->tinyInteger('estado')->default(1);
@@ -65,9 +63,7 @@ return new class extends Migration {
             $table->index(['colaborador_id', 'fecha_inicio']);
         });
 
-
         Schema::create('colaborador_cargos_historial', function (Blueprint $table) {
-
             $table->id();
             $table->foreignId('colaborador_id')
                 ->constrained('colaboradores')
@@ -87,7 +83,6 @@ return new class extends Migration {
             $table->index(['departamento_id']);
         });
 
-
         Schema::create('colaborador_documentos', function (Blueprint $table) {
 
             $table->id();
@@ -102,7 +97,6 @@ return new class extends Migration {
 
     }
 
-
     public function down(): void
     {
 
@@ -114,5 +108,4 @@ return new class extends Migration {
         Schema::dropIfExists('colaboradores');
 
     }
-
 };

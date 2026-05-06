@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Persona;
+use App\Models\Personas\Persona;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;

@@ -2,10 +2,8 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos\Tables;
 
-use App\Models\Catalogos\Catalogo;
-use App\UseCases\Catalogo\Commands\ActualizarCatalogo;
-use App\UseCases\CatalogoTipo\Queries\ListarCatalogoTipoOptions;
 use App\Enums\EstadoCatalogo;
+use App\Models\Catalogos\CatalogoTipo;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -55,7 +53,7 @@ class CatalogosTable
             ->filters([
                 SelectFilter::make('catalogo_tipo_id')
                     ->label('Tipo')
-                    ->options(fn() => app(ListarCatalogoTipoOptions::class)->execute()),
+                    ->options(fn() => CatalogoTipo::query()->orderBy('nombre')->pluck('nombre', 'id')->all()),
                 SelectFilter::make('estado')
                     ->label('Estado')
                     ->options(EstadoCatalogo::options()),
@@ -64,7 +62,7 @@ class CatalogosTable
                 ViewAction::make(),
                 EditAction::make()
                     ->modalHeading('Editar catálogo')
-                    ->using(fn(Catalogo $record, array $data) => app(ActualizarCatalogo::class)->execute($record, $data)),
+                    ->modalWidth('4xl'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

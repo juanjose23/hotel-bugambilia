@@ -119,7 +119,7 @@ Use Case:
 
 namespace App\UseCases\Colaboradores;
 
-use App\Models\Colaborador;
+use App\Models\Colaboradores\Colaborador;
 
 class CrearColaborador
 {
