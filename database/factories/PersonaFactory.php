@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Persona;
-use App\Models\Pais;
+use App\Models\Catalogos\Pais;
+use App\Models\Personas\Persona;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PersonaFactory extends Factory
 {
+    /** @var class-string<Persona> */
+    protected $model = Persona::class;
     /**
      * Define the model's default state.
      *
