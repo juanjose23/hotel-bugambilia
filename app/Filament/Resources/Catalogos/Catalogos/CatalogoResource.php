@@ -11,20 +11,27 @@ use App\Filament\Resources\Catalogos\Catalogos\Tables\CatalogosTable;
 use App\Models\Catalogos\Catalogo;
 use BackedEnum;
 use Filament\Resources\Resource;
-use Illuminate\Database\Eloquent\Builder;
-use App\UseCases\Catalogo\Queries\ListarCatalogo;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
+
 class CatalogoResource extends Resource
 {
     protected static ?string $model = Catalogo::class;
 
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
+    public static function getNavigationGroup(): string|UnitEnum|null
+    {
+        return 'Gestión de Catálogos';
+    }
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::BookmarkSquare;
+    public static function getNavigationIcon(): string|BackedEnum|null
+    {
+        return Heroicon::BookmarkSquare;
+    }
+
     protected static ?string $modelLabel = 'Catálogos';
     protected static ?string $pluralModelLabel = 'Catálogos';
 
@@ -54,16 +61,13 @@ class CatalogoResource extends Resource
     {
         return [
             'index' => ListCatalogos::route('/'),
-            'view' => ViewCatalogo::route('/{record}'),
-            'edit' => EditCatalogo::route('/{record}/edit'),
         ];
     }
 
-    /**
-     * @return Builder
-     */
+
+    /** @return Builder<Catalogo> */
     public static function getEloquentQuery(): Builder
     {
-        return app(ListarCatalogo::class)->execute([]);
+        return Catalogo::query()->orderByDesc('id');
     }
 }

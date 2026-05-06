@@ -8,7 +8,7 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable;
 class CatalogoTipo extends Model  implements AuditableContract
 {
-    /** @use HasFactory<\Database\Factories\PaisFactory> */
+    /** @use HasFactory<\Database\Factories\CatalogoTipoFactory> */
     use HasFactory, Auditable;
     protected $table = 'catalogo_tipos';
     protected $guarded = [];

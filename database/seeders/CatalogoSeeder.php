@@ -105,6 +105,7 @@ class CatalogoSeeder extends Seeder
 
     /**
      * Helper para insertar múltiples registros con timestamps
+     * @param array<int, array<string, mixed>> $data
      */
     private function insertar(int $tipoId, array $data): void
     {
@@ -119,6 +120,7 @@ class CatalogoSeeder extends Seeder
 
     /**
      * Helper para insertar uno solo y devolver el ID (para jerarquías)
+     * @param array<string, mixed> $item
      */
     private function insertarGetId(int $tipoId, array $item): int
     {
