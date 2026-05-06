@@ -29,11 +29,19 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->colors([
                 'primary' => Color::hex('#711C37'),
             ])
+            ->brandName('Hotel Bugambilias')
+            ->brandLogo(asset('img/hotel-icon.png'))
+            ->favicon(asset('img/hotel-icon.png'))
             ->spa()
+            ->sidebarCollapsibleOnDesktop()
+            ->breadcrumbs(true)
+            ->maxContentWidth('7xl')
+            ->collapsibleNavigationGroups(true)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -42,7 +50,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->plugin(
                 AuthDesignerPlugin::make()

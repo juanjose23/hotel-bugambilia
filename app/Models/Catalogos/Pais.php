@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable;
 
+use App\Models\Personas\Persona;
+
 class Pais extends Model implements AuditableContract
 {
     /** @use HasFactory<\Database\Factories\PaisFactory> */

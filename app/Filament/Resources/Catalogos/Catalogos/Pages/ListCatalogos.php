@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Catalogos\Catalogos\Pages;
 
 use App\Filament\Resources\Catalogos\Catalogos\CatalogoResource;
-use App\UseCases\Catalogo\Commands\CrearCatalogo;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
@@ -16,8 +15,7 @@ class ListCatalogos extends ListRecords
         return [
             CreateAction::make()
                 ->modalHeading('Crear catálogo')
-                ->modalWidth('lg')
-                ->using(fn(array $data) => app(CrearCatalogo::class)->execute($data)),
+                ->modalWidth('4xl'),
         ];
     }
 }
