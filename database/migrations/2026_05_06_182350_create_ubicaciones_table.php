@@ -1,0 +1,50 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('ubicaciones', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('padre_id')
+                ->nullable()
+                ->comment('FK autoreferenciada. Nodo padre en la jerarquía (edificio > piso > sector > zona).')
+                ->constrained('ubicaciones')
+                ->cascadeOnUpdate()
+                ->nullOnDelete();
+            $table->enum('tipo', ['edificio', 'piso', 'sector', 'zona'])
+                ->comment('Nivel jerárquico físico: edificio, piso, sector o zona.');
+            $table->string('nombre', 150)
+                ->comment('Nombre descriptivo de la ubicación.');
+            $table->text('descripcion')
+                ->nullable()
+                ->comment('Información adicional de la ubicación.');
+            $table->integer('orden')
+                ->default(0)
+                ->comment('Número para ordenar las ubicaciones dentro del mismo nivel jerárquico.');
+            $table->integer('estado')->default(1)
+                ->comment('1 = activo, 0 = inactivo, 3 = en mantenimiento');
+            $table->timestamps();
+            $table->softDeletes();
+            $table->unique(['padre_id', 'orden']);
+            $table->index('padre_id');
+            $table->index('tipo');
+            $table->index(['padre_id', 'orden']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('ubicaciones');
+    }
+};
