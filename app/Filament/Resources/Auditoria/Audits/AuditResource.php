@@ -1,28 +1,27 @@
 <?php
 
-namespace App\Filament\Resources\Audits;
+namespace App\Filament\Resources\Auditoria\Audits;
 
-
-use App\Filament\Resources\Audits\Pages\ListAudits;
-use App\Filament\Resources\Audits\Pages\ViewAudit;
-use App\Filament\Resources\Audits\Schemas\AuditInfolist;
-use App\Filament\Resources\Audits\Tables\AuditsTable;
-use OwenIt\Auditing\Models\Audit;
+use App\Filament\Resources\Auditoria\Audits\Pages\ListAudits;
+use App\Filament\Resources\Auditoria\Audits\Pages\ViewAudit;
+use App\Filament\Resources\Auditoria\Audits\Schemas\AuditInfolist;
+use App\Filament\Resources\Auditoria\Audits\Tables\AuditsTable;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-
+use OwenIt\Auditing\Models\Audit;
+use UnitEnum;
 class AuditResource extends Resource
 {
     protected static ?string $model = Audit::class;
 
     protected static ?string $navigationLabel = 'Auditoria';
+    protected static ?string $pluralModelLabel = 'Auditoría de cambios';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShieldCheck;
-
-
+    protected static string|UnitEnum|null $navigationGroup = 'Auditoria';
 
     public static function infolist(Schema $schema): Schema
     {
@@ -33,7 +32,6 @@ class AuditResource extends Resource
     {
         return AuditsTable::configure($table);
     }
-
 
     public static function getPages(): array
     {

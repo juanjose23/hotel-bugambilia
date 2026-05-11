@@ -2,9 +2,7 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos;
 
-use App\Filament\Resources\Catalogos\Catalogos\Pages\EditCatalogo;
 use App\Filament\Resources\Catalogos\Catalogos\Pages\ListCatalogos;
-use App\Filament\Resources\Catalogos\Catalogos\Pages\ViewCatalogo;
 use App\Filament\Resources\Catalogos\Catalogos\Schemas\CatalogoForm;
 use App\Filament\Resources\Catalogos\Catalogos\Schemas\CatalogoInfolist;
 use App\Filament\Resources\Catalogos\Catalogos\Tables\CatalogosTable;
@@ -21,7 +19,6 @@ class CatalogoResource extends Resource
 {
     protected static ?string $model = Catalogo::class;
 
-
     public static function getNavigationGroup(): string|UnitEnum|null
     {
         return 'Gestión de Catálogos';
@@ -33,6 +30,7 @@ class CatalogoResource extends Resource
     }
 
     protected static ?string $modelLabel = 'Catálogos';
+
     protected static ?string $pluralModelLabel = 'Catálogos';
 
     public static function form(Schema $schema): Schema
@@ -63,7 +61,6 @@ class CatalogoResource extends Resource
             'index' => ListCatalogos::route('/'),
         ];
     }
-
 
     /** @return Builder<Catalogo> */
     public static function getEloquentQuery(): Builder

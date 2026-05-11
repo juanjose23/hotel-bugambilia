@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Crea la tabla ubicaciones para la jerarquía física del hotel.
+     * Estructura de árbol con niveles: edificio > piso > sector > zona.
+     * Se usa para asignar inventario, colaboradores o servicios
+     * a ubicaciones físicas específicas dentro del hotel.
      */
     public function up(): void
     {

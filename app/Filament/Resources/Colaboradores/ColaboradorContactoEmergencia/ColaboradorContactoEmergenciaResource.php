@@ -19,6 +19,7 @@ class ColaboradorContactoEmergenciaResource extends Resource
     protected static ?string $model = ColaboradorContactoEmergencia::class;
 
     protected static ?string $modelLabel = 'Contacto de Emergencia';
+
     protected static ?string $pluralModelLabel = 'Contactos de Emergencia';
 
     public static function getNavigationGroup(): string|UnitEnum|null

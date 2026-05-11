@@ -17,7 +17,7 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class User extends Authenticatable implements AuditableContract
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, Auditable;
+    use Auditable, HasFactory, Notifiable;
 
     /**
      * Get the attributes that should be cast.

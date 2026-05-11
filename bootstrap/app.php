@@ -2,6 +2,7 @@
 
 use App\Exceptions\ErrorInternoException;
 use App\Exceptions\HotelException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Illuminate\Database\QueryException $e) {
+        $exceptions->render(function (QueryException $e) {
             return response()->view('errors.500', [
                 'exception' => new ErrorInternoException(
                     'Ha ocurrido un error en la base de datos. Por favor, verifique la información e intente de nuevo.'

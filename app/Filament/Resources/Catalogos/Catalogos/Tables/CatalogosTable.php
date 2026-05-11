@@ -38,8 +38,8 @@ class CatalogosTable
                     ->label('Estado')
                     ->searchable()
                     ->badge()
-                    ->color(fn($state): string => EstadoCatalogo::colorFor($state))
-                    ->formatStateUsing(fn($state): string => EstadoCatalogo::labelFor($state))
+                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -53,7 +53,7 @@ class CatalogosTable
             ->filters([
                 SelectFilter::make('catalogo_tipo_id')
                     ->label('Tipo')
-                    ->options(fn() => CatalogoTipo::query()->orderBy('nombre')->pluck('nombre', 'id')->all()),
+                    ->options(fn () => CatalogoTipo::query()->orderBy('nombre')->pluck('nombre', 'id')->all()),
                 SelectFilter::make('estado')
                     ->label('Estado')
                     ->options(EstadoCatalogo::options()),

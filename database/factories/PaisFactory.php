@@ -12,6 +12,7 @@ class PaisFactory extends Factory
 {
     /** @var class-string<Pais> */
     protected $model = Pais::class;
+
     /**
      * Define the model's default state.
      *

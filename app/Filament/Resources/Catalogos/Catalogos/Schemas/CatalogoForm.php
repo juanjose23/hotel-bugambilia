@@ -31,7 +31,7 @@ class CatalogoForm
                             ->searchable()
                             ->prefixIcon(Heroicon::Tag)
                             ->helperText('Selecciona el tipo de catálogo. Determina el conjunto de opciones disponibles.')
-                            ->options(fn() => CatalogoTipo::query()->orderBy('nombre')->pluck('nombre', 'id')->all()),
+                            ->options(fn () => CatalogoTipo::query()->orderBy('nombre')->pluck('nombre', 'id')->all()),
 
                         Select::make('padre_id')
                             ->label('Padre')
@@ -39,12 +39,12 @@ class CatalogoForm
                             ->searchable()
                             ->prefixIcon(Heroicon::Square2Stack)
                             ->helperText('Elemento Categoria opcional para estructuras jerárquicas.')
-                            ->options(fn(callable $get) => Catalogo::query()
-                                ->when($get('catalogo_tipo_id'), fn($query, $catalogoTipoId) => $query->where('catalogo_tipo_id', $catalogoTipoId))
+                            ->options(fn (callable $get) => Catalogo::query()
+                                ->when($get('catalogo_tipo_id'), fn ($query, $catalogoTipoId) => $query->where('catalogo_tipo_id', $catalogoTipoId))
                                 ->orderBy('nombre')
                                 ->pluck('nombre', 'id')
                                 ->all())
-                            ->rules(fn(callable $get) => [
+                            ->rules(fn (callable $get) => [
                                 function ($attribute, $value, $fail) use ($get) {
                                     if ($value && $get('id') && (int) $value === (int) $get('id')) {
                                         $fail('El padre no puede ser el mismo registro.');
@@ -59,9 +59,9 @@ class CatalogoForm
                             ->reactive()
                             ->prefixIcon(Heroicon::Hashtag)
                             ->helperText('Código único dentro del tipo; usado en integraciones y seeds.')
-                            ->rules(fn(callable $get) => [
+                            ->rules(fn (callable $get) => [
                                 Rule::unique('catalogos', 'codigo')
-                                    ->where(fn($query) => $query->where('catalogo_tipo_id', $get('catalogo_tipo_id')))
+                                    ->where(fn ($query) => $query->where('catalogo_tipo_id', $get('catalogo_tipo_id')))
                                     ->ignore($get('id') ?? null),
                             ]),
 

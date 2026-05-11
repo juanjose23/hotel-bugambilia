@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorDatosMedicos\Tables;
 
-use App\Enums\EstadoCatalogo;
 use App\UseCases\Colaboradores\ObtenerNombreCompleto;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
