@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Models\Personas;
-use App\Models\Colaboradores\Colaborador;
+
 use App\Models\Catalogos\Pais;
+use App\Models\Colaboradores\Colaborador;
+use Database\Factories\PersonaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,10 +15,19 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 class Persona extends Model implements AuditableContract
 {
-    /** @use HasFactory<\Database\Factories\PersonaFactory> */
-    use HasFactory, SoftDeletes, Auditable;
+    /** @use HasFactory<PersonaFactory> */
+    use Auditable, HasFactory, SoftDeletes;
+
     protected $table = 'personas';
-    protected $guarded = [];
+
+    protected $fillable = [
+        'primer_nombre',
+        'segundo_nombre',
+        'pais_id',
+        'tipo_persona',
+        'telefono',
+        'direccion',
+    ];
 
     /** @return BelongsTo<Pais, $this> */
     public function pais(): BelongsTo
@@ -24,8 +35,7 @@ class Persona extends Model implements AuditableContract
         return $this->belongsTo(Pais::class);
     }
 
-
-   /** @return hasOne<Colaborador,$this>*/
+    /** @return hasOne<Colaborador,$this>*/
     public function colaborador(): HasOne
     {
         return $this->hasOne(Colaborador::class);

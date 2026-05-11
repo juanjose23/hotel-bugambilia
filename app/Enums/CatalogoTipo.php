@@ -18,6 +18,10 @@ enum CatalogoTipo: string
     case TIPO_CLIENTE = 'TIPO_CLIENTE';
     case SECTOR_COMERCIAL = 'SECTOR_COMERCIAL';
 
+    // Productos y Variantes
+    case CATEGORIA_PRODUCTO = 'CATEGORIA_PRODUCTO';
+    case MARCA = 'MARCA';
+    case UNIDAD_MEDIDA = 'UNIDAD_MEDIDA';
     // Inventario
     case TIPO_MOVIMIENTO_INV = 'TIPO_MOVIMIENTO_INV';
 

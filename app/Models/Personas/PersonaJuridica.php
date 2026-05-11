@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 class PersonaJuridica extends Model implements AuditableContract
 {
     use Auditable,SoftDeletes;
+
     protected $table = 'personas_juridicas';
+
     protected $guarded = [];
 
     /** @return BelongsTo<Persona, $this> */

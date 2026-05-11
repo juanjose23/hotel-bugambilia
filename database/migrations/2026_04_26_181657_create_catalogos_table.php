@@ -4,28 +4,33 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
-     * Run the migrations.
+     * Crea la tabla catalogos (catálogos dinámicos del sistema).
+     * Almacena valores de catálogos clasificados por tipo.
+     * Soporta jerarquía padre-hijo (autoreferencia) para estructuras
+     * de árbol. Ejemplos: cargos, departamentos, marcas, categorías,
+     * unidades de medida, tipos de cliente, proveedores, etc.
      */
     public function up(): void
     {
-        //
         Schema::create('catalogos', function (Blueprint $table) {
-
             $table->id();
             $table->foreignId('catalogo_tipo_id')
+                ->comment('FK al tipo de catálogo al que pertenece este registro')
                 ->constrained('catalogo_tipos');
             $table->foreignId('padre_id')
                 ->nullable()
+                ->comment('FK autoreferenciada para jerarquías padre-hijo')
                 ->constrained('catalogos');
-            $table->string('codigo', 50);
-            $table->string('nombre', 200);
-            $table->text('descripcion')->nullable();
-            $table->integer('orden')->default(0);
-            $table->integer('estado')->default(1);
+            $table->string('codigo', 50)->comment('Código único dentro del tipo de catálogo');
+            $table->string('nombre', 200)->comment('Nombre del valor de catálogo');
+            $table->text('descripcion')->nullable()->comment('Descripción opcional del valor');
+            $table->integer('orden')->default(0)->comment('Orden de visualización dentro del tipo');
+            $table->integer('estado')->default(1)->comment('1=activo, 0=inactivo');
             $table->timestamps();
-            $table->unique(['catalogo_tipo_id', 'codigo']);
+            $table->unique(['catalogo_tipo_id', 'codigo'], 'uq_catalogos_tipo_codigo');
         });
     }
 

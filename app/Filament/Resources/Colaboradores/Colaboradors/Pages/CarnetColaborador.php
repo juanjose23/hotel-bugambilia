@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
+
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
-use Filament\Resources\Pages\Page;
-use Filament\Resources\Pages\Concerns\InteractsWithRecord;
+use App\Models\Personas\Persona;
 use App\UseCases\Colaboradores\ObtenerDatosCarnet;
+use Filament\Resources\Pages\Concerns\InteractsWithRecord;
+use Filament\Resources\Pages\Page;
+
 class CarnetColaborador extends Page
 {
     use InteractsWithRecord;
@@ -30,11 +33,10 @@ class CarnetColaborador extends Page
             'colaborador.cargosHistorial.departamento',
         ]);
 
-        /** @var \App\Models\Personas\Persona $persona */
+        /** @var Persona $persona */
         $persona = $this->record;
         $this->carnetData = app(ObtenerDatosCarnet::class)->ejecutar($persona);
     }
-
 
     protected function authorizeAccess(): void
     {
@@ -50,6 +52,4 @@ class CarnetColaborador extends Page
     {
         return 'full';
     }
-
-
 }

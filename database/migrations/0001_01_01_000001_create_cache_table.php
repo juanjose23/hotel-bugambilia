@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tablas nativas de Laravel para el sistema de caché y bloqueos atómicos.
+     * Requeridas para el funcionamiento de cache driver database y job batches.
      */
     public function up(): void
     {

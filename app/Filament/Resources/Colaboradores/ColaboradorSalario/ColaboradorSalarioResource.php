@@ -19,6 +19,7 @@ class ColaboradorSalarioResource extends Resource
     protected static ?string $model = ColaboradorSalario::class;
 
     protected static ?string $modelLabel = 'Salario';
+
     protected static ?string $pluralModelLabel = 'Historial de Salarios';
 
     public static function getNavigationGroup(): string|UnitEnum|null

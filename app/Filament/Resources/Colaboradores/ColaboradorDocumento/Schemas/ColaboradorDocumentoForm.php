@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorDocumento\Schemas;
 
-use App\Enums\EstadoCatalogo;
 use App\UseCases\Colaboradores\ObtenerNombreCompleto;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;

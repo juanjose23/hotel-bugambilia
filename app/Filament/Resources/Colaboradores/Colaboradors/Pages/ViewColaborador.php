@@ -23,7 +23,7 @@ class ViewColaborador extends ViewRecord
             Action::make('carnet')
                 ->label('Carnet')
                 ->icon('heroicon-o-identification')
-                ->url(fn(): string => $this->getResourceUrl('carnet'))
+                ->url(fn (): string => $this->getResourceUrl('carnet'))
                 ->openUrlInNewTab(),
             EditAction::make()
                 ->modalWidth('7xl'),

@@ -2,16 +2,21 @@
 
 namespace App\Models\Colaboradores;
 
+use App\Models\Catalogos\Catalogo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 class ColaboradorCargoHistorial extends Model implements AuditableContract
 {
-    use SoftDeletes, Auditable;
+    use Auditable, SoftDeletes;
+
     protected $table = 'colaborador_cargos_historial';
+
     protected $guarded = [];
+
     protected $casts = [
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
@@ -23,15 +28,15 @@ class ColaboradorCargoHistorial extends Model implements AuditableContract
         return $this->belongsTo(Colaborador::class);
     }
 
-    /** @return BelongsTo<\App\Models\Catalogos\Catalogo, $this> */
+    /** @return BelongsTo<Catalogo, $this> */
     public function cargo(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Catalogos\Catalogo::class, 'cargo_id');
+        return $this->belongsTo(Catalogo::class, 'cargo_id');
     }
 
-    /** @return BelongsTo<\App\Models\Catalogos\Catalogo, $this> */
+    /** @return BelongsTo<Catalogo, $this> */
     public function departamento(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Catalogos\Catalogo::class, 'departamento_id');
+        return $this->belongsTo(Catalogo::class, 'departamento_id');
     }
 }

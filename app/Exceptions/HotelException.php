@@ -3,7 +3,6 @@
 namespace App\Exceptions;
 
 use Exception;
-
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 abstract class HotelException extends Exception implements HttpExceptionInterface
@@ -20,6 +19,7 @@ abstract class HotelException extends Exception implements HttpExceptionInterfac
 
     /**
      * Get the headers.
+     *
      * @return array<string, string>
      */
     public function getHeaders(): array

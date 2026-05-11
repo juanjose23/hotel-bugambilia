@@ -7,12 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Agrega soft deletes a las subtablas de colaboradores que
+     * originalmente no fueron creadas con eliminación suave.
+     * Permite mantener integridad histórica al eliminar registros
+     * de datos médicos, contactos, salarios, cargos y documentos.
      */
     public function up(): void
     {
         Schema::table('colaborador_datos_medicos', function (Blueprint $table) {
-            $table->softDeletes();
+            $table->softDeletes()->comment('Marca de tiempo de eliminación suave');
         });
 
         Schema::table('colaborador_contactos_emergencia', function (Blueprint $table) {

@@ -39,12 +39,13 @@ enum TipoIdentificacion: string
 
     /**
      * Opciones para Select (Filament / Forms)
+     *
      * @return array<string, string>
      */
     public static function options(): array
     {
         return collect(self::cases())
-            ->mapWithKeys(fn($case) => [
+            ->mapWithKeys(fn ($case) => [
                 $case->value => $case->label(),
             ])
             ->toArray();
@@ -56,7 +57,7 @@ enum TipoIdentificacion: string
             return $value;
         }
 
-        if (!$value) {
+        if (! $value) {
             return null;
         }
 

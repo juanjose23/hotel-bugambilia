@@ -19,6 +19,7 @@ class ColaboradorDatosMedicosResource extends Resource
     protected static ?string $model = ColaboradorDatosMedicos::class;
 
     protected static ?string $modelLabel = 'Ficha Médica';
+
     protected static ?string $pluralModelLabel = 'Salud y Datos Médicos';
 
     public static function getNavigationGroup(): string|UnitEnum|null

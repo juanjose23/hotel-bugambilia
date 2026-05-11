@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Crea la tabla de auditoría del paquete owen-it/laravel-auditing.
+     * Registra automáticamente todas las operaciones CRUD sobre los
+     * modelos auditados (crear, actualizar, eliminar, restaurar).
+     * Almacena valores anteriores y nuevos, URL, IP, agente de usuario.
      */
     public function up(): void
     {
@@ -15,23 +18,22 @@ return new class extends Migration
         $table = config('audit.drivers.database.table', 'audits');
 
         Schema::connection($connection)->create($table, function (Blueprint $table) {
-
             $morphPrefix = config('audit.user.morph_prefix', 'user');
 
             $table->bigIncrements('id');
-            $table->string($morphPrefix . '_type')->nullable();
-            $table->unsignedBigInteger($morphPrefix . '_id')->nullable();
-            $table->string('event');
+            $table->string($morphPrefix.'_type')->nullable()->comment('Tipo de modelo del usuario que realizó la acción');
+            $table->unsignedBigInteger($morphPrefix.'_id')->nullable()->comment('ID del usuario que realizó la acción');
+            $table->string('event')->comment('Evento registrado: created, updated, deleted, restored');
             $table->morphs('auditable');
-            $table->text('old_values')->nullable();
-            $table->text('new_values')->nullable();
-            $table->text('url')->nullable();
-            $table->ipAddress('ip_address')->nullable();
-            $table->string('user_agent', 1023)->nullable();
-            $table->string('tags')->nullable();
+            $table->text('old_values')->nullable()->comment('Valores anteriores en formato JSON');
+            $table->text('new_values')->nullable()->comment('Valores nuevos en formato JSON');
+            $table->text('url')->nullable()->comment('URL donde se realizó la acción');
+            $table->ipAddress('ip_address')->nullable()->comment('Dirección IP del usuario');
+            $table->string('user_agent', 1023)->nullable()->comment('Agente de usuario del navegador');
+            $table->string('tags')->nullable()->comment('Etiquetas adicionales del evento');
             $table->timestamps();
 
-            $table->index([$morphPrefix . '_id', $morphPrefix . '_type']);
+            $table->index([$morphPrefix.'_id', $morphPrefix.'_type']);
         });
     }
 

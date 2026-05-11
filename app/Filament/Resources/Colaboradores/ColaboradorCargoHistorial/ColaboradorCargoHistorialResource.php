@@ -19,6 +19,7 @@ class ColaboradorCargoHistorialResource extends Resource
     protected static ?string $model = ColaboradorCargoHistorial::class;
 
     protected static ?string $modelLabel = 'Cargo';
+
     protected static ?string $pluralModelLabel = 'Historial de Cargos';
 
     public static function getNavigationGroup(): string|UnitEnum|null
@@ -58,5 +59,4 @@ class ColaboradorCargoHistorialResource extends Resource
             'index' => ManageColaboradorCargoHistorials::route('/'),
         ];
     }
-
 }

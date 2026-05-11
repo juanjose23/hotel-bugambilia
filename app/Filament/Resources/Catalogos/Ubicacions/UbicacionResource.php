@@ -24,6 +24,7 @@ class UbicacionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::MapPin;
 
+    protected static ?string $pluralModelLabel = 'Ubicaciones';
     protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
 
     protected static ?int $navigationSort = 3;
