@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class PaisSeeder extends Seeder
@@ -16,8 +16,9 @@ class PaisSeeder extends Seeder
         //
         $path = base_path('vendor/stefangabos/world_countries/data/countries/es/countries.json');
 
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             $this->command->error("No se encontró el archivo JSON en: $path");
+
             return;
         }
 
@@ -39,5 +40,4 @@ class PaisSeeder extends Seeder
 
         $this->command->info('¡Tabla de países cargada con éxito!');
     }
-
 }

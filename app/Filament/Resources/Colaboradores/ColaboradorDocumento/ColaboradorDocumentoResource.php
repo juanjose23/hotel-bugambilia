@@ -19,6 +19,7 @@ class ColaboradorDocumentoResource extends Resource
     protected static ?string $model = ColaboradorDocumento::class;
 
     protected static ?string $modelLabel = 'Documento';
+
     protected static ?string $pluralModelLabel = 'Expediente Digital';
 
     public static function getNavigationGroup(): string|UnitEnum|null

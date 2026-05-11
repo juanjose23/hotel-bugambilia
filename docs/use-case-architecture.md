@@ -1,192 +1,301 @@
-# Arquitectura Use Case para el Hotel
+# Arquitectura Use Case — Hotel Bugambilias
 
-Este documento define el estandar oficial para disenar y construir funcionalidades del Hotel usando Use Case Driven Development en Laravel.
+Este documento es la **única fuente de verdad** sobre la arquitectura, convenciones y estándares del proyecto. Todo código nuevo debe cumplir estas reglas.
 
-## 1. Metodologia de diseno
+---
 
-Usamos Use Case Driven Development.
+## 1. Metodología de diseño
 
-Principio:
+Usamos **Use Case Driven Development**.
 
-- El sistema se diseña alrededor de casos de uso del negocio.
-- Cada accion importante del dominio vive en una clase de Use Case.
+- El sistema se diseña alrededor de **casos de uso del negocio** (no de pantallas ni tablas).
+- Cada acción importante del dominio vive en su propia clase **Use Case**.
+- Las capas siguen una **Clean Architecture simplificada** con 4 niveles.
 
-Ejemplos:
+### Capas oficiales
 
-- CrearPersona
-- RegistrarCliente
-- RegistrarColaborador
-- AsignarCargo
-- RegistrarSalario
+| Capa | Directorio | Responsabilidad |
+|------|-----------|----------------|
+| **Presentation** | `Http/Controllers/`, `Filament/Resources/`, `routes/` | Recibir input del usuario, delegar a Use Cases |
+| **Application** | `UseCases/`, `Http/Requests/`, `Rules/` | Lógica de negocio, validación, orquestación |
+| **Domain** | `Models/`, `Enums/` | Datos, relaciones y reglas del negocio |
+| **Infrastructure** | `config/`, `database/`, `Support/` | Persistencia, configuraciones, helpers |
 
-## 2. Arquitectura recomendada
+### Flujo de ejecución
 
-Aplicamos una Clean Architecture simplificada con cuatro capas:
-
-- Presentation
-- Application
-- Domain
-- Infrastructure
-
-Estructura sugerida en Laravel:
-
-```text
-app
-├── Domain
-│   ├── Models
-│   └── Enums
-│
-├── UseCases
-│   └── Colaboradores
-│       ├── CrearColaborador.php
-│       ├── ActualizarColaborador.php
-│       └── CambiarSalario.php
-│
-├── Http
-│   ├── Controllers
-│   └── Requests
-│
-├── Policies
-└── Support
+```
+Controller / Filament Resource
+       ↓
+    UseCase
+       ↓
+     Model
 ```
 
-Flujo de ejecucion:
+Los **Controllers** solo orquestan request/response. La lógica de negocio **siempre** va en Use Cases.
 
-```text
-Controller
-   ↓
-UseCase
-   ↓
-Model
+---
+
+## 2. Estructura real del proyecto
+
+```
+app/
+├── Actions/                  # Acciones específicas de Filament/UI
+│   └── Catalogos/
+│       ├── GenerarEtiquetasCodigosBarrasAction.php
+│       └── GenerarReporteProductosAction.php
+├── Console/Commands/         # Comandos Artisan personalizados
+├── Docs/                     # Documentación técnica (ej. REPORTES.md)
+├── Enums/                    # Enums con valores string
+│   ├── CatalogoTipo.php
+│   ├── EstadoCatalogo.php
+│   ├── Sexo.php
+│   ├── TipoIdentificacion.php
+│   ├── TipoProducto.php
+│   ├── TipoSangre.php
+│   └── TipoUbicacion.php
+├── Exceptions/               # Excepciones personalizadas del dominio
+│   ├── AccesoDenegadoException.php
+│   ├── ErrorInternoException.php
+│   ├── HotelException.php
+│   ├── MantenimientoException.php
+│   └── RecursoNoEncontradoException.php
+├── Filament/Resources/       # Panel admin (auto-descubiertos)
+│   ├── Audits/
+│   ├── Catalogos/
+│   │   ├── Catalogos/
+│   │   ├── CatalogoTipos/
+│   │   ├── Pais/
+│   │   ├── Productos/
+│   │   └── Ubicacions/
+│   └── Colaboradores/
+│       ├── ColaboradorCargoHistorial/
+│       ├── ColaboradorContactoEmergencia/
+│       ├── ColaboradorDatosMedicos/
+│       ├── ColaboradorDocumento/
+│       ├── Colaboradors/
+│       └── ColaboradorSalario/
+├── Http/
+│   ├── Controllers/          # Solo request/response (uso mínimo)
+│   │   └── Catalogos/
+│   └── Requests/             # Form Requests (validación)
+│       ├── Colaboradores/
+│       └── Personas/
+├── Models/                   # Eloquent models
+│   ├── Audits/
+│   │   └── AuditoriaReporte.php
+│   ├── Catalogos/
+│   │   ├── Catalogo.php
+│   │   ├── CatalogoTipo.php
+│   │   ├── Pais.php
+│   │   ├── Producto.php
+│   │   ├── ProductoVariante.php
+│   │   └── Ubicacion.php
+│   ├── Colaboradores/
+│   │   ├── Colaborador.php
+│   │   ├── ColaboradorCargoHistorial.php
+│   │   ├── ColaboradorContactoEmergencia.php
+│   │   ├── ColaboradorDatosMedicos.php
+│   │   ├── ColaboradorDocumento.php
+│   │   └── ColaboradorSalario.php
+│   ├── General/
+│   │   └── Imagen.php
+│   ├── Personas/
+│   │   ├── Persona.php
+│   │   ├── PersonaJuridica.php
+│   │   └── PersonaNatural.php
+│   └── User.php
+├── Providers/                # Service Providers
+│   └── Filament/
+├── Rules/                    # Reglas de validación personalizadas
+│   ├── Colaboradores/
+│   └── Personas/
+├── Support/                  # Helpers
+│   └── ReportePaginador.php
+└── UseCases/                 # Lógica de negocio pura
+    ├── Base/                 # Base classes (intención: BaseCreateUseCase, etc.)
+    ├── Catalogos/
+    │   ├── ExportProductosUseCase.php
+    │   ├── GenerarCodigoBarrasUseCase.php
+    │   └── ImportProductosUseCase.php
+    ├── Colaboradores/
+    │   ├── CrearNuevoSalario.php
+    │   ├── GenerarCodigo.php
+    │   ├── ObtenerDatosCarnet.php
+    │   └── ObtenerNombreCompleto.php
+    └── Reportes/
+        ├── RegistrarAuditoriaReporteUseCase.php
+        └── RegistrarReporteUseCase.php
 ```
 
-## 3. Patrones de diseno
+---
 
-Usar solo los patrones necesarios para mantener bajo boilerplate.
+## 3. Action vs UseCase
 
-Patrones recomendados:
+| | **Action** (`app/Actions/`) | **UseCase** (`app/UseCases/`) |
+|---|---|---|
+| Propósito | Tareas atómicas vinculadas a la UI (Filament) | Lógica de negocio pura, reutilizable |
+| Ejemplo | `GenerarReporteProductosAction` | `ExportProductosUseCase` |
+| Dependencias | Puede llamar Use Cases, PDF, Barcode | Modelos, servicios externos |
+| Testing | Se prueba integrado con la UI | Se prueba unitariamente |
 
-- Use Case / Interactor: logica de negocio.
-- Active Record: modelos Eloquent.
-- Factory: creacion de objetos complejos.
-- Strategy: comportamientos variables.
-- DTO: transporte de datos entre capas.
+**Regla:** Un Use Case nunca depende de un Action. Un Action puede llamar Use Cases.
 
-Patrones a evitar (salvo necesidad real):
+---
 
-- Repository pattern generico.
-- Exceso de interfaces.
-- Builders innecesarios.
-- DDD completo para modulos pequenos.
+## 4. Filament Resources
 
-## 4. Convenciones de nombres
+Cada Resource sigue esta estructura:
 
-### Casos de uso
+```
+app/Filament/Resources/{Group}/{ResourceName}/
+├── {ResourceName}Resource.php   # Clase principal del Resource
+├── Schemas/                     # Form schemas e infolists
+│   ├── {ResourceName}Form.php
+│   └── {ResourceName}Infolist.php (opcional)
+├── Tables/                      # Configuración de tabla
+│   └── {ResourceName}Table.php
+└── Pages/                       # Páginas del Resource
+    ├── List{Name}.php
+    ├── Create{Name}.php
+    ├── Edit{Name}.php
+    └── View{Name}.php
+```
 
-- `CrearCliente`
-- `ActualizarCliente`
-- `EliminarCliente`
-- `RegistrarPago`
-- `AsignarCargo`
+Los Resources se auto-descubren desde `app/Filament/Resources/`.
 
-### Modelos
+**Convenciones específicas de Filament:**
+- Usar `->configure($table)` no `::configure($table)` para métodos de tabla.
+- En forms: parámetro `Schema $schema`, retornar `$schema->components(...)`.
+- El formulario de `ColaboradorForm` expone dos métodos: `getRegistroInicialSchema()` y `getEdicionCompletaSchema()`.
 
-- Singular:
-  - `Persona`
-  - `Cliente`
-  - `Colaborador`
-  - `Proveedor`
+---
 
-### Tablas
+## 5. Convenciones de código
 
-- Plural:
-  - `personas`
-  - `clientes`
-  - `colaboradores`
-  - `proveedores`
+### Idioma
 
-### Relaciones Eloquent
+- **Todo en español:** clases, métodos, variables, tablas, columnas, documentación, commits.
+- Solo se permite inglés para palabras reservadas del lenguaje, nombres propios del framework o estándares técnicos (`id`, `created_at`, `SoftDeletes`, `Auth`, etc.).
 
-- Singular para `belongsTo` y `hasOne`.
-- Plural para `hasMany` y `belongsToMany`.
+### Nombres de clases y archivos
 
-## 5. Ejemplo base
+| Tipo | Convención | Ejemplo |
+|------|-----------|---------|
+| Modelo | Singular, PascalCase | `Persona`, `Colaborador`, `Producto` |
+| Use Case | Verbo + objeto, PascalCase | `CrearColaborador`, `ExportProductosUseCase` |
+| Action | Verbo + Action, PascalCase | `GenerarReporteProductosAction` |
+| Controller | Sufijo `Controller` | `ColaboradorController` |
+| Form Request | Store/Update + entidad | `StoreColaboradorRequest` |
+| Enum | PascalCase | `TipoProducto`, `Sexo`, `EstadoCatalogo` |
+| Exception | Sufijo `Exception` | `RecursoNoEncontradoException` |
+| Migration | Descriptivo snake_case | `create_colaboradores_table` |
+| Model relationship | Singular (belongsTo/hasOne), Plural (hasMany/belongsToMany) | `$colaborador->salarios()`, `$colaborador->persona()` |
 
-Use Case:
+### Tablas y columnas
+
+- Tablas: plural snake_case (`colaboradores`, `producto_variantes`).
+- Columnas: snake_case (`primer_nombre`, `fecha_nacimiento`).
+- Foreign keys: `<modelo_singular>_id` (`persona_id`, `producto_id`).
+
+### Variables y métodos
+
+- Variables: `$camelCase`, booleanos con prefijo `is`, `has`, `can`.
+- Métodos: `camelCase()` con verbos claros (`crear()`, `obtenerNombreCompleto()`), booleanos con prefijo semántico (`isActivo()`, `hasSalario()`).
+
+### Enums
 
 ```php
-<?php
-
-namespace App\UseCases\Colaboradores;
-
-use App\Models\Colaboradores\Colaborador;
-
-class CrearColaborador
+enum TipoProducto: string
 {
-    public function execute(array $data): Colaborador
-    {
-        return Colaborador::create($data);
-    }
+    case PERECEDERO = 'perecdero';
+    case NO_PERECEDERO = 'no_perecdero';
 }
 ```
 
-Controller:
+Nombre PascalCase, casos UPPER_SNAKE_CASE.
 
-```php
-<?php
+### Constantes
 
-namespace App\Http\Controllers;
+`UPPER_SNAKE_CASE`: `MAX_INTENTOS_LOGIN`, `CACHE_TTL_PRODUCTOS`.
 
-use App\UseCases\Colaboradores\CrearColaborador;
-use Illuminate\Http\Request;
+---
 
-class ColaboradorController extends Controller
-{
-    public function store(Request $request, CrearColaborador $useCase)
-    {
-        return $useCase->execute($request->all());
-    }
-}
+## 6. Base de datos
+
+- Migraciones con nombres descriptivos: `create_{tabla}_table`, `add_{columna}_to_{tabla}_table`.
+- Usar tipos de columna nativos de Laravel.
+- Timestamps `created_at` / `updated_at` automáticos.
+- SoftDeletes cuando aplique.
+
+---
+
+## 7. Rutas
+
+- Solo `web.php` y `console.php`.
+- El panel admin usa Filament (rutas automáticas en `/admin`).
+- Para rutas web tradicionales: resources en plural.
+- API REST opcional: `GET /recurso`, `POST /recurso`, `PUT /recurso/{id}`, `DELETE /recurso/{id}`.
+
+---
+
+## 8. Eventos y Jobs
+
+- Eventos: nombre en pasado PascalCase (`ColaboradorCreado`, `ReporteGenerado`).
+- Jobs: verbo + objeto + sufijo `Job` (`EnviarCorreoBienvenidaJob`, `ProcesarPagoJob`).
+
+---
+
+## 9. Pruebas
+
+- Framework: **Pest PHP 4.x**.
+- Test files: `{Sujeto}Test.php` (ej. `ColaboradorServiceTest.php`).
+- Ubicación: `tests/Feature/` o `tests/Unit/`.
+- Estrategia: pruebas unitarias para Use Cases, pruebas de feature para Filament Resources.
+
+---
+
+## 10. Commits
+
+Usar **Conventional Commits**:
+
+```
+feat: agregar modulo de colaboradores
+fix: corregir error al calcular salario
+refactor: extraer logica de generacion de codigo
+test: agregar pruebas para CrearNuevoSalario
 ```
 
-## 6. Arquitectura modular recomendada
+---
 
-Para ERP/SaaS, organizar por modulos funcionales:
+## 11. Excepciones
 
-```text
-app
-├── Domain
-│   ├── Models
-│   │   ├── Persona
-│   │   ├── Cliente
-│   │   ├── Colaborador
-│   │   └── Proveedor
-│
-├── UseCases
-│   ├── Personas
-│   ├── Clientes
-│   ├── Colaboradores
-│   └── Proveedores
-│
-├── Http
-│   ├── Controllers
-│   └── Requests
-│
-└── Support
-```
+Todas las excepciones personalizadas extienden `HotelException`:
 
-Beneficios:
+- `AccesoDenegadoException` — Permisos insuficientes.
+- `RecursoNoEncontradoException` — Entidad no encontrada.
+- `ErrorInternoException` — Error inesperado del sistema.
+- `MantenimientoException` — Sistema en mantenimiento.
 
-- Separa la logica de negocio.
-- Escala por modulo sin acoplar todo.
-- Facilita mantenimiento a largo plazo.
-- Funciona bien con Laravel + Filament.
+---
 
-## 7. Reglas del equipo
+## 12. Herramientas oficiales
 
-1. Cada accion de negocio relevante debe tener su Use Case.
-2. Controllers solo orquestan request/response.
-3. La validacion va en Form Requests.
-4. El modelo representa datos y relaciones.
-5. Evitar abstracciones extras sin justificacion.
-6. Todo debe estar documentado en espanol.
+| Herramienta | Comando | Propósito |
+|------------|---------|-----------|
+| Laravel Pint | `composer pint` | Formateo de código PHP |
+| PHPStan (nivel 6) | `composer phpstan` | Análisis estático |
+| Pest PHP | `composer test` | Pruebas unitarias y de integración |
+| DomPDF | — | Motor oficial de reportes PDF |
+| Maatwebsite Excel | — | Exportación Excel (.xlsx) |
+
+---
+
+## 13. Reglas del equipo
+
+1. Cada acción de negocio relevante debe tener su **Use Case**.
+2. Los **Controllers** solo orquestan request/response, sin lógica de negocio.
+3. La validación va en **Form Requests**, no en controllers ni modelos.
+4. El **Modelo** representa datos y relaciones, nada más.
+5. **Actions** son para tareas atómicas de UI que llaman Use Cases.
+6. Evitar abstracciones extras sin justificación (no Repository pattern genérico, no exceso de interfaces, no DDD completo para módulos pequeños).
+7. Revisar estas reglas en cada Pull Request.

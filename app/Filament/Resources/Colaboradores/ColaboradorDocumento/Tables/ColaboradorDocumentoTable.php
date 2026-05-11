@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorDocumento\Tables;
 use App\Models\Colaboradores\ColaboradorDocumento;
 use App\UseCases\Colaboradores\ObtenerNombreCompleto;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -22,7 +21,7 @@ class ColaboradorDocumentoTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->recordTitle(fn(ColaboradorDocumento $record): string => $record->tipo ?? 'Documento')
+            ->recordTitle(fn (ColaboradorDocumento $record): string => $record->tipo ?? 'Documento')
             ->columns([
                 TextColumn::make('colaborador')
                     ->label('Colaborador')
@@ -39,7 +38,7 @@ class ColaboradorDocumentoTable
                 TextColumn::make('archivo')
                     ->label('Archivo')
                     ->limit(35)
-                    ->url(fn(ColaboradorDocumento $record): string => asset('storage/' . $record->archivo))
+                    ->url(fn (ColaboradorDocumento $record): string => asset('storage/'.$record->archivo))
                     ->openUrlInNewTab()
                     ->color('primary')
                     ->icon('heroicon-o-document'),

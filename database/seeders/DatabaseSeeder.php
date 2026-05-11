@@ -16,5 +16,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(PaisSeeder::class);
         $this->call(CatalogoTipoSeeder::class);
+        $this->call(CatalogoSeeder::class);
+        $this->call(UbicacionSeeder::class);
+        $this->call(ColaboradorBaseSeeder::class);
+        $this->call(ColaboradorSaludSeeder::class);
+        $this->call(ColaboradorLaboralSeeder::class);
+        $this->call(ProductoSeeder::class);
     }
 }

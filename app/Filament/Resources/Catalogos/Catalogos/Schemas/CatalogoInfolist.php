@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\Catalogos\Catalogos\Schemas;
 
 use App\Enums\EstadoCatalogo;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Group;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
@@ -36,9 +36,9 @@ class CatalogoInfolist
                                 TextEntry::make('estado')
                                     ->label('Estado')
                                     ->badge()
-                                    ->formatStateUsing(fn($state) => EstadoCatalogo::labelFor($state))
-                                    ->color(fn($state) => EstadoCatalogo::colorFor($state))
-                                    ->icon(fn($state) => $state ? Heroicon::CheckCircle : Heroicon::XCircle)
+                                    ->formatStateUsing(fn ($state) => EstadoCatalogo::labelFor($state))
+                                    ->color(fn ($state) => EstadoCatalogo::colorFor($state))
+                                    ->icon(fn ($state) => $state ? Heroicon::CheckCircle : Heroicon::XCircle)
                                     ->columnSpan(2),
                             ]),
 
@@ -106,7 +106,7 @@ class CatalogoInfolist
                         // NODO RAÍZ (Registro Actual)
                         Group::make([
                             TextEntry::make('nombre_raiz')
-                                ->state(fn($record) => $record->nombre)
+                                ->state(fn ($record) => $record->nombre)
                                 ->hiddenLabel()
                                 ->weight(FontWeight::Black)
                                 ->size(TextSize::Large)
@@ -114,19 +114,19 @@ class CatalogoInfolist
                                 ->icon(Heroicon::FolderOpen)
                                 ->alignCenter(),
                         ])
-                        ->extraAttributes([
-                            'class' => 'max-w-md mx-auto p-6 rounded-3xl border-2 border-primary-500 bg-primary-50/50 dark:bg-primary-950/20 shadow-lg text-center'
-                        ]),
+                            ->extraAttributes([
+                                'class' => 'max-w-md mx-auto p-6 rounded-3xl border-2 border-primary-500 bg-primary-50/50 dark:bg-primary-950/20 shadow-lg text-center',
+                            ]),
 
                         // LÍNEA DE CONEXIÓN VERTICAL
                         Group::make([])
-                            ->visible(fn($record) => $record?->children()->exists())
+                            ->visible(fn ($record) => $record?->children()->exists())
                             ->extraAttributes([
-                                'class' => 'h-12 w-1 bg-primary-500 mx-auto'
+                                'class' => 'h-12 w-1 bg-primary-500 mx-auto',
                             ]),
                         RepeatableEntry::make('children')
                             ->label('Subcategorias')
-                            ->visible(fn($record) => $record?->children()->exists())
+                            ->visible(fn ($record) => $record?->children()->exists())
                             ->grid([
                                 'default' => 1,
                                 'sm' => 2,
@@ -138,8 +138,7 @@ class CatalogoInfolist
                                         ->hiddenLabel()
                                         ->weight(FontWeight::Bold)
                                         ->color('primary')
-                                        ->icon(Heroicon::ChevronRight)
-                                    ,
+                                        ->icon(Heroicon::ChevronRight),
 
                                     Group::make([
                                         TextEntry::make('codigo')
@@ -153,12 +152,11 @@ class CatalogoInfolist
                                             ->formatStateUsing(fn ($state) => "{$state} ramas")
                                             ->visible(fn ($state) => $state > 0),
                                     ])
-
-                                    ->columns(2),
+                                        ->columns(2),
                                 ])
-                                ->extraAttributes([
-                                    'class' => 'p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm text-center relative before:absolute before:-top-6 before:left-1/2 before:w-px before:h-6 before:bg-primary-500'
-                                ]),
+                                    ->extraAttributes([
+                                        'class' => 'p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm text-center relative before:absolute before:-top-6 before:left-1/2 before:w-px before:h-6 before:bg-primary-500',
+                                    ]),
                             ])
                             ->contained(false),
                     ])

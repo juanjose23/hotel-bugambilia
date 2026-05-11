@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Audits\Schemas;
+namespace App\Filament\Resources\Auditoria\Audits\Schemas;
 
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;

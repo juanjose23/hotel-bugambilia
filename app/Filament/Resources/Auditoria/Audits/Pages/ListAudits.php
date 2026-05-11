@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\Audits\Pages;
+namespace App\Filament\Resources\Auditoria\Audits\Pages;
 
-use App\Filament\Resources\Audits\AuditResource;
+use App\Filament\Resources\Auditoria\Audits\AuditResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 

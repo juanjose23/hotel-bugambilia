@@ -2,27 +2,29 @@
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors;
 
-use App\Filament\Resources\Colaboradores\Colaboradors\Pages\ListColaboradors;
+use App\Filament\Resources\Colaboradores\Colaboradors\Pages\CarnetColaborador;
 use App\Filament\Resources\Colaboradores\Colaboradors\Pages\CreateColaborador;
 use App\Filament\Resources\Colaboradores\Colaboradors\Pages\EditColaborador;
-use App\Filament\Resources\Colaboradores\Colaboradors\Pages\CarnetColaborador;
+use App\Filament\Resources\Colaboradores\Colaboradors\Pages\ListColaboradors;
 use App\Filament\Resources\Colaboradores\Colaboradors\Pages\ViewColaborador;
 use App\Filament\Resources\Colaboradores\Colaboradors\Schemas\ColaboradorForm;
 use App\Filament\Resources\Colaboradores\Colaboradors\Schemas\ColaboradorInfolist;
 use App\Filament\Resources\Colaboradores\Colaboradors\Tables\ColaboradorsTable;
 use App\Models\Personas\Persona;
+use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
-use BackedEnum;
 
 class ColaboradorResource extends Resource
 {
     protected static ?string $model = Persona::class;
+
     protected static ?string $modelLabel = 'Colaboradores';
+
     protected static ?string $pluralModelLabel = 'Colaboradores';
 
     public static function getNavigationGroup(): string|UnitEnum|null

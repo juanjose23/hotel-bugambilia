@@ -14,6 +14,7 @@ composer dev           # Full dev: PHP server + queue + Vite
 - **Framework**: Laravel 13 + Filament 5 admin panel
 - **Admin panel**: `/admin` path, brand "Hotel Bugambilias"
 - **Testing**: Pest PHP 4.x
+- **Excel Library**: `maatwebsite/excel` (Official for all .xlsx exports)
 
 ## Filament Resource Structure
 
@@ -31,26 +32,6 @@ app/Filament/Resources/{Group}/{ResourceName}/
     ├── Create{Name}.php
     ├── Edit{Name}.php
     └── View{Name}.php
-```
-
-## Critical Filament 5 Quirks
-
-**Navigation properties cannot be overridden with union types in PHP 8.2+.** Override methods instead:
-
-```php
-// WRONG - causes fatal error
-protected static string | UnitEnum | null $navigationGroup = 'My Group';
-
-// CORRECT - override the getter method
-public static function getNavigationGroup(): ?string
-{
-    return 'Gestión de Colaboradores';
-}
-
-public static function getNavigationIcon(): ?string
-{
-    return 'heroicon-o-user-group';
-}
 ```
 
 ## Model Namespaces

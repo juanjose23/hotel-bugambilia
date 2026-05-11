@@ -13,6 +13,7 @@ class PersonaFactory extends Factory
 {
     /** @var class-string<Persona> */
     protected $model = Persona::class;
+
     /**
      * Define the model's default state.
      *
@@ -26,7 +27,7 @@ class PersonaFactory extends Factory
             'primer_apellido' => fake()->lastName(),
             'segundo_apellido' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
-            'pais_id' =>Pais::factory(),
+            'pais_id' => Pais::factory(),
         ];
     }
 }

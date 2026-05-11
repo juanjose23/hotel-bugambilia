@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\Audits\Pages;
+namespace App\Filament\Resources\Auditoria\Audits\Pages;
 
-use App\Filament\Resources\Audits\AuditResource;
-use Filament\Actions\EditAction;
+use App\Filament\Resources\Auditoria\Audits\AuditResource;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewAudit extends ViewRecord

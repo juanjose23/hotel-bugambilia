@@ -40,7 +40,9 @@ class CatalogoTipoResource extends Resource
     }
 
     protected static ?string $modelLabel = 'Tipos de catálogos';
+
     protected static ?string $pluralModelLabel = 'Tipos de catálogo';
+
     public static function form(Schema $schema): Schema
     {
         return $schema
@@ -77,7 +79,6 @@ class CatalogoTipoResource extends Resource
                             ->required()
                             ->helperText('Estado lógico del tipo de catálogo (Activo/Inactivo)'),
 
-
                     ]),
 
             ]);
@@ -111,17 +112,15 @@ class CatalogoTipoResource extends Resource
                             ->label('Estado')
                             ->badge()
                             ->icon(
-                                fn($state) => $state
+                                fn ($state) => $state
                                 ? Heroicon::CheckCircle
                                 : Heroicon::CheckBadge
                             )
                             ->color(
-                                fn($state): string =>
-                                EstadoCatalogo::colorFor($state)
+                                fn ($state): string => EstadoCatalogo::colorFor($state)
                             )
                             ->formatStateUsing(
-                                fn($state): string =>
-                                EstadoCatalogo::labelFor($state)
+                                fn ($state): string => EstadoCatalogo::labelFor($state)
                             ),
                     ]),
 
@@ -156,8 +155,8 @@ class CatalogoTipoResource extends Resource
                     ->label('Estado')
                     ->searchable()
                     ->badge()
-                    ->color(fn($state): string => EstadoCatalogo::colorFor($state))
-                    ->formatStateUsing(fn($state): string => EstadoCatalogo::labelFor($state))
+                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state)),
 
             ])
             ->filters([
