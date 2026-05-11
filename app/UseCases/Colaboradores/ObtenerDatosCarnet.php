@@ -2,8 +2,8 @@
 
 namespace App\UseCases\Colaboradores;
 
-use App\Models\Personas\Persona;
 use App\Enums\TipoSangre;
+use App\Models\Personas\Persona;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 
 class ObtenerDatosCarnet
@@ -11,9 +11,9 @@ class ObtenerDatosCarnet
     public function obtenerNombreCompleto(Persona $persona): string
     {
         return trim(
-            ($persona->primer_nombre ?? '') . ' ' .
-            ($persona->segundo_nombre ?? '') . ' ' .
-            ($persona->personaNatural->primer_apellido ?? '') . ' ' .
+            ($persona->primer_nombre ?? '').' '.
+            ($persona->segundo_nombre ?? '').' '.
+            ($persona->personaNatural->primer_apellido ?? '').' '.
             ($persona->personaNatural->segundo_apellido ?? '')
         );
     }
@@ -26,8 +26,8 @@ class ObtenerDatosCarnet
     public function obtenerUrlFoto(Persona $persona): string
     {
         return $persona->colaborador?->imagen?->url
-            ? asset('storage/' . $persona->colaborador->imagen->url)
-            : 'https://ui-avatars.com/api/?name=' . urlencode($this->obtenerNombreCompleto($persona)) . '&size=512&background=711c37&color=fff';
+            ? asset('storage/'.$persona->colaborador->imagen->url)
+            : 'https://ui-avatars.com/api/?name='.urlencode($this->obtenerNombreCompleto($persona)).'&size=512&background=711c37&color=fff';
     }
 
     public function obtenerCargoActual(Persona $persona): string
@@ -44,7 +44,7 @@ class ObtenerDatosCarnet
     {
         $bloodType = $persona->colaborador?->datosMedicos?->tipo_sangre;
 
-        if (!$bloodType) {
+        if (! $bloodType) {
             return 'No definido';
         }
 
@@ -58,7 +58,7 @@ class ObtenerDatosCarnet
 
     public function obtenerSvgCodigoBarras(string $codigo): string
     {
-        return (new BarcodeGeneratorSVG())->getBarcode(
+        return (new BarcodeGeneratorSVG)->getBarcode(
             $codigo,
             BarcodeGeneratorSVG::TYPE_CODE_39,
             2,
@@ -66,36 +66,35 @@ class ObtenerDatosCarnet
         );
     }
 
-
     /** @return array<string, mixed> */
     public function ejecutar(Persona $persona): array
     {
         $codigo = $this->obtenerCodigo($persona);
         $fotoUrl = $this->obtenerUrlFoto($persona);
-        
-        $fotoPath = $persona->colaborador?->imagen?->url 
-            ? storage_path('app/public/' . $persona->colaborador->imagen->url)
+
+        $fotoPath = $persona->colaborador?->imagen?->url
+            ? storage_path('app/public/'.$persona->colaborador->imagen->url)
             : public_path('img/hotel-icon.png');
 
         $fotoBase64 = '';
         if (file_exists($fotoPath)) {
             $type = pathinfo($fotoPath, PATHINFO_EXTENSION);
             $data = (string) file_get_contents($fotoPath);
-            $fotoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            $fotoBase64 = 'data:image/'.$type.';base64,'.base64_encode($data);
         }
 
         $logoPath = public_path('img/logo-horizontal.png');
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $logoData = (string) file_get_contents($logoPath);
-            $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+            $logoBase64 = 'data:image/png;base64,'.base64_encode($logoData);
         }
 
         $hotelIconPath = public_path('img/hotel-icon.png');
         $hotelIconBase64 = '';
         if (file_exists($hotelIconPath)) {
             $iconData = (string) file_get_contents($hotelIconPath);
-            $hotelIconBase64 = 'data:image/png;base64,' . base64_encode($iconData);
+            $hotelIconBase64 = 'data:image/png;base64,'.base64_encode($iconData);
         }
 
         return [

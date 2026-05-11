@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Catalogos\Pais\Tables;
 
 use App\Enums\EstadoCatalogo;
-use App\Models\Catalogos\Pais;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -28,12 +27,12 @@ class PaisTable
                     ->searchable(),
                 ImageColumn::make('codigo_iso2')
                     ->label('Bandera')
-                    ->getStateUsing(fn($record) => asset('banderas/64X48/' . strtolower($record->codigo_iso2) . '.png'))
+                    ->getStateUsing(fn ($record) => asset('banderas/64X48/'.strtolower($record->codigo_iso2).'.png'))
                     ->extraImgAttributes(['class' => 'rounded shadow-sm']),
                 TextColumn::make('nombre')
                     ->label('País')
                     ->searchable()
-                    ->description(fn($record) => $record->codigo_iso2)
+                    ->description(fn ($record) => $record->codigo_iso2)
                     ->weight('medium'),
                 TextColumn::make('codigo_telefono')
                     ->label('Código de Telefono')
@@ -42,8 +41,8 @@ class PaisTable
                     ->label('Estado')
                     ->searchable()
                     ->badge()
-                    ->color(fn($state): string => EstadoCatalogo::colorFor($state))
-                    ->formatStateUsing(fn($state): string => EstadoCatalogo::labelFor($state))
+                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->sortable()

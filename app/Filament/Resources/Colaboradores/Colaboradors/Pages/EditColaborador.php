@@ -4,8 +4,62 @@ namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property \App\Models\Personas\Persona $record
+ */
 class EditColaborador extends EditRecord
 {
     protected static string $resource = ColaboradorResource::class;
+
+    protected ?string $fotoUpload = null;
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $this->fotoUpload = $data['foto_upload'] ?? null;
+        unset($data['foto_upload']);
+        unset($data['foto_url']);
+
+        return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        $colaborador = $this->record->colaborador;
+
+        if ($this->fotoUpload && $colaborador) {
+            $imagenActual = $colaborador->imagen;
+
+            if ($imagenActual && $imagenActual->url) {
+                Storage::disk('public')->delete($imagenActual->url);
+            }
+
+            $colaborador->imagen()->updateOrCreate(
+                [],
+                ['url' => $this->fotoUpload]
+            );
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['foto_url'] = $this->record->colaborador?->imagen?->url;
+
+        return $data;
+    }
+
+    /** @return array<int, \Filament\Actions\Action | \Filament\Actions\ActionGroup> */
+    protected function getFormActions(): array
+    {
+        return [];
+    }
 }

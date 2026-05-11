@@ -20,8 +20,16 @@ Este sistema está construido con el stack moderno de Laravel:
 - **PHP 8.3+**
 - **Laravel 13**
 - **Filament PHP v3** (Panel de Administración)
+- **DomPDF** (Generación de PDF Corporativos)
+- **Maatwebsite Excel** (Exportación de Datos)
 - **Tailwind CSS** (Estilizado)
 - **MySQL / PostgreSQL** (Base de Datos)
+
+## 📊 Sistema de Reportes (HTB-CP)
+El sistema cuenta con una suite de reportes estandarizados (Identidad HTB) para la gestión de inventarios y catálogos.
+- **PDF**: Reportes con diseño senior, encabezados persistentes y paginación calculada.
+- **Excel**: Exportaciones nativas mediante `maatwebsite/excel`.
+- **Auditoría**: Registro completo de interacciones en español (`auditoria_reportes`).
 
 ## 🏗️ Arquitectura y Flujo
 El proyecto sigue un flujo basado en Casos de Uso (Use Case Driven Development):

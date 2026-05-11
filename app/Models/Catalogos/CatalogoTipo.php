@@ -2,14 +2,18 @@
 
 namespace App\Models\Catalogos;
 
+use Database\Factories\CatalogoTipoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable;
-class CatalogoTipo extends Model  implements AuditableContract
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
+class CatalogoTipo extends Model implements AuditableContract
 {
-    /** @use HasFactory<\Database\Factories\CatalogoTipoFactory> */
-    use HasFactory, Auditable;
+    /** @use HasFactory<CatalogoTipoFactory> */
+    use Auditable, HasFactory;
+
     protected $table = 'catalogo_tipos';
+
     protected $guarded = [];
 }

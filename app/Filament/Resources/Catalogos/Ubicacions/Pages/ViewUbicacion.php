@@ -13,7 +13,7 @@ class ViewUbicacion extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make()->modalHeading('Actualizar ubicación')->modalSubheading('Complete el formulario para actualizar la ubicación.')->modalButton('Actualizar')->livewireClickHandlerEnabled(false)
+            EditAction::make()->modalHeading('Actualizar ubicación')->modalDescription('Complete el formulario para actualizar la ubicación.')
                 ->modalWidth('4xl'),
         ];
     }

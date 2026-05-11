@@ -17,6 +17,7 @@ use UnitEnum;
 class PaisResource extends Resource
 {
     protected static ?string $model = Pais::class;
+
     protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::GlobeAmericas;

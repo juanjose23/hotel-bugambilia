@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Personas\Persona;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -28,26 +27,10 @@ class ComandoCrearUsuarioAdmin extends Command
         $email = $this->option('email');
         $password = $this->option('password');
         $nombre = $this->option('nombre');
-        $telefono = $this->option('telefono');
 
         DB::beginTransaction();
 
         try {
-            /**
-             * 1. CREAR PERSONA
-             */
-            $persona = Persona::firstOrCreate(
-                [
-                    'primer_nombre' => $nombre,
-                ],
-                [
-                    'segundo_nombre' => null,
-                    'telefono' => $telefono,
-                    'direccion' => null,
-                    'pais_id' => null,
-                    'tipo_persona' => 'natural',
-                ]
-            );
 
             /**
              *  2. CREAR USER
@@ -55,7 +38,7 @@ class ComandoCrearUsuarioAdmin extends Command
             $user = User::firstOrCreate(
                 ['email' => $email],
                 [
-                    'persona_id' => $persona->id,
+                    'persona_id' => 1,
                     'name' => $nombre,
                     'password' => Hash::make($password),
                     'email_verified_at' => now(),
@@ -66,7 +49,6 @@ class ComandoCrearUsuarioAdmin extends Command
 
             $this->info('✔ Usuario creado correctamente');
             $this->line("Email: $user->email");
-            $this->line("Persona ID: $persona->id");
 
             return CommandAlias::SUCCESS;
 

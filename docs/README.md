@@ -4,8 +4,7 @@ Esta carpeta centraliza los estandares internos del proyecto.
 
 ## Contenido
 
-- [Convenciones de desarrollo](./conventions.md)
-- [Arquitectura Use Case](./use-case-architecture.md)
+- [Arquitectura Use Case (fuente única)](./use-case-architecture.md)
 
 ## Definiciones base del proyecto
 

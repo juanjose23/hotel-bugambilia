@@ -5,15 +5,16 @@ namespace App\Filament\Resources\Colaboradores\Colaboradors\Schemas;
 use App\Enums\EstadoCatalogo;
 use App\Enums\Sexo;
 use App\Enums\TipoIdentificacion;
+use App\Models\Personas\Persona;
 use App\Rules\Colaboradores\Colaborador\ValidCodigoColaborador;
 use App\Rules\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\UseCases\Colaboradores\GenerarCodigo;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\ImageEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -22,7 +23,6 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Model;
 
 class ColaboradorForm
 {
@@ -145,7 +145,7 @@ class ColaboradorForm
                                 ->schema(components: [
                                     TextInput::make('codigo')
                                         ->label('Código Interno')
-                                        ->default(fn (?\App\Models\Personas\Persona $record) => $record?->colaborador->codigo ?? app(GenerarCodigo::class)->generarCodigo())
+                                        ->default(fn (?Persona $record) => $record?->colaborador->codigo ?? app(GenerarCodigo::class)->generarCodigo())
                                         ->disabled()
                                         ->dehydrated()
                                         ->required()
@@ -178,28 +178,30 @@ class ColaboradorForm
                     ->description('Fotografía oficial del colaborador')
                     ->icon(Heroicon::Camera)
                     ->schema([
-                        Group::make([
-                            Section::make('Foto de perfil')
-                                ->columns()
-                                ->relationship('imagen')
-                                ->schema([
-                                    ImageEntry::make('colaborador.imagen.url')
-                                        ->label('Foto actual')
-                                        ->disk('public')
-                                        ->circular()
-                                        ->visibleOn('edit'),
-                                    FileUpload::make('url')
-                                        ->label('Cambiar fotografía')
-                                        ->image()
-                                        ->disk('public')
-                                        ->directory('colaboradores/fotos')
-                                ]),
-                        ])
-                            ->relationship('colaborador'),
+                        Section::make('Foto de perfil')
+                            ->columns(2)
+                            ->schema([
+                                ImageEntry::make('colaborador.imagen.url')
+                                    ->label('Foto actual')
+                                    ->disk('public')
+                                    ->circular()
+                                    ->defaultImageUrl(fn ($state) => 'https://ui-avatars.com/api/?name=Usuario&size=200&background=711c37&color=fff')
+                                    ->visibleOn('edit'),
+                                FileUpload::make('foto_upload')
+                                    ->label('Cambiar fotografía')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('colaboradores/fotos')
+                                    ->imagePreviewHeight('200')
+                                    ->panelAspectRatio('1:1')
+                                    ->panelLayout('circle')
+                                    ->removeUploadedFileButtonPosition('center-bottom'),
+                            ]),
                     ]),
             ])
                 ->columnSpanFull()
-                ->persistStepInQueryString(),
+                ->persistStepInQueryString()
+                ->submitAction(view('filament.resources.colaboradores.colaboradors.wizard-actions')),
         ];
     }
 }

@@ -5,24 +5,29 @@ namespace App\Models\Colaboradores;
 use App\Enums\EstadoCatalogo;
 use App\Models\General\Imagen;
 use App\Models\Personas\Persona;
+use Database\Factories\ColaboradorFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+
 class Colaborador extends Model implements AuditableContract
 {
     protected $table = 'colaboradores';
+
     protected $guarded = [];
+
     protected $casts = [
         'fecha_ingreso' => 'date',
     ];
-    /** @use HasFactory<\Database\Factories\ColaboradorFactory> */
-    use HasFactory, SoftDeletes, Auditable;
+
+    /** @use HasFactory<ColaboradorFactory> */
+    use Auditable, HasFactory, SoftDeletes;
 
     /** @return BelongsTo<Persona, $this> */
     public function persona(): BelongsTo
@@ -77,5 +82,4 @@ class Colaborador extends Model implements AuditableContract
     {
         return $this->hasMany(ColaboradorDocumento::class);
     }
-
 }

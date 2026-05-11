@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Audits\Tables;
+namespace App\Filament\Resources\Auditoria\Audits\Tables;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -30,7 +30,10 @@ class AuditsTable
                         if (! $user) {
                             return 'Sistema';
                         }
-                        if ($user->persona?->primer_nombre) return $user->persona->primer_nombre . ' ' . $user->persona->segundo_nombre;
+                        if ($user->persona?->primer_nombre) {
+                            return $user->persona->primer_nombre.' '.$user->persona->segundo_nombre;
+                        }
+
                         return $user->name;
                     })
                     ->searchable(),

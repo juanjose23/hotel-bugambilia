@@ -22,7 +22,7 @@ class PaisInfolist
                         ->schema([
                             ImageEntry::make('codigo_iso2')
                                 ->label('Bandera')
-                                ->getStateUsing(fn($record) => asset('banderas/128x96/' . strtolower($record->codigo_iso2) . '.png'))
+                                ->getStateUsing(fn ($record) => asset('banderas/128x96/'.strtolower($record->codigo_iso2).'.png'))
                                 ->extraImgAttributes(['class' => 'rounded shadow-sm']),
                             TextEntry::make('nombre')
                                 ->label('Nombre del País')
@@ -30,8 +30,8 @@ class PaisInfolist
                                 ->color('primary'),
                             TextEntry::make('estado')
                                 ->badge()
-                                ->color(fn($state): string => EstadoCatalogo::colorFor($state))
-                                ->formatStateUsing(fn($state): string => EstadoCatalogo::labelFor($state)),
+                                ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                                ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state)),
                         ]),
                 ]),
 
