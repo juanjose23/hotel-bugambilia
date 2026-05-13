@@ -11,14 +11,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
-use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password', 'persona_id', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements AuditableContract
 {
     /** @use HasFactory<UserFactory> */
-    use Auditable, HasFactory, HasRoles,Notifiable;
+    use Auditable, HasFactory, Notifiable;
 
     /**
      * Get the attributes that should be cast.

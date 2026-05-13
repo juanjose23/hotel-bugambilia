@@ -528,250 +528,33 @@ class ProductoSeeder extends Seeder
             ]
         );
 
-        // =========================================================================
-        // ACTIVOS FIJOS ESPECÍFICOS (HABITACIONES Y EVENTOS)
-        // =========================================================================
+        $this->crearProductoConVariante(
+            $catalogoIds['CAT_PRO_BLAN_OTROS'],
+            null,
+            $catalogoIds['UNI_UD'],
+            'Mantel rectangular',
+            'Mantel de tela 150x250cm',
+            2,
+            [
+                ['codigo' => 'MANT-150-BCO', 'nombre' => 'Mantel blanco 150x250', 'atributos' => ['color' => 'blanco', 'tamaño' => '150x250cm']],
+                ['codigo' => 'MANT-150-CREMA', 'nombre' => 'Mantel crema 150x250', 'atributos' => ['color' => 'crema', 'tamaño' => '150x250cm']],
+                ['codigo' => 'MANT-120-BCO', 'nombre' => 'Mantel blanco 120x180', 'atributos' => ['color' => 'blanco', 'tamaño' => '120x180cm']],
+            ]
+        );
 
-        $activosInfraestructura = [
-            'HABITACIONES' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
-                'items' => [
-                    ['nombre' => 'Minibar Silencioso', 'desc' => 'Minibar 40L para habitación', 'v1' => '30 Litros (Compacto)', 'v2' => '40 Litros (Estándar)', 'v3' => '60 Litros (Premium)'],
-                    ['nombre' => 'Caja Fuerte Digital', 'desc' => 'Caja fuerte con código y llave', 'v1' => 'Teclado Estándar', 'v2' => 'Biométrica (Huella)', 'v3' => 'Tamaño Laptop 15"'],
-                    ['nombre' => 'Aire Acondicionado', 'desc' => 'Split Inverter Frío/Calor', 'v1' => '12,000 BTU', 'v2' => '18,000 BTU', 'v3' => '24,000 BTU (Suites)'],
-                    ['nombre' => 'Cerradura RFID', 'desc' => 'Cerradura electrónica para tarjetas', 'v1' => 'Lector Proximidad', 'v2' => 'Bluetooth / App', 'v3' => 'Acero Reforzado'],
-                    ['nombre' => 'Cafetera de Habitación', 'desc' => 'Cafetera de goteo/cápsula', 'v1' => 'Goteo (Básica)', 'v2' => 'Cápsulas (Nespresso)', 'v3' => 'Combo Té/Café'],
-                ],
-            ],
-            'EVENTOS' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
-                'items' => [
-                    ['nombre' => 'Proyector Láser', 'desc' => 'Proyector 4000 lúmenes UHD', 'v1' => 'Full HD 1080p', 'v2' => '4K Nativo', 'v3' => 'Tiro Corto'],
-                    ['nombre' => 'Sistema de Audio Salón', 'desc' => 'Kit de altavoces y consola', 'v1' => 'Pasivo 2 Altavoces', 'v2' => 'Activo Bluetooth', 'v3' => 'Line Array (Gran salón)'],
-                    ['nombre' => 'Silla para Banquete', 'desc' => 'Silla apilable reforzada', 'v1' => 'Tiffany (Madera)', 'v2' => 'Metálica Acolchada', 'v3' => 'Resina Premium'],
-                    ['nombre' => 'Mesa Circular Eventos', 'desc' => 'Mesa plegable 1.80m', 'v1' => 'Madera Plegable', 'v2' => 'Plástico HD', 'v3' => 'Estructura Aluminio'],
-                    ['nombre' => 'Podio de Madera', 'desc' => 'Atril para conferencistas', 'v1' => 'Clásico Nogal', 'v2' => 'Moderno Acrílico', 'v3' => 'Con Micrófono Integrado'],
-                ],
-            ],
-        ];
-
-        foreach ($activosInfraestructura as $grupo => $info) {
-            foreach ($info['items'] as $item) {
-                $this->crearProductoConVariante(
-                    $catalogoIds[$info['cat']],
-                    null,
-                    $catalogoIds['UNI_UD'],
-                    $item['nombre'],
-                    $item['desc']." (Uso: $grupo)",
-                    2,
-                    [
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-X', 'nombre' => $item['nombre'].' - '.$item['v1'], 'atributos' => ['modelo' => $item['v1']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-Y', 'nombre' => $item['nombre'].' - '.$item['v2'], 'atributos' => ['modelo' => $item['v2']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-Z', 'nombre' => $item['nombre'].' - '.$item['v3'], 'atributos' => ['modelo' => $item['v3']]],
-                    ]
-                );
-            }
-        }
-
-        $activosAdicionales = [
-            'SEGURIDAD' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
-                'items' => [
-                    ['nombre' => 'Cámara de Vigilancia', 'desc' => 'Cámara CCTV alta resolución', 'v1' => 'Domo 4K IP', 'v2' => 'PTZ Exterior', 'v3' => 'Ojo de Pez 360°'],
-                    ['nombre' => 'Grabador NVR', 'desc' => 'Grabador de video en red', 'v1' => '8 Canales (1TB)', 'v2' => '16 Canales (4TB)', 'v3' => '32 Canales (RAID)'],
-                    ['nombre' => 'Sistema Incendio', 'desc' => 'Detector y alarma central', 'v1' => 'Detector Humo', 'v2' => 'Estación Manual', 'v3' => 'Sirena con Estrobo'],
-                ],
-            ],
-            'GIMNASIO_POOL' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
-                'items' => [
-                    ['nombre' => 'Caminadora Pro', 'desc' => 'Caminadora profesional alto tráfico', 'v1' => 'Serie 500 (Básica)', 'v2' => 'Serie 700 (Pro)', 'v3' => 'Serie 900 (Touch)'],
-                    ['nombre' => 'Elíptica Industrial', 'desc' => 'Máquina elíptica magnética', 'v1' => 'Auto-generada', 'v2' => 'Con Pantalla', 'v3' => 'Heavy Duty'],
-                    ['nombre' => 'Camastro de Piscina', 'desc' => 'Camastro resina alta resistencia', 'v1' => 'Blanco Estándar', 'v2' => 'Madera Teca', 'v3' => 'Acolchado Luxury'],
-                ],
-            ],
-            'LOBBY_BAR' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
-                'items' => [
-                    ['nombre' => 'Sofá de Lobby', 'desc' => 'Sofá diseño para áreas comunes', 'v1' => '2 Plazas Tela', 'v2' => '3 Plazas Cuero', 'v3' => 'Modular (L)'],
-                    ['nombre' => 'Máquina Espresso', 'desc' => 'Cafetera profesional 2 grupos', 'v1' => '1 Grupo (Compacta)', 'v2' => '2 Grupos (Pro)', 'v3' => '3 Grupos (Elite)'],
-                    ['nombre' => 'Molino de Café', 'desc' => 'Molino automático on-demand', 'v1' => 'Básico', 'v2' => 'Dosificador Pro', 'v3' => 'Micrométrico'],
-                ],
-            ],
-        ];
-
-        foreach ($activosAdicionales as $grupo => $info) {
-            foreach ($info['items'] as $item) {
-                $this->crearProductoConVariante(
-                    $catalogoIds[$info['cat']],
-                    null,
-                    $catalogoIds['UNI_UD'],
-                    $item['nombre'],
-                    $item['desc']." (Uso: $grupo)",
-                    2,
-                    [
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-V1', 'nombre' => $item['nombre'].' - '.$item['v1'], 'atributos' => ['espec' => $item['v1']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-V2', 'nombre' => $item['nombre'].' - '.$item['v2'], 'atributos' => ['espec' => $item['v2']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-V3', 'nombre' => $item['nombre'].' - '.$item['v3'], 'atributos' => ['espec' => $item['v3']]],
-                    ]
-                );
-            }
-        }
-
-        $activosIndustriales = [
-            'COCINA' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
-                'items' => [
-                    ['nombre' => 'Estufa Industrial', 'desc' => 'Estufa 6 quemadores acero inox', 'v1' => 'Gas LP', 'v2' => 'Gas Natural', 'v3' => 'Eléctrica (Inducción)'],
-                    ['nombre' => 'Horno de Convección', 'desc' => 'Horno profesional 10 bandejas', 'v1' => 'Básico (Analógico)', 'v2' => 'Digital Programable', 'v3' => 'Doble Cavidad'],
-                    ['nombre' => 'Refrigerador Vertical', 'desc' => 'Refrigerador industrial 2 puertas', 'v1' => 'Acero Inoxidable', 'v2' => 'Puerta de Vidrio', 'v3' => 'Congelador/Refri'],
-                    ['nombre' => 'Lavavajillas de Capota', 'desc' => 'Lavadora platos alto volumen', 'v1' => 'Ciclo Rápido', 'v2' => 'Con Secado', 'v3' => 'Ahorro de Agua'],
-                ],
-            ],
-            'LAVANDERÍA' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
-                'items' => [
-                    ['nombre' => 'Lavadora Industrial', 'desc' => 'Carga frontal 25kg/50kg', 'v1' => '25 Kg (Estándar)', 'v2' => '50 Kg (Alta Carga)', 'v3' => 'Centrifugado Pro'],
-                    ['nombre' => 'Secadora Industrial', 'desc' => 'Secadora alto flujo vapor', 'v1' => 'Eléctrica', 'v2' => 'Gas LP', 'v3' => 'Vapor Directo'],
-                    ['nombre' => 'Calandria de Rodillo', 'desc' => 'Planchadora de sábanas industrial', 'v1' => '1.5 Metros', 'v2' => '2 Metros', 'v3' => '3 Metros (Suites)'],
-                ],
-            ],
-            'SERVICIOS_GENERALES' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
-                'items' => [
-                    ['nombre' => 'Generador Eléctrico', 'desc' => 'Planta de emergencia 150KVA', 'v1' => '50 KVA (Respaldos)', 'v2' => '100 KVA', 'v3' => '150 KVA (Full Hotel)'],
-                    ['nombre' => 'Bomba Hidroneumática', 'desc' => 'Sistema presión constante', 'v1' => '2 HP', 'v2' => '5 HP', 'v3' => '10 HP (Edificio)'],
-                    ['nombre' => 'Calentador Industrial', 'desc' => 'Boiler de alta recuperación', 'v1' => '80 Galones', 'v2' => '120 Galones', 'v3' => 'Solar Industrial'],
-                    ['nombre' => 'Cortacésped Tractor', 'desc' => 'Podadora giro cero', 'v1' => 'Manual 20"', 'v2' => 'Tractor 42"', 'v3' => 'Tractor 54"'],
-                ],
-            ],
-            'SISTEMAS' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
-                'items' => [
-                    ['nombre' => 'Servidor de Datos', 'desc' => 'Servidor Rack 1U Xeon', 'v1' => 'Básico (8GB RAM)', 'v2' => 'Medio (32GB RAM)', 'v3' => 'Pro (64GB + SSD)'],
-                    ['nombre' => 'Laptop Administrativa', 'desc' => 'Equipo 15" para oficina', 'v1' => 'Core i3 / 8GB', 'v2' => 'Core i5 / 16GB', 'v3' => 'Core i7 / 32GB'],
-                    ['nombre' => 'Multifuncional Láser', 'desc' => 'Impresora/Escáner alto volumen', 'v1' => 'Blanco y Negro', 'v2' => 'Color (Oficina)', 'v3' => 'Color (Artes Gráficas)'],
-                ],
-            ],
-        ];
-
-        foreach ($activosIndustriales as $grupo => $info) {
-            foreach ($info['items'] as $item) {
-                $this->crearProductoConVariante(
-                    $catalogoIds[$info['cat']],
-                    null,
-                    $catalogoIds['UNI_UD'],
-                    $item['nombre'],
-                    $item['desc']." (Uso: $grupo)",
-                    2,
-                    [
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-A', 'nombre' => $item['nombre'].' - '.$item['v1'], 'atributos' => ['capacidad' => $item['v1']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-B', 'nombre' => $item['nombre'].' - '.$item['v2'], 'atributos' => ['capacidad' => $item['v2']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-C', 'nombre' => $item['nombre'].' - '.$item['v3'], 'atributos' => ['capacidad' => $item['v3']]],
-                    ]
-                );
-            }
-        }
-
-        // =========================================================================
-        // GENERACIÓN MASIVA DE MANTENIMIENTO (50 PRODUCTOS TÉCNICOS)
-        // =========================================================================
-
-        $mantenimientoData = [
-            'ELÉCTRICO' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
-                'items' => [
-                    ['nombre' => 'Interruptor Simple', 'desc' => 'Interruptor de pared 10A', 'v1' => 'Blanco', 'v2' => 'Marfil', 'v3' => 'Negro'],
-                    ['nombre' => 'Tomacorriente Doble', 'desc' => 'Toma con tierra 15A', 'v1' => 'Estándar', 'v2' => 'Con USB', 'v3' => 'GFCI (Baño)'],
-                    ['nombre' => 'Cable Eléctrico #12', 'desc' => 'Cable de cobre THHN', 'v1' => 'Rojo (Fase)', 'v2' => 'Negro (Fase)', 'v3' => 'Verde (Tierra)'],
-                    ['nombre' => 'Bombilla LED 9W', 'desc' => 'Foco ahorrador E27', 'v1' => 'Luz Cálida', 'v2' => 'Luz Fría', 'v3' => 'Luz Neutra'],
-                    ['nombre' => 'Breaker de Riel', 'desc' => 'Disyuntor termo-magnético', 'v1' => '15 Amperios', 'v2' => '20 Amperios', 'v3' => '30 Amperios'],
-                    ['nombre' => 'Cinta Aislante', 'desc' => 'Cinta PVC profesional', 'v1' => 'Negra', 'v2' => 'Roja', 'v3' => 'Azul'],
-                    ['nombre' => 'Caja Rectangular PVC', 'desc' => 'Caja empotrar 2x4', 'v1' => 'Estándar', 'v2' => 'Profunda', 'v3' => 'Intemperie'],
-                    ['nombre' => 'Tubo Conduit 1/2"', 'desc' => 'Tubería eléctrica PVC', 'v1' => 'Liviano', 'v2' => 'Pesado', 'v3' => 'Flexible'],
-                    ['nombre' => 'Sensor de Movimiento', 'desc' => 'Detector para pasillos', 'v1' => 'Pared', 'v2' => 'Techo', 'v3' => 'Inalámbrico'],
-                    ['nombre' => 'Lámpara de Emergencia', 'desc' => 'Doble foco autonomía 90min', 'v1' => 'Básica', 'v2' => 'LED Pro', 'v3' => 'Estanca'],
-                ],
-            ],
-            'PLOMERÍA' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
-                'items' => [
-                    ['nombre' => 'Tubo PVC 1/2"', 'desc' => 'Tubería agua potable', 'v1' => 'SDR 13.5', 'v2' => 'SDR 17', 'v3' => 'SDR 21'],
-                    ['nombre' => 'Codo PVC 90° 1/2"', 'desc' => 'Accesorio unión agua', 'v1' => 'Presión', 'v2' => 'Rosca', 'v3' => 'Inserto Metálico'],
-                    ['nombre' => 'Válvula de Paso', 'desc' => 'Llave de esfera bronce', 'v1' => '1/2 Pulgada', 'v2' => '3/4 Pulgada', 'v3' => '1 Pulgada'],
-                    ['nombre' => 'Teflón Industrial', 'desc' => 'Cinta selladora de roscas', 'v1' => '12mm x 10m', 'v2' => '19mm x 10m', 'v3' => 'Alta Densidad'],
-                    ['nombre' => 'Pegamento PVC', 'desc' => 'Cemento solvente', 'v1' => 'Transparente 4oz', 'v2' => 'Azul Rápido 8oz', 'v3' => 'Dorado CPVC 16oz'],
-                    ['nombre' => 'Sifón de Lavabo', 'desc' => 'Trampa para desagüe', 'v1' => 'Plástico Blanco', 'v2' => 'Cromado', 'v3' => 'Flexible'],
-                    ['nombre' => 'Válvula de Inodoro', 'desc' => 'Kit de descarga completo', 'v1' => 'Universal', 'v2' => 'Doble Descarga', 'v3' => 'Presión Alta'],
-                    ['nombre' => 'Manguera de Abasto', 'desc' => 'Conector flexible trenzado', 'v1' => 'Lavabo (12")', 'v2' => 'Inodoro (12")', 'v3' => 'Fregadero (18")'],
-                    ['nombre' => 'Grifería Monomando', 'desc' => 'Mezcladora para baño', 'v1' => 'Cromo Pulido', 'v2' => 'Níquel Satinado', 'v3' => 'Negro Mate'],
-                    ['nombre' => 'Flotador para Tanque', 'desc' => 'Válvula de llenado superior', 'v1' => 'Boya Plástica', 'v2' => 'Boya Cobre', 'v3' => 'Vertical'],
-                ],
-            ],
-            'PINTURA' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
-                'items' => [
-                    ['nombre' => 'Pintura Látex Interior', 'desc' => 'Pintura acrílica base agua', 'v1' => 'Blanco Hielo', 'v2' => 'Arena Suave', 'v3' => 'Gris Perla'],
-                    ['nombre' => 'Esmalte Anticorrosivo', 'desc' => 'Pintura base aceite metal', 'v1' => 'Negro Brillante', 'v2' => 'Blanco Mate', 'v3' => 'Rojo Óxido'],
-                    ['nombre' => 'Brocha Profesional', 'desc' => 'Cerda sintética alta calidad', 'v1' => '2 Pulgadas', 'v2' => '3 Pulgadas', 'v3' => '4 Pulgadas'],
-                    ['nombre' => 'Rodillo de Felpa', 'desc' => 'Maneral + felpa 9"', 'v1' => 'Pared Lisa', 'v2' => 'Pared Rugosa', 'v3' => 'Microfibra'],
-                    ['nombre' => 'Thinner Corriente', 'desc' => 'Solvente para limpieza', 'v1' => '1 Litro', 'v2' => 'Galón', 'v3' => 'Cubeta 19L'],
-                    ['nombre' => 'Masilla para Pared', 'desc' => 'Resanador de grietas', 'v1' => 'Pasta 1kg', 'v2' => 'Galón Ready Mix', 'v3' => 'Saco 20kg'],
-                    ['nombre' => 'Lija de Agua', 'desc' => 'Papel lija profesional', 'v1' => 'Grano 80', 'v2' => 'Grano 120', 'v3' => 'Grano 240'],
-                    ['nombre' => 'Cinta Masking', 'desc' => 'Cinta para pintor', 'v1' => '1/2 Pulgada', 'v2' => '1 Pulgada', 'v3' => '2 Pulgadas'],
-                    ['nombre' => 'Barniz para Madera', 'desc' => 'Protector poliuretano', 'v1' => 'Brillante', 'v2' => 'Mate', 'v3' => 'Satinado'],
-                    ['nombre' => 'Bandeja para Pintar', 'desc' => 'Bandeja plástica reforzada', 'v1' => 'Pequeña', 'v2' => 'Grande', 'v3' => 'Con Rejilla Metálica'],
-                ],
-            ],
-            'FERRETERÍA' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
-                'items' => [
-                    ['nombre' => 'Cerradura de Pomo', 'desc' => 'Cerradura para puertas', 'v1' => 'Baño (Sin llave)', 'v2' => 'Recámara', 'v3' => 'Entrada Principal'],
-                    ['nombre' => 'Bisagra de Acero', 'desc' => 'Bisagra libro 3.5"', 'v1' => 'Cromada', 'v2' => 'Latón', 'v3' => 'Anticorro'],
-                    ['nombre' => 'Tornillo Madera', 'desc' => 'Tornillo Phillips zincado', 'v1' => '1 Pulgada', 'v2' => '1.5 Pulgadas', 'v3' => '2 Pulgadas'],
-                    ['nombre' => 'Taquete Plástico', 'desc' => 'Anclaje para pared', 'v1' => '1/4 Pulgada', 'v2' => '5/16 Pulgada', 'v3' => '3/8 Pulgada'],
-                    ['nombre' => 'Silicona Multiusos', 'desc' => 'Sellador acético', 'v1' => 'Transparente', 'v2' => 'Blanco', 'v3' => 'Negro'],
-                    ['nombre' => 'Candado de Seguridad', 'desc' => 'Cuerpo de latón macizo', 'v1' => '30 mm', 'v2' => '40 mm', 'v3' => '50 mm'],
-                    ['nombre' => 'Malla Mosquitera', 'desc' => 'Malla fibra de vidrio', 'v1' => 'Gris (Rollo)', 'v2' => 'Negra (Rollo)', 'v3' => 'Aluminio'],
-                    ['nombre' => 'Resorte para Puerta', 'desc' => 'Cierrapuertas hidráulico', 'v1' => 'Liviano', 'v2' => 'Medio', 'v3' => 'Pesado'],
-                    ['nombre' => 'Manija de Palanca', 'desc' => 'Herraje ergonómico', 'v1' => 'Níquel', 'v2' => 'Cobre Viejo', 'v3' => 'Moderno'],
-                    ['nombre' => 'Tope de Puerta', 'desc' => 'Protector de pared', 'v1' => 'Piso', 'v2' => 'Pared', 'v3' => 'Adhesivo'],
-                ],
-            ],
-            'HERRAMIENTAS' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
-                'items' => [
-                    ['nombre' => 'Martillo de Uña', 'desc' => 'Martillo 16oz mango fibra', 'v1' => 'Básico', 'v2' => 'Profesional', 'v3' => 'Antivibración'],
-                    ['nombre' => 'Alicate Universal', 'desc' => 'Pinza multiuso 8"', 'v1' => 'Estándar', 'v2' => 'Aislado 1000V', 'v3' => 'Heavy Duty'],
-                    ['nombre' => 'Flexómetro', 'desc' => 'Cinta métrica retráctil', 'v1' => '3 Metros', 'v2' => '5 Metros', 'v3' => '8 Metros'],
-                    ['nombre' => 'Nivel de Burbuja', 'desc' => 'Herramienta nivelación', 'v1' => '12 Pulgadas', 'v2' => '24 Pulgadas', 'v3' => 'Magnético'],
-                    ['nombre' => 'Cutter Industrial', 'desc' => 'Cuchilla retráctil', 'v1' => 'Plástico', 'v2' => 'Metálico', 'v3' => 'Auto-carga'],
-                    ['nombre' => 'Llave Allen (Set)', 'desc' => 'Juego de llaves hexagonales', 'v1' => 'Milimétricas', 'v2' => 'Pulgadas', 'v3' => 'Tipo Navaja'],
-                    ['nombre' => 'Gafas de Seguridad', 'desc' => 'Protección ocular ANSI', 'v1' => 'Transparentes', 'v2' => 'Oscuras', 'v3' => 'Antiempañante'],
-                    ['nombre' => 'Guantes de Trabajo', 'desc' => 'Protección de manos', 'v1' => 'Látex Rugoso', 'v2' => 'Cuero', 'v3' => 'Anticorte'],
-                    ['nombre' => 'Escalera de Tijera', 'desc' => 'Escalera de aluminio', 'v1' => '3 Peldaños', 'v2' => '5 Peldaños', 'v3' => '7 Peldaños'],
-                    ['nombre' => 'Multímetro Digital', 'desc' => 'Tester eléctrico', 'v1' => 'Básico', 'v2' => 'Autorango', 'v3' => 'Profesional'],
-                ],
-            ],
-        ];
-
-        foreach ($mantenimientoData as $grupo => $info) {
-            foreach ($info['items'] as $item) {
-                $this->crearProductoConVariante(
-                    $catalogoIds[$info['cat']],
-                    null,
-                    $catalogoIds['UNI_UD'],
-                    $item['nombre'],
-                    $item['desc']." (Categoría: $grupo)",
-                    2,
-                    [
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-A', 'nombre' => $item['nombre'].' - '.$item['v1'], 'atributos' => ['especificacion' => $item['v1']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-B', 'nombre' => $item['nombre'].' - '.$item['v2'], 'atributos' => ['especificacion' => $item['v2']]],
-                        ['codigo' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'], mb_substr($item['nombre'], 0, 3))).'-'.rand(100, 999).'-C', 'nombre' => $item['nombre'].' - '.$item['v3'], 'atributos' => ['especificacion' => $item['v3']]],
-                    ]
-                );
-            }
-        }
+        $this->crearProductoConVariante(
+            $catalogoIds['CAT_PRO_BLAN_OTROS'],
+            null,
+            $catalogoIds['UNI_UD'],
+            'Cubrecama matrimonial',
+            'Cubrecama acolchado 240x260cm',
+            2,
+            [
+                ['codigo' => 'CUB-MAT-BCO', 'nombre' => 'Cubrecama matrimonial blanca', 'atributos' => ['color' => 'blanco', 'tamaño' => '240x260'], 'peso' => 2000],
+                ['codigo' => 'CUB-MAT-CREMA', 'nombre' => 'Cubrecama matrimonial crema', 'atributos' => ['color' => 'crema', 'tamaño' => '240x260'], 'peso' => 2000],
+                ['codigo' => 'CUB-MAT-GRIS', 'nombre' => 'Cubrecama matrimonial gris', 'atributos' => ['color' => 'gris perla', 'tamaño' => '240x260'], 'peso' => 2000],
+            ]
+        );
     }
 
     /**

@@ -15,7 +15,7 @@ class CreateRecepcion extends CreateRecord
     {
         $year = now()->year;
         $count = RecepcionCompra::whereYear('fecha_recepcion', $year)->count() + 1;
-        $data['codigo'] = "REC-{$year}-".str_pad((string) $count, 3, '0', STR_PAD_LEFT);
+        $data['codigo'] = "REC-{$year}-" . str_pad((string) $count, 3, '0', STR_PAD_LEFT);
 
         return $data;
     }
@@ -25,10 +25,10 @@ class CreateRecepcion extends CreateRecord
         parent::mount();
 
         $ordenId = (int) request()->query('orden_compra_id');
-
+        
         if ($ordenId) {
             $orden = app(ObtenerOrdenCompraConItems::class)->execute($ordenId);
-
+            
             if ($orden) {
                 $this->form->fill([
                     'orden_compra_id' => $orden->id,

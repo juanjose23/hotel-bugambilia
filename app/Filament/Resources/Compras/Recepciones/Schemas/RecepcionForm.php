@@ -2,8 +2,7 @@
 
 namespace App\Filament\Resources\Compras\Recepciones\Schemas;
 
-use App\Enums\Compras\EstadoOrdenCompra;
-use App\Enums\Compras\EstadoRecepcion;
+use App\Models\Catalogos\Catalogo;
 use App\Models\Compras\OrdenCompraItem;
 use App\UseCases\Compras\ObtenerOrdenCompraConItems;
 use Filament\Forms\Components\DatePicker;
@@ -40,9 +39,9 @@ class RecepcionForm
                                 name: 'ordenCompra',
                                 titleAttribute: 'codigo',
                                 modifyQueryUsing: fn (Builder $query) => $query->whereIn('estado', [
-                                    EstadoOrdenCompra::Emitida,
-                                    EstadoOrdenCompra::EnTransito,
-                                    EstadoOrdenCompra::Recibida,
+                                    \App\Enums\Compras\EstadoOrdenCompra::Emitida,
+                                    \App\Enums\Compras\EstadoOrdenCompra::EnTransito,
+                                    \App\Enums\Compras\EstadoOrdenCompra::Recibida,
                                 ])
                             )
                             ->searchable()
@@ -51,9 +50,8 @@ class RecepcionForm
                             ->live()
                             ->prefixIcon(Heroicon::DocumentText)
                             ->afterStateUpdated(function ($state, $set, $get) {
-                                if (! $state) {
+                                if (!$state) {
                                     $set('items', []);
-
                                     return;
                                 }
 
@@ -86,7 +84,7 @@ class RecepcionForm
 
                         Select::make('estado')
                             ->label('Estado de Recepción')
-                            ->options(EstadoRecepcion::class)
+                            ->options(\App\Enums\Compras\EstadoRecepcion::class)
                             ->required()
                             ->preload()
                             ->prefixIcon(Heroicon::CheckCircle),
@@ -149,12 +147,9 @@ class RecepcionForm
             ]);
     }
 
-    /** @return array<int|string, string> */
     private static function getOrdenItemsOptions(?int $ordenId): array
     {
-        if (! $ordenId) {
-            return [];
-        }
+        if (!$ordenId) return [];
 
         return OrdenCompraItem::where('orden_compra_id', $ordenId)
             ->with(['producto', 'variante'])
@@ -165,7 +160,7 @@ class RecepcionForm
                     $label .= " ({$item->variante->codigo})";
                 }
                 $label .= " | Ordenado: {$item->cantidad}";
-
+                
                 return [$item->id => $label];
             })
             ->toArray();

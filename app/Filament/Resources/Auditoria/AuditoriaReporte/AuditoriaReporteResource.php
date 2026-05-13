@@ -13,7 +13,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
-
 class AuditoriaReporteResource extends Resource
 {
     protected static ?string $model = AuditoriaReporte::class;
@@ -21,7 +20,6 @@ class AuditoriaReporteResource extends Resource
     protected static ?string $modelLabel = 'Auditoría de Reportes';
 
     protected static ?string $pluralModelLabel = 'Auditoría de Reportes';
-
     protected static string|UnitEnum|null $navigationGroup = 'Auditoria';
 
     protected static ?string $navigationLabel = 'Auditoría de Reportes';

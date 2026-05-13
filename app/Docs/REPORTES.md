@@ -37,29 +37,7 @@ Todos los reportes PDF usan **DomPDF** y cuentan con encabezado (logo + nombre) 
 
 ---
 
-## 2. Reportes de Compras (Serie HTB-COM)
-
-Todos los reportes de compras utilizan el layout maestro `layouts.reporte-htb` y el motor **Spatie PDF** (Browsershot) para máxima fidelidad con Tailwind CSS.
-
-### HTB-COM-001 — Solicitud de Compra
-- **Clase:** `CompraReportController@imprimirSolicitud`
-- **Contenido:** Detalle de ítems solicitados, justificación y firmas de aprobación.
-
-### HTB-COM-002 — Cotización de Proveedor
-- **Clase:** `CompraReportController@imprimirCotizacion`
-- **Contenido:** Comparativa de precios, vigencia y selección de ítems ganadores.
-
-### HTB-COM-003 — Orden de Compra
-- **Clase:** `CompraReportController@imprimirOrdenCompra`
-- **Contenido:** Documento oficial de compromiso, totales con impuestos y términos legales.
-
-### HTB-COM-004 — Recepción de Mercancía
-- **Clase:** `CompraReportController@imprimirRecepcion`
-- **Contenido:** Control de ingreso, cantidades recibidas vs rechazadas y notas de almacén.
-
----
-
-## 3. Exportación de datos
+## 2. Exportación de datos
 
 ### HTB-CP-004 — Exportación de Productos
 
@@ -74,7 +52,7 @@ Todos los reportes de compras utilizan el layout maestro `layouts.reporte-htb` y
 
 ---
 
-## 4. Sistema de auditoría
+## 3. Sistema de auditoría
 
 Cada generación de reporte se registra automáticamente en la tabla `auditoria_reportes`.
 
@@ -86,31 +64,36 @@ Cada generación de reporte se registra automáticamente en la tabla `auditoria_
 |---------|------|-------------|
 | `id` | bigIncrements | ID único |
 | `usuario_id` | foreignId | Usuario que generó el reporte (nullable) |
-| `tipo_reporte` | string | Código del reporte (ej. `HTB-COM-001`) |
-| `parametros` | json | Filtros aplicados (ID del registro, código, etc.) |
-| `ruta_archivo` | string | Ruta al archivo generado (si aplica) |
+| `tipo_reporte` | string | Código del reporte (ej. `HTB-CP-001`) |
+| `parametros` | json | Filtros aplicados |
+| `ruta_archivo` | string | Ruta al archivo generado (nullable) |
 | `conteo_descargas` | integer | Siempre `1` en cada registro |
 | `ultima_descarga_en` | timestamp | Marca de tiempo de la generación |
 
+### Use Cases
+
+| Clase | Método | Uso |
+|-------|--------|-----|
+| `RegistrarAuditoriaReporteUseCase` | `ejecutar(tipo, parametros, rutaArchivo)` | Usado por todas las Actions — hace **INSERT** directo con `DB::table()` |
+| `RegistrarReporteUseCase` | `registrar(tipo, parametros, rutaArchivo, usuarioId)` e `incrementarDescarga(id)` | Usa el modelo Eloquent — tiene lógica de incremento de descargas, pero **no está siendo usado actualmente** por las Actions |
+
 ---
 
-## 5. Ubicación de clases
+## 4. Ubicación de clases
 
 | Reporte | Archivo |
 |---------|---------|
 | HTB-CP-001 / HTB-CP-002 | `app/Actions/Catalogos/GenerarReporteProductosAction.php` |
 | HTB-CP-003 | `app/Actions/Catalogos/GenerarEtiquetasCodigosBarrasAction.php` |
 | HTB-CP-004 | `app/UseCases/Catalogos/ExportProductosUseCase.php` |
-| HTB-COM-XXX | `app/Http/Controllers/Compras/CompraReportController.php` |
 | Auditoría | `app/UseCases/Reportes/RegistrarAuditoriaReporteUseCase.php` |
 | Modelo auditoría | `app/Models/Audits/AuditoriaReporte.php` |
 
 ---
 
-## 6. Vistas Blade
+## 5. Vistas Blade
 
-Los reportes se encuentran en:
+Los PDF se renderizan desde `resources/views/reportes/`:
 
-- `resources/views/reportes/` — Catálogos y Etiquetas (DomPDF)
-- `resources/views/reports/compras/` — Compras (Serie HTB-COM, Layout Maestro)
-- `resources/views/layouts/reporte-htb.blade.php` — Layout Maestro compartido
+- `reportes.productos-variantes` — CP-001 y CP-002
+- `reportes.etiquetas-codigos-barras` — CP-003

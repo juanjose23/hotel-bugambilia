@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
+     * Crea la tabla report_audits (original en inglés).
      * Migración inicial del sistema de auditoría de reportes.
+     * Traducida a español en la migración 2026_05_11_045200.
      * Ver auditoria_reportes para la versión actual.
      */
     public function up(): void
@@ -15,7 +17,7 @@ return new class extends Migration
 
         Schema::create('auditoria_reportes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('usuario_id')->nullable()->comment('Usuario que generó el reporte (luego renombrado a usuario_id)')->constrained('users')->nullOnDelete();
+            $table->foreignId('usuario_id')->nullable()->comment('Usuario que generó el reporte (luego renombrado a usuario_id)')->constrained()->nullOnDelete();
             $table->string('tipo_reporte')->comment('Código del reporte (ej. HTB-CP-001, luego renombrado a tipo_reporte)');
             $table->json('parametros')->nullable()->comment('Filtros aplicados en JSON (luego renombrado a parametros)');
             $table->string('ruta_archivo')->nullable()->comment('Ruta al archivo generado (luego renombrado a ruta_archivo)');

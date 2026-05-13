@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Auditoria\AuditoriaReporte\Tables;
 
-use App\Models\Audits\AuditoriaReporte;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -26,7 +25,6 @@ class AuditoriaReporteTable
                         if (! $usuario) {
                             return 'Sistema';
                         }
-
                         return $usuario->name ?: $usuario->email;
                     })
                     ->searchable(),
@@ -50,7 +48,7 @@ class AuditoriaReporteTable
                 SelectFilter::make('tipo_reporte')
                     ->label('Tipo de reporte')
                     ->options(
-                        AuditoriaReporte::query()
+                        \App\Models\Audits\AuditoriaReporte::query()
                             ->select('tipo_reporte')
                             ->distinct()
                             ->pluck('tipo_reporte', 'tipo_reporte')
