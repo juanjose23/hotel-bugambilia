@@ -3,10 +3,13 @@
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
+use App\Models\Personas\Persona;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\CreateRecord;
 
 /**
- * @property \App\Models\Personas\Persona $record
+ * @property Persona $record
  */
 class CreateColaborador extends CreateRecord
 {
@@ -15,7 +18,7 @@ class CreateColaborador extends CreateRecord
     protected ?string $fotoUpload = null;
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     protected function mutateFormDataBeforeSave(array $data): array
@@ -37,7 +40,7 @@ class CreateColaborador extends CreateRecord
         }
     }
 
-    /** @return array<int, \Filament\Actions\Action | \Filament\Actions\ActionGroup> */
+    /** @return array<int, Action | ActionGroup> */
     protected function getFormActions(): array
     {
         return [];

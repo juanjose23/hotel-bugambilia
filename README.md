@@ -12,6 +12,9 @@ El **Hotel Bugambilias** es un referente de hospitalidad en la ciudad de **Estel
 Para mantener la consistencia y calidad, este proyecto sigue estándares estrictos definidos en la carpeta `docs/`:
 
 - **[Convenciones de Desarrollo](docs/conventions.md)**: Estándares de nombres, estructura de carpetas y reglas de idioma (Español).
+- **[Seguridad y Permisos](docs/SEGURIDAD.md)**: Matriz de roles y control de acceso (Filament Shield).
+- **[Guía de Compras y P2P](docs/COMPRAS.md)**: Flujo de Solicitudes, Cotizaciones y Órdenes.
+- **[Auditoría de Reportes](docs/REPORTES.md)**: Trazabilidad de documentos e impresiones.
 - **[Arquitectura de Casos de Uso](docs/use-case-architecture.md)**: Guía sobre la implementación de Clean Architecture simplificada.
 - **[Manual de Estilo](docs/README.md)**: Resumen general de la metodología de diseño y patrones recomendados.
 
