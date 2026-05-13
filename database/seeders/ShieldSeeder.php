@@ -21,9 +21,7 @@ class ShieldSeeder extends Seeder
         $directPermissions = '{"228":{"name":"ViewComparativaSolicitud","guard_name":"web"},"241":{"name":"ViewComparativaCotizaciones","guard_name":"web"},"242":{"name":"ImprimirSolicitud","guard_name":"web"},"243":{"name":"ImprimirCotizacion","guard_name":"web"},"244":{"name":"ImprimirOrdenCompra","guard_name":"web"},"245":{"name":"ImprimirRecepcion","guard_name":"web"},"246":{"name":"ImprimirReportesCompras","guard_name":"web"}}';
 
         // 1. Seed tenants first (if present)
-        if (! blank($tenants) && $tenants !== '[]') {
-            static::seedTenants($tenants);
-        }
+        static::seedTenants($tenants);
 
         // 2. Seed roles with permissions
         static::makeRolesWithPermissions($rolesWithPermissions);
@@ -32,16 +30,12 @@ class ShieldSeeder extends Seeder
         static::makeDirectPermissions($directPermissions);
 
         // 4. Seed users with their roles/permissions (if present)
-        if (! blank($users) && $users !== '[]') {
-            static::seedUsers($users);
-        }
+        static::seedUsers($users);
 
         // 5. Seed user-tenant pivot (if present)
-        if (! blank($userTenantPivot) && $userTenantPivot !== '[]') {
-            static::seedUserTenantPivot($userTenantPivot);
-        }
+        static::seedUserTenantPivot($userTenantPivot);
 
-        $this->command?->info('Shield Seeding Completed.');
+        $this->command->info('Shield Seeding Completed.');
     }
 
     protected static function seedTenants(string $tenants): void
@@ -85,21 +79,6 @@ class ShieldSeeder extends Seeder
                 $data
             );
 
-            // Handle tenancy mode - sync roles/permissions per tenant
-            if ($tenancyEnabled && (! empty($tenantRoles) || ! empty($tenantPermissions))) {
-                foreach ($tenantRoles as $tenantId => $roleNames) {
-                    $contextId = $tenantId === '_global' ? null : $tenantId;
-                    setPermissionsTeamId($contextId);
-                    $user->syncRoles($roleNames);
-                }
-
-                foreach ($tenantPermissions as $tenantId => $permissionNames) {
-                    $contextId = $tenantId === '_global' ? null : $tenantId;
-                    setPermissionsTeamId($contextId);
-                    $user->syncPermissions($permissionNames);
-                }
-            } else {
-                // Non-tenancy mode
                 if (! empty($roles)) {
                     $user->syncRoles($roles);
                 }
@@ -107,7 +86,6 @@ class ShieldSeeder extends Seeder
                 if (! empty($permissions)) {
                     $user->syncPermissions($permissions);
                 }
-            }
         }
     }
 
@@ -146,9 +124,9 @@ class ShieldSeeder extends Seeder
             return;
         }
 
-        /** @var Model $roleModel */
+        /** @var class-string<Model> $roleModel */
         $roleModel = Utils::getRoleModel();
-        /** @var Model $permissionModel */
+        /** @var class-string<Model> $permissionModel */
         $permissionModel = Utils::getPermissionModel();
 
         $tenancyEnabled = false;
@@ -157,31 +135,24 @@ class ShieldSeeder extends Seeder
         foreach ($rolePlusPermissions as $rolePlusPermission) {
             $tenantId = $rolePlusPermission[$teamForeignKey] ?? null;
 
-            // Set tenant context for role creation and permission sync
-            if ($tenancyEnabled) {
-                setPermissionsTeamId($tenantId);
-            }
-
             $roleData = [
                 'name' => $rolePlusPermission['name'],
                 'guard_name' => $rolePlusPermission['guard_name'],
             ];
 
-            // Include tenant ID in role data (can be null for global roles)
-            if ($tenancyEnabled && ! blank($teamForeignKey)) {
-                $roleData[$teamForeignKey] = $tenantId;
-            }
-
             $role = $roleModel::firstOrCreate($roleData);
 
             if (! blank($rolePlusPermission['permissions'])) {
-                $permissionModels = collect($rolePlusPermission['permissions'])
-                    ->map(fn ($permission) => $permissionModel::firstOrCreate([
+                /** @var array<int, string> $permissions */
+                $permissions = $rolePlusPermission['permissions'];
+                $permissionModels = collect($permissions)
+                    ->map(fn (string $permission) => $permissionModel::firstOrCreate([
                         'name' => $permission,
                         'guard_name' => $rolePlusPermission['guard_name'],
                     ]))
                     ->all();
 
+                /** @var \Spatie\Permission\Models\Role $role */
                 $role->syncPermissions($permissionModels);
             }
         }
@@ -193,7 +164,7 @@ class ShieldSeeder extends Seeder
             return;
         }
 
-        /** @var Model $permissionModel */
+        /** @var class-string<Model> $permissionModel */
         $permissionModel = Utils::getPermissionModel();
 
         foreach ($permissions as $permission) {
