@@ -3,6 +3,7 @@
 namespace App\Actions\Catalogos;
 
 use App\Models\Catalogos\Producto;
+use App\Models\Catalogos\ProductoVariante;
 use App\Support\ReportePaginador;
 use App\UseCases\Reportes\RegistrarAuditoriaReporteUseCase;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -116,7 +117,7 @@ class GenerarReporteProductosAction
                     }
                 }
             }
-            /** @var Collection<int, array{tipo: string, producto: Producto, v?: \App\Models\Catalogos\ProductoVariante|null}> $filasCollection */
+            /** @var Collection<int, array{tipo: string, producto: Producto, v?: ProductoVariante|null}> $filasCollection */
             $filasCollection = collect($filas);
 
             $paginas = [];

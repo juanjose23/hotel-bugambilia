@@ -3,11 +3,14 @@
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
+use App\Models\Personas\Persona;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * @property \App\Models\Personas\Persona $record
+ * @property Persona $record
  */
 class EditColaborador extends EditRecord
 {
@@ -16,7 +19,7 @@ class EditColaborador extends EditRecord
     protected ?string $fotoUpload = null;
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     protected function mutateFormDataBeforeSave(array $data): array
@@ -47,7 +50,7 @@ class EditColaborador extends EditRecord
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     protected function mutateFormDataBeforeFill(array $data): array
@@ -57,7 +60,7 @@ class EditColaborador extends EditRecord
         return $data;
     }
 
-    /** @return array<int, \Filament\Actions\Action | \Filament\Actions\ActionGroup> */
+    /** @return array<int, Action | ActionGroup> */
     protected function getFormActions(): array
     {
         return [];

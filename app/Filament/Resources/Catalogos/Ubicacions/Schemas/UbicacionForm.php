@@ -61,14 +61,21 @@ class UbicacionForm
                                     ->options(TipoUbicacion::options()),
                                 TextInput::make('orden')
                                     ->label('Orden')
-                                    ->rules(fn (callable $get) => Ubicacion::query()
-                                        ->where('padre_id', $get('padre_id'))
-                                        ->where('id', '!=', $get('id'))
-                                        ->pluck('orden')
-                                        ->all())
                                     ->required()
                                     ->numeric()
                                     ->default(0)
+                                    ->rules([
+                                        fn ($get, $component): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $component) {
+                                            $exists = Ubicacion::where('padre_id', $get('padre_id'))
+                                                ->where('orden', $value)
+                                                ->when($component->getRecord()?->id, fn ($q, $id) => $q->where('id', '!=', $id))
+                                                ->exists();
+
+                                            if ($exists) {
+                                                $fail('Ya existe una ubicación con este orden en el mismo nivel padre.');
+                                            }
+                                        },
+                                    ])
                                     ->prefixIcon(Heroicon::ArrowDownCircle),
                                 Select::make('estado')
                                     ->label('Estado')
