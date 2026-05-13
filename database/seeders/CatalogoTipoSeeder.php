@@ -88,20 +88,8 @@ class CatalogoTipoSeeder extends Seeder
                 'nombre' => 'Tipo de promoción',
                 'estado' => 1,
             ],
-
-            // Compras y Proveedores
-            [
-                'codigo' => 'CONDICION_PAGO',
-                'nombre' => 'Condición de pago',
-                'estado' => 1,
-            ],
-            [
-                'codigo' => 'TIPO_PROVEEDOR',
-                'nombre' => 'Tipo de proveedor',
-                'estado' => 1,
-            ],
         ];
-        DB::table('catalogo_tipos')->upsert($tipos, ['codigo']);
+        DB::table('catalogo_tipos')->insert($tipos);
 
     }
 }

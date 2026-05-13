@@ -91,7 +91,6 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'MOV_ENTRADA', 'nombre' => 'Entrada / Compra'],
             ['codigo' => 'MOV_SALIDA', 'nombre' => 'Salida / Consumo'],
             ['codigo' => 'MOV_AJUSTE', 'nombre' => 'Ajuste de Inventario'],
-            ['codigo' => 'MOV_TRANSFERENCIA', 'nombre' => 'Transferencia entre almacenes'],
         ]);
 
         // --- 7. CATEGORÍAS DE PRODUCTO (JERÁRQUICO) ---
@@ -169,23 +168,6 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'UNI_PAQ', 'nombre' => 'Paquete'],
             ['codigo' => 'UNI_METRO', 'nombre' => 'Metro'],
         ]);
-
-        // --- 10. CONDICIONES DE PAGO (Plano) ---
-        $this->insertar($tipos['CONDICION_PAGO'], [
-            ['codigo' => 'PAG_CONTADO', 'nombre' => 'Contado'],
-            ['codigo' => 'PAG_15D', 'nombre' => '15 días'],
-            ['codigo' => 'PAG_30D', 'nombre' => '30 días'],
-            ['codigo' => 'PAG_45D', 'nombre' => '45 días'],
-            ['codigo' => 'PAG_60D', 'nombre' => '60 días'],
-            ['codigo' => 'PAG_90D', 'nombre' => '90 días'],
-        ]);
-
-        // --- 11. TIPOS DE PROVEEDOR (Plano) ---
-        $this->insertar($tipos['TIPO_PROVEEDOR'], [
-            ['codigo' => 'PROV_NACIONAL', 'nombre' => 'Nacional'],
-            ['codigo' => 'PROV_INTERNACIONAL', 'nombre' => 'Internacional'],
-        ]);
-
     }
 
     // -------------------- HELPERS --------------------
@@ -196,14 +178,11 @@ class CatalogoSeeder extends Seeder
     {
         foreach ($data as $item) {
             /** @var array<string, mixed> $item */
-            DB::table('catalogos')->upsert(
-                array_merge($item, [
-                    'catalogo_tipo_id' => $tipoId,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]),
-                ['catalogo_tipo_id', 'codigo']
-            );
+            DB::table('catalogos')->insert(array_merge($item, [
+                'catalogo_tipo_id' => $tipoId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]));
         }
     }
 
@@ -212,20 +191,10 @@ class CatalogoSeeder extends Seeder
      */
     private function insertarGetId(int $tipoId, array $item): int
     {
-        $data = array_merge($item, [
+        return DB::table('catalogos')->insertGetId(array_merge($item, [
             'catalogo_tipo_id' => $tipoId,
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
-
-        DB::table('catalogos')->updateOrInsert(
-            ['catalogo_tipo_id' => $tipoId, 'codigo' => $item['codigo']],
-            $data
-        );
-
-        return DB::table('catalogos')
-            ->where('catalogo_tipo_id', $tipoId)
-            ->where('codigo', $item['codigo'])
-            ->value('id');
+        ]));
     }
 }
