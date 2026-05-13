@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Email Domain for User Generation
+    |--------------------------------------------------------------------------
+    |
+    | This value is used as the domain part when auto-generating email addresses
+    | for new users based on their person's name.
+    |
+    */
+
+    'email_domain' => env('APP_EMAIL_DOMAIN', 'hotel.com'),
+
 ];

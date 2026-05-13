@@ -68,6 +68,7 @@ class AuditoriaReporteInfolist
                                         ];
                                     }
                                 }
+
                                 return $result;
                             })
                             ->schema([

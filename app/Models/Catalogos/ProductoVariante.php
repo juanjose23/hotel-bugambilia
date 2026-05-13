@@ -10,9 +10,15 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * @property int $id
+ * @property int $producto_id
  * @property string $codigo
+ * @property string $nombre_variante
  * @property string|null $barcode_base64
  * @property array<string, mixed>|null $atributos
+ * @property int|null $unidad_medida_id
+ * @property float|null $peso
+ * @property float|null $volumen
+ * @property int $estado
  */
 class ProductoVariante extends Model implements AuditableContract
 {
