@@ -3,10 +3,11 @@
 namespace App\Filament\Resources\Compras\Cotizaciones\Schemas;
 
 use App\Enums\CatalogoTipo;
-use App\Enums\EstadoCatalogo;
+use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\ProductoVariante;
 use App\Models\Compras\Proveedor;
+use App\Models\Compras\Solicitud;
 use App\UseCases\Compras\ObtenerSolicitudConItems;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -14,8 +15,8 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -34,7 +35,7 @@ class CotizacionForm
                     ->schema([
                         Select::make('solicitud_id')
                             ->label('Solicitud Relacionada')
-                            ->options(fn () => \App\Models\Compras\Solicitud::where('estado', \App\Enums\Compras\EstadoSolicitud::Aprobada)
+                            ->options(fn () => Solicitud::where('estado', EstadoSolicitud::Aprobada)
                                 ->whereDoesntHave('ordenesCompra')
                                 ->pluck('codigo', 'id'))
                             ->searchable()
@@ -105,7 +106,7 @@ class CotizacionForm
 
                                         Select::make('producto_variante_id')
                                             ->label('Variante Ofrecida')
-                                            ->options(fn ($get) => \App\Models\Catalogos\ProductoVariante::where('producto_id', $get('producto_id'))->pluck('codigo', 'id'))
+                                            ->options(fn ($get) => ProductoVariante::where('producto_id', $get('producto_id'))->pluck('codigo', 'id'))
                                             ->searchable()
                                             ->required()
                                             ->columnSpan(3)
@@ -142,7 +143,7 @@ class CotizacionForm
                             ->live()
                             ->afterStateUpdated(fn ($get, $set) => self::updateTotals($get, $set))
                             ->addActionLabel('Cargar productos desde solicitud')
-                            ->itemLabel(fn (array $state): ?string => ($state['producto_id'] ?? null) ? "Detalle de ítem" : null),
+                            ->itemLabel(fn (array $state): ?string => ($state['producto_id'] ?? null) ? 'Detalle de ítem' : null),
                     ]),
 
                 // SECCIÓN 4: RESUMEN FINANCIERO (Layout tipo factura)
@@ -213,29 +214,33 @@ class CotizacionForm
             ]);
     }
 
-    protected static function loadSolicitudItems($state, $set): void
+    protected static function loadSolicitudItems(mixed $state, mixed $set): void
     {
-        if (!$state) return;
-        
+        if (! $state) {
+            return;
+        }
+
         $solicitud = app(ObtenerSolicitudConItems::class)->execute($state);
-        if (!$solicitud) return;
+        if (! $solicitud) {
+            return;
+        }
 
         // Mapeo inteligente de productos
         $items = $solicitud->items
             ->map(fn ($item) => [
                 'producto_id' => $item->producto_id,
                 'producto_variante_id' => $item->producto_variante_id,
-                'cantidad' => $item->cantidad_aprobada > 0 ? $item->cantidad_aprobada : $item->cantidad,
+                'cantidad' => $item->cantidad_aprobada > 0 ? $item->cantidad_aprobada : $item->cantidad_solicitada,
                 'precio_unitario' => 0,
                 'subtotal' => 0,
             ])->toArray();
 
         $set('items', []);
         $set('items', $items);
-        self::updateTotals(fn($key) => $key === 'items' ? $items : 0, $set);
+        self::updateTotals(fn ($key) => $key === 'items' ? $items : 0, $set);
     }
 
-    public static function updateTotals($get, $set): void
+    public static function updateTotals(mixed $get, mixed $set): void
     {
         $items = is_array($get) ? $get['items'] : (is_callable($get) ? $get('items') : []);
         $subtotalGeneral = 0;
@@ -244,7 +249,7 @@ class CotizacionForm
             $cantidad = floatval($item['cantidad'] ?? 0);
             $precio = floatval($item['precio_unitario'] ?? 0);
             $subtotalItem = $cantidad * $precio;
-            
+
             if (is_callable($set)) {
                 $set("items.{$key}.subtotal", $subtotalItem);
             }
@@ -254,7 +259,7 @@ class CotizacionForm
         $envio = floatval(is_callable($get) ? $get('costo_envio') : 0);
         $impuestos = floatval(is_callable($get) ? $get('impuestos') : 0);
         $descuento = floatval(is_callable($get) ? $get('descuento') : 0);
-        
+
         if (is_callable($set)) {
             $set('subtotal', $subtotalGeneral);
             $set('total', ($subtotalGeneral + $envio + $impuestos) - $descuento);

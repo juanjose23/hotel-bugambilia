@@ -1,10 +1,21 @@
-# Documentacion del Proyecto
+# Documentación del Sistema - Hotel Bugambilias
 
-Esta carpeta centraliza los estandares internos del proyecto.
+Bienvenido a la documentación técnica y operativa. El sistema sigue estándares de arquitectura limpia y seguridad basada en roles (RBAC).
 
-## Contenido
+## 🧭 Índice de Documentos Activos
 
-- [Arquitectura Use Case (fuente única)](./use-case-architecture.md)
+| Archivo | Propósito |
+| :--- | :--- |
+| [**MODULO_COMPRAS.md**](./MODULO_COMPRAS.md) | **Manual Maestro de Compras (P2P).** Flujo de solicitudes, cotizaciones, órdenes y recepciones. |
+| [**INICIALIZACION_SEGURIDAD.md**](./INICIALIZACION_SEGURIDAD.md) | Guía técnica para instalar y configurar roles y permisos con Filament Shield. |
+| [**SEGURIDAD.md**](./SEGURIDAD.md) | Políticas generales de seguridad y trazabilidad. |
+| [**use-case-architecture.md**](./use-case-architecture.md) | Estándares de programación para la capa de lógica de negocio (UseCases). |
+
+## ⚠️ Archivos Deprecados
+Los archivos `COMPRAS.md`, `COTIZACIONES.md` y `solicitudes-compra.md` han sido consolidados en el manual maestro y pueden ser eliminados para evitar confusiones.
+
+---
+*Hotel Bugambilias*
 
 ## Definiciones base del proyecto
 
