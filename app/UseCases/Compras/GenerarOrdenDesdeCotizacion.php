@@ -30,7 +30,10 @@ class GenerarOrdenDesdeCotizacion
             $maxCodigo = OrdenCompra::whereYear('fecha_orden', $year)
                 ->lockForUpdate()
                 ->max('codigo');
-            $lastNumber = $maxCodigo ? (int) substr($maxCodigo, -3) : 0;
+            $lastNumber = 0;
+            if ($maxCodigo && preg_match('/-(\d+)$/', $maxCodigo, $matches)) {
+                $lastNumber = (int) $matches[1];
+            }
             $codigo = "OC-{$year}-".str_pad((string) ($lastNumber + 1), 3, '0', STR_PAD_LEFT);
 
             $subtotal = $itemsElegidos->sum('subtotal');

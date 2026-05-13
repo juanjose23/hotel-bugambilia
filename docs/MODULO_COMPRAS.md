@@ -129,7 +129,7 @@ El sistema evalúa tres escenarios y recomienda el que minimice el TCO:
 | `created` | Crea un registro inicial con `estado_anterior = null`. |
 
 > [!NOTE]
-> El trait verifica si el valor de estado es un objecto (`is_object()`) antes de llamar a `method_exists('label')` para evitar TypeError cuando el valor original desde BD es un entero crudo.
+> El trait verifica si el valor de estado es un objeto (`is_object()`) antes de llamar a `method_exists('label')` para evitar TypeError cuando el valor original desde BD es un entero crudo.
 
 ---
 

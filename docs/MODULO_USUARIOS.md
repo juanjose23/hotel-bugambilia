@@ -59,7 +59,7 @@ El formulario está organizado en dos secciones:
 
 **Nombre de usuario (`name`):**
 1. Toma el `primer_nombre` y `primer_apellido` de la persona.
-2. Convierte a minúsculas y remplaza caracteres acentuados/ñ (ej. `José` → `jose`, `Muñoz` → `munoz`).
+2. Convierte a minúsculas y reemplaza caracteres acentuados/ñ (ej. `José` → `jose`, `Muñoz` → `munoz`).
 3. Concatena con un punto: `jose.munoz`.
 4. Si ya existe un usuario con ese nombre, agrega un sufijo numérico incremental (`jose.munoz1`, `jose.munoz2`, etc.).
 
@@ -99,11 +99,11 @@ Las rutas de descarga de PDF están protegidas con middleware de permisos:
 
 | Ruta | Permiso requerido |
 |------|-------------------|
-| `admin/compras/reportes/solicitud/{solicitud}` | `can:imprimir_solicitud` |
-| `admin/compras/reportes/orden-compra/{orden}` | `can:imprimir_orden_compra` |
-| `admin/compras/reportes/recepcion/{recepcion}` | `can:imprimir_recepcion` |
-| `admin/compras/reportes/cotizacion/{cotizacion}` | `can:imprimir_cotizacion` |
-| `admin/compras/reportes/resumen-departamentos` | `can:imprimir_reportes_compras` |
+| `admin/compras/reportes/solicitud/{solicitud}` | `can:ImprimirSolicitud` |
+| `admin/compras/reportes/orden-compra/{orden}` | `can:ImprimirOrdenCompra` |
+| `admin/compras/reportes/recepcion/{recepcion}` | `can:ImprimirRecepcion` |
+| `admin/compras/reportes/cotizacion/{cotizacion}` | `can:ImprimirCotizacion` |
+| `admin/compras/reportes/resumen-departamentos` | `can:ImprimirReportesCompras` |
 
 ### 5.2 Policies
 

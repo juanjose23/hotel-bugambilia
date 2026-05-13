@@ -83,11 +83,11 @@ Todos los reportes de compras usan **Spatie PDF** con el layout `layouts.reporte
 ### 2.4 Middleware de autorización en rutas PDF
 
 - **Problema:** Las rutas de descarga de PDF solo estaban protegidas con `auth`, permitiendo que cualquier usuario autenticado descargara documentos sensibles.
-- **Solución:** Se agregó middleware `can:imprimir_*` a cada ruta, validando los permisos personalizados documentados en la matriz de roles.
+- **Solución:** Se agregó middleware `can:Imprimir*` a cada ruta, validando los permisos personalizados documentados en la matriz de roles.
 
 ```php
 Route::get('/solicitud/{solicitud}', [CompraReportController::class, 'imprimirSolicitud'])
-    ->middleware('can:imprimir_solicitud');
+    ->middleware('can:ImprimirSolicitud');
 ```
 
 ### 2.5 Nullsafe en traits
@@ -109,8 +109,8 @@ El servicio maneja dos tipos de notificaciones:
 
 | Tipo | Método | Persistencia |
 |------|--------|-------------|
-| **Flash** | `Notification::make()->send()` | En vivo, en la sesión actual |
-| **Base de Datos** | `Notification::make()->sendToDatabase($user)` | Persistente, visible en el panel |
+| **Base de Datos** | `Notification::make()->sendToDatabase($user)` | Persistente, visible en el panel de notificaciones |
+| **En vivo (Toast)** | `Notification::make()->send()` | Solo visible si el usuario está conectado en ese momento |
 
 ### 3.2 Enrutamiento de notificaciones
 

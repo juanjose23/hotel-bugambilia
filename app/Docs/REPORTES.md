@@ -61,7 +61,7 @@ Ruta base: `GET /admin/compras/reportes/{tipo}` | Controlador: `CompraReportCont
 |-------|-------|
 | **Concepto** | Documento formal de solicitud de compra con detalle de ítems, justificación y firmas de aprobación. |
 | **Ruta** | `/admin/compras/reportes/solicitud/{solicitud}` |
-| **Permiso** | `imprimir_solicitud` |
+| **Permiso** | `ImprimirSolicitud` |
 | **Filtros** | Ninguno (descarga directa del registro). |
 | **Contenido** | Solicitante, departamento, justificación, tabla de ítems con cantidades solicitadas/aprobadas, espacios para firmas |
 
@@ -71,7 +71,7 @@ Ruta base: `GET /admin/compras/reportes/{tipo}` | Controlador: `CompraReportCont
 |-------|-------|
 | **Concepto** | Oferta formal del proveedor con precios unitarios, condición de pago y vigencia. |
 | **Ruta** | `/admin/compras/reportes/cotizacion/{cotizacion}` |
-| **Permiso** | `imprimir_cotizacion` |
+| **Permiso** | `ImprimirCotizacion` |
 | **Filtros** | Ninguno (descarga directa del registro). |
 | **Contenido** | Datos del proveedor, condición de pago, vigencia, ítems cotizados con precios y subtotales |
 
@@ -81,7 +81,7 @@ Ruta base: `GET /admin/compras/reportes/{tipo}` | Controlador: `CompraReportCont
 |-------|-------|
 | **Concepto** | Documento oficial de compromiso de compra con totales, impuestos y términos legales. |
 | **Ruta** | `/admin/compras/reportes/orden-compra/{orden}` |
-| **Permiso** | `imprimir_orden_compra` |
+| **Permiso** | `ImprimirOrdenCompra` |
 | **Filtros** | Ninguno (descarga directa del registro). |
 | **Contenido** | Proveedor, condición de pago, ítems, precios, impuestos (IVA) y total |
 
@@ -91,7 +91,7 @@ Ruta base: `GET /admin/compras/reportes/{tipo}` | Controlador: `CompraReportCont
 |-------|-------|
 | **Concepto** | Comprobante de ingreso a almacén con control de cantidades recibidas vs. rechazadas. |
 | **Ruta** | `/admin/compras/reportes/recepcion/{recepcion}` |
-| **Permiso** | `imprimir_recepcion` |
+| **Permiso** | `ImprimirRecepcion` |
 | **Filtros** | Ninguno (descarga directa del registro). |
 | **Contenido** | Orden de compra origen, ítems recibidos, cantidades recibidas/rechazadas, motivo de rechazo |
 
@@ -101,7 +101,7 @@ Ruta base: `GET /admin/compras/reportes/{tipo}` | Controlador: `CompraReportCont
 |-------|-------|
 | **Concepto** | Reporte ejecutivo con conteo de órdenes de compra y total gastado, agrupado por departamento. |
 | **Ruta** | `/admin/compras/reportes/resumen-departamentos` |
-| **Permiso** | `imprimir_reportes_compras` |
+| **Permiso** | `ImprimirReportesCompras` |
 | **Filtros** | `fecha_inicio` (query, formato `Y-m-d`), `fecha_fin` (query, formato `Y-m-d`). Si se omite: **inicio del mes actual → fecha actual**. |
 | **Contenido** | Departamento, conteo de órdenes, total gastado |
 | **Modal** | `ListOrdenCompras` → Action "Resumen por Departamento" con DatePickers para `fecha_inicio` y `fecha_fin` |

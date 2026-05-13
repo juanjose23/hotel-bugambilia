@@ -24,12 +24,12 @@ Las siguientes custom permissions deben existir en la BD y estar asignadas al ro
 
 | Permiso | Propósito |
 |---------|-----------|
-| `imprimir_solicitud` | Descargar PDF de Solicitud de Compra (HTB-COM-001) |
-| `imprimir_cotizacion` | Descargar PDF de Cotización (HTB-COM-002) |
-| `imprimir_orden_compra` | Descargar PDF de Orden de Compra (HTB-COM-003) |
-| `imprimir_recepcion` | Descargar PDF de Recepción de Mercancía (HTB-COM-004) |
-| `imprimir_reportes_compras` | Descargar PDF de Resumen por Departamentos (HTB-COM-005) |
-| `view_comparativa_cotizaciones` | Acceder al dashboard de comparativa de cotizaciones |
+| `ImprimirSolicitud` | Descargar PDF de Solicitud de Compra (HTB-COM-001) |
+| `ImprimirCotizacion` | Descargar PDF de Cotización (HTB-COM-002) |
+| `ImprimirOrdenCompra` | Descargar PDF de Orden de Compra (HTB-COM-003) |
+| `ImprimirRecepcion` | Descargar PDF de Recepción de Mercancía (HTB-COM-004) |
+| `ImprimirReportesCompras` | Descargar PDF de Resumen por Departamentos (HTB-COM-005) |
+| `ViewComparativaCotizaciones` | Acceder al dashboard de comparativa de cotizaciones |
 
 Se definen en `config/filament-shield.php` → `custom_permissions`. Si faltan, regenerar con:
 
