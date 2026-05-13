@@ -13,14 +13,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use OwenIt\Auditing\Models\Audit;
 use UnitEnum;
+
 class AuditResource extends Resource
 {
     protected static ?string $model = Audit::class;
 
     protected static ?string $navigationLabel = 'Auditoria';
+
     protected static ?string $pluralModelLabel = 'Auditoría de cambios';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShieldCheck;
+
     protected static string|UnitEnum|null $navigationGroup = 'Auditoria';
 
     public static function infolist(Schema $schema): Schema

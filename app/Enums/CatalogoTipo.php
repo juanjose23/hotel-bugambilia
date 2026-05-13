@@ -25,6 +25,13 @@ enum CatalogoTipo: string
     // Inventario
     case TIPO_MOVIMIENTO_INV = 'TIPO_MOVIMIENTO_INV';
 
+    // Compras y Proveedores
+    case CONDICION_PAGO = 'CONDICION_PAGO';
+    case TIPO_PROVEEDOR = 'TIPO_PROVEEDOR';
+    case ESTADO_SOLICITUD = 'ESTADO_SOLICITUD';
+    case ESTADO_ORDEN_COMPRA = 'ESTADO_ORDEN_COMPRA';
+    case ESTADO_RECEPCION = 'ESTADO_RECEPCION';
+
     // Servicios
     case CATEGORIA_SERVICIO = 'CATEGORIA_SERVICIO';
     case TIPO_SERVICIO = 'TIPO_SERVICIO';

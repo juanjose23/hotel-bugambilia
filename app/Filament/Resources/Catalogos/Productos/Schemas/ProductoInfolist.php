@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Catalogos\Productos\Schemas;
 
 use App\Enums\EstadoCatalogo;
 use App\Enums\TipoProducto;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

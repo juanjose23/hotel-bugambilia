@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Caresome\FilamentAuthDesigner\AuthDesignerPlugin;
 use Caresome\FilamentAuthDesigner\Data\AuthPageConfig;
 use Caresome\FilamentAuthDesigner\Enums\MediaPosition;
@@ -51,15 +52,22 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
             ])
-            ->plugin(
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('15s')
+            ->profile()
+            // ->topNavigation()
+            ->sidebarWidth('15rem')
+            ->collapsedSidebarWidth('9rem')
+            ->plugins([
                 AuthDesignerPlugin::make()
                     ->login(
                         fn (AuthPageConfig $config) => $config
                             ->media(asset('img/facebook-cover.jpg'))
                             ->mediaPosition(MediaPosition::Right)
 
-                    )
-            )
+                    ),
+                FilamentShieldPlugin::make(),
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

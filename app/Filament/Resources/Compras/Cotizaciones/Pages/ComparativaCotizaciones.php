@@ -3,8 +3,12 @@
 namespace App\Filament\Resources\Compras\Cotizaciones\Pages;
 
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
+use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
+use App\Models\Compras\Cotizacion;
 use App\Models\Compras\Solicitud;
+use App\Services\Compras\NotificadorCompras;
 use App\UseCases\Compras\ElegirCotizacionGanadora;
+use App\UseCases\Compras\GenerarOrdenDesdeCotizacion;
 use App\UseCases\Compras\ObtenerRecomendacionLogistica;
 use App\UseCases\Compras\ObtenerSolicitudParaComparativa;
 use App\UseCases\Compras\SeleccionarItemGanador;
@@ -22,25 +26,29 @@ class ComparativaCotizaciones extends Page
     protected static ?string $title = 'Comparativa de Precios por Ítem';
 
     public ?int $solicitudId = null;
+
     public ?Solicitud $solicitud = null;
+
+    /** @var array<string, mixed>|null */
     public ?array $recomendacion = null;
 
     public function mount(): void
     {
         $this->solicitudId = (int) request()->query('solicitud_id');
-        
-        if (!$this->solicitudId) {
+
+        if (! $this->solicitudId) {
             Notification::make()
                 ->title('Error')
                 ->body('Se requiere una solicitud para comparar.')
                 ->danger()
                 ->send();
             $this->redirect(CotizacionResource::getUrl('index'));
+
             return;
         }
 
         $this->solicitud = app(ObtenerSolicitudParaComparativa::class)->execute($this->solicitudId);
-        
+
         if ($this->solicitud) {
             $this->calculateRecommendation();
         }
@@ -51,9 +59,12 @@ class ComparativaCotizaciones extends Page
         $this->recomendacion = app(ObtenerRecomendacionLogistica::class)->execute($this->solicitud);
     }
 
+    /** @return array<string, mixed> */
     public function getComparisonData(): array
     {
-        if (!$this->solicitud) return [];
+        if (! $this->solicitud) {
+            return [];
+        }
 
         $items = $this->solicitud->items;
         $cotizaciones = $this->solicitud->cotizaciones;
@@ -63,7 +74,8 @@ class ComparativaCotizaciones extends Page
             $itemData = [
                 'producto_id' => $sItem->producto_id,
                 'producto' => $sItem->producto->nombre,
-                'variante_solicitada' => $sItem->variante?->nombre ?? 'Estándar',
+                'variante_solicitada' => $sItem->variante->nombre_variante ?? 'Estándar',
+
                 'cantidad' => $sItem->cantidad_aprobada > 0 ? $sItem->cantidad_aprobada : $sItem->cantidad_solicitada,
                 'precios' => [],
                 'variantes_ofrecidas' => [],
@@ -74,9 +86,9 @@ class ComparativaCotizaciones extends Page
             foreach ($cotizaciones as $cot) {
                 $cItem = $cot->items->where('producto_id', $sItem->producto_id)->first();
                 $precio = $cItem ? $cItem->precio_unitario : null;
-                
+
                 $itemData['precios'][$cot->id] = $precio;
-                $itemData['variantes_ofrecidas'][$cot->id] = $cItem?->variante?->nombre ?? ($cItem ? 'Estándar' : null);
+                $itemData['variantes_ofrecidas'][$cot->id] = $cItem?->variante->nombre_variante ?? ($cItem ? 'Estándar' : null);
 
                 if ($precio !== null && ($itemData['mejor_precio'] === null || $precio < $itemData['mejor_precio'])) {
                     $itemData['mejor_precio'] = $precio;
@@ -96,10 +108,16 @@ class ComparativaCotizaciones extends Page
     {
         if ($this->solicitud->ordenesCompra()->exists()) {
             Notification::make()->title('Solicitud bloqueada')->body('No se pueden cambiar los ganadores porque ya existen órdenes generadas.')->danger()->send();
+
             return;
         }
 
         app(SeleccionarItemGanador::class)->execute($cotizacionId, $productoId);
+
+        $cotizacion = Cotizacion::find($cotizacionId);
+        if ($cotizacion) {
+            app(NotificadorCompras::class)->ganadorSeleccionado($cotizacion);
+        }
 
         Notification::make()
             ->title('Ítem asignado')
@@ -111,10 +129,16 @@ class ComparativaCotizaciones extends Page
     {
         if ($this->solicitud->ordenesCompra()->exists()) {
             Notification::make()->title('Solicitud bloqueada')->body('No se pueden cambiar los ganadores porque ya existen órdenes generadas.')->danger()->send();
+
             return;
         }
 
         app(ElegirCotizacionGanadora::class)->execute($cotizacionId);
+
+        $cotizacion = Cotizacion::find($cotizacionId);
+        if ($cotizacion) {
+            app(NotificadorCompras::class)->ganadorSeleccionado($cotizacion);
+        }
 
         Notification::make()
             ->title('Proveedor seleccionado para todos los ítems')
@@ -124,7 +148,9 @@ class ComparativaCotizaciones extends Page
 
     public function aplicarRecomendacion(): void
     {
-        if (!$this->recomendacion) return;
+        if (! $this->recomendacion) {
+            return;
+        }
 
         if ($this->recomendacion['tipo'] === 'PROVEEDOR ÚNICO') {
             app(ElegirCotizacionGanadora::class)->execute($this->recomendacion['cotizacion_id']);
@@ -133,7 +159,7 @@ class ComparativaCotizaciones extends Page
             foreach ($this->solicitud->items as $sItem) {
                 $mejorPrecio = null;
                 $mejorCotId = null;
-                
+
                 foreach ($this->solicitud->cotizaciones as $cot) {
                     $cItem = $cot->items->where('producto_id', $sItem->producto_id)->first();
                     if ($cItem && ($mejorPrecio === null || $cItem->precio_unitario < $mejorPrecio)) {
@@ -141,7 +167,7 @@ class ComparativaCotizaciones extends Page
                         $mejorCotId = $cot->id;
                     }
                 }
-                
+
                 if ($mejorCotId) {
                     app(SeleccionarItemGanador::class)->execute($mejorCotId, $sItem->producto_id);
                 }
@@ -153,7 +179,9 @@ class ComparativaCotizaciones extends Page
             ->body('Se han seleccionado los ganadores según la estrategia recomendada.')
             ->success()
             ->send();
-            
+
+        app(NotificadorCompras::class)->solicitudAprobada($this->solicitud);
+
         $this->redirect(request()->header('Referer'));
     }
 
@@ -182,14 +210,15 @@ class ComparativaCotizaciones extends Page
 
                     if ($cotizacionesConGanadores->isEmpty()) {
                         Notification::make()->title('Sin ganadores')->body('Primero debe aplicar una recomendación o elegir ganadores.')->warning()->send();
+
                         return;
                     }
 
                     $ordenesCreadas = 0;
                     foreach ($cotizacionesConGanadores as $cot) {
                         // Evitar duplicados si ya tiene orden
-                        if (!$this->solicitud->ordenesCompra()->where('proveedor_id', $cot->proveedor_id)->exists()) {
-                            app(\App\UseCases\Compras\GenerarOrdenDesdeCotizacion::class)->execute($cot->id);
+                        if (! $this->solicitud->ordenesCompra()->where('proveedor_id', $cot->proveedor_id)->exists()) {
+                            app(GenerarOrdenDesdeCotizacion::class)->execute($cot->id);
                             $ordenesCreadas++;
                         }
                     }
@@ -200,7 +229,11 @@ class ComparativaCotizaciones extends Page
                         ->success()
                         ->send();
 
-                    $this->redirect(\App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource::getUrl('index'));
+                    if ($ordenesCreadas > 0 && $this->solicitud) {
+                        app(NotificadorCompras::class)->solicitudAprobada($this->solicitud);
+                    }
+
+                    $this->redirect(OrdenCompraResource::getUrl('index'));
                 })
                 ->visible(fn () => $this->solicitud->cotizaciones()->whereHas('items', fn ($q) => $q->where('es_elegido', true))->exists()),
 
