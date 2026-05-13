@@ -41,7 +41,7 @@ class ShieldSeeder extends Seeder
             static::seedUserTenantPivot($userTenantPivot);
         }
 
-        $this->command->info('Shield Seeding Completed.');
+        $this->command?->info('Shield Seeding Completed.');
     }
 
     protected static function seedTenants(string $tenants): void

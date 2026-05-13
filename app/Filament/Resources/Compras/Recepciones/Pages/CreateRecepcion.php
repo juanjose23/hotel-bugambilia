@@ -21,7 +21,10 @@ class CreateRecepcion extends CreateRecord
             $max = RecepcionCompra::whereYear('fecha_recepcion', $year)
                 ->lockForUpdate()
                 ->max('codigo');
-            $last = $max ? (int) substr($max, -3) : 0;
+            $last = 0;
+            if ($max && preg_match('/-(\d+)$/', $max, $matches)) {
+                $last = (int) $matches[1];
+            }
 
             return "REC-{$year}-".str_pad((string) ($last + 1), 3, '0', STR_PAD_LEFT);
         });

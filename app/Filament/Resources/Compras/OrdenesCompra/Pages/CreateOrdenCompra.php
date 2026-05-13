@@ -20,7 +20,10 @@ class CreateOrdenCompra extends CreateRecord
             $max = OrdenCompra::whereYear('fecha_orden', $year)
                 ->lockForUpdate()
                 ->max('codigo');
-            $last = $max ? (int) substr($max, -3) : 0;
+            $last = 0;
+            if ($max && preg_match('/-(\d+)$/', $max, $matches)) {
+                $last = (int) $matches[1];
+            }
 
             return "OC-{$year}-".str_pad((string) ($last + 1), 3, '0', STR_PAD_LEFT);
         });

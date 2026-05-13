@@ -52,12 +52,24 @@ class CompraReportController extends Controller
 
     public function imprimirResumenDepartamentos(): PdfBuilder
     {
-        $fechaInicio = request('fecha_inicio')
-            ? Carbon::parse(request('fecha_inicio'))->startOfDay()
-            : now()->startOfMonth();
-        $fechaFin = request('fecha_fin')
-            ? Carbon::parse(request('fecha_fin'))->endOfDay()
-            : now();
+        try {
+            $fechaInicio = request('fecha_inicio')
+                ? Carbon::createFromFormat('Y-m-d', request('fecha_inicio'))->startOfDay()
+                : now()->startOfMonth();
+            
+            $fechaFin = request('fecha_fin')
+                ? Carbon::createFromFormat('Y-m-d', request('fecha_fin'))->endOfDay()
+                : now();
+
+            if ($fechaInicio->gt($fechaFin)) {
+                $temp = $fechaInicio;
+                $fechaInicio = $fechaFin->copy()->startOfDay();
+                $fechaFin = $temp->copy()->endOfDay();
+            }
+        } catch (\Exception $e) {
+            $fechaInicio = now()->startOfMonth();
+            $fechaFin = now();
+        }
 
         $data = \DB::table('ordenes_compra as oc')
             ->join('solicitudes_compra as s', 'oc.solicitud_id', '=', 's.id')
