@@ -15,7 +15,7 @@ class ProductosExport implements FromView, ShouldAutoSize, WithStyles
     protected array $filtros;
 
     /**
-     * @param array<string, mixed> $filtros
+     * @param  array<string, mixed>  $filtros
      */
     public function __construct(array $filtros = [])
     {
@@ -27,16 +27,16 @@ class ProductosExport implements FromView, ShouldAutoSize, WithStyles
         $query = Producto::with(['variantes', 'categoria', 'marca']);
 
         // Aplicar filtros
-        if (!empty($this->filtros['categoria_id'])) {
+        if (! empty($this->filtros['categoria_id'])) {
             $query->where('categoria_id', $this->filtros['categoria_id']);
         }
-        if (!empty($this->filtros['marca_id'])) {
+        if (! empty($this->filtros['marca_id'])) {
             $query->where('marca_id', $this->filtros['marca_id']);
         }
-        if (!empty($this->filtros['tipo'])) {
+        if (! empty($this->filtros['tipo'])) {
             $query->where('tipo', $this->filtros['tipo']);
         }
-        if (!empty($this->filtros['estado'])) {
+        if (! empty($this->filtros['estado'])) {
             $query->where('estado', $this->filtros['estado']);
         }
 
