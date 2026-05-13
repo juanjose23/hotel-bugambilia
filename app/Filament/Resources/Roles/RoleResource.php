@@ -70,7 +70,7 @@ class RoleResource extends Resource
                                 Select::make(config('permission.column_names.team_foreign_key'))
                                     ->label(__('filament-shield::filament-shield.field.team'))
                                     ->placeholder(__('filament-shield::filament-shield.field.team.placeholder'))
-                                    ->default(Filament::getTenant()?->id)
+                                    ->default(Filament::getTenant()?->getKey())
                                     ->options(fn (): array => in_array(Utils::getTenantModel(), [null, '', '0'], true) ? [] : Utils::getTenantModel()::pluck('name', 'id')->toArray())
                                     ->visible(fn (): bool => static::shield()->isCentralApp() && Utils::isTenancyEnabled())
                                     ->dehydrated(fn (): bool => static::shield()->isCentralApp() && Utils::isTenancyEnabled()),

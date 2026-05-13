@@ -52,6 +52,8 @@ class EditRole extends EditRecord
             ]));
         });
 
-        $this->record->syncPermissions($permissionModels);
+        /** @var \Spatie\Permission\Models\Role $record */
+        $record = $this->getRecord();
+        $record->syncPermissions($permissionModels);
     }
 }

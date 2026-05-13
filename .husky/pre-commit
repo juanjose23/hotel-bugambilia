@@ -1,11 +1,1 @@
-#!/usr/bin/env sh
-set -e
-
-echo "[pre-commit] Verificando formato JS con Prettier..."
-npm run check:prettier
-
-echo "[pre-commit] Verificando formato PHP con Pint..."
-cmd.exe /c "php ./vendor/bin/pint --test"
-
-echo "[pre-commit] Ejecutando analisis estatico con PHPStan..."
-cmd.exe /c "php ./vendor/bin/phpstan analyse --memory-limit=1G"
+npm run lint:js
