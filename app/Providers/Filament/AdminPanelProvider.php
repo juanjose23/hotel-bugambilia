@@ -52,6 +52,12 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('15s')
+            ->profile()
+            // ->topNavigation()
+            ->sidebarWidth('15rem')
+            ->collapsedSidebarWidth('9rem')
             ->plugins([
                 AuthDesignerPlugin::make()
                     ->login(

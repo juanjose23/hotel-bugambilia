@@ -5,7 +5,10 @@ namespace App\Filament\Resources\Compras\Recepciones\Pages;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
 use App\Models\Compras\RecepcionCompra;
 use App\UseCases\Compras\ObtenerOrdenCompraConItems;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 
 class CreateRecepcion extends CreateRecord
 {
@@ -14,8 +17,18 @@ class CreateRecepcion extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $year = now()->year;
-        $count = RecepcionCompra::whereYear('fecha_recepcion', $year)->count() + 1;
-        $data['codigo'] = "REC-{$year}-".str_pad((string) $count, 3, '0', STR_PAD_LEFT);
+        $codigo = DB::transaction(function () use ($year) {
+            $max = RecepcionCompra::whereYear('fecha_recepcion', $year)
+                ->lockForUpdate()
+                ->max('codigo');
+            $last = 0;
+            if ($max && preg_match('/-(\d+)$/', $max, $matches)) {
+                $last = (int) $matches[1];
+            }
+
+            return "REC-{$year}-".str_pad((string) ($last + 1), 3, '0', STR_PAD_LEFT);
+        });
+        $data['codigo'] = $codigo;
 
         return $data;
     }
@@ -41,6 +54,12 @@ class CreateRecepcion extends CreateRecord
                 ]);
             }
         }
+    }
+
+    /** @return array<int, Action | ActionGroup> */
+    protected function getFormActions(): array
+    {
+        return [];
     }
 
     protected function getRedirectUrl(): string

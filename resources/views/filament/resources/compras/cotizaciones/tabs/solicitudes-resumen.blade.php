@@ -1,7 +1,5 @@
 @php
-    $solicitudes = \App\Models\Compras\Solicitud::withCount('cotizaciones')
-        ->where('estado', \App\Enums\Compras\EstadoSolicitud::Aprobada->value)
-        ->get();
+    $solicitudes = $solicitudes ?? collect();
 @endphp
 
 <div class="p-6 space-y-4">

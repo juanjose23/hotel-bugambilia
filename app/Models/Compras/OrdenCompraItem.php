@@ -35,7 +35,6 @@ class OrdenCompraItem extends Model implements AuditableContract
         'cantidad',
         'precio_unitario',
         'subtotal',
-        'notas',
     ];
 
     protected $casts = [

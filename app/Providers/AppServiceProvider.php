@@ -7,7 +7,7 @@ use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
 use App\Observers\Compras\RecepcionObserver;
 use App\Policies\Compras\OrdenCompraPolicy;
-use App\Policies\Compras\RecepcionPolicy;
+use App\Policies\Compras\RecepcionCompraPolicy;
 use App\Policies\Compras\SolicitudPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +30,6 @@ class AppServiceProvider extends ServiceProvider
         RecepcionCompra::observe(RecepcionObserver::class);
         Gate::policy(Solicitud::class, SolicitudPolicy::class);
         Gate::policy(OrdenCompra::class, OrdenCompraPolicy::class);
-        Gate::policy(RecepcionCompra::class, RecepcionPolicy::class);
+        Gate::policy(RecepcionCompra::class, RecepcionCompraPolicy::class);
     }
 }

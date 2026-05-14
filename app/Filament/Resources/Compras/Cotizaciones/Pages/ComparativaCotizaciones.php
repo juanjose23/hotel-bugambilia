@@ -4,7 +4,9 @@ namespace App\Filament\Resources\Compras\Cotizaciones\Pages;
 
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
+use App\Models\Compras\Cotizacion;
 use App\Models\Compras\Solicitud;
+use App\Services\Compras\NotificadorCompras;
 use App\UseCases\Compras\ElegirCotizacionGanadora;
 use App\UseCases\Compras\GenerarOrdenDesdeCotizacion;
 use App\UseCases\Compras\ObtenerRecomendacionLogistica;
@@ -112,6 +114,11 @@ class ComparativaCotizaciones extends Page
 
         app(SeleccionarItemGanador::class)->execute($cotizacionId, $productoId);
 
+        $cotizacion = Cotizacion::find($cotizacionId);
+        if ($cotizacion) {
+            app(NotificadorCompras::class)->ganadorSeleccionado($cotizacion);
+        }
+
         Notification::make()
             ->title('Ítem asignado')
             ->success()
@@ -127,6 +134,11 @@ class ComparativaCotizaciones extends Page
         }
 
         app(ElegirCotizacionGanadora::class)->execute($cotizacionId);
+
+        $cotizacion = Cotizacion::find($cotizacionId);
+        if ($cotizacion) {
+            app(NotificadorCompras::class)->ganadorSeleccionado($cotizacion);
+        }
 
         Notification::make()
             ->title('Proveedor seleccionado para todos los ítems')
@@ -167,6 +179,8 @@ class ComparativaCotizaciones extends Page
             ->body('Se han seleccionado los ganadores según la estrategia recomendada.')
             ->success()
             ->send();
+
+        app(NotificadorCompras::class)->solicitudAprobada($this->solicitud);
 
         $this->redirect(request()->header('Referer'));
     }
@@ -214,6 +228,10 @@ class ComparativaCotizaciones extends Page
                         ->body("Se han generado {$ordenesCreadas} órdenes de compra.")
                         ->success()
                         ->send();
+
+                    if ($ordenesCreadas > 0 && $this->solicitud) {
+                        app(NotificadorCompras::class)->solicitudAprobada($this->solicitud);
+                    }
 
                     $this->redirect(OrdenCompraResource::getUrl('index'));
                 })

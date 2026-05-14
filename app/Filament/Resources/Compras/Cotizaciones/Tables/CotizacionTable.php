@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Compras\Cotizaciones\Tables;
 
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
 use App\Models\Compras\Cotizacion;
+use App\Services\Compras\NotificadorCompras;
 use App\UseCases\Compras\GenerarOrdenDesdeCotizacion;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -115,6 +116,8 @@ class CotizacionTable
                             try {
                                 $orden = app(GenerarOrdenDesdeCotizacion::class)->execute($record->id);
 
+                                app(NotificadorCompras::class)->ganadorSeleccionado($record);
+
                                 Notification::make()
                                     ->title('Orden de Compra Generada')
                                     ->body("Se ha creado la orden {$orden->codigo}.")
@@ -136,7 +139,8 @@ class CotizacionTable
                         ->icon(Heroicon::Printer)
                         ->color('gray')
                         ->url(fn (Cotizacion $record) => route('reporte.cotizacion', $record))
-                        ->openUrlInNewTab(),
+                        ->openUrlInNewTab()
+                        ->visible(fn () => auth()->user()->can('ImprimirCotizacion') || auth()->user()->hasRole('super_admin')),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Más opciones'),

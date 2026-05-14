@@ -11,26 +11,34 @@ El **Hotel Bugambilias** es un referente de hospitalidad en la ciudad de **Estel
 ## 📖 Documentación del Proyecto
 Para mantener la consistencia y calidad, este proyecto sigue estándares estrictos definidos en la carpeta `docs/`:
 
-- **[Convenciones de Desarrollo](docs/conventions.md)**: Estándares de nombres, estructura de carpetas y reglas de idioma (Español).
-- **[Seguridad y Permisos](docs/SEGURIDAD.md)**: Matriz de roles y control de acceso (Filament Shield).
-- **[Guía de Compras y P2P](docs/COMPRAS.md)**: Flujo de Solicitudes, Cotizaciones y Órdenes.
-- **[Auditoría de Reportes](docs/REPORTES.md)**: Trazabilidad de documentos e impresiones.
-- **[Arquitectura de Casos de Uso](docs/use-case-architecture.md)**: Guía sobre la implementación de Clean Architecture simplificada.
-- **[Manual de Estilo](docs/README.md)**: Resumen general de la metodología de diseño y patrones recomendados.
+- **[Módulo de Compras (P2P)](docs/MODULO_COMPRAS.md)**: Flujo de Solicitudes, Cotizaciones, Órdenes y Recepciones.
+- **[Reportes y Notificaciones](docs/REPORTES_Y_NOTIFICACIONES.md)**: Correcciones aplicadas y sistema de notificaciones del módulo de Compras.
+- **[Catálogo de Reportes del Sistema](app/Docs/REPORTES.md)**: Todos los reportes con código, concepto, filtros y motor de generación.
+- **[Seguridad y Permisos](docs/INICIALIZACION_SEGURIDAD.md)**: Matriz de roles y control de acceso (Filament Shield).
+- **[Guía de Usuarios](docs/MODULO_USUARIOS.md)**: Creación, edición y asignación de roles y credenciales.
+- **[Arquitectura de Casos de Uso](docs/use-case-architecture.md)**: Clean Architecture simplificada.
+- **[Manual de Estilo](docs/README.md)**: Metodología de diseño y patrones recomendados.
 
 ## 🚀 Tecnologías
 Este sistema está construido con el stack moderno de Laravel:
-- **PHP 8.3+**
+- **PHP 8.4+**
 - **Laravel 13**
-- **Filament PHP v3** (Panel de Administración)
-- **DomPDF** (Generación de PDF Corporativos)
+- **Filament PHP v5** (Panel de Administración)
+- **DomPDF** (Generación de PDF para Catálogos — serie HTB-CP)
+- **Spatie PDF / Browsershot** (Generación de PDF para Compras — serie HTB-COM)
 - **Maatwebsite Excel** (Exportación de Datos)
 - **Tailwind CSS** (Estilizado)
 - **MySQL / PostgreSQL** (Base de Datos)
 
-## 📊 Sistema de Reportes (HTB-CP)
-El sistema cuenta con una suite de reportes estandarizados (Identidad HTB) para la gestión de inventarios y catálogos.
-- **PDF**: Reportes con diseño senior, encabezados persistentes y paginación calculada.
+## 📊 Sistema de Reportes
+El sistema cuenta con dos suites de reportes estandarizados:
+
+| Serie | Ámbito | Motor | Documentación |
+|-------|--------|-------|---------------|
+| **HTB-CP** | Catálogos y Productos | DomPDF | [`app/Docs/REPORTES.md`](app/Docs/REPORTES.md) |
+| **HTB-COM** | Compras (P2P) | Spatie PDF | [`app/Docs/REPORTES.md`](app/Docs/REPORTES.md) |
+
+- **PDF**: Reportes con diseño corporativo, encabezados persistentes y paginación calculada.
 - **Excel**: Exportaciones nativas mediante `maatwebsite/excel`.
 - **Auditoría**: Registro completo de interacciones en español (`auditoria_reportes`).
 

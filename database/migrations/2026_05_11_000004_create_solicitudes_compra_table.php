@@ -46,7 +46,7 @@ return new class extends Migration
         });
 
         // Constraint de dominio alineado con el Enum EstadoSolicitud (1=Borrador, 2=Pendiente, 3=Aprobada, 4=Rechazada, 5=Cancelada)
-        DB::statement('ALTER TABLE solicitudes_compra ADD CONSTRAINT chk_solicitudes_estado CHECK (estado IN (1,2,3,4,5,6,7))');
+        DB::statement('ALTER TABLE solicitudes_compra ADD CONSTRAINT chk_solicitudes_estado CHECK (estado IN (1,2,3,4,5))');
     }
 
     public function down(): void

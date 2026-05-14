@@ -6,13 +6,14 @@ use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Compras\Cotizacion;
 use App\Models\Compras\OrdenCompra;
+use App\Services\Compras\NotificadorCompras;
 use Illuminate\Support\Facades\DB;
 
 class GenerarOrdenDesdeCotizacion
 {
     public function execute(int $cotizacionId): OrdenCompra
     {
-        return DB::transaction(function () use ($cotizacionId) {
+        $orden = DB::transaction(function () use ($cotizacionId) {
             $cotizacion = Cotizacion::with(['items', 'proveedor.persona.personaJuridica', 'solicitud.items'])->findOrFail($cotizacionId);
 
             $itemsElegidos = $cotizacion->items()->where('es_elegido', true)->get();
@@ -26,8 +27,14 @@ class GenerarOrdenDesdeCotizacion
             }
 
             $year = now()->year;
-            $count = OrdenCompra::whereYear('fecha_orden', $year)->count() + 1;
-            $codigo = "OC-{$year}-".str_pad((string) $count, 3, '0', STR_PAD_LEFT);
+            $maxCodigo = OrdenCompra::whereYear('fecha_orden', $year)
+                ->lockForUpdate()
+                ->max('codigo');
+            $lastNumber = 0;
+            if ($maxCodigo && preg_match('/-(\d+)$/', $maxCodigo, $matches)) {
+                $lastNumber = (int) $matches[1];
+            }
+            $codigo = "OC-{$year}-".str_pad((string) ($lastNumber + 1), 3, '0', STR_PAD_LEFT);
 
             $subtotal = $itemsElegidos->sum('subtotal');
             $impuestos = $subtotal * 0.15;
@@ -72,5 +79,13 @@ class GenerarOrdenDesdeCotizacion
 
             return $orden;
         });
+
+        app(NotificadorCompras::class)->ordenCreada($orden);
+
+        if ($orden->solicitud) {
+            app(NotificadorCompras::class)->solicitudAprobada($orden->solicitud);
+        }
+
+        return $orden;
     }
 }

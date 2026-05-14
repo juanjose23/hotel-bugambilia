@@ -7,9 +7,12 @@ use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\ProductoVariante;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RecepcionItem extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'recepcion_items';
 
     protected $fillable = [

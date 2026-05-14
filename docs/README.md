@@ -7,9 +7,12 @@ Bienvenido a la documentación técnica y operativa. El sistema sigue estándare
 | Archivo | Propósito |
 | :--- | :--- |
 | [**MODULO_COMPRAS.md**](./MODULO_COMPRAS.md) | **Manual Maestro de Compras (P2P).** Flujo de solicitudes, cotizaciones, órdenes y recepciones. |
+| [**REPORTES_Y_NOTIFICACIONES.md**](./REPORTES_Y_NOTIFICACIONES.md) | Correcciones aplicadas a reportes PDF y sistema de notificaciones del módulo de Compras. |
+| [**MODULO_USUARIOS.md**](./MODULO_USUARIOS.md) | Gestión de usuarios: creación, autogeneración de credenciales y asignación de roles. |
 | [**INICIALIZACION_SEGURIDAD.md**](./INICIALIZACION_SEGURIDAD.md) | Guía técnica para instalar y configurar roles y permisos con Filament Shield. |
 | [**SEGURIDAD.md**](./SEGURIDAD.md) | Políticas generales de seguridad y trazabilidad. |
 | [**use-case-architecture.md**](./use-case-architecture.md) | Estándares de programación para la capa de lógica de negocio (UseCases). |
+| [**Catálogo de Reportes**](../app/Docs/REPORTES.md) | Todos los reportes del sistema con código, concepto y filtros. |
 
 ## ⚠️ Archivos Deprecados
 Los archivos `COMPRAS.md`, `COTIZACIONES.md` y `solicitudes-compra.md` han sido consolidados en el manual maestro y pueden ser eliminados para evitar confusiones.

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Compras\Solicitudes\Tables;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\Solicitud;
+use App\Services\Compras\NotificadorCompras;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -85,7 +86,10 @@ class SolicitudTable
                         ->icon(Heroicon::CheckCircle)
                         ->color('success')
                         ->requiresConfirmation()
-                        ->action(fn (Solicitud $record) => $record->update(['estado' => EstadoSolicitud::Aprobada]))
+                        ->action(function (Solicitud $record) {
+                            $record->update(['estado' => EstadoSolicitud::Aprobada]);
+                            app(NotificadorCompras::class)->solicitudAprobada($record);
+                        })
                         ->visible(fn (Solicitud $record) => in_array($record->estado, [EstadoSolicitud::Borrador, EstadoSolicitud::Pendiente])),
 
                     Action::make('cancelar')
@@ -95,7 +99,10 @@ class SolicitudTable
                         ->requiresConfirmation()
                         ->modalHeading('¿Anular solicitud?')
                         ->modalDescription('Esta acción es irreversible y quedará registrada en el historial de trazabilidad.')
-                        ->action(fn (Solicitud $record) => $record->update(['estado' => EstadoSolicitud::Cancelada]))
+                        ->action(function (Solicitud $record) {
+                            $record->update(['estado' => EstadoSolicitud::Cancelada]);
+                            app(NotificadorCompras::class)->solicitudCancelada($record);
+                        })
                         ->visible(fn (Solicitud $record) => $record->estado === EstadoSolicitud::Aprobada &&
                             ! OrdenCompra::where('solicitud_id', $record->id)->exists()
                         ),
@@ -107,7 +114,10 @@ class SolicitudTable
                         ->icon(Heroicon::NoSymbol)
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->action(fn (Solicitud $record) => $record->update(['estado' => EstadoSolicitud::Rechazada]))
+                        ->action(function (Solicitud $record) {
+                            $record->update(['estado' => EstadoSolicitud::Rechazada]);
+                            app(NotificadorCompras::class)->solicitudRechazada($record);
+                        })
                         ->visible(fn (Solicitud $record) => $record->estado === EstadoSolicitud::Pendiente),
 
                     Action::make('imprimir')
@@ -115,7 +125,8 @@ class SolicitudTable
                         ->icon(Heroicon::Printer)
                         ->color('gray')
                         ->url(fn (Solicitud $record) => route('reporte.solicitud', $record))
-                        ->openUrlInNewTab(),
+                        ->openUrlInNewTab()
+                        ->visible(fn () => auth()->user()->can('ImprimirSolicitud') || auth()->user()->hasRole('super_admin')),
 
                     DeleteAction::make(),
                     RestoreAction::make(),

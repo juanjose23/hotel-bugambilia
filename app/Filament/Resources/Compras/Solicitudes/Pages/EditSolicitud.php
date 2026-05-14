@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
 use App\Models\Compras\Solicitud;
+use App\Services\Compras\NotificadorCompras;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -111,6 +112,8 @@ class EditSolicitud extends EditRecord
                         'estado' => EstadoSolicitud::Cancelada,
                         'notas' => $notas,
                     ]);
+
+                    app(NotificadorCompras::class)->solicitudCancelada($record);
 
                     Notification::make()
                         ->title('Solicitud cancelada')

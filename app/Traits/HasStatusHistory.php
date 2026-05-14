@@ -15,10 +15,10 @@ trait HasStatusHistory
                 $estadoNuevo = $model->estado;
 
                 // Si el estado es un Enum, obtenemos su nombre o valor
-                if (method_exists($estadoAnterior, 'label')) {
+                if (is_object($estadoAnterior) && method_exists($estadoAnterior, 'label')) {
                     $estadoAnterior = $estadoAnterior->label();
                 }
-                if (method_exists($estadoNuevo, 'label')) {
+                if (is_object($estadoNuevo) && method_exists($estadoNuevo, 'label')) {
                     $estadoNuevo = $estadoNuevo->label();
                 }
 
@@ -35,7 +35,7 @@ trait HasStatusHistory
 
         static::created(function ($model) {
             $estadoInicial = $model->estado;
-            if (method_exists($estadoInicial, 'label')) {
+            if (is_object($estadoInicial) && method_exists($estadoInicial, 'label')) {
                 $estadoInicial = $estadoInicial->label();
             }
 
