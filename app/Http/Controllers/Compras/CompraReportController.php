@@ -56,7 +56,7 @@ class CompraReportController extends Controller
             $fechaInicio = request('fecha_inicio')
                 ? Carbon::createFromFormat('Y-m-d', request('fecha_inicio'))->startOfDay()
                 : now()->startOfMonth();
-            
+
             $fechaFin = request('fecha_fin')
                 ? Carbon::createFromFormat('Y-m-d', request('fecha_fin'))->endOfDay()
                 : now();

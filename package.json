@@ -1,29 +1,33 @@
 {
-  "$schema": "https://www.schemastore.org/package.json",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "vite build",
-    "dev": "vite",
-    "prepare": "husky",
-    "format:js": "prettier --write \"resources/js/**/*.{js,jsx,ts,tsx,vue}\" \"vite.config.js\"",
-    "check:prettier": "prettier --check \"resources/js/**/*.{js,jsx,ts,tsx,vue}\" \"vite.config.js\""
-  },
-  "lint-staged": {
-    "**/*.php": "./vendor/bin/pint --preset laravel"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^20.5.3",
-    "@commitlint/config-conventional": "^20.5.3",
-    "@tailwindcss/vite": "^4.3.0",
-    "concurrently": "^9.2.1",
-    "eslint": "^10.3.0",
-    "husky": "^9.1.7",
-    "laravel-vite-plugin": "^3.1.0",
-    "lint-staged": "^17.0.4",
-    "prettier": "^3.8.3",
-    "puppeteer": "^24.43.1",
-    "tailwindcss": "^4.3.0",
-    "vite": "^8.0.12"
-  }
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite",
+        "prepare": "husky",
+        "format:js": "prettier --write \"resources/js/**/*.{js,jsx,ts,tsx,vue}\" \"vite.config.js\"",
+        "check:prettier": "prettier --check \"resources/js/**/*.{js,jsx,ts,tsx,vue}\" \"vite.config.js\"",
+        "lint:php": "php ./vendor/bin/pint --test",
+        "phpstan": "php ./vendor/bin/phpstan analyse --memory-limit=1G",
+        "lint-staged": "lint-staged"
+    },
+    "lint-staged": {
+        "**/*.php": "php ./vendor/bin/pint --preset laravel",
+        "**/*.{js,jsx,ts,tsx,vue,css}": "prettier --write"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^20.5.3",
+        "@commitlint/config-conventional": "^20.5.3",
+        "@tailwindcss/vite": "^4.3.0",
+        "concurrently": "^9.2.1",
+        "eslint": "^10.3.0",
+        "husky": "^9.1.7",
+        "laravel-vite-plugin": "^3.1.0",
+        "lint-staged": "^17.0.4",
+        "prettier": "^3.8.3",
+        "puppeteer": "^24.43.1",
+        "tailwindcss": "^4.3.0",
+        "vite": "^8.0.12"
+    }
 }

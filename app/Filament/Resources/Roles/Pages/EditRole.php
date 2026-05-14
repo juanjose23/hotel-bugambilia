@@ -11,6 +11,7 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Override;
+use Spatie\Permission\Models\Role;
 
 class EditRole extends EditRecord
 {
@@ -52,7 +53,7 @@ class EditRole extends EditRecord
             ]));
         });
 
-        /** @var \Spatie\Permission\Models\Role $record */
+        /** @var Role $record */
         $record = $this->getRecord();
         $record->syncPermissions($permissionModels);
     }

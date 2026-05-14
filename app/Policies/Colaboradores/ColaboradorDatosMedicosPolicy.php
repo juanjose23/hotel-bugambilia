@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Policies\Colaboradores;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Colaboradores\ColaboradorDatosMedicos;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class ColaboradorDatosMedicosPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:ColaboradorDatosMedicos');
@@ -71,5 +71,4 @@ class ColaboradorDatosMedicosPolicy
     {
         return $authUser->can('Reorder:ColaboradorDatosMedicos');
     }
-
 }

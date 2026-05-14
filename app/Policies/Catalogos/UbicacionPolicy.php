@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Policies\Catalogos;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Catalogos\Ubicacion;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class UbicacionPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:Ubicacion');
@@ -71,5 +71,4 @@ class UbicacionPolicy
     {
         return $authUser->can('Reorder:Ubicacion');
     }
-
 }

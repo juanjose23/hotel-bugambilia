@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Policies\Compras;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Compras\RecepcionCompra;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class RecepcionCompraPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:RecepcionCompra');
@@ -71,5 +71,4 @@ class RecepcionCompraPolicy
     {
         return $authUser->can('Reorder:RecepcionCompra');
     }
-
 }
