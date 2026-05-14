@@ -6,6 +6,7 @@ use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class ShieldSeeder extends Seeder
@@ -79,13 +80,13 @@ class ShieldSeeder extends Seeder
                 $data
             );
 
-                if (! empty($roles)) {
-                    $user->syncRoles($roles);
-                }
+            if (! empty($roles)) {
+                $user->syncRoles($roles);
+            }
 
-                if (! empty($permissions)) {
-                    $user->syncPermissions($permissions);
-                }
+            if (! empty($permissions)) {
+                $user->syncPermissions($permissions);
+            }
         }
     }
 
@@ -152,7 +153,7 @@ class ShieldSeeder extends Seeder
                     ]))
                     ->all();
 
-                /** @var \Spatie\Permission\Models\Role $role */
+                /** @var Role $role */
                 $role->syncPermissions($permissionModels);
             }
         }

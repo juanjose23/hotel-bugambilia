@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Policies\Compras;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Compras\Solicitud;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class SolicitudPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:Solicitud');
@@ -71,5 +71,4 @@ class SolicitudPolicy
     {
         return $authUser->can('Reorder:Solicitud');
     }
-
 }

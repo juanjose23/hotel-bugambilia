@@ -24,7 +24,7 @@ class UsersTable
                     ->searchable(),
                 TextColumn::make('persona.primer_nombre')
                     ->label('Trabajador')
-                    ->formatStateUsing(fn ($record): string => $record->persona 
+                    ->formatStateUsing(fn ($record): string => $record->persona
                         ? trim($record->persona->primer_nombre.' '.
                             ($record->persona->segundo_nombre ?? '').' '.
                             ($record->persona->personaNatural->primer_apellido ?? '').' '.

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Policies\Colaboradores;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Colaboradores\ColaboradorContactoEmergencia;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class ColaboradorContactoEmergenciaPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:ColaboradorContactoEmergencia');
@@ -71,5 +71,4 @@ class ColaboradorContactoEmergenciaPolicy
     {
         return $authUser->can('Reorder:ColaboradorContactoEmergencia');
     }
-
 }
