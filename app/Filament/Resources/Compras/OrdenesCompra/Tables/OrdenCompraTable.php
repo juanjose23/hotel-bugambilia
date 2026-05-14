@@ -6,6 +6,7 @@ use App\Enums\Compras\EstadoOrdenCompra;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
 use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\RecepcionCompra;
+use App\Services\Compras\NotificadorCompras;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -117,7 +118,10 @@ class OrdenCompraTable
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalDescription('Al emitir la orden, se considera un compromiso oficial con el proveedor y dejará de ser editable.')
-                        ->action(fn (OrdenCompra $record) => $record->update(['estado' => EstadoOrdenCompra::Emitida]))
+                        ->action(function (OrdenCompra $record) {
+                            $record->update(['estado' => EstadoOrdenCompra::Emitida]);
+                            app(NotificadorCompras::class)->ordenEmitida($record);
+                        })
                         ->visible(fn (OrdenCompra $record) => $record->estado === EstadoOrdenCompra::Borrador),
 
                     Action::make('registrar_recepcion')
@@ -132,7 +136,8 @@ class OrdenCompraTable
                         ->icon(Heroicon::Printer)
                         ->color('gray')
                         ->url(fn (OrdenCompra $record) => route('reporte.orden-compra', $record))
-                        ->openUrlInNewTab(),
+                        ->openUrlInNewTab()
+                        ->visible(fn () => auth()->user()->can('ImprimirOrdenCompra') || auth()->user()->hasRole('super_admin')),
 
                     Action::make('cancelar')
                         ->label('Cancelar')
@@ -141,7 +146,10 @@ class OrdenCompraTable
                         ->requiresConfirmation()
                         ->modalHeading('¿Anular Orden de Compra?')
                         ->modalDescription('Esta acción anula el compromiso legal. Solo permitido si no hay recepciones parciales vinculadas.')
-                        ->action(fn (OrdenCompra $record) => $record->update(['estado' => EstadoOrdenCompra::Cancelada]))
+                        ->action(function (OrdenCompra $record) {
+                            $record->update(['estado' => EstadoOrdenCompra::Cancelada]);
+                            app(NotificadorCompras::class)->ordenCancelada($record);
+                        })
                         ->visible(fn (OrdenCompra $record) => in_array($record->estado, [EstadoOrdenCompra::Emitida, EstadoOrdenCompra::EnTransito]) &&
                             ! RecepcionCompra::where('orden_compra_id', $record->id)->exists()
                         ),

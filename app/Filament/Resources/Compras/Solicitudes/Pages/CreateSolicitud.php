@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
 use App\Models\Colaboradores\Colaborador;
 use App\Models\Compras\Solicitud;
+use App\Services\Compras\NotificadorCompras;
 use App\UseCases\Compras\GenerarCodigoSolicitud;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,9 +29,15 @@ class CreateSolicitud extends CreateRecord
 
         $data['codigo'] = app(GenerarCodigoSolicitud::class)->ejecutar($data['departamento_solicitante_id']);
 
-        $data['estado'] = EstadoCatalogo::Borrador->value;
+        $data['estado'] = EstadoSolicitud::Borrador->value;
 
         return $data;
+    }
+
+    /** @return array<int, Action | ActionGroup> */
+    protected function getFormActions(): array
+    {
+        return [];
     }
 
     protected function handleRecordCreation(array $data): Model
@@ -42,6 +51,8 @@ class CreateSolicitud extends CreateRecord
         if (! empty($items)) {
             $record->items()->createMany($items);
         }
+
+        app(NotificadorCompras::class)->solicitudCreada($record);
 
         return $record;
     }

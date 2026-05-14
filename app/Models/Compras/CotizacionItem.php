@@ -6,6 +6,7 @@ use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\ProductoVariante;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CotizacionItem extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'cotizacion_items';
 
     protected $fillable = [

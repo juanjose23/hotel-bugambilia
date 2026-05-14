@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Compras\Cotizaciones\Pages;
 
+use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
+use App\Models\Compras\Solicitud;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -31,7 +33,13 @@ class ListCotizaciones extends ListRecords
         if ($this->activeTab === 'solicitudes') {
             return $schema->components([
                 $this->getTabsContentComponent(),
-                View::make('filament.resources.compras.cotizaciones.tabs.solicitudes-resumen'),
+                View::make('filament.resources.compras.cotizaciones.tabs.solicitudes-resumen')
+                    ->viewData([
+                        'solicitudes' => Solicitud::withCount('cotizaciones')
+                            ->where('estado', EstadoSolicitud::Aprobada->value)
+                            ->limit(50)
+                            ->get(),
+                    ]),
             ]);
         }
 

@@ -71,7 +71,7 @@ return [
     'super_admin' => [
         'enabled' => true,
         'name' => 'super_admin',
-        'define_via_gate' => false,
+        'define_via_gate' => true,
         'intercept_gate' => 'before',
     ],
 
@@ -233,7 +233,13 @@ return [
     */
 
     'custom_permissions' => [
-        'view_comparativa_cotizaciones',
+        'ImprimirSolicitud',
+        'ImprimirCotizacion',
+        'ImprimirOrdenCompra',
+        'ImprimirRecepcion',
+        'ImprimirReportesCompras',
+        'ViewComparativaCotizaciones',
+        'ViewComparativaSolicitud',
     ],
 
     /*

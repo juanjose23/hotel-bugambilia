@@ -1,4 +1,30 @@
 #!/usr/bin/env sh
 set -e
 
-npx --no -- commitlint --edit "$1"
+# Validación automática de formato de mensaje de commit según Conventional Commits.
+# Se ejecuta antes de cada commit y previene commits inválidos.
+
+# Si el archivo está vacío, no hay mensaje y se permite el commit.
+[ -z "$1" ] && exit 0
+
+# Lee el contenido del archivo en una variable.
+MESSAGE=$(cat "$1")
+
+# Patrón Conventional Commits:
+# type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+# scope: opcional (ej. "feat(authentication)")
+# subject: descripción corta
+PATTERN="^([a-z]+)(\(.+\))?: .+"
+
+# Validación
+if ! echo "$MESSAGE" | grep -qE "^($PATTERN)$" || echo "$MESSAGE" | grep -q "^type:"; then
+    printf "\e[31m❌ ERROR: El mensaje de commit no sigue el estándar Conventional Commits.\e[0m\n"
+    printf "\e[94mSe espera formato: <type>[optional-scope]: <description>\e[0m\n"
+    printf "\e[90mEjemplos válidos:\e[0m\n"
+    printf "  - feat: Implementación de sistema de roles\n"
+    printf "  - fix(api): Corrección en endpoint de usuarios\n"
+    printf "  - docs: Actualización de README.md\n\n"
+    exit 1
+fi
+
+exit 0

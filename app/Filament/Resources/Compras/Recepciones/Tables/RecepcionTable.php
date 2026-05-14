@@ -74,7 +74,8 @@ class RecepcionTable
                         ->icon(Heroicon::Printer)
                         ->color('gray')
                         ->url(fn (RecepcionCompra $record) => route('reporte.recepcion', $record))
-                        ->openUrlInNewTab(),
+                        ->openUrlInNewTab()
+                        ->visible(fn () => auth()->user()->can('ImprimirRecepcion') || auth()->user()->hasRole('super_admin')),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])

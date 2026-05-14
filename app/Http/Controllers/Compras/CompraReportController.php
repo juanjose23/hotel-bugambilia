@@ -8,6 +8,7 @@ use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
 use App\UseCases\Reportes\RegistrarAuditoriaReporteUseCase;
+use Carbon\Carbon;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 
@@ -51,6 +52,25 @@ class CompraReportController extends Controller
 
     public function imprimirResumenDepartamentos(): PdfBuilder
     {
+        try {
+            $fechaInicio = request('fecha_inicio')
+                ? Carbon::createFromFormat('Y-m-d', request('fecha_inicio'))->startOfDay()
+                : now()->startOfMonth();
+
+            $fechaFin = request('fecha_fin')
+                ? Carbon::createFromFormat('Y-m-d', request('fecha_fin'))->endOfDay()
+                : now();
+
+            if ($fechaInicio->gt($fechaFin)) {
+                $temp = $fechaInicio;
+                $fechaInicio = $fechaFin->copy()->startOfDay();
+                $fechaFin = $temp->copy()->endOfDay();
+            }
+        } catch (\Exception $e) {
+            $fechaInicio = now()->startOfMonth();
+            $fechaFin = now();
+        }
+
         $data = \DB::table('ordenes_compra as oc')
             ->join('solicitudes_compra as s', 'oc.solicitud_id', '=', 's.id')
             ->join('catalogos as c', 's.departamento_solicitante_id', '=', 'c.id')
@@ -60,6 +80,7 @@ class CompraReportController extends Controller
                 \DB::raw('sum(oc.total) as total_oc')
             )
             ->whereNull('oc.deleted_at')
+            ->whereBetween('oc.fecha_orden', [$fechaInicio, $fechaFin])
             ->groupBy('c.id', 'c.nombre')
             ->get();
 
@@ -67,8 +88,8 @@ class CompraReportController extends Controller
 
         return Pdf::view('reports.compras.resumen-departamentos', array_merge($this->getReportData(null), [
             'data' => $data,
-            'fechaInicio' => now()->startOfMonth()->format('d/m/Y'),
-            'fechaFin' => now()->format('d/m/Y'),
+            'fechaInicio' => $fechaInicio->format('d/m/Y'),
+            'fechaFin' => $fechaFin->format('d/m/Y'),
         ]))
             ->name('Resumen-Compras-Departamentos.pdf')
             ->download();
@@ -114,7 +135,7 @@ class CompraReportController extends Controller
             'logo_base64' => $logoBase64,
             'hotelInfo' => [
                 'telefono' => '+505 8713 6805',
-                'email' => 'recepción@bugambiliashotel.com',
+                'email' => 'recepcion@bugambiliashotel.com',
                 'direccion' => 'Salida Sur Estelí, Restaurante Absoluto 1c. Oeste, 2c. Sur, 1c. Oeste',
             ],
         ];

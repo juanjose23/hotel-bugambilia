@@ -114,6 +114,23 @@ El sistema evalúa tres escenarios y recomienda el que minimice el TCO:
 | **Proveedor Único (Urgencia)** | Un proveedor entrega en ≤ 2 días y su sobrecosto es < 12%. | **Velocidad Crítica**: Evita paros operativos. |
 | **Proveedor Único (Eficiencia)** | Centralizar la compra en un proveedor es solo un 3% más caro que dividirla. | **Simplicidad**: Menos facturas, una sola descarga. |
 | **Compra Dividida (Ahorro)** | El ahorro financiero al comprar a varios es tan grande que compensa los costos logísticos. | **Máximo Ahorro**: Optimización del presupuesto. |
+---
+
+## 7. Registro de Historial de Estados (`HasStatusHistory`)
+
+- **Archivo:** `app/Traits/HasStatusHistory.php`
+- **Propósito:** Registra automáticamente en `compras_historial` cada cambio de estado en los modelos de compras.
+
+### Comportamiento
+
+| Evento | Acción |
+|--------|--------|
+| `updated` (estado modificado) | Crea un registro con `estado_anterior`, `estado_nuevo`, `usuario_id` y comentario. |
+| `created` | Crea un registro inicial con `estado_anterior = null`. |
+
+> [!NOTE]
+> El trait verifica si el valor de estado es un objeto (`is_object()`) antes de llamar a `method_exists('label')` para evitar TypeError cuando el valor original desde BD es un entero crudo.
 
 ---
+
 *Hotel Bugambilias*
