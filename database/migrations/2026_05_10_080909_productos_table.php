@@ -16,7 +16,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('productos', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla maestra de productos de consumo y activos del hotel clasificados por categorías.');
+            $table->id()->comment('Identificador único autoincremental del producto');
             $table->foreignId('categoria_id')->comment('Categoría del producto (catálogo)')->constrained('catalogos')->cascadeOnDelete();
             $table->foreignId('marca_id')->nullable()->comment('Marca del producto (catálogo, opcional)')->constrained('catalogos')->cascadeOnDelete();
             $table->string('nombre', 200)->comment('Nombre del producto');
@@ -32,8 +33,10 @@ return new class extends Migration
             $table->index('unidad_medida_id');
             $table->index('nombre');
         });
-        DB::statement('ALTER TABLE productos ADD CONSTRAINT chk_estado_productos CHECK (estado IN (0,1))');
-        DB::statement('ALTER TABLE productos ADD CONSTRAINT chk_tipo_productos CHECK (tipo IN (1,2))');
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE productos ADD CONSTRAINT chk_estado_productos CHECK (estado IN (0,1))');
+            DB::statement('ALTER TABLE productos ADD CONSTRAINT chk_tipo_productos CHECK (tipo IN (1,2))');
+        }
     }
 
     /**

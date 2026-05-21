@@ -7,7 +7,7 @@ use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
 use App\Models\Colaboradores\Colaborador;
 use App\Models\Compras\Solicitud;
 use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\GenerarCodigoSolicitud;
+use App\UseCases\Compras\Solicitudes\Mutations\GenerarCodigoSolicitud;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\CreateRecord;

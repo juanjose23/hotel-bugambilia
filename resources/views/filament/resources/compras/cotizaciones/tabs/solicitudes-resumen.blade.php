@@ -30,13 +30,15 @@
 
                 <div class="mt-auto">
                     @if($solicitud->cotizaciones_count >= 1)
-                        <a 
-                            href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('comparativa', ['solicitud_id' => $solicitud->id]) }}"
-                            class="flex items-center justify-center w-full px-4 py-2 text-xs font-bold text-white transition-all bg-primary-600 rounded-lg hover:bg-primary-700"
-                        >
-                            <x-heroicon-o-arrows-right-left class="w-4 h-4 mr-2" />
-                            Comparar Precios
-                        </a>
+                        @if(auth()->user()->can('Compras:ViewComparativaCotizaciones'))
+                            <a 
+                                href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('comparativa', ['solicitud_id' => $solicitud->id]) }}"
+                                class="flex items-center justify-center w-full px-4 py-2 text-xs font-bold text-white transition-all bg-primary-600 rounded-lg hover:bg-primary-700"
+                            >
+                                <x-heroicon-o-arrows-right-left class="w-4 h-4 mr-2" />
+                                Comparar Precios
+                            </a>
+                        @endif
                     @else
                         <a 
                             href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('create', ['solicitud_id' => $solicitud->id]) }}"

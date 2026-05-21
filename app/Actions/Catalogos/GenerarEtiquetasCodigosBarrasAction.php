@@ -4,7 +4,7 @@ namespace App\Actions\Catalogos;
 
 use App\Models\Catalogos\ProductoVariante;
 use App\Support\ReportePaginador;
-use App\UseCases\Reportes\RegistrarAuditoriaReporteUseCase;
+use App\UseCases\Reportes\Mutations\RegistrarAuditoriaReporteUseCase;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Picqer\Barcode\BarcodeGeneratorPNG;
@@ -80,7 +80,7 @@ class GenerarEtiquetasCodigosBarrasAction
             ])
             ->values()
             ->all();
-        $pdf = Pdf::loadView('reportes.etiquetas-codigos-barras', data: [
+        $pdf = Pdf::loadView('reports.catalogos.etiquetas-codigos-barras', data: [
             'paginas' => $paginas,
             'fecha' => now()->format('d/m/Y H:i'),
             'usuario' => auth()->user()->name ?? 'Sistema',

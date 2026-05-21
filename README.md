@@ -12,10 +12,13 @@ El **Hotel Bugambilias** es un referente de hospitalidad en la ciudad de **Estel
 Para mantener la consistencia y calidad, este proyecto sigue estándares estrictos definidos en la carpeta `docs/`:
 
 - **[Módulo de Compras (P2P)](docs/MODULO_COMPRAS.md)**: Flujo de Solicitudes, Cotizaciones, Órdenes y Recepciones.
-- **[Reportes y Notificaciones](docs/REPORTES_Y_NOTIFICACIONES.md)**: Correcciones aplicadas y sistema de notificaciones del módulo de Compras.
-- **[Catálogo de Reportes del Sistema](app/Docs/REPORTES.md)**: Todos los reportes con código, concepto, filtros y motor de generación.
-- **[Seguridad y Permisos](docs/INICIALIZACION_SEGURIDAD.md)**: Matriz de roles y control de acceso (Filament Shield).
-- **[Guía de Usuarios](docs/MODULO_USUARIOS.md)**: Creación, edición y asignación de roles y credenciales.
+- **[Módulo de Inventario (Maestro)](docs/inventario/README.md)**: Índice maestro de arquitectura de base de datos (`BASE_DATOS.md`), lógica algorítmica (`FUNCIONALIDADES.md`) y interactores (`CASOS_USO.md`).
+- **[Proceso de Ubicaciones Recursivas](docs/PROCESO_UBICACIONES_RECURSIVAS.md)**: Sistema unificado P2L.
+- **[Reportes y Notificaciones](docs/REPORTES_Y_NOTIFICACIONES.md)**: Notificaciones y reportes de Compras.
+- **[Catálogo de Reportes del Sistema](app/Docs/REPORTES.md)**: Códigos, filtros y motores de reportes.
+- **[Seguridad y Permisos (Shield)](docs/seguridad/CONFIGURACION.md)**: Configuración técnica y patrones de autorización.
+- **[Matriz de Acciones](docs/seguridad/MATRIZ_ACCIONES.md)**: Control de acceso por estado y permisos.
+- **[Guía de Usuarios](docs/MODULO_USUARIOS.md)**: Creación, edición y asignación de roles.
 - **[Arquitectura de Casos de Uso](docs/use-case-architecture.md)**: Clean Architecture simplificada.
 - **[Manual de Estilo](docs/README.md)**: Metodología de diseño y patrones recomendados.
 

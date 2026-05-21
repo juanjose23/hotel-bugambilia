@@ -14,7 +14,7 @@ class ColaboradorDatosMedicos extends Model implements AuditableContract
 
     protected $table = 'colaborador_datos_medicos';
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     /** @return BelongsTo<Colaborador, $this> */
     public function colaborador(): BelongsTo

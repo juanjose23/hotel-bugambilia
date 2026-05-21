@@ -7,7 +7,7 @@ use App\Actions\Catalogos\GenerarReporteProductosAction;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Producto;
-use App\UseCases\Catalogos\ExportProductosUseCase;
+use App\UseCases\Catalogos\Queries\ExportProductosUseCase;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;

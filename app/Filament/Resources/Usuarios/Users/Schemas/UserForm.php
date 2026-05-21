@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Usuarios\Users\Schemas;
 
 use App\Models\Personas\Persona;
 use App\Models\User;
-use App\UseCases\Usuarios\GenerarCredencialesUsuario;
+use App\UseCases\Usuarios\Mutations\GenerarCredencialesUsuario;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;

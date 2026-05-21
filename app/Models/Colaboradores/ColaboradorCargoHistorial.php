@@ -15,7 +15,7 @@ class ColaboradorCargoHistorial extends Model implements AuditableContract
 
     protected $table = 'colaborador_cargos_historial';
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_inicio' => 'date',

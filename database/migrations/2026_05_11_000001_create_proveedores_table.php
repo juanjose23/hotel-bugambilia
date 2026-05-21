@@ -16,7 +16,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('proveedores', function (Blueprint $table) {
-            $table->id()->comment('Identificador único del registro');
+            $table->comment('Tabla maestra que registra a los proveedores de productos y servicios del hotel, vinculados a la tabla de personas.');
+            $table->id()->comment('Identificador único autoincremental del proveedor');
             $table->string('codigo', 20)->unique()->comment('Código maestro del proveedor (PROV-XXXX)');
             $table->foreignId('persona_id')
                 ->comment('Vínculo con el núcleo de personas (Natural/Jurídica)')
@@ -44,7 +45,9 @@ return new class extends Migration
         });
 
         // Constraint de dominio para integridad de estados
-        DB::statement('ALTER TABLE proveedores ADD CONSTRAINT chk_proveedores_estado CHECK (estado IN (0,1))');
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE proveedores ADD CONSTRAINT chk_proveedores_estado CHECK (estado IN (0,1))');
+        }
     }
 
     public function down(): void

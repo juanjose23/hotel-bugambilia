@@ -13,15 +13,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cache', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->mediumText('value');
-            $table->bigInteger('expiration')->index();
+            $table->comment('Tabla nativa de Laravel para almacenamiento en caché de datos y objetos serializados.');
+            $table->string('key')->primary()->comment('Clave única de identificación del objeto en caché');
+            $table->mediumText('value')->comment('Valor serializado almacenado bajo la clave');
+            $table->bigInteger('expiration')->index()->comment('Timestamp UNIX de expiración del registro');
         });
 
         Schema::create('cache_locks', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->string('owner');
-            $table->bigInteger('expiration')->index();
+            $table->comment('Tabla nativa de Laravel para la gestión de bloqueos atómicos y exclusión mutua en procesos simultáneos.');
+            $table->string('key')->primary()->comment('Clave del bloqueo atómico');
+            $table->string('owner')->comment('Identificador del proceso o worker propietario del bloqueo');
+            $table->bigInteger('expiration')->index()->comment('Timestamp UNIX de expiración del bloqueo');
         });
     }
 

@@ -36,6 +36,8 @@ class RecepcionResource extends Resource
 
     protected static ?int $navigationSort = 40;
 
+    protected static ?string $recordTitleAttribute = 'codigo';
+
     public static function form(Schema $schema): Schema
     {
         return RecepcionForm::configure($schema);

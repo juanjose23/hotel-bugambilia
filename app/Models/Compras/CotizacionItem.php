@@ -7,6 +7,8 @@ use App\Models\Catalogos\ProductoVariante;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * @property int $id
@@ -19,11 +21,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property float $subtotal
  * @property bool $es_elegido
  */
-class CotizacionItem extends Model
+class CotizacionItem extends Model implements AuditableContract
 {
-    use SoftDeletes;
+    use Auditable, SoftDeletes;
 
     protected $table = 'cotizacion_items';
+
+    protected $with = [
+        'producto',
+        'variante',
+    ];
 
     protected $fillable = [
         'cotizacion_id',

@@ -3,14 +3,18 @@
 namespace App\Filament\Resources\Compras\Cotizaciones\Schemas;
 
 use App\Enums\CatalogoTipo;
+use App\Enums\Compras\EstadoCotizacion;
+use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\ProductoVariante;
 use App\Models\Compras\Proveedor;
-use App\Models\Compras\Solicitud;
-use App\UseCases\Compras\ObtenerSolicitudConItems;
+use App\Models\General\Moneda;
+use App\Models\General\TasaCambio;
+use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudConItems;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -19,6 +23,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 
 class CotizacionForm
 {
@@ -35,18 +40,31 @@ class CotizacionForm
                     ->schema([
                         Select::make('solicitud_id')
                             ->label('Solicitud Relacionada')
-                            ->options(fn () => Solicitud::where('estado', EstadoSolicitud::Aprobada)
-                                ->whereDoesntHave('ordenesCompra')
-                                ->pluck('codigo', 'id'))
+                            ->relationship(
+                                name: 'solicitud',
+                                titleAttribute: 'codigo',
+                                modifyQueryUsing: fn (Builder $query) => $query->whereNotIn('estado', [EstadoSolicitud::Borrador, EstadoSolicitud::Cancelada])
+                                    ->whereDoesntHave('ordenesCompra', fn ($q) => $q->where('estado', '!=', EstadoOrdenCompra::Cancelada))
+                            )
                             ->searchable()
+                            ->preload()
                             ->required()
                             ->live()
                             ->afterStateUpdated(fn ($state, $set) => self::loadSolicitudItems($state, $set))
                             ->prefixIcon(Heroicon::DocumentText),
 
+                        Select::make('estado')
+                            ->label('Estado de la Oferta')
+                            ->options(EstadoCotizacion::class)
+                            ->default(EstadoCotizacion::Activa)
+                            ->required()
+                            ->prefixIcon(Heroicon::InformationCircle),
+
                         Select::make('proveedor_id')
                             ->label('Proveedor')
                             ->relationship('proveedor', 'codigo')
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->codigo} - ".($record->persona->personaJuridica->razon_social
+                                ?? "{$record->persona->primer_nombre} {$record->persona->personaNatural?->primer_apellido}"))
                             ->searchable()
                             ->preload()
                             ->required()
@@ -59,6 +77,47 @@ class CotizacionForm
                             ->preload()
                             ->required()
                             ->prefixIcon(Heroicon::CreditCard),
+
+                        Select::make('moneda_id')
+                            ->label('Moneda de Adjudicación')
+                            ->options(Moneda::pluck('nombre', 'id'))
+                            ->required()
+                            ->default(fn () => Moneda::where('codigo', 'USD')->first()?->id)
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set) {
+                                if (! $state) {
+                                    return;
+                                }
+                                $moneda = Moneda::find($state);
+                                if ($moneda) {
+                                    if ($moneda->codigo === 'NIO') {
+                                        $set('tasa_cambio', 1.0000);
+                                    } else {
+                                        $tasa = TasaCambio::obtenerTasa(now(), $moneda->codigo, 'NIO');
+                                        $set('tasa_cambio', $tasa);
+                                    }
+                                }
+                            })
+                            ->prefixIcon(Heroicon::Banknotes),
+
+                        Hidden::make('tasa_cambio')
+                            ->default(function ($get) {
+                                $monedaId = $get('moneda_id');
+                                if ($monedaId) {
+                                    $moneda = Moneda::find($monedaId);
+                                    if ($moneda) {
+                                        if ($moneda->codigo === 'NIO') {
+                                            return 1.0000;
+                                        }
+
+                                        return TasaCambio::obtenerTasa(now(), $moneda->codigo, 'NIO');
+                                    }
+                                }
+
+                                return 1.0000;
+                            }),
                     ]),
 
                 // SECCIÓN 2: VIGENCIA Y LOGÍSTICA
@@ -94,14 +153,14 @@ class CotizacionForm
                         Repeater::make('items')
                             ->relationship()
                             ->schema([
-                                Grid::make(3)
+                                Grid::make(12)
                                     ->schema([
                                         Select::make('producto_id')
                                             ->label('Producto')
                                             ->relationship('producto', 'nombre')
                                             ->disabled()
                                             ->dehydrated()
-                                            ->columnSpan(5)
+                                            ->columnSpan(6)
                                             ->prefixIcon(Heroicon::Cube),
 
                                         Select::make('producto_variante_id')
@@ -109,7 +168,8 @@ class CotizacionForm
                                             ->options(fn ($get) => ProductoVariante::where('producto_id', $get('producto_id'))->pluck('codigo', 'id'))
                                             ->searchable()
                                             ->required()
-                                            ->columnSpan(3)
+                                            ->columnSpan(6)
+                                            ->prefixIcon(Heroicon::AdjustmentsHorizontal)
                                             ->helperText('Puede elegir una variante distinta a la solicitada si el proveedor ofrece una alternativa.'),
 
                                         TextInput::make('cantidad')
@@ -117,7 +177,8 @@ class CotizacionForm
                                             ->numeric()
                                             ->disabled()
                                             ->dehydrated()
-                                            ->columnSpan(1),
+                                            ->columnSpan(4)
+                                            ->prefixIcon(Heroicon::Hashtag),
 
                                         TextInput::make('precio_unitario')
                                             ->label('Precio Unit.')
@@ -126,14 +187,14 @@ class CotizacionForm
                                             ->required()
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(fn ($state, $set, $get) => $set('subtotal', floatval($state) * floatval($get('cantidad'))))
-                                            ->columnSpan(1),
+                                            ->columnSpan(4),
 
                                         TextInput::make('subtotal')
                                             ->label('Subtotal')
                                             ->numeric()
                                             ->disabled()
                                             ->dehydrated()
-                                            ->columnSpan(2)
+                                            ->columnSpan(4)
                                             ->prefix('$')
                                             ->extraInputAttributes(['class' => 'text-right font-mono']),
                                     ]),
@@ -214,7 +275,7 @@ class CotizacionForm
             ]);
     }
 
-    protected static function loadSolicitudItems(mixed $state, mixed $set): void
+    public static function loadSolicitudItems(mixed $state, mixed $set): void
     {
         if (! $state) {
             return;

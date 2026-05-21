@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorDatosMedicos\Tables;
 
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;

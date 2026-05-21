@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Colaboradores\ColaboradorDatosMedicos\Schemas;
 
 use App\Enums\EstadoCatalogo;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;

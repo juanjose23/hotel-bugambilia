@@ -15,7 +15,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('personas', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla principal de personas que almacena datos comunes compartidos entre personas naturales y jurídicas.');
+            $table->id()->comment('Identificador único autoincremental de la persona');
             $table->string('primer_nombre', 100)->comment('Primer nombre de la persona o razón social abreviada');
             $table->string('segundo_nombre', 100)->nullable()->comment('Segundo nombre (opcional)');
             $table->foreignId('pais_id')

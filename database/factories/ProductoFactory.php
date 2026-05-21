@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProductoFactory extends Factory
 {
+    protected $model = Producto::class;
+
     /**
      * Define the model's default state.
      *
@@ -18,12 +20,12 @@ class ProductoFactory extends Factory
     public function definition(): array
     {
         return [
-            'categoria_id' => $this->faker->numberBetween(1, 10),
-            'marca_id' => $this->faker->optional()->numberBetween(1, 5),
-            'nombre' => $this->faker->word(),
-            'descripcion' => $this->faker->sentence(),
-            'unidad_medida_id' => $this->faker->optional()->numberBetween(1, 10),
-            'tipo' => $this->faker->randomElement([1, 2]), // 1=Perecedero, 2=No perecedero
+            'categoria_id' => CatalogoFactory::new(),
+            'marca_id' => CatalogoFactory::new(),
+            'nombre' => fake()->word(),
+            'descripcion' => fake()->sentence(),
+            'unidad_medida_id' => CatalogoFactory::new(),
+            'tipo' => fake()->randomElement([1, 2]),
             'estado' => 1,
         ];
     }

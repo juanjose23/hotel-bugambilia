@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Tables;
 
 use App\Enums\EstadoCatalogo;
 use App\Models\Colaboradores\ColaboradorSalario;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;

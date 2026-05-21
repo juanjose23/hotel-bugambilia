@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\Compras\Recepciones\Schemas;
 
 use App\Enums\Compras\EstadoOrdenCompra;
-use App\Enums\Compras\EstadoRecepcion;
 use App\Models\Compras\OrdenCompraItem;
-use App\UseCases\Compras\ObtenerOrdenCompraConItems;
+use App\UseCases\Compras\OrdenesCompra\Queries\ObtenerOrdenCompraConItems;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -42,7 +42,7 @@ class RecepcionForm
                                 modifyQueryUsing: fn (Builder $query) => $query->whereIn('estado', [
                                     EstadoOrdenCompra::Emitida,
                                     EstadoOrdenCompra::EnTransito,
-                                    EstadoOrdenCompra::Recibida,
+                                    EstadoOrdenCompra::Parcial,
                                 ])
                             )
                             ->searchable()
@@ -50,25 +50,30 @@ class RecepcionForm
                             ->required()
                             ->live()
                             ->prefixIcon(Heroicon::DocumentText)
-                            ->afterStateUpdated(function ($state, $set, $get) {
+                            ->afterStateUpdated(function ($state, $set) {
                                 if (! $state) {
                                     $set('items', []);
 
                                     return;
                                 }
 
-                                // Si ya hay ítems y corresponden a esta orden (precarga), no sobrescribir
-                                if (count($get('items') ?? []) > 0) {
-                                    return;
-                                }
-
-                                $orden = app(ObtenerOrdenCompraConItems::class)->execute($state);
+                                $useCase = app(ObtenerOrdenCompraConItems::class);
+                                $orden = $useCase->execute($state);
                                 if ($orden) {
-                                    $set('items', $orden->items->map(fn ($item) => [
-                                        'orden_item_id' => $item->id,
-                                        'cantidad_recibida' => $item->cantidad,
-                                        'cantidad_rechazada' => 0,
-                                    ])->toArray());
+                                    $items = [];
+                                    foreach ($orden->items as $item) {
+                                        $pending = $item->cantidad_pendiente ?? (float) $item->cantidad;
+                                        if ($pending > 0) {
+                                            $items[] = [
+                                                'orden_item_id' => $item->id,
+                                                'cantidad_ordenada' => (float) $item->cantidad,
+                                                'cantidad_pendiente' => $pending,
+                                                'cantidad_recibida' => $pending,
+                                                'cantidad_rechazada' => 0,
+                                            ];
+                                        }
+                                    }
+                                    $set('items', $items);
                                 }
                             }),
 
@@ -84,12 +89,7 @@ class RecepcionForm
                             ->maxLength(50)
                             ->prefixIcon(Heroicon::Hashtag),
 
-                        Select::make('estado')
-                            ->label('Estado de Recepción')
-                            ->options(EstadoRecepcion::class)
-                            ->required()
-                            ->preload()
-                            ->prefixIcon(Heroicon::CheckCircle),
+                        Hidden::make('estado'),
 
                         Select::make('recibido_por_id')
                             ->label('Recibido por')
@@ -97,6 +97,18 @@ class RecepcionForm
                             ->default(auth()->id())
                             ->required()
                             ->prefixIcon(Heroicon::User),
+
+                        Select::make('ubicacion_id')
+                            ->label('Ubicación de Destino General')
+                            ->relationship(
+                                name: 'ubicacion',
+                                titleAttribute: 'nombre',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('estado', 1)
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->prefixIcon(Heroicon::MapPin),
 
                         Textarea::make('notas')
                             ->label('Notas de Almacén')
@@ -118,31 +130,110 @@ class RecepcionForm
                                     ->options(fn ($get) => self::getOrdenItemsOptions($get('../../orden_compra_id')))
                                     ->required()
                                     ->live()
+                                    ->afterStateUpdated(function ($state, $set) {
+                                        if (! $state) {
+                                            return;
+                                        }
+                                        $useCase = app(ObtenerOrdenCompraConItems::class);
+                                        $pending = $useCase->getItemPendingQuantity($state);
+
+                                        // Obtener cantidad original de la orden
+                                        $ordenItem = OrdenCompraItem::find($state);
+
+                                        $set('cantidad_ordenada', $ordenItem ? (float) $ordenItem->cantidad : 0);
+                                        $set('cantidad_pendiente', $pending);
+                                        $set('cantidad_recibida', $pending);
+                                        $set('cantidad_rechazada', 0);
+                                    })
                                     ->searchable()
-                                    ->columnSpan(3)
+                                    ->columnSpan(8)
                                     ->prefixIcon(Heroicon::Cube),
+
+                                TextInput::make('lote_proveedor')
+                                    ->label('Lote Proveedor')
+                                    ->placeholder('Lote del fabricante...')
+                                    ->maxLength(100)
+                                    ->columnSpan(4)
+                                    ->prefixIcon(Heroicon::Hashtag),
+
+                                TextInput::make('cantidad_ordenada')
+                                    ->label('Cant. Ordenada')
+                                    ->numeric()
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->afterStateHydrated(function ($state, $set, $get) {
+                                        $ordenItemId = $get('orden_item_id');
+                                        if ($ordenItemId) {
+                                            $ordenItem = OrdenCompraItem::find($ordenItemId);
+                                            $set('cantidad_ordenada', $ordenItem ? (float) $ordenItem->cantidad : 0);
+                                        }
+                                    })
+                                    ->columnSpan(3)
+                                    ->prefixIcon(Heroicon::ClipboardDocumentCheck),
+
+                                TextInput::make('cantidad_pendiente')
+                                    ->label('Cant. Pendiente')
+                                    ->numeric()
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->afterStateHydrated(function ($state, $set, $get) {
+                                        $ordenItemId = $get('orden_item_id');
+                                        if ($ordenItemId) {
+                                            $set('cantidad_pendiente', app(ObtenerOrdenCompraConItems::class)->getItemPendingQuantity($ordenItemId));
+                                        }
+                                    })
+                                    ->columnSpan(3)
+                                    ->prefixIcon(Heroicon::Clock),
 
                                 TextInput::make('cantidad_recibida')
                                     ->label('Cant. Recibida')
                                     ->numeric()
                                     ->required()
-                                    ->minValue(0.01)
-                                    ->columnSpan(1)
+                                    ->minValue(0)
+                                    ->maxValue(fn ($get) => (float) ($get('cantidad_pendiente') ?? 0))
+                                    ->columnSpan(3)
                                     ->prefixIcon(Heroicon::Hashtag),
 
                                 TextInput::make('cantidad_rechazada')
                                     ->label('Cant. Rechazada')
                                     ->numeric()
                                     ->default(0)
-                                    ->columnSpan(1)
+                                    ->minValue(0)
+                                    ->columnSpan(3)
                                     ->prefixIcon(Heroicon::XCircle),
 
-                                Textarea::make('observaciones')
-                                    ->label('Notas del Ítem')
-                                    ->placeholder('Ej: Empaque dañado')
-                                    ->columnSpan(1),
+                                DatePicker::make('fecha_vencimiento')
+                                    ->label('Fecha Vencimiento')
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->columnSpan(4),
+
+                                Select::make('ubicacion_id')
+                                    ->label('Ubicación de Destino')
+                                    ->relationship(
+                                        name: 'ubicacion',
+                                        titleAttribute: 'nombre',
+                                        modifyQueryUsing: fn (Builder $query) => $query->where('estado', 1)
+                                    )
+                                    ->searchable()
+                                    ->preload()
+                                    ->placeholder('General por defecto')
+                                    ->columnSpan(8)
+                                    ->prefixIcon(Heroicon::MapPin),
+
+                                Textarea::make('motivo_rechazo')
+                                    ->label('Motivo de Rechazo')
+                                    ->placeholder('Ej: Empaque dañado...')
+                                    ->rows(1)
+                                    ->columnSpan(8),
+
+                                Textarea::make('nota')
+                                    ->label('Nota / Observación')
+                                    ->placeholder('Comentario general del ítem...')
+                                    ->rows(1)
+                                    ->columnSpanFull(),
                             ])
-                            ->columns(6)
+                            ->columns(12)
                             ->addActionLabel('Registrar otro ítem')
                             ->defaultItems(0),
                     ]),
@@ -156,18 +247,6 @@ class RecepcionForm
             return [];
         }
 
-        return OrdenCompraItem::where('orden_compra_id', $ordenId)
-            ->with(['producto', 'variante'])
-            ->get()
-            ->mapWithKeys(function ($item) {
-                $label = "{$item->producto->nombre}";
-                if ($item->variante) {
-                    $label .= " ({$item->variante->codigo})";
-                }
-                $label .= " | Ordenado: {$item->cantidad}";
-
-                return [$item->id => $label];
-            })
-            ->toArray();
+        return app(ObtenerOrdenCompraConItems::class)->getItemOptions($ordenId);
     }
 }

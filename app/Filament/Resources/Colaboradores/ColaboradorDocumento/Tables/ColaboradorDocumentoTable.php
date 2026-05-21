@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Colaboradores\ColaboradorDocumento\Tables;
 
 use App\Models\Colaboradores\ColaboradorDocumento;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;

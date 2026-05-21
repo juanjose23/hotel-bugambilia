@@ -17,7 +17,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('personas_juridicas', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que extiende la información común de personas con datos específicos de personas jurídicas/empresas.');
+            $table->id()->comment('Identificador único autoincremental del registro de persona jurídica');
             $table->foreignId('persona_id')
                 ->comment('FK a la tabla personas (relación 1:1)')
                 ->constrained('personas')
@@ -33,14 +34,16 @@ return new class extends Migration
             $table->unique(['tipo_identificacion', 'numero_identificacion'], 'uq_personas_juridicas_identificacion');
         });
 
-        DB::statement('ALTER TABLE personas_juridicas
-        ADD CONSTRAINT chk_identificacion_completa
-        CHECK (
-            (tipo_identificacion IS NULL AND numero_identificacion IS NULL)
-            OR
-            (tipo_identificacion IS NOT NULL AND numero_identificacion IS NOT NULL)
-        )
-        ');
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE personas_juridicas
+            ADD CONSTRAINT chk_identificacion_completa
+            CHECK (
+                (tipo_identificacion IS NULL AND numero_identificacion IS NULL)
+                OR
+                (tipo_identificacion IS NOT NULL AND numero_identificacion IS NOT NULL)
+            )
+            ');
+        }
     }
 
     /**

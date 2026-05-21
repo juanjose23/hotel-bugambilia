@@ -8,7 +8,7 @@ use App\Enums\TipoIdentificacion;
 use App\Models\Personas\Persona;
 use App\Rules\Colaboradores\Colaborador\ValidCodigoColaborador;
 use App\Rules\Personas\PersonaNatural\ValidCedulaNicaragua;
-use App\UseCases\Colaboradores\GenerarCodigo;
+use App\UseCases\Colaboradores\Mutations\GenerarCodigo;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
