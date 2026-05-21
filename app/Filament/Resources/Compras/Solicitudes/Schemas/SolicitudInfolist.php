@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Compras\Solicitudes\Schemas;
 
 use App\Enums\Compras\EstadoSolicitud;
-use App\Models\Catalogos\ProductoVariante;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -33,9 +32,7 @@ class SolicitudInfolist
 
                         TextEntry::make('estado')
                             ->label('Estado')
-                            ->badge()
-                            ->color(fn (EstadoSolicitud $state): string => $state->color())
-                            ->formatStateUsing(fn (EstadoSolicitud $state): string => $state->label()),
+                            ->badge(),
 
                         TextEntry::make('colaborador.codigo')
                             ->label('Colaborador')
@@ -85,10 +82,7 @@ class SolicitudInfolist
 
                                 TextEntry::make('productoVariante.codigo')
                                     ->label('Variante')
-                                    ->placeholder('—')
-                                    ->formatStateUsing(fn ($state, $record) => $record?->productoVariante
-                                        ? self::formatVariante($record->productoVariante)
-                                        : '—'),
+                                    ->placeholder('—'),
 
                                 TextEntry::make('cantidad_solicitada')
                                     ->label('Cantidad Solicitada'),
@@ -120,23 +114,5 @@ class SolicitudInfolist
                             ->dateTime('d/m/Y H:i'),
                     ]),
             ]);
-    }
-
-    private static function formatVariante(ProductoVariante $v): string
-    {
-        $info = $v->codigo;
-
-        if ($v->atributos) {
-            $attrs = collect($v->atributos)
-                ->map(fn ($val, $key) => "{$key}: {$val}")
-                ->implode(', ');
-            $info .= " | {$attrs}";
-        }
-
-        if ($v->unidadMedida) {
-            $info .= " ({$v->unidadMedida->nombre})";
-        }
-
-        return $info;
     }
 }

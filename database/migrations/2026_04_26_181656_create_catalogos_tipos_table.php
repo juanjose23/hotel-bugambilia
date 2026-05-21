@@ -15,7 +15,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('catalogo_tipos', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que agrupa y clasifica los diferentes tipos de catálogos paramétricos en el sistema.');
+            $table->id()->comment('Identificador único autoincremental de la clasificación del catálogo');
             $table->string('codigo', 50)->unique()->comment('Código identificador único del tipo de catálogo (ej. CARGOS, DEPTOS, CAT_PROD)');
             $table->string('nombre', 150)->comment('Nombre descriptivo del tipo de catálogo');
             $table->integer('estado')->default(1)->comment('1=activo, 0=inactivo');

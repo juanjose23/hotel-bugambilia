@@ -5,7 +5,7 @@ namespace App\Actions\Catalogos;
 use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\ProductoVariante;
 use App\Support\ReportePaginador;
-use App\UseCases\Reportes\RegistrarAuditoriaReporteUseCase;
+use App\UseCases\Reportes\Mutations\RegistrarAuditoriaReporteUseCase;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Picqer\Barcode\BarcodeGeneratorPNG;
@@ -133,7 +133,7 @@ class GenerarReporteProductosAction
                 ->all();
         }
 
-        $pdf = Pdf::loadView('reportes.productos-variantes', [
+        $pdf = Pdf::loadView('reports.catalogos.productos-variantes', [
             'paginas' => $paginas,
             'fecha' => now()->format('d/m/Y H:i'),
             'usuario' => auth()->user()->name ?? 'Sistema',

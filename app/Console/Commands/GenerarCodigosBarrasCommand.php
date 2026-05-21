@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Catalogos\Producto;
-use App\UseCases\Catalogos\GenerarCodigoBarrasUseCase;
+use App\UseCases\Catalogos\Queries\GenerarCodigoBarrasUseCase;
 use Illuminate\Console\Command;
 
 class GenerarCodigosBarrasCommand extends Command

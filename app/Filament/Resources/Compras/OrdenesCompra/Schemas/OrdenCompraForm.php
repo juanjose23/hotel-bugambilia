@@ -3,14 +3,18 @@
 namespace App\Filament\Resources\Compras\OrdenesCompra\Schemas;
 
 use App\Enums\CatalogoTipo;
+use App\Enums\Compras\EstadoCotizacion;
 use App\Enums\Compras\EstadoOrdenCompra;
+use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\ProductoVariante;
+use App\Models\Compras\ProveedorContacto;
 use App\Models\Compras\Solicitud;
-use App\UseCases\Compras\ObtenerCotizacionConItemsProveedor;
-use App\UseCases\Compras\ObtenerCotizacionesPorSolicitud;
-use App\UseCases\Compras\ObtenerSolicitudConItems;
+use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionConItemsProveedor;
+use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionesPorSolicitud;
+use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudConItems;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -18,6 +22,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 
 class OrdenCompraForm
 {
@@ -44,11 +49,21 @@ class OrdenCompraForm
                             ->default(EstadoOrdenCompra::Borrador)
                             ->required()
                             ->native(false)
-                            ->prefixIcon(fn ($state) => $state instanceof EstadoOrdenCompra ? $state->icon() : Heroicon::Clock),
+                            ->prefixIcon(fn ($state) => $state instanceof EstadoOrdenCompra ? $state->getIcon() : Heroicon::Clock),
 
                         Select::make('solicitud_id')
                             ->label('Solicitud de Origen')
-                            ->relationship('solicitud', 'codigo')
+                            ->relationship(
+                                name: 'solicitud',
+                                titleAttribute: 'codigo',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('estado', EstadoSolicitud::Aprobada)
+                                    ->whereDoesntHave('ordenesCompra', fn ($q) => $q->whereIn('estado', [
+                                        EstadoOrdenCompra::Emitida,
+                                        EstadoOrdenCompra::EnTransito,
+                                        EstadoOrdenCompra::Recibida,
+                                        EstadoOrdenCompra::Parcial,
+                                    ]))
+                            )
                             ->searchable()
                             ->preload()
                             ->nullable()
@@ -78,6 +93,7 @@ class OrdenCompraForm
                             ->label('Cotización Ganadora')
                             ->options(fn (mixed $get) => app(ObtenerCotizacionesPorSolicitud::class)
                                 ->execute($get('solicitud_id'))
+                                ->filter(fn ($c) => in_array($c->estado, [EstadoCotizacion::Aceptada, EstadoCotizacion::AceptadaParcial]))
                                 ->mapWithKeys(fn ($c) => [$c->id => "#{$c->id} - ".$c->proveedor->codigo])
                             )
                             ->searchable()
@@ -108,6 +124,7 @@ class OrdenCompraForm
                                 if ($cotizacion) {
                                     $set('proveedor_id', $cotizacion->proveedor_id);
                                     $set('condicion_pago_id', $cotizacion->condicion_pago_id);
+                                    $set('tasa_cambio', $cotizacion->tasa_cambio ?? 1.0000);
 
                                     $set('items', $cotizacion->items->map(fn ($item) => [
                                         'producto_id' => $item->producto_id,
@@ -127,13 +144,13 @@ class OrdenCompraForm
                         Select::make('proveedor_id')
                             ->label('Proveedor')
                             ->relationship('proveedor', 'codigo')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->persona->personaJuridica->razon_social
-                                ?? "{$record->persona->primer_nombre} {$record->persona->personaNatural?->primer_apellido}"
-                            )
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->codigo} - ".($record->persona->personaJuridica->razon_social
+                                ?? "{$record->persona->primer_nombre} {$record->persona->personaNatural?->primer_apellido}"))
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->columnSpan(2)
+                            ->live()
+                            ->afterStateUpdated(fn ($set) => $set('proveedor_contacto_id', null))
                             ->prefixIcon(Heroicon::UserGroup),
 
                         Select::make('condicion_pago_id')
@@ -141,6 +158,17 @@ class OrdenCompraForm
                             ->options(fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CONDICION_PAGO->value))->pluck('nombre', 'id'))
                             ->required()
                             ->prefixIcon(Heroicon::CreditCard),
+
+                        Select::make('proveedor_contacto_id')
+                            ->label('Atención a / Contacto')
+                            ->options(fn ($get) => ProveedorContacto::where('proveedor_id', $get('proveedor_id'))->pluck('nombre', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->prefixIcon(Heroicon::User)
+                            ->helperText('Seleccione el contacto del proveedor que le atendió.'),
+
+                        Hidden::make('tasa_cambio')
+                            ->default(1.0000),
                     ]),
 
                 // SECCIÓN 2: FECHAS
@@ -178,14 +206,15 @@ class OrdenCompraForm
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(fn ($set) => $set('producto_variante_id', null))
-                                    ->columnSpan(2)
+                                    ->columnSpan(6)
                                     ->prefixIcon(Heroicon::Cube),
 
                                 Select::make('producto_variante_id')
                                     ->label('Variante')
                                     ->options(fn ($get) => ProductoVariante::where('producto_id', $get('producto_id'))->pluck('codigo', 'id'))
                                     ->searchable()
-                                    ->columnSpan(1),
+                                    ->columnSpan(6)
+                                    ->prefixIcon(Heroicon::AdjustmentsHorizontal),
 
                                 Select::make('unidad_medida_id')
                                     ->label('UM')
@@ -195,14 +224,16 @@ class OrdenCompraForm
                                     )->pluck('nombre', 'id'))
                                     ->nullable()
                                     ->searchable()
-                                    ->columnSpan(1),
+                                    ->columnSpan(3)
+                                    ->prefixIcon(Heroicon::Scale),
 
                                 TextInput::make('cantidad')
                                     ->label('Cantidad')
                                     ->numeric()
                                     ->required()
                                     ->live(onBlur: true)
-                                    ->columnSpan(1),
+                                    ->columnSpan(3)
+                                    ->prefixIcon(Heroicon::Hashtag),
 
                                 TextInput::make('precio_unitario')
                                     ->label('Precio Unit.')
@@ -210,18 +241,18 @@ class OrdenCompraForm
                                     ->prefix('$')
                                     ->required()
                                     ->live(onBlur: true)
-                                    ->columnSpan(1),
+                                    ->columnSpan(3),
 
                                 TextInput::make('subtotal')
                                     ->label('Subtotal')
                                     ->numeric()
                                     ->disabled()
                                     ->dehydrated()
-                                    ->columnSpan(1)
+                                    ->columnSpan(3)
                                     ->prefix('$')
                                     ->extraInputAttributes(['class' => 'text-right font-mono']),
                             ])
-                            ->columns(6)
+                            ->columns(12)
                             ->collapsible()
                             ->live()
                             ->afterStateUpdated(function ($get, $set) {

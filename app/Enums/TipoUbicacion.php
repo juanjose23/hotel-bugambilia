@@ -15,6 +15,10 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
     case SECTOR = 'sector';
     case ZONA = 'zona';
     case ALMACEN = 'almacen';
+    case BODEGA = 'bodega';
+    case ESTANTE = 'estante';
+    case NIVEL = 'nivel';
+    case POSICION = 'posicion';
 
     public function getLabel(): string
     {
@@ -24,6 +28,10 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::SECTOR => 'Sector',
             self::ZONA => 'Zona',
             self::ALMACEN => 'Almacén',
+            self::BODEGA => 'Bodega',
+            self::ESTANTE => 'Estante',
+            self::NIVEL => 'Nivel',
+            self::POSICION => 'Posición',
         };
     }
 
@@ -35,6 +43,10 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::SECTOR => Heroicon::Squares2x2,
             self::ZONA => Heroicon::MapPin,
             self::ALMACEN => Heroicon::BuildingStorefront,
+            self::BODEGA => Heroicon::ArchiveBox,
+            self::ESTANTE => Heroicon::QueueList,
+            self::NIVEL => Heroicon::ListBullet,
+            self::POSICION => Heroicon::MapPin,
         };
     }
 
@@ -46,6 +58,10 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::SECTOR => 'warning',
             self::ZONA => 'success',
             self::ALMACEN => 'gray',
+            self::BODEGA => 'indigo',
+            self::ESTANTE => 'danger',
+            self::NIVEL => 'orange',
+            self::POSICION => 'info',
         };
     }
 

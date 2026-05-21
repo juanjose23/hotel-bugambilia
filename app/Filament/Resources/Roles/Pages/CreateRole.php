@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Roles\Pages;
 
 use App\Filament\Resources\Roles\RoleResource;
+use App\UseCases\Roles\Mutations\SincronizarPermisosRole;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Override;
-use Spatie\Permission\Models\Role;
 
 class CreateRole extends CreateRecord
 {
@@ -37,16 +37,10 @@ class CreateRole extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $permissionModels = collect();
-        $this->permissions->each(function (string $permission) use ($permissionModels): void {
-            $permissionModels->push(Utils::getPermissionModel()::firstOrCreate([
-                'name' => $permission,
-                'guard_name' => $this->data['guard_name'],
-            ]));
-        });
-
-        /** @var Role $role */
-        $role = $this->record;
-        $role->syncPermissions($permissionModels);
+        app(SincronizarPermisosRole::class)->execute(
+            $this->record,
+            $this->data,
+            $this->permissions,
+        );
     }
 }

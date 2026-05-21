@@ -122,6 +122,42 @@ app/
     │   ├── GenerarCodigo.php
     │   ├── ObtenerDatosCarnet.php
     │   └── ObtenerNombreCompleto.php
+    ├── Compras/
+    │   ├── Solicitudes/
+    │   │   ├── AprobarSolicitud.php
+    │   │   ├── CancelarSolicitud.php
+    │   │   ├── GenerarCodigoSolicitud.php
+    │   │   ├── ObtenerSolicitudConItems.php
+    │   │   ├── ObtenerSolicitudParaComparativa.php
+    │   │   ├── ObtenerSolicitudesParaComparar.php
+    │   │   └── RechazarSolicitud.php
+    │   ├── Cotizaciones/
+    │   │   ├── ActualizarEstadosCotizacionesSolicitud.php
+    │   │   ├── AnalizarScoringCotizaciones.php
+    │   │   ├── ElegirCotizacionGanadora.php
+    │   │   ├── ObtenerCotizacionConItemsProveedor.php
+    │   │   ├── ObtenerCotizacionesPorSolicitud.php
+    │   │   ├── ObtenerRecomendacionLogistica.php
+    │   │   └── SeleccionarItemGanador.php
+    │   ├── OrdenesCompra/
+    │   │   ├── CancelarOrdenCompra.php
+    │   │   ├── EmitirOrdenCompra.php
+    │   │   ├── GenerarCodigoOrdenCompra.php
+    │   │   ├── GenerarOrdenDesdeCotizacion.php
+    │   │   ├── GenerarOrdenesDesdeComparativa.php
+    │   │   ├── ObtenerOrdenCompraConItems.php
+    │   │   └── VerificarEstadoOrdenCompra.php
+    │   ├── Recepciones/
+    │   │   ├── GenerarCodigoRecepcion.php
+    │   │   └── GestionarTransicionRecepcion.php
+    │   ├── Devoluciones/
+    │   │   └── Mutations/
+    │   │       ├── DevolverMercanciaProveedor.php
+    │   │       └── GenerarCodigoDevolucion.php
+    │   └── Proveedores/
+    │       ├── ActualizarProveedor.php
+    │       ├── CrearProveedor.php
+    │       └── GenerarCodigoProveedor.php
     └── Reportes/
         ├── RegistrarAuditoriaReporteUseCase.php
         └── RegistrarReporteUseCase.php

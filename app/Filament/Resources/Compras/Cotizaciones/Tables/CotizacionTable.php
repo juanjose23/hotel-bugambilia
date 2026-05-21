@@ -2,12 +2,17 @@
 
 namespace App\Filament\Resources\Compras\Cotizaciones\Tables;
 
+use App\Enums\Compras\EstadoCotizacion;
+use App\Enums\Compras\EstadoOrdenCompra;
+use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
 use App\Models\Compras\Cotizacion;
 use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\GenerarOrdenDesdeCotizacion;
+use App\UseCases\Compras\OrdenesCompra\Mutations\GenerarOrdenDesdeCotizacion;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -47,7 +52,7 @@ class CotizacionTable
 
                 TextColumn::make('total')
                     ->label('Total')
-                    ->money('USD')
+                    ->money(fn (Cotizacion $record) => $record->moneda->codigo ?? 'USD')
                     ->sortable()
                     ->weight('bold')
                     ->color('primary'),
@@ -59,12 +64,16 @@ class CotizacionTable
                     ->trueColor('success')
                     ->alignCenter(),
 
+                TextColumn::make('estado')
+                    ->label('Estado')
+                    ->badge()
+                    ->sortable()
+                    ->alignCenter(),
+
                 TextColumn::make('items_elegidos_count')
                     ->label('Ítems Elegidos')
                     ->getStateUsing(function (Cotizacion $record) {
-                        $count = $record->items()->where('es_elegido', true)->count();
-
-                        return $count > 0 ? $count : null;
+                        return $record->items_elegidos_count > 0 ? $record->items_elegidos_count : null;
                     })
                     ->badge()
                     ->color('success')
@@ -102,6 +111,10 @@ class CotizacionTable
                         '1' => 'Sí',
                         '0' => 'No',
                     ]),
+
+                SelectFilter::make('estado')
+                    ->label('Estado')
+                    ->options(EstadoCotizacion::class),
             ])
             ->actions([
                 ActionGroup::make([
@@ -109,8 +122,11 @@ class CotizacionTable
                         ->label('Generar Orden de Compra')
                         ->icon(Heroicon::ShoppingCart)
                         ->color('primary')
-                        ->visible(fn (Cotizacion $record) => ($record->es_elegida || $record->items()->where('es_elegido', true)->exists())
-                            && ! $record->solicitud->ordenesCompra()->where('proveedor_id', $record->proveedor_id)->exists()
+                        ->visible(fn (Cotizacion $record) => ($record->es_elegida || $record->items_elegidos_count > 0)
+                            && ! $record->solicitud->ordenesCompra
+                                ->where('proveedor_id', $record->proveedor_id)
+                                ->where('estado', '!=', EstadoOrdenCompra::Cancelada)
+                                ->isNotEmpty()
                         )
                         ->action(function (Cotizacion $record) {
                             try {
@@ -134,13 +150,33 @@ class CotizacionTable
                             }
                         }),
 
-                    Action::make('imprimir')
-                        ->label('Imprimir')
+                    EditAction::make()
+                        ->visible(fn (Cotizacion $record) => ! $record->ordenCompra || $record->ordenCompra->estado === EstadoOrdenCompra::Cancelada),
+
+                    ViewAction::make(),
+
+                    Action::make('verComparativa')
+                        ->label('Ver Comparativa')
+                        ->icon(Heroicon::ArrowsRightLeft)
+                        ->color('success')
+                        ->url(fn (Cotizacion $record) => CotizacionResource::getUrl('comparativa', ['solicitud_id' => $record->solicitud_id]))
+                        ->visible(fn () => auth()->user()->can('Compras:ViewComparativaCotizaciones')),
+
+                    Action::make('imprimirComparativa')
+                        ->label('Imprimir Comparativo')
                         ->icon(Heroicon::Printer)
+                        ->color('info')
+                        ->url(fn (Cotizacion $record) => route('reporte.comparativa', ['solicitud' => $record->solicitud_id]))
+                        ->openUrlInNewTab()
+                        ->visible(fn () => auth()->user()->can('Compras:ImprimirComparativa')),
+
+                    Action::make('imprimir')
+                        ->label('Imprimir Cotización')
+                        ->icon(Heroicon::DocumentText)
                         ->color('gray')
                         ->url(fn (Cotizacion $record) => route('reporte.cotizacion', $record))
                         ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()->can('ImprimirCotizacion') || auth()->user()->hasRole('super_admin')),
+                        ->visible(fn () => auth()->user()->can('Compras:ImprimirCotizacion')),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Más opciones'),

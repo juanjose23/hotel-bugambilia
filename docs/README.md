@@ -6,16 +6,19 @@ Bienvenido a la documentación técnica y operativa. El sistema sigue estándare
 
 | Archivo | Propósito |
 | :--- | :--- |
-| [**MODULO_COMPRAS.md**](./MODULO_COMPRAS.md) | **Manual Maestro de Compras (P2P).** Flujo de solicitudes, cotizaciones, órdenes y recepciones. |
+| [**MODULO_COMPRAS.md**](./MODULO_COMPRAS.md) | **Manual Maestro de Compras (P2P).** Flujo completo: solicitudes, cotizaciones, órdenes de compra, recepciones, devoluciones e integración con inventario. |
+| [**MODULO_INVENTARIO (Carpeta)**](./inventario/README.md) | **Módulo de Inventario Modularizado.** Índice principal que enlaza a la base de datos (`BASE_DATOS.md`), lógicas y reglas de negocio (`FUNCIONALIDADES.md`), y el catálogo de interactores (`CASOS_USO.md`). |
+| [**MODULO_INVENTARIO (Legado)**](./MODULO_INVENTARIO.md) | **Documento de Inventario Consolidado.** Arquitectura inicial y desglose de la serie de reportes de inventario HTB-INV-001 a HTB-INV-012. |
+| [**PROCESO_UBICACIONES_RECURSIVAS.md**](./PROCESO_UBICACIONES_RECURSIVAS.md) | **Proceso Maestro de Ubicaciones Jerárquicas.** Flujo P2L (Purchase-to-Location) unificado sin activos fijos, algoritmo de secuencias con bloqueo pesimista en base de datos, y reglas multi-moneda de reportes. |
 | [**REPORTES_Y_NOTIFICACIONES.md**](./REPORTES_Y_NOTIFICACIONES.md) | Correcciones aplicadas a reportes PDF y sistema de notificaciones del módulo de Compras. |
 | [**MODULO_USUARIOS.md**](./MODULO_USUARIOS.md) | Gestión de usuarios: creación, autogeneración de credenciales y asignación de roles. |
-| [**INICIALIZACION_SEGURIDAD.md**](./INICIALIZACION_SEGURIDAD.md) | Guía técnica para instalar y configurar roles y permisos con Filament Shield. |
-| [**SEGURIDAD.md**](./SEGURIDAD.md) | Políticas generales de seguridad y trazabilidad. |
+| [**Seguridad/Configuración**](./seguridad/CONFIGURACION.md) | Guía técnica de roles y permisos con Filament Shield. |
+| [**Seguridad/Matriz Acciones**](./seguridad/MATRIZ_ACCIONES.md) | Detalle de acciones por estado y permisos. |
 | [**use-case-architecture.md**](./use-case-architecture.md) | Estándares de programación para la capa de lógica de negocio (UseCases). |
 | [**Catálogo de Reportes**](../app/Docs/REPORTES.md) | Todos los reportes del sistema con código, concepto y filtros. |
 
 ## ⚠️ Archivos Deprecados
-Los archivos `COMPRAS.md`, `COTIZACIONES.md` y `solicitudes-compra.md` han sido consolidados en el manual maestro y pueden ser eliminados para evitar confusiones.
+Los archivos `SEGURIDAD.md`, `INICIALIZACION_SEGURIDAD.md`, `COMPRAS.md`, `COTIZACIONES.md` y `solicitudes-compra.md` han sido consolidados y deben ser eliminados.
 
 ---
 *Hotel Bugambilias*

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Compras\Recepciones\Schemas;
 
-use App\Enums\Compras\EstadoRecepcion;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -38,10 +37,7 @@ class RecepcionInfolist
 
                         TextEntry::make('estado')
                             ->label('Estado')
-                            ->badge()
-                            ->color(fn (EstadoRecepcion $state) => $state->color())
-                            ->icon(fn (EstadoRecepcion $state) => $state->icon())
-                            ->formatStateUsing(fn (EstadoRecepcion $state) => $state->label()),
+                            ->badge(),
 
                         TextEntry::make('receptor.name')
                             ->label('Recibido por')
@@ -78,11 +74,20 @@ class RecepcionInfolist
                                     ->label('Cant. Rechazada')
                                     ->color('danger'),
 
+                                TextEntry::make('lote_proveedor')
+                                    ->label('Lote Proveedor')
+                                    ->placeholder('—'),
+
+                                TextEntry::make('fecha_vencimiento')
+                                    ->label('Fecha Venc.')
+                                    ->date('d/m/Y')
+                                    ->placeholder('—'),
+
                                 TextEntry::make('motivo_rechazo')
                                     ->label('Motivo Rechazo')
                                     ->placeholder('—'),
                             ])
-                            ->columns(6),
+                            ->columns(8),
                     ]),
             ]);
     }

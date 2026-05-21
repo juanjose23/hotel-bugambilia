@@ -18,7 +18,17 @@ class Persona extends Model implements AuditableContract
     /** @use HasFactory<PersonaFactory> */
     use Auditable, HasFactory, SoftDeletes;
 
+    protected static function newFactory(): PersonaFactory
+    {
+        return PersonaFactory::new();
+    }
+
     protected $table = 'personas';
+
+    protected $with = [
+        'personaNatural',
+        'personaJuridica',
+    ];
 
     protected $fillable = [
         'primer_nombre',

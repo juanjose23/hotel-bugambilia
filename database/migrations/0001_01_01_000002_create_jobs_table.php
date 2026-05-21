@@ -15,36 +15,39 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('jobs', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla nativa de Laravel que actúa como cola de trabajos pendientes para ejecución asíncrona.');
+            $table->id()->comment('Identificador único autoincremental del trabajo en cola');
             $table->string('queue')->index()->comment('Nombre de la cola (ej. default, emails, reports)');
             $table->longText('payload')->comment('Datos serializados del trabajo a ejecutar');
             $table->unsignedSmallInteger('attempts')->comment('Número de intentos realizados');
             $table->unsignedInteger('reserved_at')->nullable()->comment('Timestamp UNIX cuando un worker reservó el job');
             $table->unsignedInteger('available_at')->comment('Timestamp UNIX a partir del cual está disponible');
-            $table->unsignedInteger('created_at');
+            $table->unsignedInteger('created_at')->comment('Timestamp UNIX de creación del registro');
         });
 
         Schema::create('job_batches', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->comment('Tabla nativa de Laravel para la gestión y seguimiento de ejecución de lotes de trabajos en paralelo.');
+            $table->string('id')->primary()->comment('Identificador único en formato UUID del lote de trabajos');
             $table->string('name')->comment('Nombre descriptivo del lote');
             $table->integer('total_jobs')->comment('Total de trabajos en el lote');
             $table->integer('pending_jobs')->comment('Trabajos pendientes por ejecutar');
             $table->integer('failed_jobs')->comment('Trabajos que fallaron');
             $table->longText('failed_job_ids')->comment('IDs de los trabajos fallidos en JSON');
             $table->mediumText('options')->nullable()->comment('Opciones adicionales del lote (en JSON)');
-            $table->integer('cancelled_at')->nullable();
-            $table->integer('created_at');
-            $table->integer('finished_at')->nullable();
+            $table->integer('cancelled_at')->nullable()->comment('Timestamp UNIX de cancelación del lote');
+            $table->integer('created_at')->comment('Timestamp UNIX de creación del lote');
+            $table->integer('finished_at')->nullable()->comment('Timestamp UNIX de finalización del lote');
         });
 
         Schema::create('failed_jobs', function (Blueprint $table) {
-            $table->id();
-            $table->string('uuid')->unique();
+            $table->comment('Tabla nativa de Laravel para el registro histórico y depuración de trabajos en cola que fallaron.');
+            $table->id()->comment('Identificador único autoincremental del trabajo fallido');
+            $table->string('uuid')->unique()->comment('Identificador único global (UUID) del trabajo');
             $table->text('connection')->comment('Conexión de cola usada');
             $table->text('queue')->comment('Nombre de la cola');
             $table->longText('payload')->comment('Datos del trabajo al momento del fallo');
             $table->longText('exception')->comment('Mensaje y trace de la excepción');
-            $table->timestamp('failed_at')->useCurrent();
+            $table->timestamp('failed_at')->useCurrent()->comment('Fecha y hora exacta en la que ocurrió el fallo');
         });
     }
 

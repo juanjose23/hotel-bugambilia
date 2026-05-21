@@ -21,6 +21,7 @@
         "maatwebsite/excel": "^3.1",
         "owen-it/laravel-auditing": "^14.0",
         "picqer/php-barcode-generator": "*",
+        "qalainau/filament-univer-sheet": "^1.1",
         "spatie/browsershot": "^5.3",
         "spatie/laravel-pdf": "^2.8",
         "stefangabos/world_countries": "^3.3",

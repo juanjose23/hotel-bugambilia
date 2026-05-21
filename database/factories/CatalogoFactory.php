@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\CatalogoTipo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,7 +23,7 @@ class CatalogoFactory extends Factory
         return [
             'nombre' => fake()->word(),
             'codigo' => fake()->unique()->bothify('CAT-####'),
-            'catalogo_tipo_id' => CatalogoTipo::factory(),
+            'catalogo_tipo_id' => CatalogoTipoFactory::new(),
             'estado' => 1,
             'orden' => fake()->numberBetween(1, 100),
         ];

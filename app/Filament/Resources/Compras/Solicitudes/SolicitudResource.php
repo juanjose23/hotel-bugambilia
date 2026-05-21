@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Compras\Solicitudes;
 
+use App\Filament\Resources\Compras\Solicitudes\Pages\AprobarSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\Pages\CreateSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\Pages\EditSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\Pages\ListSolicitudes;
@@ -63,7 +64,8 @@ class SolicitudResource extends Resource
             ->with([
                 'colaborador.persona',
                 'departamentoSolicitante',
-            ]);
+            ])
+            ->withExists('ordenesCompra');
     }
 
     public static function getRelations(): array
@@ -78,6 +80,7 @@ class SolicitudResource extends Resource
             'create' => CreateSolicitud::route('/create'),
             'view' => ViewSolicitud::route('/{record}'),
             'edit' => EditSolicitud::route('/{record}/edit'),
+            'aprobar' => AprobarSolicitud::route('/{record}/aprobar'),
         ];
     }
 

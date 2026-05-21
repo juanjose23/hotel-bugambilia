@@ -5,15 +5,34 @@ namespace App\Models\Compras;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\ProductoVariante;
+use App\Models\Catalogos\Ubicacion;
+use App\Models\Inventario\Lote;
+use Database\Factories\Compras\RecepcionItemFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
-class RecepcionItem extends Model
+class RecepcionItem extends Model implements AuditableContract
 {
-    use SoftDeletes;
+    /** @use HasFactory<RecepcionItemFactory> */
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $table = 'recepcion_items';
+
+    protected $with = [
+        'producto',
+        'variante',
+        'unidadMedida',
+    ];
+
+    protected $casts = [
+        'fecha_vencimiento' => 'date:Y-m-d',
+    ];
 
     protected $fillable = [
         'recepcion_id',
@@ -24,6 +43,10 @@ class RecepcionItem extends Model
         'cantidad_recibida',
         'cantidad_rechazada',
         'motivo_rechazo',
+        'nota',
+        'lote_proveedor',
+        'fecha_vencimiento',
+        'ubicacion_id',
     ];
 
     protected static function boot()
@@ -66,9 +89,27 @@ class RecepcionItem extends Model
         return $this->belongsTo(ProductoVariante::class, 'producto_variante_id');
     }
 
+    /** @return BelongsTo<Ubicacion, $this> */
+    public function ubicacion(): BelongsTo
+    {
+        return $this->belongsTo(Ubicacion::class, 'ubicacion_id');
+    }
+
     /** @return BelongsTo<Catalogo, $this> */
     public function unidadMedida(): BelongsTo
     {
         return $this->belongsTo(Catalogo::class, 'unidad_medida_id');
+    }
+
+    /** @return HasOne<Lote, $this> */
+    public function lote(): HasOne
+    {
+        return $this->hasOne(Lote::class, 'recepcion_item_id');
+    }
+
+    /** @return HasMany<Lote, $this> */
+    public function lotes(): HasMany
+    {
+        return $this->hasMany(Lote::class, 'recepcion_item_id');
     }
 }

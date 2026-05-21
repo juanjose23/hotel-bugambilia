@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Catalogos\Pais;
 use App\Models\Personas\Persona;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,10 +23,10 @@ class PersonaFactory extends Factory
         return [
             'primer_nombre' => fake()->firstName(),
             'segundo_nombre' => fake()->firstName(),
-            'primer_apellido' => fake()->lastName(),
-            'segundo_apellido' => fake()->lastName(),
-            'email' => fake()->unique()->safeEmail(),
-            'pais_id' => Pais::factory(),
+            'tipo_persona' => 'natural',
+            'pais_id' => PaisFactory::new(),
+            'telefono' => fake()->phoneNumber(),
+            'direccion' => fake()->address(),
         ];
     }
 }

@@ -15,11 +15,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('imagenes', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla para la gestión y almacenamiento de referencias de imágenes asociadas polimórficamente a cualquier modelo del sistema.');
+            $table->id()->comment('Identificador único autoincremental de la imagen');
             $table->string('url')->comment('URL o ruta de almacenamiento de la imagen');
             $table->string('public_id')->nullable()->comment('ID público en Cloudinary o proveedor cloud (nullable si es almacenamiento local)');
             $table->morphs('imagenable');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

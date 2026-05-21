@@ -41,7 +41,7 @@ class ListOrdenCompras extends ListRecords
 
                     return redirect()->away($url);
                 })
-                ->visible(fn () => auth()->user()->can('ImprimirReportesCompras') || auth()->user()->hasRole('super_admin')),
+                ->visible(fn () => auth()->user()->can('Compras:ImprimirReportesCompras')),
 
             CreateAction::make()
                 ->label('Nueva Orden'),

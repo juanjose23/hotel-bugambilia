@@ -18,9 +18,10 @@ return new class extends Migration
         $table = config('audit.drivers.database.table', 'audits');
 
         Schema::connection($connection)->create($table, function (Blueprint $table) {
+            $table->comment('Tabla nativa de laravel-auditing que registra todas las operaciones CRUD detalladas efectuadas sobre modelos auditables.');
             $morphPrefix = config('audit.user.morph_prefix', 'user');
 
-            $table->bigIncrements('id');
+            $table->bigIncrements('id')->comment('Identificador único autoincremental de la auditoría');
             $table->string($morphPrefix.'_type')->nullable()->comment('Tipo de modelo del usuario que realizó la acción');
             $table->unsignedBigInteger($morphPrefix.'_id')->nullable()->comment('ID del usuario que realizó la acción');
             $table->string('event')->comment('Evento registrado: created, updated, deleted, restored');
