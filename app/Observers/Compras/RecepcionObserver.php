@@ -3,19 +3,41 @@
 namespace App\Observers\Compras;
 
 use App\Enums\Compras\EstadoOrdenCompra;
+use App\Enums\Compras\EstadoRecepcion;
 use App\Models\Compras\RecepcionCompra;
 use App\Services\Compras\NotificadorCompras;
+use App\UseCases\Compras\OrdenesCompra\Queries\VerificarEstadoOrdenCompra;
 
 class RecepcionObserver
 {
     public function created(RecepcionCompra $recepcion): void
     {
-        if ($recepcion->ordenCompra) {
-            $recepcion->ordenCompra->update([
-                'estado' => EstadoOrdenCompra::Recibida,
-            ]);
+        app(NotificadorCompras::class)->recepcionCreada($recepcion);
+
+        $this->verificarOrden($recepcion);
+    }
+
+    public function updated(RecepcionCompra $recepcion): void
+    {
+        if (! $recepcion->isDirty('estado')) {
+            return;
         }
 
-        app(NotificadorCompras::class)->recepcionCreada($recepcion);
+        $this->verificarOrden($recepcion);
+    }
+
+    private function verificarOrden(RecepcionCompra $recepcion): void
+    {
+        match ($recepcion->estado) {
+            EstadoRecepcion::Completa,
+            EstadoRecepcion::Parcial,
+            EstadoRecepcion::ConDiscrepancia,
+            EstadoRecepcion::EnCuarentena => app(VerificarEstadoOrdenCompra::class)
+                ->execute($recepcion->ordenCompra),
+            EstadoRecepcion::Rechazada => $recepcion->ordenCompra?->update([
+                'estado' => EstadoOrdenCompra::Emitida,
+            ]),
+            default => null,
+        };
     }
 }

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Compras\Recepciones\Tables;
 
 use App\Enums\Compras\EstadoRecepcion;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
+use App\Filament\Resources\Compras\Recepciones\Actions\RecepcionEstadoActions;
 use App\Models\Compras\RecepcionCompra;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -46,10 +47,7 @@ class RecepcionTable
 
                 TextColumn::make('estado')
                     ->label('Estado')
-                    ->badge()
-                    ->color(fn (EstadoRecepcion $state) => $state->color())
-                    ->icon(fn (EstadoRecepcion $state) => $state->icon())
-                    ->formatStateUsing(fn (EstadoRecepcion $state) => $state->label()),
+                    ->badge(),
 
                 TextColumn::make('items_count')
                     ->label('Ítems')
@@ -67,6 +65,11 @@ class RecepcionTable
                     ->preload(),
             ])
             ->actions([
+                ActionGroup::make(RecepcionEstadoActions::make())
+                    ->label('Cambiar Estado')
+                    ->icon(Heroicon::ArrowPath)
+                    ->color('warning')
+                    ->button(),
                 ActionGroup::make([
                     ViewAction::make(),
                     Action::make('imprimir')
@@ -75,7 +78,7 @@ class RecepcionTable
                         ->color('gray')
                         ->url(fn (RecepcionCompra $record) => route('reporte.recepcion', $record))
                         ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()->can('ImprimirRecepcion') || auth()->user()->hasRole('super_admin')),
+                        ->visible(fn () => auth()->user()->can('Compras:ImprimirRecepcion')),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])

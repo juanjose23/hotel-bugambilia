@@ -13,7 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('paises', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Catálogo base de países con códigos ISO estándar para direcciones y personas.');
+            $table->id()->comment('Identificador único autoincremental del país');
             $table->string('codigo_iso2', 2)->unique()->comment('Código ISO 3166-1 alpha-2 (ej. MX, US)');
             $table->string('codigo_iso3', 3)->unique()->comment('Código ISO 3166-1 alpha-3 (ej. MEX, USA)');
             $table->string('nombre', 150)->unique()->comment('Nombre oficial del país en español');

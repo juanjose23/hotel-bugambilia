@@ -20,7 +20,11 @@ class Colaborador extends Model implements AuditableContract
 {
     protected $table = 'colaboradores';
 
-    protected $guarded = [];
+    protected $with = [
+        'persona',
+    ];
+
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_ingreso' => 'date',
@@ -28,6 +32,11 @@ class Colaborador extends Model implements AuditableContract
 
     /** @use HasFactory<ColaboradorFactory> */
     use Auditable, HasFactory, SoftDeletes;
+
+    protected static function newFactory(): ColaboradorFactory
+    {
+        return ColaboradorFactory::new();
+    }
 
     /** @return BelongsTo<Persona, $this> */
     public function persona(): BelongsTo

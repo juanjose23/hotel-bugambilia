@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Compras\Proveedors\Pages;
 
 use App\Filament\Resources\Compras\Proveedors\ProveedorResource;
 use App\Models\Compras\Proveedor;
+use App\UseCases\Compras\Proveedores\Mutations\ActualizarProveedor;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -39,38 +40,10 @@ class EditProveedor extends EditRecord
         return $data;
     }
 
-    /** @param Proveedor $record */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $personaData = $data['persona'] ?? [];
-        $tipoPersona = $data['tipo_persona'] ?? $record->persona->tipo_persona;
-
-        $record->persona->update($personaData);
-        $record->persona->update(['tipo_persona' => $tipoPersona]);
-
-        if ($tipoPersona === 'natural') {
-            $record->persona?->personaJuridica()?->delete();
-            $naturalData = $data['personaNatural'] ?? [];
-            if ($record->persona->personaNatural) {
-                $record->persona->personaNatural->update($naturalData);
-            } else {
-                $record->persona->personaNatural()->create($naturalData);
-            }
-        } else {
-            $record->persona?->personaNatural()?->delete();
-            $juridicaData = $data['personaJuridica'] ?? [];
-            if ($record->persona->personaJuridica) {
-                $record->persona->personaJuridica->update($juridicaData);
-            } else {
-                $record->persona->personaJuridica()->create($juridicaData);
-            }
-        }
-
-        $proveedorData = array_diff_key($data, ['persona' => [], 'personaNatural' => [], 'personaJuridica' => []]);
-
-        $record->update($proveedorData);
-
-        return $record;
+        /** @var Proveedor $record */
+        return app(ActualizarProveedor::class)->execute($record, $data);
     }
 
     protected function getHeaderActions(): array

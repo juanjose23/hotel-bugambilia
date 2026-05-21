@@ -19,7 +19,8 @@ return new class extends Migration
     {
 
         Schema::create('colaboradores', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla maestra de colaboradores (empleados) del hotel vinculados con su información de persona y su código laboral único.');
+            $table->id()->comment('Identificador único autoincremental del registro de colaborador');
             $table->foreignId('persona_id')
                 ->comment('FK a la persona (relación 1:1 colaborador-persona)')
                 ->constrained('personas')
@@ -34,7 +35,8 @@ return new class extends Migration
         });
 
         Schema::create('colaborador_datos_medicos', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que almacena la información médica y de salud confidencial de cada colaborador.');
+            $table->id()->comment('Identificador único autoincremental del registro de datos médicos');
             $table->foreignId('colaborador_id')
                 ->comment('FK al colaborador (relación 1:1)')
                 ->constrained('colaboradores')
@@ -48,7 +50,8 @@ return new class extends Migration
         });
 
         Schema::create('colaborador_contactos_emergencia', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que registra las personas de contacto de emergencia asignadas a cada colaborador.');
+            $table->id()->comment('Identificador único autoincremental del registro de contacto de emergencia');
             $table->foreignId('colaborador_id')
                 ->comment('FK al colaborador')
                 ->constrained('colaboradores')
@@ -62,7 +65,8 @@ return new class extends Migration
         });
 
         Schema::create('colaborador_salarios', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que contiene el historial salarial y remuneraciones vigentes de los colaboradores.');
+            $table->id()->comment('Identificador único autoincremental del registro salarial');
             $table->foreignId('colaborador_id')
                 ->comment('FK al colaborador')
                 ->constrained('colaboradores')
@@ -76,7 +80,8 @@ return new class extends Migration
         });
 
         Schema::create('colaborador_cargos_historial', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla de historial de cargos ocupados y asignación a departamentos organizacionales por colaborador.');
+            $table->id()->comment('Identificador único autoincremental del registro de cargo/departamento');
             $table->foreignId('colaborador_id')
                 ->comment('FK al colaborador')
                 ->constrained('colaboradores')
@@ -99,7 +104,8 @@ return new class extends Migration
         });
 
         Schema::create('colaborador_documentos', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que gestiona las rutas a los archivos digitales cargados como documentos de soporte del colaborador.');
+            $table->id()->comment('Identificador único autoincremental del documento cargado');
             $table->foreignId('colaborador_id')
                 ->comment('FK al colaborador')
                 ->constrained('colaboradores')

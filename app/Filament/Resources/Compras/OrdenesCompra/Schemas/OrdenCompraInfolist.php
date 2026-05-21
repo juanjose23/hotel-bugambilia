@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Compras\OrdenesCompra\Schemas;
 
-use App\Enums\Compras\EstadoOrdenCompra;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -31,9 +30,7 @@ class OrdenCompraInfolist
 
                         TextEntry::make('estado')
                             ->label('Estado')
-                            ->badge()
-                            ->color(fn (EstadoOrdenCompra $state): string => $state->color())
-                            ->formatStateUsing(fn (EstadoOrdenCompra $state): string => $state->label()),
+                            ->badge(),
 
                         TextEntry::make('proveedor.codigo')
                             ->label('Proveedor')

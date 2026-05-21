@@ -61,6 +61,7 @@ class OrdenCompraResource extends Resource
                 'solicitud:id,codigo',
                 'cotizacion:id',
             ])
+            ->withExists('recepciones')
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

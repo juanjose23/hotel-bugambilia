@@ -97,6 +97,7 @@ class SolicitudForm
                                     ->preload()
                                     ->required()
                                     ->live()
+                                    ->columnSpan(6)
                                     ->prefixIcon(Heroicon::Cube)
                                     ->afterStateUpdated(fn ($set) => $set('producto_variante_id', null)),
 
@@ -107,6 +108,7 @@ class SolicitudForm
                                     ->searchable()
                                     ->preload()
                                     ->nullable()
+                                    ->columnSpan(6)
                                     ->prefixIcon(Heroicon::AdjustmentsHorizontal),
 
                                 TextInput::make('cantidad_solicitada')
@@ -115,6 +117,7 @@ class SolicitudForm
                                     ->numeric()
                                     ->required()
                                     ->minValue(0.01)
+                                    ->columnSpan(3)
                                     ->prefixIcon(Heroicon::Hashtag),
 
                                 Select::make('unidad_medida_id')
@@ -131,14 +134,17 @@ class SolicitudForm
                                     ->searchable()
                                     ->preload()
                                     ->required()
+                                    ->columnSpan(3)
                                     ->prefixIcon(Heroicon::Scale),
 
                                 Textarea::make('observaciones')
                                     ->label('Observaciones')
                                     ->placeholder('Notas para este producto')
+                                    ->rows(1)
+                                    ->columnSpan(6)
                                     ->nullable(),
                             ])
-                            ->columns(4)
+                            ->columns(12)
                             ->collapsible()
                             ->collapsed(false)
                             ->addActionLabel('Agregar Producto')

@@ -4,6 +4,8 @@ namespace App\Models\Compras;
 
 use App\Models\Catalogos\Catalogo;
 use App\Models\Personas\Persona;
+use Database\Factories\Compras\ProveedorFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,9 +16,14 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 class Proveedor extends Model implements AuditableContract
 {
-    use Auditable, SoftDeletes;
+    /** @use HasFactory<ProveedorFactory> */
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $table = 'proveedores';
+
+    protected $with = [
+        'persona',
+    ];
 
     protected $fillable = [
         'codigo',

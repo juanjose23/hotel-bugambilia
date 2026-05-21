@@ -6,30 +6,95 @@ use App\Enums\CatalogoTipo;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Enums\Compras\EstadoSolicitud;
+use App\Enums\EstadoCatalogo;
 use App\Models\Catalogos\Catalogo;
+use App\Models\Catalogos\Pais;
 use App\Models\Catalogos\Producto;
 use App\Models\Colaboradores\Colaborador;
+use App\Models\Colaboradores\ColaboradorCargoHistorial;
 use App\Models\Compras\Cotizacion;
 use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\Proveedor;
 use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
+use App\Models\Personas\Persona;
+use App\Models\Personas\PersonaNatural;
 use App\Models\User;
+use App\UseCases\Inventario\Recepciones\Mutations\RegistrarEntradaRecepcion;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class ProcurementFlowSeeder extends Seeder
 {
     public function run(): void
     {
-        // Asegurar que existe al menos un usuario para la trazabilidad
-        $admin = User::first() ?? User::create([
-            'name' => 'Admin Compras',
-            'email' => 'admin@hotel.com',
-            'password' => bcrypt('123456'),
-            'email_verified_at' => now(),
-        ]);
+        $admin = User::where('email', 'admin@hotel.com')->first();
+
+        if (! $admin) {
+            $pais = Pais::first() ?? Pais::create(['nombre' => 'Nicaragua', 'codigo' => 'NI']);
+
+            $persona = Persona::create([
+                'primer_nombre' => 'Admin',
+                'segundo_nombre' => 'Compras',
+                'pais_id' => $pais->id,
+                'tipo_persona' => 'natural',
+                'telefono' => '12345678',
+                'direccion' => 'Dirección de prueba',
+            ]);
+
+            PersonaNatural::create([
+                'persona_id' => $persona->id,
+                'primer_apellido' => 'Sistema',
+                'segundo_apellido' => 'Hotel',
+                'tipo_identificacion' => 'cedula',
+                'numero_identificacion' => 'ADMIN-001',
+                'sexo' => 'M',
+                'fecha_nacimiento' => '1990-01-01',
+            ]);
+
+            $colaborador = Colaborador::create([
+                'persona_id' => $persona->id,
+                'codigo' => 'COLAB-001',
+                'fecha_ingreso' => now(),
+                'estado' => EstadoCatalogo::Activo->value,
+            ]);
+
+            // Asignar cargo y departamento por defecto
+            $cargo = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'CARG'))->first();
+            $depto = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'DEPT'))->first();
+
+            if ($cargo && $depto) {
+                ColaboradorCargoHistorial::create([
+                    'colaborador_id' => $colaborador->id,
+                    'cargo_id' => $cargo->id,
+                    'departamento_id' => $depto->id,
+                    'fecha_inicio' => now(),
+                    'estado' => EstadoCatalogo::Activo->value,
+                ]);
+            }
+
+            $admin = User::create([
+                'name' => 'Admin Compras',
+                'email' => 'admin@hotel.com',
+                'password' => bcrypt('123456'),
+                'email_verified_at' => now(),
+                'persona_id' => $persona->id,
+            ]);
+
+            // Asignar rol super_admin para notificaciones y permisos
+            try {
+                $superAdminRole = Role::firstOrCreate([
+                    'name' => config('filament-shield.super_admin.name', 'super_admin'),
+                    'guard_name' => 'web',
+                ]);
+                $admin->assignRole($superAdminRole);
+            } catch (\Throwable $e) {
+                // Silenciar si las tablas no existen
+            }
+        }
 
         Auth::login($admin);
 
@@ -133,7 +198,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago->id,
                 'observaciones' => 'Precio más bajo garantizado, pero tiempo de entrega extendido.',
                 'creada_por' => $admin->id,
-                'moneda' => 'USD',
+                'moneda_id' => 2,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub1 = 0;
@@ -159,7 +224,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago->id,
                 'observaciones' => 'Balance ideal entre costo y tiempo de respuesta.',
                 'creada_por' => $admin->id,
-                'moneda' => 'USD',
+                'moneda_id' => 2,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub2 = 0;
@@ -185,7 +250,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago->id,
                 'observaciones' => 'Entrega inmediata. Stock garantizado.',
                 'creada_por' => $admin->id,
-                'moneda' => 'USD',
+                'moneda_id' => 2,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub3 = 0;
@@ -211,7 +276,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago->id,
                 'observaciones' => 'Proveedor local con soporte técnico incluido.',
                 'creada_por' => $admin->id,
-                'moneda' => 'USD',
+                'moneda_id' => 2,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub4 = 0;
@@ -237,7 +302,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago->id,
                 'observaciones' => 'Precio especial por apertura de cuenta corporativa.',
                 'creada_por' => $admin->id,
-                'moneda' => 'USD',
+                'moneda_id' => 2,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub5 = 0;
@@ -320,20 +385,47 @@ class ProcurementFlowSeeder extends Seeder
                 ]);
             }
 
-            RecepcionCompra::create([
+            $recepcion = RecepcionCompra::create([
                 'codigo' => 'RC-WIN-001',
                 'orden_compra_id' => $orden->id,
                 'fecha_recepcion' => now()->subDays(5),
                 'recibido_por_id' => $admin->id,
                 'estado' => EstadoRecepcion::Completa,
                 'notas' => 'Entrega perfecta según contrato.',
-            ])->items()->createMany(
-                $orden->items->map(fn ($oi) => [
-                    'orden_item_id' => $oi->id,
-                    'producto_id' => $oi->producto_id,
-                    'producto_variante_id' => $oi->producto_variante_id,
-                    'cantidad_recibida' => $oi->cantidad,
-                ])->toArray()
+            ]);
+
+            $loteProveedor = 'PROV-LOT-'.Str::upper(Str::random(5));
+
+            $itemsData = $orden->items->map(fn ($oi) => [
+                'orden_item_id' => $oi->id,
+                'producto_id' => $oi->producto_id,
+                'producto_variante_id' => $oi->producto_variante_id,
+                'cantidad_recibida' => $oi->cantidad,
+                'cantidad_rechazada' => 0.0,
+                'lote_proveedor' => $loteProveedor,
+                'fecha_vencimiento' => now()->addMonths(12)->format('Y-m-d'),
+            ])->toArray();
+
+            $createdItems = [];
+            foreach ($itemsData as $item) {
+                $createdItems[] = $recepcion->items()->create($item);
+            }
+
+            $itemsForUseCase = collect($createdItems)->map(fn ($i) => [
+                'id' => $i->id,
+                'producto_id' => $i->producto_id,
+                'producto_variante_id' => $i->producto_variante_id,
+                'cantidad_recibida' => (float) $i->cantidad_recibida,
+                'cantidad_rechazada' => (float) $i->cantidad_rechazada,
+                'lote_proveedor' => $i->lote_proveedor,
+                'fecha_vencimiento' => $i->fecha_vencimiento?->format('Y-m-d'),
+            ])->all();
+
+            app(RegistrarEntradaRecepcion::class)->execute(
+                nuevoEstado: 'Completa',
+                items: $itemsForUseCase,
+                proveedorId: $orden->proveedor_id,
+                creadoPorId: $admin->id,
             );
 
             // --- ESCENARIO 4: MANTENIMIENTO DE INFRAESTRUCTURA (3 COTIZACIONES MÁS) ---
@@ -366,7 +458,7 @@ class ProcurementFlowSeeder extends Seeder
                     'condicion_pago_id' => $condicionPago->id,
                     'observaciones' => 'Propuesta técnica '.($i + 1),
                     'creada_por' => $admin->id,
-                    'moneda' => 'USD',
+                    'moneda_id' => 2,
                     'subtotal' => 0, 'total' => 0,
                 ]);
                 $subTotal = 0;

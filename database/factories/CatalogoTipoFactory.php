@@ -23,7 +23,7 @@ class CatalogoTipoFactory extends Factory
         return [
             'nombre' => fake()->word(),
             'codigo' => fake()->unique()->bothify('TYPE-####'),
-            'descripcion' => fake()->sentence(),
+            'estado' => 1,
         ];
     }
 }

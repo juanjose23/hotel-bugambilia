@@ -3,8 +3,11 @@
 namespace App\Models\Compras;
 
 use App\Enums\Compras\EstadoRecepcion;
+use App\Models\Catalogos\Ubicacion;
 use App\Models\User;
 use App\Traits\HasStatusHistory;
+use Database\Factories\Compras\RecepcionCompraFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,9 +17,15 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 class RecepcionCompra extends Model implements AuditableContract
 {
-    use Auditable, HasStatusHistory, SoftDeletes;
+    /** @use HasFactory<RecepcionCompraFactory> */
+    use Auditable, HasFactory, HasStatusHistory, SoftDeletes;
 
     protected $table = 'recepciones_compra';
+
+    protected $with = [
+        'ordenCompra',
+        'items',
+    ];
 
     protected $fillable = [
         'codigo',
@@ -24,6 +33,7 @@ class RecepcionCompra extends Model implements AuditableContract
         'fecha_recepcion',
         'guia_remision',
         'recibido_por_id',
+        'ubicacion_id',
         'estado',
         'notas',
     ];
@@ -32,6 +42,12 @@ class RecepcionCompra extends Model implements AuditableContract
         'fecha_recepcion' => 'date',
         'estado' => EstadoRecepcion::class,
     ];
+
+    /** @return BelongsTo<Ubicacion, $this> */
+    public function ubicacion(): BelongsTo
+    {
+        return $this->belongsTo(Ubicacion::class, 'ubicacion_id');
+    }
 
     /** @return BelongsTo<OrdenCompra, $this> */
     public function ordenCompra(): BelongsTo

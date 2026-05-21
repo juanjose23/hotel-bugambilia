@@ -13,11 +13,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
+/**
+ * @property bool|null $ordenes_compra_exists
+ */
 class Solicitud extends Model implements AuditableContract
 {
     use Auditable, HasStatusHistory, SoftDeletes;
 
     protected $table = 'solicitudes_compra';
+
+    protected $with = [
+        'colaborador',
+        'departamentoSolicitante',
+        'items',
+    ];
 
     protected $fillable = [
         'codigo',

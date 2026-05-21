@@ -14,7 +14,8 @@ return new class extends Migration
     {
 
         Schema::create('auditoria_reportes', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla para auditar y registrar la generación, parámetros y descargas de reportes dentro del sistema.');
+            $table->id()->comment('Identificador único autoincremental del registro de auditoría de reportes');
             $table->foreignId('usuario_id')->nullable()->comment('Usuario que generó el reporte (luego renombrado a usuario_id)')->constrained('users')->nullOnDelete();
             $table->string('tipo_reporte')->comment('Código del reporte (ej. HTB-CP-001, luego renombrado a tipo_reporte)');
             $table->json('parametros')->nullable()->comment('Filtros aplicados en JSON (luego renombrado a parametros)');
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->integer('conteo_descargas')->default(0)->comment('Contador de descargas (luego renombrado a conteo_descargas)');
             $table->timestamp('ultima_descarga_en')->nullable()->comment('Fecha de última descarga (luego renombrado a ultima_descarga_en)');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

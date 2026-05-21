@@ -92,6 +92,10 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'MOV_SALIDA', 'nombre' => 'Salida / Consumo'],
             ['codigo' => 'MOV_AJUSTE', 'nombre' => 'Ajuste de Inventario'],
             ['codigo' => 'MOV_TRANSFERENCIA', 'nombre' => 'Transferencia entre almacenes'],
+            ['codigo' => 'ENTRADA_RECEPCION', 'nombre' => 'Recepción de compra'],
+            ['codigo' => 'TRASLADO', 'nombre' => 'Distribución interna'],
+            ['codigo' => 'CONSUMO', 'nombre' => 'Consumo / Merma / Ajuste'],
+            ['codigo' => 'AJUSTE', 'nombre' => 'Ajuste físico'],
         ]);
 
         // --- 7. CATEGORÍAS DE PRODUCTO (JERÁRQUICO) ---

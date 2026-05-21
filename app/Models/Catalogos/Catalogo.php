@@ -15,9 +15,14 @@ class Catalogo extends Model implements AuditableContract
     /** @use HasFactory<CatalogoFactory> */
     use Auditable, HasFactory;
 
+    protected static function newFactory(): CatalogoFactory
+    {
+        return CatalogoFactory::new();
+    }
+
     protected $table = 'catalogos';
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     /** @return BelongsTo<CatalogoTipo, $this> */
     public function catalogoTipo(): BelongsTo

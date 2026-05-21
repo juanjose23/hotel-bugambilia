@@ -15,7 +15,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('clientes', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que registra a los clientes del hotel vinculados con su información de persona y su tipo de clasificación comercial.');
+            $table->id()->comment('Identificador único autoincremental del registro de cliente');
             $table->foreignId('persona_id')
                 ->unique()
                 ->comment('FK única a persona (relación 1:1 cliente-persona)')

@@ -27,6 +27,12 @@ class SolicitudItem extends Model implements AuditableContract
 
     protected $table = 'solicitud_items';
 
+    protected $with = [
+        'producto',
+        'variante',
+        'unidadMedida',
+    ];
+
     protected $fillable = [
         'solicitud_id',
         'producto_id',

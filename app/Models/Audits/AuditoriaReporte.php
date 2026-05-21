@@ -5,7 +5,10 @@ namespace App\Models\Audits;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * @property int $id
@@ -16,8 +19,10 @@ use Illuminate\Support\Carbon;
  * @property int $conteo_descargas
  * @property Carbon|null $ultima_descarga_en
  */
-class AuditoriaReporte extends Model
+class AuditoriaReporte extends Model implements AuditableContract
 {
+    use Auditable, SoftDeletes;
+
     protected $table = 'auditoria_reportes';
 
     protected $fillable = [

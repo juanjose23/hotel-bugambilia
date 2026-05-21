@@ -35,6 +35,64 @@
 
         @php $data = $this->getComparisonData(); @endphp
 
+        @php $winners = $this->getWinnersData(); @endphp
+
+        @if(count($winners) > 0)
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                        <x-heroicon-s-check-badge class="w-6 h-6 text-success-500" />
+                        Ítems Ganadores Asignados
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    @foreach($winners as $w)
+                        <div class="relative group p-4 bg-white dark:bg-gray-900 border border-success-200 dark:border-success-800 rounded-2xl shadow-sm hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-900 dark:text-white line-clamp-1">{{ $w['producto'] }}</h4>
+                                    <span class="text-[10px] text-primary-600 font-bold uppercase tracking-wider">{{ $w['variante'] }}</span>
+                                </div>
+                                <div class="text-right ml-4">
+                                    <span class="text-lg font-black text-success-600 dark:text-success-400 font-mono">
+                                        ${{ number_format($w['subtotal'], 2) }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 border-t border-gray-100 dark:border-gray-800 pt-3">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-500 italic">Proveedor Adjudicado:</span>
+                                    <span class="font-bold text-gray-700 dark:text-gray-300">{{ $w['proveedor'] }}</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-500">Cantidad y Precio:</span>
+                                    <span class="text-gray-700 dark:text-gray-300">{{ number_format($w['cantidad'], 0) }} x ${{ number_format($w['precio_unitario'], 2) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex items-center justify-between">
+                                @if($w['orden_generada'])
+                                    <div class="flex items-center gap-1 text-[10px] font-black text-success-600 bg-success-50 dark:bg-success-900/20 px-2 py-1 rounded-lg uppercase tracking-tighter">
+                                        <x-heroicon-s-shopping-cart class="w-3 h-3" />
+                                        Orden Generada
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-1 text-[10px] font-black text-warning-600 bg-warning-50 dark:bg-warning-900/20 px-2 py-1 rounded-lg uppercase tracking-tighter">
+                                        <x-heroicon-s-clock class="w-3 h-3" />
+                                        Pendiente de OC
+                                    </div>
+                                @endif
+                                
+                                <span class="text-[9px] text-gray-400 font-mono">COT #{{ $w['cotizacion_id'] }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         @if(count($data['rows']) > 0)
             <div class="overflow-hidden border border-gray-200 rounded-xl shadow-sm dark:border-gray-700 bg-white dark:bg-gray-900">
                 <table class="w-full text-left border-collapse">

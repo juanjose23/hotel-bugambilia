@@ -16,7 +16,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('catalogos', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que almacena los valores y elementos individuales de todos los catálogos paramétricos dinámicos del sistema.');
+            $table->id()->comment('Identificador único autoincremental del elemento de catálogo');
             $table->foreignId('catalogo_tipo_id')
                 ->comment('FK al tipo de catálogo al que pertenece este registro')
                 ->constrained('catalogo_tipos');

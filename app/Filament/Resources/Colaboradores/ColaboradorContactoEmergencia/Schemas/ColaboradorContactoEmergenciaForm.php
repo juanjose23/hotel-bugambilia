@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\Schemas;
 
 use App\Enums\EstadoCatalogo;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;

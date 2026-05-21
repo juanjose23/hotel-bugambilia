@@ -233,13 +233,15 @@ return [
     */
 
     'custom_permissions' => [
-        'ImprimirSolicitud',
-        'ImprimirCotizacion',
-        'ImprimirOrdenCompra',
-        'ImprimirRecepcion',
-        'ImprimirReportesCompras',
-        'ViewComparativaCotizaciones',
-        'ViewComparativaSolicitud',
+        'Compras:ImprimirSolicitud',
+        'Compras:ImprimirCotizacion',
+        'Compras:ImprimirOrdenCompra',
+        'Compras:ImprimirRecepcion',
+        'Compras:ImprimirReportesCompras',
+        'Compras:ImprimirComparativa',
+        'Compras:ViewComparativaCotizaciones',
+        'Compras:ViewComparativaSolicitud',
+        'Inventario:ImprimirReportes',
     ],
 
     /*

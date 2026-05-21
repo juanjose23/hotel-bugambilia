@@ -17,7 +17,7 @@ class Pais extends Model implements AuditableContract
 
     protected $table = 'paises';
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     /** @return HasMany<Persona, $this> */
     public function personas(): HasMany

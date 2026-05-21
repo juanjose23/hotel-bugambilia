@@ -21,6 +21,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Qalainau\UniverSheet\UniverSheetPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -56,9 +57,9 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotificationsPolling('15s')
             ->profile()
             // ->topNavigation()
-            ->sidebarWidth('15rem')
+            ->sidebarWidth('16rem')
             ->collapsedSidebarWidth('9rem')
-            ->plugins([
+            ->plugins(array_filter([
                 AuthDesignerPlugin::make()
                     ->login(
                         fn (AuthPageConfig $config) => $config
@@ -67,7 +68,8 @@ class AdminPanelProvider extends PanelProvider
 
                     ),
                 FilamentShieldPlugin::make(),
-            ])
+                class_exists(UniverSheetPlugin::class) ? UniverSheetPlugin::make() : null,
+            ]))
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

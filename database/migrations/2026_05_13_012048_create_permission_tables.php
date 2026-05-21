@@ -24,9 +24,10 @@ return new class extends Migration
          * See `docs/prerequisites.md` for suggested lengths on 'name' and 'guard_name' if "1071 Specified key was too long" errors are encountered.
          */
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
-            $table->id(); // permission id
-            $table->string('name');
-            $table->string('guard_name');
+            $table->comment('Tabla nativa de Spatie que almacena los permisos individuales definidos en el sistema.');
+            $table->id()->comment('Identificador único autoincremental del permiso'); // permission id
+            $table->string('name')->comment('Nombre único del permiso en PascalCase');
+            $table->string('guard_name')->comment('Nombre de guard de Laravel (ej. web)');
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);
@@ -36,13 +37,14 @@ return new class extends Migration
          * See `docs/prerequisites.md` for suggested lengths on 'name' and 'guard_name' if "1071 Specified key was too long" errors are encountered.
          */
         Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames) {
-            $table->id(); // role id
+            $table->comment('Tabla nativa de Spatie que almacena los roles organizacionales del sistema.');
+            $table->id()->comment('Identificador único autoincremental del rol'); // role id
             if ($teams || config('permission.testing')) { // permission.testing is a fix for sqlite testing
-                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
+                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable()->comment('FK al equipo (multitenancy)');
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
             }
-            $table->string('name');
-            $table->string('guard_name');
+            $table->string('name')->comment('Nombre único del rol');
+            $table->string('guard_name')->comment('Nombre de guard de Laravel (ej. web)');
             $table->timestamps();
             if ($teams || config('permission.testing')) {
                 $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
@@ -51,11 +53,12 @@ return new class extends Migration
             }
         });
 
-        Schema::create($tableNames['model_has_permissions'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotPermission, $teams) {
-            $table->unsignedBigInteger($pivotPermission);
+        Schema::create('model_has_permissions', static function (Blueprint $table) use ($tableNames, $columnNames, $pivotPermission, $teams) {
+            $table->comment('Tabla nativa de Spatie (relación polimórfica N:M) para asignar permisos específicos a modelos o usuarios.');
+            $table->unsignedBigInteger($pivotPermission)->comment('FK al permiso asignado');
 
-            $table->string('model_type');
-            $table->unsignedBigInteger($columnNames['model_morph_key']);
+            $table->string('model_type')->comment('Nombre de clase (namespace) del modelo asociado');
+            $table->unsignedBigInteger($columnNames['model_morph_key'])->comment('ID único del modelo asociado');
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_permissions_model_id_model_type_index');
 
             $table->foreign($pivotPermission)
@@ -74,11 +77,12 @@ return new class extends Migration
             }
         });
 
-        Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams) {
-            $table->unsignedBigInteger($pivotRole);
+        Schema::create('model_has_roles', static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams) {
+            $table->comment('Tabla nativa de Spatie (relación polimórfica N:M) para asignar roles organizacionales a modelos o usuarios.');
+            $table->unsignedBigInteger($pivotRole)->comment('FK al rol asignado');
 
-            $table->string('model_type');
-            $table->unsignedBigInteger($columnNames['model_morph_key']);
+            $table->string('model_type')->comment('Nombre de clase (namespace) del modelo asociado');
+            $table->unsignedBigInteger($columnNames['model_morph_key'])->comment('ID único del modelo asociado');
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_roles_model_id_model_type_index');
 
             $table->foreign($pivotRole)
@@ -98,8 +102,9 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission) {
-            $table->unsignedBigInteger($pivotPermission);
-            $table->unsignedBigInteger($pivotRole);
+            $table->comment('Tabla nativa de Spatie (tabla pivote) que gestiona la asignación N:M de permisos específicos a cada rol.');
+            $table->unsignedBigInteger($pivotPermission)->comment('FK al permiso');
+            $table->unsignedBigInteger($pivotRole)->comment('FK al rol');
 
             $table->foreign($pivotPermission)
                 ->references('id') // permission id

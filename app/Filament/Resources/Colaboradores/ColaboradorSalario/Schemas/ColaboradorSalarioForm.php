@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Schemas;
 
 use App\Enums\EstadoCatalogo;
 use App\Models\Colaboradores\ColaboradorSalario;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;

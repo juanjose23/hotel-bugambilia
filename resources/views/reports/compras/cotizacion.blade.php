@@ -74,8 +74,8 @@
                                     @endif
                                 </td>
                                 <td style="text-align: center;">{{ number_format($item->cantidad, 2) }}</td>
-                                <td style="text-align: center;">${{ number_format($item->precio_unitario, 2) }}</td>
-                                <td style="text-align: right; font-weight: bold;">${{ number_format($item->subtotal, 2) }}</td>
+                                <td style="text-align: center;">{{ $record->moneda?->simbolo ?? '$' }}{{ number_format($item->precio_unitario, 2) }}</td>
+                                <td style="text-align: right; font-weight: bold;">{{ $record->moneda?->simbolo ?? '$' }}{{ number_format($item->subtotal, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -83,9 +83,26 @@
 
                     <!-- Total -->
                     <div style="margin-top: 20px; text-align: right;">
-                        <div style="display: inline-block; background: #711C37; color: #fff; padding: 15px 25px; border-radius: 4px;">
+                        <div style="display: inline-block; background: #711C37; color: #fff; padding: 15px 25px; border-radius: 4px; text-align: right;">
                             <span style="font-size: 9px; text-transform: uppercase; display: block; margin-bottom: 5px;">Total Cotizado</span>
-                            <span style="font-size: 20px; font-weight: bold;">${{ number_format($record->total, 2) }}</span>
+                            <span style="font-size: 20px; font-weight: bold; display: block;">{{ $record->moneda?->simbolo ?? '$' }}{{ number_format($record->total, 2) }}</span>
+                            @if($record->tasa_cambio > 1)
+                                @if($record->moneda?->codigo === 'NIO')
+                                    <span style="font-size: 8px; opacity: 0.9; display: block; margin-top: 5px; font-weight: bold;">
+                                        Equivalente: ${{ number_format($record->total / $record->tasa_cambio, 2) }} USD
+                                    </span>
+                                    <span style="font-size: 7px; opacity: 0.7; display: block; margin-top: 2px;">
+                                        Tasa de Cambio: C$ {{ number_format($record->tasa_cambio, 4) }}
+                                    </span>
+                                @elseif($record->moneda?->codigo === 'USD')
+                                    <span style="font-size: 8px; opacity: 0.9; display: block; margin-top: 5px; font-weight: bold;">
+                                        Equivalente: C$ {{ number_format($record->total * $record->tasa_cambio, 2) }} NIO
+                                    </span>
+                                    <span style="font-size: 7px; opacity: 0.7; display: block; margin-top: 2px;">
+                                        Tasa de Cambio: C$ {{ number_format($record->tasa_cambio, 4) }}
+                                    </span>
+                                @endif
+                            @endif
                         </div>
                     </div>
 

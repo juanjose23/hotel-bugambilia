@@ -6,7 +6,7 @@ use App\Models\Compras\Proveedor;
 use App\Models\Compras\ProveedorContacto;
 use App\Models\Personas\Persona;
 use App\Models\Personas\PersonaJuridica;
-use App\UseCases\Compras\GenerarCodigoProveedor;
+use App\UseCases\Compras\Proveedores\Queries\GenerarCodigoProveedor;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
 use App\Models\Compras\Solicitud;
-use App\Services\Compras\NotificadorCompras;
+use App\UseCases\Compras\Solicitudes\Mutations\CancelarSolicitud;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -108,12 +108,9 @@ class EditSolicitud extends EditRecord
                     $nota = '['.now()->format('d/m/Y H:i').'] CANCELADO: '.$data['nota_compras'];
                     $notas = $record->notas ? $record->notas."\n\n".$nota : $nota;
 
-                    $record->update([
-                        'estado' => EstadoSolicitud::Cancelada,
-                        'notas' => $notas,
-                    ]);
+                    $record->update(['notas' => $notas]);
 
-                    app(NotificadorCompras::class)->solicitudCancelada($record);
+                    app(CancelarSolicitud::class)->execute($record);
 
                     Notification::make()
                         ->title('Solicitud cancelada')

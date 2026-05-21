@@ -15,15 +15,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ubicaciones', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que define la estructura física y lógica de ubicaciones y almacenes en el hotel.');
+            $table->id()->comment('Identificador único autoincremental de la ubicación');
             $table->foreignId('padre_id')
                 ->nullable()
                 ->comment('FK autoreferenciada. Nodo padre en la jerarquía (edificio > piso > sector > zona).')
                 ->constrained('ubicaciones')
                 ->cascadeOnUpdate()
                 ->nullOnDelete();
-            $table->enum('tipo', ['edificio', 'piso', 'sector', 'zona'])
-                ->comment('Nivel jerárquico físico: edificio, piso, sector o zona.');
+            $table->string('tipo', 50)
+                ->comment('Nivel jerárquico físico o tipo de almacén (ej. edificio, piso, sector, zona, almacen, bodega, estante, nivel, posicion, etc.).');
             $table->string('nombre', 150)
                 ->comment('Nombre descriptivo de la ubicación.');
             $table->text('descripcion')
