@@ -2,7 +2,9 @@
 
 namespace App\Models\Compras;
 
+use App\Enums\Compras\EstadoCotizacion;
 use App\Models\Catalogos\Catalogo;
+use App\Models\General\Moneda;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,11 +14,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
+/**
+ * @property int|null $items_elegidos_count
+ */
 class Cotizacion extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
 
     protected $table = 'cotizaciones';
+
+    protected $with = [
+        'proveedor',
+        'items',
+        'moneda',
+    ];
 
     protected $fillable = [
         'solicitud_id',
@@ -29,10 +40,12 @@ class Cotizacion extends Model implements AuditableContract
         'costo_envio',
         'total',
         'dias_entrega',
-        'moneda',
+        'moneda_id',
+        'tasa_cambio',
         'condicion_pago_id',
         'archivo_pdf',
         'es_elegida',
+        'estado',
         'observaciones',
         'creada_por',
         'elegida_por',
@@ -44,11 +57,13 @@ class Cotizacion extends Model implements AuditableContract
         'fecha_vencimiento' => 'date',
         'elegida_en' => 'datetime',
         'es_elegida' => 'boolean',
+        'estado' => EstadoCotizacion::class,
         'subtotal' => 'decimal:2',
         'impuestos' => 'decimal:2',
         'descuento' => 'decimal:2',
         'costo_envio' => 'decimal:2',
         'total' => 'decimal:2',
+        'tasa_cambio' => 'decimal:4',
     ];
 
     /** @return BelongsTo<Solicitud, $this> */
@@ -91,5 +106,11 @@ class Cotizacion extends Model implements AuditableContract
     public function ordenCompra(): HasOne
     {
         return $this->hasOne(OrdenCompra::class, 'cotizacion_id');
+    }
+
+    /** @return BelongsTo<Moneda, $this> */
+    public function moneda(): BelongsTo
+    {
+        return $this->belongsTo(Moneda::class, 'moneda_id');
     }
 }

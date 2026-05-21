@@ -8,7 +8,7 @@ use App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\Colaborad
 use App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\ColaboradorDatosMedicos\Pages\EditColaboradorDatosMedicos;
 use App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\ColaboradorDatosMedicos\Pages\ListColaboradorDatosMedicos;
 use App\Models\Colaboradores\ColaboradorDatosMedicos;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;

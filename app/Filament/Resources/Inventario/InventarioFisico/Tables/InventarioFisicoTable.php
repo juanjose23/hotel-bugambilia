@@ -1,0 +1,112 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\Inventario\InventarioFisico\Tables;
+
+use App\Enums\Inventario\EstadoInventarioFisico;
+use App\Models\Inventario\InventarioFisico;
+use App\UseCases\Inventario\InventarioFisico\Mutations\ProcesarInventarioFisico;
+use Filament\Actions\Action as TableAction;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Qalainau\UniverSheet\SpreadsheetColumn;
+
+class InventarioFisicoTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('codigo')
+                    ->label('Código')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->weight('bold'),
+
+                TextColumn::make('fecha_toma')
+                    ->label('Fecha Toma')
+                    ->date('d/m/Y')
+                    ->sortable(),
+
+                TextColumn::make('creador.name')
+                    ->label('Responsable')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('estado')
+                    ->label('Estado')
+                    ->badge(),
+
+                class_exists(SpreadsheetColumn::class)
+                    ? SpreadsheetColumn::make('datos_hoja')
+                        ->label('Vista Previa Hoja')
+                        ->previewRows(4)
+                        ->previewColumns(6)
+                    : TextColumn::make('datos_hoja')
+                        ->label('Lotes en Hoja')
+                        ->formatStateUsing(fn ($state) => is_array($state) ? (count($state['sheets']['sheet-1']['cellData'] ?? []) > 1 ? count($state['sheets']['sheet-1']['cellData'] ?? []) - 1 .' lotes' : '0 lotes') : '0 lotes')
+                        ->badge()
+                        ->color('gray'),
+
+                TextColumn::make('created_at')
+                    ->label('Creado')
+                    ->dateTime('d/m/Y H:i')
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('estado')
+                    ->label('Estado')
+                    ->options([
+                        'borrador' => 'Borrador',
+                        'procesado' => 'Procesado',
+                    ]),
+            ])
+            ->actions([
+                TableAction::make('procesar_conciliacion')
+                    ->label('Conciliar')
+                    ->icon(Heroicon::CheckCircle)
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Procesar Conciliación de Inventario')
+                    ->modalDescription('Esta acción comparará la cantidad física registrada en la hoja de cálculo con el stock actual del sistema, generará los movimientos de ajuste (MOV_AJUSTE) en los lotes con discrepancia, y cerrará esta sesión como PROCESADO. Esta acción no se puede deshacer.')
+                    ->action(function (InventarioFisico $record) {
+                        try {
+                            app(ProcesarInventarioFisico::class)->execute($record, auth()->id());
+
+                            Notification::make()
+                                ->title('Conciliación Procesada')
+                                ->body("La toma de inventario {$record->codigo} ha sido procesada de manera exitosa y los ajustes han sido aplicados.")
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Error al procesar conciliación')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
+
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make()
+                        ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
+                    DeleteAction::make()
+                        ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Más opciones'),
+            ])
+            ->defaultSort('created_at', 'desc');
+    }
+}

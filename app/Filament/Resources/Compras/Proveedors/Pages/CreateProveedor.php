@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Compras\Proveedors\Pages;
 
 use App\Filament\Resources\Compras\Proveedors\ProveedorResource;
-use App\Models\Personas\Persona;
-use App\UseCases\Compras\GenerarCodigoProveedor;
+use App\UseCases\Compras\Proveedores\Mutations\CrearProveedor;
+use App\UseCases\Compras\Proveedores\Queries\GenerarCodigoProveedor;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,24 +23,6 @@ class CreateProveedor extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $personaData = $data['persona'] ?? [];
-        $tipoPersona = $data['tipo_persona'] ?? 'natural';
-
-        $persona = Persona::create(array_merge($personaData, [
-            'tipo_persona' => $tipoPersona,
-        ]));
-
-        if ($tipoPersona === 'natural') {
-            $naturalData = $data['personaNatural'] ?? [];
-            $persona->personaNatural()->create($naturalData);
-        } else {
-            $juridicaData = $data['personaJuridica'] ?? [];
-            $persona->personaJuridica()->create($juridicaData);
-        }
-
-        $proveedorData = array_diff_key($data, ['persona' => [], 'personaNatural' => [], 'personaJuridica' => []]);
-        $proveedorData['persona_id'] = $persona->id;
-
-        return $this->getModel()::create($proveedorData);
+        return app(CrearProveedor::class)->execute($data);
     }
 }

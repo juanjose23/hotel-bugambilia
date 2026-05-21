@@ -20,9 +20,13 @@ class PaisFactory extends Factory
      */
     public function definition(): array
     {
+        $codigo2 = fake()->unique()->countryCode();
+
         return [
             'nombre' => fake()->unique()->country(),
-            'codigo' => fake()->unique()->countryCode(),
+            'codigo_iso2' => $codigo2,
+            'codigo_iso3' => strtoupper(fake()->unique()->lexify('???')),
+            'estado' => 1,
         ];
     }
 }

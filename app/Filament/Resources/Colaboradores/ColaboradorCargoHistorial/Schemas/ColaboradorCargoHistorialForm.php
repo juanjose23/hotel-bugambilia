@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Schemas
 
 use App\Enums\CatalogoTipo;
 use App\Enums\EstadoCatalogo;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;

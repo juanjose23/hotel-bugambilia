@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\Compras\Recepciones\Pages;
 
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
-use App\Models\Compras\RecepcionCompra;
-use App\UseCases\Compras\ObtenerOrdenCompraConItems;
+use App\UseCases\Compras\OrdenesCompra\Queries\ObtenerOrdenCompraConItems;
+use App\UseCases\Compras\Recepciones\Mutations\CalcularYPrepararRecepcion;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
+use PDOException;
 
 class CreateRecepcion extends CreateRecord
 {
@@ -16,21 +18,7 @@ class CreateRecepcion extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $year = now()->year;
-        $codigo = DB::transaction(function () use ($year) {
-            $max = RecepcionCompra::whereYear('fecha_recepcion', $year)
-                ->lockForUpdate()
-                ->max('codigo');
-            $last = 0;
-            if ($max && preg_match('/-(\d+)$/', $max, $matches)) {
-                $last = (int) $matches[1];
-            }
-
-            return "REC-{$year}-".str_pad((string) ($last + 1), 3, '0', STR_PAD_LEFT);
-        });
-        $data['codigo'] = $codigo;
-
-        return $data;
+        return app(CalcularYPrepararRecepcion::class)->execute($data);
     }
 
     public function mount(): void
@@ -40,17 +28,26 @@ class CreateRecepcion extends CreateRecord
         $ordenId = (int) request()->query('orden_compra_id');
 
         if ($ordenId) {
-            $orden = app(ObtenerOrdenCompraConItems::class)->execute($ordenId);
+            $useCase = app(ObtenerOrdenCompraConItems::class);
+            $orden = $useCase->execute($ordenId);
 
             if ($orden) {
+                $items = [];
+                foreach ($orden->items as $item) {
+                    $pending = $item->cantidad_pendiente ?? (float) $item->cantidad;
+                    if ($pending > 0) {
+                        $items[] = [
+                            'orden_item_id' => $item->id,
+                            'cantidad_recibida' => $pending,
+                            'cantidad_rechazada' => 0,
+                        ];
+                    }
+                }
+
                 $this->form->fill([
                     'orden_compra_id' => $orden->id,
                     'fecha_recepcion' => now(),
-                    'items' => $orden->items->map(fn ($item) => [
-                        'orden_item_id' => $item->id,
-                        'cantidad_recibida' => $item->cantidad,
-                        'cantidad_rechazada' => 0,
-                    ])->toArray(),
+                    'items' => $items,
                 ]);
             }
         }
@@ -59,11 +56,46 @@ class CreateRecepcion extends CreateRecord
     /** @return array<int, Action | ActionGroup> */
     protected function getFormActions(): array
     {
-        return [];
+        return [
+            Action::make('create')
+                ->label('Guardar Recepción')
+                ->submit('create')
+                ->keyBindings(['mod+s']),
+            Action::make('cancel')
+                ->label('Cancelar')
+                ->url($this->getResource()::getUrl('index')),
+        ];
+    }
+
+    public function create(bool $another = false): void
+    {
+        try {
+            parent::create($another);
+        } catch (PDOException|QueryException $e) {
+            $message = $e->getMessage();
+
+            if (str_contains($message, 'CONTROL INDUSTRIAL')) {
+                preg_match('/La cantidad recibida \(.*?\) supera la cantidad ordenada/', $message, $matches);
+
+                Notification::make()
+                    ->danger()
+                    ->title('Error de recepción')
+                    ->body($matches[0] ?? 'La cantidad recibida excede la cantidad ordenada en la Orden de Compra.')
+                    ->persistent()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->danger()
+                    ->title('Error al guardar la recepción')
+                    ->body('Ocurrió un error inesperado. Verifique los datos e intente nuevamente.')
+                    ->persistent()
+                    ->send();
+            }
+        }
     }
 
     protected function getRedirectUrl(): string
     {
-        return $this->getResource()::getUrl('index');
+        return $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Actions\Compras;
 
 use App\Models\Compras\Solicitud;
-use App\UseCases\Reportes\RegistrarAuditoriaReporteUseCase;
+use App\UseCases\Reportes\Mutations\RegistrarAuditoriaReporteUseCase;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class GenerarReporteSolicitudPdfAction
@@ -26,7 +26,7 @@ class GenerarReporteSolicitudPdfAction
 
         $paginas = collect([$items->values()]);
 
-        $pdf = Pdf::loadView('reportes.solicitud-compra', [
+        $pdf = Pdf::loadView('reports.compras.solicitud-compra', [
             'solicitud' => $solicitud,
             'paginas' => $paginas,
             'estadoLabel' => $solicitud->estado->label(),

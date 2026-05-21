@@ -15,7 +15,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('producto_variantes', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que registra las variaciones específicas de presentación (SKU, atributos) asociadas a cada producto.');
+            $table->id()->comment('Identificador único autoincremental de la variante de producto');
             $table->foreignId('producto_id')->comment('FK al producto padre')->constrained('productos')->cascadeOnDelete();
             $table->string('codigo', 50)->unique()->comment('Código SKU único de la variante');
             $table->string('nombre_variante', 200)->comment('Nombre de la variante (ej. 500ml, Rojo, Premium)');
@@ -31,7 +32,9 @@ return new class extends Migration
             $table->index('nombre_variante');
             $table->unique(['producto_id', 'nombre_variante'], 'uq_variante_por_producto');
         });
-        DB::statement('ALTER TABLE producto_variantes ADD CONSTRAINT chk_estado_producto_variantes CHECK (estado IN (0,1))');
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE producto_variantes ADD CONSTRAINT chk_estado_producto_variantes CHECK (estado IN (0,1))');
+        }
     }
 
     /**

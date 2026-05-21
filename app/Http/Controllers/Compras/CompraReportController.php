@@ -7,7 +7,7 @@ use App\Models\Compras\Cotizacion;
 use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
-use App\UseCases\Reportes\RegistrarAuditoriaReporteUseCase;
+use App\UseCases\Reportes\Mutations\RegistrarAuditoriaReporteUseCase;
 use Carbon\Carbon;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
@@ -16,6 +16,7 @@ class CompraReportController extends Controller
 {
     public function imprimirSolicitud(Solicitud $solicitud): PdfBuilder
     {
+        $this->authorize('Compras:ImprimirSolicitud');
         $this->registrarAuditoria('HTB-COM-001', $solicitud);
 
         return Pdf::view('reports.compras.solicitud', $this->getReportData($solicitud))
@@ -25,6 +26,7 @@ class CompraReportController extends Controller
 
     public function imprimirOrdenCompra(OrdenCompra $orden): PdfBuilder
     {
+        $this->authorize('Compras:ImprimirOrdenCompra');
         $this->registrarAuditoria('HTB-COM-003', $orden);
 
         return Pdf::view('reports.compras.orden-compra', $this->getReportData($orden))
@@ -34,6 +36,7 @@ class CompraReportController extends Controller
 
     public function imprimirRecepcion(RecepcionCompra $recepcion): PdfBuilder
     {
+        $this->authorize('Compras:ImprimirRecepcion');
         $this->registrarAuditoria('HTB-COM-004', $recepcion);
 
         return Pdf::view('reports.compras.recepcion', $this->getReportData($recepcion))
@@ -43,6 +46,7 @@ class CompraReportController extends Controller
 
     public function imprimirCotizacion(Cotizacion $cotizacion): PdfBuilder
     {
+        $this->authorize('Compras:ImprimirCotizacion');
         $this->registrarAuditoria('HTB-COM-002', $cotizacion);
 
         return Pdf::view('reports.compras.cotizacion', $this->getReportData($cotizacion))
@@ -50,8 +54,27 @@ class CompraReportController extends Controller
             ->download();
     }
 
+    public function imprimirComparativa(Solicitud $solicitud): PdfBuilder
+    {
+        $this->authorize('Compras:ImprimirComparativa');
+        $this->registrarAuditoria('HTB-COM-006', $solicitud);
+
+        $solicitud->load([
+            'items.producto',
+            'items.variante',
+            'cotizaciones.proveedor.persona.personaJuridica',
+            'cotizaciones.items.variante',
+            'cotizaciones.moneda',
+        ]);
+
+        return Pdf::view('reports.compras.comparativa', $this->getReportData($solicitud))
+            ->name("COMP-{$solicitud->codigo}.pdf")
+            ->download();
+    }
+
     public function imprimirResumenDepartamentos(): PdfBuilder
     {
+        $this->authorize('Compras:ImprimirReportesCompras');
         try {
             $fechaInicio = request('fecha_inicio')
                 ? Carbon::createFromFormat('Y-m-d', request('fecha_inicio'))->startOfDay()
@@ -108,18 +131,23 @@ class CompraReportController extends Controller
     {
         // Asegurar que las relaciones necesarias estén cargadas para evitar N+1 y datos faltantes
         if ($record !== null && method_exists($record, 'load')) {
-            $record->load(['items.producto', 'items.variante', 'items.unidadMedida']);
+            // Relaciones comunes
+            $record->load(['items.producto', 'items.variante']);
 
             if ($record instanceof Solicitud) {
-                $record->load(['colaborador.persona', 'departamentoSolicitante']);
+                $record->load(['colaborador.persona', 'departamentoSolicitante', 'items.unidadMedida']);
             }
 
             if ($record instanceof OrdenCompra) {
-                $record->load(['proveedor.persona', 'condicionPago']);
+                $record->load(['proveedor.persona', 'condicionPago', 'items.unidadMedida', 'cotizacion.moneda']);
             }
 
             if ($record instanceof RecepcionCompra) {
-                $record->load(['ordenCompra.proveedor.persona', 'receptor']);
+                $record->load(['ordenCompra.proveedor.persona', 'ordenCompra.cotizacion.moneda', 'receptor', 'items.unidadMedida']);
+            }
+
+            if ($record instanceof Cotizacion) {
+                $record->load(['proveedor.persona', 'solicitud.items.unidadMedida', 'moneda']);
             }
         }
 

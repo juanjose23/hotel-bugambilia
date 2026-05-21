@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Roles\Pages;
 
 use App\Filament\Resources\Roles\RoleResource;
+use App\UseCases\Roles\Mutations\SincronizarPermisosRole;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Override;
-use Spatie\Permission\Models\Role;
 
 class EditRole extends EditRecord
 {
@@ -45,16 +45,10 @@ class EditRole extends EditRecord
 
     protected function afterSave(): void
     {
-        $permissionModels = collect();
-        $this->permissions->each(function (string $permission) use ($permissionModels): void {
-            $permissionModels->push(Utils::getPermissionModel()::firstOrCreate([
-                'name' => $permission,
-                'guard_name' => $this->data['guard_name'],
-            ]));
-        });
-
-        /** @var Role $record */
-        $record = $this->getRecord();
-        $record->syncPermissions($permissionModels);
+        app(SincronizarPermisosRole::class)->execute(
+            $this->getRecord(),
+            $this->data,
+            $this->permissions,
+        );
     }
 }

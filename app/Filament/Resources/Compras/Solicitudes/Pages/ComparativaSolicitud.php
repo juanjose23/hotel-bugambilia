@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
 use App\Models\Compras\Solicitud;
 use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\AnalizarScoringCotizaciones;
+use App\UseCases\Compras\Cotizaciones\Queries\AnalizarScoringCotizaciones;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;

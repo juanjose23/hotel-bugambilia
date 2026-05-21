@@ -2,15 +2,34 @@
 
 namespace App\Enums\Compras;
 
+use BackedEnum;
+use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasIcon;
+use Filament\Support\Contracts\HasLabel;
 use Filament\Support\Icons\Heroicon;
 
-enum EstadoSolicitud: int
+enum EstadoSolicitud: int implements HasColor, HasIcon, HasLabel
 {
     case Borrador = 1;
     case Pendiente = 2;
     case Aprobada = 3;
     case Rechazada = 4;
     case Cancelada = 5;
+
+    public function getLabel(): string
+    {
+        return $this->label();
+    }
+
+    public function getColor(): string
+    {
+        return $this->color();
+    }
+
+    public function getIcon(): BackedEnum
+    {
+        return $this->icon();
+    }
 
     public function label(): string
     {

@@ -14,16 +14,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Base del sistema
         $this->call(PaisSeeder::class);
         $this->call(CatalogoTipoSeeder::class);
         $this->call(CatalogoSeeder::class);
         $this->call(UbicacionSeeder::class);
+        $this->call(TasaCambioSeeder::class);
+
+        // Colaboradores
         $this->call(ColaboradorBaseSeeder::class);
         $this->call(ColaboradorSaludSeeder::class);
         $this->call(ColaboradorLaboralSeeder::class);
-        $this->call(ProductoSeeder::class);
+
+        // Maestros de compras e inventario
         $this->call(ProveedorSeeder::class);
+        $this->call(ProductoSeeder::class);
+
+        // Flujo transaccional de compras
         $this->call(ProcurementFlowSeeder::class);
-        $this->call(ShieldSeeder::class);
+
+        // Datos demo de inventario y devoluciones
+        $this->call(InventarioSeeder::class);
+        $this->call(DevolucionSeeder::class);
     }
 }

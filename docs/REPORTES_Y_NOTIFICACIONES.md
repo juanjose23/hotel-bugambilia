@@ -14,7 +14,7 @@ Todos los reportes de compras usan **Spatie PDF** con el layout `layouts.reporte
 |-------|-------|
 | Controlador | `CompraReportController@imprimirSolicitud` |
 | Ruta | `GET /admin/compras/reportes/solicitud/{solicitud}` |
-| Permiso | `ImprimirSolicitud` |
+| Permiso | `compras:ImprimirSolicitud` |
 | Contenido | Datos del solicitante, departamento, justificación, tabla de ítems con cantidades solicitadas/aprobadas, firmas |
 
 ### HTB-COM-002 — Cotización de Proveedor
@@ -23,7 +23,7 @@ Todos los reportes de compras usan **Spatie PDF** con el layout `layouts.reporte
 |-------|-------|
 | Controlador | `CompraReportController@imprimirCotizacion` |
 | Ruta | `GET /admin/compras/reportes/cotizacion/{cotizacion}` |
-| Permiso | `ImprimirCotizacion` |
+| Permiso | `compras:ImprimirCotizacion` |
 | Contenido | Proveedor, condición de pago, vigencia, ítems cotizados con precios unitarios y subtotales |
 
 ### HTB-COM-003 — Orden de Compra
@@ -32,7 +32,7 @@ Todos los reportes de compras usan **Spatie PDF** con el layout `layouts.reporte
 |-------|-------|
 | Controlador | `CompraReportController@imprimirOrdenCompra` |
 | Ruta | `GET /admin/compras/reportes/orden-compra/{orden}` |
-| Permiso | `ImprimirOrdenCompra` |
+| Permiso | `compras:ImprimirOrdenCompra` |
 | Contenido | Proveedor, condición de pago, ítems, precios, impuestos y total |
 
 ### HTB-COM-004 — Recepción de Mercancía
@@ -41,7 +41,7 @@ Todos los reportes de compras usan **Spatie PDF** con el layout `layouts.reporte
 |-------|-------|
 | Controlador | `CompraReportController@imprimirRecepcion` |
 | Ruta | `GET /admin/compras/reportes/recepcion/{recepcion}` |
-| Permiso | `ImprimirRecepcion` |
+| Permiso | `compras:ImprimirRecepcion` |
 | Contenido | Orden de compra origen, ítems recibidos, cantidades recibidas/rechazadas, motivo de rechazo |
 
 ### HTB-COM-005 — Resumen por Departamentos
@@ -50,13 +50,33 @@ Todos los reportes de compras usan **Spatie PDF** con el layout `layouts.reporte
 |-------|-------|
 | Controlador | `CompraReportController@imprimirResumenDepartamentos` |
 | Ruta | `GET /admin/compras/reportes/resumen-departamentos` |
-| Permiso | `ImprimirReportesCompras` |
+| Permiso | `compras:ImprimirReportesCompras` |
 | Contenido | Conteo de órdenes y total gastado agrupado por departamento |
+
+### HTB-COM-006 — Cuadro Comparativo de Cotizaciones
+
+| Campo | Valor |
+|-------|-------|
+| Controlador | `CompraReportController@imprimirComparativa` |
+| Ruta | `GET /admin/compras/reportes/comparativa/{solicitud}` |
+| Permiso | `compras:ImprimirComparativa` |
+| Contenido | Cuadro técnico comparativo de precios, variantes y plazos, con resumen de adjudicación agrupado por proveedor y totales generales. |
 
 > [!NOTE]
 > Este reporte filtra por el período actual (inicio de mes → fecha actual) usando `whereBetween('fecha_orden', ...)`. Acepta los parámetros query opcionales `fecha_inicio` y `fecha_fin` (formato `Y-m-d`) para personalizar el rango. El botón en `ListOrdenCompras` abre un modal con DatePickers para seleccionar el rango. Anteriormente mostraba datos históricos sin filtrar.
 
+### HTB-COM-007 — Devolución a Proveedor
+
+| Campo | Valor |
+|-------|-------|
+| Controlador | `CompraReportController@imprimirDevolucion` |
+| Ruta | `GET /admin/compras/reportes/devolucion/{devolucion}` |
+| Permiso | `compras:ImprimirDevolucion` |
+| Contenido | Datos de la orden de compra origen, recepción vinculada, items devueltos con lotes, cantidades y motivo |
+
 ---
+
+
 
 ## 2. Correcciones Aplicadas a Reportes
 
@@ -140,6 +160,8 @@ El servicio define tres métodos de enrutamiento:
 | Orden de compra emitida | `ordenEmitida()` | Creador + Compras | `paper-airplane` |
 | Orden de compra cancelada | `ordenCancelada()` | Creador + Compras | `x-circle` |
 | Recepción registrada | `recepcionCreada()` | Creador + Compras | `archive-box` / `exclamation-triangle` |
+| Devolución creada | `devolucionCreada()` | Creador + Compras | `arrow-turn-down-left` |
+| Devolución confirmada | `devolucionConfirmada()` | Creador + Compras | `check-circle` |
 
 ### 3.4 Puntos de disparo (Triggers)
 
@@ -160,6 +182,9 @@ El servicio define tres métodos de enrutamiento:
 | `OrdenCompraTable.php` | 123 | `ordenEmitida()` — al emitir OC |
 | `OrdenCompraTable.php` | 150 | `ordenCancelada()` — al cancelar OC |
 | `RecepcionObserver.php` | 19 | `recepcionCreada()` — al crear recepción (observer) |
+| `CreateDevolucionCompra.php` | afterCreate | `devolucionCreada()` — al crear devolución |
+| `DevolucionCompraTable.php` | confirmar action | `devolucionConfirmada()` — al confirmar devolución desde tabla |
+| `ViewDevolucionCompra.php` | confirmar action | `devolucionConfirmada()` — al confirmar devolución desde vista |
 
 ### 3.5 Polling del panel
 

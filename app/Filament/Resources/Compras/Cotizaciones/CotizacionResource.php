@@ -51,7 +51,17 @@ class CotizacionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['solicitud', 'proveedor']);
+            ->with([
+                'solicitud.ordenesCompra',
+                'proveedor.persona.personaJuridica',
+                'proveedor.persona.personaNatural',
+                'creadaPor',
+                'elegidaPor',
+                'ordenCompra',
+            ])
+            ->withCount([
+                'items as items_elegidos_count' => fn ($q) => $q->where('es_elegido', true),
+            ]);
     }
 
     public static function getPages(): array
@@ -59,9 +69,9 @@ class CotizacionResource extends Resource
         return [
             'index' => ListCotizaciones::route('/'),
             'create' => CreateCotizacion::route('/create'),
+            'comparativa' => ComparativaCotizaciones::route('/comparativa'),
             'view' => ViewCotizacion::route('/{record}'),
             'edit' => EditCotizacion::route('/{record}/edit'),
-            'comparativa' => ComparativaCotizaciones::route('/comparativa'),
         ];
     }
 }

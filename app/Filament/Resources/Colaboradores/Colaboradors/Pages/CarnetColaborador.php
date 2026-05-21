@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
 use App\Models\Personas\Persona;
-use App\UseCases\Colaboradores\ObtenerDatosCarnet;
+use App\UseCases\Colaboradores\Queries\ObtenerDatosCarnet;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 

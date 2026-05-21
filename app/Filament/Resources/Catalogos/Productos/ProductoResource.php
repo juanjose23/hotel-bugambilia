@@ -11,7 +11,7 @@ use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoForm;
 use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoInfolist;
 use App\Filament\Resources\Catalogos\Productos\Tables\ProductosTable;
 use App\Models\Catalogos\Producto;
-use App\UseCases\Catalogos\ExportProductosUseCase;
+use App\UseCases\Catalogos\Queries\ExportProductosUseCase;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;

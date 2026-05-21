@@ -6,7 +6,7 @@ use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
 use App\Models\Compras\Cotizacion;
 use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\GenerarOrdenDesdeCotizacion;
+use App\UseCases\Compras\OrdenesCompra\Mutations\GenerarOrdenDesdeCotizacion;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -55,7 +55,7 @@ class ViewCotizacion extends ViewRecord
                 ->color('gray')
                 ->url(fn (Cotizacion $record) => route('reporte.cotizacion', $record))
                 ->openUrlInNewTab()
-                ->visible(fn () => auth()->user()->can('ImprimirCotizacion') || auth()->user()->hasRole('super_admin')),
+                ->visible(fn () => auth()->user()->can('Compras:ImprimirCotizacion')),
         ];
     }
 }

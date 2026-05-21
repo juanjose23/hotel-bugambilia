@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Catalogos\Producto;
-use App\UseCases\Catalogos\GenerarCodigoBarrasUseCase;
+use App\UseCases\Catalogos\Queries\GenerarCodigoBarrasUseCase;
 use Illuminate\Database\Seeder;
 
 class CodigoBarrasSeeder extends Seeder

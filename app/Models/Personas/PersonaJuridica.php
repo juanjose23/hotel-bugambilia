@@ -14,7 +14,7 @@ class PersonaJuridica extends Model implements AuditableContract
 
     protected $table = 'personas_juridicas';
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     /** @return BelongsTo<Persona, $this> */
     public function persona(): BelongsTo

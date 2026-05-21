@@ -105,5 +105,50 @@ class UbicacionSeeder extends Seeder
             'orden' => 1,
             'estado' => 1,
         ]);
+
+        Ubicacion::create([
+            'padre_id' => null,
+            'tipo' => 'almacen',
+            'nombre' => 'Almacén General',
+            'descripcion' => 'Almacén central para inventario de insumos',
+            'orden' => 1,
+            'estado' => 1,
+        ]);
+
+        Ubicacion::create([
+            'padre_id' => null,
+            'tipo' => 'zona',
+            'nombre' => 'Estante 1',
+            'descripcion' => 'Estantería metálica del Almacén General',
+            'orden' => 2,
+            'estado' => 1,
+        ]);
+
+        Ubicacion::create([
+            'padre_id' => null,
+            'tipo' => 'zona',
+            'nombre' => 'Refrigeradora de Cocina',
+            'descripcion' => 'Refrigeradora para perecederos diarios',
+            'orden' => 3,
+            'estado' => 1,
+        ]);
+
+        Ubicacion::create([
+            'padre_id' => null,
+            'tipo' => 'zona',
+            'nombre' => 'Cuarto Frío de Carnes',
+            'descripcion' => 'Cámara de refrigeración de carnes y mariscos',
+            'orden' => 4,
+            'estado' => 1,
+        ]);
+
+        Ubicacion::create([
+            'padre_id' => null,
+            'tipo' => 'zona',
+            'nombre' => 'Zona de Merma',
+            'descripcion' => 'Ubicación especial para productos vencidos o rechazados',
+            'orden' => 99,
+            'estado' => 1,
+        ]);
     }
 }

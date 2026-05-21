@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Tables;
 
 use App\Enums\EstadoCatalogo;
 use App\Models\Colaboradores\ColaboradorCargoHistorial;
-use App\UseCases\Colaboradores\ObtenerNombreCompleto;
+use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;

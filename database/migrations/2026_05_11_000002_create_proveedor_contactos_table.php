@@ -14,7 +14,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('proveedor_contactos', function (Blueprint $table) {
-            $table->id();
+            $table->comment('Tabla que registra las personas de contacto directo asociadas a cada proveedor.');
+            $table->id()->comment('Identificador único autoincremental del contacto del proveedor');
             $table->foreignId('proveedor_id')
                 ->comment('FK al proveedor')
                 ->constrained('proveedores')

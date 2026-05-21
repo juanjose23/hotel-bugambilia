@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Pages;
 use App\Enums\EstadoCatalogo;
 use App\Filament\Resources\Colaboradores\ColaboradorSalario\ColaboradorSalarioResource;
 use App\Models\Colaboradores\ColaboradorSalario;
-use App\UseCases\Colaboradores\CrearNuevoSalario;
+use App\UseCases\Colaboradores\Mutations\CrearNuevoSalario;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;

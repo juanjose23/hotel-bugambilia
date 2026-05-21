@@ -69,8 +69,8 @@
                                     <br><small style="color: #999; text-transform: uppercase;">{{ $item->unidadMedida->nombre ?? 'Unidad' }}</small>
                                 </td>
                                 <td style="text-align: center;">{{ number_format($item->cantidad, 2) }}</td>
-                                <td style="text-align: center;">${{ number_format($item->precio_unitario, 2) }}</td>
-                                <td style="text-align: right; font-weight: bold;">${{ number_format($item->subtotal, 2) }}</td>
+                                <td style="text-align: center;">{{ $record->cotizacion?->moneda?->simbolo ?? '$' }}{{ number_format($item->precio_unitario, 2) }}</td>
+                                <td style="text-align: right; font-weight: bold;">{{ $record->cotizacion?->moneda?->simbolo ?? '$' }}{{ number_format($item->subtotal, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -81,16 +81,35 @@
                         <table style="width: 250px; margin-left: auto; border-collapse: collapse;">
                             <tr>
                                 <td style="padding: 5px; color: #666;">Subtotal:</td>
-                                <td style="padding: 5px; text-align: right;">${{ number_format($record->subtotal, 2) }}</td>
+                                <td style="padding: 5px; text-align: right;">{{ $record->cotizacion?->moneda?->simbolo ?? '$' }}{{ number_format($record->subtotal, 2) }}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 5px; color: #666;">Impuestos:</td>
-                                <td style="padding: 5px; text-align: right;">${{ number_format($record->impuestos, 2) }}</td>
+                                <td style="padding: 5px; text-align: right;">{{ $record->cotizacion?->moneda?->simbolo ?? '$' }}{{ number_format($record->impuestos, 2) }}</td>
                             </tr>
                             <tr style="border-top: 2px solid #711C37;">
                                 <td style="padding: 10px 5px; font-weight: bold; color: #711C37; font-size: 14px;">TOTAL:</td>
-                                <td style="padding: 10px 5px; text-align: right; font-weight: bold; color: #711C37; font-size: 16px;">${{ number_format($record->total, 2) }}</td>
+                                <td style="padding: 10px 5px; text-align: right; font-weight: bold; color: #711C37; font-size: 16px;">{{ $record->cotizacion?->moneda?->simbolo ?? '$' }}{{ number_format($record->total, 2) }}</td>
                             </tr>
+                            @if($record->tasa_cambio > 1)
+                                @if(($record->cotizacion?->moneda?->codigo ?? 'USD') === 'NIO')
+                                    <tr style="border-top: 1px dashed #ccc;">
+                                        <td style="padding: 5px; font-size: 9px; color: #666;">Equivalente USD:</td>
+                                        <td style="padding: 5px; text-align: right; font-size: 10px; font-weight: bold; color: #166534;">${{ number_format($record->total / $record->tasa_cambio, 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 2px 5px; text-align: right; font-size: 7px; color: #999;">Tasa de Cambio: C$ {{ number_format($record->tasa_cambio, 4) }}</td>
+                                    </tr>
+                                @elseif(($record->cotizacion?->moneda?->codigo ?? 'USD') === 'USD')
+                                    <tr style="border-top: 1px dashed #ccc;">
+                                        <td style="padding: 5px; font-size: 9px; color: #666;">Equivalente NIO:</td>
+                                        <td style="padding: 5px; text-align: right; font-size: 10px; font-weight: bold; color: #1e3a8a;">C${{ number_format($record->total * $record->tasa_cambio, 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 2px 5px; text-align: right; font-size: 7px; color: #999;">Tasa de Cambio: C$ {{ number_format($record->tasa_cambio, 4) }}</td>
+                                    </tr>
+                                @endif
+                            @endif
                         </table>
                     </div>
 

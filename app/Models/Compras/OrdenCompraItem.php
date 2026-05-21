@@ -5,8 +5,11 @@ namespace App\Models\Compras;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\ProductoVariante;
+use Database\Factories\Compras\OrdenCompraItemFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
@@ -23,9 +26,16 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  */
 class OrdenCompraItem extends Model implements AuditableContract
 {
-    use Auditable, SoftDeletes;
+    /** @use HasFactory<OrdenCompraItemFactory> */
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $table = 'orden_compra_items';
+
+    protected $with = [
+        'producto',
+        'variante',
+        'unidadMedida',
+    ];
 
     protected $fillable = [
         'orden_compra_id',
@@ -65,5 +75,11 @@ class OrdenCompraItem extends Model implements AuditableContract
     public function unidadMedida(): BelongsTo
     {
         return $this->belongsTo(Catalogo::class, 'unidad_medida_id');
+    }
+
+    /** @return HasMany<RecepcionItem, $this> */
+    public function recepcionItems(): HasMany
+    {
+        return $this->hasMany(RecepcionItem::class, 'orden_item_id');
     }
 }
