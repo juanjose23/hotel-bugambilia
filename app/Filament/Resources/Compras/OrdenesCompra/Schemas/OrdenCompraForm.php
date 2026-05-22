@@ -9,7 +9,6 @@ use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\ProductoVariante;
 use App\Models\Compras\ProveedorContacto;
-use App\Models\Compras\Solicitud;
 use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionConItemsProveedor;
 use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionesPorSolicitud;
 use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudConItems;
@@ -30,7 +29,6 @@ class OrdenCompraForm
     {
         return $schema
             ->components([
-                // SECCIÓN 1: IDENTIFICACIÓN (Inspirada en el Encabezado de Solicitud)
                 Section::make('Identificación de la Orden')
                     ->description('Datos maestros y vinculación con el sistema')
                     ->columns(3)

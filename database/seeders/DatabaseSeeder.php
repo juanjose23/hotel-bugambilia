@@ -33,6 +33,9 @@ class DatabaseSeeder extends Seeder
         // Flujo transaccional de compras
         $this->call(ProcurementFlowSeeder::class);
 
+        // Servicios y tarifas
+        $this->call(ServicioSeeder::class);
+
         // Datos demo de inventario y devoluciones
         $this->call(InventarioSeeder::class);
         $this->call(DevolucionSeeder::class);

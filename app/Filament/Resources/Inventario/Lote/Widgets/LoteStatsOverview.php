@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Inventario\Lote\Widgets;
 
 use App\Enums\Inventario\EstadoLote;
-use App\Models\General\Moneda;
 use App\Models\Inventario\Lote;
+use App\Models\Monedas\Moneda;
 use App\UseCases\Inventario\Queries\Stock\ObtenerValorizacionInventario;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;

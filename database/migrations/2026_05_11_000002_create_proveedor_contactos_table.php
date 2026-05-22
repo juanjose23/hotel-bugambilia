@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -34,6 +35,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Eliminar constraints que puedan depender de esta tabla antes de borrarla
+        if (Schema::hasTable('ordenes_compra')) {
+            DB::statement('ALTER TABLE ordenes_compra DROP CONSTRAINT IF EXISTS ordenes_compra_proveedor_contacto_id_foreign');
+        }
+
         Schema::dropIfExists('proveedor_contactos');
     }
 };
