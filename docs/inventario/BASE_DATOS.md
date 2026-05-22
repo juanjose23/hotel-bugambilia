@@ -1,23 +1,27 @@
-# Esquema de Base de Datos — Inventario v2.1
+# Esquema de Base de Datos — Inventario v2.3
 
-Este documento detalla el diseño físico-lógico completo de la base de datos del **Módulo de Inventario v2.1** del Hotel Bugambilias. Incluye todas las tablas activas, sus campos comentados, índices, restricciones y el orden correcto de migraciones.
+Este documento detalla el diseño físico-lógico completo de la base de datos del **Módulo de Inventario v2.3** del Hotel Bugambilias. Incluye todas las tablas activas, sus campos comentados, índices, restricciones y el orden correcto de migraciones.
 
 > [!WARNING]
-> **Las tablas `inv_modulos`, `inv_stock_ubicacion` e `inv_reservas` del v1 fueron eliminadas.** No deben ser referenciadas en código nuevo. Ver la sección de tablas eliminadas al final de este documento.
+> **Las tablas `inv_modulos`, `inv_stock_ubicacion` e `inv_reservas` del v1 fueron eliminadas, junto con `inv_par_stock`, `inv_reposiciones` e `inv_reposicion_items` del v2.2.** No deben ser referenciadas en código nuevo. Ver la sección de tablas eliminadas al final de este documento.
 
 ---
 
-## 🗺️ Diagrama Relacional (v2.1)
+## 🗺️ Diagrama Relacional (v2.3)
 
 ```mermaid
 erDiagram
-    hab_tipos_habitacion ||--o{ hab_habitaciones : "define el tipo de"
-    hab_habitaciones     ||--o{ hab_inventario_fijo : "tiene activos fijos en"
-    hab_areas            ||--o{ hab_inventario_fijo : "tiene activos fijos en"
+    catalogos ||--o{ habitaciones : "CATEGORIA_HAB/CAPACIDAD_HAB"
+    habitaciones     ||--o{ hab_inventario_fijo : "tiene activos fijos en"
+    espacios            ||--o{ hab_inventario_fijo : "tiene activos fijos en"
     hab_plantillas_dotacion ||--o{ hab_plantilla_items : "contiene ítems"
-    hab_tipos_habitacion ||--o{ hab_plantillas_dotacion : "aplica plantilla"
+    catalogos ||--o{ hab_plantillas_dotacion : "aplica plantilla"
     hab_plantilla_items  }o--|| productos : "referencia"
     hab_inventario_fijo  }o--|| productos : "referencia"
+    habitaciones ||--o{ habitacion_amenidad : "tiene amenidades"
+    habitaciones ||--o{ habitacion_servicio : "ofrece servicios"
+    habitaciones ||--o{ habitacion_politica : "aplica politicas"
+    habitaciones ||--o{ habitacion_imagenes : "tiene imagenes"
 
     productos            ||--o{ inv_lotes : "genera lotes"
     ubicaciones          ||--o{ inv_lotes : "almacena"
@@ -29,85 +33,138 @@ erDiagram
     ubicaciones          ||--o{ inv_stock : "es bodega de"
     productos            ||--o{ inv_stock : "tiene stock de"
 
-    ubicaciones          ||--o{ inv_par_stock : "tiene límites PAR"
-    productos            ||--o{ inv_par_stock : "configura PAR"
 
-    inv_reposiciones     ||--o{ inv_reposicion_items : "contiene ítems"
-    ubicaciones          ||--o{ inv_reposiciones : "es origen de"
-    ubicaciones          ||--o{ inv_reposiciones : "es destino de"
 ```
 
 ---
 
 ## 📋 CAPA 1 — Espacios Físicos
 
-### 1.1 `hab_tipos_habitacion`
-Catálogo maestro de los tipos de habitación del hotel (Estándar, Suite, Deluxe, etc.). Cada tipo agrupa habitaciones con características similares y comparte la misma plantilla de dotación.
+### 1.1 `habitaciones`
+Registro de cada habitación física del hotel. El tipo de habitación se define mediante catalogos de tipo CATEGORIA_HAB y CAPACIDAD_HAB, eliminando la tabla hab_tipos_habitacion.
 
-**Migración**: `2026_05_20_000001_create_hab_tipos_habitacion_table.php`
-**Modelo**: `App\Models\Espacios\TipoHabitacion`
-
-| Campo | Tipo | Nulo | Por Defecto | Descripción |
-| :--- | :--- | :---: | :--- | :--- |
-| **id** | `bigint UNSIGNED` | No | Auto | Clave primaria autoincremental |
-| **codigo** | `varchar(20)` | No | — | Código corto único del tipo (ej: `STD`, `STE`, `DLX`). Único en la tabla. Generado manualmente por el operador |
-| **nombre** | `varchar(100)` | No | — | Nombre descriptivo (ej: `Habitación Estándar`, `Suite Presidencial`) |
-| **capacidad_max** | `tinyint` | No | — | Número máximo de huéspedes que puede alojar este tipo |
-| **descripcion** | `text` | Sí | `NULL` | Descripción operativa y características del tipo de habitación |
-| **activo** | `boolean` | No | `true` | Indica si el tipo está disponible para asignaciones nuevas |
-| **created_at** | `timestamp` | Sí | `NULL` | Fecha de creación del registro |
-| **updated_at** | `timestamp` | Sí | `NULL` | Fecha de última modificación |
-
-**Índices**:
-- `PRIMARY KEY (id)`
-- `UNIQUE (codigo)` — Previene duplicados de código de tipo
-
----
-
-### 1.2 `hab_habitaciones`
-Registro de cada habitación física del hotel. Cada habitación pertenece a un tipo y opcionalmente referencia la bodega/almacén del piso que la abastece de consumibles.
-
-**Migración**: `2026_05_20_000002_create_hab_habitaciones_table.php`
-**Modelo**: `App\Models\Espacios\Habitacion`
+**Migración**: `2026_05_20_000001_create_habitacion_tables.php`
+**Modelo**: `App\Models\Habitaciones\Habitacion`
 
 | Campo | Tipo | Nulo | Por Defecto | Descripción |
 | :--- | :--- | :---: | :--- | :--- |
 | **id** | `bigint UNSIGNED` | No | Auto | Clave primaria autoincremental |
-| **numero** | `varchar(20)` | No | — | Número o código de la habitación (ej: `101`, `201A`). Único en la tabla. Generado manualmente |
-| **tipo_id** | `bigint UNSIGNED` | No | — | FK → `hab_tipos_habitacion`. Tipo al que pertenece (cascadeOnDelete) |
-| **piso** | `tinyint` | No | — | Número de piso donde se ubica la habitación |
-| **ubicacion_id** | `bigint UNSIGNED` | Sí | `NULL` | FK → `ubicaciones` (nullOnDelete). Bodega de piso que surte esta habitación de consumibles |
-| **estado** | `varchar(20)` | No | `disponible` | Estado operativo: `disponible`, `ocupada`, `mantenimiento`, `fuera_servicio` |
-| **activa** | `boolean` | No | `true` | Indica si la habitación está habilitada para operaciones |
+| **numero** | `varchar(10)` | No | — | Número de habitación (ej: `101`, `201A`). Único en la tabla |
+| **categoria_id** | `bigint UNSIGNED` | No | — | FK → `catalogos` (CATEGORIA_HAB). Tipo de habitación (Estándar, Suite, Deluxe) |
+| **capacidad_id** | `bigint UNSIGNED` | No | — | FK → `catalogos` (CAPACIDAD_HAB). Capacidad (Sencilla, Doble, Triple) |
+| **capacidad_adultos** | `int` | No | `1` | Capacidad máxima de adultos |
+| **capacidad_ninos** | `int` | No | `0` | Capacidad máxima de niños |
+| **metros_cuadrados** | `int` | Sí | `NULL` | Metros cuadrados de la habitación |
+| **piso** | `tinyint` | No | — | Número de piso donde se ubica |
+| **ubicacion_id** | `bigint UNSIGNED` | Sí | `NULL` | FK → `ubicaciones` (nullOnDelete). Bodega de piso que surte consumibles |
+| **estado** | `varchar(20)` | No | `disponible` | Estado operativo: `disponible`, `ocupada`, `mantenimiento`, `limpieza` |
+| **activa** | `boolean` | No | `true` | Habilitada para operaciones |
 | **created_at** | `timestamp` | Sí | `NULL` | Fecha de creación |
 | **updated_at** | `timestamp` | Sí | `NULL` | Fecha de última modificación |
 
 **Índices**:
 - `PRIMARY KEY (id)`
-- `UNIQUE (numero)` — Cada habitación tiene un número único en el hotel
+- `UNIQUE (numero)`
 
 ---
 
-### 1.3 `hab_areas`
-Catálogo de áreas comunes, salones de eventos, restaurantes, spas y demás espacios compartidos del hotel que también pueden tener activos fijos asignados.
+### 1.2 `amenidades`
+Catálogo de amenidades que puede tener una habitación (WiFi, TV, A/C, Secadora, etc.).
 
-**Migración**: `2026_05_20_000003_create_hab_areas_table.php`
-**Modelo**: `App\Models\Espacios\Area`
+**Migración**: `2026_05_20_000001_create_habitacion_tables.php`
+**Modelo**: `App\Models\Habitaciones\Amenidad`
+
+| Campo | Tipo | Nulo | Por Defecto | Descripción |
+| :--- | :--- | :---: | :--- | :--- |
+| **id** | `bigint UNSIGNED` | No | Auto | Clave primaria |
+| **nombre** | `varchar(255)` | No | — | Nombre de la amenidad |
+| **icono** | `varchar(255)` | Sí | `NULL` | Icono o identificador visual |
+| **categoria** | `varchar(255)` | Sí | `NULL` | Categoría: `baño`, `tecnología`, `habitación` |
+| **created_at** | `timestamp` | Sí | `NULL` | |
+| **updated_at** | `timestamp` | Sí | `NULL` | |
+
+---
+
+### 1.3 `servicios`
+Catálogo de servicios ofrecidos por habitación (Desayuno, Parking, Shuttle, etc.).
+
+**Migración**: `2026_05_20_000001_create_habitacion_tables.php`
+**Modelo**: `App\Models\Habitaciones\Servicio`
+
+| Campo | Tipo | Nulo | Por Defecto | Descripción |
+| :--- | :--- | :---: | :--- | :--- |
+| **id** | `bigint UNSIGNED` | No | Auto | |
+| **nombre** | `varchar(255)` | No | — | Nombre del servicio |
+| **descripcion** | `text` | Sí | `NULL` | |
+| **created_at** | `timestamp` | Sí | `NULL` | |
+| **updated_at** | `timestamp` | Sí | `NULL` | |
+
+---
+
+### 1.4 `politicas`
+Catálogo de políticas de habitación (cancelación, check-in, mascotas, restricciones).
+
+**Migración**: `2026_05_20_000001_create_habitacion_tables.php`
+**Modelo**: `App\Models\Habitaciones\Politica`
+
+| Campo | Tipo | Nulo | Por Defecto | Descripción |
+| :--- | :--- | :---: | :--- | :--- |
+| **id** | `bigint UNSIGNED` | No | Auto | Clave primaria |
+| **tipo** | `varchar(255)` | No | — | Tipo: `cancelacion`, `check_in`, `mascotas`, `restriccion` |
+| **titulo** | `varchar(255)` | No | — | Título de la política |
+| **contenido** | `text` | No | — | Contenido detallado |
+| **created_at** | `timestamp` | Sí | `NULL` | |
+| **updated_at** | `timestamp` | Sí | `NULL` | |
+
+---
+
+### 1.5 `espacios`
+Catálogo de espacios comunes del hotel — reemplaza hab_areas. Incluye salones, restaurantes, spas, gimnasios y áreas comunes.
+
+**Migración**: `2026_05_20_000001_create_habitacion_tables.php`
+**Modelo**: `App\Models\Espacios\Espacio`
 
 | Campo | Tipo | Nulo | Por Defecto | Descripción |
 | :--- | :--- | :---: | :--- | :--- |
 | **id** | `bigint UNSIGNED` | No | Auto | Clave primaria autoincremental |
-| **codigo** | `varchar(20)` | No | — | Código único del área (ej: `REST-1`, `SPA`, `SALON-A`). Único en la tabla |
-| **nombre** | `varchar(100)` | No | — | Nombre descriptivo del área |
-| **tipo** | `varchar(30)` | No | — | Categoría del área: `salon`, `restaurante`, `area_comun`, `otro` |
-| **capacidad** | `int` | Sí | `NULL` | Aforo máximo de personas (para salones de eventos) |
-| **activa** | `boolean` | No | `true` | Indica si el área está habilitada para asignaciones |
-| **created_at** | `timestamp` | Sí | `NULL` | Fecha de creación |
-| **updated_at** | `timestamp` | Sí | `NULL` | Fecha de última modificación |
+| **codigo** | `varchar(20)` | No | — | Código único (ej: `REST-1`, `SPA`). Único en la tabla |
+| **nombre** | `varchar(100)` | No | — | Nombre descriptivo |
+| **tipo** | `varchar(30)` | No | — | `salon`, `restaurante`, `spa`, `gimnasio`, `area_comun` |
+| **capacidad** | `int` | Sí | `NULL` | Aforo máximo |
+| **activa** | `boolean` | No | `true` | Habilitado para operaciones |
+| **created_at** | `timestamp` | Sí | `NULL` | |
+| **updated_at** | `timestamp` | Sí | `NULL` | |
 
 **Índices**:
 - `PRIMARY KEY (id)`
 - `UNIQUE (codigo)`
+
+---
+
+### 1.6 Tablas Pivote (Habitación ↔ Amenidades/Servicios/Políticas)
+
+Three pivot tables for many-to-many relationships:
+
+**`habitacion_amenidad`**: (`habitacion_id` FK, `amenidad_id` FK) — PRIMARY KEY composite. `cascadeOnDelete`.
+**`habitacion_servicio`**: (`habitacion_id` FK, `servicio_id` FK, `incluido` boolean default `true`) — PRIMARY KEY composite. `cascadeOnDelete`.
+**`habitacion_politica`**: (`habitacion_id` FK, `politica_id` FK) — PRIMARY KEY composite. `cascadeOnDelete`.
+
+---
+
+### 1.7 `habitacion_imagenes`
+Galería de imágenes de cada habitación.
+
+**Migración**: `2026_05_20_000001_create_habitacion_tables.php`
+**Modelo**: `App\Models\Habitaciones\ImagenHabitacion`
+
+| Campo | Tipo | Nulo | Por Defecto | Descripción |
+| :--- | :--- | :---: | :--- | :--- |
+| **id** | `bigint UNSIGNED` | No | Auto | Clave primaria |
+| **habitacion_id** | `bigint UNSIGNED` | No | — | FK → `habitaciones` (cascadeOnDelete) |
+| **ruta** | `varchar(255)` | No | — | Ruta o URL de la imagen |
+| **orden** | `int` | No | `0` | Orden de visualización |
+| **created_at** | `timestamp` | Sí | `NULL` | |
+| **updated_at** | `timestamp` | Sí | `NULL` | |
 
 ---
 
@@ -301,87 +358,7 @@ Bitácora histórica e inmutable de todas las transacciones de inventario. Cada 
 
 ---
 
-### 3.4 `inv_par_stock`
-Define los límites mínimos y objetivos de stock para cada producto en cada bodega real. Cuando el stock cae por debajo del mínimo, `GenerarReposicionesBodega` genera automáticamente una orden de reposición.
-
-**Migración**: `2026_05_20_000007_modify_inv_par_stock_table.php` (recrea la tabla desde cero)
-**Modelo**: `App\Models\Inventario\ParStock`
-
-#### Cambio Clave del v1 al v2.1
-En el v1, `inv_par_stock` usaba un campo polimórfico `ambito` + `ambito_id` para apuntar a habitaciones, salones, módulos o ubicaciones. En el v2.1, usa directamente `ubicacion_id` apuntando a una **bodega física real**.
-
-| Campo | Tipo | Nulo | Por Defecto | Descripción |
-| :--- | :--- | :---: | :--- | :--- |
-| **id** | `bigint UNSIGNED` | No | Auto | Clave primaria autoincremental |
-| **producto_id** | `bigint UNSIGNED` | No | — | FK → `productos` (cascadeOnDelete). Producto al que aplica esta regla PAR |
-| **producto_variante_id** | `bigint UNSIGNED` | Sí | `NULL` | FK → `producto_variantes` (nullOnDelete). Variante específica. Si es `NULL`, aplica a todas las variantes |
-| **ubicacion_id** | `bigint UNSIGNED` | No | — | FK → `ubicaciones` (cascadeOnDelete). **Bodega real** donde se controla el PAR Stock (tipo `almacen`) |
-| **stock_minimo** | `decimal(14,4)` | No | `0.0000` | Nivel mínimo tolerable. Al caer por debajo de este valor se genera una orden de reposición |
-| **stock_objetivo** | `decimal(14,4)` | No | `0.0000` | Nivel objetivo de reabastecimiento. Se repone hasta este nivel |
-| **created_at** | `timestamp` | Sí | `NULL` | Fecha de creación |
-| **updated_at** | `timestamp` | Sí | `NULL` | Fecha de última modificación |
-
-**Restricción Única**:
-- `inv_par_stock_unique (producto_id, producto_variante_id, ubicacion_id)` — Una sola regla PAR por producto+variante+bodega
-
----
-
-### 3.5 `inv_reposiciones`
-Cabecera de las órdenes de reabastecimiento entre bodegas. Registra el origen (bodega que surte), el destino (bodega que recibe) y el estado de la orden.
-
-**Migración**: `2026_05_20_000008_modify_inv_reposiciones_table.php` (recrea la tabla desde cero)
-**Modelo**: `App\Models\Inventario\Reposicion`
-
-#### Cambio Clave del v1 al v2.1
-En el v1, `inv_reposiciones` usaba `ambito` + `ambito_id` polimórfico para el destino. En el v2.1 usa `origen_id` y `destino_id` explícitos apuntando a bodegas reales.
-
-#### Generación del `codigo`
-El código se genera automáticamente en `GenerarReposicionesBodega::execute()`:
-```php
-$codigo = 'REP-' . now()->format('Ymd') . '-' . str_pad((string)rand(1, 9999), 4, '0', STR_PAD_LEFT);
-// Ejemplo: REP-20260520-0042
-```
-
-| Campo | Tipo | Nulo | Por Defecto | Descripción |
-| :--- | :--- | :---: | :--- | :--- |
-| **id** | `bigint UNSIGNED` | No | Auto | Clave primaria autoincremental |
-| **codigo** | `varchar(30)` | No | — | Folio único de la orden. Formato `REP-{Ymd}-{NNNN}`. Generado automáticamente |
-| **origen_id** | `bigint UNSIGNED` | No | — | FK → `ubicaciones` (cascadeOnDelete). Bodega que surte el stock (generalmente el Almacén General) |
-| **destino_id** | `bigint UNSIGNED` | No | — | FK → `ubicaciones` (cascadeOnDelete). Bodega que recibe el stock (ej: Bodega Piso 1) |
-| **estado** | `varchar(20)` | No | `pendiente` | Estado del ciclo de vida: `pendiente`, `procesada`, `cancelada` |
-| **creado_por_id** | `bigint UNSIGNED` | Sí | `NULL` | FK → `users` (nullOnDelete). Usuario o proceso que generó la orden |
-| **procesado_por_id** | `bigint UNSIGNED` | Sí | `NULL` | FK → `users` (nullOnDelete). Usuario que autorizó y ejecutó el surtido |
-| **fecha_proceso** | `timestamp` | Sí | `NULL` | Fecha y hora en que se procesó físicamente la reposición |
-| **notas** | `text` | Sí | `NULL` | Observaciones o comentarios de la orden |
-| **created_at** | `timestamp` | Sí | `NULL` | Fecha de creación |
-| **updated_at** | `timestamp` | Sí | `NULL` | Fecha de última modificación |
-| **deleted_at** | `timestamp` | Sí | `NULL` | Soft Delete |
-
-**Índices**:
-- `index (estado)` — Filtra rápidamente las órdenes pendientes en el panel Filament
-
----
-
-### 3.6 `inv_reposicion_items`
-Líneas de detalle de cada orden de reposición: qué producto se solicita, cuánto se pidió y cuánto se surtió efectivamente.
-
-**Migración**: `2026_05_20_000008_modify_inv_reposiciones_table.php` (misma migración)
-**Modelo**: `App\Models\Inventario\ReposicionItem`
-
-| Campo | Tipo | Nulo | Por Defecto | Descripción |
-| :--- | :--- | :---: | :--- | :--- |
-| **id** | `bigint UNSIGNED` | No | Auto | Clave primaria autoincremental |
-| **reposicion_id** | `bigint UNSIGNED` | No | — | FK → `inv_reposiciones` (cascadeOnDelete). Orden de reposición cabecera |
-| **producto_id** | `bigint UNSIGNED` | No | — | FK → `productos` (cascadeOnDelete). Producto a reabastecer |
-| **producto_variante_id** | `bigint UNSIGNED` | Sí | `NULL` | FK → `producto_variantes` (nullOnDelete). Variante específica |
-| **cantidad_solicitada** | `decimal(14,4)` | No | — | Cantidad calculada por `GenerarReposicionesBodega` para alcanzar el stock objetivo |
-| **cantidad_surtida** | `decimal(14,4)` | No | `0.0000` | Cantidad efectivamente surtida al procesar la reposición. Puede diferir de la solicitada si hay stock insuficiente en el origen |
-| **created_at** | `timestamp` | Sí | `NULL` | Fecha de creación |
-| **updated_at** | `timestamp` | Sí | `NULL` | Fecha de última modificación |
-
----
-
-### 3.7 `inv_inventarios_fisicos`
+### 3.4 `inv_inventarios_fisicos`
 Registro de las tomas periódicas de inventario físico para auditorías y corrección de discrepancias entre el stock lógico y el real.
 
 **Migración**: `2026_05_18_000003_create_inventarios_fisicos_table.php`
@@ -420,22 +397,22 @@ INVENTARIO — NÚCLEO:
   ├── inv_lotes + inv_movimientos    (2026_05_17_000002)
   └── inv_inventarios_fisicos        (2026_05_18_000003)
 
-ESPACIOS FÍSICOS (nuevo v2.1):
-  ├── hab_tipos_habitacion           (2026_05_20_000001)
-  ├── hab_habitaciones               (2026_05_20_000002)
-  ├── hab_areas                      (2026_05_20_000003)
-  ├── hab_inventario_fijo            (2026_05_20_000004)
+ESPACIOS FÍSICOS Y CATÁLOGOS (nuevo v2.1):
+  ├── amenidades + servicios + politicas +
+  │   habitaciones + espacios + pivotes +
+  │   habitacion_imagenes                (2026_05_20_000001)
+  ├── ADD categoria_id a plantillas;
+  │   UPDATE espacio_tipo area → espacio  (2026_05_20_000002)
+  ├── hab_inventario_fijo                (2026_05_12_000004) -- unchanged
   └── hab_plantillas_dotacion +
-      hab_plantilla_items            (2026_05_20_000005)
+      hab_plantilla_items                (2026_05_12_000005)+
+                                          (2026_05_12_000006) -- unchanged
 
 STOCK DE BODEGAS (nuevo v2.1):
   └── inv_stock                      (2026_05_20_000006)
 
 RECONSTRUCCIÓN v1 → v2.1:
-  ├── DROP inv_reservas, inv_stock_ubicacion, inv_modulos
-  ├── DROP + CREATE inv_par_stock    (2026_05_20_000007)
-  └── DROP + CREATE inv_reposiciones +
-      inv_reposicion_items           (2026_05_20_000008)
+  └── DROP inv_reservas, inv_stock_ubicacion, inv_modulos
 ```
 
 ---
@@ -447,10 +424,11 @@ RECONSTRUCCIÓN v1 → v2.1:
 php artisan migrate:fresh --seed
 
 # O manualmente por seeder:
-php artisan db:seed --class=Database\\Seeders\\UbicacionSeeder    # 1. Crea Almacén General (tipo='almacen')
-php artisan db:seed --class=Database\\Seeders\\ProductoSeeder     # 2. Productos del hotel
-php artisan db:seed --class=Database\\Seeders\\ProveedorSeeder    # 3. Proveedores de suministros
-php artisan db:seed --class=Database\\Seeders\\InventarioSeeder   # 4. Lotes y stock inicial
+php artisan db:seed --class=Database\\Seeders\\UbicacionSeeder       # 1. Crea Almacén General
+php artisan db:seed --class=Database\\Seeders\\ProductoSeeder        # 2. Productos del hotel
+php artisan db:seed --class=Database\\Seeders\\ProveedorSeeder       # 3. Proveedores
+php artisan db:seed --class=Database\\Seeders\\HabitacionSeeder      # 4. Habitaciones, amenidades, servicios, políticas, espacios
+php artisan db:seed --class=Database\\Seeders\\InventarioSeeder      # 5. Lotes y stock inicial
 ```
 
 ### `UbicacionSeeder`
@@ -465,17 +443,33 @@ Ubicacion::create([
 > [!IMPORTANT]
 > El **Almacén General** debe tener `tipo = 'almacen'` y `estado = 1`. `PutawayPolicy` busca específicamente esta configuración para asignar inventario recibido.
 
+### `HabitacionSeeder`
+Inserta datos demo del módulo de habitaciones:
+- 2 registros en catalogos (CATEGORIA_HAB, CAPACIDAD_HAB)
+- 3 habitaciones (101 Estándar Doble, 102 Estándar Doble, 201 Suite Sencilla)
+- 6 amenidades (WiFi, TV, A/C, Secadora, Caja Fuerte, Balcón)
+- 4 servicios (Desayuno, Estacionamiento, Transporte Aeropuerto, Lavandería)
+- 3 políticas (Cancelación, Check-in, No Fumar)
+- 2 espacios (Restaurante Principal, Spa)
+- Pivotes de amenidades/servicios/políticas para cada habitación
+
 ### `InventarioSeeder`
 Genera lotes iniciales de stock del hotel vinculados al Almacén General, registrando los movimientos de `MOV_ENTRADA` correspondientes y poblando `inv_stock` con las existencias iniciales.
 
 ---
 
-## ❌ Tablas Eliminadas (v1 — NO USAR)
+## ❌ Tablas Eliminadas (v1 y v2.2 — NO USAR)
 
-Las siguientes tablas existieron en el v1 y fueron eliminadas en la migración `2026_05_20_000007`. **No deben ser referenciadas en ningún código nuevo.**
+Las siguientes tablas existieron en versiones anteriores y fueron eliminadas. **No deben ser referenciadas en ningún código nuevo.**
 
 | Tabla | Por qué existía | Por qué se eliminó |
 | :--- | :--- | :--- |
+| **`hab_tipos_habitacion`** | Catálogo de tipos de habitación con campos fijos | Reemplazado por catalogos (`CATEGORIA_HAB` + `CAPACIDAD_HAB`) más flexibles. Eliminada en `2026_05_20_000002` |
+| **`hab_habitaciones`** | Registro de habitaciones con FK a `hab_tipos_habitacion` | Reemplazada por nueva tabla `habitaciones` con `categoria_id`/`capacidad_id` a catalogos. Eliminada en `2026_05_20_000002` |
+| **`hab_areas`** | Catálogo de áreas comunes (salones, restaurantes) | Reemplazada por `espacios`. Eliminada en `2026_05_20_000002` |
 | **`inv_modulos`** | Sub-almacenes polimórficos (minibares, carritos) ligados a habitaciones/salones | Concepto erróneo: mezclaba camas, TVs y champús en el mismo modelo |
 | **`inv_stock_ubicacion`** | Distribución física de stock con campo `ambito` (`H`, `S`, `U`, `M`) | Reemplazado por `inv_stock` que solo usa bodegas reales (`ubicaciones` tipo `almacen`) |
+| **`inv_par_stock`** | Configuración PAR (mínimos/objetivo) para reposición automática | Módulo de reposiciones removido en v2.3 |
+| **`inv_reposiciones`** | Cabecera de órdenes de reabastecimiento entre bodegas | Módulo de reposiciones removido en v2.3 |
+| **`inv_reposicion_items`** | Líneas de detalle de cada orden de reposición | Módulo de reposiciones removido en v2.3 |
 | **`inv_reservas`** | Aislamiento temporal de stock para prevenir consumos concurrentes | El nuevo flujo de dotación por plantilla elimina la necesidad de reservas temporales |

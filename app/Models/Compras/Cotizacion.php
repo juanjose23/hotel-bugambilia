@@ -4,7 +4,7 @@ namespace App\Models\Compras;
 
 use App\Enums\Compras\EstadoCotizacion;
 use App\Models\Catalogos\Catalogo;
-use App\Models\General\Moneda;
+use App\Models\Monedas\Moneda;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -241,7 +241,17 @@ return [
         'Compras:ImprimirComparativa',
         'Compras:ViewComparativaCotizaciones',
         'Compras:ViewComparativaSolicitud',
-        'Inventario:ImprimirReportes',
+        'Inventario:ReporteStock',
+        'Inventario:ReporteMovimientos',
+        'Inventario:ReporteCuarentena',
+        'Inventario:ReporteProximosVencer',
+        'Inventario:ReporteMermas',
+        'Inventario:ReporteValorizacion',
+        'Inventario:ReporteRotacion',
+        'Inventario:ReporteMermasTotales',
+        'Inventario:ReporteTrazabilidad',
+        'Inventario:ReporteVencidos',
+        'Servicios:ReporteHistoricoPrecios',
     ],
 
     /*

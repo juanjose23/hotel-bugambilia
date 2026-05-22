@@ -56,8 +56,7 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('15s')
             ->profile()
-            // ->topNavigation()
-            ->sidebarWidth('16rem')
+            ->sidebarWidth('17rem')
             ->collapsedSidebarWidth('9rem')
             ->plugins(array_filter([
                 AuthDesignerPlugin::make()

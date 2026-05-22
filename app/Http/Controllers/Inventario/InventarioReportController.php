@@ -62,7 +62,7 @@ class InventarioReportController extends Controller
 
     public function stockPorProductoPdf(): PdfBuilder
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteStock');
         $this->auditoria('HTB-INV-001');
 
         $filas = app(ObtenerStockPorProducto::class)->ejecutar([
@@ -77,7 +77,7 @@ class InventarioReportController extends Controller
 
     public function stockPorProductoExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteStock');
         $this->auditoria('HTB-INV-001');
 
         return Excel::download(new StockPorProductoExport([
@@ -90,7 +90,7 @@ class InventarioReportController extends Controller
 
     public function movimientosPdf(): PdfBuilder
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteMovimientos');
         $this->auditoria('HTB-INV-003');
 
         $filtros = [
@@ -110,7 +110,7 @@ class InventarioReportController extends Controller
 
     public function movimientosExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteMovimientos');
         $this->auditoria('HTB-INV-003');
 
         return Excel::download(new MovimientosInventarioExport([
@@ -125,7 +125,7 @@ class InventarioReportController extends Controller
 
     public function cuarentenaPdf(): PdfBuilder
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteCuarentena');
         $this->auditoria('HTB-INV-004');
 
         $lotes = app(ObtenerLotesCuarentena::class)->ejecutar([
@@ -139,7 +139,7 @@ class InventarioReportController extends Controller
 
     public function cuarentenaExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteCuarentena');
         $this->auditoria('HTB-INV-004');
 
         return Excel::download(new LotesCuarentenaExport([
@@ -151,7 +151,7 @@ class InventarioReportController extends Controller
 
     public function proximosVencerPdf(): PdfBuilder
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteProximosVencer');
         $this->auditoria('HTB-INV-005');
 
         $dias = (int) request('dias', 30);
@@ -168,7 +168,7 @@ class InventarioReportController extends Controller
 
     public function proximosVencerExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteProximosVencer');
         $this->auditoria('HTB-INV-005');
 
         $dias = (int) request('dias', 30);
@@ -183,7 +183,7 @@ class InventarioReportController extends Controller
 
     public function mermasPdf(): PdfBuilder
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteMermas');
         $this->auditoria('HTB-INV-006');
 
         $filtros = [
@@ -202,7 +202,7 @@ class InventarioReportController extends Controller
 
     public function mermasExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteMermas');
         $this->auditoria('HTB-INV-006');
 
         return Excel::download(new LotesMermaExport([
@@ -216,7 +216,7 @@ class InventarioReportController extends Controller
 
     public function valorizacionPdf(): PdfBuilder
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteValorizacion');
         $this->auditoria('HTB-INV-007');
 
         $uc = app(ObtenerValorizacionInventario::class);
@@ -230,7 +230,7 @@ class InventarioReportController extends Controller
 
     public function valorizacionExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteValorizacion');
         $this->auditoria('HTB-INV-007');
 
         return Excel::download(new ValorizacionInventarioExport([
@@ -242,7 +242,7 @@ class InventarioReportController extends Controller
 
     public function rotacionExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteRotacion');
         $this->auditoria('HTB-INV-008');
 
         $meses = (int) request('meses', 3);
@@ -254,7 +254,7 @@ class InventarioReportController extends Controller
 
     public function mermasTotalesExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteMermasTotales');
         $this->auditoria('HTB-INV-009');
 
         return Excel::download(new MermasTotalesExport([
@@ -267,7 +267,7 @@ class InventarioReportController extends Controller
 
     public function trazabilidadLotePdf(int $loteId): PdfBuilder
     {
-        $this->authorize('View:Lote');
+        $this->authorize('Inventario:ReporteTrazabilidad');
         $this->auditoria('HTB-INV-011');
 
         $data = app(TrazabilidadLoteHaciaAdelante::class)->ejecutar($loteId);
@@ -282,7 +282,7 @@ class InventarioReportController extends Controller
 
     public function vencidosPdf(): PdfBuilder
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteVencidos');
         $this->auditoria('HTB-INV-012');
 
         $lotes = app(ObtenerLotesVencidos::class)->ejecutar([
@@ -296,7 +296,7 @@ class InventarioReportController extends Controller
 
     public function vencidosExcel(): BinaryFileResponse
     {
-        $this->authorize('ViewAny:Lote');
+        $this->authorize('Inventario:ReporteVencidos');
         $this->auditoria('HTB-INV-012');
 
         return Excel::download(new LotesVencidosExport([

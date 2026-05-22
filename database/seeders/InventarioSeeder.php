@@ -6,15 +6,8 @@ use App\Enums\Inventario\EstadoLote;
 use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Compras\Proveedor;
-use App\Models\Espacios\Area;
-use App\Models\Espacios\Habitacion;
-use App\Models\Espacios\InventarioFijo;
-use App\Models\Espacios\PlantillaDotacion;
-use App\Models\Espacios\PlantillaItem;
-use App\Models\Espacios\TipoHabitacion;
 use App\Models\Inventario\Lote;
 use App\Models\Inventario\MovimientoStock;
-use App\Models\Inventario\ParStock;
 use App\Models\Inventario\Stock;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -139,132 +132,6 @@ class InventarioSeeder extends Seeder
                 'creado_por_id' => $admin?->id,
                 'referencia' => 'Consumo Completo / Vencido',
                 'created_at' => now()->subMonths(1),
-            ]);
-        }
-
-        // 4. Crear Tipos de Habitación
-        $tipoSimple = TipoHabitacion::create([
-            'codigo' => 'STD-SMP',
-            'nombre' => 'Estándar Simple',
-            'capacidad_max' => 1,
-            'descripcion' => 'Habitación estándar con una cama individual',
-        ]);
-
-        $tipoDoble = TipoHabitacion::create([
-            'codigo' => 'STD-DBL',
-            'nombre' => 'Estándar Doble',
-            'capacidad_max' => 2,
-            'descripcion' => 'Habitación estándar con dos camas matrimoniales',
-        ]);
-
-        $tipoSuite = TipoHabitacion::create([
-            'codigo' => 'STE-PREM',
-            'nombre' => 'Suite Premium',
-            'capacidad_max' => 4,
-            'descripcion' => 'Suite ejecutiva premium con vista al jardín',
-        ]);
-
-        // 5. Crear Habitaciones
-        $hab101 = Habitacion::create([
-            'numero' => '101',
-            'tipo_id' => $tipoSimple->id,
-            'piso' => 1,
-            'estado' => 'disponible',
-            'activa' => true,
-        ]);
-
-        $hab102 = Habitacion::create([
-            'numero' => '102',
-            'tipo_id' => $tipoDoble->id,
-            'piso' => 1,
-            'estado' => 'disponible',
-            'activa' => true,
-        ]);
-
-        $hab201 = Habitacion::create([
-            'numero' => '201',
-            'tipo_id' => $tipoSuite->id,
-            'piso' => 2,
-            'estado' => 'disponible',
-            'activa' => true,
-        ]);
-
-        // 6. Crear Áreas Comunes
-        $restaurante = Area::create([
-            'codigo' => 'REST-BUG',
-            'nombre' => 'Restaurante Bugambilias',
-            'tipo' => 'restaurante',
-            'capacidad' => 120,
-            'activa' => true,
-        ]);
-
-        $spa = Area::create([
-            'codigo' => 'SPA-GYM',
-            'nombre' => 'Spa & Gimnasio',
-            'tipo' => 'area_comun',
-            'capacidad' => 30,
-            'activa' => true,
-        ]);
-
-        // 7. Crear Plantilla de Dotación
-        $plantillaSimple = PlantillaDotacion::create([
-            'nombre' => 'Dotación Básica Simple',
-            'espacio_tipo' => 'habitacion',
-            'tipo_id' => $tipoSimple->id,
-            'activa' => true,
-            'notas' => 'Dotación básica para habitaciones individuales',
-        ]);
-
-        // Asignar algunos consumibles a la plantilla
-        foreach ($productos->take(3) as $prod) {
-            PlantillaItem::create([
-                'plantilla_id' => $plantillaSimple->id,
-                'producto_id' => $prod->id,
-                'cantidad' => 2.0,
-                'es_reposicion_diaria' => true,
-            ]);
-        }
-
-        // 8. Crear Inventario Fijo (Activos Fijos) en Habitación 101 y Restaurante
-        $tvActivo = Producto::where('nombre', 'like', '%televisor%')->orWhere('nombre', 'like', '%TV%')->first();
-        if (! $tvActivo) {
-            $tvActivo = $productos->first();
-        }
-
-        InventarioFijo::create([
-            'espacio_tipo' => 'habitacion',
-            'espacio_id' => $hab101->id,
-            'producto_id' => $tvActivo->id,
-            'cantidad' => 1.0,
-            'estado' => 'operativo',
-            'notas' => 'Smart TV 43 pulgadas',
-        ]);
-
-        InventarioFijo::create([
-            'espacio_tipo' => 'area',
-            'espacio_id' => $restaurante->id,
-            'producto_id' => $tvActivo->id,
-            'cantidad' => 2.0,
-            'estado' => 'operativo',
-            'notas' => 'Smart TV 55 pulgadas para área de comensales',
-        ]);
-
-        // 9. Crear Bodegas secundarias para los pisos y Par Stock
-        $bodegaPiso1 = Ubicacion::create([
-            'tipo' => 'almacen',
-            'nombre' => 'Bodega Piso 1',
-            'descripcion' => 'Bodega secundaria para dotación de habitaciones de planta baja',
-            'orden' => 5,
-            'estado' => 1,
-        ]);
-
-        // Crear Par Stock para Bodega Piso 1
-        foreach ($productos->take(3) as $prod) {
-            ParStock::create([
-                'producto_id' => $prod->id,
-                'ubicacion_id' => $bodegaPiso1->id,
-                'stock_minimo' => 10.0,
-                'stock_objetivo' => 50.0,
             ]);
         }
     }
