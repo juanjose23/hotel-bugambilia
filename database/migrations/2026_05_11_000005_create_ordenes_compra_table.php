@@ -77,6 +77,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE ordenes_compra DROP CONSTRAINT IF EXISTS chk_ordenes_estado');
+        }
+
         Schema::dropIfExists('ordenes_compra');
     }
 };

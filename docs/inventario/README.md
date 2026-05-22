@@ -1,8 +1,8 @@
-# Sistema de Inventario v2.1 — Hotel Bugambilias
+# Sistema de Inventario v2.3 — Hotel Bugambilias
 
-Bienvenido a la documentación maestra del **Módulo de Inventario v2.1** de la plataforma del Hotel Bugambilias (Laravel 13 + Filament v5).
+Bienvenido a la documentación maestra del **Módulo de Inventario v2.3** de la plataforma del Hotel Bugambilias (Laravel 13 + Filament v5).
 
-Este módulo fue rediseñado por completo en la versión 2.1 para corregir el error conceptual del v1, que mezclaba activos fijos y consumibles en un único modelo polimórfico (`inv_stock_ubicacion` + `inv_modulos`). En la versión actual, el sistema opera bajo una **arquitectura de tres capas limpias y desacopladas**.
+Este módulo fue rediseñado por completo en la versión 2.2 para corregir el error conceptual del v1, que mezclaba activos fijos y consumibles en un único modelo polimórfico (`inv_stock_ubicacion` + `inv_modulos`). En la versión actual, el sistema opera bajo una **arquitectura de tres capas limpias y desacopladas**.
 
 > [!IMPORTANT]
 > **El módulo de Inventario es autónomo.** No tiene llaves foráneas hacia Reservas ni hacia Huéspedes. El módulo de Reservas consume sus servicios mediante eventos o llamadas directas, nunca al revés.
@@ -37,7 +37,8 @@ Los siguientes elementos del diseño v1 fueron declarados obsoletos y eliminados
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  CAPA 1 — ESPACIOS FÍSICOS                               │
-│  hab_tipos_habitacion, hab_habitaciones, hab_areas       │
+│  catalogos (CATEGORIA_HAB/CAPACIDAD_HAB),                 │
+│  habitaciones, amenidades, servicios, politicas, espacios │
 │  ¿Qué espacios existen en el hotel?                      │
 └──────────────────────────────────────────────────────────┘
             │ pertenece / referencia
@@ -56,8 +57,6 @@ Los siguientes elementos del diseño v1 fueron declarados obsoletos y eliminados
 │  CAPA 3 — STOCK DE BODEGAS (Consumibles)                 │
 │  inv_lotes, inv_stock, inv_movimientos                   │
 │  → Solo en ubicaciones físicas tipo 'almacen'            │
-│  inv_par_stock, inv_reposiciones, inv_reposicion_items   │
-│  → Configuración y ejecución de reabastecimiento         │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -71,7 +70,7 @@ Los siguientes elementos del diseño v1 fueron declarados obsoletos y eliminados
 
 ---
 
-## 🔄 Ciclo de Vida del Producto (v2.1)
+## 🔄 Ciclo de Vida del Producto (v2.3)
 
 ```mermaid
 graph TD
@@ -90,11 +89,7 @@ graph TD
     H -->|ReponerEspacio| I
     I -->|RegistrarDevolucion| H
 
-    G -->|GenerarReposicionesBodega| J[inv_reposiciones: pendiente]
-    J -->|ProcesarReposicion| H
-
     D -->|VerificarCaducidades 06:00| Z
-    G -->|ConsumirStock FEFO| K[inv_movimientos: CONSUMO]
 ```
 
 ---
@@ -109,4 +104,4 @@ graph TD
 
 ---
 
-*Hotel Bugambilias — Módulo de Inventario v2.1*
+*Hotel Bugambilias — Módulo de Inventario v2.3*

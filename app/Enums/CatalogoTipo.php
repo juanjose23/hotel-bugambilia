@@ -4,12 +4,6 @@ namespace App\Enums;
 
 enum CatalogoTipo: string
 {
-    // Habitaciones
-    case CATEGORIA_HAB = 'CATEGORIA_HAB';
-    case CAPACIDAD_HAB = 'CAPACIDAD_HAB';
-    case TIPO_TARIFA = 'TIPO_TARIFA';
-    case AMENIDAD_HAB = 'AMENIDAD_HAB';
-
     // Colaboradores
     case CARGO = 'CARGO';
     case DEPARTAMENTO = 'DEPARTAMENTO';
@@ -25,12 +19,9 @@ enum CatalogoTipo: string
     // Inventario
     case TIPO_MOVIMIENTO_INV = 'TIPO_MOVIMIENTO_INV';
 
-    // Compras y Proveedores
+    // Proveedores
     case CONDICION_PAGO = 'CONDICION_PAGO';
     case TIPO_PROVEEDOR = 'TIPO_PROVEEDOR';
-    case ESTADO_SOLICITUD = 'ESTADO_SOLICITUD';
-    case ESTADO_ORDEN_COMPRA = 'ESTADO_ORDEN_COMPRA';
-    case ESTADO_RECEPCION = 'ESTADO_RECEPCION';
 
     // Servicios
     case CATEGORIA_SERVICIO = 'CATEGORIA_SERVICIO';
@@ -43,16 +34,5 @@ enum CatalogoTipo: string
     public static function options(): array
     {
         return array_column(self::cases(), 'value', 'value');
-    }
-
-    public static function byCode(string $code): ?self
-    {
-        foreach (self::cases() as $case) {
-            if ($case->value === $code) {
-                return $case;
-            }
-        }
-
-        return null;
     }
 }

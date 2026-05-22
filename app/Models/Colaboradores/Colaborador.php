@@ -3,8 +3,8 @@
 namespace App\Models\Colaboradores;
 
 use App\Enums\EstadoCatalogo;
-use App\Models\General\Imagen;
 use App\Models\Personas\Persona;
+use App\Models\Shared\Imagen;
 use Database\Factories\ColaboradorFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

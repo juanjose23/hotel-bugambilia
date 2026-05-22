@@ -11,20 +11,6 @@ class CatalogoSeeder extends Seeder
     {
         $tipos = DB::table('catalogo_tipos')->pluck('id', 'codigo');
 
-        // --- 1. CATEGORÍAS DE HABITACIÓN (Planos) ---
-        $this->insertar($tipos['CATEGORIA_HAB'], [
-            ['codigo' => 'CAT_ESTANDAR', 'nombre' => 'Estándar'],
-            ['codigo' => 'CAT_SUPERIOR', 'nombre' => 'Superior'],
-            ['codigo' => 'CAT_SUITE', 'nombre' => 'Suite'],
-        ]);
-
-        // --- 2. CAPACIDAD DE HABITACIÓN (Planos) ---
-        $this->insertar($tipos['CAPACIDAD_HAB'], [
-            ['codigo' => 'CAP_SIMPLE', 'nombre' => 'Sencilla (1 Persona)'],
-            ['codigo' => 'CAP_DOBLE', 'nombre' => 'Doble (2 Personas)'],
-            ['codigo' => 'CAP_TRIPLE', 'nombre' => 'Triple (3 Personas)'],
-        ]);
-
         // --- 3. CARGOS (JERÁRQUICO) ---
         $idGerenteGral = $this->insertarGetId($tipos['CARGO'], [
             'codigo' => 'CAR_GERENTE_GRAL',
@@ -55,23 +41,16 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'DEP_RECEPCION', 'nombre' => 'Recepción', 'padre_id' => $idOperaciones],
         ]);
 
-        // --- 5. CATEGORÍA DE SERVICIOS (JERÁRQUICO) ---
-        $idAlimentos = $this->insertarGetId($tipos['CATEGORIA_SERVICIO'], [
-            'codigo' => 'CAT_SERV_ALIMENTOS',
-            'nombre' => 'Alimentos y Bebidas',
-        ]);
+        // --- 5. CATEGORÍA DE SERVICIOS (PLANOS / JERÁRQUICOS) ---
         $this->insertar($tipos['CATEGORIA_SERVICIO'], [
-            ['codigo' => 'CAT_SERV_REST', 'nombre' => 'Restaurante', 'padre_id' => $idAlimentos],
-            ['codigo' => 'CAT_SERV_BAR', 'nombre' => 'Bar / Lounge', 'padre_id' => $idAlimentos],
-        ]);
-
-        $idBienestar = $this->insertarGetId($tipos['CATEGORIA_SERVICIO'], [
-            'codigo' => 'CAT_SERV_BIENESTAR',
-            'nombre' => 'Bienestar y Salud',
-        ]);
-        $this->insertar($tipos['CATEGORIA_SERVICIO'], [
-            ['codigo' => 'CAT_SERV_SPA', 'nombre' => 'Spa y Masajes', 'padre_id' => $idBienestar],
-            ['codigo' => 'CAT_SERV_GYM', 'nombre' => 'Gimnasio', 'padre_id' => $idBienestar],
+            ['codigo' => 'CAT_SERV_ALOJAMIENTO', 'nombre' => 'Alojamiento y Estancia'],
+            ['codigo' => 'CAT_SERV_BIENESTAR', 'nombre' => 'Bienestar y Relajación'],
+            ['codigo' => 'CAT_SERV_TRANSPORTE', 'nombre' => 'Transporte y Logística'],
+            ['codigo' => 'CAT_SERV_LAVANDERIA', 'nombre' => 'Lavandería y Limpieza'],
+            ['codigo' => 'CAT_SERV_NEGOCIOS', 'nombre' => 'Negocios y Eventos'],
+            ['codigo' => 'CAT_SERV_RECREACION', 'nombre' => 'Recreación y Entretenimiento'],
+            ['codigo' => 'CAT_SERV_VIP', 'nombre' => 'Servicios VIP y Personalizados'],
+            ['codigo' => 'CAT_SERV_TECNOLOGIA', 'nombre' => 'Tecnología y Conectividad'],
         ]);
 
         // --- 6. OTROS CATÁLOGOS PLANOS (ya existentes) ---
@@ -79,12 +58,6 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'CLI_REGULAR', 'nombre' => 'Regular'],
             ['codigo' => 'CLI_CORPORATIVO', 'nombre' => 'Corporativo'],
             ['codigo' => 'CLI_VIP', 'nombre' => 'VIP'],
-        ]);
-
-        $this->insertar($tipos['TIPO_TARIFA'], [
-            ['codigo' => 'TAR_RAC', 'nombre' => 'Tarifa Rack (Pública)'],
-            ['codigo' => 'TAR_CORP', 'nombre' => 'Tarifa Corporativa'],
-            ['codigo' => 'TAR_PROMO', 'nombre' => 'Tarifa Promocional'],
         ]);
 
         $this->insertar($tipos['TIPO_MOVIMIENTO_INV'], [

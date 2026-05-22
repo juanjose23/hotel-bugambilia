@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Inventario\Lote\Widgets;
 
-use App\Models\General\Moneda;
+use App\Models\Monedas\Moneda;
 use App\UseCases\Inventario\Queries\Stock\ObtenerValorizacionInventario;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Collection;

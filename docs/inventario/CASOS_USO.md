@@ -1,14 +1,14 @@
-# Casos de Uso — Inventario v2.1
+# Casos de Uso — Inventario v2.3
 
 Este documento cataloga todos los **Casos de Uso (Interactores)** del módulo de inventario, organizados por submódulo. Cada caso de uso contiene: namespace exacto, firma del método, trigger de ejecución y descripción detallada de su lógica interna.
 
 ---
 
-## 📂 Estructura de Directorios (v2.1)
+## 📂 Estructura de Directorios (v2.3)
 
 ```
 app/UseCases/Inventario/
-├── Espacios/                           ← Activos Fijos en Habitaciones y Áreas
+├── Espacios/                           ← Activos Fijos en Habitaciones y Espacios
 │   ├── AsignarActivoAEspacio.php
 │   ├── RetirarActivoDeEspacio.php
 │   └── ConsultarInventarioDeHabitacion.php
@@ -34,11 +34,6 @@ app/UseCases/Inventario/
 │       ├── ConsumirStock.php               ← UC-03: Consumo FEFO de bodega
 │       └── TrasladarEntreBodegas.php       ← Traslado entre almacenes físicos
 │
-├── Reposiciones/
-│   └── Mutations/
-│       ├── GenerarReposicionesBodega.php   ← Cálculo PAR y generación de órdenes
-│       └── ProcesarReposicion.php          ← Surtido y cierre de orden
-│
 ├── InventarioFisico/
 │   └── Mutations/
 │       └── ProcesarInventarioFisico.php    ← Ajustes por auditoría física
@@ -55,21 +50,21 @@ app/UseCases/Inventario/
 
 ## 🏠 Submódulo 1: Espacios (Activos Fijos)
 
-Gestiona los **activos fijos** asignados permanentemente a habitaciones y áreas del hotel. Estos no se consumen ni se rastrean en bodegas; viven en `hab_inventario_fijo`.
+Gestiona los **activos fijos** asignados permanentemente a habitaciones y espacios del hotel. Estos no se consumen ni se rastrean en bodegas; viven en `hab_inventario_fijo`.
 
 ---
 
 ### `AsignarActivoAEspacio`
 
-Asigna o actualiza un activo fijo en una habitación o área. Si ya existe una asignación del mismo producto+variante en ese espacio, actualiza la cantidad y el estado. Si no existe, la crea.
+Asigna o actualiza un activo fijo en una habitación o espacio. Si ya existe una asignación del mismo producto+variante en ese espacio, actualiza la cantidad y el estado. Si no existe, la crea.
 
 **Namespace**: `App\UseCases\Inventario\Espacios`
 **Trigger**: RelationManager `InventarioFijoRelationManager` en Filament (acción Crear/Editar)
 
 ```php
 public function execute(
-    string $espacioTipo,  // 'habitacion' | 'area'
-    int    $espacioId,    // ID de la habitación o área
+    string $espacioTipo,  // 'habitacion' | 'espacio'
+    int    $espacioId,    // ID de la habitación o espacio
     int    $productoId,   // Activo a asignar
     ?int   $varianteId,   // Variante específica (o null)
     float  $cantidad,     // Cantidad de unidades
@@ -78,7 +73,7 @@ public function execute(
 ```
 
 **Lógica**:
-1. Valida que `$espacioTipo` sea `'habitacion'` o `'area'`
+1. Valida que `$espacioTipo` sea `'habitacion'` o `'espacio'`
 2. Valida que `$cantidad > 0`
 3. Ejecuta `InventarioFijo::updateOrCreate()` con clave `(espacio_tipo, espacio_id, producto_id, producto_variante_id)` y establece `estado = 'operativo'`
 
@@ -114,7 +109,7 @@ Retorna la colección completa de activos fijos asignados a una habitación espe
 
 ```php
 public function execute(
-    string $espacioTipo,  // 'habitacion' | 'area'
+    string $espacioTipo,  // 'habitacion' | 'espacio'
     int    $espacioId     // ID del espacio
 ): Collection
 ```
@@ -123,20 +118,20 @@ public function execute(
 
 ## 🧴 Submódulo 2: Dotación (Consumibles)
 
-Gestiona el ciclo de preparación y reposición de consumibles en habitaciones y áreas, consumiendo stock de las bodegas físicas.
+Gestiona el ciclo de preparación y reposición de consumibles en habitaciones y espacios, consumiendo stock de las bodegas físicas.
 
 ---
 
 ### `PrepararEspacio`
 
-Aplica una plantilla de dotación a un espacio (habitación o área), consumiendo los ítems requeridos de la bodega física asignada usando la estrategia **FEFO**.
+Aplica una plantilla de dotación a un espacio (habitación o espacio común), consumiendo los ítems requeridos de la bodega física asignada usando la estrategia **FEFO**.
 
 **Namespace**: `App\UseCases\Inventario\Dotacion`
 **Trigger**: Acción de cabecera "Preparar Habitación" en Filament o evento del módulo de Reservas
 
 ```php
 public function execute(
-    string $espacioTipo,   // 'habitacion' | 'area'
+    string $espacioTipo,   // 'habitacion' | 'espacio'
     int    $espacioId,     // ID del espacio a preparar
     int    $plantillaId,   // ID de la plantilla de dotación a aplicar
     int    $ubicacionId,   // ID de la bodega física que surte los consumibles
@@ -146,7 +141,7 @@ public function execute(
 ```
 
 **Lógica**:
-1. Valida que `$espacioTipo` sea `'habitacion'` o `'area'`
+1. Valida que `$espacioTipo` sea `'habitacion'` o `'espacio'`
 2. Carga `PlantillaDotacion` con sus `items`
 3. Valida que la plantilla esté activa (`$plantilla->activa === true`)
 4. Para cada ítem de la plantilla con `cantidad > 0`:
@@ -369,7 +364,7 @@ public function execute(): void
 Consume stock de consumibles desde una bodega física específica usando la estrategia **FEFO** (First-Expiry-First-Out). Es el caso de uso más crítico del módulo.
 
 **Namespace**: `App\UseCases\Inventario\Movimientos\Mutations`
-**Trigger**: Llamado internamente por `PrepararEspacio`, `ReponerEspacio` y `ProcesarReposicion`
+**Trigger**: Llamado internamente por `PrepararEspacio`, `ReponerEspacio`
 
 ```php
 public function execute(
@@ -447,80 +442,7 @@ public function execute(
 
 ---
 
-## 📈 Submódulo 6: Reposiciones
-
----
-
-### `GenerarReposicionesBodega`
-
-Compara el stock actual de cada bodega contra su configuración de PAR Stock y genera órdenes de reposición automáticas para las que estén por debajo del mínimo.
-
-**Namespace**: `App\UseCases\Inventario\Reposiciones\Mutations`
-**Trigger**: Botón "Generar Reposiciones" en Filament o tarea programada
-
-```php
-public function execute(
-    ?int $creadoPorId = null
-): array  // Retorna [Reposicion] creadas
-```
-
-**Algoritmo**:
-```
-1. Obtener Almacén General: primera ubicacion WHERE tipo='almacen' AND estado=1
-   Si no existe → return []
-
-2. Cargar todos los registros de inv_par_stock
-3. Agrupar por ubicacion_id (bodega destino)
-
-4. Para cada bodega destino:
-   a. Saltar si es el mismo Almacén General
-   b. Para cada regla PAR de esa bodega:
-      - stockActual = SUM(inv_stock.cantidad) WHERE producto_id AND ubicacion_id
-      - Si stockActual < stock_minimo:
-          cantidadRequerida = stock_objetivo - stockActual
-          → Agregar al listado de ítems a reponer
-   c. Si hay ítems a reponer:
-      - Crear (o reutilizar pendiente) Reposicion {codigo, origen_id, destino_id, estado='pendiente'}
-      - Crear/actualizar ReposicionItem con cantidad_solicitada
-
-5. Retornar array de Reposicion creadas
-```
-
-**Formato del código de reposición**:
-```
-REP-{Ymd}-{NNNN}
-Ejemplo: REP-20260520-0042
-```
-
----
-
-### `ProcesarReposicion`
-
-Ejecuta físicamente una orden de reposición pendiente: consume stock del origen usando FEFO y lo transfiere al destino.
-
-**Namespace**: `App\UseCases\Inventario\Reposiciones\Mutations`
-**Trigger**: Acción de fila "Procesar" en `ReposicionResource` de Filament
-
-```php
-public function execute(
-    int  $reposicionId,
-    ?int $procesadoPorId = null
-): void
-```
-
-**Lógica**:
-1. Carga `Reposicion` con sus `items`. Valida que estado sea `'pendiente'`
-2. Para cada ítem:
-   - Llama a `ConsumirStock::execute()` con `tipoMovimiento = 'TRASLADO'` y la bodega origen
-   - Para cada lote consumido, incrementa el stock en la bodega destino (`inv_stock`)
-   - Actualiza `cantidad_surtida` del `ReposicionItem`
-   - Si no hay stock suficiente en el origen → lanza `RuntimeException` con detalle del producto
-3. Marca la `Reposicion` como `procesada`, establece `procesado_por_id` y `fecha_proceso`
-4. Todo dentro de una transacción de base de datos
-
----
-
-## 📝 Submódulo 7: Inventario Físico
+## 📝 Submódulo 6: Inventario Físico
 
 ---
 
@@ -594,4 +516,6 @@ Los siguientes casos de uso existieron en el v1 y fueron eliminados o reemplazad
 | `DistribuirStock` | `TrasladarEntreBodegas` (usa bodegas reales, no ámbitos polimórficos) |
 | `ConsumirStockUbicacion` | `ConsumirStock` (firma actualizada con `ubicacionId` explícito) |
 | `ReservarStockUbicacion` | Eliminado. El flujo de dotación por plantilla lo hace innecesario |
-| `GenerarReposiciones` | `GenerarReposicionesBodega` (usa `ubicacion_id`, no `ambito`/`ambito_id`) |
+| `GenerarReposiciones` | `GenerarReposicionesBodega` en v2.2, luego eliminado en v2.3 |
+| `GenerarReposicionesBodega` | Eliminado (v2.2→v2.3). Módulo de reposiciones removido |
+| `ProcesarReposicion` | Eliminado (v2.2→v2.3). Módulo de reposiciones removido |

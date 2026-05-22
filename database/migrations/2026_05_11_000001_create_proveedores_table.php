@@ -52,6 +52,27 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Eliminar constraints en tablas que referencian proveedores antes de borrar la tabla
+        if (Schema::hasTable('cotizaciones')) {
+            DB::statement('ALTER TABLE cotizaciones DROP CONSTRAINT IF EXISTS cotizaciones_proveedor_id_foreign');
+        }
+
+        if (Schema::hasTable('ordenes_compra')) {
+            DB::statement('ALTER TABLE ordenes_compra DROP CONSTRAINT IF EXISTS ordenes_compra_proveedor_id_foreign');
+        }
+
+        if (Schema::hasTable('inv_lotes')) {
+            DB::statement('ALTER TABLE inv_lotes DROP CONSTRAINT IF EXISTS inv_lotes_proveedor_id_foreign');
+        }
+
+        if (Schema::hasTable('proveedor_contactos')) {
+            DB::statement('ALTER TABLE proveedor_contactos DROP CONSTRAINT IF EXISTS proveedor_contactos_proveedor_id_foreign');
+        }
+
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE proveedores DROP CONSTRAINT IF EXISTS chk_proveedores_estado');
+        }
+
         Schema::dropIfExists('proveedores');
     }
 };

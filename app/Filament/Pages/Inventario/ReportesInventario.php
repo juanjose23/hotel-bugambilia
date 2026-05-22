@@ -313,6 +313,31 @@ class ReportesInventario extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('ViewAny:Lote') ?? false;
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        $reportPermissions = [
+            'Inventario:ReporteStock',
+            'Inventario:ReporteMovimientos',
+            'Inventario:ReporteCuarentena',
+            'Inventario:ReporteProximosVencer',
+            'Inventario:ReporteMermas',
+            'Inventario:ReporteValorizacion',
+            'Inventario:ReporteRotacion',
+            'Inventario:ReporteMermasTotales',
+            'Inventario:ReporteTrazabilidad',
+            'Inventario:ReporteVencidos',
+        ];
+
+        foreach ($reportPermissions as $perm) {
+            if ($user->can($perm)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

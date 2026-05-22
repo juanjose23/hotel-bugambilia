@@ -11,6 +11,7 @@ use App\Services\Inventario\NotificadorInventario;
 use App\UseCases\Inventario\Lotes\Mutations\VerificarCaducidades;
 use App\UseCases\Inventario\Services\PutawayPolicy;
 use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
 
 use function Pest\Laravel\mock;
@@ -95,31 +96,35 @@ it('vence los lotes que han superado su fecha de vencimiento y los mueve a la zo
 it('notifica y envia correos para los lotes proximos a caducar en los siguientes 30 dias', function () {
     Notification::fake();
 
-    // Lote próximo a caducar en 15 días
-    $loteProximo = Lote::create([
-        'codigo_lote' => 'LOT-PROXIMO-2',
-        'producto_id' => $this->producto->id,
-        'estado' => EstadoLote::Disponible,
-        'cantidad_disponible' => 20.0,
-        'cantidad_inicial' => 20.0,
-        'ubicacion_id' => $this->ubicacion->id,
-        'fecha_recepcion' => now()->toDateString(),
-        'fecha_vencimiento' => now()->addDays(15)->toDateString(),
-    ]);
+    try {
+        // Lote próximo a caducar en 15 días
+        $loteProximo = Lote::create([
+            'codigo_lote' => 'LOT-PROXIMO-2',
+            'producto_id' => $this->producto->id,
+            'estado' => EstadoLote::Disponible,
+            'cantidad_disponible' => 20.0,
+            'cantidad_inicial' => 20.0,
+            'ubicacion_id' => $this->ubicacion->id,
+            'fecha_recepcion' => now()->toDateString(),
+            'fecha_vencimiento' => now()->addDays(15)->toDateString(),
+        ]);
 
-    // Mock notificador
-    $notificador = mock(NotificadorInventario::class);
-    $notificador->shouldReceive('loteProximoACaducar')
-        ->once()
-        ->withArgs(fn ($arg, $dias) => $arg->id === $loteProximo->id && is_int($dias));
-    $this->app->instance(NotificadorInventario::class, $notificador);
+        // Mock notificador
+        $notificador = mock(NotificadorInventario::class);
+        $notificador->shouldReceive('loteProximoACaducar')
+            ->once()
+            ->withArgs(fn ($arg, $dias) => $arg->id === $loteProximo->id && is_int($dias));
+        $this->app->instance(NotificadorInventario::class, $notificador);
 
-    $verificar = app(VerificarCaducidades::class);
-    $verificar->execute();
+        $verificar = app(VerificarCaducidades::class);
+        $verificar->execute();
 
-    // Verificar que la notificación de correo fue enviada
-    Notification::assertSentTo(
-        new AnonymousNotifiable,
-        CaducidadProxima::class
-    );
+        // Verificar que la notificación de correo fue enviada
+        Notification::assertSentTo(
+            new AnonymousNotifiable,
+            CaducidadProxima::class
+        );
+    } finally {
+        Notification::swap(app(ChannelManager::class));
+    }
 });

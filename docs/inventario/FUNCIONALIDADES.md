@@ -1,10 +1,10 @@
-# Lógica de Negocio y Funcionalidades — Inventario v2.1
+# Lógica de Negocio y Funcionalidades — Inventario v2.3
 
 Este documento detalla los algoritmos críticos, reglas de negocio y flujos de integración del módulo de inventario. Complementa el catálogo de casos de uso con explicaciones conceptuales y técnicas de cada proceso clave.
 
 ---
 
-## 🧠 1. La Distinción Fundamental del v2.1
+## 🧠 1. La Distinción Fundamental del v2.2
 
 El cambio más importante del rediseño es la **separación conceptual de dos tipos de inventario** que el v1 mezclaba incorrectamente:
 
@@ -143,20 +143,6 @@ $codigoCuarentena = $codigoBase . '-CUAR';  // Ej: 'LOTE-15-20260520-CUAR'
 
 ---
 
-### Código de Reposición (`inv_reposiciones.codigo`)
-
-```php
-// Generado en GenerarReposicionesBodega::execute():
-$codigo = 'REP-' . now()->format('Ymd') . '-' . str_pad((string)rand(1, 9999), 4, '0', STR_PAD_LEFT);
-// Formato: 'REP-{Ymd}-{NNNN}'
-// Ejemplo: 'REP-20260520-0042'
-```
-
-> [!NOTE]
-> El número al final es aleatorio (1-9999 con padding de 4 ceros). Aunque existe una posibilidad estadística de colisión en el mismo día, es suficiente para el volumen de un hotel boutique. Si se necesita mayor unicidad, reemplazar `rand()` con un contador secuencial diario.
-
----
-
 ### Código de Inventario Físico (`inv_inventarios_fisicos.codigo`)
 
 ```php
@@ -172,7 +158,7 @@ $codigo = 'REP-' . now()->format('Ymd') . '-' . str_pad((string)rand(1, 9999), 4
 El proceso de preparación de habitaciones conecta los tres submódulos del inventario:
 
 ```
-1. CONFIGURACIÓN (una sola vez por tipo de habitación):
+1. CONFIGURACIÓN (una sola vez por categoría de habitación):
    Plantilla de Dotación: "Suite Estándar"
    ├── 2x Champú (es_reposicion_diaria = true)
    ├── 2x Acondicionador (es_reposicion_diaria = true)
@@ -197,51 +183,9 @@ El proceso de preparación de habitaciones conecta los tres submódulos del inve
 
 ---
 
-## 📊 6. Niveles PAR Stock y Reposición Automática
-
-### Modelo Matemático
-
-```
-Para cada regla en inv_par_stock (producto_id, ubicacion_id):
-
-  stockActual = SUM(inv_stock.cantidad)
-                WHERE producto_id = X AND ubicacion_id = Y
-
-  Si stockActual < stock_minimo:
-    cantidadAReponer = stock_objetivo - stockActual
-    → Generar ReposicionItem {cantidad_solicitada = cantidadAReponer}
-```
-
-### Diferencia v1 vs v2.1 en PAR Stock
-
-| Aspecto | v1 | v2.1 |
-| :--- | :--- | :--- |
-| **Referencia destino** | `ambito` + `ambito_id` polimórfico | `ubicacion_id` directo (bodega real) |
-| **Cálculo de stock** | `inv_stock_ubicacion` por ámbito | `inv_stock` por bodega |
-| **Reservas** | Descuenta `inv_reservas.activas` | Sin reservas; el stock disponible es la verdad |
-
-### Flujo Completo de Reposición
-
-```
-GENERACIÓN:
-  GenerarReposicionesBodega::execute()
-  └── Por cada bodega < mínimo:
-      └── Reposicion {estado='pendiente', origen=AlmacénGeneral, destino=BodegaPiso}
-          └── ReposicionItems [{producto, cantidad_solicitada}]
-
-SURTIDO:
-  ProcesarReposicion::execute($reposicionId)
-  └── Por cada ítem:
-      ├── ConsumirStock(FEFO) desde AlmacénGeneral
-      ├── inv_stock[BodegaPiso] += cantidad_surtida
-      └── ReposicionItem.cantidad_surtida = efectivamente_surtido
-  └── Reposicion.estado = 'procesada'
-  └── Reposicion.fecha_proceso = now()
-```
-
 ---
 
-## 🔍 7. Toma Física de Inventario y Ajustes
+## 🔍 6. Toma Física de Inventario y Ajustes
 
 ### Estructura del JSON `datos_hoja`
 
@@ -283,7 +227,7 @@ Una vez procesado todo:
 
 ---
 
-## 🔌 8. Integración con el Módulo de Compras (P2P)
+## 🔌 7. Integración con el Módulo de Compras (P2P)
 
 El módulo de inventario se activa automáticamente cuando el módulo de compras cambia el estado de una recepción:
 
@@ -307,7 +251,7 @@ RecepcionCompra::observe(RecepcionInventoryObserver::class);
 
 ---
 
-## 🌳 9. Jerarquía de Ubicaciones y Bodegas
+## 🌳 8. Jerarquía de Ubicaciones y Bodegas
 
 El módulo de inventario reutiliza la tabla `ubicaciones` del hotel para definir las bodegas físicas. La relación entre tipos de ubicación y el inventario es:
 
@@ -327,11 +271,11 @@ ubicaciones.tipo:
 
 ---
 
-## 🧪 10. Estrategia de Testing
+## 🧪 9. Estrategia de Testing
 
 Todos los tests del módulo de inventario están en `tests/Feature/Inventario/`.
 
-### Casos Cubiertos (80+ tests)
+### Casos Cubiertos (80 tests)
 
 | Caso de Uso | Test File |
 | :--- | :--- |
@@ -342,8 +286,6 @@ Todos los tests del módulo de inventario están en `tests/Feature/Inventario/`.
 | VerificarCaducidades | `VerificarCaducidadesTest.php` |
 | PrepararEspacio | `PrepararEspacioTest.php` |
 | RegistrarDevolucion | `RegistrarDevolucionTest.php` |
-| GenerarReposicionesBodega | `GenerarReposicionesBodegaTest.php` |
-| ProcesarReposicion | `ProcesarReposicionTest.php` |
 | Flujo completo integrado | `FlujoInventarioCompletoTest.php` |
 
 ### Convenciones de Test
@@ -368,7 +310,7 @@ expect(MovimientoStock::where('tipo', 'MOV_ENTRADA')->count())->toBe(1);
 
 ---
 
-## ⚡ 11. Consideraciones de Rendimiento
+## ⚡ 10. Consideraciones de Rendimiento
 
 ### Bloqueos Transaccionales
 
