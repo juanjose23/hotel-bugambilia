@@ -19,6 +19,7 @@ return new class extends Migration
             $table->id()->comment('Identificador único autoincremental de la imagen');
             $table->string('url')->comment('URL o ruta de almacenamiento de la imagen');
             $table->string('public_id')->nullable()->comment('ID público en Cloudinary o proveedor cloud (nullable si es almacenamiento local)');
+            $table->integer('orden')->default(0)->after('public_id')->comment('Orden de visualización');
             $table->morphs('imagenable');
             $table->timestamps();
             $table->softDeletes();

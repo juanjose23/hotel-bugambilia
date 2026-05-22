@@ -15,27 +15,6 @@ class CatalogoTipoSeeder extends Seeder
         //
         $tipos = [
 
-            [
-                'codigo' => 'CATEGORIA_HAB',
-                'nombre' => 'Categoría de habitación',
-                'estado' => 1,
-            ],
-            [
-                'codigo' => 'CAPACIDAD_HAB',
-                'nombre' => 'Capacidad de habitación',
-                'estado' => 1,
-            ],
-            [
-                'codigo' => 'TIPO_TARIFA',
-                'nombre' => 'Tipo de tarifa',
-                'estado' => 1,
-            ],
-            [
-                'codigo' => 'AMENIDAD_HAB',
-                'nombre' => 'Amenidad de habitación',
-                'estado' => 1,
-            ],
-
             // Colaboradores
             [
                 'codigo' => 'CARGO',

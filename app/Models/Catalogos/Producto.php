@@ -2,7 +2,7 @@
 
 namespace App\Models\Catalogos;
 
-use App\Models\General\Imagen;
+use App\Models\Shared\Imagen;
 use Database\Factories\ProductoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

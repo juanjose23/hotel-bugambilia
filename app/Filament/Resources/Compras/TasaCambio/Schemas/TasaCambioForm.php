@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Compras\TasaCambio\Schemas;
 
-use App\Models\General\Moneda;
+use App\Models\Monedas\Moneda;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;

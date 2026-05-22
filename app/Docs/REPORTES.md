@@ -110,6 +110,41 @@ Ruta base: `GET /admin/compras/reportes/{tipo}` | Controlador: `CompraReportCont
 
 ---
 
+## Serie HTB-INV — Inventario
+
+Motor: **Spatie PDF** | Layout: `layouts.reporte-htb` | Vistas: `resources/views/reports/inventario/`
+Ruta base: `GET /admin/inventario/reportes/{tipo}` | Controlador: `InventarioReportController`
+Formatos: PDF + XLSX (Maatwebsite)
+
+> [!NOTE]
+> Todos los reportes de esta serie registran auditoría automática en `auditoria_reportes`.
+
+| Código | Nombre | Permiso | Filtros |
+|--------|--------|---------|---------|
+| HTB-INV-001 | Stock Actual por Producto | `Inventario:ReporteStock` | producto_id, ubicacion_id |
+| HTB-INV-003 | Movimientos de Inventario | `Inventario:ReporteMovimientos` | tipo, producto_id, fecha_desde, fecha_hasta |
+| HTB-INV-004 | Lotes en Cuarentena | `Inventario:ReporteCuarentena` | producto_id |
+| HTB-INV-005 | Próximos a Vencer | `Inventario:ReporteProximosVencer` | días, producto_id |
+| HTB-INV-006 | Mermas y Pérdidas | `Inventario:ReporteMermas` | periodo_desde, periodo_hasta, motivo |
+| HTB-INV-007 | Valorización del Inventario | `Inventario:ReporteValorizacion` | ubicacion_id |
+| HTB-INV-008 | Rotación de Inventario (Excel) | `Inventario:ReporteRotacion` | meses |
+| HTB-INV-009 | Mermas Totales (Excel) | `Inventario:ReporteMermasTotales` | periodo_desde, periodo_hasta |
+| HTB-INV-011 | Trazabilidad por Lote (PDF) | `Inventario:ReporteTrazabilidad` | loteId (ruta) |
+| HTB-INV-012 | Lotes Vencidos | `Inventario:ReporteVencidos` | producto_id |
+
+### HTB-SER-001 — Histórico de Servicios por Precio por Moneda
+
+| Campo | Valor |
+|-------|-------|
+| **Concepto** | Historial completo de precios de servicios agrupados por moneda, con fechas de vigencia. |
+| **Controlador** | `ServicioReportController` |
+| **Rutas** | `/admin/servicios/reportes/historico-precios/pdf`, `/admin/servicios/reportes/historico-precios/excel` |
+| **Permiso** | `Servicios:ReporteHistoricoPrecios` |
+| **Filtros** | servicio_id, moneda_id, estado |
+| **Formato** | PDF (Spatie) + Excel (Maatwebsite) |
+
+---
+
 ## 3. Sistema de Auditoría
 
 Cada generación de reporte se registra automáticamente en la tabla `auditoria_reportes`.
@@ -145,6 +180,8 @@ $auditoria->ejecutar('HTB-COM-001', ['solicitud_id' => $solicitud->id]);
 | HTB-CP-003 | `app/Actions/Catalogos/GenerarEtiquetasCodigosBarrasAction.php` |
 | HTB-CP-004 | `app/UseCases/Catalogos/ExportProductosUseCase.php` |
 | HTB-COM-001 al 005 | `app/Http/Controllers/Compras/CompraReportController.php` |
+| HTB-INV-001 al 012 | `app/Http/Controllers/Inventario/InventarioReportController.php` |
+| HTB-SER-001 | `app/Http/Controllers/Servicios/ServicioReportController.php` |
 | Auditoría | `app/UseCases/Reportes/RegistrarAuditoriaReporteUseCase.php` |
 | Modelo auditoría | `app/Models/Audits/AuditoriaReporte.php` |
 
@@ -156,7 +193,8 @@ $auditoria->ejecutar('HTB-COM-001', ['solicitud_id' => $solicitud->id]);
 |------|-------|----------|
 | `resources/views/reportes/` | DomPDF | HTB-CP-001 al 004 (catálogos) |
 | `resources/views/reports/compras/` | Spatie PDF | HTB-COM-001 al 005 (compras) |
-| `resources/views/layouts/reporte-htb.blade.php` | Spatie PDF | Layout maestro HTB-COM |
+| `resources/views/reports/inventario/` | Spatie PDF | HTB-INV-001 al 012 (inventario) |
+| `resources/views/layouts/reporte-htb.blade.php` | Spatie PDF | Layout maestro HTB-COM / HTB-INV / HTB-SER |
 
 ---
 
@@ -173,6 +211,17 @@ $auditoria->ejecutar('HTB-COM-001', ['solicitud_id' => $solicitud->id]);
 | HTB-COM-003 | Orden de Compra | `ViewOrdenCompra` / `CompraReportController` |
 | HTB-COM-004 | Recepción de Mercancía | `ViewRecepcion` / `CompraReportController` |
 | HTB-COM-005 | Resumen por Departamentos | `CompraReportController@imprimirResumenDepartamentos` |
+| HTB-INV-001 | Stock Actual por Producto | `InventarioReportController` |
+| HTB-INV-003 | Movimientos de Inventario | `InventarioReportController` |
+| HTB-INV-004 | Lotes en Cuarentena | `InventarioReportController` |
+| HTB-INV-005 | Próximos a Vencer | `InventarioReportController` |
+| HTB-INV-006 | Mermas y Pérdidas | `InventarioReportController` |
+| HTB-INV-007 | Valorización del Inventario | `InventarioReportController` |
+| HTB-INV-008 | Rotación de Inventario | `InventarioReportController` |
+| HTB-INV-009 | Mermas Totales | `InventarioReportController` |
+| HTB-INV-011 | Trazabilidad por Lote | `InventarioReportController` |
+| HTB-INV-012 | Lotes Vencidos | `InventarioReportController` |
+| HTB-SER-001 | Histórico de Precios de Servicios | `ServicioReportController` |
 
 ---
 

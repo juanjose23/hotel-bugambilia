@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\General\Moneda;
-use App\Models\General\TasaCambio;
+use App\Models\Monedas\Moneda;
+use App\Models\Monedas\TasaCambio;
 use Illuminate\Database\Seeder;
 
 class TasaCambioSeeder extends Seeder
