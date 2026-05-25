@@ -30,6 +30,10 @@ enum CatalogoTipo: string
     // Promociones
     case TIPO_PROMOCION = 'TIPO_PROMOCION';
 
+    // Habitaciones
+    case CATEGORIA_HABITACION = 'CATEGORIA_HABITACION';
+    case TIPO_VISTA = 'TIPO_VISTA';
+
     /** @return array<string, string> */
     public static function options(): array
     {
