@@ -68,6 +68,18 @@ class CatalogoTipoSeeder extends Seeder
                 'estado' => 1,
             ],
 
+            // Habitaciones
+            [
+                'codigo' => 'CATEGORIA_HABITACION',
+                'nombre' => 'Categoría de habitación',
+                'estado' => 1,
+            ],
+            [
+                'codigo' => 'TIPO_VISTA',
+                'nombre' => 'Tipo de vista de habitación',
+                'estado' => 1,
+            ],
+
             // Compras y Proveedores
             [
                 'codigo' => 'CONDICION_PAGO',
