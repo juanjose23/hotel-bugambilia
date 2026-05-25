@@ -36,6 +36,9 @@ class DatabaseSeeder extends Seeder
         // Servicios y tarifas
         $this->call(ServicioSeeder::class);
 
+        // Habitaciones, detalles, precios y políticas
+        $this->call(HabitacionSeeder::class);
+
         // Datos demo de inventario y devoluciones
         $this->call(InventarioSeeder::class);
         $this->call(DevolucionSeeder::class);
