@@ -157,7 +157,26 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'PAG_90D', 'nombre' => '90 días'],
         ]);
 
-        // --- 11. TIPOS DE PROVEEDOR (Plano) ---
+        // --- 11. CATEGORÍAS DE HABITACIONES (Plano) ---
+        $this->insertar($tipos['CATEGORIA_HABITACION'], [
+            ['codigo' => 'CAT_HAB_ESTANDAR', 'nombre' => 'Estándar'],
+            ['codigo' => 'CAT_HAB_DELUXE', 'nombre' => 'Deluxe'],
+            ['codigo' => 'CAT_HAB_SUITE', 'nombre' => 'Suite'],
+            ['codigo' => 'CAT_HAB_PRESIDENCIAL', 'nombre' => 'Presidencial'],
+            ['codigo' => 'CAT_HAB_FAMILIAR', 'nombre' => 'Familiar'],
+        ]);
+
+        // --- 13. VISTAS DE HABITACIONES (Plano) ---
+        $this->insertar($tipos['TIPO_VISTA'], [
+            ['codigo' => 'VISTA_MAR', 'nombre' => 'Vista al Mar'],
+            ['codigo' => 'VISTA_CIUDAD', 'nombre' => 'Vista a la Ciudad'],
+            ['codigo' => 'VISTA_JARDIN', 'nombre' => 'Vista al Jardín'],
+            ['codigo' => 'VISTA_MONTANA', 'nombre' => 'Vista a la Montaña'],
+            ['codigo' => 'VISTA_PISCINA', 'nombre' => 'Vista a la Piscina'],
+            ['codigo' => 'VISTA_INTERIOR', 'nombre' => 'Vista Interior'],
+        ]);
+
+        // --- 14. TIPOS DE PROVEEDOR (Plano) ---
         $this->insertar($tipos['TIPO_PROVEEDOR'], [
             ['codigo' => 'PROV_NACIONAL', 'nombre' => 'Nacional'],
             ['codigo' => 'PROV_INTERNACIONAL', 'nombre' => 'Internacional'],
