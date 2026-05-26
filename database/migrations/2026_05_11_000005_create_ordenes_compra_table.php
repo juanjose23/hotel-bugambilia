@@ -71,7 +71,7 @@ return new class extends Migration
 
         // Constraint de dominio para estados (1=Borrador, 2=Emitida, 3=En Tránsito, 4=Recibida, 5=Cancelada)
         if (DB::connection()->getDriverName() !== 'sqlite') {
-            DB::statement('ALTER TABLE ordenes_compra ADD CONSTRAINT chk_ordenes_estado CHECK (estado IN (1,2,3,4,5))');
+            DB::statement('ALTER TABLE ordenes_compra ADD CONSTRAINT chk_ordenes_estado CHECK (estado IN (1,2,3,4,5,6,7,8))');
         }
     }
 

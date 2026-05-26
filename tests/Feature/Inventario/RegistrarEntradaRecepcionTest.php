@@ -1,7 +1,10 @@
 <?php
 
+use App\Enums\Activos\EstadoIndividualizacion;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Inventario\EstadoLote;
+use App\Models\Activos\Activo;
+use App\Models\Activos\RegistroIndividualizacion;
 use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Compras\OrdenCompra;
@@ -53,6 +56,66 @@ beforeEach(function () {
         'producto_id' => $this->producto->id,
         'cantidad_recibida' => 100.0,
     ]);
+});
+
+it('registra automaticamente los activos fijos al recepcionar un producto tipo 3', function () {
+    $activoProducto = Producto::create([
+        'categoria_id' => $this->producto->categoria_id,
+        'nombre' => 'Televisor Samsung 55',
+        'tipo' => 3,
+        'estado' => 1,
+    ]);
+
+    $ordenItem = OrdenCompraItem::factory()->create([
+        'orden_compra_id' => $this->orden->id,
+        'producto_id' => $activoProducto->id,
+        'cantidad' => 5,
+    ]);
+
+    $recepcionItem = RecepcionItem::factory()->create([
+        'recepcion_id' => $this->recepcion->id,
+        'orden_item_id' => $ordenItem->id,
+        'producto_id' => $activoProducto->id,
+        'cantidad_recibida' => 5.0,
+        'cantidad_rechazada' => 0.0,
+        'lote_proveedor' => 'SERIE-XYZ',
+    ]);
+
+    app(RegistrarEntradaRecepcion::class)->execute(
+        nuevoEstado: 'Completa',
+        items: [
+            [
+                'id' => $recepcionItem->id,
+                'producto_id' => $activoProducto->id,
+                'producto_variante_id' => null,
+                'cantidad_recibida' => 5.0,
+                'cantidad_rechazada' => 0.0,
+                'lote_proveedor' => 'SERIE-XYZ',
+                'fecha_vencimiento' => null,
+            ],
+        ],
+        proveedorId: $this->proveedor->id,
+        creadoPorId: $this->user->id,
+    );
+
+    $this->assertDatabaseMissing('inv_lotes', [
+        'producto_id' => $activoProducto->id,
+    ]);
+
+    $this->assertDatabaseHas('inv_registro_individualizacion', [
+        'recepcion_item_id' => $recepcionItem->id,
+        'producto_id' => $activoProducto->id,
+        'cantidad_total' => 5,
+        'cantidad_registrada' => 5,
+        'estado' => EstadoIndividualizacion::Completado->value,
+    ]);
+
+    $registro = RegistroIndividualizacion::where('recepcion_item_id', $recepcionItem->id)->first();
+    expect($registro)->not->toBeNull();
+
+    $activos = Activo::where('individualizacion_id', $registro->id)->get();
+    expect($activos)->toHaveCount(5);
+    expect($activos->every(fn (Activo $activo) => $activo->producto_id === $activoProducto->id))->toBeTrue();
 });
 
 it('registra entrada de recepcion completa en estado Disponible', function () {

@@ -19,6 +19,7 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 /**
  * @property int $id
  * @property int|null $proveedor_id
+ * @property int|null $moneda_id
  * @property int|null $solicitud_id
  * @property int|null $cotizacion_id
  * @property string $codigo
@@ -119,14 +120,16 @@ class OrdenCompra extends Model implements AuditableContract
         }
 
         $totalRecibido = (float) RecepcionItem::query()
-            ->whereHas('recepcion', fn (Builder $q) => $q
-                ->where('orden_compra_id', $this->id)
-                ->whereIn('estado', [
-                    EstadoRecepcion::Completa,
-                    EstadoRecepcion::Parcial,
-                    EstadoRecepcion::ConDiscrepancia,
-                    EstadoRecepcion::EnCuarentena,
-                ])
+            ->whereHas(
+                'recepcion',
+                fn (Builder $q) => $q
+                    ->where('orden_compra_id', $this->id)
+                    ->whereIn('estado', [
+                        EstadoRecepcion::Completa,
+                        EstadoRecepcion::Parcial,
+                        EstadoRecepcion::ConDiscrepancia,
+                        EstadoRecepcion::EnCuarentena,
+                    ])
             )
             ->sum('cantidad_recibida');
 
@@ -141,14 +144,16 @@ class OrdenCompra extends Model implements AuditableContract
     public function totalReceivedQuantity(): float
     {
         return (float) RecepcionItem::query()
-            ->whereHas('recepcion', fn (Builder $q) => $q
-                ->where('orden_compra_id', $this->id)
-                ->whereIn('estado', [
-                    EstadoRecepcion::Completa,
-                    EstadoRecepcion::Parcial,
-                    EstadoRecepcion::ConDiscrepancia,
-                    EstadoRecepcion::EnCuarentena,
-                ])
+            ->whereHas(
+                'recepcion',
+                fn (Builder $q) => $q
+                    ->where('orden_compra_id', $this->id)
+                    ->whereIn('estado', [
+                        EstadoRecepcion::Completa,
+                        EstadoRecepcion::Parcial,
+                        EstadoRecepcion::ConDiscrepancia,
+                        EstadoRecepcion::EnCuarentena,
+                    ])
             )
             ->sum('cantidad_recibida');
     }
@@ -156,14 +161,16 @@ class OrdenCompra extends Model implements AuditableContract
     /** @return HasMany<OrdenCompraItem, $this> */
     public function pendingItems(): HasMany
     {
-        return $this->items()->whereDoesntHave('recepcionItems.recepcion', fn (Builder $q) => $q
-            ->where('orden_compra_id', $this->id)
-            ->whereIn('estado', [
-                EstadoRecepcion::Completa,
-                EstadoRecepcion::Parcial,
-                EstadoRecepcion::ConDiscrepancia,
-                EstadoRecepcion::EnCuarentena,
-            ])
+        return $this->items()->whereDoesntHave(
+            'recepcionItems.recepcion',
+            fn (Builder $q) => $q
+                ->where('orden_compra_id', $this->id)
+                ->whereIn('estado', [
+                    EstadoRecepcion::Completa,
+                    EstadoRecepcion::Parcial,
+                    EstadoRecepcion::ConDiscrepancia,
+                    EstadoRecepcion::EnCuarentena,
+                ])
         );
     }
 

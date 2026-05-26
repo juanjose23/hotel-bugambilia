@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Activos\ActivoReportController;
 use App\Http\Controllers\Compras\CompraReportController;
 use App\Http\Controllers\Inventario\InventarioReportController;
 use App\Http\Controllers\Servicios\ServicioReportController;
@@ -111,4 +112,68 @@ Route::middleware(['auth'])->prefix('admin/servicios/reportes')->group(function 
     Route::get('/historico-precios/excel', [ServicioReportController::class, 'historicoPreciosExcel'])
         ->middleware('can:Servicios:ReporteHistoricoPrecios')
         ->name('reporte.servicios.historico-precios.excel');
+});
+
+// HTB-ACT-001, HTB-ACT-002 & HTB-ACT-003: Activos Fijos
+Route::middleware(['auth'])->prefix('admin/activos/reportes')->group(function () {
+    Route::get('/inventario-general/pdf', [ActivoReportController::class, 'inventarioGeneralPdf'])
+        ->middleware('can:Activos:ReporteInventario')
+        ->name('reporte.activos.inventario-general.pdf');
+    Route::get('/inventario-general/excel', [ActivoReportController::class, 'inventarioGeneralExcel'])
+        ->middleware('can:Activos:ReporteInventario')
+        ->name('reporte.activos.inventario-general.excel');
+    Route::get('/ficha/{activo}/pdf', [ActivoReportController::class, 'fichaActivoPdf'])
+        ->middleware('can:Activos:ReporteFicha')
+        ->name('reporte.activos.ficha.pdf');
+    Route::get('/mantenimiento/{mantenimiento}/pdf', [ActivoReportController::class, 'fichaMantenimientoPdf'])
+        ->middleware('can:Activos:ReporteMantenimiento')
+        ->name('reporte.activos.mantenimiento.pdf');
+    Route::get('/etiquetas/pdf', [ActivoReportController::class, 'etiquetasPdf'])
+        ->middleware('can:Activos:ReporteEtiquetas')
+        ->name('reporte.activos.etiquetas.pdf');
+
+    // HTB-ACT-005: Activos por Ubicación
+    Route::get('/por-ubicacion/pdf', [ActivoReportController::class, 'porUbicacionPdf'])
+        ->middleware('can:Activos:ReportePorUbicacion')
+        ->name('reporte.activos.por-ubicacion.pdf');
+
+    // HTB-ACT-006: Historial de Movimientos
+    Route::get('/historial-movimientos/pdf', [ActivoReportController::class, 'historialMovimientosPdf'])
+        ->middleware('can:Activos:ReporteHistorial')
+        ->name('reporte.activos.historial-movimientos.pdf');
+
+    // HTB-ACT-007: Activos en Mantenimiento
+    Route::get('/en-mantenimiento/pdf', [ActivoReportController::class, 'enMantenimientoPdf'])
+        ->middleware('can:Activos:ReporteMantenimientoActivos')
+        ->name('reporte.activos.en-mantenimiento.pdf');
+
+    // HTB-ACT-008: Garantías Próximas a Vencer
+    Route::get('/garantias-proximas/pdf', [ActivoReportController::class, 'garantiasProximasPdf'])
+        ->middleware('can:Activos:ReporteGarantias')
+        ->name('reporte.activos.garantias-proximas.pdf');
+
+    // HTB-ACT-009: Activos Dados de Baja
+    Route::get('/dados-de-baja/pdf', [ActivoReportController::class, 'dadosDeBajaPdf'])
+        ->middleware('can:Activos:ReporteBajas')
+        ->name('reporte.activos.dados-de-baja.pdf');
+
+    // HTB-ACT-010: Activos Extraviados
+    Route::get('/extraviados/pdf', [ActivoReportController::class, 'extraviadosPdf'])
+        ->middleware('can:Activos:ReporteExtraviados')
+        ->name('reporte.activos.extraviados.pdf');
+
+    // HTB-ACT-011: Activos Sin Asignación
+    Route::get('/sin-asignacion/pdf', [ActivoReportController::class, 'sinAsignacionPdf'])
+        ->middleware('can:Activos:ReporteSinAsignacion')
+        ->name('reporte.activos.sin-asignacion.pdf');
+
+    // HTB-ACT-012: Mantenimientos Vencidos
+    Route::get('/mantenimientos-vencidos/pdf', [ActivoReportController::class, 'mantenimientosVencidosPdf'])
+        ->middleware('can:Activos:ReporteMantenimientosVencidos')
+        ->name('reporte.activos.mantenimientos-vencidos.pdf');
+
+    // HTB-ACT-013: Hoja de Habitación / Espacio
+    Route::get('/hoja-habitacion/{tipo}/{id}/pdf', [ActivoReportController::class, 'hojaHabitacionPdf'])
+        ->middleware('can:Activos:ReporteHojaHabitacion')
+        ->name('reporte.activos.hoja-habitacion.pdf');
 });
