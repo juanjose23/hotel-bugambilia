@@ -124,6 +124,7 @@ class RecepcionForm
                         Repeater::make('items')
                             ->label('')
                             ->relationship('items')
+                            ->minItems(1)
                             ->schema([
                                 Select::make('orden_item_id')
                                     ->label('Producto de la Orden')

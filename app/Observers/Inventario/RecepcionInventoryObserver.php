@@ -23,7 +23,7 @@ class RecepcionInventoryObserver
 
     public function updated(RecepcionCompra $recepcion): void
     {
-        if (! $recepcion->isDirty('estado')) {
+        if (! $recepcion->wasChanged('estado')) {
             return;
         }
 

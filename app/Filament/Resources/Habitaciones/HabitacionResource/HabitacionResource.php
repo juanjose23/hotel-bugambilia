@@ -8,6 +8,7 @@ use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\CreateHabitacio
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\EditHabitacion;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\ListHabitaciones;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\ViewHabitacion;
+use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\AccesoriosRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\ImagenesRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PoliticasRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PreciosRelationManager;
@@ -31,7 +32,7 @@ class HabitacionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::HomeModern;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Habitaciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Habitaciones y Ambientes';
 
     protected static ?string $modelLabel = 'Habitación';
 
@@ -61,6 +62,7 @@ class HabitacionResource extends Resource
             ServiciosRelationManager::class,
             PreciosRelationManager::class,
             ImagenesRelationManager::class,
+            AccesoriosRelationManager::class,
         ];
     }
 

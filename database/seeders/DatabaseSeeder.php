@@ -29,9 +29,14 @@ class DatabaseSeeder extends Seeder
         // Maestros de compras e inventario
         $this->call(ProveedorSeeder::class);
         $this->call(ProductoSeeder::class);
+        $this->call(RecalificarProductosActivoFijoSeeder::class); // tipo=3 para CAT_MOB y CAT_ELECTRO
+        $this->call(PrefijoCodigoSeeder::class);
 
         // Flujo transaccional de compras
         $this->call(ProcurementFlowSeeder::class);
+
+        // Activos Fijos: productos y flujo de compra completo
+        $this->call(ActivoFijoSeeder::class);
 
         // Servicios y tarifas
         $this->call(ServicioSeeder::class);
@@ -42,5 +47,6 @@ class DatabaseSeeder extends Seeder
         // Datos demo de inventario y devoluciones
         $this->call(InventarioSeeder::class);
         $this->call(DevolucionSeeder::class);
+
     }
 }
