@@ -2,6 +2,10 @@
 
 namespace App\Models\Personas;
 
+/**
+ * @property string|null $nombre_completo
+ */
+
 use App\Models\Catalogos\Pais;
 use App\Models\Colaboradores\Colaborador;
 use Database\Factories\PersonaFactory;

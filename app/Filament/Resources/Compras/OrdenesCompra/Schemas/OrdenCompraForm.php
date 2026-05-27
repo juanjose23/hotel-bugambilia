@@ -195,6 +195,7 @@ class OrdenCompraForm
                         Repeater::make('items')
                             ->label('')
                             ->relationship()
+                            ->minItems(1)
                             ->schema([
                                 Select::make('producto_id')
                                     ->label('Producto')

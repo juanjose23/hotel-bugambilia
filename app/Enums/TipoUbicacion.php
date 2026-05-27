@@ -20,6 +20,14 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
     case NIVEL = 'nivel';
     case POSICION = 'posicion';
 
+    // Tipos operativos para Blancos y Lavandería
+    case HABITACION = 'habitacion';
+    case ESPACIO = 'espacio';
+    case LAVANDERIA = 'lavanderia';
+    case BLANCOS_SUCIOS = 'blancos_sucios';
+    case BLANCOS_LIMPIOS = 'blancos_limpios';
+    case MERMA = 'merma';
+
     public function getLabel(): string
     {
         return match ($this) {
@@ -32,6 +40,12 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::ESTANTE => 'Estante',
             self::NIVEL => 'Nivel',
             self::POSICION => 'Posición',
+            self::HABITACION => 'Habitación',
+            self::ESPACIO => 'Espacio',
+            self::LAVANDERIA => 'Lavandería',
+            self::BLANCOS_SUCIOS => 'Blancos Sucios',
+            self::BLANCOS_LIMPIOS => 'Blancos Limpios',
+            self::MERMA => 'Merma Operativa',
         };
     }
 
@@ -47,6 +61,12 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::ESTANTE => Heroicon::QueueList,
             self::NIVEL => Heroicon::ListBullet,
             self::POSICION => Heroicon::MapPin,
+            self::HABITACION => Heroicon::Home,
+            self::ESPACIO => Heroicon::Cube,
+            self::LAVANDERIA => Heroicon::Sparkles,
+            self::BLANCOS_SUCIOS => Heroicon::Trash,
+            self::BLANCOS_LIMPIOS => Heroicon::Sparkles,
+            self::MERMA => Heroicon::ArchiveBoxXMark,
         };
     }
 
@@ -62,6 +82,12 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::ESTANTE => 'danger',
             self::NIVEL => 'orange',
             self::POSICION => 'info',
+            self::HABITACION => 'success',
+            self::ESPACIO => 'primary',
+            self::LAVANDERIA => 'info',
+            self::BLANCOS_SUCIOS => 'warning',
+            self::BLANCOS_LIMPIOS => 'success',
+            self::MERMA => 'danger',
         };
     }
 

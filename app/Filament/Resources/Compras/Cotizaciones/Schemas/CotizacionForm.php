@@ -8,6 +8,7 @@ use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\ProductoVariante;
+use App\Models\Compras\Solicitud;
 use App\Models\Monedas\Moneda;
 use App\Models\Monedas\TasaCambio;
 use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudConItems;
@@ -50,6 +51,8 @@ class CotizacionForm
                             ->required()
                             ->live()
                             ->afterStateUpdated(fn ($state, $set) => self::loadSolicitudItems($state, $set))
+                            ->default(fn () => request()->query('solicitud_id'))
+                            ->getOptionLabelUsing(fn ($value) => Solicitud::find($value)?->codigo)
                             ->prefixIcon(Heroicon::DocumentText),
 
                         Select::make('estado')
@@ -151,6 +154,26 @@ class CotizacionForm
                     ->schema([
                         Repeater::make('items')
                             ->relationship()
+                            ->minItems(1)
+                            ->default(function () {
+                                $solicitudId = request()->query('solicitud_id');
+                                if (! $solicitudId) {
+                                    return [];
+                                }
+                                $solicitud = app(ObtenerSolicitudConItems::class)->execute((int) $solicitudId);
+                                if (! $solicitud) {
+                                    return [];
+                                }
+
+                                return $solicitud->items
+                                    ->map(fn ($item) => [
+                                        'producto_id' => $item->producto_id,
+                                        'producto_variante_id' => $item->producto_variante_id,
+                                        'cantidad' => $item->cantidad_aprobada > 0 ? $item->cantidad_aprobada : $item->cantidad_solicitada,
+                                        'precio_unitario' => 0,
+                                        'subtotal' => 0,
+                                    ])->toArray();
+                            })
                             ->schema([
                                 Grid::make(12)
                                     ->schema([

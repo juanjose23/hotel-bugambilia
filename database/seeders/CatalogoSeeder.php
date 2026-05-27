@@ -104,9 +104,9 @@ class CatalogoSeeder extends Seeder
             'nombre' => 'Activos Fijos y Equipos',
         ]);
         $this->insertar($tipos['CATEGORIA_PRODUCTO'], [
-            ['codigo' => 'CAT_PRO_ACT_MOB', 'nombre' => 'Mobiliario', 'padre_id' => $idActivos],
-            ['codigo' => 'CAT_PRO_ACT_ELECTRO', 'nombre' => 'Equipos Electrónicos', 'padre_id' => $idActivos],
-            ['codigo' => 'CAT_PRO_ACT_MANT', 'nombre' => 'Herramientas de Mantenimiento', 'padre_id' => $idActivos],
+            ['codigo' => 'CAT_PRO_inv_MOB', 'nombre' => 'Mobiliario', 'padre_id' => $idActivos],
+            ['codigo' => 'CAT_PRO_inv_ELECTRO', 'nombre' => 'Equipos Electrónicos', 'padre_id' => $idActivos],
+            ['codigo' => 'CAT_PRO_inv_MANT', 'nombre' => 'Herramientas de Mantenimiento', 'padre_id' => $idActivos],
         ]);
 
         $idBlancos = $this->insertarGetId($tipos['CATEGORIA_PRODUCTO'], [

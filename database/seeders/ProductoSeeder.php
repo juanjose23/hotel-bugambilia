@@ -300,12 +300,12 @@ class ProductoSeeder extends Seeder
 
         // ---------- 7. ACTIVOS FIJOS MOBILIARIO ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_MOB'],
+            $catalogoIds['CAT_PRO_inv_MOB'],
             null,
             $catalogoIds['UNI_UD'],
             'Cama King Size',
             'Base + colchón King',
-            2,
+            3,
             [
                 ['codigo' => 'CAM-KING-BLANCA', 'nombre' => 'Cama King blanca 200x200', 'atributos' => ['color' => 'blanco', 'tamaño' => '200x200'], 'peso' => 150000],
                 ['codigo' => 'CAM-KING-NOGAL', 'nombre' => 'Cama King nogal 200x200', 'atributos' => ['color' => 'nogal', 'tamaño' => '200x200'], 'peso' => 150000],
@@ -314,12 +314,12 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_MOB'],
+            $catalogoIds['CAT_PRO_inv_MOB'],
             null,
             $catalogoIds['UNI_UD'],
             'Mesa de noche',
             'Mesa auxiliar con cajón',
-            2,
+            3,
             [
                 ['codigo' => 'MES-NOC-BLANCA', 'nombre' => 'Mesa noche blanca 40x40x50', 'atributos' => ['color' => 'blanco', 'tamaño' => '40x40x50'], 'peso' => 25000],
                 ['codigo' => 'MES-NOC-NOGAL', 'nombre' => 'Mesa noche nogal 40x40x50', 'atributos' => ['color' => 'nogal', 'tamaño' => '40x40x50'], 'peso' => 25000],
@@ -328,12 +328,12 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_MOB'],
+            $catalogoIds['CAT_PRO_inv_MOB'],
             null,
             $catalogoIds['UNI_UD'],
             'Escritorio ejecutivo',
             'Escritorio 120x60cm',
-            2,
+            3,
             [
                 ['codigo' => 'ESC-EJE-BLANCA', 'nombre' => 'Escritorio ejecutivo blanco 120x60', 'atributos' => ['color' => 'blanco', 'tamaño' => '120x60'], 'peso' => 45000],
                 ['codigo' => 'ESC-EJE-NOGAL', 'nombre' => 'Escritorio ejecutivo nogal 120x60', 'atributos' => ['color' => 'nogal', 'tamaño' => '120x60'], 'peso' => 45000],
@@ -343,12 +343,12 @@ class ProductoSeeder extends Seeder
 
         // ---------- 8. ACTIVOS FIJOS ELECTRÓNICOS ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_ELECTRO'],
+            $catalogoIds['CAT_PRO_inv_ELECTRO'],
             $catalogoIds['MARC_SAMSUNG'],
             $catalogoIds['UNI_UD'],
             'Televisor 43"',
             'Smart TV Samsung 43" UHD',
-            2,
+            3,
             [
                 ['codigo' => 'TV-S43-2022', 'nombre' => 'Samsung TV 43" UHD 2022', 'atributos' => ['tamaño' => '43"', 'año' => '2022', 'resolución' => '4K']],
                 ['codigo' => 'TV-S43-2023', 'nombre' => 'Samsung TV 43" UHD 2023', 'atributos' => ['tamaño' => '43"', 'año' => '2023', 'resolución' => '4K']],
@@ -357,12 +357,12 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_ELECTRO'],
+            $catalogoIds['CAT_PRO_inv_ELECTRO'],
             $catalogoIds['MARC_GEN'],
             $catalogoIds['UNI_UD'],
             'Secador de pelo',
             'Secador profesional 2200W',
-            2,
+            3,
             [
                 ['codigo' => 'SEC-PRO-1800', 'nombre' => 'Secador profesional 1800W', 'atributos' => ['potencia' => '1800W', 'nivel' => 'estándar']],
                 ['codigo' => 'SEC-PRO-2200', 'nombre' => 'Secador profesional 2200W', 'atributos' => ['potencia' => '2200W', 'nivel' => 'premium']],
@@ -371,12 +371,12 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_ELECTRO'],
+            $catalogoIds['CAT_PRO_inv_ELECTRO'],
             null,
             $catalogoIds['UNI_UD'],
             'Teléfono de habitación',
             'Teléfono analógico simple',
-            2,
+            3,
             [
                 ['codigo' => 'TEL-HAB-BLANCO', 'nombre' => 'Teléfono blanco', 'atributos' => ['color' => 'blanco', 'tipo' => 'analógico']],
                 ['codigo' => 'TEL-HAB-NEGRO', 'nombre' => 'Teléfono negro', 'atributos' => ['color' => 'negro', 'tipo' => 'analógico']],
@@ -386,7 +386,7 @@ class ProductoSeeder extends Seeder
 
         // ---------- 9. HERRAMIENTAS DE MANTENIMIENTO ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_MANT'],
+            $catalogoIds['CAT_PRO_inv_MANT'],
             null,
             $catalogoIds['UNI_UD'],
             'Taladro percutor',
@@ -400,7 +400,7 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_MANT'],
+            $catalogoIds['CAT_PRO_inv_MANT'],
             null,
             $catalogoIds['UNI_UD'],
             'Juego de destornilladores',
@@ -414,7 +414,7 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ACT_MANT'],
+            $catalogoIds['CAT_PRO_inv_MANT'],
             null,
             $catalogoIds['UNI_UD'],
             'Llave inglesa 12"',
@@ -534,7 +534,7 @@ class ProductoSeeder extends Seeder
 
         $activosInfraestructura = [
             'HABITACIONES' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
+                'cat' => 'CAT_PRO_inv_ELECTRO',
                 'items' => [
                     ['nombre' => 'Minibar Silencioso', 'desc' => 'Minibar 40L para habitación', 'v1' => '30 Litros (Compacto)', 'v2' => '40 Litros (Estándar)', 'v3' => '60 Litros (Premium)'],
                     ['nombre' => 'Caja Fuerte Digital', 'desc' => 'Caja fuerte con código y llave', 'v1' => 'Teclado Estándar', 'v2' => 'Biométrica (Huella)', 'v3' => 'Tamaño Laptop 15"'],
@@ -544,7 +544,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'EVENTOS' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
+                'cat' => 'CAT_PRO_inv_MOB',
                 'items' => [
                     ['nombre' => 'Proyector Láser', 'desc' => 'Proyector 4000 lúmenes UHD', 'v1' => 'Full HD 1080p', 'v2' => '4K Nativo', 'v3' => 'Tiro Corto'],
                     ['nombre' => 'Sistema de Audio Salón', 'desc' => 'Kit de altavoces y consola', 'v1' => 'Pasivo 2 Altavoces', 'v2' => 'Activo Bluetooth', 'v3' => 'Line Array (Gran salón)'],
@@ -575,7 +575,7 @@ class ProductoSeeder extends Seeder
 
         $activosAdicionales = [
             'SEGURIDAD' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
+                'cat' => 'CAT_PRO_inv_ELECTRO',
                 'items' => [
                     ['nombre' => 'Cámara de Vigilancia', 'desc' => 'Cámara CCTV alta resolución', 'v1' => 'Domo 4K IP', 'v2' => 'PTZ Exterior', 'v3' => 'Ojo de Pez 360°'],
                     ['nombre' => 'Grabador NVR', 'desc' => 'Grabador de video en red', 'v1' => '8 Canales (1TB)', 'v2' => '16 Canales (4TB)', 'v3' => '32 Canales (RAID)'],
@@ -583,7 +583,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'GIMNASIO_POOL' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
+                'cat' => 'CAT_PRO_inv_MOB',
                 'items' => [
                     ['nombre' => 'Caminadora Pro', 'desc' => 'Caminadora profesional alto tráfico', 'v1' => 'Serie 500 (Básica)', 'v2' => 'Serie 700 (Pro)', 'v3' => 'Serie 900 (Touch)'],
                     ['nombre' => 'Elíptica Industrial', 'desc' => 'Máquina elíptica magnética', 'v1' => 'Auto-generada', 'v2' => 'Con Pantalla', 'v3' => 'Heavy Duty'],
@@ -591,7 +591,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'LOBBY_BAR' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
+                'cat' => 'CAT_PRO_inv_MOB',
                 'items' => [
                     ['nombre' => 'Sofá de Lobby', 'desc' => 'Sofá diseño para áreas comunes', 'v1' => '2 Plazas Tela', 'v2' => '3 Plazas Cuero', 'v3' => 'Modular (L)'],
                     ['nombre' => 'Máquina Espresso', 'desc' => 'Cafetera profesional 2 grupos', 'v1' => '1 Grupo (Compacta)', 'v2' => '2 Grupos (Pro)', 'v3' => '3 Grupos (Elite)'],
@@ -620,7 +620,7 @@ class ProductoSeeder extends Seeder
 
         $activosIndustriales = [
             'COCINA' => [
-                'cat' => 'CAT_PRO_ACT_MOB',
+                'cat' => 'CAT_PRO_inv_MOB',
                 'items' => [
                     ['nombre' => 'Estufa Industrial', 'desc' => 'Estufa 6 quemadores acero inox', 'v1' => 'Gas LP', 'v2' => 'Gas Natural', 'v3' => 'Eléctrica (Inducción)'],
                     ['nombre' => 'Horno de Convección', 'desc' => 'Horno profesional 10 bandejas', 'v1' => 'Básico (Analógico)', 'v2' => 'Digital Programable', 'v3' => 'Doble Cavidad'],
@@ -629,7 +629,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'LAVANDERÍA' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
+                'cat' => 'CAT_PRO_inv_ELECTRO',
                 'items' => [
                     ['nombre' => 'Lavadora Industrial', 'desc' => 'Carga frontal 25kg/50kg', 'v1' => '25 Kg (Estándar)', 'v2' => '50 Kg (Alta Carga)', 'v3' => 'Centrifugado Pro'],
                     ['nombre' => 'Secadora Industrial', 'desc' => 'Secadora alto flujo vapor', 'v1' => 'Eléctrica', 'v2' => 'Gas LP', 'v3' => 'Vapor Directo'],
@@ -637,7 +637,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'SERVICIOS_GENERALES' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
+                'cat' => 'CAT_PRO_inv_MANT',
                 'items' => [
                     ['nombre' => 'Generador Eléctrico', 'desc' => 'Planta de emergencia 150KVA', 'v1' => '50 KVA (Respaldos)', 'v2' => '100 KVA', 'v3' => '150 KVA (Full Hotel)'],
                     ['nombre' => 'Bomba Hidroneumática', 'desc' => 'Sistema presión constante', 'v1' => '2 HP', 'v2' => '5 HP', 'v3' => '10 HP (Edificio)'],
@@ -646,7 +646,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'SISTEMAS' => [
-                'cat' => 'CAT_PRO_ACT_ELECTRO',
+                'cat' => 'CAT_PRO_inv_ELECTRO',
                 'items' => [
                     ['nombre' => 'Servidor de Datos', 'desc' => 'Servidor Rack 1U Xeon', 'v1' => 'Básico (8GB RAM)', 'v2' => 'Medio (32GB RAM)', 'v3' => 'Pro (64GB + SSD)'],
                     ['nombre' => 'Laptop Administrativa', 'desc' => 'Equipo 15" para oficina', 'v1' => 'Core i3 / 8GB', 'v2' => 'Core i5 / 16GB', 'v3' => 'Core i7 / 32GB'],
@@ -679,7 +679,7 @@ class ProductoSeeder extends Seeder
 
         $mantenimientoData = [
             'ELÉCTRICO' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
+                'cat' => 'CAT_PRO_inv_MANT',
                 'items' => [
                     ['nombre' => 'Interruptor Simple', 'desc' => 'Interruptor de pared 10A', 'v1' => 'Blanco', 'v2' => 'Marfil', 'v3' => 'Negro'],
                     ['nombre' => 'Tomacorriente Doble', 'desc' => 'Toma con tierra 15A', 'v1' => 'Estándar', 'v2' => 'Con USB', 'v3' => 'GFCI (Baño)'],
@@ -694,7 +694,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'PLOMERÍA' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
+                'cat' => 'CAT_PRO_inv_MANT',
                 'items' => [
                     ['nombre' => 'Tubo PVC 1/2"', 'desc' => 'Tubería agua potable', 'v1' => 'SDR 13.5', 'v2' => 'SDR 17', 'v3' => 'SDR 21'],
                     ['nombre' => 'Codo PVC 90° 1/2"', 'desc' => 'Accesorio unión agua', 'v1' => 'Presión', 'v2' => 'Rosca', 'v3' => 'Inserto Metálico'],
@@ -709,7 +709,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'PINTURA' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
+                'cat' => 'CAT_PRO_inv_MANT',
                 'items' => [
                     ['nombre' => 'Pintura Látex Interior', 'desc' => 'Pintura acrílica base agua', 'v1' => 'Blanco Hielo', 'v2' => 'Arena Suave', 'v3' => 'Gris Perla'],
                     ['nombre' => 'Esmalte Anticorrosivo', 'desc' => 'Pintura base aceite metal', 'v1' => 'Negro Brillante', 'v2' => 'Blanco Mate', 'v3' => 'Rojo Óxido'],
@@ -724,7 +724,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'FERRETERÍA' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
+                'cat' => 'CAT_PRO_inv_MANT',
                 'items' => [
                     ['nombre' => 'Cerradura de Pomo', 'desc' => 'Cerradura para puertas', 'v1' => 'Baño (Sin llave)', 'v2' => 'Recámara', 'v3' => 'Entrada Principal'],
                     ['nombre' => 'Bisagra de Acero', 'desc' => 'Bisagra libro 3.5"', 'v1' => 'Cromada', 'v2' => 'Latón', 'v3' => 'Anticorro'],
@@ -739,7 +739,7 @@ class ProductoSeeder extends Seeder
                 ],
             ],
             'HERRAMIENTAS' => [
-                'cat' => 'CAT_PRO_ACT_MANT',
+                'cat' => 'CAT_PRO_inv_MANT',
                 'items' => [
                     ['nombre' => 'Martillo de Uña', 'desc' => 'Martillo 16oz mango fibra', 'v1' => 'Básico', 'v2' => 'Profesional', 'v3' => 'Antivibración'],
                     ['nombre' => 'Alicate Universal', 'desc' => 'Pinza multiuso 8"', 'v1' => 'Estándar', 'v2' => 'Aislado 1000V', 'v3' => 'Heavy Duty'],

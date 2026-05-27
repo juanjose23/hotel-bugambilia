@@ -178,7 +178,7 @@ class ProcurementFlowSeeder extends Seeder
             ]);
 
             // Seleccionamos 3 productos fijos para comparar
-            $prodsComp = $productos->whereIn('categoria_id', [$catalogoIds['CAT_PRO_ACT_ELECTRO'], $catalogoIds['CAT_PRO_ACT_MOB']])->take(3);
+            $prodsComp = $productos->whereIn('categoria_id', [$catalogoIds['CAT_PRO_inv_ELECTRO'], $catalogoIds['CAT_PRO_inv_MOB']])->take(3);
             foreach ($prodsComp as $prod) {
                 $solicitudComp->items()->create([
                     'producto_id' => $prod->id,
@@ -438,7 +438,7 @@ class ProcurementFlowSeeder extends Seeder
                 'motivo' => 'Materiales para remodelación de fachada y área de alberca.',
             ]);
 
-            foreach ($productos->where('categoria_id', $catalogoIds['CAT_PRO_ACT_MANT'])->take(4) as $prod) {
+            foreach ($productos->where('categoria_id', $catalogoIds['CAT_PRO_inv_MANT'])->take(4) as $prod) {
                 $solicitudManto->items()->create([
                     'producto_id' => $prod->id,
                     'producto_variante_id' => DB::table('producto_variantes')->where('producto_id', $prod->id)->value('id'),

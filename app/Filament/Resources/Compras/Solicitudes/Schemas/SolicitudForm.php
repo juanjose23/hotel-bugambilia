@@ -88,6 +88,7 @@ class SolicitudForm
                         Repeater::make('items')
                             ->label('')
                             ->relationship('items')
+                            ->minItems(1)
                             ->schema([
                                 Select::make('producto_id')
                                     ->label('Producto')

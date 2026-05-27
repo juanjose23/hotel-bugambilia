@@ -34,15 +34,20 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->colors([
-                'primary' => Color::hex('#711C37'),
+                'primary' => Color::hex('#8B1A4B'),
+                'danger' => Color::hex('#DC2626'),
+                'info' => Color::hex('#0EA5E9'),
+                'success' => Color::hex('#16A34A'),
+                'warning' => Color::hex('#F59E0B'),
             ])
             ->brandName('Hotel Bugambilias')
-            ->brandLogo(asset('img/hotel-icon.png'))
+            ->brandLogo(asset('img/logo-horizontal.png'))
+            ->brandLogoHeight('2.5rem')
             ->favicon(asset('img/hotel-icon.png'))
             ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->breadcrumbs(true)
-            ->maxContentWidth('7xl')
+            ->maxContentWidth('full')
             ->collapsibleNavigationGroups(true)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -56,15 +61,14 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('15s')
             ->profile()
-            ->sidebarWidth('17rem')
+            ->sidebarWidth('18rem')
             ->collapsedSidebarWidth('9rem')
             ->plugins(array_filter([
                 AuthDesignerPlugin::make()
                     ->login(
                         fn (AuthPageConfig $config) => $config
-                            ->media(asset('img/facebook-cover.jpg'))
-                            ->mediaPosition(MediaPosition::Right)
-
+                            ->media(asset('img/pool-front-view.jpg'))
+                            ->mediaPosition(MediaPosition::Right),
                     ),
                 FilamentShieldPlugin::make(),
                 class_exists(UniverSheetPlugin::class) ? UniverSheetPlugin::make() : null,

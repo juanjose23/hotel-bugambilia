@@ -234,12 +234,15 @@ El módulo de inventario se activa automáticamente cuando el módulo de compras
 ```
 RecepcionCompra.estado → 'Completa' | 'Parcial' | 'EnCuarentena' | 'ConDiscrepancia'
                                         ↓
-                             RecepcionInventoryObserver::updated()
+        RecepcionInventoryObserver::created()/updated()
                                         ↓
                              RegistrarEntradaRecepcion::execute()
                                         ↓
-                    inv_lotes (creados) + inv_stock (inicializados) +
-                    inv_movimientos (MOV_ENTRADA)
+          inv_lotes (creados) + inv_stock (inicializados) +
+          inv_movimientos (MOV_ENTRADA)
+
+Si el producto es de tipo 3 (activo fijo), el sistema crea el registro de individualización y
+genera los activos automáticamente sin intervención manual.
 ```
 
 ### Observer Registrado

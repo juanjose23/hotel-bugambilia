@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Activos\ActivoMantenimiento;
 use App\Models\Audits\AuditoriaReporte;
 use App\Models\Compras\DevolucionCompra;
 use App\Models\Compras\OrdenCompra;
@@ -9,6 +10,7 @@ use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\User;
+use App\Observers\Activos\ActivoMantenimientoObserver;
 use App\Observers\Compras\OrdenCompraObserver;
 use App\Observers\Compras\RecepcionObserver;
 use App\Observers\Habitaciones\HabitacionHistorialObserver;
@@ -45,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         RecepcionCompra::observe(RecepcionObserver::class);
         RecepcionCompra::observe(RecepcionInventoryObserver::class);
         OrdenCompra::observe(OrdenCompraObserver::class);
+        ActivoMantenimiento::observe(ActivoMantenimientoObserver::class);
         Habitacion::observe(HabitacionHistorialObserver::class);
         Gate::policy(Solicitud::class, SolicitudPolicy::class);
         Gate::policy(OrdenCompra::class, OrdenCompraPolicy::class);
@@ -59,13 +62,5 @@ class AppServiceProvider extends ServiceProvider
 
         // Prevenir carga diferida (lazy loading) en desarrollo y testing para atrapar consultas N+1
         Model::preventLazyLoading(! $this->app->isProduction());
-
-        Model::handleLazyLoadingViolationUsing(function ($model, $relation) {
-            logger()->warning(sprintf(
-                'Lazy loading violation: Relation "%s" on model "%s" was lazy loaded.',
-                $relation,
-                get_class($model)
-            ));
-        });
     }
 }
