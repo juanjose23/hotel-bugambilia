@@ -8,7 +8,6 @@ use App\Models\Catalogos\Catalogo;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
@@ -87,7 +86,7 @@ class HabitacionInfolist
                             ImageEntry::make('url')
                                 ->hiddenLabel()
                                 ->disk('local')
-                                ->height(180)
+                                ->imageHeight(180)
                                 ->columnSpanFull()
                                 ->extraImgAttributes([
                                     'class' => 'rounded-2xl object-cover w-full shadow-sm border border-gray-200 dark:border-gray-800 transition duration-300 hover:scale-[1.02] hover:shadow-lg',
@@ -168,54 +167,6 @@ class HabitacionInfolist
                                 ->implode(', ');
                         })
                         ->placeholder('Sin vistas registradas'),
-                ]),
-
-            // 6. Equipamiento y Activos
-            Section::make('Equipamiento y Activos')
-                ->icon(Heroicon::Tv)
-                ->description('Mobiliario, accesorios y equipos asignados.')
-                ->collapsible()
-                ->schema([
-                    RepeatableEntry::make('activos')
-                        ->hiddenLabel()
-                        ->contained(false)
-                        ->schema([
-                            Grid::make([
-                                'default' => 1,
-                                'md' => 3,
-                            ])
-                                ->schema([
-                                    TextEntry::make('codigo_activo')
-                                        ->label('Código')
-                                        ->badge()
-                                        ->color('gray')
-                                        ->copyable()
-                                        ->weight(FontWeight::Bold),
-
-                                    TextEntry::make('producto.nombre')
-                                        ->label('Activo')
-                                        ->icon(Heroicon::Cube),
-
-                                    TextEntry::make('estado')
-                                        ->label('Estado')
-                                        ->badge()
-                                        ->color(fn ($state) => match ($state) {
-                                            1 => 'success',
-                                            2 => 'warning',
-                                            3 => 'danger',
-                                            4 => 'gray',
-                                            default => 'gray',
-                                        })
-                                        ->formatStateUsing(fn ($state) => match ($state) {
-                                            1 => 'Operativo',
-                                            2 => 'Mantenimiento',
-                                            3 => 'Dañado',
-                                            4 => 'Baja',
-                                            default => 'Desconocido',
-                                        }),
-                                ]),
-                        ])
-                        ->placeholder('No hay activos asignados a esta habitación.'),
                 ]),
 
             // 7. Auditoría y Control

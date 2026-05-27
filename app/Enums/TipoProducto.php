@@ -6,12 +6,14 @@ enum TipoProducto: int
 {
     case Perecedero = 1;
     case NoPerecedero = 2;
+    case ActivoFijo = 3;
 
     public function label(): string
     {
         return match ($this) {
             self::Perecedero => 'Perecedero',
-            self::NoPerecedero => 'No Perecedero'
+            self::NoPerecedero => 'No Perecedero',
+            self::ActivoFijo => 'Activo Fijo (Individualizable)'
         };
     }
 
@@ -20,6 +22,7 @@ enum TipoProducto: int
         return match ($this) {
             self::Perecedero => 'danger',
             self::NoPerecedero => 'success',
+            self::ActivoFijo => 'info',
         };
     }
 

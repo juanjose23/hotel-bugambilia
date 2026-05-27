@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Catalogos\Ubicacions;
 use App\Filament\Resources\Catalogos\Ubicacions\Pages\ArbolUbicacion;
 use App\Filament\Resources\Catalogos\Ubicacions\Pages\ListUbicacions;
 use App\Filament\Resources\Catalogos\Ubicacions\Pages\ViewUbicacion;
+use App\Filament\Resources\Catalogos\Ubicacions\RelationManagers\ActivosRelationManager;
 use App\Filament\Resources\Catalogos\Ubicacions\Schemas\UbicacionForm;
 use App\Filament\Resources\Catalogos\Ubicacions\Schemas\UbicacionInfolist;
 use App\Filament\Resources\Catalogos\Ubicacions\Tables\UbicacionsTable;
@@ -50,7 +51,7 @@ class UbicacionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ActivosRelationManager::class,
         ];
     }
 

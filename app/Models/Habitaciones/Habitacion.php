@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Habitaciones;
 
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
+use App\Models\Activos\ActivoAsignacion;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Politicas\Politica;
@@ -20,6 +21,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
+/**
+ * @property string|null $nombre
+ */
 class Habitacion extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
@@ -94,6 +98,14 @@ class Habitacion extends Model implements AuditableContract
     public function imagenes(): MorphMany
     {
         return $this->morphMany(Imagen::class, 'imagenable');
+    }
+
+    /**
+     * @return MorphMany<ActivoAsignacion, $this>
+     */
+    public function asignacionesActivos(): MorphMany
+    {
+        return $this->morphMany(ActivoAsignacion::class, 'asignable');
     }
 
     /**

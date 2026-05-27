@@ -99,6 +99,7 @@ class DevolucionCompraForm
                         Repeater::make('items')
                             ->label('')
                             ->relationship('items')
+                            ->minItems(1)
                             ->schema([
                                 Select::make('lote_id')
                                     ->label('Lote de Inventario')
