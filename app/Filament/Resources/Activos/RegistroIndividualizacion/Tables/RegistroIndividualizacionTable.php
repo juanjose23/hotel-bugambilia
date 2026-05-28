@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Activos\RegistroIndividualizacion\Tables;
 
 use App\Enums\Activos\EstadoIndividualizacion;
 use App\Models\Activos\RegistroIndividualizacion;
-use App\UseCases\Activos\Mutations\IndividualizarActivos;
+use App\UseCases\Activos\Mutations\Gestion\IndividualizarActivos;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;

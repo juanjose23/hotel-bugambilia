@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Activos\Activo\Pages;
 
 use App\Filament\Resources\Activos\Activo\ActivoResource;
 use App\Models\Activos\Activo;
-use App\UseCases\Activos\Mutations\AsignarActivo;
+use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;

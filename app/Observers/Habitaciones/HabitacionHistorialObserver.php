@@ -42,7 +42,12 @@ class HabitacionHistorialObserver
     private function registrarTransicion(Habitacion $habitacion): void
     {
         $originalRaw = $habitacion->getOriginal('estado');
-        $original = $originalRaw !== null ? EstadoHabitacion::tryFrom((int) $originalRaw) : null;
+        $original = null;
+        if ($originalRaw instanceof EstadoHabitacion) {
+            $original = $originalRaw;
+        } elseif ($originalRaw !== null) {
+            $original = EstadoHabitacion::tryFrom((int) $originalRaw);
+        }
 
         HabitacionHistorial::create([
             'model_type' => Habitacion::class,

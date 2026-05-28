@@ -17,15 +17,7 @@ class PrecioHabitacion extends Model implements AuditableContract
 
     protected $table = 'precios_habitacion';
 
-    protected $fillable = [
-        'habitacion_id',
-        'moneda_id',
-        'precio',
-        'fecha_inicio',
-        'fecha_fin',
-        'estado',
-        'es_oferta',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'moneda_id' => 'integer',

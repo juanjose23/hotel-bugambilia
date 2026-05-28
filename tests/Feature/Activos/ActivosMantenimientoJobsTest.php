@@ -5,20 +5,18 @@ declare(strict_types=1);
 use App\Enums\Activos\EstadoActivo;
 use App\Enums\Activos\EstadoMantenimiento;
 use App\Enums\Activos\TipoMantenimiento;
-use App\Jobs\Activos\DetectarMantenimientosAtrasadosJob;
+use App\Jobs\Activos\NotificarMantenimientosJob;
 use App\Jobs\Activos\SincronizarEstadoActivoJob;
-use App\Jobs\Activos\VerificarActivosSinMantenimientoHistoricoJob;
 use App\Jobs\Activos\VerificarGarantiasJob;
 use App\Models\Activos\Activo;
-use App\Models\Activos\ActivoMantenimiento;
+use App\Models\Activos\ActivoMantenimientoNotificacion;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\CatalogoTipo;
 use App\Models\Catalogos\Producto;
 use App\Models\User;
-use App\UseCases\Activos\Mutations\DetectarMantenimientosAtrasados;
-use App\UseCases\Activos\Mutations\SincronizarEstadoActivo;
-use App\UseCases\Activos\Mutations\VerificarActivosSinMantenimientoHistorico;
-use App\UseCases\Activos\Mutations\VerificarGarantiasActivos;
+use App\UseCases\Activos\Mutations\Gestion\VerificarGarantiasActivos;
+use App\UseCases\Activos\Mutations\Mantenimiento\NotificarMantenimientos;
+use App\UseCases\Activos\Mutations\Mantenimiento\SincronizarEstadoActivo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
@@ -47,22 +45,13 @@ it('despacha VerificarGarantiasJob', function () {
     VerificarGarantiasJob::dispatchSync();
 });
 
-it('despacha DetectarMantenimientosAtrasadosJob', function () {
-    $useCase = mock(DetectarMantenimientosAtrasados::class);
+it('despacha NotificarMantenimientosJob', function () {
+    $useCase = mock(NotificarMantenimientos::class);
     $useCase->shouldReceive('execute')->once()->andReturn(0);
 
-    $this->app->instance(DetectarMantenimientosAtrasados::class, $useCase);
+    $this->app->instance(NotificarMantenimientos::class, $useCase);
 
-    DetectarMantenimientosAtrasadosJob::dispatchSync();
-});
-
-it('despacha VerificarActivosSinMantenimientoHistoricoJob', function () {
-    $useCase = mock(VerificarActivosSinMantenimientoHistorico::class);
-    $useCase->shouldReceive('execute')->once()->andReturn(0);
-
-    $this->app->instance(VerificarActivosSinMantenimientoHistorico::class, $useCase);
-
-    VerificarActivosSinMantenimientoHistoricoJob::dispatchSync();
+    NotificarMantenimientosJob::dispatchSync();
 });
 
 it('despacha SincronizarEstadoActivoJob', function () {
@@ -96,7 +85,7 @@ it('notifica garantías próximas a vencer', function () {
     expect(database_notifications_count())->toBe(1);
 });
 
-it('detecta mantenimientos atrasados y prolongados', function () {
+it('envía notificaciones de mantenimiento dirigidas y previene duplicidad de envíos', function () {
     $producto = Producto::create([
         'categoria_id' => $this->categoria->id,
         'nombre' => 'Aire acondicionado',
@@ -104,61 +93,35 @@ it('detecta mantenimientos atrasados y prolongados', function () {
         'estado' => 1,
     ]);
 
-    $activoProgramado = Activo::create([
+    $activo = Activo::create([
         'codigo_inventario' => 'ACT-MAN-0001',
         'producto_id' => $producto->id,
         'fecha_adquisicion' => now()->subYear()->toDateString(),
-        'estado' => EstadoActivo::EnMantenimiento,
-    ]);
-
-    $activoEnProceso = Activo::create([
-        'codigo_inventario' => 'ACT-MAN-0002',
-        'producto_id' => $producto->id,
-        'fecha_adquisicion' => now()->subYear()->toDateString(),
-        'estado' => EstadoActivo::EnMantenimiento,
-    ]);
-
-    $activoProgramado->mantenimientos()->create([
-        'tipo' => TipoMantenimiento::Preventivo,
-        'fecha_programada' => now()->subDays(8)->toDateString(),
-        'descripcion' => 'Mantenimiento programado vencido',
-        'estado' => EstadoMantenimiento::Programado,
-    ]);
-
-    $activoEnProceso->mantenimientos()->create([
-        'tipo' => TipoMantenimiento::Correctivo,
-        'fecha_programada' => now()->subDays(20)->toDateString(),
-        'descripcion' => 'Mantenimiento en proceso prolongado',
-        'estado' => EstadoMantenimiento::EnProceso,
-    ]);
-
-    expect(ActivoMantenimiento::count())->toBe(2);
-
-    $count = app(DetectarMantenimientosAtrasados::class)->execute();
-
-    expect($count)->toBe(2);
-    expect(database_notifications_count())->toBe(2);
-});
-
-it('verifica activos sin mantenimiento histórico', function () {
-    $producto = Producto::create([
-        'categoria_id' => $this->categoria->id,
-        'nombre' => 'Extractor industrial',
-        'tipo' => 3,
-        'estado' => 1,
-    ]);
-
-    Activo::create([
-        'codigo_inventario' => 'ACT-HIS-0001',
-        'producto_id' => $producto->id,
-        'fecha_adquisicion' => now()->subYears(2)->toDateString(),
         'estado' => EstadoActivo::Activo,
     ]);
 
-    $count = app(VerificarActivosSinMantenimientoHistorico::class)->execute();
+    $tecnico = User::factory()->create();
 
-    expect($count)->toBe(1);
-    expect(database_notifications_count())->toBe(1);
+    // Mantenimiento programado para dentro de 7 días exactos
+    $mantenimiento = $activo->mantenimientos()->create([
+        'tipo' => TipoMantenimiento::Preventivo,
+        'fecha_programada' => today()->addDays(7)->toDateString(),
+        'descripcion' => 'Revisión periódica de 7 días',
+        'estado' => EstadoMantenimiento::Programado,
+        'realizado_por_id' => $tecnico->id,
+    ]);
+
+    // Primer envío: Debe notificar al técnico y guardar el histórico de trazabilidad
+    $enviadas = app(NotificarMantenimientos::class)->execute();
+    expect($enviadas)->toBe(1);
+    expect(ActivoMantenimientoNotificacion::count())->toBe(1);
+    expect(ActivoMantenimientoNotificacion::first()->tipo)->toBe('proximo_7_dias');
+    expect(ActivoMantenimientoNotificacion::first()->enviado_a)->toBe($tecnico->id);
+
+    // Segundo envío: Al estar registrado en el histórico, no debe duplicar la notificación
+    $reEnviadas = app(NotificarMantenimientos::class)->execute();
+    expect($reEnviadas)->toBe(0);
+    expect(ActivoMantenimientoNotificacion::count())->toBe(1);
 });
 
 it('sincroniza el estado del activo cuando el mantenimiento se completa', function () {

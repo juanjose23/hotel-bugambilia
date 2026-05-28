@@ -95,22 +95,11 @@ class EditSolicitud extends EditRecord
                     /** @var Solicitud $record */
                     $record = $this->getRecord();
 
-                    $items = $record->items()->get();
-
-                    foreach ($data['items_cancelacion'] as $i => $itemData) {
-                        if (isset($items[$i])) {
-                            $items[$i]->update([
-                                'cantidad_aprobada' => $itemData['cantidad_aprobada'],
-                            ]);
-                        }
-                    }
-
-                    $nota = '['.now()->format('d/m/Y H:i').'] CANCELADO: '.$data['nota_compras'];
-                    $notas = $record->notas ? $record->notas."\n\n".$nota : $nota;
-
-                    $record->update(['notas' => $notas]);
-
-                    app(CancelarSolicitud::class)->execute($record);
+                    app(CancelarSolicitud::class)->execute(
+                        $record,
+                        $data['items_cancelacion'],
+                        $data['nota_compras']
+                    );
 
                     Notification::make()
                         ->title('Solicitud cancelada')

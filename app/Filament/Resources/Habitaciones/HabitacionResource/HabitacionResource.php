@@ -8,14 +8,15 @@ use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\CreateHabitacio
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\EditHabitacion;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\ListHabitaciones;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\ViewHabitacion;
-use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\AccesoriosRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\ImagenesRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PoliticasRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PreciosRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\ServiciosRelationManager;
+use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\StocksRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionForm;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionInfolist;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Tables\HabitacionTable;
+use App\Filament\Resources\Shared\InventarioFijoRelationManager;
 use App\Models\Habitaciones\Habitacion;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -42,17 +43,17 @@ class HabitacionResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return HabitacionForm::configure($schema);
+        return app(HabitacionForm::class)->configure($schema);
     }
 
     public static function infolist(Schema $schema): Schema
     {
-        return HabitacionInfolist::configure($schema);
+        return app(HabitacionInfolist::class)->configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return HabitacionTable::configure($table);
+        return app(HabitacionTable::class)->configure($table);
     }
 
     public static function getRelations(): array
@@ -62,7 +63,8 @@ class HabitacionResource extends Resource
             ServiciosRelationManager::class,
             PreciosRelationManager::class,
             ImagenesRelationManager::class,
-            AccesoriosRelationManager::class,
+            StocksRelationManager::class,
+            InventarioFijoRelationManager::class,
         ];
     }
 

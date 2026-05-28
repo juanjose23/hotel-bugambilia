@@ -31,12 +31,12 @@ class UserResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return UserForm::configure($schema);
+        return app(UserForm::class)->configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return UsersTable::configure($table);
+        return app(UsersTable::class)->configure($table);
     }
 
     public static function getPages(): array

@@ -5,9 +5,18 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Pages;
 
 use App\Filament\Resources\Habitaciones\HabitacionResource\HabitacionResource;
+use App\Models\Catalogos\Producto;
+use App\Models\Catalogos\Ubicacion;
 use App\Models\Habitaciones\Habitacion;
+use App\Models\Inventario\ProductoKit;
+use App\UseCases\Habitaciones\Mutations\AsignarPackAHabitacion;
+use App\UseCases\Habitaciones\Mutations\ClonarHabitacion;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
 
@@ -18,6 +27,151 @@ class ViewHabitacion extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('clonar')
+                ->label('Clonar Habitación')
+                ->icon(Heroicon::DocumentDuplicate)
+                ->color('info')
+                ->modalHeading(fn (Habitacion $record) => "Clonar: {$record->nombre}")
+                ->modalDescription('Se copiarán la categoría, detalle, servicios, precios, políticas y la plantilla de stock. Los activos fijos (TV, AC, minibar) deberán asignarse manualmente a la nueva habitación.')
+                ->modalWidth('lg')
+                ->form([
+                    TextInput::make('nuevo_numero')
+                        ->label('Nuevo número de habitación')
+                        ->placeholder('Ej. 102')
+                        ->integer()
+                        ->minValue(1)
+                        ->required()
+                        ->unique(
+                            table: 'habitaciones',
+                            column: 'numero',
+                            ignorable: fn () => null,
+                        )
+                        ->helperText('Debe ser un número único no usado por ninguna habitación.'),
+
+                    TextInput::make('nuevo_nombre')
+                        ->label('Nombre de la nueva habitación (opcional)')
+                        ->placeholder('Ej. Suite Presidencial 102')
+                        ->maxLength(150)
+                        ->helperText('Si se deja vacío se usará "Habitación {número}".'),
+                ])
+                ->action(function (array $data, Habitacion $record) {
+                    try {
+                        $nueva = app(ClonarHabitacion::class)->execute(
+                            origen: $record,
+                            numero: (int) $data['nuevo_numero'],
+                            nombre: filled($data['nuevo_nombre']) ? $data['nuevo_nombre'] : null,
+                        );
+
+                        Notification::make()
+                            ->title('Habitación clonada exitosamente')
+                            ->body("Se creó la habitación {$nueva->codigo} — {$nueva->nombre}. Estado: Mantenimiento.")
+                            ->success()
+                            ->send();
+
+                        $this->redirect(
+                            HabitacionResource::getUrl('view', ['record' => $nueva->id])
+                        );
+
+                    } catch (\InvalidArgumentException $e) {
+                        Notification::make()
+                            ->title('No se pudo clonar')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
+
+            Action::make('surtir_pack_rapido')
+                ->label('Surtir Pack de Blancos')
+                ->icon(Heroicon::ArchiveBoxArrowDown)
+                ->color('success')
+                ->modalHeading('Surtir Pack a la Habitación')
+                ->modalDescription('Seleccione el pack de productos y la bodega de origen para surtir esta habitación.')
+                ->form([
+                    Select::make('producto_pack_id')
+                        ->label('Pack / Kit')
+                        ->placeholder('Seleccione un pack')
+                        ->options(
+                            Producto::whereIn('id', function ($q) {
+                                $q->select('producto_padre_id')->from('producto_kit');
+                            })->pluck('nombre', 'id')
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->live()
+                        ->afterStateUpdated(function (callable $set, $state): void {
+                            $items = ProductoKit::with('variante')
+                                ->where('producto_padre_id', $state)
+                                ->get();
+                            $preview = [];
+                            foreach ($items as $item) {
+                                $variante = $item->variante;
+                                $preview[] = [
+                                    'variante' => $variante !== null ? $variante->nombre_variante : 'N/A',
+                                    'cantidad' => $item->cantidad,
+                                ];
+                            }
+                            $set('items_preview', $preview);
+                        }),
+
+                    Select::make('bodega_origen_id')
+                        ->label('Bodega de origen')
+                        ->placeholder('Seleccione la bodega')
+                        ->options(
+                            Ubicacion::where('tipo', 'almacen')
+                                ->where('estado', 1)
+                                ->pluck('nombre', 'id')
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->required(),
+
+                    TextInput::make('cantidad_packs')
+                        ->label('Cantidad de packs')
+                        ->numeric()
+                        ->required()
+                        ->minValue(1)
+                        ->default(1),
+
+                    Repeater::make('items_preview')
+                        ->label('Items incluidos en el pack')
+                        ->schema([
+                            TextInput::make('variante')->disabled(),
+                            TextInput::make('cantidad')->disabled(),
+                        ])
+                        ->disabled()
+                        ->columns(2)
+                        ->defaultItems(0)
+                        ->addable(false)
+                        ->deletable(false)
+                        ->reorderable(false),
+                ])
+                ->action(function (array $data, Habitacion $record, Action $action): void {
+                    try {
+                        app(AsignarPackAHabitacion::class)->execute(
+                            habitacionId: $record->id,
+                            productoPackId: (int) $data['producto_pack_id'],
+                            bodegaOrigenId: (int) $data['bodega_origen_id'],
+                            cantidadPacks: (float) $data['cantidad_packs'],
+                            creadoPorId: auth()->id(),
+                        );
+
+                        Notification::make()
+                            ->title('Pack surtido exitosamente')
+                            ->success()
+                            ->send();
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Error al surtir pack')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+
+                        $action->halt();
+                    }
+                }),
+
             Action::make('imprimir_hoja')
                 ->label('Imprimir Hoja de Habitación')
                 ->icon(Heroicon::Printer)

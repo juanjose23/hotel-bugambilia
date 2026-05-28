@@ -6,6 +6,8 @@ namespace App\Filament\Pages\Activos;
 
 use App\Enums\Activos\EstadoActivo;
 use App\Filament\Pages\Activos\Widgets\EstadisticasActivosWidget;
+use App\Filament\Pages\Activos\Widgets\MantenimientosVencidosWidget;
+use App\Filament\Pages\Activos\Widgets\ProximosMantenimientosWidget;
 use App\Models\Activos\Activo;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
@@ -38,6 +40,8 @@ class ReportesActivos extends Page
     {
         return [
             EstadisticasActivosWidget::class,
+            ProximosMantenimientosWidget::class,
+            MantenimientosVencidosWidget::class,
         ];
     }
 
@@ -139,6 +143,41 @@ class ReportesActivos extends Page
             ->action(fn (array $data) => redirect()->route('reporte.activos.hoja-habitacion.pdf', [
                 'tipo' => $data['tipo'],
                 'id' => $data['entidad_id'],
+            ]));
+    }
+
+    public function espaciosAsignadosAction(): Action
+    {
+        return Action::make('espaciosAsignados')
+            ->label('Generar Reporte PDF')
+            ->color('warning')
+            ->icon(Heroicon::ArrowDownTray)
+            ->modalHeading('Reporte: Activos por Espacio')
+            ->modalDescription('Muestra todos los activos fijos asignados a cada espacio o área común del hotel.')
+            ->action(fn () => redirect()->route('reporte.activos.por-ubicacion.pdf', [
+                'ubicacion_tipo' => Espacio::class,
+            ]));
+    }
+
+    public function fichaEspacioAction(): Action
+    {
+        return Action::make('fichaEspacio')
+            ->label('Generar Ficha PDF')
+            ->color('info')
+            ->icon(Heroicon::ArrowDownTray)
+            ->modalHeading('Ficha de Espacio')
+            ->modalDescription('Genera la hoja de inventario de activos de un espacio específico.')
+            ->form([
+                Select::make('espacio_id')
+                    ->label('Seleccionar Espacio')
+                    ->options(Espacio::orderBy('nombre')->pluck('nombre', 'id'))
+                    ->searchable()
+                    ->required()
+                    ->prefixIcon(Heroicon::BuildingStorefront),
+            ])
+            ->action(fn (array $data) => redirect()->route('reporte.activos.hoja-habitacion.pdf', [
+                'tipo' => 'espacio',
+                'id' => $data['espacio_id'],
             ]));
     }
 

@@ -102,7 +102,9 @@ class Activo extends Model implements Auditable
      */
     public function asignacionActiva(): HasOne
     {
-        return $this->hasOne(ActivoAsignacion::class, 'activo_id')->whereNull('fecha_fin');
+        return $this->hasOne(ActivoAsignacion::class, 'activo_id')
+            ->whereNull('fecha_fin')
+            ->with('asignable');
     }
 
     /**

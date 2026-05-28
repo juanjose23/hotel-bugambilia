@@ -8,6 +8,7 @@ use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Models\Activos\ActivoAsignacion;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Ubicacion;
+use App\Models\Limpieza\SolicitudLimpieza;
 use App\Models\Politicas\Politica;
 use App\Models\Shared\Imagen;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,16 +31,7 @@ class Habitacion extends Model implements AuditableContract
 
     protected $table = 'habitaciones';
 
-    protected $fillable = [
-        'codigo',
-        'numero',
-        'slug',
-        'nombre',
-        'descripcion',
-        'categoria_id',
-        'ubicacion_id',
-        'estado',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'numero' => 'integer',
@@ -109,6 +101,16 @@ class Habitacion extends Model implements AuditableContract
     }
 
     /**
+     * Alias semántico: activos fijos actualmente asignados a esta habitación.
+     *
+     * @return MorphMany<ActivoAsignacion, $this>
+     */
+    public function inventarioFijo(): MorphMany
+    {
+        return $this->asignacionesActivos()->whereNull('fecha_fin');
+    }
+
+    /**
      * @return HasMany<ServicioHabitacion, $this>
      */
     public function serviciosHabitacion(): HasMany
@@ -122,6 +124,22 @@ class Habitacion extends Model implements AuditableContract
     public function precioshabitacion(): HasMany
     {
         return $this->hasMany(PrecioHabitacion::class, 'habitacion_id');
+    }
+
+    /**
+     * @return HasMany<HabitacionStock, $this>
+     */
+    public function habitacionStocks(): HasMany
+    {
+        return $this->hasMany(HabitacionStock::class, 'habitacion_id');
+    }
+
+    /**
+     * @return MorphMany<SolicitudLimpieza, $this>
+     */
+    public function solicitudesLimpieza(): MorphMany
+    {
+        return $this->morphMany(SolicitudLimpieza::class, 'limpiable');
     }
 
     /**

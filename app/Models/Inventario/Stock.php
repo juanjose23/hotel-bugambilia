@@ -18,13 +18,7 @@ class Stock extends Model implements AuditableContract
 
     protected $table = 'inv_stock';
 
-    protected $fillable = [
-        'producto_id',
-        'producto_variante_id',
-        'lote_id',
-        'ubicacion_id',
-        'cantidad',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'cantidad' => 'float',

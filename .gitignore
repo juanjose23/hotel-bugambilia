@@ -29,6 +29,8 @@ Thumbs.db
 ./database/*.sqlite3
 # AI agents
 .agents/
+.ai/
+/AGENTS.md
 
 # historial
 .history/

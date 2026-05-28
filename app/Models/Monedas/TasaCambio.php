@@ -25,13 +25,7 @@ class TasaCambio extends Model implements AuditableContract
 
     protected $table = 'tasas_cambio';
 
-    protected $fillable = [
-        'fecha',
-        'moneda_origen_id',
-        'moneda_destino_id',
-        'tasa',
-        'es_fija',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha' => 'date:Y-m-d',

@@ -10,7 +10,7 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 class PersonaJuridica extends Model implements AuditableContract
 {
-    use Auditable,SoftDeletes;
+    use Auditable, SoftDeletes;
 
     protected $table = 'personas_juridicas';
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Schemas;
 
+use App\Enums\CatalogoTipo;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Models\Catalogos\Catalogo;
 use App\UseCases\Habitaciones\Mutations\GenerarCodigoHabitacion;
@@ -19,29 +20,31 @@ use Illuminate\Database\Eloquent\Builder;
 
 class HabitacionForm
 {
-    public static function configure(Schema $schema): Schema
+    public function configure(Schema $schema): Schema
     {
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Información General')
+                Section::make('Información Básica')
                     ->columnSpanFull()
                     ->description('Datos básicos de identificación y clasificación de la habitación')
                     ->icon(Heroicon::InformationCircle)
                     ->columns(3)
                     ->schema([
                         TextInput::make('nombre')
-                            ->label('Nombre')
+                            ->label('Nombre / Identificador')
                             ->placeholder('Ej. Habitación Presidencial')
-                            ->prefixIcon(Heroicon::Tag)
+                            ->prefixIcon(Heroicon::Home)
                             ->required()
                             ->maxLength(100)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function (string $operation, $state, $set, $record) {
-                                if ($operation === 'edit') {
+                            ->afterStateUpdated(function ($state, callable $set, string $operation) {
+                                if ($operation !== 'create') {
                                     return;
                                 }
-                                $set('slug', app(GenerarSlugHabitacion::class)->execute((string) $state, $record?->id));
+
+                                $set('slug', app(GenerarSlugHabitacion::class)->execute((string) $state));
+                                $set('codigo', app(GenerarCodigoHabitacion::class)->execute());
                             })
                             ->columnSpan(2),
 
@@ -58,7 +61,7 @@ class HabitacionForm
                             ->placeholder('Seleccione una categoría')
                             ->relationship('categoria', 'nombre', fn (Builder $query) => $query->whereHas(
                                 'catalogoTipo',
-                                fn (Builder $q) => $q->where('codigo', 'CATEGORIA_HABITACION')
+                                fn (Builder $q) => $q->where('codigo', CatalogoTipo::CATEGORIA_HABITACION->value)
                             ))
                             ->searchable()
                             ->preload()
@@ -133,7 +136,7 @@ class HabitacionForm
                             ->multiple()
                             ->options(fn () => Catalogo::whereHas(
                                 'catalogoTipo',
-                                fn (Builder $q) => $q->where('codigo', 'TIPO_VISTA')
+                                fn (Builder $q) => $q->where('codigo', CatalogoTipo::TIPO_VISTA->value)
                             )->pluck('nombre', 'id'))
                             ->searchable()
                             ->preload()

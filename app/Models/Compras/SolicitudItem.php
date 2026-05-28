@@ -33,15 +33,7 @@ class SolicitudItem extends Model implements AuditableContract
         'unidadMedida',
     ];
 
-    protected $fillable = [
-        'solicitud_id',
-        'producto_id',
-        'producto_variante_id',
-        'unidad_medida_id',
-        'cantidad_solicitada',
-        'cantidad_aprobada',
-        'observaciones',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'cantidad_solicitada' => 'decimal:2',

@@ -21,12 +21,6 @@ class Politica extends Model implements AuditableContract
         'estado' => 'integer',
     ];
 
-    protected $fillable = [
-        'titulo',
-        'descripcion',
-        'estado',
-    ];
-
     /**
      * @return MorphToMany<Habitacion, $this>
      */

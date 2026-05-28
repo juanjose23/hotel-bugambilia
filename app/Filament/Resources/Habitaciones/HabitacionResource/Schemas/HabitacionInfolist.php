@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Cache;
 
 class HabitacionInfolist
 {
-    public static function configure(Schema $schema): Schema
+    public function configure(Schema $schema): Schema
     {
         return $schema->components([
             // 1. Información General de la Habitación (Ocupa todo el ancho en 3 columnas simétricas)

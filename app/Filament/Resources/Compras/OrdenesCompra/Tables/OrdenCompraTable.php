@@ -7,6 +7,7 @@ use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
 use App\Models\Compras\OrdenCompra;
 use App\UseCases\Compras\OrdenesCompra\Mutations\CancelarOrdenCompra;
 use App\UseCases\Compras\OrdenesCompra\Mutations\EmitirOrdenCompra;
+use App\UseCases\Compras\OrdenesCompra\Mutations\FinalizarOrdenCompra;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -156,7 +157,7 @@ class OrdenCompraTable
                         ->requiresConfirmation()
                         ->modalHeading('¿Finalizar Orden de Compra?')
                         ->modalDescription('Esta acción marcará la orden como Recibida/Completada y ajustará los costos y cantidades finales a lo realmente entregado.')
-                        ->action(fn (OrdenCompra $record) => $record->update(['estado' => EstadoOrdenCompra::Recibida]))
+                        ->action(fn (OrdenCompra $record) => app(FinalizarOrdenCompra::class)->execute($record))
                         ->visible(fn (OrdenCompra $record) => $record->estado === EstadoOrdenCompra::Parcial),
 
                     Action::make('imprimir')

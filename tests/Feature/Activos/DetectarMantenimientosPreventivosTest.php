@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 use App\Enums\Activos\EstadoActivo;
 use App\Enums\Activos\EstadoMantenimiento;
+use App\Enums\Activos\EstadoPlanMantenimiento;
+use App\Enums\Activos\TipoPlanMantenimiento;
 use App\Models\Activos\Activo;
 use App\Models\Activos\ActPlanMantenimiento;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\CatalogoTipo;
 use App\Models\Catalogos\Producto;
 use App\Models\User;
-use App\UseCases\Activos\Mutations\DetectarMantenimientosPreventivos;
+use App\UseCases\Activos\Mutations\Mantenimiento\DetectarMantenimientosPreventivos;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -44,19 +46,15 @@ it('crea un mantenimiento preventivo programado cuando el plan vence', function 
 
     $plan = ActPlanMantenimiento::create([
         'nombre' => 'Plan de TV',
-        'tipo' => 'preventivo',
+        'tipo' => TipoPlanMantenimiento::Preventivo,
         'frecuencia_dias' => 30,
         'fecha_inicio' => now()->subDays(30)->toDateString(),
-        'estado' => 1,
+        'fecha_proximo_mantenimiento' => now()->subDay()->toDateString(),
+        'estado' => EstadoPlanMantenimiento::Activo,
     ]);
 
-    $plan->mantenimientos()->create([
-        'activo_id' => $activo->id,
-        'fecha_programada' => now()->subDays(30)->toDateString(),
-        'fecha_realizada' => now()->subDays(30)->toDateString(),
-        'estado' => EstadoMantenimiento::Completado,
-        'notas' => 'Mantenimiento inicial completado',
-    ]);
+    // Vincular activo al plan vía pivot
+    $plan->activos()->attach($activo->id);
 
     $creados = app(DetectarMantenimientosPreventivos::class)->execute();
 
@@ -66,6 +64,11 @@ it('crea un mantenimiento preventivo programado cuando el plan vence', function 
         'activo_id' => $activo->id,
         'estado' => EstadoMantenimiento::Programado->value,
     ]);
+
+    // Verificar que el plan actualizó sus fechas
+    $plan->refresh();
+    expect($plan->fecha_ultimo_mantenimiento)->not->toBeNull();
+    expect($plan->fecha_proximo_mantenimiento)->not->toBeNull();
 });
 
 it('no duplica mantenimientos preventivos si ya existe uno abierto', function () {
@@ -85,11 +88,15 @@ it('no duplica mantenimientos preventivos si ya existe uno abierto', function ()
 
     $plan = ActPlanMantenimiento::create([
         'nombre' => 'Plan Aire',
-        'tipo' => 'preventivo',
+        'tipo' => TipoPlanMantenimiento::Preventivo,
         'frecuencia_dias' => 30,
         'fecha_inicio' => now()->subDays(30)->toDateString(),
-        'estado' => 1,
+        'fecha_proximo_mantenimiento' => now()->subDay()->toDateString(),
+        'estado' => EstadoPlanMantenimiento::Activo,
     ]);
+
+    // Vincular activo al plan vía pivot
+    $plan->activos()->attach($activo->id);
 
     $activo->mantenimientos()->create([
         'plan_id' => $plan->id,
@@ -101,4 +108,20 @@ it('no duplica mantenimientos preventivos si ya existe uno abierto', function ()
 
     expect($creados)->toBe(0);
     expect($activo->mantenimientos()->count())->toBe(1);
+});
+
+it('no genera mantenimientos si el plan no tiene activos vinculados via pivot', function () {
+    $plan = ActPlanMantenimiento::create([
+        'nombre' => 'Plan sin activos',
+        'tipo' => TipoPlanMantenimiento::Preventivo,
+        'frecuencia_dias' => 30,
+        'fecha_inicio' => now()->subDays(30)->toDateString(),
+        'fecha_proximo_mantenimiento' => now()->subDay()->toDateString(),
+        'estado' => EstadoPlanMantenimiento::Activo,
+    ]);
+
+    $creados = app(DetectarMantenimientosPreventivos::class)->execute();
+
+    expect($creados)->toBe(0);
+    expect($plan->activos()->count())->toBe(0);
 });

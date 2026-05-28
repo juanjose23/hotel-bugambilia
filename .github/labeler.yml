@@ -20,6 +20,12 @@
     - any-glob-to-any-file: "app/Models/Habitaciones/**"
     - any-glob-to-any-file: "database/migrations/*habitacion*"
 
+"module: espacios":
+  - changed-files:
+    - any-glob-to-any-file: "app/UseCases/Espacios/**"
+    - any-glob-to-any-file: "app/Models/Espacios/**"
+    - any-glob-to-any-file: "database/migrations/*espacio*"
+
 "module: servicios":
   - changed-files:
     - any-glob-to-any-file: "app/UseCases/Servicios/**"
@@ -51,6 +57,26 @@
     - any-glob-to-any-file: "app/Models/Politicas/**"
     - any-glob-to-any-file: "app/Filament/Resources/Politicas/**"
     - any-glob-to-any-file: "database/migrations/*politica*"
+
+"module: core":
+  - changed-files:
+    - any-glob-to-any-file: "app/Models/**"
+    - any-glob-to-any-file: "app/Filament/Resources/Shared/**"
+    - any-glob-to-any-file: "database/migrations/**"
+
+"module: monitoreo":
+  - changed-files:
+    - any-glob-to-any-file: "app/Jobs/**"
+    - any-glob-to-any-file: "app/Helpers/**"
+    - any-glob-to-any-file: "app/Facades/**"
+    - any-glob-to-any-file: "app/Observers/**"
+
+"module: limpieza":
+  - changed-files:
+    - any-glob-to-any-file: "app/UseCases/Limpieza/**"
+    - any-glob-to-any-file: "app/Models/Limpieza/**"
+    - any-glob-to-any-file: "app/Filament/Resources/Habitaciones/SolicitudLimpiezaResource/**"
+    - any-glob-to-any-file: "database/migrations/*limpieza*"
 
 # Types
 "type: filament":
