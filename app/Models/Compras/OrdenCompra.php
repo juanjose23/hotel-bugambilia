@@ -39,22 +39,7 @@ class OrdenCompra extends Model implements AuditableContract
         'cotizacion',
     ];
 
-    protected $fillable = [
-        'codigo',
-        'proveedor_id',
-        'proveedor_contacto_id',
-        'solicitud_id',
-        'cotizacion_id',
-        'fecha_orden',
-        'fecha_entrega_estimada',
-        'condicion_pago_id',
-        'subtotal',
-        'impuestos',
-        'total',
-        'tasa_cambio',
-        'estado',
-        'notas',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_orden' => 'date',

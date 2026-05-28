@@ -25,14 +25,7 @@ class AuditoriaReporte extends Model implements AuditableContract
 
     protected $table = 'auditoria_reportes';
 
-    protected $fillable = [
-        'usuario_id',
-        'tipo_reporte',
-        'parametros',
-        'ruta_archivo',
-        'conteo_descargas',
-        'ultima_descarga_en',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'parametros' => 'array',

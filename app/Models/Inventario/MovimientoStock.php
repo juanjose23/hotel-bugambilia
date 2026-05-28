@@ -25,20 +25,7 @@ class MovimientoStock extends Model implements AuditableContract
 
     public $timestamps = false;
 
-    protected $fillable = [
-        'tipo',
-        'lote_id',
-        'producto_id',
-        'cantidad',
-        'ubicacion_origen_id',
-        'ubicacion_destino_id',
-        'documento_tipo',
-        'documento_id',
-        'referencia',
-        'creado_por_id',
-        'notas',
-        'created_at',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'cantidad' => 'float',

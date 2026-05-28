@@ -46,8 +46,8 @@ class ActivoFijoSeeder extends Seeder
 
         $proveedores = Proveedor::limit(3)->get();
         $monedaUSD = Moneda::where('codigo', 'USD')->first() ?? Moneda::where('es_predeterminada', true)->first() ?? Moneda::first();
-        $condPago = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'CPAG'))->first();
-        $unidadMed = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'UMED'))->first();
+        $condPago = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'CONDICION_PAGO'))->first();
+        $unidadMed = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'UNIDAD_MEDIDA'))->first();
         $colaborador = Colaborador::first();
 
         if ($proveedores->count() < 2 || ! $colaborador || ! $monedaUSD || ! $condPago) {
@@ -112,20 +112,30 @@ class ActivoFijoSeeder extends Seeder
 
         $prodIds = [];
         foreach ($productosDef as $pd) {
-            $pid = DB::table('productos')->insertGetId([
-                'categoria_id' => $pd['cat'], 'marca_id' => null, 'nombre' => $pd['nombre'],
-                'descripcion' => $pd['desc'], 'unidad_medida_id' => $uniUd, 'tipo' => 3,
-                'estado' => 1, 'created_at' => now(), 'updated_at' => now(),
-            ]);
-            $variantePrincipal = null;
-            foreach ($pd['variants'] as $v) {
-                $vid = DB::table('producto_variantes')->insertGetId([
-                    'producto_id' => $pid, 'codigo' => $v['codigo'],
-                    'nombre_variante' => $v['nombre'],
-                    'atributos' => json_encode($v['attr']),
-                    'unidad_medida_id' => $uniUd,
+            $existingProduct = DB::table('productos')->where('nombre', $pd['nombre'])->first();
+            if ($existingProduct) {
+                $pid = $existingProduct->id;
+            } else {
+                $pid = DB::table('productos')->insertGetId([
+                    'categoria_id' => $pd['cat'], 'marca_id' => null, 'nombre' => $pd['nombre'],
+                    'descripcion' => $pd['desc'], 'unidad_medida_id' => $uniUd, 'tipo' => 3,
                     'estado' => 1, 'created_at' => now(), 'updated_at' => now(),
                 ]);
+            }
+            $variantePrincipal = null;
+            foreach ($pd['variants'] as $v) {
+                $existingVariant = DB::table('producto_variantes')->where('codigo', $v['codigo'])->first();
+                if ($existingVariant) {
+                    $vid = $existingVariant->id;
+                } else {
+                    $vid = DB::table('producto_variantes')->insertGetId([
+                        'producto_id' => $pid, 'codigo' => $v['codigo'],
+                        'nombre_variante' => $v['nombre'],
+                        'atributos' => json_encode($v['attr']),
+                        'unidad_medida_id' => $uniUd,
+                        'estado' => 1, 'created_at' => now(), 'updated_at' => now(),
+                    ]);
+                }
                 if ($variantePrincipal === null) {
                     $variantePrincipal = $vid;
                 }
@@ -388,11 +398,12 @@ class ActivoFijoSeeder extends Seeder
             $tpos = [TipoMantenimiento::Correctivo, TipoMantenimiento::Preventivo, TipoMantenimiento::Correctivo];
             foreach ($ultimosActivos as $i => $a) {
                 ActivoMantenimiento::create([
-                    'activo_id' => $a->id, 'tipo' => $tpos[$i],
-                    'fecha_inicio' => now()->subDays(rand(1, 5))->toDateString(),
-                    'descripcion' => 'Mantenimiento de muestra #'.($i + 1),
-                    'costo' => ($i + 1) * 25, 'moneda_id' => $monedaUSD->id,
-                    'proveedor_id' => $proveedores->first()->id,
+                    'activo_id' => $a->id,
+                    'tipo' => $tpos[$i],
+                    'fecha_programada' => now()->subDays(rand(1, 5))->toDateString(),
+                    'fecha_realizada' => $i === 0 ? null : now()->toDateString(),
+                    'notas' => 'Mantenimiento de muestra #'.($i + 1),
+                    'costo_real' => ($i + 1) * 25,
                     'realizado_por_id' => $admin->id,
                     'estado' => $i === 0 ? EstadoMantenimiento::EnProceso : EstadoMantenimiento::Completado,
                 ]);

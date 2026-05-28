@@ -20,14 +20,7 @@ class InventarioFisico extends Model implements AuditableContract
 
     protected $table = 'inv_inventarios_fisicos';
 
-    protected $fillable = [
-        'codigo',
-        'fecha_toma',
-        'estado',
-        'creado_por_id',
-        'observaciones',
-        'datos_hoja',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_toma' => 'date:Y-m-d',

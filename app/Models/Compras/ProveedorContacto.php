@@ -14,14 +14,7 @@ class ProveedorContacto extends Model implements AuditableContract
 
     protected $table = 'proveedor_contactos';
 
-    protected $fillable = [
-        'proveedor_id',
-        'nombre',
-        'cargo',
-        'telefono',
-        'email',
-        'principal',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'principal' => 'boolean',

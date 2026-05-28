@@ -55,10 +55,11 @@ class NotificadorActivos
         }
     }
 
-    public function garantiaProxima(Activo $activo, int $dias): void
+    /** @param Collection<int, User>|null $destinatarios */
+    public function garantiaProxima(Activo $activo, int $dias, ?Collection $destinatarios = null): void
     {
         $this->notificarMultiples(
-            $this->obtenerDestinatarios(),
+            $destinatarios ?? $this->obtenerDestinatarios(),
             'Garantía próxima a vencer',
             "El activo {$activo->codigo_inventario} ({$activo->producto?->nombre}) vencerá su garantía en {$dias} días.",
             'heroicon-o-shield-exclamation',
@@ -67,10 +68,11 @@ class NotificadorActivos
         );
     }
 
-    public function mantenimientoAtrasado(ActivoMantenimiento $mantenimiento, int $dias): void
+    /** @param Collection<int, User>|null $destinatarios */
+    public function mantenimientoAtrasado(ActivoMantenimiento $mantenimiento, int $dias, ?Collection $destinatarios = null): void
     {
         $this->notificarMultiples(
-            $this->obtenerDestinatarios(),
+            $destinatarios ?? $this->obtenerDestinatarios(),
             'Mantenimiento atrasado',
             "El activo {$mantenimiento->activo?->codigo_inventario} lleva {$dias} días con mantenimiento {$mantenimiento->estado->label()}.",
             'heroicon-o-clock',
@@ -79,10 +81,11 @@ class NotificadorActivos
         );
     }
 
-    public function mantenimientoProlongado(ActivoMantenimiento $mantenimiento, int $dias): void
+    /** @param Collection<int, User>|null $destinatarios */
+    public function mantenimientoProlongado(ActivoMantenimiento $mantenimiento, int $dias, ?Collection $destinatarios = null): void
     {
         $this->notificarMultiples(
-            $this->obtenerDestinatarios(),
+            $destinatarios ?? $this->obtenerDestinatarios(),
             'Activo en mantenimiento prolongado',
             "El activo {$mantenimiento->activo?->codigo_inventario} lleva {$dias} días en mantenimiento en curso.",
             'heroicon-o-wrench-screwdriver',
@@ -112,6 +115,19 @@ class NotificadorActivos
             'heroicon-o-calendar-days',
             ActivoMantenimientoResource::getUrl('view', ['record' => $mantenimiento]),
             'info'
+        );
+    }
+
+    /** @param Collection<int, User>|null $destinatarios */
+    public function mantenimientoProximo(ActivoMantenimiento $mantenimiento, int $dias, ?Collection $destinatarios = null): void
+    {
+        $this->notificarMultiples(
+            $destinatarios ?? $this->obtenerDestinatarios(),
+            'Mantenimiento próximo a vencer',
+            "El activo {$mantenimiento->activo?->codigo_inventario} tiene un mantenimiento {$mantenimiento->estado->label()} programado para el {$mantenimiento->fecha_programada->format('d/m/Y')} (en {$dias} días).",
+            'heroicon-o-bell-alert',
+            ActivoMantenimientoResource::getUrl('view', ['record' => $mantenimiento]),
+            'warning'
         );
     }
 }

@@ -26,7 +26,8 @@ class ConsumirStock
         ?string $documentoTipo = null,
         ?int $creadoPorId = null,
         ?string $referencia = null,
-        ?string $notas = null
+        ?string $notas = null,
+        ?int $ubicacionDestinoId = null,
     ): array {
         if ($cantidadRequerida <= 0) {
             throw new \InvalidArgumentException('La cantidad a consumir debe ser mayor a cero.');
@@ -42,7 +43,8 @@ class ConsumirStock
             $documentoTipo,
             $creadoPorId,
             $referencia,
-            $notas
+            $notas,
+            $ubicacionDestinoId,
         ) {
             // 1. Obtener registros de stock en esa bodega
             $stocks = Stock::with(['lote'])
@@ -117,7 +119,7 @@ class ConsumirStock
                     'producto_id' => $productoId,
                     'cantidad' => -$aConsumir,
                     'ubicacion_origen_id' => $ubicacionId,
-                    'ubicacion_destino_id' => null,
+                    'ubicacion_destino_id' => $ubicacionDestinoId,
                     'documento_tipo' => $documentoTipo ?: 'consumo',
                     'documento_id' => $documentoId,
                     'referencia' => $referencia ?: "Consumo FEFO bodega {$ubicacionId}",

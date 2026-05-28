@@ -2,6 +2,8 @@
 
 namespace App\Models\Catalogos;
 
+use Database\Factories\ProductoVarianteFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,12 +24,12 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  */
 class ProductoVariante extends Model implements AuditableContract
 {
-    //
-    use Auditable, SoftDeletes;
+    /** @use HasFactory<ProductoVarianteFactory> */
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $table = 'producto_variantes';
 
-    protected $fillable = ['producto_id'];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'atributos' => 'array',

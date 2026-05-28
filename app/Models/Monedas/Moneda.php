@@ -20,12 +20,7 @@ class Moneda extends Model implements AuditableContract
 
     protected $table = 'monedas';
 
-    protected $fillable = [
-        'codigo',
-        'nombre',
-        'simbolo',
-        'es_predeterminada',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'es_predeterminada' => 'boolean',

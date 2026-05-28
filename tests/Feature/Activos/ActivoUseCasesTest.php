@@ -6,11 +6,14 @@ use App\Enums\Activos\EstadoActivo;
 use App\Enums\Activos\EstadoAsignacion;
 use App\Enums\Activos\EstadoIndividualizacion;
 use App\Enums\Activos\EstadoMantenimiento;
+use App\Enums\Activos\EstadoPlanMantenimiento;
 use App\Enums\Activos\TipoBaja;
 use App\Enums\Activos\TipoMantenimiento;
+use App\Enums\Activos\TipoPlanMantenimiento;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Models\Activos\Activo;
+use App\Models\Activos\ActPlanMantenimiento;
 use App\Models\Activos\PrefijoCodigo;
 use App\Models\Activos\RegistroIndividualizacion;
 use App\Models\Catalogos\Catalogo;
@@ -24,11 +27,12 @@ use App\Models\Compras\RecepcionItem;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Inventario\Stock;
 use App\Models\User;
-use App\UseCases\Activos\Mutations\AsignarActivo;
-use App\UseCases\Activos\Mutations\DarDeBajaActivo;
-use App\UseCases\Activos\Mutations\EnviarAMantenimiento;
-use App\UseCases\Activos\Mutations\IndividualizarActivos;
-use App\UseCases\Activos\Mutations\RegistrarActivoFijo;
+use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
+use App\UseCases\Activos\Mutations\Gestion\DarDeBajaActivo;
+use App\UseCases\Activos\Mutations\Gestion\IndividualizarActivos;
+use App\UseCases\Activos\Mutations\Gestion\RegistrarActivoFijo;
+use App\UseCases\Activos\Mutations\Mantenimiento\CompletarMantenimiento;
+use App\UseCases\Activos\Mutations\Mantenimiento\EnviarAMantenimiento;
 use App\UseCases\Inventario\Recepciones\Mutations\RegistrarEntradaRecepcion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -484,4 +488,78 @@ it('can register a fixed asset manually or from a purchase and extracts purchase
     $registro = RegistroIndividualizacion::where('recepcion_item_id', $recepcionItem->id)->firstOrFail();
     expect($registro->estado)->toBe(EstadoIndividualizacion::EnProceso);
     expect($registro->cantidad_registrada)->toBe(1);
+});
+
+it('propaga fecha_ultimo y fecha_proximo en el plan al completar un mantenimiento', function () {
+    $activoProducto = Producto::create([
+        'categoria_id' => $this->categoria->id,
+        'nombre' => 'Televisor Plan',
+        'tipo' => 3,
+        'estado' => 1,
+    ]);
+
+    $recepcionItem = createValidRecepcionItem($activoProducto, 1);
+    $registro = RegistroIndividualizacion::create([
+        'recepcion_item_id' => $recepcionItem->id,
+        'producto_id' => $activoProducto->id,
+        'cantidad_total' => 1,
+        'cantidad_registrada' => 0,
+        'estado' => EstadoIndividualizacion::Pendiente,
+    ]);
+
+    app(IndividualizarActivos::class)->execute(
+        registroId: $registro->id,
+        items: [['numero_serie' => 'PLAN-TV-01', 'nombre_descriptivo' => 'TV Plan Test', 'notas' => '']],
+        userId: $this->user->id
+    );
+
+    $activo = Activo::where('producto_id', $activoProducto->id)->firstOrFail();
+
+    $plan = ActPlanMantenimiento::create([
+        'nombre' => 'Plan Preven TV',
+        'tipo' => TipoPlanMantenimiento::Preventivo,
+        'frecuencia_dias' => 90,
+        'fecha_inicio' => now()->subDays(30)->toDateString(),
+        'estado' => EstadoPlanMantenimiento::Activo,
+    ]);
+
+    $plan->activos()->attach($activo->id);
+
+    $taller = Ubicacion::create([
+        'nombre' => 'Taller Test',
+        'tipo' => 'almacen',
+        'estado' => 1,
+    ]);
+
+    $proveedor = Proveedor::factory()->create();
+
+    app(EnviarAMantenimiento::class)->execute(
+        activoId: $activo->id,
+        tipo: TipoMantenimiento::Correctivo,
+        descripcion: 'Fallo en pantalla',
+        userId: $this->user->id,
+        costo: 200.00,
+        monedaId: null,
+        proveedorId: $proveedor->id,
+    );
+
+    $mantenimiento = $activo->mantenimientos()->where('estado', EstadoMantenimiento::EnProceso)->firstOrFail();
+    $mantenimiento->plan_id = $plan->id;
+    $mantenimiento->save();
+
+    $fechaRealizada = now()->toDateString();
+
+    app(CompletarMantenimiento::class)->execute(
+        mantenimiento: $mantenimiento,
+        fechaRealizada: $fechaRealizada,
+        costoReal: 180.00,
+        notas: 'Reparación exitosa',
+        usuarioId: $this->user->id
+    );
+
+    $plan->refresh();
+    expect($plan->fecha_ultimo_mantenimiento->toDateString())->toBe($fechaRealizada);
+    expect($plan->fecha_proximo_mantenimiento->toDateString())->toBe(
+        now()->addDays($plan->frecuencia_dias)->toDateString()
+    );
 });

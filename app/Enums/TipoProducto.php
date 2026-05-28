@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 enum TipoProducto: int
@@ -44,7 +46,7 @@ enum TipoProducto: int
             return null;
         }
 
-        return self::tryFrom((string) $value);
+        return self::tryFrom((int) $value);
     }
 
     public static function labelFor(self|int|string|null $value): string

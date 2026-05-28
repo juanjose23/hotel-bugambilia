@@ -35,18 +35,29 @@ class DatabaseSeeder extends Seeder
         // Flujo transaccional de compras
         $this->call(ProcurementFlowSeeder::class);
 
-        // Activos Fijos: productos y flujo de compra completo
-        $this->call(ActivoFijoSeeder::class);
-
         // Servicios y tarifas
         $this->call(ServicioSeeder::class);
 
         // Habitaciones, detalles, precios y políticas
         $this->call(HabitacionSeeder::class);
 
+        // Espacios físicos, tarifas, servicios y políticas de espacios
+        $this->call(EspacioSeeder::class);
+
+        // Activos Fijos: productos y flujo de compra completo
+        $this->call(ActivoFijoSeeder::class);
+
+        // Packs/Kits de productos para inventario operativo de habitaciones
+        $this->call(KitSeeder::class);
+
+        // Stock inicial en bodega para que los packs puedan asignarse a habitaciones
+        $this->call(StockInicialPackSeeder::class);
+
         // Datos demo de inventario y devoluciones
         $this->call(InventarioSeeder::class);
         $this->call(DevolucionSeeder::class);
 
+        // Seeder específico para validar todos los casos de uso de los Jobs de mantenimiento
+        $this->call(MantenimientoCasosUsoSeeder::class);
     }
 }

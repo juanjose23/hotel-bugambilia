@@ -32,14 +32,7 @@ class CotizacionItem extends Model implements AuditableContract
         'variante',
     ];
 
-    protected $fillable = [
-        'cotizacion_id',
-        'producto_id',
-        'producto_variante_id',
-        'cantidad',
-        'precio_unitario',
-        'subtotal',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'cantidad' => 'decimal:2',

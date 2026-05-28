@@ -18,12 +18,7 @@ class ServicioHabitacion extends Model implements AuditableContract
 
     protected $table = 'servicios_habitacion';
 
-    protected $fillable = [
-        'servicio_id',
-        'habitacion_id',
-        'incluido',
-        'estado',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'incluido' => 'boolean',

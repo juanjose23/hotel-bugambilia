@@ -12,7 +12,7 @@ use App\Models\Catalogos\Ubicacion;
 use App\Models\Inventario\Lote;
 use App\Models\Inventario\MovimientoStock;
 use App\Models\Inventario\Stock;
-use App\UseCases\Activos\Mutations\IndividualizarActivos;
+use App\UseCases\Activos\Mutations\Gestion\IndividualizarActivos;
 use App\UseCases\Inventario\Services\PutawayPolicy;
 
 class RegistrarEntradaRecepcion

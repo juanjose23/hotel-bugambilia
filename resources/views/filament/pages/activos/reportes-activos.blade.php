@@ -47,6 +47,37 @@
             </div>
         </div>
 
+        {{-- Espacios / Áreas Comunes --}}
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-6 flex flex-col h-full hover:shadow-md transition duration-200">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="p-3 bg-warning-50 dark:bg-warning-500/10 text-warning-600 dark:text-warning-400 rounded-lg">
+                    <x-heroicon-o-building-storefront class="w-6 h-6" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Activos por Espacio</h3>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 flex-grow">
+                Lista todos los activos fijos asignados a cada espacio o área común (restaurante, salones, gimnasio, spa, etc.).
+            </p>
+            <div class="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
+                {{ $this->espaciosAsignadosAction }}
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-6 flex flex-col h-full hover:shadow-md transition duration-200">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="p-3 bg-info-50 dark:bg-info-500/10 text-info-600 dark:text-info-400 rounded-lg">
+                    <x-heroicon-o-squares-2x2 class="w-6 h-6" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ficha de Espacio</h3>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 flex-grow">
+                Genera la hoja de inventario detallada de un espacio específico con todos sus activos asignados y firmas de control.
+            </p>
+            <div class="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
+                {{ $this->fichaEspacioAction }}
+            </div>
+        </div>
+
         {{-- Mantenimiento --}}
         <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-6 flex flex-col h-full hover:shadow-md transition duration-200">
             <div class="flex items-center gap-4 mb-4">

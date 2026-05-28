@@ -27,16 +27,7 @@ class DevolucionCompra extends Model implements AuditableContract
         'items',
     ];
 
-    protected $fillable = [
-        'codigo',
-        'orden_compra_id',
-        'recepcion_compra_id',
-        'fecha_devolucion',
-        'estado',
-        'motivo',
-        'documento_externo',
-        'creado_por_id',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_devolucion' => 'date',

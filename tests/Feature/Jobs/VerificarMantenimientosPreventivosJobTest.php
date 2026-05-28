@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\Activos\VerificarMantenimientosPreventivosJob;
-use App\UseCases\Activos\Mutations\DetectarMantenimientosPreventivos;
+use App\UseCases\Activos\Mutations\Mantenimiento\DetectarMantenimientosPreventivos;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Laravel\mock;

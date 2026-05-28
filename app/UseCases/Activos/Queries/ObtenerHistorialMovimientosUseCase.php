@@ -19,7 +19,7 @@ class ObtenerHistorialMovimientosUseCase
             'asignaciones.asignadoPor',
             'asignaciones.asignable',
             'mantenimientos.realizadoPor',
-            'mantenimientos.plan.proveedor.persona', // Fix: use plan.proveedor
+            'mantenimientos.plan.proveedor.persona',
             'bajas.creadoPor',
         ]);
 
@@ -42,14 +42,7 @@ class ObtenerHistorialMovimientosUseCase
         }
 
         foreach ($activo->mantenimientos as $mtto) {
-            $tipoRaw = $mtto->plan?->tipo;
-            $tipoLabel = match ($tipoRaw) {
-                'preventivo' => 'Preventivo',
-                'correctivo' => 'Correctivo',
-                'garantia' => 'Garantía',
-                'inspeccion' => 'Inspección',
-                default => 'Desconocido',
-            };
+            $tipoLabel = $mtto->tipo->label();
             $persona = $mtto->plan?->proveedor?->persona;
             $proveedorNombre = $persona ? $persona->primer_nombre : 'Taller interno';
             $lineaTiempo->push([
