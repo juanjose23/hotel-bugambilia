@@ -37,15 +37,7 @@ class OrdenCompraItem extends Model implements AuditableContract
         'unidadMedida',
     ];
 
-    protected $fillable = [
-        'orden_compra_id',
-        'producto_id',
-        'producto_variante_id',
-        'unidad_medida_id',
-        'cantidad',
-        'precio_unitario',
-        'subtotal',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'cantidad' => 'decimal:2',

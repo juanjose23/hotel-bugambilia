@@ -12,6 +12,8 @@ Bienvenido a la documentación técnica y operativa. El sistema sigue estándare
 | [**PROCESO_UBICACIONES_RECURSIVAS.md**](./PROCESO_UBICACIONES_RECURSIVAS.md) | **Proceso Maestro de Ubicaciones Jerárquicas.** Flujo P2L (Purchase-to-Location) unificado sin activos fijos, algoritmo de secuencias con bloqueo pesimista en base de datos, y reglas multi-moneda de reportes. |
 | [**REPORTES_Y_NOTIFICACIONES.md**](./REPORTES_Y_NOTIFICACIONES.md) | Correcciones aplicadas a reportes PDF y sistema de notificaciones del módulo de Compras. |
 | [**MODULO_USUARIOS.md**](./MODULO_USUARIOS.md) | Gestión de usuarios: creación, autogeneración de credenciales y asignación de roles. |
+| [**MODULO_LIMPIEZA.md**](./MODULO_LIMPIEZA.md) | **Módulo de Gestión y Control de Limpieza.** Flujo polimórfico de limpieza de habitaciones/espacios, notificaciones en tiempo real a camaristas e integración de packs de blancos con inventario FEFO. |
+| [**MODULO_HABITACIONES_ESPACIOS.md**](./MODULO_HABITACIONES_ESPACIOS.md) | **Habitaciones, Espacios, Kits y Clonación.** Estructura de habitaciones y espacios recursivos, packs de productos (blancos), asignación polimórfica de activos fijos físicos y reglas de oro de clonación sin duplicación de hardware. |
 | [**Seguridad/Configuración**](./seguridad/CONFIGURACION.md) | Guía técnica de roles y permisos con Filament Shield. |
 | [**Seguridad/Matriz Acciones**](./seguridad/MATRIZ_ACCIONES.md) | Detalle de acciones por estado y permisos. |
 | [**use-case-architecture.md**](./use-case-architecture.md) | Estándares de programación para la capa de lógica de negocio (UseCases). |

@@ -15,13 +15,7 @@ class DetalleHabitacion extends Model implements AuditableContract
 
     protected $table = 'detalles_habitacion';
 
-    protected $fillable = [
-        'habitacion_id',
-        'capacidad_adultos',
-        'capacidad_ninos',
-        'medidas',
-        'vistas',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'vistas' => 'array',

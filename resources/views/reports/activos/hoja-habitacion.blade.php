@@ -87,9 +87,9 @@
                                         <tr><td class="label">Teléfono:</td><td>{{ $entidad->detalle?->telefono ?? '—' }}</td></tr>
                                         @else
                                         <tr><td class="label">Código:</td><td>{{ $entidad->codigo }}</td></tr>
-                                        <tr><td class="label">Tipo:</td><td>{{ $entidad->tipoEspacio?->nombre ?? '—' }}</td></tr>
-                                        <tr><td class="label">Capacidad:</td><td>{{ $entidad->capacidad ?? '—' }} personas</td></tr>
-                                        <tr><td class="label">Horario:</td><td>{{ $entidad->horario ?? '—' }}</td></tr>
+                                        <tr><td class="label">Tipo:</td><td>{{ $entidad->tipo?->getLabel() ?? '—' }}</td></tr>
+                                        <tr><td class="label">Capacidad:</td><td>{{ $entidad->capacidad_personas ?? '—' }} personas</td></tr>
+                                        <tr><td class="label">Espacio Padre:</td><td>{{ $entidad->padre?->nombre ?? 'Espacio principal' }}</td></tr>
                                         <tr><td class="label">Ubicación:</td><td>{{ $entidad->ubicacion?->nombre ?? '—' }}</td></tr>
                                         @endif
                                     </table>

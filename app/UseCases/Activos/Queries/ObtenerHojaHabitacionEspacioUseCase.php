@@ -25,7 +25,7 @@ class ObtenerHojaHabitacionEspacioUseCase
                 ->whereNull('fecha_fin')
                 ->get();
         } else {
-            $entidad = Espacio::with(['tipoEspacio', 'ubicacion'])->findOrFail($id);
+            $entidad = Espacio::with(['padre', 'ubicacion'])->findOrFail($id);
             $activos = ActivoAsignacion::with('activo.producto', 'activo.moneda')
                 ->where('asignable_type', Espacio::class)
                 ->where('asignable_id', $id)

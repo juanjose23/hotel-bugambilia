@@ -17,6 +17,13 @@ enum EstadoHabitacion: int implements HasColor, HasIcon, HasLabel
     case Limpieza = 3;
     case Reserva = 4;
     case Ocupada = 5;
+    case Sucia = 6;
+
+    public const SUCIA = self::Sucia;
+
+    public const EN_LIMPIEZA = self::Limpieza;
+
+    public const DISPONIBLE = self::Activa;
 
     public function getLabel(): string
     {
@@ -32,6 +39,7 @@ enum EstadoHabitacion: int implements HasColor, HasIcon, HasLabel
             self::Limpieza => 'Limpieza',
             self::Reserva => 'Reserva',
             self::Ocupada => 'Ocupada',
+            self::Sucia => 'Sucia',
         };
     }
 
@@ -49,6 +57,7 @@ enum EstadoHabitacion: int implements HasColor, HasIcon, HasLabel
             self::Limpieza => 'info',
             self::Reserva => 'primary',
             self::Ocupada => 'danger',
+            self::Sucia => 'danger',
         };
     }
 
@@ -61,6 +70,7 @@ enum EstadoHabitacion: int implements HasColor, HasIcon, HasLabel
             self::Limpieza => 'heroicon-o-sparkles',
             self::Reserva => 'heroicon-o-calendar',
             self::Ocupada => 'heroicon-o-lock-closed',
+            self::Sucia => 'heroicon-o-exclamation-circle',
         };
     }
 
@@ -73,6 +83,7 @@ enum EstadoHabitacion: int implements HasColor, HasIcon, HasLabel
             self::Limpieza => Heroicon::Sparkles,
             self::Reserva => Heroicon::Calendar,
             self::Ocupada => Heroicon::LockClosed,
+            self::Sucia => Heroicon::ExclamationCircle,
         };
     }
 

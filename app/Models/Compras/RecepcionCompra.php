@@ -27,16 +27,7 @@ class RecepcionCompra extends Model implements AuditableContract
         'items',
     ];
 
-    protected $fillable = [
-        'codigo',
-        'orden_compra_id',
-        'fecha_recepcion',
-        'guia_remision',
-        'recibido_por_id',
-        'ubicacion_id',
-        'estado',
-        'notas',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_recepcion' => 'date',

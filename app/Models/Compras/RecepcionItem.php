@@ -34,20 +34,7 @@ class RecepcionItem extends Model implements AuditableContract
         'fecha_vencimiento' => 'date:Y-m-d',
     ];
 
-    protected $fillable = [
-        'recepcion_id',
-        'orden_item_id',
-        'producto_id',
-        'producto_variante_id',
-        'unidad_medida_id',
-        'cantidad_recibida',
-        'cantidad_rechazada',
-        'motivo_rechazo',
-        'nota',
-        'lote_proveedor',
-        'fecha_vencimiento',
-        'ubicacion_id',
-    ];
+    protected $guarded = ['id'];
 
     protected static function boot()
     {

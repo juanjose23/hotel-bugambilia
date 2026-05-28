@@ -50,8 +50,8 @@ class ProductoResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
             RelationManagers\VariantesRelationManager::class,
+            RelationManagers\KitsRelationManager::class,
         ];
     }
 

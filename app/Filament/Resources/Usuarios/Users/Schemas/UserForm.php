@@ -14,7 +14,7 @@ use Filament\Support\Icons\Heroicon;
 
 class UserForm
 {
-    public static function configure(Schema $schema): Schema
+    public function configure(Schema $schema): Schema
     {
         return $schema->components(self::getSchema());
     }

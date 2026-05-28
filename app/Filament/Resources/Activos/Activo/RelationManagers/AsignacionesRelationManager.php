@@ -9,7 +9,7 @@ use App\Models\Activos\ActivoAsignacion;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
-use App\UseCases\Activos\Mutations\AsignarActivo;
+use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
@@ -178,11 +178,6 @@ class AsignacionesRelationManager extends RelationManager
                             ->placeholder('Ej. Retiro temporal del activo de la habitación'),
                     ])
                     ->action(function (ActivoAsignacion $record, array $data): void {
-                        $record->update([
-                            'fecha_fin' => now()->toDateString(),
-                            'estado' => EstadoAsignacion::Cerrada,
-                        ]);
-
                         app(AsignarActivo::class)->execute(
                             activoId: $record->activo_id,
                             asignableType: $data['asignable_type'],

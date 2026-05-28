@@ -2,6 +2,7 @@
 
 namespace App\Models\Catalogos;
 
+use App\Models\Inventario\ProductoKit;
 use App\Models\Shared\Imagen;
 use Database\Factories\ProductoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,15 +32,7 @@ class Producto extends Model implements AuditableContract
 
     protected $table = 'productos';
 
-    protected $fillable = [
-        'categoria_id',
-        'marca_id',
-        'nombre',
-        'descripcion',
-        'unidad_medida_id',
-        'tipo',
-        'estado',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'tipo' => 'integer',
@@ -74,5 +67,11 @@ class Producto extends Model implements AuditableContract
     public function imagen(): MorphOne
     {
         return $this->morphOne(Imagen::class, 'imagenable');
+    }
+
+    /** @return HasMany<ProductoKit, $this> */
+    public function kitItems(): HasMany
+    {
+        return $this->hasMany(ProductoKit::class, 'producto_padre_id');
     }
 }

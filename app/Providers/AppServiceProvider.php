@@ -9,18 +9,21 @@ use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
 use App\Models\Habitaciones\Habitacion;
+use App\Models\Limpieza\SolicitudLimpieza;
 use App\Models\User;
 use App\Observers\Activos\ActivoMantenimientoObserver;
 use App\Observers\Compras\OrdenCompraObserver;
 use App\Observers\Compras\RecepcionObserver;
 use App\Observers\Habitaciones\HabitacionHistorialObserver;
 use App\Observers\Inventario\RecepcionInventoryObserver;
+use App\Observers\Limpieza\SolicitudLimpiezaObserver;
 use App\Policies\AuditPolicy;
 use App\Policies\Audits\AuditoriaReportePolicy;
 use App\Policies\Compras\DevolucionCompraPolicy;
 use App\Policies\Compras\OrdenCompraPolicy;
 use App\Policies\Compras\RecepcionCompraPolicy;
 use App\Policies\Compras\SolicitudPolicy;
+use App\Policies\Limpieza\SolicitudLimpiezaPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Database\Eloquent\Model;
@@ -49,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         OrdenCompra::observe(OrdenCompraObserver::class);
         ActivoMantenimiento::observe(ActivoMantenimientoObserver::class);
         Habitacion::observe(HabitacionHistorialObserver::class);
+        SolicitudLimpieza::observe(SolicitudLimpiezaObserver::class);
         Gate::policy(Solicitud::class, SolicitudPolicy::class);
         Gate::policy(OrdenCompra::class, OrdenCompraPolicy::class);
         Gate::policy(RecepcionCompra::class, RecepcionCompraPolicy::class);
@@ -59,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Audit::class, AuditPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(AuditoriaReporte::class, AuditoriaReportePolicy::class);
+        Gate::policy(SolicitudLimpieza::class, SolicitudLimpiezaPolicy::class);
 
         // Prevenir carga diferida (lazy loading) en desarrollo y testing para atrapar consultas N+1
         Model::preventLazyLoading(! $this->app->isProduction());

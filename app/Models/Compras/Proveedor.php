@@ -25,14 +25,7 @@ class Proveedor extends Model implements AuditableContract
         'persona',
     ];
 
-    protected $fillable = [
-        'codigo',
-        'persona_id',
-        'tipo_proveedor_id',
-        'direccion_fiscal',
-        'notas',
-        'estado',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'estado' => 'integer',

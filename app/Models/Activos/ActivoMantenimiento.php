@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Activos;
 
 use App\Enums\Activos\EstadoMantenimiento;
+use App\Enums\Activos\TipoMantenimiento;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 
+/**
+ * @property TipoMantenimiento $tipo
+ */
 class ActivoMantenimiento extends Model implements Auditable
 {
     /** @use HasFactory<Factory<static>> */
@@ -25,6 +29,7 @@ class ActivoMantenimiento extends Model implements Auditable
 
     protected $casts = [
         'estado' => EstadoMantenimiento::class,
+        'tipo' => TipoMantenimiento::class,
         'fecha_programada' => 'date',
         'fecha_realizada' => 'date',
         'costo_real' => 'decimal:2',
