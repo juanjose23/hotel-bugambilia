@@ -28,20 +28,7 @@ class Lote extends Model implements AuditableContract
 
     protected $table = 'inv_lotes';
 
-    protected $fillable = [
-        'codigo_lote',
-        'producto_id',
-        'producto_variante_id',
-        'estado',
-        'cantidad_disponible',
-        'cantidad_inicial',
-        'ubicacion_id',
-        'fecha_vencimiento',
-        'lote_proveedor',
-        'proveedor_id',
-        'fecha_recepcion',
-        'recepcion_item_id',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'estado' => EstadoLote::class,

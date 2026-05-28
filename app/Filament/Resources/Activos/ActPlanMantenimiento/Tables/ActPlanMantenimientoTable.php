@@ -28,14 +28,6 @@ class ActPlanMantenimientoTable
                 TextColumn::make('tipo')
                     ->label('Tipo')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'preventivo' => 'success',
-                        'correctivo' => 'danger',
-                        'garantia' => 'warning',
-                        'inspeccion' => 'info',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
                     ->sortable(),
 
                 TextColumn::make('frecuencia_dias')

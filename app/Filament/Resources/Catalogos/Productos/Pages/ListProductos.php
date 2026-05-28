@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Catalogos\Productos\Pages;
 
 use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
 use App\Actions\Catalogos\GenerarReporteProductosAction;
+use App\Enums\CatalogoTipo;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Producto;
@@ -25,11 +26,11 @@ class ListProductos extends ListRecords
         $sharedFilters = [
             Select::make('categoria_id')
                 ->label('Categoría')
-                ->options(Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'CATEGORIA_PRODUCTO'))->pluck('nombre', 'id'))
+                ->options(Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value))->pluck('nombre', 'id'))
                 ->searchable(),
             Select::make('marca_id')
                 ->label('Marca')
-                ->options(Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'MARCA'))->pluck('nombre', 'id'))
+                ->options(Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::MARCA->value))->pluck('nombre', 'id'))
                 ->searchable(),
             Select::make('tipo')
                 ->label('Tipo de Producto')

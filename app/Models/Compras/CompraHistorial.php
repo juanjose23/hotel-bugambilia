@@ -15,14 +15,7 @@ class CompraHistorial extends Model implements AuditableContract
 
     protected $table = 'compra_historial';
 
-    protected $fillable = [
-        'model_type',
-        'model_id',
-        'estado_anterior',
-        'estado_nuevo',
-        'usuario_id',
-        'comentario',
-    ];
+    protected $guarded = ['id'];
 
     /** @return BelongsTo<User, $this> */
     public function usuario(): BelongsTo

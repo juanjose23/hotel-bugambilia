@@ -29,28 +29,7 @@ class Cotizacion extends Model implements AuditableContract
         'moneda',
     ];
 
-    protected $fillable = [
-        'solicitud_id',
-        'proveedor_id',
-        'fecha_cotizacion',
-        'fecha_vencimiento',
-        'subtotal',
-        'impuestos',
-        'descuento',
-        'costo_envio',
-        'total',
-        'dias_entrega',
-        'moneda_id',
-        'tasa_cambio',
-        'condicion_pago_id',
-        'archivo_pdf',
-        'es_elegida',
-        'estado',
-        'observaciones',
-        'creada_por',
-        'elegida_por',
-        'elegida_en',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_cotizacion' => 'date',

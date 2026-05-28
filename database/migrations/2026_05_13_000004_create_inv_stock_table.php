@@ -25,7 +25,7 @@ return new class extends Migration
      *
      * SOLO BODEGAS REALES:
      *   ubicacion_id apunta SOLO a ubicaciones de tipo='almacen' o tipo='zona'.
-     *   Nunca a habitaciones ni áreas (esas se gestionan con hab_inventario_fijo).
+     *   Nunca a habitaciones ni áreas (esas se gestionan con inv_activo_asignaciones → ActivoAsignacion).
      */
     public function up(): void
     {

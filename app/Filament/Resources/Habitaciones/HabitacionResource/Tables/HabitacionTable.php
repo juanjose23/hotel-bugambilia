@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Tables;
 
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
+use App\Models\Habitaciones\Habitacion;
+use App\UseCases\Habitaciones\Mutations\ClonarHabitacion;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -17,7 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class HabitacionTable
 {
-    public static function configure(Table $table): Table
+    public function configure(Table $table): Table
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['detalle', 'categoria', 'ubicacion']))
@@ -87,6 +92,57 @@ class HabitacionTable
             ])
             ->recordActions([
                 ViewAction::make(),
+
+                Action::make('clonar')
+                    ->label('Clonar')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('info')
+                    ->modalHeading(fn (Habitacion $record) => "Clonar habitación: {$record->nombre}")
+                    ->modalDescription('Se copiarán la categoría, detalle, servicios, precios, políticas y la plantilla de stock. Los activos fijos (TV, AC, minibar) deberán asignarse manualmente a la nueva habitación.')
+                    ->modalWidth('lg')
+                    ->form([
+                        TextInput::make('nuevo_numero')
+                            ->label('Nuevo número de habitación')
+                            ->placeholder('Ej. 102')
+                            ->integer()
+                            ->minValue(1)
+                            ->required()
+                            ->unique(
+                                table: 'habitaciones',
+                                column: 'numero',
+                                ignorable: fn () => null,
+                            )
+                            ->helperText('Debe ser un número único no usado por ninguna habitación.'),
+
+                        TextInput::make('nuevo_nombre')
+                            ->label('Nombre de la nueva habitación (opcional)')
+                            ->placeholder('Ej. Suite Presidencial 102')
+                            ->maxLength(150)
+                            ->helperText('Si se deja vacío se usará "Habitación {número}".'),
+                    ])
+                    ->action(function (array $data, Habitacion $record) {
+                        try {
+                            $nueva = app(ClonarHabitacion::class)->execute(
+                                origen: $record,
+                                numero: (int) $data['nuevo_numero'],
+                                nombre: filled($data['nuevo_nombre']) ? $data['nuevo_nombre'] : null,
+                            );
+
+                            Notification::make()
+                                ->title('Habitación clonada exitosamente')
+                                ->body("Se creó la habitación {$nueva->codigo} — {$nueva->nombre}. Estado: Mantenimiento. Recuerde asignar los activos fijos y surtir el stock.")
+                                ->success()
+                                ->send();
+
+                        } catch (\InvalidArgumentException $e) {
+                            Notification::make()
+                                ->title('No se pudo clonar la habitación')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+
                 EditAction::make(),
                 DeleteAction::make(),
             ])

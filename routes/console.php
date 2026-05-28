@@ -1,8 +1,9 @@
 <?php
 
-use App\Jobs\Activos\DetectarMantenimientosAtrasadosJob;
+declare(strict_types=1);
+
+use App\Jobs\Activos\NotificarMantenimientosJob;
 use App\Jobs\Activos\SincronizarEstadoActivoJob;
-use App\Jobs\Activos\VerificarActivosSinMantenimientoHistoricoJob;
 use App\Jobs\Activos\VerificarGarantiasJob;
 use App\Jobs\Activos\VerificarMantenimientosPreventivosJob;
 use App\Jobs\Inventario\VerificarCaducidadesJob;
@@ -19,32 +20,73 @@ Artisan::command('inventario:verificar-caducidades', function (): void {
     fwrite(STDOUT, "Caducidades verificadas exitosamente.\n");
 })->purpose('Verificar lotes vencidos y notificar próximos a vencer');
 
-Schedule::job(new VerificarCaducidadesJob)
-    ->name('verificar-caducidades')
-    ->dailyAt('06:00')
-    ->withoutOverlapping();
+Artisan::command('mantenimiento:procesar-todos', function (): void {
+    VerificarMantenimientosPreventivosJob::dispatchSync();
+    NotificarMantenimientosJob::dispatchSync();
+    SincronizarEstadoActivoJob::dispatchSync();
+    VerificarGarantiasJob::dispatchSync();
+    fwrite(STDOUT, "Todos los jobs de mantenimiento procesados síncronamente.\n");
+})->purpose('Forzar la ejecución síncrona de todos los jobs de mantenimiento y garantías');
 
-Schedule::job(new VerificarMantenimientosPreventivosJob)
-    ->name('verificar-mantenimientos-preventivos')
-    ->dailyAt('06:15')
-    ->withoutOverlapping();
+$shouldSchedule = function (string $key, string $default = '06:00'): ?string {
+    $value = config($key, $default);
+    if ($value === null) {
+        return null;
+    }
+    $strValue = strtolower(trim((string) $value));
+    if (in_array($strValue, ['null', 'false', 'disabled', 'none', ''], true)) {
+        return null;
+    }
 
-Schedule::job(new VerificarGarantiasJob)
-    ->name('verificar-garantias-activos')
-    ->dailyAt('06:20')
-    ->withoutOverlapping();
+    return (string) $value;
+};
 
-Schedule::job(new DetectarMantenimientosAtrasadosJob)
-    ->name('detectar-mantenimientos-atrasados')
-    ->dailyAt('06:25')
-    ->withoutOverlapping();
+// 1. Verificar lotes vencidos y próximos a caducar
+if ($time = $shouldSchedule('jobs.inventario_caducidades', '06:00')) {
+    Schedule::job(new VerificarCaducidadesJob)
+        ->name('verificar-caducidades')
+        ->dailyAt($time)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone(config('app.timezone', 'America/Managua'));
+}
 
-Schedule::job(new VerificarActivosSinMantenimientoHistoricoJob)
-    ->name('verificar-activos-sin-mantenimiento-historico')
-    ->dailyAt('06:30')
-    ->withoutOverlapping();
+// 2. Generar mantenimientos preventivos lógicos (silencioso)
+if ($time = $shouldSchedule('jobs.mtto_preventivo', '06:00')) {
+    Schedule::job(new VerificarMantenimientosPreventivosJob)
+        ->name('verificar-mantenimientos-preventivos')
+        ->dailyAt($time)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone(config('app.timezone', 'America/Managua'));
+}
 
-Schedule::job(new SincronizarEstadoActivoJob)
-    ->name('sincronizar-estado-activo')
-    ->dailyAt('06:35')
-    ->withoutOverlapping();
+// 3. Notificación unificada de mantenimientos (tecnicos asignados / admin pool, anti-spam)
+if ($time = $shouldSchedule('jobs.mtto_notificar_proximos', '07:00')) {
+    Schedule::job(new NotificarMantenimientosJob)
+        ->name('notificar-mantenimientos')
+        ->dailyAt($time)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone(config('app.timezone', 'America/Managua'));
+}
+
+// 4. Restaurar estados lógicos de activos completados
+if ($time = $shouldSchedule('jobs.mtto_sincronizar', '06:40')) {
+    Schedule::job(new SincronizarEstadoActivoJob)
+        ->name('sincronizar-estado-activo')
+        ->dailyAt($time)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone(config('app.timezone', 'America/Managua'));
+}
+
+// 5. Advertir garantías de activos a vencer en los siguientes 30 días
+if ($time = $shouldSchedule('jobs.mtto_garantias', '06:15')) {
+    Schedule::job(new VerificarGarantiasJob)
+        ->name('verificar-garantias-activos')
+        ->dailyAt($time)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone(config('app.timezone', 'America/Managua'));
+}

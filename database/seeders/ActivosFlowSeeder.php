@@ -30,7 +30,7 @@ use App\Models\Compras\Solicitud;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Monedas\Moneda;
 use App\Models\User;
-use App\UseCases\Activos\Mutations\IndividualizarActivos;
+use App\UseCases\Activos\Mutations\Gestion\IndividualizarActivos;
 use App\UseCases\Inventario\Recepciones\Mutations\RegistrarEntradaRecepcion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;

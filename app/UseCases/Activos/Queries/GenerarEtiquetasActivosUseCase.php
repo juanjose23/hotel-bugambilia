@@ -6,6 +6,7 @@ namespace App\UseCases\Activos\Queries;
 
 use App\Support\ReportePaginador;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 
 class GenerarEtiquetasActivosUseCase
@@ -41,7 +42,7 @@ class GenerarEtiquetasActivosUseCase
                     'variante' => $activo->nombre_descriptivo ?? 'General',
                 ];
             } catch (\Throwable $e) {
-                logger($e->getMessage());
+                Log::warning($e->getMessage());
 
                 continue;
             }

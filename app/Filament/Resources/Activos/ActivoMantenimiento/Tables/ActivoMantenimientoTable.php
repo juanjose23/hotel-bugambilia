@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Activos\ActivoMantenimiento\Tables;
 
 use App\Enums\Activos\EstadoMantenimiento;
 use App\Models\Activos\ActivoMantenimiento;
-use App\UseCases\Activos\Mutations\CompletarMantenimiento;
+use App\UseCases\Activos\Mutations\Mantenimiento\CompletarMantenimiento;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;

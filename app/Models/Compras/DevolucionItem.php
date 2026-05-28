@@ -27,15 +27,7 @@ class DevolucionItem extends Model implements AuditableContract
         'unidadMedida',
     ];
 
-    protected $fillable = [
-        'devolucion_id',
-        'lote_id',
-        'recepcion_item_id',
-        'producto_id',
-        'producto_variante_id',
-        'unidad_medida_id',
-        'cantidad_devolver',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'cantidad_devolver' => 'float',

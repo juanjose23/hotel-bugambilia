@@ -34,14 +34,7 @@ class Persona extends Model implements AuditableContract
         'personaJuridica',
     ];
 
-    protected $fillable = [
-        'primer_nombre',
-        'segundo_nombre',
-        'pais_id',
-        'tipo_persona',
-        'telefono',
-        'direccion',
-    ];
+    protected $guarded = ['id'];
 
     /** @return BelongsTo<Pais, $this> */
     public function pais(): BelongsTo

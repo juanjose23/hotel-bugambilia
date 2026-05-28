@@ -17,14 +17,7 @@ class Ubicacion extends Model implements AuditableContract
 
     protected $table = 'ubicaciones';
 
-    protected $fillable = [
-        'nombre',
-        'descripcion',
-        'tipo',
-        'orden',
-        'padre_id',
-        'estado',
-    ];
+    protected $guarded = ['id'];
 
     /**
      * @return BelongsTo<self, $this>
@@ -40,5 +33,15 @@ class Ubicacion extends Model implements AuditableContract
     public function asignacionesActivos(): MorphMany
     {
         return $this->morphMany(ActivoAsignacion::class, 'asignable');
+    }
+
+    /**
+     * Alias semántico: activos fijos actualmente asignados a esta ubicación/bodega.
+     *
+     * @return MorphMany<ActivoAsignacion, $this>
+     */
+    public function inventarioFijo(): MorphMany
+    {
+        return $this->asignacionesActivos()->whereNull('fecha_fin');
     }
 }

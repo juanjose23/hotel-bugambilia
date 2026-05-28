@@ -30,15 +30,6 @@ class Servicio extends Model implements AuditableContract
 
     protected $table = 'servicios';
 
-    protected $fillable = [
-        'codigo',
-        'nombre',
-        'categoria_id',
-        'descripcion',
-        'icono',
-        'estado',
-    ];
-
     /** @return BelongsTo<Catalogo, $this> */
     public function categoria(): BelongsTo
     {

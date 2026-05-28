@@ -17,15 +17,7 @@ class ServiciosPrecio extends Model implements AuditableContract
 
     protected $table = 'servicios_precios';
 
-    protected $fillable = [
-        'servicio_id',
-        'moneda_id',
-        'precio',
-        'fecha_inicio',
-        'fecha_fin',
-        'estado',
-        'es_oferta',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'moneda_id' => 'integer',

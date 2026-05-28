@@ -28,16 +28,7 @@ class Solicitud extends Model implements AuditableContract
         'items',
     ];
 
-    protected $fillable = [
-        'codigo',
-        'colaborador_id',
-        'departamento_solicitante_id',
-        'fecha_solicitud',
-        'fecha_necesita',
-        'motivo',
-        'estado',
-        'notas',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'fecha_solicitud' => 'date',

@@ -17,14 +17,7 @@ class HabitacionHistorial extends Model implements AuditableContract
 
     protected $table = 'habitacion_historial';
 
-    protected $fillable = [
-        'model_type',
-        'model_id',
-        'estado_anterior',
-        'estado_nuevo',
-        'usuario_id',
-        'comentario',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'model_id' => 'integer',
