@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Compras\Recepciones\Tables;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
 use App\Filament\Resources\Compras\Recepciones\Actions\RecepcionEstadoActions;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Compras\RecepcionCompra;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -55,8 +56,7 @@ class RecepcionTable
                     ->alignCenter(),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoRecepcion::class),
+                FiltroEstado::make(EstadoRecepcion::class),
 
                 SelectFilter::make('orden_compra_id')
                     ->label('Orden de Compra')

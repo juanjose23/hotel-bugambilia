@@ -19,6 +19,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -53,7 +55,7 @@ class ActivoForm
                     ->searchable()
                     ->preload()
                     ->live()
-                    ->afterStateUpdated(function (?int $state, callable $set): void {
+                    ->afterStateUpdated(function (?int $state, Set $set): void {
                         if (! $state) {
                             return;
                         }
@@ -109,7 +111,7 @@ class ActivoForm
                     ->label('Variante')
                     ->placeholder('Sin variante / Única')
                     ->relationship('variante', 'nombre_variante')
-                    ->options(function (callable $get) {
+                    ->options(function (Get $get) {
                         $productoId = $get('producto_id');
                         if (! $productoId) {
                             return [];
@@ -211,7 +213,7 @@ class ActivoForm
                         Ubicacion::class => 'Ubicación / Bodega',
                         Espacio::class => 'Espacio / Área Común',
                     ])
-                    ->reactive()
+                    ->live()
                     ->native(false)
                     ->prefixIcon(Heroicon::BuildingOffice2)
                     ->helperText('Tipo de lugar donde se encuentra físicamente el activo.')
@@ -220,7 +222,7 @@ class ActivoForm
                 Select::make('asignacion_destino_id')
                     ->label('Destino Específico')
                     ->placeholder('Primero seleccione un tipo de destino')
-                    ->options(function (callable $get) {
+                    ->options(function (Get $get) {
                         return match ($get('asignacion_tipo')) {
                             Habitacion::class => Habitacion::pluck('nombre', 'id'),
                             Ubicacion::class => Ubicacion::pluck('nombre', 'id'),

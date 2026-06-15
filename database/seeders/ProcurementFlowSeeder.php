@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Enums\EstadoCatalogo;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Pais;
 use App\Models\Catalogos\Producto;

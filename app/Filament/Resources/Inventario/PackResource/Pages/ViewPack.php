@@ -6,10 +6,10 @@ namespace App\Filament\Resources\Inventario\PackResource\Pages;
 
 use App\Filament\Resources\Inventario\PackResource\PackResource;
 use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\Ubicacion;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Inventario\ProductoKit;
 use App\Models\Inventario\Stock;
+use App\Support\CachedOptions;
 use App\UseCases\Habitaciones\Mutations\AsignarPackAHabitacion;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -40,7 +40,7 @@ class ViewPack extends ViewRecord
                 ->color('success')
                 ->modalHeading('Surtir Pack a Habitación')
                 ->modalDescription("Seleccione la habitación destino y la bodega de origen para surtir el pack \"{$this->record->nombre}\".")
-                ->form([
+                ->schema([
                     Select::make('habitacion_id')
                         ->label('Habitación destino')
                         ->options(Habitacion::pluck('nombre', 'id'))
@@ -50,11 +50,7 @@ class ViewPack extends ViewRecord
 
                     Select::make('bodega_origen_id')
                         ->label('Bodega de origen')
-                        ->options(
-                            Ubicacion::where('tipo', 'almacen')
-                                ->where('estado', 1)
-                                ->pluck('nombre', 'id')
-                        )
+                        ->options(CachedOptions::ubicacionesAlmacen())
                         ->searchable()
                         ->preload()
                         ->required(),
@@ -72,7 +68,7 @@ class ViewPack extends ViewRecord
                             TextInput::make('variante')->disabled(),
                             TextInput::make('cantidad')->disabled(),
                             TextInput::make('stock')->disabled()->label('Stock en bodega'),
-                            TextInput::make('estado')->disabled()->label(''),
+                            TextInput::make('estado')->disabled()->hiddenLabel(),
                         ])
                         ->disabled()
                         ->columns(4)

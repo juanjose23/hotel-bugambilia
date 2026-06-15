@@ -5,7 +5,7 @@
             <div class="fi-section p-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900 transition-all duration-300">
                 <div class="flex items-center gap-3">
                     <div class="p-2 rounded-lg bg-primary-50 dark:bg-primary-500/10">
-                        <x-heroicon-o-building-office class="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                        <x-heroicon-o-building-office-2 class="w-5 h-5 text-primary-600 dark:text-primary-400" />
                     </div>
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Jerarquía</p>

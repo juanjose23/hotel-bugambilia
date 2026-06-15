@@ -9,6 +9,7 @@ use App\Models\Habitaciones\Habitacion;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -41,7 +42,7 @@ class SolicitudLimpiezaForm
                         Select::make('limpiable_id')
                             ->label('Ubicación Específica')
                             ->placeholder('Seleccione la ubicación')
-                            ->options(function (callable $get) {
+                            ->options(function (Get $get) {
                                 $type = $get('limpiable_type');
                                 if (! $type) {
                                     return [];

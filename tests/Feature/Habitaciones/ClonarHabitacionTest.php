@@ -5,7 +5,7 @@ declare(strict_types=1);
 // tests/Feature/Habitaciones/ClonarHabitacionTest.php
 
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
-use App\Enums\HabitacionesEspacios\EstadoServicioHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoServicioAsignacion;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\CatalogoTipo;
 use App\Models\Catalogos\Producto;
@@ -197,7 +197,7 @@ it('clona todos los servicios de la habitacion origen', function () {
         'habitacion_id' => $origen->id,
         'servicio_id' => $this->servicio->id,
         'incluido' => true,
-        'estado' => EstadoServicioHabitacion::Activo,
+        'estado' => EstadoServicioAsignacion::Activo,
     ]);
 
     $nueva = $this->useCase->execute($origen, 102);

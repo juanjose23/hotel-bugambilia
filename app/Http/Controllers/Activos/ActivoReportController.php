@@ -8,6 +8,7 @@ use App\Exports\Activos\ActivosExport;
 use App\Http\Controllers\Controller;
 use App\Models\Activos\Activo;
 use App\Models\Activos\ActivoMantenimiento;
+use App\Support\ReportePaginador;
 use App\UseCases\Activos\Queries\GenerarEtiquetasActivosUseCase;
 use App\UseCases\Activos\Queries\ObtenerActivosPorUbicacionUseCase;
 use App\UseCases\Activos\Queries\ObtenerFichasReportesUseCase;
@@ -66,8 +67,15 @@ class ActivoReportController extends Controller
             'ubicacion_tipo' => request('ubicacion_tipo'),
         ];
 
+        $activos = $useCase->inventarioGeneral($filtros);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $activos->chunk($filasPorPagina)
+            ->map(fn ($chunk) => $chunk->values())
+            ->values()
+            ->all();
+
         return Pdf::view('reports.activos.inventario-general', array_merge($this->baseData(), [
-            'activos' => $useCase->inventarioGeneral($filtros),
+            'paginas' => $paginas,
         ]))->name('HTB-ACT-001-Inventario-General.pdf')->download();
     }
 
@@ -161,8 +169,16 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-007');
 
+        $activos = $useCase->enMantenimiento();
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $activos->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
+
         return Pdf::view('reports.activos.en-mantenimiento', array_merge($this->baseData(), [
-            'activos' => $useCase->enMantenimiento(),
+            'paginas' => $paginas,
+            'totalRegistros' => $activos->count(),
         ]))->name('HTB-ACT-007-Activos-en-Mantenimiento.pdf')->download();
     }
 
@@ -173,9 +189,16 @@ class ActivoReportController extends Controller
         $this->auditoria('HTB-ACT-008');
 
         $dias = (int) request('dias', 90);
+        $activos = $useCase->garantiasProximas($dias);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $activos->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
 
         return Pdf::view('reports.activos.garantias-proximas', array_merge($this->baseData(), [
-            'activos' => $useCase->garantiasProximas($dias),
+            'paginas' => $paginas,
+            'totalRegistros' => $activos->count(),
             'dias' => $dias,
         ]))->name('HTB-ACT-008-Garantias-Proximas.pdf')->download();
     }
@@ -186,8 +209,17 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-009');
 
+        $bajas = $useCase->dadosDeBaja();
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $bajas->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
+
         return Pdf::view('reports.activos.dados-de-baja', array_merge($this->baseData(), [
-            'bajas' => $useCase->dadosDeBaja(),
+            'paginas' => $paginas,
+            'totalRegistros' => $bajas->count(),
+            'totalValorResidual' => $bajas->sum('valor_residual'),
         ]))->name('HTB-ACT-009-Activos-Dados-de-Baja.pdf')->download();
     }
 
@@ -197,8 +229,17 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-010');
 
+        $activos = $useCase->extraviados();
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie(rowPx: 26);
+        $paginas = $activos->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
+
         return Pdf::view('reports.activos.extraviados', array_merge($this->baseData(), [
-            'activos' => $useCase->extraviados(),
+            'paginas' => $paginas,
+            'totalRegistros' => $activos->count(),
+            'totalCosto' => $activos->sum('costo_adquisicion'),
         ]))->name('HTB-ACT-010-Activos-Extraviados.pdf')->download();
     }
 
@@ -208,8 +249,16 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-011');
 
+        $activos = $useCase->sinAsignacion();
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $activos->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
+
         return Pdf::view('reports.activos.sin-asignacion', array_merge($this->baseData(), [
-            'activos' => $useCase->sinAsignacion(),
+            'paginas' => $paginas,
+            'totalRegistros' => $activos->count(),
         ]))->name('HTB-ACT-011-Activos-Sin-Asignacion.pdf')->download();
     }
 
@@ -219,8 +268,16 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-012');
 
+        $mantenimientos = $useCase->mantenimientosVencidos();
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $mantenimientos->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
+
         return Pdf::view('reports.activos.mantenimientos-vencidos', array_merge($this->baseData(), [
-            'mantenimientos' => $useCase->mantenimientosVencidos(),
+            'paginas' => $paginas,
+            'totalRegistros' => $mantenimientos->count(),
         ]))->name('HTB-ACT-012-Mantenimientos-Vencidos.pdf')->download();
     }
 

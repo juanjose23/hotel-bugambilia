@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Tables;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
 use App\Models\Colaboradores\ColaboradorSalario;
 use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Actions\BulkActionGroup;
@@ -14,7 +15,6 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class ColaboradorSalarioTable
@@ -51,7 +51,7 @@ class ColaboradorSalarioTable
                     ->color(fn ($state): string => EstadoCatalogo::colorFor($state)),
             ])
             ->filters([
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
             ])
             ->recordActions([
                 EditAction::make()

@@ -4,7 +4,8 @@
 @section('report_name', 'Activos Dados de Baja')
 
 @section('content')
-<div class="report-page">
+@foreach ($paginas as $pIdx => $chunk)
+<div class="report-page {{ $loop->last ? '' : 'page-break' }}">
     <table class="page-frame">
         <tbody>
             <tr>
@@ -32,7 +33,7 @@
                     <div style="margin-bottom: 20px; font-size: 10px; color: #666;">
                         <span><strong>Generado en:</strong> {{ $generadoEn }}</span> &nbsp;|&nbsp;
                         <span><strong>Generado por:</strong> {{ $usuario }}</span>
-                        &nbsp;|&nbsp; <strong>Total bajas:</strong> {{ $bajas->count() }}
+                        &nbsp;|&nbsp; <strong>Total bajas:</strong> {{ $totalRegistros }}
                     </div>
 
                     <table class="data-table">
@@ -48,7 +49,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($bajas as $baja)
+                            @forelse($chunk as $baja)
                             <tr>
                                 <td><strong>{{ $baja->codigo }}</strong></td>
                                 <td>{{ $baja->activo->codigo_inventario }}</td>
@@ -56,20 +57,20 @@
                                 <td>
                                     <span class="badge" style="
                                         background: {{ match($baja->motivo_tipo?->value) {
-                                            'robo', 'perdida' => '#fee2e2',
-                                            'obsolescencia' => '#f1f5f9',
-                                            'daño_irreparable' => '#fef3c7',
-                                            'donacion' => '#d1fae5',
-                                            'venta' => '#dbeafe',
-                                            default => '#f8fafc',
+                                            'robo', 'perdida'      => '#fee2e2',
+                                            'obsolescencia'        => '#f1f5f9',
+                                            'daño_irreparable'     => '#fef3c7',
+                                            'donacion'             => '#d1fae5',
+                                            'venta'                => '#dbeafe',
+                                            default                => '#f8fafc',
                                         } }};
                                         color: {{ match($baja->motivo_tipo?->value) {
-                                            'robo', 'perdida' => '#991b1b',
-                                            'obsolescencia' => '#475569',
-                                            'daño_irreparable' => '#92400e',
-                                            'donacion' => '#065f46',
-                                            'venta' => '#1e40af',
-                                            default => '#333',
+                                            'robo', 'perdida'      => '#991b1b',
+                                            'obsolescencia'        => '#475569',
+                                            'daño_irreparable'     => '#92400e',
+                                            'donacion'             => '#065f46',
+                                            'venta'                => '#1e40af',
+                                            default                => '#333',
                                         } }};
                                     ">{{ $baja->motivo_tipo?->label() ?? $baja->motivo_tipo }}</span>
                                 </td>
@@ -91,9 +92,11 @@
                         </tbody>
                     </table>
 
+                    @if($loop->last)
                     <div style="margin-top:16px;font-size:9px;color:#666;">
-                        &bull; <strong>Valor residual total:</strong> ${{ number_format($bajas->sum('valor_residual'), 2) }}
+                        &bull; <strong>Valor residual total:</strong> ${{ number_format($totalValorResidual, 2) }}
                     </div>
+                    @endif
                 </td>
             </tr>
             <tr>
@@ -102,7 +105,10 @@
                         <table style="width:100%;">
                             <tr>
                                 <td style="font-size:8px;color:#999;">Reporte patrimonial de activos retirados definitivamente.</td>
-                                <td style="text-align:right;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:center;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:right;width:120px;font-size:9px;color:#718096;">
+                                    Página <strong>{{ $pIdx + 1 }}</strong> de <strong>{{ count($paginas) }}</strong>
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -111,4 +117,5 @@
         </tbody>
     </table>
 </div>
+@endforeach
 @endsection

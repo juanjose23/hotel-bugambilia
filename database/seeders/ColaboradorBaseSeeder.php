@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Sexo;
-use App\Enums\TipoIdentificacion;
+use App\Enums\Personas\Sexo;
+use App\Enums\Personas\TipoIdentificacion;
 use App\Models\Colaboradores\Colaborador;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

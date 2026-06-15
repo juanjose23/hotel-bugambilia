@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Compras\Solicitudes\Tables;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Compras\Solicitud;
 use App\UseCases\Compras\Solicitudes\Mutations\CancelarSolicitud;
 use App\UseCases\Compras\Solicitudes\Mutations\RechazarSolicitud;
@@ -18,8 +20,6 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class SolicitudTable
@@ -71,9 +71,8 @@ class SolicitudTable
                     ->badge(),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoSolicitud::class),
-                TrashedFilter::make(),
+                FiltroEstado::make(EstadoSolicitud::class),
+                FiltroEliminados::make(),
             ])
             ->actions([
                 // 1. Acciones Principales
@@ -122,7 +121,7 @@ class SolicitudTable
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Más opciones'),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

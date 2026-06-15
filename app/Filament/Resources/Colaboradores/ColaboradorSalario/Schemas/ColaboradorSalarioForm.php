@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Schemas;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use App\Models\Colaboradores\ColaboradorSalario;
 use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Closure;

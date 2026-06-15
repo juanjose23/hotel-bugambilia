@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Catalogos\Politicas\Schemas;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;

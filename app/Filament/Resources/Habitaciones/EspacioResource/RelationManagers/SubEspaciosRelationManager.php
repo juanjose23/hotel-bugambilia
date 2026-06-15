@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Filament\Resources\Habitaciones\EspacioResource\Schemas\EspacioForm;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Espacios\Espacio;
 use App\UseCases\Espacios\Mutations\GenerarCodigoSubEspacio;
 use App\UseCases\Espacios\Mutations\ValidarCapacidadMesas;
@@ -25,6 +26,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -96,8 +98,7 @@ class SubEspaciosRelationManager extends RelationManager
             ->filters([
                 SelectFilter::make('tipo')
                     ->options(TipoEspacio::options()),
-                SelectFilter::make('estado')
-                    ->options(EstadoEspacio::options()),
+                FiltroEstado::make(EstadoEspacio::class),
             ])
             ->headerActions([
                 CreateAction::make()
@@ -136,7 +137,7 @@ class SubEspaciosRelationManager extends RelationManager
                             // El espacio padre no es restaurante — se permite sin validación
                         }
                     })
-                    ->mutateFormDataUsing(function (array $data): array {
+                    ->mutateDataUsing(function (array $data): array {
                         $data['padre_id'] = $this->getOwnerRecord()->getKey();
 
                         if (empty($data['codigo'])) {
@@ -162,7 +163,7 @@ class SubEspaciosRelationManager extends RelationManager
                     ->fillForm(fn ($record) => $record->toArray())
                     ->schema([
                         Tabs::make('detalles')->columnSpanFull()->tabs([
-                            Tabs\Tab::make('Información General')
+                            Tab::make('Información General')
                                 ->icon(Heroicon::InformationCircle)
                                 ->columns(3)
                                 ->schema([
@@ -212,7 +213,7 @@ class SubEspaciosRelationManager extends RelationManager
                                         ->columnSpan(1),
                                 ]),
 
-                            Tabs\Tab::make('Configuración del Tipo')
+                            Tab::make('Configuración del Tipo')
                                 ->icon(Heroicon::WrenchScrewdriver)
                                 ->schema([
                                     // ─── Mesa ──────────────────────────
@@ -390,7 +391,7 @@ class SubEspaciosRelationManager extends RelationManager
                                         ->visible(fn ($get) => $get('tipo') === TipoEspacio::CANCHA->value),
                                 ]),
 
-                            Tabs\Tab::make('Descripción')
+                            Tab::make('Descripción')
                                 ->icon(Heroicon::DocumentText)
                                 ->schema([
                                     RichEditor::make('descripcion')

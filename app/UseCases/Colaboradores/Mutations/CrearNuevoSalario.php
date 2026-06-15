@@ -2,7 +2,7 @@
 
 namespace App\UseCases\Colaboradores\Mutations;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use App\Models\Colaboradores\ColaboradorSalario;
 use Illuminate\Support\Facades\DB;
 

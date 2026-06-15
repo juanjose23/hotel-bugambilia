@@ -6,10 +6,9 @@ namespace App\Filament\Resources\Activos\ActivoMantenimiento\Schemas;
 
 use App\Enums\Activos\EstadoMantenimiento;
 use App\Models\Activos\Activo;
-use App\Models\Compras\Proveedor;
 use App\Models\Monedas\Moneda;
 use App\Models\User;
-use App\UseCases\Shared\Queries\ObtenerNombrePersona;
+use App\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -88,9 +87,7 @@ class ActivoMantenimientoForm
                                     Select::make('proveedor_id')
                                         ->label('Proveedor Externo')
                                         ->placeholder('Seleccione un proveedor (opcional)')
-                                        ->options(fn () => Proveedor::with(['persona.personaNatural', 'persona.personaJuridica'])->get()->mapWithKeys(function ($prov) {
-                                            return [$prov->id => app(ObtenerNombrePersona::class)->ejecutar($prov->persona)];
-                                        }))
+                                        ->options(fn () => CachedOptions::proveedores())
                                         ->searchable()
                                         ->native(false)
                                         ->prefixIcon(Heroicon::BuildingOffice)
@@ -105,7 +102,7 @@ class ActivoMantenimientoForm
 
                                     Select::make('moneda_id')
                                         ->label('Moneda')
-                                        ->options(fn () => Moneda::pluck('nombre', 'id'))
+                                        ->options(fn () => CachedOptions::monedas())
                                         ->native(false)
                                         ->default(fn () => Moneda::where('es_predeterminada', true)->value('id') ?? Moneda::first()?->id)
                                         ->prefixIcon(Heroicon::Banknotes),

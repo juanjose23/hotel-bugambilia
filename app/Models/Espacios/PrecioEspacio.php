@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Espacios;
 
-use App\Enums\Espacios\TipoPrecioEspacio;
+use App\Enums\HabitacionesEspacios\TipoPrecioEspacio;
 use App\Models\Monedas\Moneda;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

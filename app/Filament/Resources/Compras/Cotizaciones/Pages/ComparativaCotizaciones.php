@@ -293,7 +293,7 @@ class ComparativaCotizaciones extends Page
                 ->icon(Heroicon::ListBullet)
                 ->color('gray')
                 ->url(fn () => CotizacionResource::getUrl('index', [
-                    'tableFilters[solicitud_id][value]' => $this->solicitudId,
+                    'filters[solicitud_id][value]' => $this->solicitudId,
                 ])),
 
             Action::make('regresar')

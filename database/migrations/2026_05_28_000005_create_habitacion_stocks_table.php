@@ -39,6 +39,15 @@ return new class extends Migration
             $table->unique(['habitacion_id', 'producto_variante_id', 'deleted_at'], 'uq_habitacion_stock_variante');
         });
 
+        $driver = DB::connection()->getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE habitacion_stocks DROP CONSTRAINT IF EXISTS uq_habitacion_stock_variante');
+            DB::statement('CREATE UNIQUE INDEX uq_habitacion_stock_variante ON habitacion_stocks (habitacion_id, producto_variante_id) WHERE deleted_at IS NULL');
+        } elseif ($driver === 'sqlite') {
+            DB::statement('DROP INDEX IF EXISTS uq_habitacion_stock_variante');
+            DB::statement('CREATE UNIQUE INDEX uq_habitacion_stock_variante ON habitacion_stocks (habitacion_id, producto_variante_id) WHERE deleted_at IS NULL');
+        }
+
         if (DB::connection()->getDriverName() !== 'sqlite') {
             DB::statement("
                 CREATE OR REPLACE FUNCTION actualizar_estado_habitacion_stock()

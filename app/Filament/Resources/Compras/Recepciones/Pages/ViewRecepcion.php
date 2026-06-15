@@ -29,7 +29,7 @@ class ViewRecepcion extends ViewRecord
                 ->label('Convertir a Estructura Física')
                 ->icon('heroicon-o-squares-plus')
                 ->color('success')
-                ->form([
+                ->schema([
                     Select::make('recepcion_item_id')
                         ->label('Seleccionar Ítem Recibido')
                         ->options(function () {

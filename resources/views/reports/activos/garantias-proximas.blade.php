@@ -4,7 +4,8 @@
 @section('report_name', 'Garantías Próximas a Vencer')
 
 @section('content')
-<div class="report-page">
+@foreach ($paginas as $pIdx => $chunk)
+<div class="report-page {{ $loop->last ? '' : 'page-break' }}">
     <table class="page-frame">
         <tbody>
             <tr>
@@ -33,7 +34,7 @@
                         <span><strong>Generado en:</strong> {{ $generadoEn }}</span> &nbsp;|&nbsp;
                         <span><strong>Generado por:</strong> {{ $usuario }}</span>
                         &nbsp;|&nbsp; <strong>Días de anticipación:</strong> {{ $dias }}
-                        &nbsp;|&nbsp; <strong>Total:</strong> {{ $activos->count() }}
+                        &nbsp;|&nbsp; <strong>Total:</strong> {{ $totalRegistros }}
                     </div>
 
                     <table class="data-table">
@@ -48,11 +49,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($activos as $activo)
+                            @forelse($chunk as $activo)
                             @php
                                 $diasRestantes = now()->diffInDays($activo->fecha_garantia_fin, false);
-                                $vencida = $diasRestantes < 0;
-                                $critica = $diasRestantes <= 30 && $diasRestantes >= 0;
+                                $vencida  = $diasRestantes < 0;
+                                $critica  = $diasRestantes <= 30 && $diasRestantes >= 0;
                             @endphp
                             <tr>
                                 <td><strong>{{ $activo->codigo_inventario }}</strong></td>
@@ -81,11 +82,13 @@
                         </tbody>
                     </table>
 
+                    @if($loop->last)
                     <div style="margin-top:16px;font-size:9px;color:#666;">
                         <span style="color:#dc2626;font-weight:bold;">■</span> Vencida &nbsp;&nbsp;
                         <span style="color:#f59e0b;font-weight:bold;">■</span> Próxima a vencer (&le;30 días) &nbsp;&nbsp;
                         <span style="color:#16a34a;font-weight:bold;">■</span> Vigente
                     </div>
+                    @endif
                 </td>
             </tr>
             <tr>
@@ -94,7 +97,10 @@
                         <table style="width:100%;">
                             <tr>
                                 <td style="font-size:8px;color:#999;">Reporte de garantías para reclamaciones oportunas.</td>
-                                <td style="text-align:right;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:center;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:right;width:120px;font-size:9px;color:#718096;">
+                                    Página <strong>{{ $pIdx + 1 }}</strong> de <strong>{{ count($paginas) }}</strong>
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -103,4 +109,5 @@
         </tbody>
     </table>
 </div>
+@endforeach
 @endsection

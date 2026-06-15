@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Catalogos\Pais\Schemas;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -62,13 +63,7 @@ class PaisInfolist
                 ->columnSpanFull()
                 ->columns(3)
                 ->schema([
-                    TextEntry::make('created_at')
-                        ->label('Fecha de Creación')
-                        ->dateTime('d/m/Y H:i'),
-
-                    TextEntry::make('updated_at')
-                        ->label('Última Actualización')
-                        ->dateTime('d/m/Y H:i'),
+                    ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
                 ]),
         ]);
     }

@@ -24,4 +24,12 @@ class RegistrarAuditoriaReporteUseCase
             'updated_at' => now(),
         ]);
     }
+
+    /**
+     * @param  array<string, mixed>  $parametros
+     */
+    public function execute(string $tipoReporte, array $parametros = [], ?string $rutaArchivo = null): void
+    {
+        $this->ejecutar($tipoReporte, $parametros, $rutaArchivo);
+    }
 }

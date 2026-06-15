@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Catalogos\Pais\Tables;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;

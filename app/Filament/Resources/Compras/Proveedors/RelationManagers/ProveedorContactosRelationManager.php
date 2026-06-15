@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Compras\Proveedors\RelationManagers;
 
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -137,15 +138,7 @@ class ProveedorContactosRelationManager extends RelationManager
                                     ->icon(Heroicon::Envelope)
                                     ->copyable(),
 
-                                TextEntry::make('created_at')
-                                    ->label('Creado')
-                                    ->dateTime('d/m/Y H:i')
-                                    ->icon(Heroicon::Calendar),
-
-                                TextEntry::make('updated_at')
-                                    ->label('Actualizado')
-                                    ->dateTime('d/m/Y H:i')
-                                    ->icon(Heroicon::Calendar),
+                                ...InfolistTimestamps::make(format: 'd/m/Y H:i', withIcons: true),
                             ]),
                     ]),
                 EditAction::make()->iconButton(),

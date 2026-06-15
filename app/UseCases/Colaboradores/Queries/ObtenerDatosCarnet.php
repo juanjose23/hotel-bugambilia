@@ -2,7 +2,7 @@
 
 namespace App\UseCases\Colaboradores\Queries;
 
-use App\Enums\TipoSangre;
+use App\Enums\Personas\TipoSangre;
 use App\Models\Personas\Persona;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 
