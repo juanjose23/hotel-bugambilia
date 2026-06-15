@@ -64,7 +64,7 @@ class DevolucionCompraInfolist
                     ->columnSpanFull()
                     ->schema([
                         RepeatableEntry::make('items')
-                            ->label('')
+                            ->hiddenLabel()
                             ->schema([
                                 TextEntry::make('producto.nombre')
                                     ->label('Producto')

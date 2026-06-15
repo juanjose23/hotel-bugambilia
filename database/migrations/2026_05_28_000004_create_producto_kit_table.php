@@ -7,6 +7,7 @@ use App\Models\Catalogos\ProductoVariante;
 use App\Models\Inventario\Lote;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -35,6 +36,15 @@ return new class extends Migration
 
             $table->unique(['producto_padre_id', 'producto_variante_id', 'deleted_at'], 'uq_producto_kit_padre_variante');
         });
+
+        $driver = DB::connection()->getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE producto_kit DROP CONSTRAINT IF EXISTS uq_producto_kit_padre_variante');
+            DB::statement('CREATE UNIQUE INDEX uq_producto_kit_padre_variante ON producto_kit (producto_padre_id, producto_variante_id) WHERE deleted_at IS NULL');
+        } elseif ($driver === 'sqlite') {
+            DB::statement('DROP INDEX IF EXISTS uq_producto_kit_padre_variante');
+            DB::statement('CREATE UNIQUE INDEX uq_producto_kit_padre_variante ON producto_kit (producto_padre_id, producto_variante_id) WHERE deleted_at IS NULL');
+        }
     }
 
     public function down(): void

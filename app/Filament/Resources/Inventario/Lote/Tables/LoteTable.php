@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Inventario\Lote\Tables;
 
 use App\Enums\Inventario\EstadoLote;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Inventario\Lote;
 use App\Models\Inventario\MovimientoStock;
@@ -25,6 +26,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class LoteTable
 {
@@ -69,9 +71,7 @@ class LoteTable
                     ->toggleable(),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoLote::options()),
+                FiltroEstado::make(EstadoLote::class),
                 SelectFilter::make('producto_id')
                     ->label('Producto')
                     ->relationship('producto', 'nombre'),
@@ -88,7 +88,7 @@ class LoteTable
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Registrar Merma o Pérdida')
-                        ->form([
+                        ->schema([
                             TextInput::make('cantidad')
                                 ->label('Cantidad a descontar')
                                 ->numeric()
@@ -132,11 +132,13 @@ class LoteTable
                         ->color('info')
                         ->requiresConfirmation()
                         ->modalHeading('Trasladar Lote a Nueva Ubicación')
-                        ->form([
+                        ->schema([
                             Select::make('ubicacion_destino_id')
                                 ->label('Ubicación de Destino')
                                 ->options(function () {
-                                    $ubicaciones = Ubicacion::where('estado', 1)->get();
+                                    $ubicaciones = Cache::remember('lote_table:ubicaciones_activas', 3600, function () {
+                                        return Ubicacion::where('estado', 1)->get();
+                                    });
                                     $map = $ubicaciones->keyBy('id');
 
                                     $buildPath = function ($u) use (&$buildPath, $map) {
@@ -217,7 +219,7 @@ class LoteTable
                         ->requiresConfirmation()
                         ->modalHeading('Enviar Lote a Cuarentena')
                         ->modalDescription('El lote será retenido y no podrá ser utilizado para consumo por FEFO hasta que sea liberado.')
-                        ->form([
+                        ->schema([
                             Textarea::make('motivo')
                                 ->label('Motivo de Retención / Control de Calidad')
                                 ->required(),
@@ -255,7 +257,7 @@ class LoteTable
                         ->requiresConfirmation()
                         ->modalHeading('Rechazar Lote / Marcar como Desperdicio')
                         ->modalDescription('El lote será clasificado como RECHAZADO, su stock disponible será 0 y será reubicado físicamente en la Zona de Merma.')
-                        ->form([
+                        ->schema([
                             Textarea::make('motivo')
                                 ->label('Motivo del Rechazo (Obligatorio)')
                                 ->required(),
@@ -276,7 +278,7 @@ class LoteTable
                     ->color('gray')
                     ->tooltip('Más acciones'),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkAction::make('liberar_cuarentena')
                     ->label('Liberar de Cuarentena')
                     ->icon(Heroicon::ShieldCheck)
@@ -300,7 +302,7 @@ class LoteTable
                     ->color('danger')
                     ->requiresConfirmation()
                     ->modalHeading('Rechazar Lotes seleccionados')
-                    ->form([
+                    ->schema([
                         Textarea::make('motivo')
                             ->label('Motivo del Rechazo Masivo')
                             ->required(),

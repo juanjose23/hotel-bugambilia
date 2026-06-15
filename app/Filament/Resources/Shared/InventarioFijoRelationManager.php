@@ -18,6 +18,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -127,7 +128,7 @@ class InventarioFijoRelationManager extends RelationManager
                     ->color('danger')
                     ->requiresConfirmation()
                     ->modalHeading('Desvincular activo y reasignar destino')
-                    ->form([
+                    ->schema([
                         Select::make('asignable_type')
                             ->label('Tipo de Destino')
                             ->placeholder('Seleccione tipo de destino')
@@ -136,7 +137,7 @@ class InventarioFijoRelationManager extends RelationManager
                                 Ubicacion::class => 'Ubicación / Bodega',
                                 Espacio::class => 'Espacio / Área Común',
                             ])
-                            ->reactive()
+                            ->live()
                             ->native(false)
                             ->required()
                             ->afterStateUpdated(fn (callable $set) => $set('asignable_id', null)),
@@ -144,7 +145,7 @@ class InventarioFijoRelationManager extends RelationManager
                         Select::make('asignable_id')
                             ->label('Destino Específico')
                             ->placeholder('Primero seleccione un tipo de destino')
-                            ->options(function (callable $get) {
+                            ->options(function (Get $get) {
                                 $type = $get('asignable_type');
 
                                 return match ($type) {

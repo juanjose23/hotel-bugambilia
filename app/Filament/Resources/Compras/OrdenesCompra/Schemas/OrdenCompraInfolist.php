@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Compras\OrdenesCompra\Schemas;
 
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -64,7 +65,7 @@ class OrdenCompraInfolist
                     ->columnSpanFull()
                     ->schema([
                         RepeatableEntry::make('items')
-                            ->label('')
+                            ->hiddenLabel()
                             ->schema([
                                 TextEntry::make('producto.nombre')
                                     ->label('Producto')
@@ -95,13 +96,7 @@ class OrdenCompraInfolist
                     ->columnSpanFull()
                     ->columns(3)
                     ->schema([
-                        TextEntry::make('created_at')
-                            ->label('Fecha de Creación')
-                            ->dateTime('d/m/Y H:i'),
-
-                        TextEntry::make('updated_at')
-                            ->label('Última Actualización')
-                            ->dateTime('d/m/Y H:i'),
+                        ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
                     ]),
             ]);
     }

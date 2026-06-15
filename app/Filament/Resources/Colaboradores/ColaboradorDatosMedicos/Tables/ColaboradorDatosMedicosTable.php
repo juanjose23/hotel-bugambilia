@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorDatosMedicos\Tables;
 
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
 use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -9,7 +10,6 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class ColaboradorDatosMedicosTable
@@ -49,7 +49,7 @@ class ColaboradorDatosMedicosTable
                     ->falseColor('danger'),
             ])
             ->filters([
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
             ])
             ->recordActions([
                 EditAction::make()

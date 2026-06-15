@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\RegistroIndividualizacion\Tables;
 
 use App\Enums\Activos\EstadoIndividualizacion;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Activos\RegistroIndividualizacion;
 use App\UseCases\Activos\Mutations\Gestion\IndividualizarActivos;
 use Filament\Actions\Action;
@@ -13,7 +14,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class RegistroIndividualizacionTable
@@ -63,9 +63,7 @@ class RegistroIndividualizacionTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoIndividualizacion::class),
+                FiltroEstado::make(EstadoIndividualizacion::class),
             ])
             ->actions([
                 Action::make('individualizar')
@@ -75,7 +73,7 @@ class RegistroIndividualizacionTable
                     ->requiresConfirmation()
                     ->modalHeading('Individualizar Unidades Físicas')
                     ->modalDescription(fn (RegistroIndividualizacion $record) => 'Estás a punto de registrar '.($record->cantidad_total - $record->cantidad_registrada)." unidades físicas para el producto '{$record->producto->nombre}'.")
-                    ->form([
+                    ->schema([
                         Repeater::make('unidades')
                             ->label('Listado de Unidades Físicas')
                             ->schema([

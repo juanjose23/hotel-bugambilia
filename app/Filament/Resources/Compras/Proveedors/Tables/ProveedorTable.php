@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\Compras\Proveedors\Tables;
 
-use App\Enums\CatalogoTipo;
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
@@ -13,7 +14,6 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -68,7 +68,7 @@ class ProveedorTable
                     ->sortable(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
 
                 SelectFilter::make('tipo_proveedor_id')
                     ->label('Tipo de Proveedor')

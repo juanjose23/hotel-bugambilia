@@ -14,7 +14,7 @@ class PaisSeeder extends Seeder
     public function run(): void
     {
         //
-        $path = base_path('vendor/stefangabos/world_countries/data/countries/es/countries.json');
+        $path = database_path('data/countries.json');
 
         if (! File::exists($path)) {
             $this->command->error("No se encontró el archivo JSON en: $path");

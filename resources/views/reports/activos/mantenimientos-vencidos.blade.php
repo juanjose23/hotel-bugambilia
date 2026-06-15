@@ -4,7 +4,8 @@
 @section('report_name', 'Mantenimientos Vencidos')
 
 @section('content')
-<div class="report-page">
+@foreach ($paginas as $pIdx => $chunk)
+<div class="report-page {{ $loop->last ? '' : 'page-break' }}">
     <table class="page-frame">
         <tbody>
             <tr>
@@ -32,7 +33,7 @@
                     <div style="margin-bottom: 20px; font-size: 10px; color: #666;">
                         <span><strong>Generado en:</strong> {{ $generadoEn }}</span> &nbsp;|&nbsp;
                         <span><strong>Generado por:</strong> {{ $usuario }}</span>
-                        &nbsp;|&nbsp; <strong>Total vencidos:</strong> {{ $mantenimientos->count() }}
+                        &nbsp;|&nbsp; <strong>Total vencidos:</strong> {{ $totalRegistros }}
                     </div>
 
                     <table class="data-table">
@@ -47,7 +48,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($mantenimientos as $mtto)
+                            @forelse($chunk as $mtto)
                             @php
                                 $diasVencido = (int) now()->diffInDays($mtto->fecha_programada, false);
                             @endphp
@@ -72,10 +73,12 @@
                         </tbody>
                     </table>
 
+                    @if($loop->last)
                     <div style="margin-top:16px;font-size:9px;color:#666;">
                         <span style="color:#dc2626;font-weight:bold;">■</span> Crítico (&gt;30 días vencido) &nbsp;&nbsp;
                         <span style="color:#f59e0b;font-weight:bold;">■</span> Pendiente (&le;30 días)
                     </div>
+                    @endif
                 </td>
             </tr>
             <tr>
@@ -84,7 +87,10 @@
                         <table style="width:100%;">
                             <tr>
                                 <td style="font-size:8px;color:#999;">Reporte de mantenimientos programados no ejecutados.</td>
-                                <td style="text-align:right;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:center;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:right;width:120px;font-size:9px;color:#718096;">
+                                    Página <strong>{{ $pIdx + 1 }}</strong> de <strong>{{ count($paginas) }}</strong>
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -93,4 +99,5 @@
         </tbody>
     </table>
 </div>
+@endforeach
 @endsection

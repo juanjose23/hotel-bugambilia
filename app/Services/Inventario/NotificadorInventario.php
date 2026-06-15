@@ -7,51 +7,16 @@ namespace App\Services\Inventario;
 use App\Filament\Resources\Inventario\Lote\LoteResource;
 use App\Models\Inventario\Lote;
 use App\Models\User;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
+use App\Services\Shared\NotificadorBase;
 use Illuminate\Support\Collection;
 
-class NotificadorInventario
+class NotificadorInventario extends NotificadorBase
 {
     /** @return Collection<int, User> */
     private function obtenerDestinatarios(): Collection
     {
         // Enviar a todos los usuarios del sistema para desarrollo y pruebas
         return User::all();
-    }
-
-    private function enviar(User $user, string $title, ?string $body = null, string $icon = 'heroicon-o-information', ?string $url = null, string $status = 'info'): void
-    {
-        $notification = Notification::make()
-            ->title($title)
-            ->icon($icon)
-            ->body($body ?? '');
-
-        match ($status) {
-            'success' => $notification->success(),
-            'warning' => $notification->warning(),
-            'danger' => $notification->danger(),
-            default => $notification->info(),
-        };
-
-        if ($url !== null) {
-            $notification->actions([
-                Action::make('view')
-                    ->label('Ver Lote')
-                    ->url($url)
-                    ->markAsRead(),
-            ]);
-        }
-
-        $notification->sendToDatabase($user);
-    }
-
-    /** @param Collection<int, User> $users */
-    private function notificarMultiples(Collection $users, string $title, ?string $body = null, string $icon = 'heroicon-o-information', ?string $url = null, string $status = 'info'): void
-    {
-        foreach ($users as $user) {
-            $this->enviar($user, $title, $body, $icon, $url, $status);
-        }
     }
 
     public function loteEnCuarentena(Lote $lote, string $motivo): void

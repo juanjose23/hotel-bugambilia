@@ -50,7 +50,7 @@ class EditSolicitud extends EditRecord
 
                     return $record->estado === EstadoSolicitud::Aprobada;
                 })
-                ->form(function (): array {
+                ->schema(function (): array {
                     /** @var Solicitud $record */
                     $record = $this->getRecord();
 

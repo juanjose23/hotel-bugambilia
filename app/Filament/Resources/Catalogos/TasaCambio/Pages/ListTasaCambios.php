@@ -28,7 +28,7 @@ class ListTasaCambios extends ListRecords
                 ->label('Importar Excel')
                 ->icon(Heroicon::DocumentArrowUp)
                 ->color('info')
-                ->form([
+                ->schema([
                     FileUpload::make('excel_file')
                         ->label('Archivo Excel (.xlsx, .xls)')
                         ->rules(['file', 'extensions:xls,xlsx'])

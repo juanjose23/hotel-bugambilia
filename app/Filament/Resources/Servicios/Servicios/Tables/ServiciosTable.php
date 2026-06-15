@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Servicios\Servicios\Tables;
 
-use App\Enums\CatalogoTipo;
-use App\Enums\ServicioEstado;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Servicios\ServicioEstado;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,7 +15,6 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -73,9 +74,7 @@ class ServiciosTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(ServicioEstado::options()),
+                FiltroEstado::make(ServicioEstado::class),
 
                 SelectFilter::make('categoria_id')
                     ->label('Categoría')
@@ -90,7 +89,7 @@ class ServiciosTable
                     ->searchable()
                     ->preload(),
 
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
             ])
             ->recordActions([
                 ViewAction::make(),

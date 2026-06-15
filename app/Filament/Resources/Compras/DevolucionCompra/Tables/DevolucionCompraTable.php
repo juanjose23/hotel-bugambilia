@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Compras\DevolucionCompra\Tables;
 
 use App\Enums\Compras\EstadoDevolucion;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Compras\DevolucionCompra;
 use App\UseCases\Compras\Devoluciones\Mutations\DevolverMercanciaProveedor;
 use Filament\Actions\Action as TableAction;
@@ -60,8 +61,7 @@ class DevolucionCompraTable
                     ->alignCenter(),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoDevolucion::class),
+                FiltroEstado::make(EstadoDevolucion::class),
 
                 SelectFilter::make('orden_compra_id')
                     ->label('Orden de Compra')

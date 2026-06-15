@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\Compras\Cotizaciones\Schemas;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Compras\EstadoCotizacion;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\ProductoVariante;
 use App\Models\Compras\Solicitud;
 use App\Models\Monedas\Moneda;
 use App\Models\Monedas\TasaCambio;
+use App\Support\CachedOptions;
 use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudConItems;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -74,7 +74,7 @@ class CotizacionForm
 
                         Select::make('condicion_pago_id')
                             ->label('Condición de Pago')
-                            ->options(fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CONDICION_PAGO->value))->pluck('nombre', 'id'))
+                            ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CONDICION_PAGO->value))
                             ->searchable()
                             ->preload()
                             ->required()
@@ -82,7 +82,7 @@ class CotizacionForm
 
                         Select::make('moneda_id')
                             ->label('Moneda de Adjudicación')
-                            ->options(Moneda::pluck('nombre', 'id'))
+                            ->options(CachedOptions::monedas())
                             ->required()
                             ->default(fn () => Moneda::where('codigo', 'USD')->first()?->id)
                             ->searchable()

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Inventario\PackResource\Schemas;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Models\Catalogos\ProductoVariante;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;

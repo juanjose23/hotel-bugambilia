@@ -9,50 +9,15 @@ use App\Filament\Resources\Activos\ActivoMantenimiento\ActivoMantenimientoResour
 use App\Models\Activos\Activo;
 use App\Models\Activos\ActivoMantenimiento;
 use App\Models\User;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
+use App\Services\Shared\NotificadorBase;
 use Illuminate\Support\Collection;
 
-class NotificadorActivos
+class NotificadorActivos extends NotificadorBase
 {
     /** @return Collection<int, User> */
     private function obtenerDestinatarios(): Collection
     {
         return User::all();
-    }
-
-    private function enviar(User $user, string $title, ?string $body = null, string $icon = 'heroicon-o-information-circle', ?string $url = null, string $status = 'info'): void
-    {
-        $notification = Notification::make()
-            ->title($title)
-            ->icon($icon)
-            ->body($body ?? '');
-
-        match ($status) {
-            'success' => $notification->success(),
-            'warning' => $notification->warning(),
-            'danger' => $notification->danger(),
-            default => $notification->info(),
-        };
-
-        if ($url !== null) {
-            $notification->actions([
-                Action::make('view')
-                    ->label('Ver detalle')
-                    ->url($url)
-                    ->markAsRead(),
-            ]);
-        }
-
-        $notification->sendToDatabase($user);
-    }
-
-    /** @param Collection<int, User> $users */
-    private function notificarMultiples(Collection $users, string $title, ?string $body = null, string $icon = 'heroicon-o-information-circle', ?string $url = null, string $status = 'info'): void
-    {
-        foreach ($users as $user) {
-            $this->enviar($user, $title, $body, $icon, $url, $status);
-        }
     }
 
     /** @param Collection<int, User>|null $destinatarios */

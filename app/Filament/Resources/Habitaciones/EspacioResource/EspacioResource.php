@@ -11,6 +11,7 @@ use App\Filament\Resources\Habitaciones\EspacioResource\Pages\ViewEspacio;
 use App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers\PoliticasRelationManager;
 use App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers\PreciosRelationManager;
 use App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers\ServiciosRelationManager;
+use App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers\StocksRelationManager;
 use App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers\SubEspaciosRelationManager;
 use App\Filament\Resources\Habitaciones\EspacioResource\Schemas\EspacioForm;
 use App\Filament\Resources\Habitaciones\EspacioResource\Schemas\EspacioInfolist;
@@ -61,6 +62,7 @@ class EspacioResource extends Resource
             SubEspaciosRelationManager::class,
             PoliticasRelationManager::class,
             ServiciosRelationManager::class,
+            StocksRelationManager::class,
             PreciosRelationManager::class,
             InventarioFijoRelationManager::class,
         ];

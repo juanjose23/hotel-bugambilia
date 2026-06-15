@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\Catalogos\Ubicacions\Tables;
 
-use App\Enums\EstadoCatalogo;
-use App\Enums\TipoUbicacion;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Catalogos\TipoUbicacion;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Catalogos\Ubicacion;
-use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
@@ -15,7 +16,6 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class UbicacionsTable
@@ -39,7 +39,7 @@ class UbicacionsTable
                     ->badge()
                     ->color(fn ($state): string => TipoUbicacion::colorFor($state))
                     ->formatStateUsing(fn ($state): string => TipoUbicacion::labelFor($state))
-                    ->icon(fn ($state): ?BackedEnum => TipoUbicacion::iconFor($state))
+                    ->icon(fn ($state): \BackedEnum|string|null => TipoUbicacion::iconFor($state))
                     ->sortable(),
                 TextColumn::make('orden')
                     ->label('Orden')
@@ -54,10 +54,8 @@ class UbicacionsTable
                     ->sortable(),
             ])
             ->filters([
-                TrashedFilter::make(),
-                SelectFilter::make('estado')
-                    ->options(EstadoCatalogo::class)
-                    ->label('Estado'),
+                FiltroEliminados::make(),
+                FiltroEstado::make(EstadoCatalogo::class),
                 SelectFilter::make('tipo')
                     ->options(TipoUbicacion::class)
                     ->label('Tipo'),

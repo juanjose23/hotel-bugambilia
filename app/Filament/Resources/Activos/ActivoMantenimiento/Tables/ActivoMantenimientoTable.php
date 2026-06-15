@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoMantenimiento\Tables;
 
 use App\Enums\Activos\EstadoMantenimiento;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Activos\ActivoMantenimiento;
 use App\UseCases\Activos\Mutations\Mantenimiento\CompletarMantenimiento;
 use Filament\Actions\Action;
@@ -18,7 +19,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Throwable;
 
@@ -74,8 +74,7 @@ class ActivoMantenimientoTable
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoMantenimiento::class),
+                FiltroEstado::make(EstadoMantenimiento::class),
             ])
             ->recordActions([
                 Action::make('completar_mantenimiento')
@@ -84,7 +83,7 @@ class ActivoMantenimientoTable
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalHeading('Completar Orden de Mantenimiento')
-                    ->form([
+                    ->schema([
                         DatePicker::make('fecha_realizada')
                             ->label('Fecha Realizada')
                             ->required()

@@ -54,7 +54,7 @@ class LoteInfolist
                     ->icon(Heroicon::Clock)
                     ->schema([
                         RepeatableEntry::make('movimientos')
-                            ->label('')
+                            ->hiddenLabel()
                             ->schema([
                                 TextEntry::make('created_at')->label('Fecha')->dateTime('d/m/Y H:i'),
                                 TextEntry::make('tipo')->label('Tipo')->badge(),

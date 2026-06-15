@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Servicios;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Monedas\Moneda;
 use App\Models\Servicios\Servicio;
@@ -69,7 +69,7 @@ class ReporteHistoricoPrecios extends Page
                 ->color('danger')
                 ->modalHeading('Histórico de Precios — PDF')
                 ->modalDescription('Filtra opcionalmente y descarga el reporte en PDF listo para imprimir.')
-                ->form($sharedFilters)
+                ->schema($sharedFilters)
                 ->action(function (array $data) {
                     return redirect()->route('reporte.servicios.historico-precios.pdf', [
                         'categoria_id' => $data['categoria_id'] ?? null,
@@ -85,7 +85,7 @@ class ReporteHistoricoPrecios extends Page
                 ->color('success')
                 ->modalHeading('Histórico de Precios — Excel')
                 ->modalDescription('Filtra opcionalmente y descarga el reporte en formato .xlsx.')
-                ->form($sharedFilters)
+                ->schema($sharedFilters)
                 ->action(function (array $data) {
                     return redirect()->route('reporte.servicios.historico-precios.excel', [
                         'categoria_id' => $data['categoria_id'] ?? null,

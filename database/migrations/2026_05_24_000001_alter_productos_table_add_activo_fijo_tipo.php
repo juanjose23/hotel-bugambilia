@@ -24,6 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::table('productos')->where('tipo', 3)->update(['tipo' => 2]);
             DB::statement('ALTER TABLE productos DROP CONSTRAINT IF EXISTS chk_tipo_productos');
             DB::statement('ALTER TABLE productos ADD CONSTRAINT chk_tipo_productos CHECK (tipo IN (1, 2))');
         }
