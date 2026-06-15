@@ -21,22 +21,21 @@
         "owen-it/laravel-auditing": "^14.0",
         "picqer/php-barcode-generator": "*",
         "qalainau/filament-univer-sheet": "^1.1",
-        "spatie/browsershot": "^5.3",
-        "spatie/laravel-pdf": "^2.8",
-        "stefangabos/world_countries": "^3.3",
-        "webpatser/laravel-countries": "^2.1"
+        "spatie/laravel-pdf": "^2.8"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.9",
-        "laravel/boost": "^2.2",
+        "laravel/boost": "^2.4",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.29",
+        "laraveldaily/filacheck": "^1.2",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.6",
         "pestphp/pest-plugin-laravel": "^4.1",
-        "phpstan/phpstan": "^2.1"
+        "phpstan/phpstan": "^2.1",
+        "stefangabos/world_countries": "^3.3"
     },
     "autoload": {
         "psr-4": {

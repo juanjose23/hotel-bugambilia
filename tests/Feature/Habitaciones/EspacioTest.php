@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Enums\Activos\EstadoActivo;
-use App\Enums\Espacios\TipoPrecioEspacio;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Enums\HabitacionesEspacios\TipoPrecioEspacio;
 use App\Models\Activos\Activo;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\CatalogoTipo;

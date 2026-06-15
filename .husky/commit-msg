@@ -18,7 +18,7 @@ PATTERN="^([a-z]+)(\(.+\))?: .+"
 
 # Validación
 if ! echo "$MESSAGE" | grep -qE "^($PATTERN)$" || echo "$MESSAGE" | grep -q "^type:"; then
-    printf "\e[31m❌ ERROR: El mensaje de commit no sigue el estándar Conventional Commits.\e[0m\n"
+    printf "\e[31m ERROR: El mensaje de commit no sigue el estándar Conventional Commits.\e[0m\n"
     printf "\e[94mSe espera formato: <type>[optional-scope]: <description>\e[0m\n"
     printf "\e[90mEjemplos válidos:\e[0m\n"
     printf "  - feat: Implementación de sistema de roles\n"

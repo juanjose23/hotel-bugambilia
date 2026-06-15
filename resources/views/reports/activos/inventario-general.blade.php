@@ -4,12 +4,12 @@
 @section('report_name', 'Inventario General de Activos Fijos')
 
 @section('content')
-<div class="report-page">
+@foreach ($paginas as $pIdx => $chunk)
+<div class="report-page {{ $loop->last ? '' : 'page-break' }}">
     <table class="page-frame">
         <tbody>
             <tr>
                 <td class="frame-body" style="padding: 40px;">
-                    <!-- Encabezado -->
                     <div class="doc-header">
                         <table>
                             <tr>
@@ -30,13 +30,11 @@
                         </table>
                     </div>
 
-                    <!-- Meta info de la exportación -->
                     <div style="margin-bottom: 20px; font-size: 10px; color: #666;">
                         <span><strong>Generado en:</strong> {{ $generadoEn }}</span> &nbsp;|&nbsp;
                         <span><strong>Generado por:</strong> {{ $usuario }}</span>
                     </div>
 
-                    <!-- Tabla de Datos -->
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -50,7 +48,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($activos as $activo)
+                            @forelse($chunk as $activo)
                             <tr>
                                 <td><strong>{{ $activo->codigo_inventario }}</strong></td>
                                 <td>{{ $activo->nombre_descriptivo }}</td>
@@ -99,6 +97,9 @@
                             <tr>
                                 <td style="font-size: 8px; color: #999;">Este reporte es una representación fidedigna de los activos físicos de Hotel Bugambilias.</td>
                                 <td style="text-align: right; font-weight: bold; color: #711C37; text-transform: uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align: right; width: 120px; font-size: 9px; color: #718096;">
+                                    Página <strong>{{ $pIdx + 1 }}</strong> de <strong>{{ count($paginas) }}</strong>
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -107,4 +108,5 @@
         </tbody>
     </table>
 </div>
+@endforeach
 @endsection

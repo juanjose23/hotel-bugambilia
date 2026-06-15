@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Tables;
 
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Habitaciones\Habitacion;
 use App\UseCases\Habitaciones\Mutations\ClonarHabitacion;
 use Filament\Actions\Action;
@@ -84,8 +85,7 @@ class HabitacionTable
             ])
             ->defaultSort('codigo')
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoHabitacion::class),
+                FiltroEstado::make(EstadoHabitacion::class),
                 SelectFilter::make('categoria_id')
                     ->label('Categoría')
                     ->relationship('categoria', 'nombre'),
@@ -100,7 +100,7 @@ class HabitacionTable
                     ->modalHeading(fn (Habitacion $record) => "Clonar habitación: {$record->nombre}")
                     ->modalDescription('Se copiarán la categoría, detalle, servicios, precios, políticas y la plantilla de stock. Los activos fijos (TV, AC, minibar) deberán asignarse manualmente a la nueva habitación.')
                     ->modalWidth('lg')
-                    ->form([
+                    ->schema([
                         TextInput::make('nuevo_numero')
                             ->label('Nuevo número de habitación')
                             ->placeholder('Ej. 102')

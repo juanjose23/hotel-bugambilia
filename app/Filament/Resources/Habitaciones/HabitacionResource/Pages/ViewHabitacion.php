@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Pages;
 
 use App\Filament\Resources\Habitaciones\HabitacionResource\HabitacionResource;
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\Ubicacion;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Inventario\ProductoKit;
+use App\Support\CachedOptions;
 use App\UseCases\Habitaciones\Mutations\AsignarPackAHabitacion;
 use App\UseCases\Habitaciones\Mutations\ClonarHabitacion;
 use Filament\Actions\Action;
@@ -18,6 +17,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 
 class ViewHabitacion extends ViewRecord
@@ -34,7 +34,7 @@ class ViewHabitacion extends ViewRecord
                 ->modalHeading(fn (Habitacion $record) => "Clonar: {$record->nombre}")
                 ->modalDescription('Se copiarán la categoría, detalle, servicios, precios, políticas y la plantilla de stock. Los activos fijos (TV, AC, minibar) deberán asignarse manualmente a la nueva habitación.')
                 ->modalWidth('lg')
-                ->form([
+                ->schema([
                     TextInput::make('nuevo_numero')
                         ->label('Nuevo número de habitación')
                         ->placeholder('Ej. 102')
@@ -87,20 +87,18 @@ class ViewHabitacion extends ViewRecord
                 ->color('success')
                 ->modalHeading('Surtir Pack a la Habitación')
                 ->modalDescription('Seleccione el pack de productos y la bodega de origen para surtir esta habitación.')
-                ->form([
+                ->schema([
                     Select::make('producto_pack_id')
                         ->label('Pack / Kit')
                         ->placeholder('Seleccione un pack')
                         ->options(
-                            Producto::whereIn('id', function ($q) {
-                                $q->select('producto_padre_id')->from('producto_kit');
-                            })->pluck('nombre', 'id')
+                            CachedOptions::productosKit()
                         )
                         ->searchable()
                         ->preload()
                         ->required()
                         ->live()
-                        ->afterStateUpdated(function (callable $set, $state): void {
+                        ->afterStateUpdated(function (Set $set, $state): void {
                             $items = ProductoKit::with('variante')
                                 ->where('producto_padre_id', $state)
                                 ->get();
@@ -119,9 +117,7 @@ class ViewHabitacion extends ViewRecord
                         ->label('Bodega de origen')
                         ->placeholder('Seleccione la bodega')
                         ->options(
-                            Ubicacion::where('tipo', 'almacen')
-                                ->where('estado', 1)
-                                ->pluck('nombre', 'id')
+                            CachedOptions::ubicacionesAlmacen()
                         )
                         ->searchable()
                         ->preload()

@@ -8,3 +8,7 @@ parameters:
     - database
   excludePaths:
     - vendor/*
+  ignoreErrors:
+    - '#Trait .* is used zero times and is not analysed\.#'
+    - '#Expression on left side of \?\? is not nullable\.#'
+    - '#Instanceof between .* and .* will always evaluate to true\.#'

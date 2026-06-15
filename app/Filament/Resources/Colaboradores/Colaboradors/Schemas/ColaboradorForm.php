@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Schemas;
 
-use App\Enums\EstadoCatalogo;
-use App\Enums\Sexo;
-use App\Enums\TipoIdentificacion;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Personas\Sexo;
+use App\Enums\Personas\TipoIdentificacion;
 use App\Models\Personas\Persona;
 use App\Rules\Colaboradores\Colaborador\ValidCodigoColaborador;
 use App\Rules\Personas\PersonaNatural\ValidCedulaNicaragua;

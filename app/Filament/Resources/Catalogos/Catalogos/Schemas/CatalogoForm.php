@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos\Schemas;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\CatalogoTipo;
 use Filament\Forms\Components\Select;
@@ -27,7 +27,7 @@ class CatalogoForm
                         Select::make('catalogo_tipo_id')
                             ->label('Tipo')
                             ->required()
-                            ->reactive()
+                            ->live()
                             ->searchable()
                             ->prefixIcon(Heroicon::Tag)
                             ->helperText('Selecciona el tipo de catálogo. Determina el conjunto de opciones disponibles.')
@@ -56,7 +56,7 @@ class CatalogoForm
                             ->label('Código')
                             ->required()
                             ->maxLength(50)
-                            ->reactive()
+                            ->live()
                             ->prefixIcon(Heroicon::Hashtag)
                             ->helperText('Código único dentro del tipo; usado en integraciones y seeds.')
                             ->rules(fn (callable $get) => [

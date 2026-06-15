@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Compras\Solicitudes\Schemas;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Enums\EstadoCatalogo;
 use App\Models\Catalogos\ProductoVariante;
 use App\Models\Colaboradores\Colaborador;
 use App\Models\Colaboradores\ColaboradorCargoHistorial;
@@ -86,7 +86,7 @@ class SolicitudForm
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('items')
-                            ->label('')
+                            ->hiddenLabel()
                             ->relationship('items')
                             ->minItems(1)
                             ->schema([

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Catalogos;
 
+use App\DTOs\Catalogos\ProductosReporteFiltro;
+use App\Enums\Catalogos\TipoProducto;
 use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\ProductoVariante;
 use App\Support\ReportePaginador;
@@ -15,42 +17,40 @@ use Picqer\Barcode\BarcodeGeneratorPNG;
 class GenerarReporteProductosAction
 {
     /**
-     * @param  array<string, mixed>  $filtros
+     * @param  array<string, mixed>|ProductosReporteFiltro  $filtros
      */
-    public function ejecutar(array $filtros = [], bool $incluirVariantes = true): \Barryvdh\DomPDF\PDF
+    public function ejecutar(array|ProductosReporteFiltro $filtros = [], bool $incluirVariantes = true): \Barryvdh\DomPDF\PDF
     {
+        $filtroDto = $filtros instanceof ProductosReporteFiltro
+            ? $filtros
+            : ProductosReporteFiltro::fromArray($filtros);
+
         $query = Producto::with(['variantes', 'imagen', 'categoria', 'marca']);
 
         // Aplicar filtros
-        if (! empty($filtros['categoria_id'])) {
-            $query->where('categoria_id', $filtros['categoria_id']);
+        if ($filtroDto->categoriaId !== null) {
+            $query->where('categoria_id', $filtroDto->categoriaId);
         }
-        if (! empty($filtros['marca_id'])) {
-            $query->where('marca_id', $filtros['marca_id']);
+        if ($filtroDto->marcaId !== null) {
+            $query->where('marca_id', $filtroDto->marcaId);
         }
-        if (! empty($filtros['tipo'])) {
-            $query->where('tipo', $filtros['tipo']);
+        if ($filtroDto->tipo !== null) {
+            $query->where('tipo', $filtroDto->tipo);
         }
-        if (! empty($filtros['estado'])) {
-            $query->where('estado', $filtros['estado']);
+        if ($filtroDto->estado !== null) {
+            $query->where('estado', $filtroDto->estado);
         }
-        if (! empty($filtros['id'])) {
-            $query->where('id', $filtros['id']);
+        if ($filtroDto->id !== null) {
+            $query->where('id', $filtroDto->id);
         }
 
         $productos = $query->orderBy('categoria_id')->orderBy('nombre')->get();
 
         $generator = new BarcodeGeneratorPNG;
 
-        // Mapeo de tipos
-        $tiposMapeo = [
-            1 => 'PERECEDERO',
-            2 => 'NO PERECEDERO',
-        ];
-
         // Procesar productos
         foreach ($productos as $p) {
-            $p->tipo_nombre = $tiposMapeo[$p->tipo] ?? 'N/A';
+            $p->tipo_nombre = strtoupper(TipoProducto::labelFor($p->tipo));
 
             // Cargar imagen de producto en base64 para evitar problemas de rutas
             if ($p->imagen) {
@@ -147,7 +147,7 @@ class GenerarReporteProductosAction
 
         // Registrar auditoría
         $auditoria = new RegistrarAuditoriaReporteUseCase;
-        $auditoria->ejecutar($codigoReporte, $filtros);
+        $auditoria->ejecutar($codigoReporte, $filtroDto->toArray());
 
         return $pdf;
     }

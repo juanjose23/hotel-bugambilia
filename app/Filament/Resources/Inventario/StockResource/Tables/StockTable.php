@@ -54,6 +54,6 @@ class StockTable
                     ->relationship('lote', 'codigo_lote'),
             ])
             ->actions([])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 }

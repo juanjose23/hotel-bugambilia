@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Habitaciones\EspacioResource\Tables;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -75,8 +76,7 @@ class EspacioTable
             ->filters([
                 SelectFilter::make('tipo')
                     ->options(TipoEspacio::options()),
-                SelectFilter::make('estado')
-                    ->options(EstadoEspacio::options()),
+                FiltroEstado::make(EstadoEspacio::class),
             ])
             ->recordActions([
                 ViewAction::make(),

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorDocumento\Tables;
 
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
 use App\Models\Colaboradores\ColaboradorDocumento;
 use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use Filament\Actions\BulkActionGroup;
@@ -13,7 +14,6 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class ColaboradorDocumentoTable
@@ -48,7 +48,7 @@ class ColaboradorDocumentoTable
                     ->sortable(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
             ])
             ->recordActions([
                 EditAction::make()

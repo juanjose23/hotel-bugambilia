@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Servicios\Servicios\Schemas;
 
-use App\Enums\CatalogoTipo;
-use App\Enums\ServicioEstado;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Servicios\ServicioEstado;
 use App\Models\Servicios\Servicio;
 use App\UseCases\Servicios\Mutations\GenerarCodigoServicio;
 use Filament\Forms\Components\FileUpload;

@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Catalogos\Productos\RelationManagers;
 
-use App\Enums\CatalogoTipo;
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -157,10 +159,7 @@ class VariantesRelationManager extends RelationManager
                     ->searchable()
                     ->preload(),
 
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoCatalogo::options())
-                    ->default(1),
+                FiltroEstado::make(EstadoCatalogo::class)->default(1),
             ])
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-plus'),
@@ -218,15 +217,7 @@ class VariantesRelationManager extends RelationManager
                                     ->placeholder('Sin atributos')
                                     ->columnSpanFull(),
 
-                                TextEntry::make('created_at')
-                                    ->label('Creado')
-                                    ->dateTime('d/m/Y H:i')
-                                    ->icon(Heroicon::Calendar),
-
-                                TextEntry::make('updated_at')
-                                    ->label('Actualizado')
-                                    ->dateTime('d/m/Y H:i')
-                                    ->icon(Heroicon::Calendar),
+                                ...InfolistTimestamps::make(format: 'd/m/Y H:i', withIcons: true),
                             ]),
                     ]),
                 EditAction::make()->iconButton(),

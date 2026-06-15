@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\EspacioResource\Schemas;
 
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -125,19 +126,7 @@ class EspacioInfolist
                 ->description('Información de trazabilidad y control.')
                 ->columns(2)
                 ->schema([
-                    TextEntry::make('created_at')
-                        ->label('Creado')
-                        ->dateTime('d/m/Y H:i')
-                        ->since()
-                        ->icon(Heroicon::PlusCircle)
-                        ->size(TextSize::Small),
-
-                    TextEntry::make('updated_at')
-                        ->label('Actualizado')
-                        ->dateTime('d/m/Y H:i')
-                        ->since()
-                        ->icon(Heroicon::PencilSquare)
-                        ->size(TextSize::Small),
+                    ...InfolistTimestamps::make(format: 'd/m/Y H:i', since: true, withIcons: true, size: TextSize::Small),
                 ]),
         ]);
     }

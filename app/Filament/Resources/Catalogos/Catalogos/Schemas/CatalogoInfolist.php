@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos\Schemas;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -84,17 +85,7 @@ class CatalogoInfolist
                         Section::make('Trazabilidad')
                             ->icon(Heroicon::Clock)
                             ->schema([
-                                TextEntry::make('created_at')
-                                    ->label('Registro')
-                                    ->dateTime('d/m/Y H:i')
-                                    ->icon(Heroicon::PlusCircle)
-                                    ->size(TextSize::Small),
-
-                                TextEntry::make('updated_at')
-                                    ->label('Último cambio')
-                                    ->dateTime('d/m/Y H:i')
-                                    ->icon(Heroicon::PencilSquare)
-                                    ->size(TextSize::Small),
+                                ...InfolistTimestamps::make(format: 'd/m/Y H:i', withIcons: true, size: TextSize::Small),
                             ])
                             ->columnSpan(1),
                     ]),

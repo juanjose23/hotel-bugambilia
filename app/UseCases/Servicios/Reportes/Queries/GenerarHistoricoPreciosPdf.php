@@ -21,7 +21,7 @@ class GenerarHistoricoPreciosPdf extends BaseReporteServicio
 
         $agrupado = app(ObtenerHistoricoServiciosPrecios::class)->agrupadoPorCategoria($filtros);
 
-        $filasPorPagina = ReportePaginador::filasPorPagina(theadPx: 26, rowPx: 24, safety: 0);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie(theadPx: 26, rowPx: 24, safety: 1);
         $paginas = $this->paginarPorCategoria($agrupado, $filasPorPagina);
 
         return Pdf::view('reports.servicios.historico-precios', array_merge($this->getBaseData(), [

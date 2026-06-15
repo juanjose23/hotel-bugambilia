@@ -13,11 +13,10 @@ use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
 use App\Models\User;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
+use App\Services\Shared\NotificadorBase;
 use Illuminate\Support\Collection;
 
-class NotificadorCompras
+class NotificadorCompras extends NotificadorBase
 {
     private function obtenerUsuarioCreadorSolicitud(Solicitud $solicitud): ?User
     {
@@ -61,33 +60,6 @@ class NotificadorCompras
             return $users->unique('id');
         } catch (\Throwable $e) {
             return collect();
-        }
-    }
-
-    private function enviar(User $user, string $title, ?string $body = null, string $icon = 'heroicon-o-information', ?string $url = null): void
-    {
-        $notification = Notification::make()
-            ->title($title)
-            ->icon($icon)
-            ->body($body ?? '');
-
-        if ($url !== null) {
-            $notification->actions([
-                Action::make('view')
-                    ->label('Ver')
-                    ->url($url)
-                    ->markAsRead(),
-            ]);
-        }
-
-        $notification->sendToDatabase($user);
-    }
-
-    /** @param Collection<int, User> $users */
-    private function notificarMultiples(Collection $users, string $title, ?string $body = null, string $icon = 'heroicon-o-information', ?string $url = null): void
-    {
-        foreach ($users as $user) {
-            $this->enviar($user, $title, $body, $icon, $url);
         }
     }
 

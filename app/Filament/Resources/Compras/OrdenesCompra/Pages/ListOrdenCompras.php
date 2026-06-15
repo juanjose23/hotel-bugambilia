@@ -20,7 +20,7 @@ class ListOrdenCompras extends ListRecords
                 ->label('Resumen por Departamento')
                 ->icon(Heroicon::ChartBar)
                 ->color('warning')
-                ->form([
+                ->schema([
                     DatePicker::make('fecha_inicio')
                         ->label('Fecha inicio')
                         ->default(now()->startOfMonth()),

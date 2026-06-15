@@ -14,7 +14,7 @@
                     'bg-white shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 rotate-0' :
                     'bg-gray-100 dark:bg-gray-900/50 border border-transparent dark:border-gray-800 -rotate-90'">
                 @if ($node['tipo'] === 'edificio')
-                    <x-heroicon-o-building-office class="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    <x-heroicon-o-building-office-2 class="h-5 w-5 text-primary-600 dark:text-primary-400" />
                 @elseif($node['tipo'] === 'piso')
                     <x-heroicon-o-squares-2x2 class="h-5 w-5 text-sky-600 dark:text-sky-400" />
                 @elseif($node['tipo'] === 'sector')

@@ -6,6 +6,7 @@ use App\Enums\Compras\EstadoCotizacion;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Compras\Cotizacion;
 use App\Services\Compras\NotificadorCompras;
 use App\UseCases\Compras\OrdenesCompra\Mutations\GenerarOrdenDesdeCotizacion;
@@ -112,9 +113,7 @@ class CotizacionTable
                         '0' => 'No',
                     ]),
 
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoCotizacion::class),
+                FiltroEstado::make(EstadoCotizacion::class),
             ])
             ->actions([
                 ActionGroup::make([

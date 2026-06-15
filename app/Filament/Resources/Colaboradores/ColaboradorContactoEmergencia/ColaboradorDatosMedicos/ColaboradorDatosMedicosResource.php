@@ -2,11 +2,12 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\ColaboradorDatosMedicos;
 
-use App\Enums\EstadoCatalogo;
-use App\Enums\TipoSangre;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Personas\TipoSangre;
 use App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\ColaboradorDatosMedicos\Pages\CreateColaboradorDatosMedicos;
 use App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\ColaboradorDatosMedicos\Pages\EditColaboradorDatosMedicos;
 use App\Filament\Resources\Colaboradores\ColaboradorContactoEmergencia\ColaboradorDatosMedicos\Pages\ListColaboradorDatosMedicos;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
 use App\Models\Colaboradores\ColaboradorDatosMedicos;
 use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
 use BackedEnum;
@@ -26,7 +27,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use UnitEnum;
 
@@ -117,7 +117,7 @@ class ColaboradorDatosMedicosResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
             ])
             ->headerActions([
                 CreateAction::make(),

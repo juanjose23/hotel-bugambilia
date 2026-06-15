@@ -112,7 +112,7 @@ class ActPlanMantenimientoForm
                 ->columnSpanFull()
                 ->schema([
                     Repeater::make('mantenimientos')
-                        ->label('')
+                        ->hiddenLabel()
                         ->relationship('mantenimientos')
                         ->schema([
                             Select::make('activo_id')

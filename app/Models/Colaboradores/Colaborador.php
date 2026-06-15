@@ -2,7 +2,7 @@
 
 namespace App\Models\Colaboradores;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use App\Models\Personas\Persona;
 use App\Models\Shared\Imagen;
 use Database\Factories\ColaboradorFactory;

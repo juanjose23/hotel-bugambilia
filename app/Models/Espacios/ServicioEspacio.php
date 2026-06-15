@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Espacios;
 
-use App\Enums\HabitacionesEspacios\EstadoServicioHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoServicioAsignacion;
 use App\Models\Servicios\Servicio;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +20,7 @@ class ServicioEspacio extends Model
 
     protected $casts = [
         'incluido' => 'boolean',
-        'estado' => EstadoServicioHabitacion::class,
+        'estado' => EstadoServicioAsignacion::class,
     ];
 
     /**

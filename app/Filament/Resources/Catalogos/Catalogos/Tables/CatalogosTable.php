@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos\Tables;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Catalogos\CatalogoTipo;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -54,9 +55,7 @@ class CatalogosTable
                 SelectFilter::make('catalogo_tipo_id')
                     ->label('Tipo')
                     ->options(fn () => CatalogoTipo::query()->orderBy('nombre')->pluck('nombre', 'id')->all()),
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoCatalogo::options()),
+                FiltroEstado::make(EstadoCatalogo::class),
             ])
             ->recordActions([
                 ViewAction::make(),

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Catalogos\Productos\Pages;
 
 use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
 use App\Actions\Catalogos\GenerarReporteProductosAction;
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Producto;

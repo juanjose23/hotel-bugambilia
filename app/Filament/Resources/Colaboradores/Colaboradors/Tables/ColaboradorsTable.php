@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Tables;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -17,8 +19,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -75,9 +75,7 @@ class ColaboradorsTable
                     ->falseColor('danger'),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoCatalogo::options())
+                FiltroEstado::make(EstadoCatalogo::class)
                     ->query(function (Builder $query, array $data): Builder {
                         if (! filled($data['value'] ?? null)) {
                             return $query;
@@ -87,7 +85,7 @@ class ColaboradorsTable
                             $colaboradorQuery->where('estado', $data['value']);
                         });
                     }),
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
             ])
             ->recordActions(actions: [
                 ActionGroup::make([

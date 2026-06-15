@@ -58,7 +58,7 @@ class MovimientosRelationManager extends RelationManager
             ->actions([
                 //
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 //
             ]);
     }

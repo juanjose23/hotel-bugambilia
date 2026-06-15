@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Inventario\InventarioFisico\Tables;
 
 use App\Enums\Inventario\EstadoInventarioFisico;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Inventario\InventarioFisico;
 use App\UseCases\Inventario\InventarioFisico\Mutations\ProcesarInventarioFisico;
 use Filament\Actions\Action as TableAction;
@@ -15,7 +16,6 @@ use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Qalainau\UniverSheet\SpreadsheetColumn;
 
@@ -63,12 +63,7 @@ class InventarioFisicoTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options([
-                        'borrador' => 'Borrador',
-                        'procesado' => 'Procesado',
-                    ]),
+                FiltroEstado::make(EstadoInventarioFisico::class),
             ])
             ->actions([
                 TableAction::make('procesar_conciliacion')

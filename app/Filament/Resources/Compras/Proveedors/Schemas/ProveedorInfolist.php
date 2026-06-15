@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Compras\Proveedors\Schemas;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -142,13 +143,7 @@ class ProveedorInfolist
                     ->columnSpanFull()
                     ->columns(3)
                     ->schema([
-                        TextEntry::make('created_at')
-                            ->label('Fecha de Creación')
-                            ->dateTime('d/m/Y H:i'),
-
-                        TextEntry::make('updated_at')
-                            ->label('Última Actualización')
-                            ->dateTime('d/m/Y H:i'),
+                        ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
                     ]),
             ]);
     }
