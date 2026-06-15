@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Catalogos\Politicas\Tables;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Filament\Resources\Shared\Filters\FiltroEliminados;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -12,8 +14,6 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class PoliticasTable
@@ -62,11 +62,9 @@ class PoliticasTable
             ])
             ->defaultSort('titulo')
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoCatalogo::options()),
+                FiltroEstado::make(EstadoCatalogo::class),
 
-                TrashedFilter::make(),
+                FiltroEliminados::make(),
             ])
             ->recordActions([
                 ActionGroup::make([

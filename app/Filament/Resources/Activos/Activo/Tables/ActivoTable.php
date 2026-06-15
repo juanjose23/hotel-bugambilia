@@ -7,17 +7,16 @@ namespace App\Filament\Resources\Activos\Activo\Tables;
 use App\Enums\Activos\EstadoActivo;
 use App\Enums\Activos\TipoBaja;
 use App\Enums\Activos\TipoMantenimiento;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Activos\Activo;
 use App\Models\Catalogos\Ubicacion;
-use App\Models\Compras\Proveedor;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
-use App\Models\Monedas\Moneda;
 use App\Models\User;
+use App\Support\CachedOptions;
 use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
 use App\UseCases\Activos\Mutations\Gestion\DarDeBajaActivo;
 use App\UseCases\Activos\Mutations\Mantenimiento\EnviarAMantenimiento;
-use App\UseCases\Shared\Queries\ObtenerNombrePersona;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup as TableActionGroup;
 use Filament\Actions\EditAction;
@@ -26,6 +25,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -100,8 +100,7 @@ class ActivoTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoActivo::class),
+                FiltroEstado::make(EstadoActivo::class),
                 SelectFilter::make('producto_id')
                     ->label('Producto')
                     ->relationship('producto', 'nombre'),
@@ -123,7 +122,7 @@ class ActivoTable
                         ->color('info')
                         ->requiresConfirmation()
                         ->modalHeading('Asignar o Trasladar Activo')
-                        ->form([
+                        ->schema([
                             Select::make('asignable_type')
                                 ->label('Tipo de Destino')
                                 ->options([
@@ -132,11 +131,11 @@ class ActivoTable
                                     Espacio::class => 'Espacio / Área Común',
                                 ])
                                 ->required()
-                                ->reactive(),
+                                ->live(),
 
                             Select::make('asignable_id')
                                 ->label('Destino Específico')
-                                ->options(function (callable $get) {
+                                ->options(function (Get $get) {
                                     $type = $get('asignable_type');
                                     if ($type === Habitacion::class) {
                                         return Habitacion::pluck('nombre', 'id');
@@ -189,7 +188,7 @@ class ActivoTable
                         ->color('warning')
                         ->requiresConfirmation()
                         ->modalHeading('Ingresar Activo a Mantenimiento')
-                        ->form([
+                        ->schema([
                             Select::make('tipo')
                                 ->label('Tipo de Mantenimiento')
                                 ->options(TipoMantenimiento::class)
@@ -207,17 +206,11 @@ class ActivoTable
 
                             Select::make('moneda_id')
                                 ->label('Moneda')
-                                ->options(Moneda::pluck('nombre', 'id')),
+                                ->options(CachedOptions::monedas()),
 
                             Select::make('proveedor_id')
                                 ->label('Proveedor / Taller Externo')
-                                ->options(
-                                    fn () => Proveedor::with(['persona.personaNatural', 'persona.personaJuridica'])
-                                        ->get()
-                                        ->mapWithKeys(fn (Proveedor $p) => [
-                                            $p->id => ObtenerNombrePersona::desde($p->persona).' ('.$p->codigo.')',
-                                        ])
-                                )
+                                ->options(fn () => CachedOptions::proveedores())
                                 ->searchable()
                                 ->placeholder('Seleccionar proveedor (opcional)'),
 
@@ -258,7 +251,7 @@ class ActivoTable
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Registrar Baja Definitiva de Activo')
-                        ->form([
+                        ->schema([
                             Select::make('motivo_tipo')
                                 ->label('Motivo de la Baja')
                                 ->options(TipoBaja::class)

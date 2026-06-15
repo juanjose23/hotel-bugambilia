@@ -12,6 +12,7 @@ use App\Exports\Inventario\RotacionInventarioExport;
 use App\Exports\Inventario\StockPorProductoExport;
 use App\Exports\Inventario\ValorizacionInventarioExport;
 use App\Http\Controllers\Controller;
+use App\Support\ReportePaginador;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesCuarentena;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesProximosVencer;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesVencidos;
@@ -131,9 +132,15 @@ class InventarioReportController extends Controller
         $lotes = app(ObtenerLotesCuarentena::class)->ejecutar([
             'producto_id' => request('producto_id'),
         ]);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $lotes->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
 
         return Pdf::view('reports.inventario.cuarentena', array_merge($this->baseData(), [
-            'lotes' => $lotes,
+            'paginas' => $paginas,
+            'totalRegistros' => $lotes->count(),
         ]))->name('HTB-INV-004-Cuarentena.pdf')->download();
     }
 
@@ -159,9 +166,15 @@ class InventarioReportController extends Controller
             'dias' => $dias,
             'producto_id' => request('producto_id'),
         ]);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $lotes->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
 
         return Pdf::view('reports.inventario.proximos-vencer', array_merge($this->baseData(), [
-            'lotes' => $lotes,
+            'paginas' => $paginas,
+            'totalRegistros' => $lotes->count(),
             'dias' => $dias,
         ]))->name("HTB-INV-005-Proximos-Vencer-{$dias}d.pdf")->download();
     }
@@ -193,9 +206,15 @@ class InventarioReportController extends Controller
         ];
 
         $lotes = app(ObtenerLotesMerma::class)->ejecutar($filtros);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $lotes->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
 
         return Pdf::view('reports.inventario.mermas', array_merge($this->baseData(), [
-            'lotes' => $lotes,
+            'paginas' => $paginas,
+            'totalRegistros' => $lotes->count(),
             'filtros' => $filtros,
         ]))->name('HTB-INV-006-Mermas.pdf')->download();
     }
@@ -221,9 +240,16 @@ class InventarioReportController extends Controller
 
         $uc = app(ObtenerValorizacionInventario::class);
         $filtros = ['ubicacion_id' => request('ubicacion_id')];
+        $filas = $uc->ejecutar($filtros);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie(rowPx: 26);
+        $paginas = $filas->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
 
         return Pdf::view('reports.inventario.valorizacion', array_merge($this->baseData(), [
-            'filas' => $uc->ejecutar($filtros),
+            'paginas' => $paginas,
+            'totalRegistros' => $filas->count(),
             'totalGeneral' => $uc->totalGeneral($filtros),
         ]))->name('HTB-INV-007-Valorizacion.pdf')->download();
     }
@@ -288,9 +314,15 @@ class InventarioReportController extends Controller
         $lotes = app(ObtenerLotesVencidos::class)->ejecutar([
             'producto_id' => request('producto_id'),
         ]);
+        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
+        $paginas = $lotes->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
 
         return Pdf::view('reports.inventario.vencidos', array_merge($this->baseData(), [
-            'lotes' => $lotes,
+            'paginas' => $paginas,
+            'totalRegistros' => $lotes->count(),
         ]))->name('HTB-INV-012-Lotes-Vencidos.pdf')->download();
     }
 

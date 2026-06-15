@@ -19,6 +19,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -129,7 +131,7 @@ class StocksRelationManager extends RelationManager
                     ->color('success')
                     ->modalHeading('Surtir Pack a la Habitación')
                     ->modalDescription('Seleccione el pack de productos y la bodega de origen. Los items se consumirán del inventario central y se asignarán a esta habitación.')
-                    ->form([
+                    ->schema([
                         Select::make('producto_pack_id')
                             ->label('Pack / Kit')
                             ->placeholder('Seleccione un pack')
@@ -142,7 +144,7 @@ class StocksRelationManager extends RelationManager
                             ->preload()
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function (callable $set, callable $get, $state): void {
+                            ->afterStateUpdated(function (Set $set, Get $get, $state): void {
                                 $this->actualizarPreviewPack($set, $get, $state);
                             }),
 
@@ -158,7 +160,7 @@ class StocksRelationManager extends RelationManager
                             ->preload()
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function (callable $set, callable $get, $state): void {
+                            ->afterStateUpdated(function (Set $set, Get $get, $state): void {
                                 $packId = $get('producto_pack_id');
                                 if ($packId) {
                                     $this->actualizarPreviewPack($set, $get, $packId);
@@ -172,7 +174,7 @@ class StocksRelationManager extends RelationManager
                             ->minValue(1)
                             ->default(1)
                             ->live()
-                            ->afterStateUpdated(function (callable $set, callable $get): void {
+                            ->afterStateUpdated(function (Set $set, Get $get): void {
                                 $packId = $get('producto_pack_id');
                                 if (! $packId) {
                                     return;
@@ -228,13 +230,13 @@ class StocksRelationManager extends RelationManager
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalHeading('Registrar Consumo en Habitación')
-                    ->form([
+                    ->schema([
                         TextInput::make('cantidad')
                             ->label('Cantidad consumida')
                             ->numeric()
                             ->required()
                             ->minValue(0.01)
-                            ->rule(function (callable $get, $record) {
+                            ->rule(function (Get $get, $record) {
                                 return function (string $attribute, $value, \Closure $fail) use ($record): void {
                                     if ((float) $value > (float) $record->cantidad_actual) {
                                         $fail("La cantidad no puede exceder el stock actual ({$record->cantidad_actual}).");

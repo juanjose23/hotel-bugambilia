@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\EspacioResource\Schemas;
 
-use App\Enums\Espacios\TipoCocina;
-use App\Enums\Espacios\TipoServicioEspacio;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\HabitacionesEspacios\TipoCocina;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Enums\HabitacionesEspacios\TipoServicioEspacio;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Espacios\Espacio;
 use Filament\Forms\Components\CheckboxList;
@@ -20,6 +20,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Cache;
 
 class EspacioForm
 {
@@ -56,7 +57,7 @@ class EspacioForm
                             ->placeholder('Seleccione tipo')
                             ->options(TipoEspacio::options())
                             ->required()
-                            ->reactive()
+                            ->live()
                             ->native(false)
                             ->prefixIcon(Heroicon::Squares2x2)
                             ->columnSpan(1),
@@ -96,21 +97,23 @@ class EspacioForm
                             ->label('Ubicación Física')
                             ->placeholder('Seleccione ubicación')
                             ->options(function () {
-                                return Ubicacion::query()
-                                    ->with('padre.padre.padre')
-                                    ->get()
-                                    ->mapWithKeys(function (Ubicacion $u) {
-                                        $path = $u->nombre;
-                                        $p = $u->padre;
-                                        while ($p !== null) {
-                                            $path = $p->nombre.' > '.$path;
-                                            // Cargar el siguiente nivel si aún no está en memoria
-                                            $p->loadMissing('padre.padre');
-                                            $p = $p->padre;
-                                        }
+                                $ubicaciones = Cache::remember('espacio_form:ubicaciones', 3600, function () {
+                                    return Ubicacion::query()
+                                        ->with('padre.padre.padre')
+                                        ->get();
+                                });
 
-                                        return [$u->id => $path];
-                                    })->toArray();
+                                return $ubicaciones->mapWithKeys(function (Ubicacion $u) {
+                                    $path = $u->nombre;
+                                    $p = $u->padre;
+                                    while ($p !== null) {
+                                        $path = $p->nombre.' > '.$path;
+                                        $p->loadMissing('padre.padre');
+                                        $p = $p->padre;
+                                    }
+
+                                    return [$u->id => $path];
+                                })->toArray();
                             })
                             ->searchable()
                             ->preload()

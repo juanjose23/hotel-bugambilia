@@ -78,7 +78,7 @@ class ReportesActivos extends Page
             ->icon(Heroicon::ArrowDownTray)
             ->modalHeading('Reporte: Inventario General')
             ->modalDescription('Filtros opcionales para el reporte general de activos.')
-            ->form([
+            ->schema([
                 Select::make('estado')
                     ->label('Filtrar por Estado')
                     ->options(EstadoActivo::class)
@@ -97,7 +97,7 @@ class ReportesActivos extends Page
             ->icon(Heroicon::ArrowDownTray)
             ->modalHeading('Reporte: Activos por Ubicación')
             ->modalDescription('Agrupa los activos según su asignación actual.')
-            ->form([
+            ->schema([
                 Select::make('ubicacion_tipo')
                     ->label('Filtrar por tipo de ubicación')
                     ->options([
@@ -120,7 +120,7 @@ class ReportesActivos extends Page
             ->icon(Heroicon::ArrowDownTray)
             ->modalHeading('Reporte: Hoja de Habitación o Espacio')
             ->modalDescription('Genera el inventario de activos de una habitación o espacio.')
-            ->form([
+            ->schema([
                 Radio::make('tipo')
                     ->label('Tipo')
                     ->options([
@@ -129,7 +129,7 @@ class ReportesActivos extends Page
                     ])
                     ->default('habitacion')
                     ->required()
-                    ->reactive(),
+                    ->live(),
 
                 Select::make('entidad_id')
                     ->label('Seleccionar')
@@ -167,7 +167,7 @@ class ReportesActivos extends Page
             ->icon(Heroicon::ArrowDownTray)
             ->modalHeading('Ficha de Espacio')
             ->modalDescription('Genera la hoja de inventario de activos de un espacio específico.')
-            ->form([
+            ->schema([
                 Select::make('espacio_id')
                     ->label('Seleccionar Espacio')
                     ->options(Espacio::orderBy('nombre')->pluck('nombre', 'id'))
@@ -206,7 +206,7 @@ class ReportesActivos extends Page
             ->color('primary')
             ->icon(Heroicon::ArrowDownTray)
             ->modalHeading('Reporte: Garantías Próximas a Vencer')
-            ->form([
+            ->schema([
                 TextInput::make('dias')
                     ->label('Días de anticipación')
                     ->numeric()
@@ -226,7 +226,7 @@ class ReportesActivos extends Page
             ->color('gray')
             ->icon(Heroicon::ArrowDownTray)
             ->modalHeading('Reporte: Historial de Movimientos')
-            ->form([
+            ->schema([
                 Select::make('activo_id')
                     ->label('Seleccionar Activo')
                     ->options(Activo::pluck('codigo_inventario', 'id'))

@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\Catalogos\Ubicacions\Schemas;
 
-use App\Enums\EstadoCatalogo;
-use App\Enums\TipoUbicacion;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Catalogos\TipoUbicacion;
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -49,12 +50,7 @@ class UbicacionInfolist
 
                 Section::make('Metadatos')
                     ->schema([
-                        TextEntry::make('created_at')
-                            ->label('Creado')
-                            ->dateTime('d/m/Y H:i'),
-                        TextEntry::make('updated_at')
-                            ->label('Actualizado')
-                            ->dateTime('d/m/Y H:i'),
+                        ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
                         TextEntry::make('deleted_at')
                             ->label('Eliminado')
                             ->placeholder('—')

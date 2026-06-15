@@ -9,11 +9,10 @@ use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Limpieza\SolicitudLimpieza;
 use App\Models\User;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
+use App\Services\Shared\NotificadorBase;
 use Illuminate\Support\Collection;
 
-class NotificadorLimpieza
+class NotificadorLimpieza extends NotificadorBase
 {
     /**
      * Obtiene los usuarios con permiso de gestión de limpieza o administradores.
@@ -49,41 +48,6 @@ class NotificadorLimpieza
         }
 
         return $users->unique('id');
-    }
-
-    /**
-     * Envía una notificación individual.
-     */
-    private function enviar(
-        User $user,
-        string $title,
-        ?string $body = null,
-        string $icon = 'heroicon-o-sparkles',
-        ?string $url = null,
-        string $status = 'info'
-    ): void {
-        $notification = Notification::make()
-            ->title($title)
-            ->icon($icon)
-            ->body($body ?? '');
-
-        match ($status) {
-            'success' => $notification->success(),
-            'warning' => $notification->warning(),
-            'danger' => $notification->danger(),
-            default => $notification->info(),
-        };
-
-        if ($url !== null) {
-            $notification->actions([
-                Action::make('view')
-                    ->label('Ver detalle')
-                    ->url($url)
-                    ->markAsRead(),
-            ]);
-        }
-
-        $notification->sendToDatabase($user);
     }
 
     /**

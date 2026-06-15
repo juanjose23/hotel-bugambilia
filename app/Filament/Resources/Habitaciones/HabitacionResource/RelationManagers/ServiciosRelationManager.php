@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers;
 
-use App\Enums\HabitacionesEspacios\EstadoServicioHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoServicioAsignacion;
 use App\Models\Habitaciones\ServicioHabitacion;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -47,8 +47,8 @@ class ServiciosRelationManager extends RelationManager
 
                 Select::make('estado')
                     ->label('Estado')
-                    ->options(EstadoServicioHabitacion::options())
-                    ->default(EstadoServicioHabitacion::Activo->value)
+                    ->options(EstadoServicioAsignacion::options())
+                    ->default(EstadoServicioAsignacion::Activo->value)
                     ->required(),
             ]);
     }

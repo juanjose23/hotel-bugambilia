@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Inventario\PackResource\Tables;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Models\Inventario\ProductoKit;
 use App\Models\Inventario\Stock;
 use Filament\Actions\ActionGroup;

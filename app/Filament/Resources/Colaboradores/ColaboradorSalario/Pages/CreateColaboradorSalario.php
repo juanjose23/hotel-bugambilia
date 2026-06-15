@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Pages;
 
-use App\Enums\EstadoCatalogo;
+use App\Enums\Catalogos\EstadoCatalogo;
 use App\Filament\Resources\Colaboradores\ColaboradorSalario\ColaboradorSalarioResource;
 use App\Models\Colaboradores\ColaboradorSalario;
 use App\UseCases\Colaboradores\Mutations\CrearNuevoSalario;

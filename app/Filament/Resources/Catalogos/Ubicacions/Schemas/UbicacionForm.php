@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Catalogos\Ubicacions\Schemas;
 
-use App\Enums\EstadoCatalogo;
-use App\Enums\TipoUbicacion;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Catalogos\TipoUbicacion;
 use App\Models\Catalogos\Ubicacion;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;

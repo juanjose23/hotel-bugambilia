@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
-use App\Enums\HabitacionesEspacios\EstadoServicioHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoServicioAsignacion;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Habitaciones\DetalleHabitacion;
@@ -376,7 +376,7 @@ class HabitacionSeeder extends Seeder
                         'servicio_id' => $servicio->id,
                         'habitacion_id' => $habitacion->id,
                         'incluido' => $sData['incluido'],
-                        'estado' => EstadoServicioHabitacion::Activo,
+                        'estado' => EstadoServicioAsignacion::Activo,
                     ]);
                 }
             }

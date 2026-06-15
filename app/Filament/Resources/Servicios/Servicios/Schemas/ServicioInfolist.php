@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Servicios\Servicios\Schemas;
 
-use App\Enums\ServicioEstado;
+use App\Enums\Servicios\ServicioEstado;
+use App\Filament\Resources\Shared\InfolistTimestamps;
 use App\Models\Servicios\Servicio;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -42,15 +43,7 @@ class ServicioInfolist
                             ->icon(fn ($state) => $state)
                             ->formatStateUsing(fn ($state) => $state ? ucwords(str_replace(['heroicon-o-', '-'], ['', ' '], $state)) : 'Ninguno'),
 
-                        TextEntry::make('created_at')
-                            ->label('Fecha de Registro')
-                            ->dateTime()
-                            ->placeholder('-'),
-
-                        TextEntry::make('updated_at')
-                            ->label('Última Actualización')
-                            ->dateTime()
-                            ->placeholder('-'),
+                        ...InfolistTimestamps::make(),
 
                         TextEntry::make('descripcion')
                             ->label('Descripción')

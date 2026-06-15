@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Schemas;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
-use App\Models\Catalogos\Catalogo;
+use App\Support\CachedOptions;
 use App\UseCases\Habitaciones\Mutations\GenerarCodigoHabitacion;
 use App\UseCases\Habitaciones\Mutations\GenerarSlugHabitacion;
 use Filament\Forms\Components\Hidden;
@@ -14,6 +14,7 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
@@ -38,7 +39,7 @@ class HabitacionForm
                             ->required()
                             ->maxLength(100)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, callable $set, string $operation) {
+                            ->afterStateUpdated(function ($state, Set $set, string $operation) {
                                 if ($operation !== 'create') {
                                     return;
                                 }
@@ -134,10 +135,7 @@ class HabitacionForm
                             ->label('Vistas Disponibles')
                             ->placeholder('Seleccione las vistas')
                             ->multiple()
-                            ->options(fn () => Catalogo::whereHas(
-                                'catalogoTipo',
-                                fn (Builder $q) => $q->where('codigo', CatalogoTipo::TIPO_VISTA->value)
-                            )->pluck('nombre', 'id'))
+                            ->options(fn () => CachedOptions::catalogos(CatalogoTipo::TIPO_VISTA->value))
                             ->searchable()
                             ->preload()
                             ->native(false)

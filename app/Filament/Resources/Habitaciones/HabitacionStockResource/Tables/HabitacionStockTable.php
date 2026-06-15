@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionStockResource\Tables;
 
 use App\Enums\HabitacionesEspacios\EstadoStock;
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\Ubicacion;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Inventario\ProductoKit;
+use App\Support\CachedOptions;
 use App\UseCases\Habitaciones\Mutations\AsignarPackAHabitacion;
 use App\UseCases\Habitaciones\Mutations\RegistrarConsumoHabitacion;
 use App\UseCases\Inventario\Queries\Stock\VerificarStockPack;
@@ -17,6 +17,8 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -80,9 +82,7 @@ class HabitacionStockTable
                     ->preload()
                     ->attribute('habitacion_id'),
 
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoStock::options())
+                FiltroEstado::make(EstadoStock::class)
                     ->query(function (Builder $query, array $data): Builder {
                         $value = $data['value'] ?? null;
                         if ($value === null || $value === '') {
@@ -102,7 +102,7 @@ class HabitacionStockTable
 
                 SelectFilter::make('variante.producto_id')
                     ->label('Producto')
-                    ->options(Producto::pluck('nombre', 'id'))
+                    ->options(CachedOptions::productos())
                     ->searchable()
                     ->preload()
                     ->attribute('variante.producto_id'),
@@ -114,7 +114,7 @@ class HabitacionStockTable
                     ->color('success')
                     ->modalHeading('Surtir Pack a Habitación')
                     ->modalDescription('Seleccione el pack, la habitación destino y la bodega de origen.')
-                    ->form([
+                    ->schema([
                         Select::make('habitacion_id')
                             ->label('Habitación destino')
                             ->options(Habitacion::pluck('nombre', 'id'))
@@ -125,30 +125,26 @@ class HabitacionStockTable
                         Select::make('producto_pack_id')
                             ->label('Pack / Kit')
                             ->options(
-                                Producto::whereIn('id', function ($q) {
-                                    $q->select('producto_padre_id')->from('producto_kit');
-                                })->pluck('nombre', 'id')
+                                CachedOptions::productosKit()
                             )
                             ->searchable()
                             ->preload()
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function (callable $set, callable $get, $state): void {
+                            ->afterStateUpdated(function (Set $set, Get $get, $state): void {
                                 self::actualizarPreviewPack($set, $get, $state);
                             }),
 
                         Select::make('bodega_origen_id')
                             ->label('Bodega de origen')
                             ->options(
-                                Ubicacion::where('tipo', 'almacen')
-                                    ->where('estado', 1)
-                                    ->pluck('nombre', 'id')
+                                CachedOptions::ubicacionesAlmacen()
                             )
                             ->searchable()
                             ->preload()
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function (callable $set, callable $get, $state): void {
+                            ->afterStateUpdated(function (Set $set, Get $get, $state): void {
                                 $packId = $get('producto_pack_id');
                                 if ($packId) {
                                     self::actualizarPreviewPack($set, $get, $packId);
@@ -162,7 +158,7 @@ class HabitacionStockTable
                             ->minValue(1)
                             ->default(1)
                             ->live()
-                            ->afterStateUpdated(function (callable $set, callable $get): void {
+                            ->afterStateUpdated(function (Set $set, Get $get): void {
                                 $packId = $get('producto_pack_id');
                                 if (! $packId) {
                                     return;
@@ -213,13 +209,13 @@ class HabitacionStockTable
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalHeading('Registrar Consumo en Habitación')
-                    ->form([
+                    ->schema([
                         TextInput::make('cantidad')
                             ->label('Cantidad consumida')
                             ->numeric()
                             ->required()
                             ->minValue(0.01)
-                            ->rule(function (callable $get, $record) {
+                            ->rule(function (Get $get, $record) {
                                 return function (string $attribute, $value, \Closure $fail) use ($record): void {
                                     if ((float) $value > (float) $record->cantidad_actual) {
                                         $fail("La cantidad no puede exceder el stock actual ({$record->cantidad_actual}).");

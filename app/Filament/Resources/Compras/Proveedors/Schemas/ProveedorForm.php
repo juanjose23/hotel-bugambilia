@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Compras\Proveedors\Schemas;
 
-use App\Enums\CatalogoTipo;
-use App\Enums\EstadoCatalogo;
-use App\Enums\TipoIdentificacion;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Personas\TipoIdentificacion;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;

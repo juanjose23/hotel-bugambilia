@@ -39,6 +39,15 @@ return new class extends Migration
             $table->unique(['espacio_id', 'producto_variante_id', 'deleted_at'], 'uq_espacio_stock_variante');
         });
 
+        $driver = DB::connection()->getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE espacio_stocks DROP CONSTRAINT IF EXISTS uq_espacio_stock_variante');
+            DB::statement('CREATE UNIQUE INDEX uq_espacio_stock_variante ON espacio_stocks (espacio_id, producto_variante_id) WHERE deleted_at IS NULL');
+        } elseif ($driver === 'sqlite') {
+            DB::statement('DROP INDEX IF EXISTS uq_espacio_stock_variante');
+            DB::statement('CREATE UNIQUE INDEX uq_espacio_stock_variante ON espacio_stocks (espacio_id, producto_variante_id) WHERE deleted_at IS NULL');
+        }
+
         if (DB::connection()->getDriverName() !== 'sqlite') {
             DB::statement("
                 CREATE OR REPLACE FUNCTION actualizar_estado_espacio_stock()

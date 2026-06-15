@@ -106,7 +106,7 @@ class ReportesInventario extends Page
                 ->label('Generar Reporte de Inventario')
                 ->modalHeading('Reporte de Inventario de Productos')
                 ->modalDescription('Filtra y descarga el stock disponible actual de tus almacenes.')
-                ->form([
+                ->schema([
                     Select::make('formato')
                         ->label('Formato de descarga')
                         ->options([
@@ -136,7 +136,7 @@ class ReportesInventario extends Page
                 ->label('Generar Reporte de Productos Vencidos')
                 ->modalHeading('Reporte de Lotes Vencidos (Expirados)')
                 ->modalDescription('Descarga la lista de lotes cuya fecha de vencimiento ya expiró.')
-                ->form([
+                ->schema([
                     Select::make('formato')
                         ->label('Formato de descarga')
                         ->options([
@@ -166,7 +166,7 @@ class ReportesInventario extends Page
                 ->label('Generar Reporte de Próximos Vencimientos')
                 ->modalHeading('Reporte de Próximos Vencimientos')
                 ->modalDescription('Filtra los productos que expiran en los siguientes días.')
-                ->form([
+                ->schema([
                     Select::make('formato')
                         ->label('Formato de descarga')
                         ->options([
@@ -203,7 +203,7 @@ class ReportesInventario extends Page
                 ->label('Generar Reporte de Cuarentena')
                 ->modalHeading('Reporte de Productos en Cuarentena')
                 ->modalDescription('Descarga la lista de lotes retenidos por calidad en bodega.')
-                ->form([
+                ->schema([
                     Select::make('formato')
                         ->label('Formato de descarga')
                         ->options([
@@ -233,7 +233,7 @@ class ReportesInventario extends Page
                 ->label('Generar Reporte de Valorización')
                 ->modalHeading('Reporte de Valorización Financiera de Almacén')
                 ->modalDescription('Genera el costo acumulado de todo el stock activo en Córdobas.')
-                ->form([
+                ->schema([
                     Select::make('formato')
                         ->label('Formato de descarga')
                         ->options([
@@ -256,7 +256,7 @@ class ReportesInventario extends Page
                 ->label('Generar Reporte de Rotación')
                 ->modalHeading('Reporte de Rotación de Inventario')
                 ->modalDescription('Analiza el movimiento promedio mensual de tus artículos.')
-                ->form([
+                ->schema([
                     TextInput::make('meses')
                         ->label('Período de análisis (meses)')
                         ->numeric()
@@ -275,7 +275,7 @@ class ReportesInventario extends Page
                 ->label('Generar Reporte de Mermas')
                 ->modalHeading('Reporte de Mermas y Pérdidas')
                 ->modalDescription('Filtra los productos desechados o perdidos en un rango de fechas.')
-                ->form([
+                ->schema([
                     Select::make('formato')
                         ->label('Formato de descarga')
                         ->options([

@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\Compras\OrdenesCompra\Schemas;
 
-use App\Enums\CatalogoTipo;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Compras\EstadoCotizacion;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\ProductoVariante;
 use App\Models\Compras\ProveedorContacto;
+use App\Support\CachedOptions;
 use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionConItemsProveedor;
 use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionesPorSolicitud;
 use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudConItems;
@@ -153,7 +153,7 @@ class OrdenCompraForm
 
                         Select::make('condicion_pago_id')
                             ->label('Condición de Pago')
-                            ->options(fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CONDICION_PAGO->value))->pluck('nombre', 'id'))
+                            ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CONDICION_PAGO->value))
                             ->required()
                             ->prefixIcon(Heroicon::CreditCard),
 
@@ -193,7 +193,7 @@ class OrdenCompraForm
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('items')
-                            ->label('')
+                            ->hiddenLabel()
                             ->relationship()
                             ->minItems(1)
                             ->schema([
@@ -217,10 +217,7 @@ class OrdenCompraForm
 
                                 Select::make('unidad_medida_id')
                                     ->label('UM')
-                                    ->options(fn () => Catalogo::whereHas(
-                                        'catalogoTipo',
-                                        fn ($q) => $q->where('codigo', CatalogoTipo::UNIDAD_MEDIDA->value)
-                                    )->pluck('nombre', 'id'))
+                                    ->options(fn () => CachedOptions::catalogos(CatalogoTipo::UNIDAD_MEDIDA->value))
                                     ->nullable()
                                     ->searchable()
                                     ->columnSpan(3)

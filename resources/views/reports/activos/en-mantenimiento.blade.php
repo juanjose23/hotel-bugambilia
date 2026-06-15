@@ -4,7 +4,8 @@
 @section('report_name', 'Activos en Mantenimiento')
 
 @section('content')
-<div class="report-page">
+@foreach ($paginas as $pIdx => $chunk)
+<div class="report-page {{ $loop->last ? '' : 'page-break' }}">
     <table class="page-frame">
         <tbody>
             <tr>
@@ -32,7 +33,7 @@
                     <div style="margin-bottom: 20px; font-size: 10px; color: #666;">
                         <span><strong>Generado en:</strong> {{ $generadoEn }}</span> &nbsp;|&nbsp;
                         <span><strong>Generado por:</strong> {{ $usuario }}</span>
-                        &nbsp;|&nbsp; <strong>Total en taller:</strong> {{ $activos->count() }}
+                        &nbsp;|&nbsp; <strong>Total en taller:</strong> {{ $totalRegistros }}
                     </div>
 
                     <table class="data-table">
@@ -48,7 +49,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($activos as $item)
+                            @forelse($chunk as $item)
                             @php
                                 $mttoActual = $item->mantenimientos->first();
                             @endphp
@@ -93,7 +94,10 @@
                         <table style="width:100%;">
                             <tr>
                                 <td style="font-size:8px;color:#999;">Reporte operacional de activos fuera de servicio por mantenimiento.</td>
-                                <td style="text-align:right;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:center;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
+                                <td style="text-align:right;width:120px;font-size:9px;color:#718096;">
+                                    Página <strong>{{ $pIdx + 1 }}</strong> de <strong>{{ count($paginas) }}</strong>
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -102,4 +106,5 @@
         </tbody>
     </table>
 </div>
+@endforeach
 @endsection

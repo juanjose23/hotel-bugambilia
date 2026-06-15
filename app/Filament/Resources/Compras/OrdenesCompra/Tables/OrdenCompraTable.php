@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Compras\OrdenesCompra\Tables;
 
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Compras\OrdenCompra;
 use App\UseCases\Compras\OrdenesCompra\Mutations\CancelarOrdenCompra;
 use App\UseCases\Compras\OrdenesCompra\Mutations\EmitirOrdenCompra;
@@ -106,8 +107,7 @@ class OrdenCompraTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoOrdenCompra::class),
+                FiltroEstado::make(EstadoOrdenCompra::class),
                 SelectFilter::make('tipo')
                     ->label('Origen')
                     ->options([
@@ -186,7 +186,7 @@ class OrdenCompraTable
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Más opciones'),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

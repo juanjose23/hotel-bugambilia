@@ -97,7 +97,7 @@ class DevolucionCompraForm
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('items')
-                            ->label('')
+                            ->hiddenLabel()
                             ->relationship('items')
                             ->minItems(1)
                             ->schema([
