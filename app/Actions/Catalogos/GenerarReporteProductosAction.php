@@ -57,7 +57,7 @@ class GenerarReporteProductosAction
                 $imgPath = storage_path('app/public/'.$p->imagen->url);
                 if (file_exists($imgPath)) {
                     $imgType = pathinfo($imgPath, PATHINFO_EXTENSION);
-                    $p->img_base64 = 'data:image/'.$imgType.';base64,'.base64_encode(file_get_contents($imgPath));
+                    $p->img_base64 = 'data:image/'.$imgType.';base64,'.base64_encode((string) file_get_contents($imgPath));
                 }
             }
 
@@ -82,7 +82,7 @@ class GenerarReporteProductosAction
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
         }
 
         // ── CP-001: simple list ────────────────────────────────────────────

@@ -15,8 +15,10 @@ readonly class ValorizacionInventarioFiltro
      */
     public static function fromArray(array $data): self
     {
+        $ubicacionId = $data['ubicacion_id'] ?? null;
+
         return new self(
-            ubicacionId: isset($data['ubicacion_id']) ? (int) $data['ubicacion_id'] : null,
+            ubicacionId: is_numeric($ubicacionId) ? (int) $ubicacionId : null,
         );
     }
 

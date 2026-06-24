@@ -24,7 +24,7 @@ class ViewEspacio extends ViewRecord
                 ->color('info')
                 ->url(fn (Espacio $record) => route('reporte.activos.hoja-habitacion.pdf', ['tipo' => 'espacio', 'id' => $record->id]))
                 ->openUrlInNewTab()
-                ->visible(fn () => auth()->user()->can('Activos:ReporteHojaHabitacion')),
+                ->visible(fn () => auth()->user()?->can('Activos:ReporteHojaHabitacion') ?? false),
             EditAction::make(),
         ];
     }

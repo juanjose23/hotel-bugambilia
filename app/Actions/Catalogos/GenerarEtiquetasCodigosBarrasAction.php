@@ -45,7 +45,7 @@ class GenerarEtiquetasCodigosBarrasAction
                 $etiquetas[] = [
                     'codigo_barras' => $sku,
                     'imagen' => 'data:image/png;base64,'.$barcodeBase64,
-                    'producto' => $variante->producto->nombre,
+                    'producto' => $variante->producto ? $variante->producto->nombre : 'Sin producto',
                     'variante' => $variante->nombre_variante ?? 'Principal',
                     'codigo_completo' => $sku,
                 ];
@@ -61,7 +61,7 @@ class GenerarEtiquetasCodigosBarrasAction
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
         }
 
         /*

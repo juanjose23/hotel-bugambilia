@@ -25,7 +25,7 @@ class ViewActivoMantenimiento extends ViewRecord
                 ->color('info')
                 ->url(fn (ActivoMantenimiento $record) => route('reporte.activos.mantenimiento.pdf', $record))
                 ->openUrlInNewTab()
-                ->visible(fn () => auth()->user()->can('Activos:ReporteMantenimiento')),
+                ->visible(fn () => auth()->user()?->can('Activos:ReporteMantenimiento') ?? false),
 
             EditAction::make(),
         ];

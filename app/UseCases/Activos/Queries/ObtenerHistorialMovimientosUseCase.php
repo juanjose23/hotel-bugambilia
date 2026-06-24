@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 class ObtenerHistorialMovimientosUseCase
 {
     /**
-     * @return array{activo: Activo, lineaTiempo: Collection<int, array<string, mixed>>}
+     * @return array{activo: Activo|null, lineaTiempo: Collection<int, array<string, mixed>>}
      */
     public function ejecutar(int $activoId): array
     {
@@ -26,6 +26,10 @@ class ObtenerHistorialMovimientosUseCase
         $activo = $activoId > 0
             ? $query->findOrFail($activoId)
             : $query->first();
+
+        if ($activo === null) {
+            return ['activo' => null, 'lineaTiempo' => collect()];
+        }
 
         $lineaTiempo = collect();
 

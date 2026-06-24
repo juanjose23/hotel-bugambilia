@@ -38,6 +38,7 @@ class CotizacionItem extends Model implements AuditableContract
         'cantidad' => 'decimal:2',
         'precio_unitario' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'es_elegido' => 'boolean',
     ];
 
     /** @return BelongsTo<Cotizacion, $this> */

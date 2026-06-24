@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\UseCases\Servicios\Queries;
 
+use App\Models\Servicios\Servicio;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use stdClass;
@@ -21,18 +22,21 @@ class ObtenerHistoricoServiciosPrecios
      */
     public function ejecutar(array $filtros = []): Collection
     {
-        return DB::table('servicios_precios as sp')
-            ->join('servicios as s', 'sp.servicio_id', '=', 's.id')
-            ->join('monedas as m', 'sp.moneda_id', '=', 'm.id')
+        return DB::table('precios as p')
+            ->join('servicios as s', function ($join) {
+                $join->on('p.priceable_id', '=', 's.id')
+                    ->where('p.priceable_type', '=', Servicio::class);
+            })
+            ->join('monedas as m', 'p.moneda_id', '=', 'm.id')
             ->leftJoin('catalogos as c', 's.categoria_id', '=', 'c.id')
-            ->whereNull('sp.deleted_at')
+            ->whereNull('p.deleted_at')
             ->when(
                 isset($filtros['servicio_id']) && $filtros['servicio_id'],
-                fn ($q) => $q->where('sp.servicio_id', $filtros['servicio_id'])
+                fn ($q) => $q->where('p.priceable_id', $filtros['servicio_id'])
             )
             ->when(
                 isset($filtros['moneda_id']) && $filtros['moneda_id'],
-                fn ($q) => $q->where('sp.moneda_id', $filtros['moneda_id'])
+                fn ($q) => $q->where('p.moneda_id', $filtros['moneda_id'])
             )
             ->when(
                 isset($filtros['categoria_id']) && $filtros['categoria_id'],
@@ -40,10 +44,10 @@ class ObtenerHistoricoServiciosPrecios
             )
             ->when(
                 ! empty($filtros['estado']),
-                fn ($q) => $q->where('sp.estado', (int) $filtros['estado'])
+                fn ($q) => $q->where('p.estado', (int) $filtros['estado'])
             )
             ->select(
-                'sp.id',
+                'p.id',
                 's.id as servicio_id',
                 's.nombre as servicio',
                 's.codigo as servicio_codigo',
@@ -53,17 +57,17 @@ class ObtenerHistoricoServiciosPrecios
                 'm.nombre as moneda',
                 'm.simbolo as moneda_simbolo',
                 'm.codigo as moneda_codigo',
-                'sp.precio',
-                'sp.fecha_inicio',
-                'sp.fecha_fin',
-                'sp.estado',
-                'sp.es_oferta',
-                'sp.created_at',
+                'p.precio',
+                'p.fecha_inicio',
+                'p.fecha_fin',
+                'p.estado',
+                'p.es_oferta',
+                'p.created_at',
             )
             ->orderBy('c.nombre')
             ->orderBy('m.nombre')
             ->orderBy('s.nombre')
-            ->orderByDesc('sp.fecha_inicio')
+            ->orderByDesc('p.fecha_inicio')
             ->get();
     }
 

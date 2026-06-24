@@ -29,10 +29,12 @@ readonly class LotesMermaFiltro
             $periodoHasta = $periodoHasta->toDateString();
         }
 
+        $motivo = $data['motivo'] ?? null;
+
         return new self(
-            periodoDesde: $periodoDesde,
-            periodoHasta: $periodoHasta,
-            motivo: $data['motivo'] ?? null,
+            periodoDesde: is_string($periodoDesde) ? $periodoDesde : null,
+            periodoHasta: is_string($periodoHasta) ? $periodoHasta : null,
+            motivo: is_string($motivo) ? $motivo : null,
         );
     }
 

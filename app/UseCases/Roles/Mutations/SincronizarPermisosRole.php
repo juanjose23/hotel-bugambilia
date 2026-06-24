@@ -4,6 +4,7 @@ namespace App\UseCases\Roles\Mutations;
 
 use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Role;
 
 class SincronizarPermisosRole
 {
@@ -11,7 +12,7 @@ class SincronizarPermisosRole
      * @param  array<string, mixed>  $formData
      * @param  Collection<int, string>  $permissions
      */
-    public function execute(mixed $role, array $formData, Collection $permissions): void
+    public function execute(Role $role, array $formData, Collection $permissions): void
     {
         $permissionModels = collect();
 

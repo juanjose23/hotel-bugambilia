@@ -23,7 +23,7 @@ class CreateColaborador extends CreateRecord
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $this->fotoUpload = $data['foto_upload'] ?? null;
+        $this->fotoUpload = (isset($data['foto_upload']) && is_scalar($data['foto_upload'])) ? (string) $data['foto_upload'] : null;
         unset($data['foto_upload']);
 
         return $data;

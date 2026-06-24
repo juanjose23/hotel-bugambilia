@@ -58,8 +58,8 @@ class ObtenerValorizacionInventario
                 'cat.nombre as categoria',
                 'u.nombre as ubicacion',
                 DB::raw('SUM(l.cantidad_disponible) as stock_total'),
-                DB::raw('AVG(COALESCE(oci.precio_unitario, 0) * COALESCE(oc.tasa_cambio, 1.0)) as costo_promedio'),
-                DB::raw('SUM(l.cantidad_disponible * COALESCE(oci.precio_unitario, 0) * COALESCE(oc.tasa_cambio, 1.0)) as valor_total')
+                DB::raw('AVG(COALESCE(oci.precio_unitario * COALESCE(oc.tasa_cambio, 1.0), 0)) as costo_promedio'),
+                DB::raw('SUM(l.cantidad_disponible * COALESCE(oci.precio_unitario * COALESCE(oc.tasa_cambio, 1.0), 0)) as valor_total')
             )
             ->groupBy('p.id', 'p.nombre', 'cat.nombre', 'u.nombre')
             ->orderBy('valor_total', 'desc')
@@ -73,6 +73,9 @@ class ObtenerValorizacionInventario
      */
     public function totalGeneral(array $filtros = []): float
     {
-        return (float) $this->ejecutar($filtros)->sum('valor_total');
+        /** @var int|float $total */
+        $total = $this->ejecutar($filtros)->sum('valor_total');
+
+        return (float) $total;
     }
 }

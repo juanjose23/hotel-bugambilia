@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\Inventario\Lote\Widgets;
 
+use App\Models\Inventario\Lote;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesProximosVencer;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
 class LotesEnRiesgoChart extends ChartWidget
 {
@@ -21,7 +22,7 @@ class LotesEnRiesgoChart extends ChartWidget
 
     protected function getData(): array
     {
-        /** @var Collection<int, object> $lotes */
+        /** @var Collection<int, Lote> $lotes */
         $lotes = app(ObtenerLotesProximosVencer::class)->ejecutar(['dias' => 30]);
 
         $menosDe7Dias = $lotes->filter(fn ($l) => now()->diffInDays($l->fecha_vencimiento) <= 7)->count();

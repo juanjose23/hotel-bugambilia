@@ -63,8 +63,8 @@ class ProveedorTable
                     ->label('Estado')
                     ->searchable()
                     ->badge()
-                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
+                    ->color(fn ($state) => EstadoCatalogo::colorFor($state ?? '') ?? 'gray')
+                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state ?? '') ?? '')
                     ->sortable(),
             ])
             ->filters([

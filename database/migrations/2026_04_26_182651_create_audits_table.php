@@ -14,12 +14,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $connection = config('audit.drivers.database.connection', config('database.default'));
-        $table = config('audit.drivers.database.table', 'audits');
+        $connVal = config('audit.drivers.database.connection') ?? config('database.default') ?? '';
+        $connection = is_scalar($connVal) ? (string) $connVal : '';
+        $tableVal = config('audit.drivers.database.table') ?? 'audits';
+        $table = is_scalar($tableVal) ? (string) $tableVal : 'audits';
 
         Schema::connection($connection)->create($table, function (Blueprint $table) {
             $table->comment('Tabla nativa de laravel-auditing que registra todas las operaciones CRUD detalladas efectuadas sobre modelos auditables.');
-            $morphPrefix = config('audit.user.morph_prefix', 'user');
+            $morphPrefixVal = config('audit.user.morph_prefix', 'user');
+            $morphPrefix = is_scalar($morphPrefixVal) ? (string) $morphPrefixVal : 'user';
 
             $table->bigIncrements('id')->comment('Identificador único autoincremental de la auditoría');
             $table->string($morphPrefix.'_type')->nullable()->comment('Tipo de modelo del usuario que realizó la acción');
@@ -43,8 +46,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $connection = config('audit.drivers.database.connection', config('database.default'));
-        $table = config('audit.drivers.database.table', 'audits');
+        $connVal = config('audit.drivers.database.connection') ?? config('database.default') ?? '';
+        $connection = is_scalar($connVal) ? (string) $connVal : '';
+        $tableVal = config('audit.drivers.database.table') ?? 'audits';
+        $table = is_scalar($tableVal) ? (string) $tableVal : 'audits';
 
         Schema::connection($connection)->drop($table);
     }

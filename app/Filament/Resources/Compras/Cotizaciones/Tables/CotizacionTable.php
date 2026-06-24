@@ -8,6 +8,7 @@ use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
 use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Compras\Cotizacion;
+use App\Models\Compras\Proveedor;
 use App\Services\Compras\NotificadorCompras;
 use App\UseCases\Compras\OrdenesCompra\Mutations\GenerarOrdenDesdeCotizacion;
 use Filament\Actions\Action;
@@ -37,8 +38,9 @@ class CotizacionTable
                     ->label('Proveedor')
                     ->searchable()
                     ->sortable()
-                    ->description(fn ($record) => $record->proveedor->persona->personaJuridica->razon_social
-                        ?? $record->proveedor->persona->primer_nombre
+                    ->description(fn (Cotizacion $record) => ($record->proveedor && $record->proveedor->persona && $record->proveedor->persona->personaJuridica)
+                            ? $record->proveedor->persona->personaJuridica->razon_social
+                            : (($record->proveedor && $record->proveedor->persona) ? $record->proveedor->persona->primer_nombre : '')
                     ),
 
                 TextColumn::make('fecha_cotizacion')
@@ -53,7 +55,7 @@ class CotizacionTable
 
                 TextColumn::make('total')
                     ->label('Total')
-                    ->money(fn (Cotizacion $record) => $record->moneda->codigo ?? 'USD')
+                    ->money(fn (Cotizacion $record) => $record->moneda ? $record->moneda->codigo : 'USD')
                     ->sortable()
                     ->weight('bold')
                     ->color('primary'),
@@ -97,7 +99,11 @@ class CotizacionTable
                 SelectFilter::make('proveedor_id')
                     ->label('Proveedor')
                     ->relationship('proveedor', 'codigo')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->codigo}] - ".($record->persona->personaJuridica->razon_social ?? $record->persona->primer_nombre)
+                    ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "[{$record->codigo}] - ".(
+                        ($record->persona && $record->persona->personaJuridica)
+                            ? $record->persona->personaJuridica->razon_social
+                            : ($record->persona ? $record->persona->primer_nombre : '')
+                    )
                     )
                     ->searchable()
                     ->preload(),
@@ -122,7 +128,7 @@ class CotizacionTable
                         ->icon(Heroicon::ShoppingCart)
                         ->color('primary')
                         ->visible(fn (Cotizacion $record) => ($record->es_elegida || $record->items_elegidos_count > 0)
-                            && ! $record->solicitud->ordenesCompra
+                            && ! $record->solicitud?->ordenesCompra
                                 ->where('proveedor_id', $record->proveedor_id)
                                 ->where('estado', '!=', EstadoOrdenCompra::Cancelada)
                                 ->isNotEmpty()
@@ -159,7 +165,7 @@ class CotizacionTable
                         ->icon(Heroicon::ArrowsRightLeft)
                         ->color('success')
                         ->url(fn (Cotizacion $record) => CotizacionResource::getUrl('comparativa', ['solicitud_id' => $record->solicitud_id]))
-                        ->visible(fn () => auth()->user()->can('Compras:ViewComparativaCotizaciones')),
+                        ->visible(fn () => auth()->user()?->can('Compras:ViewComparativaCotizaciones') ?? false),
 
                     Action::make('imprimirComparativa')
                         ->label('Imprimir Comparativo')
@@ -167,7 +173,7 @@ class CotizacionTable
                         ->color('info')
                         ->url(fn (Cotizacion $record) => route('reporte.comparativa', ['solicitud' => $record->solicitud_id]))
                         ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()->can('Compras:ImprimirComparativa')),
+                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirComparativa') ?? false),
 
                     Action::make('imprimir')
                         ->label('Imprimir Cotización')
@@ -175,7 +181,7 @@ class CotizacionTable
                         ->color('gray')
                         ->url(fn (Cotizacion $record) => route('reporte.cotizacion', $record))
                         ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()->can('Compras:ImprimirCotizacion')),
+                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirCotizacion') ?? false),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Más opciones'),

@@ -58,8 +58,9 @@ class ColaboradorSalarioForm
                                         ->latest('fecha_inicio')
                                         ->value('salario');
 
+                                    $salarioAnteriorStr = is_scalar($salarioAnterior) ? (string) $salarioAnterior : '0';
                                     if ($salarioAnterior && $value < $salarioAnterior) {
-                                        $fail("El nuevo salario no puede ser menor al salario anterior (NIO $salarioAnterior).");
+                                        $fail('El nuevo salario no puede ser menor al salario anterior (NIO '.$salarioAnteriorStr.').');
                                     }
                                 };
                             },

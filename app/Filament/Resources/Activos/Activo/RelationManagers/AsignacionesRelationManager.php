@@ -85,15 +85,27 @@ class AsignacionesRelationManager extends RelationManager
                     ->using(function (array $data): Model {
                         $owner = $this->getOwnerRecord();
 
+                        $ownerKeyVal = $owner->getKey() ?? 0;
+                        $ownerKey = is_numeric($ownerKeyVal) ? (int) $ownerKeyVal : 0;
+
+                        $asignableTypeVal = $data['asignable_type'] ?? '';
+                        $asignableType = is_string($asignableTypeVal) ? $asignableTypeVal : '';
+
+                        $asignableIdVal = $data['asignable_id'] ?? 0;
+                        $asignableId = is_numeric($asignableIdVal) ? (int) $asignableIdVal : 0;
+
+                        $motivoVal = $data['motivo'] ?? null;
+                        $motivo = is_string($motivoVal) ? $motivoVal : null;
+
                         app(AsignarActivo::class)->execute(
-                            activoId: (int) $owner->getKey(),
-                            asignableType: $data['asignable_type'],
-                            asignableId: (int) $data['asignable_id'],
-                            userId: auth()->id() ?? 1,
-                            motivo: $data['motivo']
+                            activoId: $ownerKey,
+                            asignableType: $asignableType,
+                            asignableId: $asignableId,
+                            userId: (int) auth()->id(),
+                            motivo: $motivo
                         );
 
-                        return ActivoAsignacion::where('activo_id', $owner->getKey())
+                        return ActivoAsignacion::where('activo_id', $ownerKey)
                             ->whereNull('fecha_fin')
                             ->firstOrFail();
                     }),

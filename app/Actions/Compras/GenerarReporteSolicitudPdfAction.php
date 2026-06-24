@@ -20,7 +20,7 @@ class GenerarReporteSolicitudPdfAction
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
         }
 
         $codigoReporte = 'HTB-COM-001';

@@ -24,7 +24,7 @@ class ViewCotizacion extends ViewRecord
                 ->icon(Heroicon::ShoppingCart)
                 ->color('primary')
                 ->visible(fn (Cotizacion $record) => ($record->es_elegida || $record->items()->where('es_elegido', true)->exists())
-                    && ! $record->solicitud->ordenesCompra()->where('proveedor_id', $record->proveedor_id)->exists()
+                    && ! $record->solicitud?->ordenesCompra()->where('proveedor_id', $record->proveedor_id)->exists()
                 )
                 ->requiresConfirmation()
                 ->action(function (Cotizacion $record) {
@@ -55,7 +55,7 @@ class ViewCotizacion extends ViewRecord
                 ->color('gray')
                 ->url(fn (Cotizacion $record) => route('reporte.cotizacion', $record))
                 ->openUrlInNewTab()
-                ->visible(fn () => auth()->user()->can('Compras:ImprimirCotizacion')),
+                ->visible(fn () => auth()->user()?->can('Compras:ImprimirCotizacion') ?? false),
         ];
     }
 }

@@ -35,6 +35,8 @@ class AprobarSolicitud extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        assert($this->record instanceof Solicitud);
+
         $data['items_aprobados'] = $this->record->items->map(fn ($item) => [
             'id' => $item->id,
             'producto_nombre' => $item->producto?->nombre,
@@ -85,7 +87,11 @@ class AprobarSolicitud extends EditRecord
 
         $data = $this->form->getState();
 
-        app(AprobarSolicitudUseCase::class)->execute($this->record, $data['items_aprobados'] ?? []);
+        assert($this->record instanceof Solicitud);
+
+        /** @var array<int, array{id: int, cantidad_aprobada: float}> $itemsAprobados */
+        $itemsAprobados = (array) ($data['items_aprobados'] ?? []);
+        app(AprobarSolicitudUseCase::class)->execute($this->record, $itemsAprobados);
 
         if ($shouldSendSavedNotification) {
             Notification::make()
@@ -101,9 +107,11 @@ class AprobarSolicitud extends EditRecord
 
     public function aceptarTodasLasCantidades(): void
     {
+        /** @var array<int, array<string, mixed>> $items */
         $items = $this->data['items_aprobados'] ?? [];
         foreach ($items as $key => $item) {
-            $items[$key]['cantidad_aprobada'] = $item['cantidad_solicitada'] ?? 0;
+            $cantidadSolicitada = $item['cantidad_solicitada'] ?? 0;
+            $items[$key]['cantidad_aprobada'] = floatval(is_numeric($cantidadSolicitada) ? $cantidadSolicitada : 0);
         }
         $this->data['items_aprobados'] = $items;
     }

@@ -76,13 +76,29 @@ class CompraReportController extends Controller
     {
         $this->authorize('Compras:ImprimirReportesCompras');
         try {
-            $fechaInicio = request('fecha_inicio')
-                ? Carbon::createFromFormat('Y-m-d', request('fecha_inicio'))->startOfDay()
-                : now()->startOfMonth();
+            $reqInicio = request('fecha_inicio');
+            $fechaInicio = null;
+            if (is_string($reqInicio)) {
+                $parsed = Carbon::createFromFormat('Y-m-d', $reqInicio);
+                if ($parsed instanceof Carbon) {
+                    $fechaInicio = $parsed->startOfDay();
+                }
+            }
+            if (! $fechaInicio) {
+                $fechaInicio = now()->startOfMonth();
+            }
 
-            $fechaFin = request('fecha_fin')
-                ? Carbon::createFromFormat('Y-m-d', request('fecha_fin'))->endOfDay()
-                : now();
+            $reqFin = request('fecha_fin');
+            $fechaFin = null;
+            if (is_string($reqFin)) {
+                $parsed = Carbon::createFromFormat('Y-m-d', $reqFin);
+                if ($parsed instanceof Carbon) {
+                    $fechaFin = $parsed->endOfDay();
+                }
+            }
+            if (! $fechaFin) {
+                $fechaFin = now();
+            }
 
             if ($fechaInicio->gt($fechaFin)) {
                 $temp = $fechaInicio;
@@ -120,9 +136,19 @@ class CompraReportController extends Controller
 
     protected function registrarAuditoria(string $codigo, mixed $record): void
     {
+        if (! is_object($record)) {
+            return;
+        }
+
+        $idVal = method_exists($record, 'getKey') ? $record->getKey() : ($record->id ?? 0);
+        $id = is_numeric($idVal) ? (int) $idVal : 0;
+
+        $codigoVal = $record->codigo ?? $id;
+        $codigoRef = is_scalar($codigoVal) ? (string) $codigoVal : (string) $id;
+
         app(RegistrarAuditoriaReporteUseCase::class)->ejecutar($codigo, [
-            'id' => $record->id,
-            'codigo_referencia' => $record->codigo ?? $record->id,
+            'id' => $id,
+            'codigo_referencia' => $codigoRef,
         ]);
     }
 
@@ -130,7 +156,7 @@ class CompraReportController extends Controller
     protected function getReportData(mixed $record): array
     {
         // Asegurar que las relaciones necesarias estén cargadas para evitar N+1 y datos faltantes
-        if ($record !== null && method_exists($record, 'load')) {
+        if (is_object($record) && method_exists($record, 'load')) {
             // Relaciones comunes
             $record->load(['items.producto', 'items.variante']);
 
@@ -155,7 +181,7 @@ class CompraReportController extends Controller
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode(file_get_contents($logoPath));
+            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
         }
 
         return [

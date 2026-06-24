@@ -40,7 +40,7 @@ class RecepcionEstadoActions
                     }
                 })
                 ->visible(fn (RecepcionCompra $record) => $record->estado->transicionPermitida($destino)
-                    && auth()->user()->can('update', $record)
+                    && auth()->user()?->can('update', $record) ?? false
                 ),
             [
                 EstadoRecepcion::Completa,

@@ -33,7 +33,7 @@ class ProductoInfolist
                             ->label('Estado')
                             ->icon(Heroicon::CheckCircle)
                             ->badge()
-                            ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                            ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
                             ->formatStateUsing(callback: fn ($state): string => EstadoCatalogo::labelFor($state))
                             ->columnSpan(1),
                         TextEntry::make('categoria.nombre')
@@ -55,7 +55,7 @@ class ProductoInfolist
                             ->label('Tipo')
                             ->icon(Heroicon::Check)
                             ->badge()
-                            ->color(fn ($state): string => TipoProducto::colorFor($state))
+                            ->color(fn ($state): ?string => is_string($color = TipoProducto::colorFor($state)) ? $color : null)
                             ->formatStateUsing(fn ($state): string => TipoProducto::labelFor($state)),
                         TextEntry::make('descripcion')
                             ->label('Descripción')

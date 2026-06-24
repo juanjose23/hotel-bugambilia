@@ -79,7 +79,9 @@ class ActPlanMantenimientoForm
                             Select::make('proveedor_id')
                                 ->label('Proveedor Externo')
                                 ->options(fn () => Proveedor::with(['persona.personaNatural', 'persona.personaJuridica'])->get()->mapWithKeys(function ($prov) {
-                                    return [$prov->id => app(ObtenerNombrePersona::class)->ejecutar($prov->persona)];
+                                    $persona = $prov->persona;
+
+                                    return [$prov->id => $persona !== null ? app(ObtenerNombrePersona::class)->ejecutar($persona) : ''];
                                 }))
                                 ->searchable()
                                 ->native(false)

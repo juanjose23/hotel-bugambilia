@@ -62,7 +62,13 @@ class InventarioFisico extends Model implements AuditableContract
             }
 
             if (! $model->creado_por_id && auth()->check()) {
-                $model->creado_por_id = auth()->id();
+                $userId = auth()->id();
+                if (is_numeric($userId)) {
+                    $userIdInt = (int) $userId;
+                    /** @var int<0, max> $userIdVal */
+                    $userIdVal = $userIdInt >= 0 ? $userIdInt : 0;
+                    $model->creado_por_id = $userIdVal;
+                }
             }
 
             // Pre-populate sheet data if not provided
@@ -105,7 +111,7 @@ class InventarioFisico extends Model implements AuditableContract
             $cellData[$rowStr] = [
                 '0' => ['v' => $lote->id],
                 '1' => ['v' => $lote->codigo_lote],
-                '2' => ['v' => $lote->producto->nombre],
+                '2' => ['v' => $lote->producto ? $lote->producto->nombre : 'Sin producto'],
                 '3' => ['v' => $lote->ubicacion->nombre ?? 'Sin Ubicación'],
                 '4' => ['v' => (float) $lote->cantidad_disponible],
                 '5' => ['v' => (float) $lote->cantidad_disponible], // Default physical equal to system initially

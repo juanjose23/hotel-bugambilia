@@ -16,6 +16,7 @@ use BezhanSalleh\PluginEssentials\Concerns\Resource as Essentials;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Clusters\Cluster;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -28,6 +29,7 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Override;
 use UnitEnum;
@@ -62,6 +64,9 @@ class RoleResource extends Resource
     #[Override]
     public static function form(Schema $schema): Schema
     {
+        $teamForeignKey = config('permission.column_names.team_foreign_key');
+        $teamForeignKeyStr = is_string($teamForeignKey) ? $teamForeignKey : (is_numeric($teamForeignKey) ? (string) $teamForeignKey : 'team_id');
+
         return $schema
             ->components([
                 Grid::make()
@@ -79,7 +84,7 @@ class RoleResource extends Resource
                                     ->nullable()
                                     ->maxLength(255),
 
-                                Select::make(config('permission.column_names.team_foreign_key'))
+                                Select::make($teamForeignKeyStr)
                                     ->label(__('filament-shield::filament-shield.field.team'))
                                     ->placeholder(__('filament-shield::filament-shield.field.team.placeholder'))
                                     ->default(Filament::getTenant()?->getKey())
@@ -117,7 +122,7 @@ class RoleResource extends Resource
                 TextColumn::make('team.name')
                     ->default('Global')
                     ->badge()
-                    ->color(fn (mixed $state): string => str($state)->contains('Global') ? 'gray' : 'primary')
+                    ->color(fn (mixed $state): string => str(is_scalar($state) ? (string) $state : '')->contains('Global') ? 'gray' : 'primary')
                     ->label(__('filament-shield::filament-shield.column.team'))
                     ->searchable()
                     ->visible(fn (): bool => static::shield()->isCentralApp() && Utils::isTenancyEnabled()),
@@ -163,7 +168,10 @@ class RoleResource extends Resource
     #[Override]
     public static function getModel(): string
     {
-        return Utils::getRoleModel();
+        /** @var class-string<Model> $model */
+        $model = Utils::getRoleModel();
+
+        return $model;
     }
 
     public static function getSlug(?Panel $panel = null): string
@@ -173,7 +181,10 @@ class RoleResource extends Resource
 
     public static function getCluster(): ?string
     {
-        return Utils::getResourceCluster();
+        $cluster = Utils::getResourceCluster();
+
+        /** @var class-string<Cluster>|null $cluster */
+        return $cluster;
     }
 
     public static function getEssentialsPlugin(): ?FilamentShieldPlugin

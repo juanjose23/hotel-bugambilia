@@ -11,8 +11,13 @@ class RotacionInventarioExport extends BaseInventarioExport
 {
     public function view(): View
     {
-        $filas = app(ObtenerRotacionInventario::class)->ejecutar($this->filtros);
+        $rawMeses = $this->filtros['meses'] ?? null;
 
-        return view('exports.inventario.rotacion', ['filas' => $filas, 'fecha' => now()->format('d/m/Y H:i'), 'meses' => $this->filtros['meses'] ?? 3]);
+        $filtros = [
+            'meses' => is_numeric($rawMeses) ? (int) $rawMeses : 3,
+        ];
+        $filas = app(ObtenerRotacionInventario::class)->ejecutar($filtros);
+
+        return view('exports.inventario.rotacion', ['filas' => $filas, 'fecha' => now()->format('d/m/Y H:i'), 'meses' => $filtros['meses']]);
     }
 }

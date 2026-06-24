@@ -132,7 +132,7 @@ class HabitacionStockTable
                             ->required()
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get, $state): void {
-                                self::actualizarPreviewPack($set, $get, $state);
+                                self::actualizarPreviewPack($set, $get, (int) $state);
                             }),
 
                         Select::make('bodega_origen_id')
@@ -146,8 +146,8 @@ class HabitacionStockTable
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get, $state): void {
                                 $packId = $get('producto_pack_id');
-                                if ($packId) {
-                                    self::actualizarPreviewPack($set, $get, $packId);
+                                if ($packId && is_numeric($packId)) {
+                                    self::actualizarPreviewPack($set, $get, (int) $packId);
                                 }
                             }),
 
@@ -160,10 +160,9 @@ class HabitacionStockTable
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get): void {
                                 $packId = $get('producto_pack_id');
-                                if (! $packId) {
-                                    return;
+                                if ($packId && is_numeric($packId)) {
+                                    self::actualizarPreviewPack($set, $get, (int) $packId);
                                 }
-                                self::actualizarPreviewPack($set, $get, $packId);
                             }),
 
                         Repeater::make('items_preview')
@@ -189,7 +188,7 @@ class HabitacionStockTable
                                 productoPackId: (int) $data['producto_pack_id'],
                                 bodegaOrigenId: (int) $data['bodega_origen_id'],
                                 cantidadPacks: (float) $data['cantidad_packs'],
-                                creadoPorId: auth()->id(),
+                                creadoPorId: (int) auth()->id(),
                             );
                         } catch (\RuntimeException $e) {
                             Notification::make()
@@ -232,7 +231,7 @@ class HabitacionStockTable
                             habitacionStockId: $record->id,
                             cantidad: (float) $data['cantidad'],
                             motivo: $data['motivo'],
-                            creadoPorId: auth()->id(),
+                            creadoPorId: (int) auth()->id(),
                         );
                     }),
             ]);
@@ -251,7 +250,7 @@ class HabitacionStockTable
             foreach ($items as $item) {
                 $variante = $item->variante;
                 $preview[] = [
-                    'producto' => $variante->producto->nombre ?? '—',
+                    'producto' => ($variante && $variante->producto) ? $variante->producto->nombre : '—',
                     'variante' => $variante->nombre_variante ?? 'N/A',
                     'necesario' => (string) ($item->cantidad * $cantidadPacks),
                     'disponible' => '—',

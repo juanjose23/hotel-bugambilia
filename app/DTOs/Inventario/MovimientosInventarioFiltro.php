@@ -19,12 +19,18 @@ readonly class MovimientosInventarioFiltro
      */
     public static function fromArray(array $data): self
     {
+        $tipo = $data['tipo'] ?? null;
+        $productoId = $data['producto_id'] ?? null;
+        $loteId = $data['lote_id'] ?? null;
+        $fechaDesde = $data['fecha_desde'] ?? null;
+        $fechaHasta = $data['fecha_hasta'] ?? null;
+
         return new self(
-            tipo: $data['tipo'] ?? null,
-            productoId: isset($data['producto_id']) ? (int) $data['producto_id'] : null,
-            loteId: isset($data['lote_id']) ? (int) $data['lote_id'] : null,
-            fechaDesde: $data['fecha_desde'] ?? null,
-            fechaHasta: $data['fecha_hasta'] ?? null,
+            tipo: is_string($tipo) ? $tipo : null,
+            productoId: is_numeric($productoId) ? (int) $productoId : null,
+            loteId: is_numeric($loteId) ? (int) $loteId : null,
+            fechaDesde: is_string($fechaDesde) ? $fechaDesde : null,
+            fechaHasta: is_string($fechaHasta) ? $fechaHasta : null,
         );
     }
 

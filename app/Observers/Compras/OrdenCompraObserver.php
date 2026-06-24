@@ -25,8 +25,10 @@ class OrdenCompraObserver
     public function updating(OrdenCompra $orden): void
     {
         if ($orden->isDirty('estado') && $orden->estado === EstadoOrdenCompra::Recibida) {
-            $originalSubtotal = (float) $orden->getRawOriginal('subtotal');
-            $originalImpuestos = (float) $orden->getRawOriginal('impuestos');
+            $subtotalRaw = $orden->getRawOriginal('subtotal') ?? 0;
+            $originalSubtotal = is_numeric($subtotalRaw) ? (float) $subtotalRaw : 0.0;
+            $impuestosRaw = $orden->getRawOriginal('impuestos') ?? 0;
+            $originalImpuestos = is_numeric($impuestosRaw) ? (float) $impuestosRaw : 0.0;
 
             $subtotal = 0.0;
             foreach ($orden->items as $item) {

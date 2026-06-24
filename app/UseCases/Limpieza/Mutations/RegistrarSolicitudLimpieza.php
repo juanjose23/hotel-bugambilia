@@ -33,6 +33,7 @@ class RegistrarSolicitudLimpieza
                 $modelId = $limpiableId;
                 $instance = $modelClass::findOrFail($modelId);
             } else {
+                assert(is_numeric($limpiable), 'El valor limpiable debe ser numérico en este contexto.');
                 $modelId = (int) $limpiable;
                 $modelClass = Habitacion::class;
                 $instance = Habitacion::findOrFail($modelId);

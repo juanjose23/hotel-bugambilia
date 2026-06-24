@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $teams = config('permission.teams');
-        $tableNames = config('permission.table_names');
-        $columnNames = config('permission.column_names');
+        $teams = (bool) config('permission.teams');
+        /** @var array<string, string> $tableNames */
+        $tableNames = (array) config('permission.table_names');
+        /** @var array<string, string> $columnNames */
+        $columnNames = (array) config('permission.column_names');
         $pivotRole = $columnNames['role_pivot_key'] ?? 'role_id';
         $pivotPermission = $columnNames['permission_pivot_key'] ?? 'permission_id';
 
@@ -39,14 +41,14 @@ return new class extends Migration
         Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames) {
             $table->comment('Tabla nativa de Spatie que almacena los roles organizacionales del sistema.');
             $table->id()->comment('Identificador único autoincremental del rol'); // role id
-            if ($teams || config('permission.testing')) { // permission.testing is a fix for sqlite testing
+            if ($teams || (bool) config('permission.testing')) { // permission.testing is a fix for sqlite testing
                 $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable()->comment('FK al equipo (multitenancy)');
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
             }
             $table->string('name')->comment('Nombre único del rol');
             $table->string('guard_name')->comment('Nombre de guard de Laravel (ej. web)');
             $table->timestamps();
-            if ($teams || config('permission.testing')) {
+            if ($teams || (bool) config('permission.testing')) {
                 $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
             } else {
                 $table->unique(['name', 'guard_name']);
@@ -119,9 +121,15 @@ return new class extends Migration
             $table->primary([$pivotPermission, $pivotRole], 'role_has_permissions_permission_id_role_id_primary');
         });
 
+        $cacheStoreVal = config('permission.cache.store');
+        $cacheStore = is_scalar($cacheStoreVal) ? (string) $cacheStoreVal : 'default';
+
+        $cacheKeyVal = config('permission.cache.key');
+        $cacheKey = is_scalar($cacheKeyVal) ? (string) $cacheKeyVal : 'spatie.permission.cache';
+
         app('cache')
-            ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
-            ->forget(config('permission.cache.key'));
+            ->store($cacheStore !== 'default' ? $cacheStore : null)
+            ->forget($cacheKey);
     }
 
     /**
@@ -129,7 +137,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $tableNames = config('permission.table_names');
+        /** @var array<string, string> $tableNames */
+        $tableNames = (array) config('permission.table_names');
 
         throw_if(empty($tableNames), 'Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.');
 

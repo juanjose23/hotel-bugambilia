@@ -84,7 +84,7 @@ class ServiciosRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table
+        $table
             ->columns([
                 TextColumn::make('servicio.nombre')
                     ->label('Servicio')
@@ -101,7 +101,9 @@ class ServiciosRelationManager extends RelationManager
                     ->badge()
                     ->color(fn ($state): string => $state->color())
                     ->formatStateUsing(fn ($state): string => $state->label()),
-            ])
+            ]);
+
+        return $table
             ->headerActions($this->getStandardHeaderActions())
             ->actions($this->getStandardRowActions());
     }

@@ -79,7 +79,7 @@ class DevolucionCompraTable
                     ->modalDescription('Al confirmar, se retirará el stock físico del inventario (registrando movimientos de tipo DEVOLUCION_PROVEEDOR) y se liberará el saldo de la Orden de Compra para futuras recepciones. Esta acción no se puede deshacer.')
                     ->action(function (DevolucionCompra $record) {
                         try {
-                            app(DevolverMercanciaProveedor::class)->execute($record, auth()->id());
+                            app(DevolverMercanciaProveedor::class)->execute($record, (int) auth()->id());
 
                             Notification::make()
                                 ->title('Devolución Confirmada')

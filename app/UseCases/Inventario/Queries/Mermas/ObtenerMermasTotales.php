@@ -71,6 +71,8 @@ class ObtenerMermasTotales
      */
     public function totalPerdidas(array $filtros = []): float
     {
-        return (float) $this->ejecutar($filtros)->sum('perdida_total');
+        $sum = $this->ejecutar($filtros)->sum('perdida_total');
+
+        return is_numeric($sum) ? (float) $sum : 0.0;
     }
 }
