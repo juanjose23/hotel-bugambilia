@@ -107,9 +107,11 @@ class GenerarCodigosMasivos
 
     private function getUltimoNumero(string $prefijo): int
     {
+        $offset = strlen($prefijo) + 2;
+
         $ultimo = Espacio::withTrashed()
             ->where('codigo', 'like', $prefijo.'-%')
-            ->orderByRaw("CAST(SUBSTRING(codigo, LENGTH('{$prefijo}') + 2) AS INTEGER) DESC")
+            ->orderByRaw('CAST(SUBSTRING(codigo, LENGTH(?) + 2) AS INTEGER) DESC', [$prefijo])
             ->lockForUpdate()
             ->first();
 
@@ -117,10 +119,12 @@ class GenerarCodigosMasivos
             return (int) $matches[1];
         }
 
-        $max = Espacio::withTrashed()
+        $maxRow = Espacio::withTrashed()
             ->where('codigo', 'like', $prefijo.'-%')
-            ->max(DB::raw("CAST(SUBSTRING(codigo, LENGTH('{$prefijo}') + 2) AS INTEGER)"));
+            ->selectRaw('MAX(CAST(SUBSTRING(codigo, LENGTH(?) + 2) AS INTEGER)) as max_val', [$prefijo])
+            ->first();
+        $max = $maxRow ? $maxRow->getAttribute('max_val') : null;
 
-        return (int) ($max ?? 0);
+        return is_numeric($max) ? (int) $max : 0;
     }
 }

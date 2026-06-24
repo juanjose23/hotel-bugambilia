@@ -62,9 +62,10 @@ class GenerarOrdenesDesdeComparativa
         return DB::transaction(function () use ($cot, $itemsElegidos, $solicitud) {
             $codigo = app(GenerarCodigoOrdenCompra::class)->execute();
 
-            $subtotal = $itemsElegidos->sum('subtotal');
-            $impuestos = round((float) $subtotal * 0.15, 2);
-            $total = (float) $subtotal + (float) $impuestos;
+            $rawSubtotal = $itemsElegidos->sum('subtotal') ?? 0;
+            $subtotal = is_numeric($rawSubtotal) ? (float) $rawSubtotal : 0.0;
+            $impuestos = round($subtotal * 0.15, 2);
+            $total = $subtotal + $impuestos;
 
             $orden = OrdenCompra::create([
                 'codigo' => $codigo,

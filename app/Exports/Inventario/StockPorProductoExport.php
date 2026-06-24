@@ -11,8 +11,16 @@ class StockPorProductoExport extends BaseInventarioExport
 {
     public function view(): View
     {
+        $rawProductoId = $this->filtros['producto_id'] ?? null;
+        $rawUbicacionId = $this->filtros['ubicacion_id'] ?? null;
+
+        $filtros = [
+            'producto_id' => is_numeric($rawProductoId) ? (int) $rawProductoId : null,
+            'ubicacion_id' => is_numeric($rawUbicacionId) ? (int) $rawUbicacionId : null,
+        ];
+
         return view('exports.inventario.stock-por-producto', [
-            'filas' => app(ObtenerStockPorProducto::class)->ejecutar($this->filtros),
+            'filas' => app(ObtenerStockPorProducto::class)->ejecutar($filtros),
             'fecha' => now()->format('d/m/Y H:i'),
         ]);
     }

@@ -13,11 +13,7 @@ class FiltroEstado
         $filter = SelectFilter::make($column)
             ->label('Estado');
 
-        if (method_exists($enumClass, 'options')) {
-            $filter->options($enumClass::options());
-        } else {
-            $filter->options($enumClass);
-        }
+        $filter->options($enumClass::options());
 
         return $filter;
     }

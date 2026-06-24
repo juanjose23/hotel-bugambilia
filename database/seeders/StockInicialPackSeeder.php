@@ -12,13 +12,14 @@ class StockInicialPackSeeder extends Seeder
 {
     public function run(): void
     {
-        $bodegaId = DB::table('ubicaciones')->where('tipo', 'almacen')->where('estado', 1)->value('id');
+        $bodegaIdVal = DB::table('ubicaciones')->where('tipo', 'almacen')->where('estado', 1)->value('id');
 
-        if (! $bodegaId) {
+        if (! is_numeric($bodegaIdVal)) {
             $this->command->warn('No se encontró ninguna bodega activa. Ejecuta UbicacionSeeder primero.');
 
             return;
         }
+        $bodegaId = (int) $bodegaIdVal;
 
         $items = [
             ['codigo' => 'SH-030-S',      'producto_id' => 1,  'variante_id' => 1,  'cantidad' => 200],
@@ -87,6 +88,6 @@ class StockInicialPackSeeder extends Seeder
             $contador++;
         }
 
-        $this->command->info("Stock inicial creado para {$contador} productos de packs en bodega ID {$bodegaId}.");
+        $this->command->info("Stock inicial creado para {$contador} productos de packs en bodega ID ".((int) $bodegaId).'.');
     }
 }

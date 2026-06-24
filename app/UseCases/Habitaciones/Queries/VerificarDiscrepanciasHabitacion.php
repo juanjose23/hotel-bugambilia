@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\UseCases\Habitaciones\Queries;
 
 use App\Enums\HabitacionesEspacios\EstadoStock;
-use App\Models\Habitaciones\HabitacionStock;
+use App\Models\Habitaciones\Habitacion;
+use App\Models\Shared\Stock as SharedStock;
 use Illuminate\Support\Collection;
 
 class VerificarDiscrepanciasHabitacion
@@ -15,19 +16,21 @@ class VerificarDiscrepanciasHabitacion
         ?int $habitacionId = null,
         ?EstadoStock $filtrarPor = null,
     ): Collection {
-        $query = HabitacionStock::with(['habitacion', 'variante.producto', 'lote']);
+        $query = SharedStock::with(['stockable', 'variante.producto', 'lote'])
+            ->where('stockable_type', Habitacion::class);
 
         if ($habitacionId !== null) {
-            $query->where('habitacion_id', $habitacionId);
+            $query->where('stockable_id', $habitacionId);
         }
 
-        /** @var Collection<int, HabitacionStock> $stocks */
+        /** @var Collection<int, SharedStock> $stocks */
         $stocks = $query->get();
 
         /** @var array<int, array<string, mixed>> $grupo */
         $grupo = [];
         foreach ($stocks as $stock) {
-            $habitacion = $stock->habitacion;
+            /** @var Habitacion|null $habitacion */
+            $habitacion = $stock->stockable;
             $variante = $stock->variante;
             $lote = $stock->lote;
 
@@ -40,7 +43,7 @@ class VerificarDiscrepanciasHabitacion
 
             $grupo[] = [
                 'id' => $stock->id,
-                'habitacion_id' => $stock->habitacion_id,
+                'habitacion_id' => $habitacion?->id,
                 'habitacion_codigo' => $habitacion->codigo ?? 'N/A',
                 'habitacion_nombre' => $habitacion->nombre ?? 'N/A',
                 'variante_id' => $stock->producto_variante_id,

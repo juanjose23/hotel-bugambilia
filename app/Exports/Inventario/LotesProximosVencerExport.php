@@ -11,8 +11,15 @@ class LotesProximosVencerExport extends BaseInventarioExport
 {
     public function view(): View
     {
-        $lotes = app(ObtenerLotesProximosVencer::class)->ejecutar($this->filtros);
+        $rawDias = $this->filtros['dias'] ?? null;
+        $rawProductoId = $this->filtros['producto_id'] ?? null;
 
-        return view('exports.inventario.proximos-vencer', ['lotes' => $lotes, 'fecha' => now()->format('d/m/Y H:i'), 'dias' => $this->filtros['dias'] ?? 30]);
+        $filtros = [
+            'dias' => is_numeric($rawDias) ? (int) $rawDias : 30,
+            'producto_id' => is_numeric($rawProductoId) ? (int) $rawProductoId : null,
+        ];
+        $lotes = app(ObtenerLotesProximosVencer::class)->ejecutar($filtros);
+
+        return view('exports.inventario.proximos-vencer', ['lotes' => $lotes, 'fecha' => now()->format('d/m/Y H:i'), 'dias' => $filtros['dias']]);
     }
 }

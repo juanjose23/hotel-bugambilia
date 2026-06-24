@@ -43,12 +43,19 @@ class PreciosRelationManager extends RelationManager
 
     protected function getDefaultMonedaId(): ?int
     {
-        return Moneda::query()
+        $moneda = Moneda::query()
             ->where('codigo', 'NIO')
-            ->value('id')
-            ?? Moneda::query()
-                ->where('es_predeterminada', true)
-                ->value('id');
+            ->first();
+
+        if ($moneda !== null) {
+            return (int) $moneda->id;
+        }
+
+        $moneda = Moneda::query()
+            ->where('es_predeterminada', true)
+            ->first();
+
+        return $moneda !== null ? (int) $moneda->id : null;
     }
 
     protected function getUniquePrecioErrorMessage(): string

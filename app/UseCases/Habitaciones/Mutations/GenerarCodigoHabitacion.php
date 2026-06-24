@@ -20,7 +20,7 @@ class GenerarCodigoHabitacion
             $numero = intval($matches[1]) + 1;
         } else {
             $maxId = Habitacion::withTrashed()->max('id');
-            $numero = ($maxId ?? 0) + 1;
+            $numero = (is_numeric($maxId) ? (int) $maxId : 0) + 1;
         }
 
         return 'HAB-'.str_pad((string) $numero, 4, '0', STR_PAD_LEFT);

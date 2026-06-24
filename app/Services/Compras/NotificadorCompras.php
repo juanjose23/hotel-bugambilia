@@ -39,7 +39,8 @@ class NotificadorCompras extends NotificadorBase
             $users = User::permission('ViewAny:Solicitud')->get();
 
             // 2. También incluir a los super administradores
-            $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
+            $superAdminVal = config('filament-shield.super_admin.name', 'super_admin');
+            $superAdminRole = is_string($superAdminVal) ? $superAdminVal : 'super_admin';
             try {
                 $superAdmins = User::role($superAdminRole)->get();
                 $users = $users->merge($superAdmins);
@@ -50,8 +51,9 @@ class NotificadorCompras extends NotificadorBase
             // 3. Fallback: Si no hay ningún usuario con permiso ni super admin,
             // usar el usuario autenticado actual o los primeros usuarios del sistema para asegurar la visibilidad
             if ($users->isEmpty()) {
-                if (auth()->check()) {
-                    $users->push(auth()->user());
+                $user = auth()->user();
+                if ($user !== null) {
+                    $users->push($user);
                 } else {
                     $users = User::limit(5)->get();
                 }
@@ -69,8 +71,9 @@ class NotificadorCompras extends NotificadorBase
         if ($creator !== null) {
             $users = $users->merge([$creator]);
         }
-        if (auth()->check()) {
-            $users = $users->merge([auth()->user()]);
+        $currentUser = auth()->user();
+        if ($currentUser !== null) {
+            $users = $users->merge([$currentUser]);
         }
         $this->notificarMultiples($users->unique('id'), $title, $body, $icon, $url);
     }

@@ -49,7 +49,8 @@ class IndividualizarActivos
 
         // Determinar prefijo de código de inventario
         $prefijoStr = 'ACT';
-        $nombreProducto = strtolower($registro->producto->nombre);
+        $productoReg = $registro->producto;
+        $nombreProducto = strtolower($productoReg !== null ? $productoReg->nombre : '');
         if (str_contains($nombreProducto, 'tv') || str_contains($nombreProducto, 'tele')) {
             $prefijoStr = 'TV';
         } elseif (str_contains($nombreProducto, 'aire') || str_contains($nombreProducto, 'ac') || str_contains($nombreProducto, 'clima')) {
@@ -58,7 +59,7 @@ class IndividualizarActivos
             $prefijoStr = 'CAM';
         }
 
-        DB::transaction(function () use ($registro, $items, $userId, $ubicacion, $prefijoStr) {
+        DB::transaction(function () use ($registro, $items, $userId, $ubicacion, $prefijoStr, $productoReg) {
             // Cierre concurrente de prefijo
             $prefijoModel = PrefijoCodigo::lockForUpdate()->firstOrCreate(
                 ['prefijo' => $prefijoStr],
@@ -91,7 +92,7 @@ class IndividualizarActivos
                     'recepcion_item_id' => $recepcionItem?->id,
                     'producto_id' => $registro->producto_id,
                     'producto_variante_id' => $registro->producto_variante_id,
-                    'nombre_descriptivo' => $itemData['nombre_descriptivo'] ?: ($registro->producto->nombre.' - '.$codigoInventario),
+                    'nombre_descriptivo' => $itemData['nombre_descriptivo'] ?: (($productoReg !== null ? $productoReg->nombre : 'Producto').' - '.$codigoInventario),
                     'numero_serie' => $itemData['numero_serie'] ?: null,
                     'fecha_adquisicion' => now()->toDateString(),
                     'costo_adquisicion' => $costoAdq,
@@ -144,7 +145,7 @@ class IndividualizarActivos
             if ($registro->cantidad_registrada >= $registro->cantidad_total) {
                 $registro->estado = EstadoIndividualizacion::Completado;
                 $registro->fecha_completado = now();
-                $registro->registrado_por_id = $userId;
+                $registro->setAttribute('registrado_por_id', $userId);
             } else {
                 $registro->estado = EstadoIndividualizacion::EnProceso;
             }

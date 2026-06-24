@@ -75,12 +75,15 @@ class ComparativaSolicitud extends Page
         $minTotal = $cotizaciones->min('total');
         $minDias = $cotizaciones->min('dias_entrega');
 
-        return $cotizaciones->map(function ($cot) use ($minTotal, $minDias) {
+        $cotizacionesArray = $cotizaciones->map(function ($cot) use ($minTotal, $minDias) {
+            $razonSocial = $cot->proveedor?->persona?->personaJuridica?->razon_social;
+            $primerNombre = $cot->proveedor?->persona?->primer_nombre;
+            $primerApellido = $cot->proveedor?->persona?->personaNatural?->primer_apellido;
+
             return [
                 'id' => $cot->id,
-                'proveedor' => $cot->proveedor->persona->personaJuridica->razon_social
-                    ?? "{$cot->proveedor->persona->primer_nombre} {$cot->proveedor->persona->personaNatural?->primer_apellido}",
-                'empresa' => $cot->proveedor->persona->personaJuridica->razon_social ?? '—',
+                'proveedor' => $razonSocial ?? "{$primerNombre} {$primerApellido}",
+                'empresa' => $razonSocial ?? '—',
                 'total' => $cot->total,
                 'dias_entrega' => $cot->dias_entrega,
                 'condicion_pago' => $cot->condicionPago->nombre ?? 'N/A',
@@ -92,6 +95,9 @@ class ComparativaSolicitud extends Page
                 'archivo' => $cot->archivo_pdf,
             ];
         })->toArray();
+
+        /** @var array<int, array<string, mixed>> $cotizacionesArray */
+        return $cotizacionesArray;
     }
 
     protected function getHeaderActions(): array

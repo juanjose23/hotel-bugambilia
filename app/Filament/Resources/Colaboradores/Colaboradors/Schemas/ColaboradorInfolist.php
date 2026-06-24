@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ColaboradorInfolist
 {
@@ -19,7 +20,7 @@ class ColaboradorInfolist
         return $schema->components(self::getSchema());
     }
 
-    /** @return array<mixed> */
+    /** @return array<int, Htmlable|string> */
     public static function getSchema(): array
     {
         return [

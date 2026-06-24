@@ -75,8 +75,10 @@ class ActivoInfolist
                                 ->label('Proveedor')
                                 ->icon(Heroicon::BuildingOffice2)
                                 ->formatStateUsing(fn ($state, $record) => $record->proveedor
-                                    ? "{$record->proveedor->codigo} - ".($record->proveedor->persona->personaJuridica->razon_social
-                                        ?? "{$record->proveedor->persona->primer_nombre} {$record->proveedor->persona->personaNatural?->primer_apellido}")
+                                    ? $record->proveedor->codigo.' - '.(
+                                        ($record->proveedor->persona && $record->proveedor->persona->personaJuridica ? $record->proveedor->persona->personaJuridica->razon_social : null)
+                                        ?? ($record->proveedor->persona ? $record->proveedor->persona->primer_nombre.' '.($record->proveedor->persona->personaNatural ? $record->proveedor->persona->personaNatural->primer_apellido : '') : '')
+                                    )
                                     : null)
                                 ->placeholder('No registrado'),
 

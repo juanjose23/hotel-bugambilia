@@ -23,14 +23,27 @@ class PaisSeeder extends Seeder
         }
 
         $json = File::get($path);
-        $paises = json_decode($json, true);
+        /** @var array<int, array<string, mixed>> $paises */
+        $paises = (array) json_decode($json, true);
 
         foreach ($paises as $pais) {
+            $idVal = $pais['id'] ?? 0;
+            $id = is_numeric($idVal) ? (int) $idVal : 0;
+
+            $alpha2Val = $pais['alpha2'] ?? '';
+            $alpha2 = is_string($alpha2Val) ? $alpha2Val : '';
+
+            $alpha3Val = $pais['alpha3'] ?? '';
+            $alpha3 = is_string($alpha3Val) ? $alpha3Val : '';
+
+            $nameVal = $pais['name'] ?? '';
+            $name = is_string($nameVal) ? $nameVal : '';
+
             DB::table('paises')->insert([
-                'id' => $pais['id'],
-                'codigo_iso2' => strtoupper($pais['alpha2']),
-                'codigo_iso3' => strtoupper($pais['alpha3']),
-                'nombre' => $pais['name'],
+                'id' => $id,
+                'codigo_iso2' => strtoupper($alpha2),
+                'codigo_iso3' => strtoupper($alpha3),
+                'nombre' => $name,
                 'codigo_telefono' => null,
                 'estado' => 1,
                 'created_at' => now(),

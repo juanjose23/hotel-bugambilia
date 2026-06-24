@@ -37,9 +37,13 @@ class UbicacionsTable
                     ->label('Tipo')
                     ->searchable()
                     ->badge()
-                    ->color(fn ($state): string => TipoUbicacion::colorFor($state))
+                    ->color(fn ($state): ?string => is_string($color = TipoUbicacion::colorFor($state)) ? $color : null)
                     ->formatStateUsing(fn ($state): string => TipoUbicacion::labelFor($state))
-                    ->icon(fn ($state): \BackedEnum|string|null => TipoUbicacion::iconFor($state))
+                    ->icon(function ($state): ?string {
+                        $icon = TipoUbicacion::iconFor($state);
+
+                        return $icon instanceof \BackedEnum ? (string) $icon->value : $icon;
+                    })
                     ->sortable(),
                 TextColumn::make('orden')
                     ->label('Orden')
@@ -49,7 +53,7 @@ class UbicacionsTable
                     ->label('Estado')
                     ->searchable()
                     ->badge()
-                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
                     ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
                     ->sortable(),
             ])

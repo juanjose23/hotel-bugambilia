@@ -22,19 +22,21 @@ class EditProveedor extends EditRecord
         $record = $this->getRecord();
         $persona = $record->persona;
 
-        $data['tipo_persona'] = $persona->tipo_persona;
-        $data['persona'] = [
-            'primer_nombre' => $persona->primer_nombre,
-            'segundo_nombre' => $persona->segundo_nombre,
-            'pais_id' => $persona->pais_id,
-            'telefono' => $persona->telefono,
-            'direccion' => $persona->direccion,
-        ];
+        if ($persona) {
+            $data['tipo_persona'] = $persona->tipo_persona;
+            $data['persona'] = [
+                'primer_nombre' => $persona->primer_nombre,
+                'segundo_nombre' => $persona->segundo_nombre,
+                'pais_id' => $persona->pais_id,
+                'telefono' => $persona->telefono,
+                'direccion' => $persona->direccion,
+            ];
 
-        if ($persona->tipo_persona === 'natural' && $persona->personaNatural) {
-            $data['personaNatural'] = $persona->personaNatural->toArray();
-        } elseif ($persona->tipo_persona === 'juridica' && $persona->personaJuridica) {
-            $data['personaJuridica'] = $persona->personaJuridica->toArray();
+            if ($persona->tipo_persona === 'natural' && $persona->personaNatural) {
+                $data['personaNatural'] = $persona->personaNatural->toArray();
+            } elseif ($persona->tipo_persona === 'juridica' && $persona->personaJuridica) {
+                $data['personaJuridica'] = $persona->personaJuridica->toArray();
+            }
         }
 
         return $data;

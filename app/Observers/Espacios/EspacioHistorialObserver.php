@@ -31,7 +31,7 @@ class EspacioHistorialObserver
         if ($originalRaw instanceof EstadoEspacio) {
             $original = $originalRaw;
         } elseif ($originalRaw !== null) {
-            $original = EstadoEspacio::tryFrom((int) $originalRaw);
+            $original = is_numeric($originalRaw) ? EstadoEspacio::tryFrom((int) $originalRaw) : null;
         }
 
         HabitacionHistorial::create([

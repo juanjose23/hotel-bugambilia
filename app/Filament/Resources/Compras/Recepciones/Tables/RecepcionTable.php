@@ -78,7 +78,7 @@ class RecepcionTable
                         ->color('gray')
                         ->url(fn (RecepcionCompra $record) => route('reporte.recepcion', $record))
                         ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()->can('Compras:ImprimirRecepcion')),
+                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirRecepcion') ?? false),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])

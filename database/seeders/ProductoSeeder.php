@@ -9,14 +9,14 @@ class ProductoSeeder extends Seeder
 {
     public function run(): void
     {
-        // IDs de catálogos por código (asumiendo que ya ejecutaste CatalogoTipoSeeder y CatalogoSeeder)
-        $catalogoIds = DB::table('catalogos')->pluck('id', 'codigo');
+        /** @var array<string, int> $catalogoIds */
+        $catalogoIds = DB::table('catalogos')->pluck('id', 'codigo')->all();
 
         // ---------- 1. AMENIDADES BAÑO ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_BANIO'],
-            $catalogoIds['MARC_PG'],
-            $catalogoIds['UNI_ML'],
+            (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
+            (int) $catalogoIds['MARC_PG'],
+            (int) $catalogoIds['UNI_ML'],
             'Shampoo',
             'Shampoo suave para hotel',
             2,
@@ -28,9 +28,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_BANIO'],
-            $catalogoIds['MARC_PG'],
-            $catalogoIds['UNI_ML'],
+            (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
+            (int) $catalogoIds['MARC_PG'],
+            (int) $catalogoIds['UNI_ML'],
             'Acondicionador',
             'Acondicionador hidratante',
             2,
@@ -42,9 +42,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_BANIO'],
-            $catalogoIds['MARC_GEN'],
-            $catalogoIds['UNI_GR'],
+            (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
+            (int) $catalogoIds['MARC_GEN'],
+            (int) $catalogoIds['UNI_GR'],
             'Jabón de tocador',
             'Jabón neutro en pastilla',
             2,
@@ -56,9 +56,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_BANIO'],
+            (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Gorro de baño',
             'Gorro plástico descartable',
             2,
@@ -70,9 +70,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_BANIO'],
+            (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Kit dental',
             'Cepillo + pasta dental mini',
             2,
@@ -85,9 +85,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 2. AMENIDADES HABITACIÓN ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_HABIT'],
+            (int) $catalogoIds['CAT_PRO_AMEN_HABIT'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Bolígrafo',
             'Bolígrafo personalizado',
             2,
@@ -99,9 +99,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_HABIT'],
+            (int) $catalogoIds['CAT_PRO_AMEN_HABIT'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Bloc de notas',
             'Bloc pequeño 15x10cm',
             2,
@@ -113,9 +113,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_AMEN_HABIT'],
+            (int) $catalogoIds['CAT_PRO_AMEN_HABIT'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Kit de costura',
             'Aguja e hilos básicos',
             2,
@@ -128,9 +128,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 3. ALIMENTOS PERECEDEROS ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ALIM_PEREC'],
-            $catalogoIds['MARC_GEN'],
-            $catalogoIds['UNI_LIT'],
+            (int) $catalogoIds['CAT_PRO_ALIM_PEREC'],
+            (int) $catalogoIds['MARC_GEN'],
+            (int) $catalogoIds['UNI_LIT'],
             'Leche fresca',
             'Leche entera pasteurizada',
             1,
@@ -142,9 +142,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ALIM_PEREC'],
+            (int) $catalogoIds['CAT_PRO_ALIM_PEREC'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Pan de caja',
             'Pan de molde blanco',
             1,
@@ -156,9 +156,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ALIM_PEREC'],
+            (int) $catalogoIds['CAT_PRO_ALIM_PEREC'],
             null,
-            $catalogoIds['UNI_KG'],
+            (int) $catalogoIds['UNI_KG'],
             'Frutas variadas',
             'Frutas de temporada',
             1,
@@ -171,9 +171,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 4. ALIMENTOS NO PERECEDEROS ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ALIM_NOPER'],
-            $catalogoIds['MARC_PG'],
-            $catalogoIds['UNI_KG'],
+            (int) $catalogoIds['CAT_PRO_ALIM_NOPER'],
+            (int) $catalogoIds['MARC_PG'],
+            (int) $catalogoIds['UNI_KG'],
             'Café molido',
             'Café 100% arábica',
             2,
@@ -185,9 +185,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ALIM_NOPER'],
-            $catalogoIds['MARC_GEN'],
-            $catalogoIds['UNI_KG'],
+            (int) $catalogoIds['CAT_PRO_ALIM_NOPER'],
+            (int) $catalogoIds['MARC_GEN'],
+            (int) $catalogoIds['UNI_KG'],
             'Azúcar blanca',
             'Azúcar refinada',
             2,
@@ -199,9 +199,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_ALIM_NOPER'],
+            (int) $catalogoIds['CAT_PRO_ALIM_NOPER'],
             null,
-            $catalogoIds['UNI_CAJA'],
+            (int) $catalogoIds['UNI_CAJA'],
             'Cereal de desayuno',
             'Cereal de maíz en caja 500g',
             2,
@@ -214,9 +214,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 5. LIMPIEZA QUÍMICOS ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_LIMP_QUIM'],
-            $catalogoIds['MARC_ECOLAB'],
-            $catalogoIds['UNI_LIT'],
+            (int) $catalogoIds['CAT_PRO_LIMP_QUIM'],
+            (int) $catalogoIds['MARC_ECOLAB'],
+            (int) $catalogoIds['UNI_LIT'],
             'Detergente líquido',
             'Detergente multiusos concentrado',
             2,
@@ -228,9 +228,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_LIMP_QUIM'],
-            $catalogoIds['MARC_ECOLAB'],
-            $catalogoIds['UNI_LIT'],
+            (int) $catalogoIds['CAT_PRO_LIMP_QUIM'],
+            (int) $catalogoIds['MARC_ECOLAB'],
+            (int) $catalogoIds['UNI_LIT'],
             'Desinfectante',
             'Desinfectante para superficies',
             2,
@@ -242,9 +242,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_LIMP_QUIM'],
-            $catalogoIds['MARC_GEN'],
-            $catalogoIds['UNI_ML'],
+            (int) $catalogoIds['CAT_PRO_LIMP_QUIM'],
+            (int) $catalogoIds['MARC_GEN'],
+            (int) $catalogoIds['UNI_ML'],
             'Limpiavidrios',
             'Limpiador para cristales 500ml',
             2,
@@ -257,9 +257,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 6. HERRAMIENTAS DE LIMPIEZA ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_LIMP_HERR'],
+            (int) $catalogoIds['CAT_PRO_LIMP_HERR'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Escoba',
             'Escoba de cerda suave',
             2,
@@ -271,9 +271,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_LIMP_HERR'],
+            (int) $catalogoIds['CAT_PRO_LIMP_HERR'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Trapeador',
             'Trapeador de microfibra 40cm',
             2,
@@ -285,9 +285,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_LIMP_HERR'],
+            (int) $catalogoIds['CAT_PRO_LIMP_HERR'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Cubeta con escurridor',
             'Cubeta 20 litros con carro',
             2,
@@ -300,9 +300,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 7. ACTIVOS FIJOS MOBILIARIO ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_MOB'],
+            (int) $catalogoIds['CAT_PRO_inv_MOB'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Cama King Size',
             'Base + colchón King',
             3,
@@ -314,9 +314,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_MOB'],
+            (int) $catalogoIds['CAT_PRO_inv_MOB'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Mesa de noche',
             'Mesa auxiliar con cajón',
             3,
@@ -328,9 +328,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_MOB'],
+            (int) $catalogoIds['CAT_PRO_inv_MOB'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Escritorio ejecutivo',
             'Escritorio 120x60cm',
             3,
@@ -343,9 +343,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 8. ACTIVOS FIJOS ELECTRÓNICOS ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_ELECTRO'],
-            $catalogoIds['MARC_SAMSUNG'],
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['CAT_PRO_inv_ELECTRO'],
+            (int) $catalogoIds['MARC_SAMSUNG'],
+            (int) $catalogoIds['UNI_UD'],
             'Televisor 43"',
             'Smart TV Samsung 43" UHD',
             3,
@@ -357,9 +357,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_ELECTRO'],
-            $catalogoIds['MARC_GEN'],
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['CAT_PRO_inv_ELECTRO'],
+            (int) $catalogoIds['MARC_GEN'],
+            (int) $catalogoIds['UNI_UD'],
             'Secador de pelo',
             'Secador profesional 2200W',
             3,
@@ -371,9 +371,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_ELECTRO'],
+            (int) $catalogoIds['CAT_PRO_inv_ELECTRO'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Teléfono de habitación',
             'Teléfono analógico simple',
             3,
@@ -386,9 +386,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 9. HERRAMIENTAS DE MANTENIMIENTO ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_MANT'],
+            (int) $catalogoIds['CAT_PRO_inv_MANT'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Taladro percutor',
             'Taladro 650W con maletín',
             2,
@@ -400,9 +400,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_MANT'],
+            (int) $catalogoIds['CAT_PRO_inv_MANT'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Juego de destornilladores',
             'Set 8 piezas',
             2,
@@ -414,9 +414,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_inv_MANT'],
+            (int) $catalogoIds['CAT_PRO_inv_MANT'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Llave inglesa 12"',
             'Llave ajustable profesional',
             2,
@@ -429,9 +429,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 10. SÁBANAS ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_BLAN_SABANAS'],
+            (int) $catalogoIds['CAT_PRO_BLAN_SABANAS'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Sábana bajera King',
             'Sábana ajustable 200x200+30cm',
             2,
@@ -443,9 +443,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_BLAN_SABANAS'],
+            (int) $catalogoIds['CAT_PRO_BLAN_SABANAS'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Sábana encimera King',
             'Sábana plana 280x300cm',
             2,
@@ -457,9 +457,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_BLAN_SABANAS'],
+            (int) $catalogoIds['CAT_PRO_BLAN_SABANAS'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Funda de almohada',
             '50x70cm algodón',
             2,
@@ -472,9 +472,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 11. TOALLAS ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_BLAN_TOALLAS'],
+            (int) $catalogoIds['CAT_PRO_BLAN_TOALLAS'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Toalla de baño',
             '70x140cm 500gr',
             2,
@@ -486,9 +486,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_BLAN_TOALLAS'],
+            (int) $catalogoIds['CAT_PRO_BLAN_TOALLAS'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Toalla de manos',
             '50x100cm 300gr',
             2,
@@ -500,9 +500,9 @@ class ProductoSeeder extends Seeder
         );
 
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_BLAN_TOALLAS'],
+            (int) $catalogoIds['CAT_PRO_BLAN_TOALLAS'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Toalla de piso',
             '50x70cm 400gr',
             2,
@@ -515,9 +515,9 @@ class ProductoSeeder extends Seeder
 
         // ---------- 12. OTROS TEXTILES ----------
         $this->crearProductoConVariante(
-            $catalogoIds['CAT_PRO_BLAN_OTROS'],
+            (int) $catalogoIds['CAT_PRO_BLAN_OTROS'],
             null,
-            $catalogoIds['UNI_UD'],
+            (int) $catalogoIds['UNI_UD'],
             'Cortina de baño',
             'Cortina impermeable 180x180cm',
             2,
@@ -560,7 +560,7 @@ class ProductoSeeder extends Seeder
                 $this->crearProductoConVariante(
                     $catalogoIds[$info['cat']],
                     null,
-                    $catalogoIds['UNI_UD'],
+                    (int) $catalogoIds['UNI_UD'],
                     $item['nombre'],
                     $item['desc']." (Uso: $grupo)",
                     2,
@@ -605,7 +605,7 @@ class ProductoSeeder extends Seeder
                 $this->crearProductoConVariante(
                     $catalogoIds[$info['cat']],
                     null,
-                    $catalogoIds['UNI_UD'],
+                    (int) $catalogoIds['UNI_UD'],
                     $item['nombre'],
                     $item['desc']." (Uso: $grupo)",
                     2,
@@ -660,7 +660,7 @@ class ProductoSeeder extends Seeder
                 $this->crearProductoConVariante(
                     $catalogoIds[$info['cat']],
                     null,
-                    $catalogoIds['UNI_UD'],
+                    (int) $catalogoIds['UNI_UD'],
                     $item['nombre'],
                     $item['desc']." (Uso: $grupo)",
                     2,
@@ -760,7 +760,7 @@ class ProductoSeeder extends Seeder
                 $this->crearProductoConVariante(
                     $catalogoIds[$info['cat']],
                     null,
-                    $catalogoIds['UNI_UD'],
+                    (int) $catalogoIds['UNI_UD'],
                     $item['nombre'],
                     $item['desc']." (Categoría: $grupo)",
                     2,

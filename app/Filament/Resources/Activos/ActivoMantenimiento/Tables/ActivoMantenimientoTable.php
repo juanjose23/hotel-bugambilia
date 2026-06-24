@@ -107,7 +107,7 @@ class ActivoMantenimientoTable
                                 fechaRealizada: $data['fecha_realizada'],
                                 costoReal: (float) $data['costo_real'],
                                 notas: $data['notas'],
-                                usuarioId: auth()->id() ?? 1,
+                                usuarioId: (int) auth()->id(),
                             );
 
                             Notification::make()

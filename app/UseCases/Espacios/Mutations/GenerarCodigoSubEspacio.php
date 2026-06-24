@@ -19,9 +19,11 @@ class GenerarCodigoSubEspacio
         $prefijo = $this->resolvePrefijo($tipo);
 
         return DB::transaction(function () use ($prefijo) {
+            $offset = strlen($prefijo) + 2;
+
             $ultimo = Espacio::withTrashed()
                 ->where('codigo', 'like', $prefijo.'-%')
-                ->orderByRaw("CAST(SUBSTRING(codigo, LENGTH('{$prefijo}') + 2) AS INTEGER) DESC")
+                ->orderByRaw('CAST(SUBSTRING(codigo, LENGTH(?) + 2) AS INTEGER) DESC', [$prefijo])
                 ->lockForUpdate()
                 ->first();
 
@@ -30,10 +32,12 @@ class GenerarCodigoSubEspacio
             if ($ultimo && preg_match('/^'.$prefijo.'-(\d+)$/', $ultimo->codigo, $matches)) {
                 $numero = (int) $matches[1] + 1;
             } else {
-                $max = Espacio::withTrashed()
+                $maxRow = Espacio::withTrashed()
                     ->where('codigo', 'like', $prefijo.'-%')
-                    ->max(DB::raw("CAST(SUBSTRING(codigo, LENGTH('{$prefijo}') + 2) AS INTEGER)"));
-                $numero = (int) ($max ?? 0) + 1;
+                    ->selectRaw('MAX(CAST(SUBSTRING(codigo, LENGTH(?) + 2) AS INTEGER)) as max_val', [$prefijo])
+                    ->first();
+                $max = $maxRow ? $maxRow->getAttribute('max_val') : null;
+                $numero = (is_numeric($max) ? (int) $max : 0) + 1;
             }
 
             return $prefijo.'-'.str_pad((string) $numero, 4, '0', STR_PAD_LEFT);

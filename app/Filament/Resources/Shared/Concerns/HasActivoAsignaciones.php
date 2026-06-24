@@ -78,7 +78,7 @@ trait HasActivoAsignaciones
                     activoId: $record->activo_id,
                     asignableType: $data['asignable_type'],
                     asignableId: (int) $data['asignable_id'],
-                    userId: auth()->id() ?? 1,
+                    userId: (int) auth()->id(),
                     motivo: $data['motivo']
                 );
             })

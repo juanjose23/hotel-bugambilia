@@ -18,7 +18,7 @@ class GenerarCodigoRecepcion
                 ->lockForUpdate()
                 ->get()
                 ->first(function ($rec) {
-                    return preg_match('/-(\d+)$/', $rec->codigo);
+                    return (bool) preg_match('/-(\d+)$/', $rec->codigo);
                 });
 
             $max = $latest?->codigo;

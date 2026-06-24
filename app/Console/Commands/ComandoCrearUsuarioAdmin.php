@@ -40,7 +40,7 @@ class ComandoCrearUsuarioAdmin extends Command
                 [
                     'persona_id' => 1,
                     'name' => $nombre,
-                    'password' => Hash::make($password),
+                    'password' => Hash::make((string) $password),
                     'email_verified_at' => now(),
                 ]
             );

@@ -11,7 +11,12 @@ class LotesVencidosExport extends BaseInventarioExport
 {
     public function view(): View
     {
-        $lotes = app(ObtenerLotesVencidos::class)->ejecutar($this->filtros);
+        $rawProductoId = $this->filtros['producto_id'] ?? null;
+
+        $filtros = [
+            'producto_id' => is_numeric($rawProductoId) ? (int) $rawProductoId : null,
+        ];
+        $lotes = app(ObtenerLotesVencidos::class)->ejecutar($filtros);
 
         return view('exports.inventario.vencidos', [
             'lotes' => $lotes,

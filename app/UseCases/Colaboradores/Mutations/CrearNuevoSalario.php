@@ -12,9 +12,12 @@ class CrearNuevoSalario
     public function __invoke(int $colaboradorId, array $data): ColaboradorSalario
     {
         return DB::transaction(function () use ($colaboradorId, $data) {
-            $estado = EstadoCatalogo::fromValue($data['estado'] ?? EstadoCatalogo::Activo->value)->value;
+            $rawEst = $data['estado'] ?? EstadoCatalogo::Activo->value;
+            $estadoInt = is_numeric($rawEst) ? (int) $rawEst : EstadoCatalogo::Activo->value;
+            $estado = EstadoCatalogo::tryFrom($estadoInt) ?? EstadoCatalogo::Activo;
+            $estadoValue = $estado->value;
 
-            if ($estado === EstadoCatalogo::Activo->value) {
+            if ($estado === EstadoCatalogo::Activo) {
                 ColaboradorSalario::where('colaborador_id', $colaboradorId)
                     ->where('estado', EstadoCatalogo::Activo->value)
                     ->update(['estado' => EstadoCatalogo::Inactivo->value]);
@@ -25,7 +28,7 @@ class CrearNuevoSalario
                 'salario' => $data['salario'],
                 'fecha_inicio' => $data['fecha_inicio'],
                 'fecha_fin' => $data['fecha_fin'] ?? null,
-                'estado' => $estado,
+                'estado' => $estadoValue,
             ]);
         });
     }

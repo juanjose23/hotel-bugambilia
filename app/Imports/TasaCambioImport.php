@@ -65,22 +65,23 @@ class TasaCambioImport implements ToArray, WithHeadingRow
 
             try {
                 if (is_numeric($fechaRaw)) {
-                    $fecha = Carbon::instance(Date::excelToDateTimeObject($fechaRaw))->toDateString();
+                    $fecha = Carbon::instance(Date::excelToDateTimeObject((float) $fechaRaw))->toDateString();
                 } else {
-                    $fecha = Carbon::parse($fechaRaw)->toDateString();
+                    $fechaRawStr = is_scalar($fechaRaw) ? (string) $fechaRaw : '';
+                    $fecha = Carbon::parse($fechaRawStr)->toDateString();
                 }
             } catch (\Exception $e) {
                 continue;
             }
 
-            $tasa = (float) $tasa;
+            $tasaFloat = is_numeric($tasa) ? (float) $tasa : 0.0;
             $origen = null;
             $destino = null;
 
-            if ($origenCodigo) {
+            if (is_string($origenCodigo)) {
                 $origen = Moneda::where('codigo', strtoupper(trim($origenCodigo)))->first();
             }
-            if ($destinoCodigo) {
+            if (is_string($destinoCodigo)) {
                 $destino = Moneda::where('codigo', strtoupper(trim($destinoCodigo)))->first();
             }
 
@@ -92,7 +93,7 @@ class TasaCambioImport implements ToArray, WithHeadingRow
                 $destino = Moneda::find($this->defaultDestinoId);
             }
 
-            if ($fecha && $origen && $destino && $tasa > 0) {
+            if ($fecha && $origen && $destino && $tasaFloat > 0) {
                 TasaCambio::updateOrCreate(
                     [
                         'fecha' => $fecha,
@@ -100,7 +101,7 @@ class TasaCambioImport implements ToArray, WithHeadingRow
                         'moneda_destino_id' => $destino->id,
                     ],
                     [
-                        'tasa' => $tasa,
+                        'tasa' => $tasaFloat,
                     ]
                 );
                 $this->importedCount++;

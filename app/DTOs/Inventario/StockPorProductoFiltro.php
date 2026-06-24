@@ -16,9 +16,12 @@ readonly class StockPorProductoFiltro
      */
     public static function fromArray(array $data): self
     {
+        $productoId = $data['producto_id'] ?? null;
+        $ubicacionId = $data['ubicacion_id'] ?? null;
+
         return new self(
-            productoId: isset($data['producto_id']) ? (int) $data['producto_id'] : null,
-            ubicacionId: isset($data['ubicacion_id']) ? (int) $data['ubicacion_id'] : null,
+            productoId: is_numeric($productoId) ? (int) $productoId : null,
+            ubicacionId: is_numeric($ubicacionId) ? (int) $ubicacionId : null,
         );
     }
 

@@ -12,7 +12,8 @@ class CrearProveedor
      */
     public function execute(array $data): Proveedor
     {
-        $personaData = $data['persona'] ?? [];
+        /** @var array<string, mixed> $personaData */
+        $personaData = (array) ($data['persona'] ?? []);
         $tipoPersona = $data['tipo_persona'] ?? 'natural';
 
         $persona = Persona::create(array_merge($personaData, [
@@ -20,13 +21,16 @@ class CrearProveedor
         ]));
 
         if ($tipoPersona === 'natural') {
-            $naturalData = $data['personaNatural'] ?? [];
+            /** @var array<string, mixed> $naturalData */
+            $naturalData = (array) ($data['personaNatural'] ?? []);
             $persona->personaNatural()->create($naturalData);
         } else {
-            $juridicaData = $data['personaJuridica'] ?? [];
+            /** @var array<string, mixed> $juridicaData */
+            $juridicaData = (array) ($data['personaJuridica'] ?? []);
             $persona->personaJuridica()->create($juridicaData);
         }
 
+        /** @var array<string, mixed> $proveedorData */
         $proveedorData = array_diff_key($data, ['persona' => [], 'personaNatural' => [], 'personaJuridica' => []]);
         $proveedorData['persona_id'] = $persona->id;
 

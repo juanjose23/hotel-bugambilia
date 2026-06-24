@@ -25,19 +25,23 @@ class CalcularYPrepararRecepcion
         $totalRecibido = 0.0;
         $totalRechazado = 0.0;
 
-        foreach ($data['items'] ?? [] as $i => $item) {
+        /** @var array<int, array<string, mixed>> $itemsData */
+        $itemsData = (array) ($data['items'] ?? []);
+        foreach ($itemsData as $i => $item) {
+            $item = (array) $item;
+
             /** @var OrdenCompraItem $ordenItem */
             $ordenItem = OrdenCompraItem::withSum('recepcionItems', 'cantidad_recibida')
-                ->findOrFail($item['orden_item_id']);
+                ->findOrFail(is_numeric($item['orden_item_id'] ?? null) ? (int) $item['orden_item_id'] : 0);
 
-            $alreadyReceived = (float) ($ordenItem->recepcion_items_sum_cantidad_recibida ?? 0);
+            $alreadyReceived = is_numeric($ordenItem->recepcion_items_sum_cantidad_recibida ?? null) ? (float) $ordenItem->recepcion_items_sum_cantidad_recibida : 0.0;
             $ordered = (float) $ordenItem->cantidad;
-            $nowReceiving = (float) ($item['cantidad_recibida'] ?? 0);
-            $nowRejected = (float) ($item['cantidad_rechazada'] ?? 0);
+            $nowReceiving = is_numeric($item['cantidad_recibida'] ?? null) ? (float) $item['cantidad_recibida'] : 0.0;
+            $nowRejected = is_numeric($item['cantidad_rechazada'] ?? null) ? (float) $item['cantidad_rechazada'] : 0.0;
             $pending = $ordered - $alreadyReceived;
 
             if ($nowReceiving > $pending) {
-                $productName = $ordenItem->producto->nombre ?? "Ítem #{$ordenItem->id}";
+                $productName = $ordenItem->producto !== null ? $ordenItem->producto->nombre : "Ítem #{$ordenItem->id}";
 
                 throw new \InvalidArgumentException(
                     "{$productName}: solo quedan {$pending} de {$ordered} unidades pendientes por recibir "
@@ -49,10 +53,11 @@ class CalcularYPrepararRecepcion
             $totalRecibido += $nowReceiving;
             $totalRechazado += $nowRejected;
 
-            $data['items'][$i]['producto_id'] ??= $ordenItem->producto_id;
-            $data['items'][$i]['producto_variante_id'] ??= $ordenItem->producto_variante_id;
-            $data['items'][$i]['unidad_medida_id'] ??= $ordenItem->unidad_medida_id;
+            $itemsData[$i]['producto_id'] = $itemsData[$i]['producto_id'] ?? $ordenItem->producto_id;
+            $itemsData[$i]['producto_variante_id'] = $itemsData[$i]['producto_variante_id'] ?? $ordenItem->producto_variante_id;
+            $itemsData[$i]['unidad_medida_id'] = $itemsData[$i]['unidad_medida_id'] ?? $ordenItem->unidad_medida_id;
         }
+        $data['items'] = $itemsData;
 
         // Las nuevas recepciones siempre se crean en estado borrador (Pendiente)
         $data['estado'] = EstadoRecepcion::Pendiente;

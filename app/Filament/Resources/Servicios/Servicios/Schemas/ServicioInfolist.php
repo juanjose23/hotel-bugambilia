@@ -34,7 +34,7 @@ class ServicioInfolist
                         TextEntry::make('estado')
                             ->label('Estado')
                             ->badge()
-                            ->color(fn ($state): string => ServicioEstado::colorFor($state))
+                            ->color(fn ($state): ?string => is_string($color = ServicioEstado::colorFor($state)) ? $color : null)
                             ->formatStateUsing(fn ($state): string => ServicioEstado::labelFor($state)),
 
                         TextEntry::make('icono')

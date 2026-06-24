@@ -43,7 +43,7 @@ class StocksRelationManager extends RelationManager
                         ProductoVariante::with('producto')
                             ->get()
                             ->mapWithKeys(fn (ProductoVariante $v) => [
-                                $v->id => "[{$v->producto->nombre}] {$v->nombre_variante} ({$v->codigo})",
+                                $v->id => "[{$v->producto?->nombre}] {$v->nombre_variante} ({$v->codigo})",
                             ])
                     )
                     ->searchable()
@@ -80,7 +80,7 @@ class StocksRelationManager extends RelationManager
                         return $query
                             ->leftJoin('producto_variantes', 'espacio_stocks.producto_variante_id', '=', 'producto_variantes.id')
                             ->leftJoin('productos', 'producto_variantes.producto_id', '=', 'productos.id')
-                            ->orderBy('productos.nombre', $direction)
+                            ->orderBy('productos.nombre', $direction === 'desc' ? 'desc' : 'asc')
                             ->select('espacio_stocks.*');
                     }),
 

@@ -86,7 +86,9 @@ class ColaboradorBaseSeeder extends Seeder
     private function guardarColaboradorBase(array $data): void
     {
         DB::transaction(function () use ($data): void {
-            $paisId = $this->paisId($data['pais_iso2']);
+            $paisIso2Val = $data['pais_iso2'] ?? '';
+            $paisIso2 = is_string($paisIso2Val) ? $paisIso2Val : '';
+            $paisId = $this->paisId($paisIso2);
 
             DB::table('personas')->updateOrInsert(
                 [
@@ -167,12 +169,12 @@ class ColaboradorBaseSeeder extends Seeder
             ->where('codigo_iso2', $codigoIso2)
             ->value('id');
 
-        if ($paisId !== null) {
+        if (is_numeric($paisId)) {
             return (int) $paisId;
         }
 
         $fallback = DB::table('paises')->orderBy('id')->value('id');
 
-        return $fallback !== null ? (int) $fallback : null;
+        return is_numeric($fallback) ? (int) $fallback : null;
     }
 }

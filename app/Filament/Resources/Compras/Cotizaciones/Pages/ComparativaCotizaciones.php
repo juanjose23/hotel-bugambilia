@@ -37,6 +37,10 @@ class ComparativaCotizaciones extends Page
 
     protected function loadSolicitud(): void
     {
+        if ($this->solicitudId === null) {
+            return;
+        }
+
         $this->solicitud = app(ObtenerSolicitudParaComparativa::class)->execute($this->solicitudId);
         if ($this->solicitud) {
             $this->calculateRecommendation();
@@ -65,6 +69,10 @@ class ComparativaCotizaciones extends Page
 
     protected function calculateRecommendation(): void
     {
+        if ($this->solicitud === null) {
+            return;
+        }
+
         $this->recomendacion = app(ObtenerRecomendacionLogistica::class)->execute($this->solicitud);
     }
 
@@ -82,7 +90,7 @@ class ComparativaCotizaciones extends Page
         foreach ($items as $sItem) {
             $itemData = [
                 'producto_id' => $sItem->producto_id,
-                'producto' => $sItem->producto->nombre,
+                'producto' => $sItem->producto ? $sItem->producto->nombre : '',
                 'variante_solicitada' => $sItem->variante->nombre_variante ?? 'Estándar',
 
                 'cantidad' => $sItem->cantidad_aprobada > 0 ? $sItem->cantidad_aprobada : $sItem->cantidad_solicitada,
@@ -135,7 +143,7 @@ class ComparativaCotizaciones extends Page
                 $cItem = $cot->items->where('producto_id', $sItem->producto_id)->first();
                 if ($cItem?->es_elegido) {
                     $winners[] = [
-                        'producto' => $sItem->producto->nombre,
+                        'producto' => $sItem->producto ? $sItem->producto->nombre : '',
                         'variante' => $sItem->variante->nombre_variante ?? 'Estándar',
                         'cantidad' => $sItem->cantidad_aprobada > 0 ? $sItem->cantidad_aprobada : $sItem->cantidad_solicitada,
                         'proveedor' => $this->getProveedorNombre($cot),
@@ -156,6 +164,10 @@ class ComparativaCotizaciones extends Page
 
     public function seleccionarGanadorPorItem(int $productoId, int $cotizacionId): void
     {
+        if ($this->solicitud === null) {
+            return;
+        }
+
         if ($this->solicitud->ordenesCompra()->where('estado', '!=', EstadoOrdenCompra::Cancelada)->exists()) {
             Notification::make()->title('Solicitud bloqueada')->body('No se pueden cambiar los ganadores porque ya existen órdenes activas.')->danger()->send();
 
@@ -179,6 +191,10 @@ class ComparativaCotizaciones extends Page
 
     public function seleccionarTodoProveedor(int $cotizacionId): void
     {
+        if ($this->solicitud === null) {
+            return;
+        }
+
         if ($this->solicitud->ordenesCompra()->where('estado', '!=', EstadoOrdenCompra::Cancelada)->exists()) {
             Notification::make()->title('Solicitud bloqueada')->body('No se pueden cambiar los ganadores porque ya existen órdenes activas.')->danger()->send();
 
@@ -202,12 +218,18 @@ class ComparativaCotizaciones extends Page
 
     public function aplicarRecomendacion(): void
     {
+        if ($this->solicitud === null) {
+            return;
+        }
+
         if (! $this->recomendacion) {
             return;
         }
 
         if ($this->recomendacion['tipo'] === 'PROVEEDOR ÚNICO') {
-            app(ElegirCotizacionGanadora::class)->execute($this->recomendacion['cotizacion_id']);
+            $recomendacionId = $this->recomendacion['cotizacion_id'];
+            $cotizacionId = is_numeric($recomendacionId) ? intval($recomendacionId) : 0;
+            app(ElegirCotizacionGanadora::class)->execute($cotizacionId);
         } else {
             foreach ($this->solicitud->items as $sItem) {
                 $mejorPrecio = null;
@@ -235,7 +257,9 @@ class ComparativaCotizaciones extends Page
             ->success()
             ->send();
 
-        app(NotificadorCompras::class)->solicitudAprobada($this->solicitud);
+        if ($this->solicitud) {
+            app(NotificadorCompras::class)->solicitudAprobada($this->solicitud);
+        }
     }
 
     protected function getHeaderActions(): array
@@ -247,7 +271,7 @@ class ComparativaCotizaciones extends Page
                 ->color('success')
                 ->requiresConfirmation()
                 ->action(fn () => $this->aplicarRecomendacion())
-                ->hidden(fn () => $this->solicitud->ordenesCompra()->where('estado', '!=', EstadoOrdenCompra::Cancelada)->exists()),
+                ->hidden(fn () => $this->solicitud?->ordenesCompra()->where('estado', '!=', EstadoOrdenCompra::Cancelada)->exists() ?? true),
 
             Action::make('generarTodas')
                 ->label('Generar Órdenes Ganadoras')
@@ -257,6 +281,10 @@ class ComparativaCotizaciones extends Page
                 ->modalHeading('Generar todas las órdenes')
                 ->modalDescription('Se creará una orden de compra por cada proveedor que tenga ítems ganadores.')
                 ->action(function () {
+                    if ($this->solicitud === null) {
+                        return;
+                    }
+
                     $this->solicitud->refresh();
 
                     $ordenesCreadas = app(GenerarOrdenesDesdeComparativa::class)->execute($this->solicitud->id);
@@ -277,8 +305,8 @@ class ComparativaCotizaciones extends Page
 
                     $this->redirect(OrdenCompraResource::getUrl('index'));
                 })
-                ->visible(fn () => $this->solicitud->cotizaciones()->whereHas('items', fn ($q) => $q->where('es_elegido', true))->exists())
-                ->hidden(fn () => $this->solicitud->ordenesCompra()->where('estado', '!=', EstadoOrdenCompra::Cancelada)->exists()),
+                ->visible(fn () => $this->solicitud?->cotizaciones()->whereHas('items', fn ($q) => $q->where('es_elegido', true))->exists() ?? false)
+                ->hidden(fn () => $this->solicitud?->ordenesCompra()->where('estado', '!=', EstadoOrdenCompra::Cancelada)->exists() ?? true),
 
             Action::make('imprimirReporte')
                 ->label('Imprimir Comparativo')
@@ -286,7 +314,7 @@ class ComparativaCotizaciones extends Page
                 ->color('gray')
                 ->url(fn () => route('reporte.comparativa', ['solicitud' => $this->solicitudId]))
                 ->openUrlInNewTab()
-                ->visible(fn () => $this->solicitud->cotizaciones()->exists() && auth()->user()->can('Compras:ImprimirComparativa')),
+                ->visible(fn () => ($this->solicitud?->cotizaciones()->exists() ?? false) && auth()->user()?->can('Compras:ImprimirComparativa') ?? false),
 
             Action::make('verCotizaciones')
                 ->label('Ver Todas')

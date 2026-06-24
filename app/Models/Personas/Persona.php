@@ -8,6 +8,7 @@ namespace App\Models\Personas;
 
 use App\Models\Catalogos\Pais;
 use App\Models\Colaboradores\Colaborador;
+use App\Models\User;
 use Database\Factories\PersonaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -58,5 +59,11 @@ class Persona extends Model implements AuditableContract
     public function personaJuridica(): HasOne
     {
         return $this->hasOne(PersonaJuridica::class);
+    }
+
+    /** @return HasOne<User, $this> */
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Shared\Concerns;
 
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -12,7 +13,7 @@ use Filament\Support\Icons\Heroicon;
 trait HasStandardCrudActions
 {
     /**
-     * @return array<int, mixed>
+     * @return array<int, Action>
      */
     protected function getStandardHeaderActions(?string $label = null): array
     {
@@ -24,7 +25,7 @@ trait HasStandardCrudActions
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<int, Action>
      */
     protected function getStandardRowActions(): array
     {

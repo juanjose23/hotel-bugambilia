@@ -25,7 +25,8 @@ class ValidCedulaNicaragua implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $value = strtoupper(trim($value));
+        $valStr = is_scalar($value) ? (string) $value : '';
+        $value = strtoupper(trim($valStr));
 
         if (! $this->validateFormat($value)) {
             $fail('El formato de la cédula no es válido. Ejemplo: 001-010102-1234A');

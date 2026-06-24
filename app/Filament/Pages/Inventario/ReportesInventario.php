@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Inventario;
 
 use App\Models\Catalogos\Producto;
+use App\Models\Inventario\Lote;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesCuarentena;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesProximosVencer;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesVencidos;
@@ -41,28 +42,28 @@ class ReportesInventario extends Page
     protected static ?int $navigationSort = 99;
 
     // ─── Datos de cada sección ────────────────────────────────────────────
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, \stdClass>|null */
     public ?Collection $stockPorProducto = null;
 
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, Lote>|null */
     public ?Collection $lotesCuarentena = null;
 
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, Lote>|null */
     public ?Collection $lotesProximosVencer = null;
 
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, Lote>|null */
     public ?Collection $lotesVencidos = null;
 
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, Lote>|null */
     public ?Collection $lotesMerma = null;
 
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, \stdClass>|null */
     public ?Collection $valorizacion = null;
 
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, \stdClass>|null */
     public ?Collection $rotacion = null;
 
-    /** @var Collection<int, mixed>|null */
+    /** @var Collection<int, \stdClass>|null */
     public ?Collection $mermasTotales = null;
 
     public ?float $valorTotalInventario = null;

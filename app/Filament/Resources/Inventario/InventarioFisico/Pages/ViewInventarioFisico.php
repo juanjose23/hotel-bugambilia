@@ -36,7 +36,7 @@ class ViewInventarioFisico extends ViewRecord
                 ->modalDescription('Esta acción comparará la cantidad física registrada en la hoja de cálculo con el stock actual del sistema, generará los movimientos de ajuste (MOV_AJUSTE) en los lotes con discrepancia, y cerrará esta sesión como PROCESADO. Esta acción no se puede deshacer.')
                 ->action(function () {
                     try {
-                        app(ProcesarInventarioFisico::class)->execute($this->record, auth()->id());
+                        app(ProcesarInventarioFisico::class)->execute($this->record, (int) auth()->id());
 
                         Notification::make()
                             ->title('Conciliación Procesada')

@@ -33,6 +33,10 @@ class VerificarStockPack
             }
 
             $producto = $variante->producto;
+            if ($producto === null) {
+                continue;
+            }
+
             $necesario = (float) $item->cantidad * $cantidadPacks;
 
             $disponible = (float) Stock::where('producto_id', $producto->id)
@@ -58,10 +62,10 @@ class VerificarStockPack
             }
 
             $resultado[] = [
-                'producto' => $producto->nombre,
-                'variante' => $variante->nombre_variante,
+                'producto' => $producto->nombre ?? '',
+                'variante' => $variante->nombre_variante ?? '',
                 'producto_variante_id' => $variante->id,
-                'tipo_producto' => $producto->tipo,
+                'tipo_producto' => $producto->tipo ?? 0,
                 'necesario' => $necesario,
                 'disponible' => $disponible,
                 'suficiente' => $suficiente,

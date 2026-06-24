@@ -77,7 +77,9 @@ class ActivoTable
                             default => $tipo,
                         };
 
-                        return "{$prefijo} {$nombre}";
+                        $nombreStr = is_scalar($nombre) ? (string) $nombre : 'Sin nombre';
+
+                        return $prefijo.' '.$nombreStr;
                     })
                     ->placeholder('Sin asignar')
                     ->badge()
@@ -163,7 +165,7 @@ class ActivoTable
                                     $record->id,
                                     $data['asignable_type'],
                                     (int) $data['asignable_id'],
-                                    auth()->id() ?? 1,
+                                    (int) auth()->id(),
                                     $data['motivo']
                                 );
 
@@ -223,7 +225,7 @@ class ActivoTable
                                     $record->id,
                                     $data['tipo'] instanceof TipoMantenimiento ? $data['tipo'] : TipoMantenimiento::from($data['tipo']),
                                     $data['descripcion'],
-                                    auth()->id() ?? 1,
+                                    (int) auth()->id(),
                                     $data['costo'] !== null ? (float) $data['costo'] : null,
                                     $data['moneda_id'] !== null ? (int) $data['moneda_id'] : null,
                                     $data['proveedor_id'] !== null ? (int) $data['proveedor_id'] : null,
@@ -277,7 +279,7 @@ class ActivoTable
                                     $record->id,
                                     $data['motivo_tipo'] instanceof TipoBaja ? $data['motivo_tipo'] : TipoBaja::from($data['motivo_tipo']),
                                     $data['motivo_detalle'],
-                                    auth()->id() ?? 1,
+                                    (int) auth()->id(),
                                     $data['valor_residual'] !== null ? (float) $data['valor_residual'] : null,
                                     $data['aprobado_por_id'] !== null ? (int) $data['aprobado_por_id'] : null
                                 );
@@ -303,7 +305,7 @@ class ActivoTable
                         ->color('info')
                         ->url(fn (Activo $record) => route('reporte.activos.ficha.pdf', $record))
                         ->openUrlInNewTab()
-                        ->visible(fn (Activo $record) => ! $record->trashed() && auth()->user()->can('Activos:ReporteFicha')),
+                        ->visible(fn (Activo $record) => ! $record->trashed() && auth()->user()?->can('Activos:ReporteFicha') ?? false),
                 ])
                     ->label('Acciones Especiales')
                     ->icon(Heroicon::ChevronDown)
@@ -316,31 +318,37 @@ class ActivoTable
                     ->color('gray')
                     ->url('/admin/reportes-activos')
                     ->openUrlInNewTab()
-                    ->visible(fn () => auth()->user()->can('Activos:ReportePorUbicacion')
-                        || auth()->user()->can('Activos:ReporteHistorial')
-                        || auth()->user()->can('Activos:ReporteMantenimientoActivos')
-                        || auth()->user()->can('Activos:ReporteHojaHabitacion')),
+                    ->visible(function () {
+                        $user = auth()->user();
+
+                        return $user && (
+                            $user->can('Activos:ReportePorUbicacion')
+                            || $user->can('Activos:ReporteHistorial')
+                            || $user->can('Activos:ReporteMantenimientoActivos')
+                            || $user->can('Activos:ReporteHojaHabitacion')
+                        );
+                    }),
                 Action::make('imprimir_reporte')
                     ->label('Imprimir Inventario (PDF)')
                     ->icon(Heroicon::Printer)
                     ->color('info')
                     ->url(fn () => route('reporte.activos.inventario-general.pdf', request()->query()))
                     ->openUrlInNewTab()
-                    ->visible(fn () => auth()->user()->can('Activos:ReporteInventario')),
+                    ->visible(fn () => auth()->user()?->can('Activos:ReporteInventario') ?? false),
                 Action::make('exportar_excel')
                     ->label('Exportar Inventario (Excel)')
                     ->icon(Heroicon::DocumentArrowDown)
                     ->color('success')
                     ->url(fn () => route('reporte.activos.inventario-general.excel', request()->query()))
                     ->openUrlInNewTab()
-                    ->visible(fn () => auth()->user()->can('Activos:ReporteInventario')),
+                    ->visible(fn () => auth()->user()?->can('Activos:ReporteInventario') ?? false),
                 Action::make('imprimir_etiquetas')
                     ->label('Imprimir Códigos de Barras')
                     ->icon(Heroicon::QrCode)
                     ->color('warning')
                     ->url(fn () => route('reporte.activos.etiquetas.pdf', request()->query()))
                     ->openUrlInNewTab()
-                    ->visible(fn () => auth()->user()->can('Activos:ReporteEtiquetas')),
+                    ->visible(fn () => auth()->user()?->can('Activos:ReporteEtiquetas') ?? false),
             ]);
     }
 }

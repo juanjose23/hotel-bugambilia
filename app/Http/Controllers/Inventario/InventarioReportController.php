@@ -66,9 +66,14 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteStock');
         $this->auditoria('HTB-INV-001');
 
+        $reqProd = request('producto_id');
+        $productoId = is_numeric($reqProd) ? (int) $reqProd : null;
+        $reqUbi = request('ubicacion_id');
+        $ubicacionId = is_numeric($reqUbi) ? (int) $reqUbi : null;
+
         $filas = app(ObtenerStockPorProducto::class)->ejecutar([
-            'producto_id' => request('producto_id'),
-            'ubicacion_id' => request('ubicacion_id'),
+            'producto_id' => $productoId,
+            'ubicacion_id' => $ubicacionId,
         ]);
 
         return Pdf::view('reports.inventario.stock-por-producto', array_merge($this->baseData(), [
@@ -94,11 +99,16 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteMovimientos');
         $this->auditoria('HTB-INV-003');
 
+        $reqTipo = request('tipo');
+        $reqProd = request('producto_id');
+        $reqDesde = request('fecha_desde', now()->startOfMonth()->toDateString());
+        $reqHasta = request('fecha_hasta', now()->toDateString());
+
         $filtros = [
-            'tipo' => request('tipo'),
-            'producto_id' => request('producto_id'),
-            'fecha_desde' => request('fecha_desde', now()->startOfMonth()->toDateString()),
-            'fecha_hasta' => request('fecha_hasta', now()->toDateString()),
+            'tipo' => is_scalar($reqTipo) ? (string) $reqTipo : '',
+            'producto_id' => is_numeric($reqProd) ? (int) $reqProd : null,
+            'fecha_desde' => is_scalar($reqDesde) ? (string) $reqDesde : now()->startOfMonth()->toDateString(),
+            'fecha_hasta' => is_scalar($reqHasta) ? (string) $reqHasta : now()->toDateString(),
         ];
 
         $movimientos = app(ObtenerMovimientosInventario::class)->ejecutar($filtros, 500)->items();
@@ -129,8 +139,10 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteCuarentena');
         $this->auditoria('HTB-INV-004');
 
+        $reqProd = request('producto_id');
+        $productoId = is_numeric($reqProd) ? (int) $reqProd : null;
         $lotes = app(ObtenerLotesCuarentena::class)->ejecutar([
-            'producto_id' => request('producto_id'),
+            'producto_id' => $productoId,
         ]);
         $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
         $paginas = $lotes->chunk($filasPorPagina)
@@ -161,10 +173,13 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteProximosVencer');
         $this->auditoria('HTB-INV-005');
 
-        $dias = (int) request('dias', 30);
+        $reqDias = request('dias', 30);
+        $dias = is_numeric($reqDias) ? (int) $reqDias : 30;
+        $reqProd = request('producto_id');
+        $productoId = is_numeric($reqProd) ? (int) $reqProd : null;
         $lotes = app(ObtenerLotesProximosVencer::class)->ejecutar([
             'dias' => $dias,
-            'producto_id' => request('producto_id'),
+            'producto_id' => $productoId,
         ]);
         $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
         $paginas = $lotes->chunk($filasPorPagina)
@@ -184,7 +199,8 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteProximosVencer');
         $this->auditoria('HTB-INV-005');
 
-        $dias = (int) request('dias', 30);
+        $reqDias = request('dias', 30);
+        $dias = is_numeric($reqDias) ? (int) $reqDias : 30;
 
         return Excel::download(new LotesProximosVencerExport([
             'dias' => $dias,
@@ -199,10 +215,14 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteMermas');
         $this->auditoria('HTB-INV-006');
 
+        $reqDesde = request('periodo_desde', now()->startOfMonth()->toDateString());
+        $reqHasta = request('periodo_hasta', now()->toDateString());
+        $reqMotivo = request('motivo');
+
         $filtros = [
-            'periodo_desde' => request('periodo_desde', now()->startOfMonth()->toDateString()),
-            'periodo_hasta' => request('periodo_hasta', now()->toDateString()),
-            'motivo' => request('motivo'),
+            'periodo_desde' => is_scalar($reqDesde) ? (string) $reqDesde : now()->startOfMonth()->toDateString(),
+            'periodo_hasta' => is_scalar($reqHasta) ? (string) $reqHasta : now()->toDateString(),
+            'motivo' => is_scalar($reqMotivo) ? (string) $reqMotivo : '',
         ];
 
         $lotes = app(ObtenerLotesMerma::class)->ejecutar($filtros);
@@ -239,7 +259,8 @@ class InventarioReportController extends Controller
         $this->auditoria('HTB-INV-007');
 
         $uc = app(ObtenerValorizacionInventario::class);
-        $filtros = ['ubicacion_id' => request('ubicacion_id')];
+        $reqUbi = request('ubicacion_id');
+        $filtros = ['ubicacion_id' => is_numeric($reqUbi) ? (int) $reqUbi : null];
         $filas = $uc->ejecutar($filtros);
         $filasPorPagina = ReportePaginador::filasPorPaginaSpatie(rowPx: 26);
         $paginas = $filas->chunk($filasPorPagina)
@@ -271,7 +292,8 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteRotacion');
         $this->auditoria('HTB-INV-008');
 
-        $meses = (int) request('meses', 3);
+        $reqMeses = request('meses', 3);
+        $meses = is_numeric($reqMeses) ? (int) $reqMeses : 3;
 
         return Excel::download(new RotacionInventarioExport(['meses' => $meses]), "HTB-INV-008-Rotacion-{$meses}m.xlsx");
     }
@@ -311,8 +333,10 @@ class InventarioReportController extends Controller
         $this->authorize('Inventario:ReporteVencidos');
         $this->auditoria('HTB-INV-012');
 
+        $reqProd = request('producto_id');
+        $productoId = is_numeric($reqProd) ? (int) $reqProd : null;
         $lotes = app(ObtenerLotesVencidos::class)->ejecutar([
-            'producto_id' => request('producto_id'),
+            'producto_id' => $productoId,
         ]);
         $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
         $paginas = $lotes->chunk($filasPorPagina)

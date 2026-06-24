@@ -7,6 +7,7 @@ use App\Models\Personas\Persona;
 use App\UseCases\Colaboradores\Queries\ObtenerDatosCarnet;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
+use Illuminate\Database\Eloquent\Model;
 
 class CarnetColaborador extends Page
 {
@@ -24,6 +25,10 @@ class CarnetColaborador extends Page
         $this->record = $this->resolveRecord($record);
 
         $this->authorizeAccess();
+
+        if (! $this->record instanceof Model) {
+            return;
+        }
 
         $this->record->loadMissing([
             'personaNatural',

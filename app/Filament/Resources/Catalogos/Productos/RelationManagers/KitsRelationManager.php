@@ -35,7 +35,7 @@ class KitsRelationManager extends RelationManager
                     ->options(fn () => ProductoVariante::with('producto')
                         ->get()
                         ->mapWithKeys(fn (ProductoVariante $v) => [
-                            $v->id => "[{$v->producto->nombre}] {$v->nombre_variante} ({$v->codigo})",
+                            $v->id => '['.($v->producto ? $v->producto->nombre : '').'] '.$v->nombre_variante.' ('.$v->codigo.')',
                         ])
                     )
                     ->searchable()

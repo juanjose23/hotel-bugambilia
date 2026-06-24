@@ -105,7 +105,7 @@ class ViewPack extends ViewRecord
                             productoPackId: (int) $this->record->id,
                             bodegaOrigenId: (int) $data['bodega_origen_id'],
                             cantidadPacks: (float) $data['cantidad_packs'],
-                            creadoPorId: auth()->id(),
+                            creadoPorId: (int) auth()->id(),
                         );
 
                         Notification::make()
@@ -137,7 +137,7 @@ class ViewPack extends ViewRecord
             $suficiente = $stockTotal >= $necesario;
 
             $stockRows[] = [
-                'producto' => $item->variante->producto->nombre ?? '—',
+                'producto' => ($item->variante && $item->variante->producto) ? $item->variante->producto->nombre : '—',
                 'variante' => $item->variante->nombre_variante ?? '—',
                 'necesario' => (string) $necesario,
                 'disponible' => (string) $stockTotal,

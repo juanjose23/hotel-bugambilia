@@ -69,7 +69,7 @@
             "@php ./vendor/bin/pint --test"
         ],
         "phpstan": [
-            "@php ./vendor/bin/phpstan analyse --memory-limit=1G"
+            "@php ./vendor/bin/phpstan analyse --level=9 --memory-limit=1G"
         ],
         "test": [
             "@php artisan config:clear --ansi",

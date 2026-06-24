@@ -21,7 +21,10 @@ class CreateColaboradorSalario extends CreateRecord
             ->latest('fecha_inicio')
             ->first();
 
-        if ($salarioAnterior && ((int) ($data['estado'] ?? EstadoCatalogo::Activo->value) === EstadoCatalogo::Activo->value)) {
+        $estadoVal = $data['estado'] ?? EstadoCatalogo::Activo->value;
+        $estadoInt = is_scalar($estadoVal) ? (int) $estadoVal : EstadoCatalogo::Activo->value;
+
+        if ($salarioAnterior && ($estadoInt === EstadoCatalogo::Activo->value)) {
             Notification::make()
                 ->title('Salario Anterior será Inactivo')
                 ->body("El salario anterior de NIO {$salarioAnterior->salario} será puesto automáticamente en Inactivo")
@@ -29,8 +32,10 @@ class CreateColaboradorSalario extends CreateRecord
                 ->send();
         }
 
+        $colaboradorId = is_numeric($data['colaborador_id'] ?? null) ? (int) $data['colaborador_id'] : 0;
+
         $record = app(CrearNuevoSalario::class)(
-            $data['colaborador_id'],
+            $colaboradorId,
             $data
         );
 

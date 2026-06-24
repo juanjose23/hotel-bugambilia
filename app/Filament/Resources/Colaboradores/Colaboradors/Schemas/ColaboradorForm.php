@@ -23,6 +23,7 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ColaboradorForm
 {
@@ -31,7 +32,7 @@ class ColaboradorForm
         return $schema->components(self::getSchema());
     }
 
-    /** @return array<mixed> */
+    /** @return array<int, Htmlable|string> */
     public static function getSchema(): array
     {
         return [

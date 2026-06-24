@@ -112,13 +112,16 @@ class SubEspaciosRelationManager extends RelationManager
                             return;
                         }
 
+                        $padreKey = $padre->getKey();
+                        $restauranteId = is_numeric($padreKey) ? (int) $padreKey : 0;
+
                         try {
                             app(ValidarCapacidadMesas::class)->execute(
-                                restauranteId: $padre->getKey(),
+                                restauranteId: $restauranteId,
                                 crearSiValida: false,
                             );
                         } catch (OverflowException $e) {
-                            $capacidad = app(ConsultarCapacidadMesas::class)->execute($padre->getKey());
+                            $capacidad = app(ConsultarCapacidadMesas::class)->execute($restauranteId);
 
                             Notification::make()
                                 ->title('Capacidad máxima de mesas alcanzada')

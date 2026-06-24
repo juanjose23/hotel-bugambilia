@@ -162,7 +162,7 @@ class ProcurementFlowSeeder extends Seeder
                         'producto_id' => $p->id,
                         'producto_variante_id' => $variante?->id,
                         'cantidad_solicitada' => rand(5, 50),
-                        'unidad_medida_id' => $p->unidad_medida_id ?? $unidadMedida->id,
+                        'unidad_medida_id' => $p->unidad_medida_id ?? $unidadMedida?->id,
                     ]);
                 }
             }
@@ -185,17 +185,17 @@ class ProcurementFlowSeeder extends Seeder
                     'producto_variante_id' => DB::table('producto_variantes')->where('producto_id', $prod->id)->value('id'),
                     'cantidad_solicitada' => 5,
                     'cantidad_aprobada' => 5,
-                    'unidad_medida_id' => $prod->unidad_medida_id ?? $unidadMedida->id,
+                    'unidad_medida_id' => $prod->unidad_medida_id ?? $unidadMedida?->id,
                 ]);
             }
 
             // --- PROVEEDOR 1: EL ECONÓMICO (Lento) ---
             $cot1 = Cotizacion::create([
                 'solicitud_id' => $solicitudComp->id,
-                'proveedor_id' => $proveedores->get(0)->id,
+                'proveedor_id' => $proveedores->get(0)?->id,
                 'fecha_cotizacion' => now()->subDays(10),
                 'dias_entrega' => 15,
-                'condicion_pago_id' => $condicionPago->id,
+                'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Precio más bajo garantizado, pero tiempo de entrega extendido.',
                 'creada_por' => $admin->id,
                 'moneda_id' => 2,
@@ -218,10 +218,10 @@ class ProcurementFlowSeeder extends Seeder
             // --- PROVEEDOR 2: EL EQUILIBRADO (Ganador probable) ---
             $cot2 = Cotizacion::create([
                 'solicitud_id' => $solicitudComp->id,
-                'proveedor_id' => $proveedores->get(1)->id,
+                'proveedor_id' => $proveedores->get(1)?->id,
                 'fecha_cotizacion' => now()->subDays(9),
                 'dias_entrega' => 5,
-                'condicion_pago_id' => $condicionPago->id,
+                'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Balance ideal entre costo y tiempo de respuesta.',
                 'creada_por' => $admin->id,
                 'moneda_id' => 2,
@@ -244,10 +244,10 @@ class ProcurementFlowSeeder extends Seeder
             // --- PROVEEDOR 3: EL PREMIUM (Rápido pero caro) ---
             $cot3 = Cotizacion::create([
                 'solicitud_id' => $solicitudComp->id,
-                'proveedor_id' => $proveedores->get(2)->id,
+                'proveedor_id' => $proveedores->get(2)?->id,
                 'fecha_cotizacion' => now()->subDays(8),
                 'dias_entrega' => 1,
-                'condicion_pago_id' => $condicionPago->id,
+                'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Entrega inmediata. Stock garantizado.',
                 'creada_por' => $admin->id,
                 'moneda_id' => 2,
@@ -270,10 +270,10 @@ class ProcurementFlowSeeder extends Seeder
             // --- PROVEEDOR 4: EL LOCAL (Flexible) ---
             $cot4 = Cotizacion::create([
                 'solicitud_id' => $solicitudComp->id,
-                'proveedor_id' => $proveedores->get(3)->id ?? $proveedores->first()->id,
+                'proveedor_id' => ($proveedores->get(3) ? $proveedores->get(3)->id : null) ?? ($proveedores->first() ? $proveedores->first()->id : null),
                 'fecha_cotizacion' => now()->subDays(7),
                 'dias_entrega' => 3,
-                'condicion_pago_id' => $condicionPago->id,
+                'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Proveedor local con soporte técnico incluido.',
                 'creada_por' => $admin->id,
                 'moneda_id' => 2,
@@ -296,10 +296,10 @@ class ProcurementFlowSeeder extends Seeder
             // --- PROVEEDOR 5: EL MAYORISTA (Volumen) ---
             $cot5 = Cotizacion::create([
                 'solicitud_id' => $solicitudComp->id,
-                'proveedor_id' => $proveedores->get(4)->id ?? $proveedores->last()->id,
+                'proveedor_id' => ($proveedores->get(4) ? $proveedores->get(4)->id : null) ?? ($proveedores->last() ? $proveedores->last()->id : null),
                 'fecha_cotizacion' => now()->subDays(6),
                 'dias_entrega' => 10,
-                'condicion_pago_id' => $condicionPago->id,
+                'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Precio especial por apertura de cuenta corporativa.',
                 'creada_por' => $admin->id,
                 'moneda_id' => 2,
@@ -335,17 +335,17 @@ class ProcurementFlowSeeder extends Seeder
                     'producto_variante_id' => DB::table('producto_variantes')->where('producto_id', $prod->id)->value('id'),
                     'cantidad_solicitada' => 20,
                     'cantidad_aprobada' => 20,
-                    'unidad_medida_id' => $prod->unidad_medida_id ?? $unidadMedida->id,
+                    'unidad_medida_id' => $prod->unidad_medida_id ?? $unidadMedida?->id,
                 ]);
             }
 
             $proveedorWin = $proveedores->get(0);
             $cotWin = Cotizacion::create([
                 'solicitud_id' => $solicitudFull->id,
-                'proveedor_id' => $proveedorWin->id,
+                'proveedor_id' => $proveedorWin?->id,
                 'fecha_cotizacion' => now()->subDays(18),
                 'dias_entrega' => 2,
-                'condicion_pago_id' => $condicionPago->id,
+                'condicion_pago_id' => $condicionPago?->id,
                 'es_elegida' => true,
                 'elegida_por' => $admin->id,
                 'elegida_en' => now()->subDays(17),
@@ -365,11 +365,11 @@ class ProcurementFlowSeeder extends Seeder
 
             $orden = OrdenCompra::create([
                 'codigo' => 'OC-2026-WIN',
-                'proveedor_id' => $proveedorWin->id,
+                'proveedor_id' => $proveedorWin?->id,
                 'solicitud_id' => $solicitudFull->id,
                 'cotizacion_id' => $cotWin->id,
                 'fecha_orden' => now()->subDays(15),
-                'condicion_pago_id' => $condicionPago->id,
+                'condicion_pago_id' => $condicionPago?->id,
                 'estado' => EstadoOrdenCompra::Recibida,
                 'subtotal' => 600, 'total' => 690,
             ]);
@@ -381,7 +381,7 @@ class ProcurementFlowSeeder extends Seeder
                     'cantidad' => $cItem->cantidad,
                     'precio_unitario' => $cItem->precio_unitario,
                     'subtotal' => $cItem->subtotal,
-                    'unidad_medida_id' => $unidadMedida->id,
+                    'unidad_medida_id' => $unidadMedida?->id,
                 ]);
             }
 
@@ -408,7 +408,10 @@ class ProcurementFlowSeeder extends Seeder
 
             $createdItems = [];
             foreach ($itemsData as $item) {
-                $createdItems[] = $recepcion->items()->create($item);
+                if (is_array($item)) {
+                    /** @var array<string, mixed> $item */
+                    $createdItems[] = $recepcion->items()->create($item);
+                }
             }
 
             $itemsForUseCase = collect($createdItems)->map(fn ($i) => [
@@ -444,7 +447,7 @@ class ProcurementFlowSeeder extends Seeder
                     'producto_variante_id' => DB::table('producto_variantes')->where('producto_id', $prod->id)->value('id'),
                     'cantidad_solicitada' => 10,
                     'cantidad_aprobada' => 10,
-                    'unidad_medida_id' => $prod->unidad_medida_id ?? $unidadMedida->id,
+                    'unidad_medida_id' => $prod->unidad_medida_id ?? $unidadMedida?->id,
                 ]);
             }
 
@@ -455,7 +458,7 @@ class ProcurementFlowSeeder extends Seeder
                     'proveedor_id' => $proveedores->random()->id,
                     'fecha_cotizacion' => now()->subDays(2),
                     'dias_entrega' => rand(2, 8),
-                    'condicion_pago_id' => $condicionPago->id,
+                    'condicion_pago_id' => $condicionPago?->id,
                     'observaciones' => 'Propuesta técnica '.($i + 1),
                     'creada_por' => $admin->id,
                     'moneda_id' => 2,
