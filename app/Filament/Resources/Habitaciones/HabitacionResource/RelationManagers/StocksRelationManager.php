@@ -52,7 +52,7 @@ class StocksRelationManager extends RelationManager
                         ProductoVariante::with('producto')
                             ->get()
                             ->mapWithKeys(fn (ProductoVariante $v) => [
-                                $v->id => "[{$v->producto->nombre}] {$v->nombre_variante} ({$v->codigo})",
+                                $v->id => "[{$v->producto?->nombre}] {$v->nombre_variante} ({$v->codigo})",
                             ])
                     )
                     ->searchable()
@@ -89,7 +89,7 @@ class StocksRelationManager extends RelationManager
                         return $query
                             ->leftJoin('producto_variantes', 'habitacion_stocks.producto_variante_id', '=', 'producto_variantes.id')
                             ->leftJoin('productos', 'producto_variantes.producto_id', '=', 'productos.id')
-                            ->orderBy('productos.nombre', $direction)
+                            ->orderBy('productos.nombre', $direction === 'desc' ? 'desc' : 'asc')
                             ->select('habitacion_stocks.*');
                     }),
 
@@ -145,7 +145,7 @@ class StocksRelationManager extends RelationManager
                             ->required()
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get, $state): void {
-                                $this->actualizarPreviewPack($set, $get, $state);
+                                $this->actualizarPreviewPack($set, $get, (int) $state);
                             }),
 
                         Select::make('bodega_origen_id')
@@ -162,8 +162,8 @@ class StocksRelationManager extends RelationManager
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get, $state): void {
                                 $packId = $get('producto_pack_id');
-                                if ($packId) {
-                                    $this->actualizarPreviewPack($set, $get, $packId);
+                                if ($packId && is_numeric($packId)) {
+                                    $this->actualizarPreviewPack($set, $get, (int) $packId);
                                 }
                             }),
 
@@ -176,10 +176,9 @@ class StocksRelationManager extends RelationManager
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get): void {
                                 $packId = $get('producto_pack_id');
-                                if (! $packId) {
-                                    return;
+                                if ($packId && is_numeric($packId)) {
+                                    $this->actualizarPreviewPack($set, $get, (int) $packId);
                                 }
-                                $this->actualizarPreviewPack($set, $get, $packId);
                             }),
 
                         Repeater::make('items_preview')
@@ -201,12 +200,14 @@ class StocksRelationManager extends RelationManager
                     ->action(function (array $data, Action $action): void {
                         try {
                             $owner = $this->getOwnerRecord();
+                            $ownerKey = $owner->getKey();
+                            $habitacionId = is_numeric($ownerKey) ? (int) $ownerKey : 0;
                             app(AsignarPackAHabitacion::class)->execute(
-                                habitacionId: $owner->getKey(),
+                                habitacionId: $habitacionId,
                                 productoPackId: (int) $data['producto_pack_id'],
                                 bodegaOrigenId: (int) $data['bodega_origen_id'],
                                 cantidadPacks: (float) $data['cantidad_packs'],
-                                creadoPorId: auth()->id(),
+                                creadoPorId: (int) auth()->id(),
                             );
                         } catch (\RuntimeException $e) {
                             Notification::make()
@@ -253,7 +254,7 @@ class StocksRelationManager extends RelationManager
                             habitacionStockId: $record->id,
                             cantidad: (float) $data['cantidad'],
                             motivo: $data['motivo'],
-                            creadoPorId: auth()->id(),
+                            creadoPorId: (int) auth()->id(),
                         );
                     }),
             ]);
@@ -272,7 +273,7 @@ class StocksRelationManager extends RelationManager
             foreach ($items as $item) {
                 $variante = $item->variante;
                 $preview[] = [
-                    'producto' => $variante->producto->nombre ?? '—',
+                    'producto' => ($variante && $variante->producto) ? $variante->producto->nombre : '—',
                     'variante' => $variante->nombre_variante ?? 'N/A',
                     'necesario' => (string) ($item->cantidad * $cantidadPacks),
                     'disponible' => '—',

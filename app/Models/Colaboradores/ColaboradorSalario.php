@@ -19,6 +19,7 @@ class ColaboradorSalario extends Model implements AuditableContract
     protected $casts = [
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
+        'estado' => 'integer',
     ];
 
     /** @return BelongsTo<Colaborador, $this> */

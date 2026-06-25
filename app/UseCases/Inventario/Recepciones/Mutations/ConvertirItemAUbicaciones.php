@@ -40,11 +40,12 @@ class ConvertirItemAUbicaciones
                 $nombreEstructura = $cantidad > 1 ? "{$prefijo} {$u}" : $prefijo;
 
                 // Obtener el orden correlativo máximo bajo este padre
-                $maxOrden = Ubicacion::where('padre_id', $parentId)->max('orden') ?? 0;
+                $maxVal = Ubicacion::where('padre_id', $parentId)->max('orden');
+                $maxOrden = is_numeric($maxVal) ? (int) $maxVal : 0;
 
                 $estructura = Ubicacion::create([
                     'nombre' => $nombreEstructura,
-                    'descripcion' => "Estructura física convertida desde la recepción {$item->recepcion->codigo} del producto: {$item->producto->nombre}.",
+                    'descripcion' => 'Estructura física convertida desde la recepción '.($item->recepcion ? $item->recepcion->codigo : 'N/A').' del producto: '.($item->producto ? $item->producto->nombre : 'N/A').'.',
                     'tipo' => 'estante',
                     'padre_id' => $parentId,
                     'orden' => $maxOrden + 1,

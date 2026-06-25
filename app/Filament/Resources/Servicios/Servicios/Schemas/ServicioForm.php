@@ -108,8 +108,11 @@ class ServicioForm
                                 $state = is_array($state) ? $state : [];
 
                                 // 1. Eliminar imágenes que ya no están presentes en el estado
-                                $existingImages = $record->imagenes()->pluck('url')->toArray();
-                                $toDelete = array_diff($existingImages, $state);
+                                /** @var array<string> $existingImages */
+                                $existingImages = $record->imagenes()->pluck('url')->map(fn ($u) => is_scalar($u) ? (string) $u : '')->toArray();
+                                /** @var array<string> $stateImages */
+                                $stateImages = collect((array) $state)->map(fn ($u) => is_scalar($u) ? (string) $u : '')->toArray();
+                                $toDelete = array_diff($existingImages, $stateImages);
                                 if (! empty($toDelete)) {
                                     $record->imagenes()->whereIn('url', $toDelete)->delete();
                                 }

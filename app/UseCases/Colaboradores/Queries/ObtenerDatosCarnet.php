@@ -32,12 +32,12 @@ class ObtenerDatosCarnet
 
     public function obtenerCargoActual(Persona $persona): string
     {
-        return $persona->colaborador->cargoActual()->cargo->nombre ?? 'Sin cargo asignado';
+        return $persona->colaborador?->cargoActual()?->cargo->nombre ?? 'Sin cargo asignado';
     }
 
     public function obtenerDepartamentoActual(Persona $persona): string
     {
-        return $persona->colaborador->cargoActual()->departamento->nombre ?? 'Sin departamento';
+        return $persona->colaborador?->cargoActual()?->departamento->nombre ?? 'Sin departamento';
     }
 
     public function obtenerTipoSangre(Persona $persona): string

@@ -59,7 +59,7 @@ class AuditsTable
                             ->distinct()
                             ->pluck('auditable_type', 'auditable_type')
                             ->mapWithKeys(fn ($type) => [
-                                $type => class_basename($type),
+                                is_scalar($type) ? (string) $type : '' => is_string($type) ? class_basename($type) : '',
                             ])
                     ),
             ])

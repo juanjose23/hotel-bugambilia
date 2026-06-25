@@ -15,8 +15,10 @@ readonly class LotesCuarentenaFiltro
      */
     public static function fromArray(array $data): self
     {
+        $productoId = $data['producto_id'] ?? null;
+
         return new self(
-            productoId: isset($data['producto_id']) ? (int) $data['producto_id'] : null,
+            productoId: is_numeric($productoId) ? (int) $productoId : null,
         );
     }
 

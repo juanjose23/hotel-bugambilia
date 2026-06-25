@@ -32,8 +32,9 @@ class RecepcionObserver
             EstadoRecepcion::Completa,
             EstadoRecepcion::Parcial,
             EstadoRecepcion::ConDiscrepancia,
-            EstadoRecepcion::EnCuarentena => app(VerificarEstadoOrdenCompra::class)
-                ->execute($recepcion->ordenCompra),
+            EstadoRecepcion::EnCuarentena => $recepcion->ordenCompra
+                ? app(VerificarEstadoOrdenCompra::class)->execute($recepcion->ordenCompra)
+                : null,
             EstadoRecepcion::Rechazada => $recepcion->ordenCompra?->update([
                 'estado' => EstadoOrdenCompra::Emitida,
             ]),

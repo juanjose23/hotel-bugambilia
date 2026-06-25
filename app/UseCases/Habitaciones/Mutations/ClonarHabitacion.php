@@ -164,7 +164,7 @@ class ClonarHabitacion
                 'precioshabitacion',
                 'politicas',
                 'habitacionStocks',
-            ]);
+            ]) ?? $nueva;
         });
     }
 }

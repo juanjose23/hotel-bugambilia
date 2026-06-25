@@ -150,7 +150,7 @@ class ViewHabitacion extends ViewRecord
                             productoPackId: (int) $data['producto_pack_id'],
                             bodegaOrigenId: (int) $data['bodega_origen_id'],
                             cantidadPacks: (float) $data['cantidad_packs'],
-                            creadoPorId: auth()->id(),
+                            creadoPorId: (int) auth()->id(),
                         );
 
                         Notification::make()
@@ -174,7 +174,7 @@ class ViewHabitacion extends ViewRecord
                 ->color('info')
                 ->url(fn (Habitacion $record) => route('reporte.activos.hoja-habitacion.pdf', ['tipo' => 'habitacion', 'id' => $record->id]))
                 ->openUrlInNewTab()
-                ->visible(fn () => auth()->user()->can('Activos:ReporteHojaHabitacion')),
+                ->visible(fn () => auth()->user()?->can('Activos:ReporteHojaHabitacion') ?? false),
             EditAction::make(),
         ];
     }

@@ -90,7 +90,7 @@ class ActivoAsignacion extends Model implements Auditable
         $asignable = $this->asignable;
 
         if ($asignable instanceof Habitacion || $asignable instanceof Ubicacion || $asignable instanceof Espacio) {
-            return $asignable->nombre;
+            return (string) ($asignable->nombre ?? '');
         }
 
         return 'Sin asignar';

@@ -7,6 +7,7 @@ use App\Enums\Compras\EstadoCotizacion;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Models\Catalogos\ProductoVariante;
+use App\Models\Compras\Proveedor;
 use App\Models\Compras\ProveedorContacto;
 use App\Support\CachedOptions;
 use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionConItemsProveedor;
@@ -67,12 +68,14 @@ class OrdenCompraForm
                             ->nullable()
                             ->live()
                             ->afterStateUpdated(function (mixed $state, mixed $set, mixed $get): void {
-                                $set('cotizacion_id', null);
-                                $set('items', []);
+                                if (is_callable($set)) {
+                                    $set('cotizacion_id', null);
+                                    $set('items', []);
+                                }
 
                                 if ($state) {
-                                    $solicitud = app(ObtenerSolicitudConItems::class)->execute($state);
-                                    if ($solicitud) {
+                                    $solicitud = app(ObtenerSolicitudConItems::class)->execute(is_numeric($state) ? intval($state) : 0);
+                                    if ($solicitud && is_callable($set)) {
                                         $set('items', $solicitud->items->map(fn ($item) => [
                                             'producto_id' => $item->producto_id,
                                             'producto_variante_id' => $item->producto_variante_id,
@@ -89,20 +92,24 @@ class OrdenCompraForm
 
                         Select::make('cotizacion_id')
                             ->label('Cotización Ganadora')
-                            ->options(fn (mixed $get) => app(ObtenerCotizacionesPorSolicitud::class)
-                                ->execute($get('solicitud_id'))
-                                ->filter(fn ($c) => in_array($c->estado, [EstadoCotizacion::Aceptada, EstadoCotizacion::AceptadaParcial]))
-                                ->mapWithKeys(fn ($c) => [$c->id => "#{$c->id} - ".$c->proveedor->codigo])
-                            )
+                            ->options(function (mixed $get): array {
+                                $solicitudId = is_callable($get) ? intval($get('solicitud_id')) : null;
+
+                                return app(ObtenerCotizacionesPorSolicitud::class)
+                                    ->execute($solicitudId ?: null)
+                                    ->filter(fn ($c) => in_array($c->estado, [EstadoCotizacion::Aceptada, EstadoCotizacion::AceptadaParcial]))
+                                    ->mapWithKeys(fn ($c) => [$c->id => '#'.$c->id.' - '.($c->proveedor ? $c->proveedor->codigo : '')])
+                                    ->toArray();
+                            })
                             ->searchable()
                             ->nullable()
                             ->live()
                             ->afterStateUpdated(function (mixed $state, mixed $set, mixed $get): void {
                                 if (! $state) {
-                                    $solicitudId = $get('solicitud_id');
+                                    $solicitudId = is_callable($get) ? intval($get('solicitud_id')) : null;
                                     if ($solicitudId) {
-                                        $solicitud = app(ObtenerSolicitudConItems::class)->execute($solicitudId);
-                                        if ($solicitud) {
+                                        $solicitud = app(ObtenerSolicitudConItems::class)->execute((int) $solicitudId);
+                                        if ($solicitud && is_callable($set)) {
                                             $set('items', $solicitud->items->map(fn ($item) => [
                                                 'producto_id' => $item->producto_id,
                                                 'producto_variante_id' => $item->producto_variante_id,
@@ -117,9 +124,11 @@ class OrdenCompraForm
                                     return;
                                 }
 
-                                $set('items', []);
-                                $cotizacion = app(ObtenerCotizacionConItemsProveedor::class)->execute($state);
-                                if ($cotizacion) {
+                                if (is_callable($set)) {
+                                    $set('items', []);
+                                }
+                                $cotizacion = app(ObtenerCotizacionConItemsProveedor::class)->execute(is_numeric($state) ? intval($state) : 0);
+                                if ($cotizacion && is_callable($set)) {
                                     $set('proveedor_id', $cotizacion->proveedor_id);
                                     $set('condicion_pago_id', $cotizacion->condicion_pago_id);
                                     $set('tasa_cambio', $cotizacion->tasa_cambio ?? 1.0000);
@@ -142,8 +151,11 @@ class OrdenCompraForm
                         Select::make('proveedor_id')
                             ->label('Proveedor')
                             ->relationship('proveedor', 'codigo')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->codigo} - ".($record->persona->personaJuridica->razon_social
-                                ?? "{$record->persona->primer_nombre} {$record->persona->personaNatural?->primer_apellido}"))
+                            ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "{$record->codigo} - ".(
+                                ($record->persona && $record->persona->personaJuridica)
+                                    ? $record->persona->personaJuridica->razon_social
+                                    : (($record->persona ? $record->persona->primer_nombre : '').' '.($record->persona && $record->persona->personaNatural ? $record->persona->personaNatural->primer_apellido : ''))
+                            ))
                             ->searchable()
                             ->preload()
                             ->required()
@@ -293,6 +305,10 @@ class OrdenCompraForm
 
     public static function updateTotals(mixed $get, mixed $set): void
     {
+        if (! is_callable($set) || ! is_callable($get)) {
+            return;
+        }
+
         $items = $get('items') ?? [];
         $subtotalGeneral = 0;
 

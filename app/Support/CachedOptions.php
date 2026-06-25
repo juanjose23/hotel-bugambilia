@@ -16,10 +16,11 @@ use Illuminate\Support\Facades\Cache;
 final class CachedOptions
 {
     /**
-     * @return Collection<int|string, string>
+     * @return Collection<int, string>
      */
     public static function productos(): Collection
     {
+        /** @var array<int, string> $data */
         $data = Cache::remember('cached_options:productos', 3600, fn () => Producto::query()->orderBy('nombre')->pluck('nombre', 'id')->toArray()
         );
 
@@ -27,10 +28,11 @@ final class CachedOptions
     }
 
     /**
-     * @return Collection<int|string, string>
+     * @return Collection<int, string>
      */
     public static function catalogos(string $codigoTipo): Collection
     {
+        /** @var array<int, string> $data */
         $data = Cache::remember("cached_options:catalogos:{$codigoTipo}", 3600, fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', $codigoTipo))
             ->orderBy('nombre')
             ->pluck('nombre', 'id')
@@ -41,10 +43,11 @@ final class CachedOptions
     }
 
     /**
-     * @return Collection<int|string, string>
+     * @return Collection<int, string>
      */
     public static function proveedores(): Collection
     {
+        /** @var array<int, string> $data */
         $data = Cache::remember('cached_options:proveedores', 3600, fn () => Proveedor::with(['persona.personaNatural', 'persona.personaJuridica'])
             ->get()
             ->mapWithKeys(fn ($prov) => [
@@ -57,10 +60,11 @@ final class CachedOptions
     }
 
     /**
-     * @return Collection<int|string, string>
+     * @return Collection<int, string>
      */
     public static function ubicacionesAlmacen(): Collection
     {
+        /** @var array<int, string> $data */
         $data = Cache::remember('cached_options:ubicaciones_almacen', 3600, fn () => Ubicacion::where('tipo', 'almacen')
             ->where('estado', 1)
             ->orderBy('nombre')
@@ -72,10 +76,11 @@ final class CachedOptions
     }
 
     /**
-     * @return Collection<int|string, string>
+     * @return Collection<int, string>
      */
     public static function productosKit(): Collection
     {
+        /** @var array<int, string> $data */
         $data = Cache::remember('cached_options:productos_kit', 3600, function () {
             $ids = Producto::whereIn('id', function ($q) {
                 $q->select('producto_padre_id')->from('producto_kit');
@@ -88,10 +93,11 @@ final class CachedOptions
     }
 
     /**
-     * @return Collection<int|string, string>
+     * @return Collection<int, string>
      */
     public static function monedas(): Collection
     {
+        /** @var array<int, string> $data */
         $data = Cache::remember('cached_options:monedas', 7200, fn () => Moneda::orderBy('nombre')->pluck('nombre', 'id')->toArray()
         );
 

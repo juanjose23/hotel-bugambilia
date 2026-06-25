@@ -38,14 +38,14 @@ class ProductosTable
                 TextColumn::make('tipo')
                     ->label('Tipo')
                     ->badge()
-                    ->color(fn ($state): string => TipoProducto::colorFor($state))
+                    ->color(fn ($state): ?string => is_string($color = TipoProducto::colorFor($state)) ? $color : null)
                     ->formatStateUsing(fn ($state): string => TipoProducto::labelFor($state))
                     ->sortable(),
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->searchable()
                     ->badge()
-                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
                     ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
                     ->sortable(),
             ])

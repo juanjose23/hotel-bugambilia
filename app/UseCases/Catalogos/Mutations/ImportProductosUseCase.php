@@ -29,7 +29,7 @@ class ImportProductosUseCase
 
         while (($row = fgetcsv($handle, 0)) !== false) {
             if (! $header) {
-                $header = array_map(fn ($h) => trim($h), $row);
+                $header = array_map(fn ($h) => trim((string) $h), $row);
 
                 continue;
             }

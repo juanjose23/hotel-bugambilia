@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\UseCases\Habitaciones\Mutations;
 
 use App\Models\Habitaciones\Habitacion;
-use App\Models\Habitaciones\HabitacionStock;
 use App\Models\Inventario\ProductoKit;
+use App\Models\Shared\Stock as SharedStock;
 use App\UseCases\Inventario\Movimientos\Mutations\ConsumirStock;
 use App\UseCases\Inventario\Queries\Stock\VerificarStockPack;
 use Illuminate\Support\Facades\DB;
@@ -86,9 +86,11 @@ class AsignarPackAHabitacion
                 );
 
                 $loteConsumidoId = collect($consumo)->firstWhere('lote_id', '!==', null)['lote_id'] ?? $item->lote_id;
+                $stockConsumidoId = $consumo[0]['stock_id'] ?? null;
 
-                $stockHabitacion = HabitacionStock::withTrashed()
-                    ->where('habitacion_id', $habitacion->id)
+                $stockHabitacion = SharedStock::withTrashed()
+                    ->where('stockable_type', Habitacion::class)
+                    ->where('stockable_id', $habitacion->id)
                     ->where('producto_variante_id', $variante->id)
                     ->first();
 
@@ -99,12 +101,13 @@ class AsignarPackAHabitacion
                     $stockHabitacion->cantidad_actual += $cantidadTotal;
                     $stockHabitacion->cantidad_ideal += $cantidadTotal;
                     if ($loteConsumidoId) {
-                        $stockHabitacion->lote_id = $loteConsumidoId;
+                        $stockHabitacion->lote_id = abs((int) $loteConsumidoId);
                     }
                     $stockHabitacion->save();
                 } else {
-                    $stockHabitacion = HabitacionStock::create([
-                        'habitacion_id' => $habitacion->id,
+                    $stockHabitacion = SharedStock::create([
+                        'stockable_type' => Habitacion::class,
+                        'stockable_id' => $habitacion->id,
                         'producto_variante_id' => $variante->id,
                         'lote_id' => $loteConsumidoId,
                         'cantidad_ideal' => $cantidadTotal,
@@ -115,7 +118,7 @@ class AsignarPackAHabitacion
                 $resultado[] = [
                     'variante_id' => $variante->id,
                     'cantidad_asignada' => $cantidadTotal,
-                    'habitacion_stock_id' => $stockHabitacion->id,
+                    'stock_id' => $stockConsumidoId,
                     'lote_id' => $loteConsumidoId,
                 ];
             }

@@ -23,11 +23,11 @@ class ObtenerResumenComprasDepartamentosUseCase
 
         try {
             $fechaInicio = $filtros->fechaInicio
-                ? Carbon::createFromFormat('Y-m-d', $filtros->fechaInicio)->startOfDay()
+                ? Carbon::createFromFormat('Y-m-d', $filtros->fechaInicio)?->startOfDay() ?? now()->startOfMonth()
                 : now()->startOfMonth();
 
             $fechaFin = $filtros->fechaFin
-                ? Carbon::createFromFormat('Y-m-d', $filtros->fechaFin)->endOfDay()
+                ? Carbon::createFromFormat('Y-m-d', $filtros->fechaFin)?->endOfDay() ?? now()
                 : now();
 
             if ($fechaInicio->gt($fechaFin)) {

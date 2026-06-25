@@ -119,8 +119,9 @@ class DevolucionCompraForm
 
                                         return $query->get()->mapWithKeys(function (Lote $lote) {
                                             $nombreUbicacion = $lote->ubicacion ? $lote->ubicacion->nombre : 'N/A';
+                                            $prodNombre = $lote->producto ? $lote->producto->nombre : 'N/A';
 
-                                            return [$lote->id => "[{$lote->codigo_lote}] {$lote->producto->nombre} — Disp: {$lote->cantidad_disponible} ({$nombreUbicacion})"];
+                                            return [$lote->id => '['.$lote->codigo_lote.'] '.$prodNombre.' — Disp: '.$lote->cantidad_disponible.' ('.$nombreUbicacion.')'];
                                         });
                                     })
                                     ->searchable()
@@ -143,10 +144,11 @@ class DevolucionCompraForm
                                         if ($lote) {
                                             $set('producto_id', $lote->producto_id);
                                             $set('producto_variante_id', $lote->producto_variante_id);
-                                            $set('unidad_medida_id', $lote->recepcionItem->unidad_medida_id
-                                                 ?? $lote->producto->unidad_medida_id);
-                                            $set('cantidad_devolver', $lote->cantidad_disponible);
                                             $set('recepcion_item_id', $lote->recepcion_item_id);
+                                            $set('cantidad_devolver', $lote->cantidad_disponible);
+
+                                            $umId = $lote->recepcionItem ? $lote->recepcionItem->unidad_medida_id : ($lote->producto ? $lote->producto->unidad_medida_id : null);
+                                            $set('unidad_medida_id', $umId);
                                         }
                                     }),
 
@@ -155,7 +157,16 @@ class DevolucionCompraForm
                                     ->numeric()
                                     ->required()
                                     ->minValue(0.01)
-                                    ->maxValue(fn ($get) => $get('lote_id') ? (float) Lote::find($get('lote_id'))?->cantidad_disponible : 99999)
+                                    ->maxValue(function ($get) {
+                                        $loteId = $get('lote_id');
+                                        if ($loteId) {
+                                            $loteRec = Lote::find((int) $loteId);
+
+                                            return $loteRec ? (float) $loteRec->cantidad_disponible : 0.0;
+                                        }
+
+                                        return 99999.0;
+                                    })
                                     ->columnSpan(4)
                                     ->prefixIcon(Heroicon::Hashtag),
 

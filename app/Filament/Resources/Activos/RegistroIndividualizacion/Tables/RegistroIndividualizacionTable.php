@@ -72,7 +72,7 @@ class RegistroIndividualizacionTable
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalHeading('Individualizar Unidades Físicas')
-                    ->modalDescription(fn (RegistroIndividualizacion $record) => 'Estás a punto de registrar '.($record->cantidad_total - $record->cantidad_registrada)." unidades físicas para el producto '{$record->producto->nombre}'.")
+                    ->modalDescription(fn (RegistroIndividualizacion $record) => 'Estás a punto de registrar '.($record->cantidad_total - $record->cantidad_registrada)." unidades físicas para el producto '".($record->producto ? $record->producto->nombre : '')."'.")
                     ->schema([
                         Repeater::make('unidades')
                             ->label('Listado de Unidades Físicas')
@@ -104,7 +104,7 @@ class RegistroIndividualizacionTable
                             app(IndividualizarActivos::class)->execute(
                                 $record->id,
                                 $data['unidades'],
-                                auth()->id() ?? 1
+                                (int) auth()->id()
                             );
 
                             Notification::make()

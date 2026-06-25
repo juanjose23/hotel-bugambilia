@@ -246,7 +246,7 @@ class ActivosFlowSeeder extends Seeder
                 for ($u = 0; $u < $registro->cantidad_total; $u++) {
                     $unidades[] = [
                         'numero_serie' => 'SN-'.Str::upper(Str::random(8)),
-                        'nombre_descriptivo' => $nombresDelRegistro[$u] ?? ($registro->producto->nombre.' #'.($u + 1)),
+                        'nombre_descriptivo' => $nombresDelRegistro[$u] ?? (($registro->producto ? $registro->producto->nombre : '').' #'.($u + 1)),
                         'notas' => 'Unidad recibida en buen estado. Sin rasguños ni daños.',
                     ];
                 }

@@ -45,15 +45,15 @@ class ObtenerRecomendacionLogistica
         $filtered = $cotizaciones->filter(fn ($cot) => $cot->items->count() === $totalItems)
             ->map(function ($cot) {
                 $costoFinanciero = (float) $cot->total;
-                $costoLogistico = $costoFinanciero * ($cot->dias_entrega * self::PENALIZACION_DIARIA_RETRASO);
+                $costoLogistico = $costoFinanciero * ((float) $cot->dias_entrega * self::PENALIZACION_DIARIA_RETRASO);
                 $costoAdministrativo = self::COSTO_TRANSACCION_PROVEEDOR;
 
                 return [
                     'id' => $cot->id,
-                    'nombre' => $cot->proveedor?->persona->personaJuridica->razon_social ?? 'Proveedor #'.$cot->proveedor_id,
+                    'nombre' => $cot->proveedor?->persona?->personaJuridica->razon_social ?? 'Proveedor #'.$cot->proveedor_id,
                     'tco' => $costoFinanciero + $costoLogistico + $costoAdministrativo,
                     'precio_bruto' => $costoFinanciero,
-                    'dias' => $cot->dias_entrega,
+                    'dias' => (float) $cot->dias_entrega,
                     'razon' => 'Capacidad de surtido completo',
                 ];
             });
@@ -78,16 +78,16 @@ class ObtenerRecomendacionLogistica
 
             foreach ($cotizaciones as $cot) {
                 $cItem = $cot->items->where('producto_id', $sItem->producto_id)->first();
-                if ($cItem && ($mejorItem === null || $cItem->precio_unitario < $mejorItem->precio_unitario)) {
+                if ($cItem && ($mejorItem === null || (float) $cItem->precio_unitario < (float) $mejorItem->precio_unitario)) {
                     $mejorItem = $cItem;
                     $mejorCot = $cot;
                 }
             }
 
-            if ($mejorItem) {
-                $costoFinanciero += ($sItem->cantidad_solicitada * $mejorItem->precio_unitario);
+            if ($mejorItem && $mejorCot) {
+                $costoFinanciero += ((float) $sItem->cantidad_solicitada * (float) $mejorItem->precio_unitario);
                 $proveedoresIds[$mejorCot->id] = true;
-                $maxDias = max($maxDias, $mejorCot->dias_entrega);
+                $maxDias = max($maxDias, (int) $mejorCot->dias_entrega);
             }
         }
 
@@ -113,27 +113,43 @@ class ObtenerRecomendacionLogistica
 
         $proveedorFlash = $cotizaciones->where('dias_entrega', '<=', 2)->sortBy('total')->first();
         if ($proveedorFlash && $mejorSolo && $proveedorFlash->id !== $mejorSolo['id']) {
-            $sobrecostoFlash = (($proveedorFlash->total / $mejorSolo['precio_bruto']) - 1) * 100;
+            $flashTotal = floatval($proveedorFlash->total);
+            $sobrecostoFlash = (($flashTotal / floatval($mejorSolo['precio_bruto'])) - 1) * 100;
             if ($sobrecostoFlash < 12) {
+                $pJur = $proveedorFlash->proveedor?->persona?->personaJuridica;
+                $nombreProv = $pJur->razon_social ?? 'Proveedor desconocido';
+
                 return [
                     'tipo' => 'PROVEEDOR ÚNICO',
                     'subtipo' => 'URGENCIA_LOGISTICA',
                     'color' => 'success',
                     'cotizacion_id' => $proveedorFlash->id,
                     'ahorro' => 0,
-                    'mensaje' => "RECOMENDACIÓN POR URGENCIA: Se recomienda comprar todo a **{$proveedorFlash->proveedor->persona->personaJuridica->razon_social}**. Aunque no es la opción más barata, su entrega en {$proveedorFlash->dias_entrega} días es crítica para la operación y el sobrecosto es aceptable (".round($sobrecostoFlash, 1).'%).',
+                    'mensaje' => "RECOMENDACIÓN POR URGENCIA: Se recomienda comprar todo a **{$nombreProv}**. Aunque no es la opción más barata, su entrega en {$proveedorFlash->dias_entrega} días es crítica para la operación y el sobrecosto es aceptable (".round($sobrecostoFlash, 1).'%).',
                 ];
             }
         }
 
-        if ($mejorSolo && $mejorSolo['tco'] <= ($split['tco'] * (1 + self::MARGEN_PREFERENCIA_UNICO))) {
+        $splitTcoRaw = $split['tco'];
+        $splitTco = is_numeric($splitTcoRaw) ? (float) $splitTcoRaw : 0.0;
+        $mejorSoloTco = 0.0;
+        if ($mejorSolo) {
+            $mejorSoloTcoRaw = $mejorSolo['tco'];
+            $mejorSoloTco = (float) $mejorSoloTcoRaw;
+        }
+
+        if ($mejorSolo && $mejorSoloTco <= ($splitTco * (1 + self::MARGEN_PREFERENCIA_UNICO))) {
+            $mejorSoloNombre = is_string($mejorSolo['nombre'] ?? null) ? $mejorSolo['nombre'] : '';
+            $numProv = $split['num_proveedores'] ?? '';
+            $splitNumProv = is_scalar($numProv) ? (string) $numProv : '';
+
             return [
                 'tipo' => 'PROVEEDOR ÚNICO',
                 'subtipo' => 'EFICIENCIA_OPERATIVA',
                 'color' => 'success',
                 'cotizacion_id' => $mejorSolo['id'],
-                'ahorro' => max(0, $split['tco'] - $mejorSolo['tco']),
-                'mensaje' => "RECOMENDACIÓN POR SIMPLICIDAD: Comprar todo a **{$mejorSolo['nombre']}**. Centralizar la compra evita la fragmentación logística y los costos administrativos de gestionar {$split['num_proveedores']} proveedores.",
+                'ahorro' => max(0, $splitTco - $mejorSoloTco),
+                'mensaje' => "RECOMENDACIÓN POR SIMPLICIDAD: Comprar todo a **{$mejorSoloNombre}**. Centralizar la compra evita la fragmentación logística y los costos administrativos de gestionar {$splitNumProv} proveedores.",
             ];
         }
 
@@ -142,7 +158,7 @@ class ObtenerRecomendacionLogistica
             'subtipo' => 'AHORRO_ECONOMICO',
             'color' => 'warning',
             'cotizacion_id' => null,
-            'ahorro' => $mejorSolo ? ($mejorSolo['tco'] - $split['tco']) : 0,
+            'ahorro' => $mejorSolo ? ($mejorSoloTco - $splitTco) : 0,
             'mensaje' => 'RECOMENDACIÓN POR PRECIO: Se recomienda una **Compra Dividida**. El volumen de ahorro financiero compensa con creces los costos adicionales de transporte y administración.',
         ];
     }

@@ -7,6 +7,7 @@ namespace App\Models\Limpieza;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
@@ -48,5 +49,13 @@ class SolicitudLimpieza extends Model implements AuditableContract
     public function creador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creador_id');
+    }
+
+    /**
+     * @return HasMany<LimpiezaEjecucion, $this>
+     */
+    public function ejecuciones(): HasMany
+    {
+        return $this->hasMany(LimpiezaEjecucion::class, 'solicitud_id');
     }
 }

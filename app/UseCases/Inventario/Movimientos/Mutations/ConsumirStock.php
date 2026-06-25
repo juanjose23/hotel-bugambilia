@@ -71,7 +71,8 @@ class ConsumirStock
                 return $stock->lote?->fecha_vencimiento?->format('Y-m-d') ?? '9999-12-31';
             })->values();
 
-            $totalDisponible = (float) $ordenados->sum('cantidad');
+            $sum = $ordenados->sum('cantidad');
+            $totalDisponible = is_numeric($sum) ? (float) $sum : 0.0;
             if ($totalDisponible < $cantidadRequerida) {
                 throw new \RuntimeException(sprintf(
                     'Stock insuficiente en la bodega. Disponible: %f, Requerido: %f',

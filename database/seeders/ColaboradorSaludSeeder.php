@@ -10,7 +10,9 @@ class ColaboradorSaludSeeder extends Seeder
     public function run(): void
     {
         foreach ($this->registros() as $registro) {
-            $colaboradorId = $this->colaboradorId($registro['codigo']);
+            $codigoVal = $registro['codigo'] ?? '';
+            $codigo = is_string($codigoVal) ? $codigoVal : '';
+            $colaboradorId = $this->colaboradorId($codigo);
 
             if ($colaboradorId === null) {
                 continue;
@@ -19,29 +21,43 @@ class ColaboradorSaludSeeder extends Seeder
             DB::table('colaborador_datos_medicos')->updateOrInsert(
                 ['colaborador_id' => $colaboradorId],
                 [
-                    'tipo_sangre' => $registro['tipo_sangre'],
-                    'alergias' => $registro['alergias'],
-                    'enfermedades_cronicas' => $registro['enfermedades_cronicas'],
+                    'tipo_sangre' => $registro['tipo_sangre'] ?? '',
+                    'alergias' => $registro['alergias'] ?? '',
+                    'enfermedades_cronicas' => $registro['enfermedades_cronicas'] ?? '',
                     'estado' => 1,
                     'updated_at' => now(),
                     'created_at' => now(),
                 ]
             );
 
-            foreach ($registro['contactos'] as $contacto) {
-                DB::table('colaborador_contactos_emergencia')->updateOrInsert(
-                    [
-                        'colaborador_id' => $colaboradorId,
-                        'telefono' => $contacto['telefono'],
-                    ],
-                    [
-                        'nombre' => $contacto['nombre'],
-                        'parentesco' => $contacto['parentesco'],
-                        'estado' => 1,
-                        'updated_at' => now(),
-                        'created_at' => now(),
-                    ]
-                );
+            $contactos = $registro['contactos'] ?? [];
+            if (is_array($contactos)) {
+                foreach ($contactos as $contacto) {
+                    if (is_array($contacto)) {
+                        $telVal = $contacto['telefono'] ?? '';
+                        $tel = is_string($telVal) ? $telVal : '';
+
+                        $nomVal = $contacto['nombre'] ?? '';
+                        $nom = is_string($nomVal) ? $nomVal : '';
+
+                        $parentescoVal = $contacto['parentesco'] ?? '';
+                        $parentesco = is_string($parentescoVal) ? $parentescoVal : '';
+
+                        DB::table('colaborador_contactos_emergencia')->updateOrInsert(
+                            [
+                                'colaborador_id' => $colaboradorId,
+                                'telefono' => $tel,
+                            ],
+                            [
+                                'nombre' => $nom,
+                                'parentesco' => $parentesco,
+                                'estado' => 1,
+                                'updated_at' => now(),
+                                'created_at' => now(),
+                            ]
+                        );
+                    }
+                }
             }
         }
     }
@@ -105,6 +121,6 @@ class ColaboradorSaludSeeder extends Seeder
             ->where('codigo', $codigo)
             ->value('id');
 
-        return $colaboradorId !== null ? (int) $colaboradorId : null;
+        return is_numeric($colaboradorId) ? (int) $colaboradorId : null;
     }
 }

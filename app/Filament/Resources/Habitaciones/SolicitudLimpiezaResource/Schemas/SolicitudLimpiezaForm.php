@@ -48,6 +48,10 @@ class SolicitudLimpiezaForm
                                     return [];
                                 }
 
+                                if (! is_string($type) || ! class_exists($type)) {
+                                    return [];
+                                }
+
                                 return $type::pluck('nombre', 'id');
                             })
                             ->searchable()

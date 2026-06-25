@@ -45,8 +45,10 @@ class ProcesarInventarioFisico
                     continue;
                 }
 
-                $loteIdVal = $row['0']['v'] ?? null;
-                if (! $loteIdVal) {
+                /** @var array<int|string, mixed> $row */
+                $loteIdCell = $row[0] ?? $row['0'] ?? null;
+                $loteIdVal = is_array($loteIdCell) && isset($loteIdCell['v']) ? $loteIdCell['v'] : null;
+                if ($loteIdVal === null || ! is_numeric($loteIdVal)) {
                     continue;
                 }
 
@@ -56,9 +58,16 @@ class ProcesarInventarioFisico
                     continue;
                 }
 
-                $cantidadSistema = (float) ($row['4']['v'] ?? 0);
-                $cantidadFisica = (float) ($row['5']['v'] ?? 0);
-                $notas = $row['7']['v'] ?? '';
+                $cantidadSistemaCell = $row[4] ?? $row['4'] ?? null;
+                $cantidadFisicaCell = $row[5] ?? $row['5'] ?? null;
+                $notasCell = $row[7] ?? $row['7'] ?? null;
+
+                $cantidadSistemaVal = is_array($cantidadSistemaCell) && isset($cantidadSistemaCell['v']) ? $cantidadSistemaCell['v'] : 0.0;
+                $cantidadFisicaVal = is_array($cantidadFisicaCell) && isset($cantidadFisicaCell['v']) ? $cantidadFisicaCell['v'] : 0.0;
+
+                $cantidadSistema = is_numeric($cantidadSistemaVal) ? (float) $cantidadSistemaVal : 0.0;
+                $cantidadFisica = is_numeric($cantidadFisicaVal) ? (float) $cantidadFisicaVal : 0.0;
+                $notas = is_array($notasCell) && isset($notasCell['v']) && is_string($notasCell['v']) ? $notasCell['v'] : '';
 
                 if (abs($cantidadFisica - $cantidadSistema) < 0.0001) {
                     continue; // Perfect match, no adjustments needed
@@ -112,7 +121,7 @@ class ProcesarInventarioFisico
                     'documento_id' => $inventario->id,
                     'referencia' => "Ajuste Conciliación Física {$inventario->codigo}",
                     'creado_por_id' => $creadoPorId,
-                    'notas' => trim("Ajuste por inventario físico. Faltante/Sobrante: {$discrepancia}. Notas: {$notas}"),
+                    'notas' => trim('Ajuste por inventario físico. Faltante/Sobrante: '.$discrepancia.'. Notas: '.$notas),
                 ]);
 
                 $lotesAjustados++;

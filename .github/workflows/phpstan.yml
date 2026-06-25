@@ -8,7 +8,7 @@ on:
 
 jobs:
   phpstan:
-    name: PHPStan Level 6 Scan
+    name: PHPStan Level 9 Scan
     runs-on: ubuntu-latest
 
     steps:
@@ -42,4 +42,4 @@ jobs:
         run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: Run PHPStan Analysis
-        run: ./vendor/bin/phpstan analyse --memory-limit=1G
+        run: ./vendor/bin/phpstan analyse --level=9 --memory-limit=1G

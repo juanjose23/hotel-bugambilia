@@ -7,6 +7,7 @@ namespace App\Models\Inventario;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Producto;
 use App\Models\Catalogos\Ubicacion;
+use App\Models\User;
 use Database\Factories\Inventario\MovimientoStockFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -60,5 +61,11 @@ class MovimientoStock extends Model implements AuditableContract
     public function tipoCatalogo(): BelongsTo
     {
         return $this->belongsTo(Catalogo::class, 'tipo', 'codigo');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function creadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creado_por_id');
     }
 }

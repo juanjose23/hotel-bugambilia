@@ -38,7 +38,7 @@ class PoliticasTable
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
-                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
+                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
                     ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
                     ->sortable(),
 

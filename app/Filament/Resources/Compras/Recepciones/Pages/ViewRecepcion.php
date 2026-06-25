@@ -37,15 +37,15 @@ class ViewRecepcion extends ViewRecord
                             $record = $this->getRecord();
 
                             return $record->items->mapWithKeys(fn ($item) => [
-                                $item->id => "{$item->producto->nombre} (Recibido: {$item->cantidad_recibida})",
+                                $item->id => ($item->producto ? $item->producto->nombre : 'N/A').' (Recibido: '.$item->cantidad_recibida.')',
                             ])->toArray();
                         })
                         ->required()
                         ->live()
                         ->afterStateUpdated(function ($state, $set) {
-                            $item = RecepcionItem::find($state);
+                            $item = RecepcionItem::find((int) $state);
                             if ($item) {
-                                $set('nombre_prefijo', $item->producto->nombre);
+                                $set('nombre_prefijo', $item->producto ? $item->producto->nombre : '');
                                 $set('cantidad_a_convertir', (int) $item->cantidad_recibida);
                             }
                         }),
@@ -79,6 +79,14 @@ class ViewRecepcion extends ViewRecord
                 ])
                 ->action(function (array $data) {
                     try {
+                        /** @var array{recepcion_item_id: int, parent_id: int|null, nombre_prefijo: string, cantidad_a_convertir: int, niveles_por_unidad: int, posiciones_por_nivel: int} $data */
+                        $data['recepcion_item_id'] = intval($data['recepcion_item_id']);
+                        $data['cantidad_a_convertir'] = intval($data['cantidad_a_convertir']);
+                        $data['niveles_por_unidad'] = intval($data['niveles_por_unidad']);
+                        $data['posiciones_por_nivel'] = intval($data['posiciones_por_nivel']);
+                        $data['parent_id'] = $data['parent_id'] !== null ? intval($data['parent_id']) : null;
+                        $data['nombre_prefijo'] = (string) $data['nombre_prefijo'];
+                        /** @var array<int, Ubicacion> $creadas */
                         $creadas = app(ConvertirItemAUbicaciones::class)->execute($data);
 
                         $count = count(array_filter($creadas, fn ($u) => $u->tipo === 'estante'));
@@ -120,7 +128,7 @@ class ViewRecepcion extends ViewRecord
                     /** @var RecepcionCompra $record */
                     $record = $this->getRecord();
 
-                    return auth()->user() && auth()->user()->can('Compras:ImprimirRecepcion');
+                    return auth()->user()?->can('Compras:ImprimirRecepcion') ?? false;
                 }),
         ];
     }

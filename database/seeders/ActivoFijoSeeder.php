@@ -217,7 +217,7 @@ class ActivoFijoSeeder extends Seeder
                 // Cotización
                 $sub = 0;
                 $cot = Cotizacion::create([
-                    'solicitud_id' => $sol->id, 'proveedor_id' => $f['prov']->id,
+                    'solicitud_id' => $sol->id, 'proveedor_id' => $f['prov']?->id,
                     'fecha_cotizacion' => now()->subDays($f['dias'] - 3), 'dias_entrega' => rand(5, 10),
                     'condicion_pago_id' => $condPago->id, 'creada_por' => $admin->id,
                     'moneda_id' => $monedaUSD->id, 'es_elegida' => true,
@@ -225,7 +225,7 @@ class ActivoFijoSeeder extends Seeder
                     'subtotal' => 0, 'total' => 0,
                 ]);
                 foreach ($sol->items as $si) {
-                    $itemDef = collect($f['items'])->firstWhere('nombre', $si->producto->nombre);
+                    $itemDef = collect($f['items'])->firstWhere('nombre', $si->producto ? $si->producto->nombre : '');
                     $p = $itemDef['precio'] ?? 100;
                     $sl = $si->cantidad_aprobada * $p;
                     $sub += $sl;
@@ -239,7 +239,7 @@ class ActivoFijoSeeder extends Seeder
 
                 // OC
                 $oc = OrdenCompra::create([
-                    'codigo' => "OC-{$f['cod']}", 'proveedor_id' => $f['prov']->id,
+                    'codigo' => "OC-{$f['cod']}", 'proveedor_id' => $f['prov']?->id,
                     'solicitud_id' => $sol->id, 'cotizacion_id' => $cot->id,
                     'fecha_orden' => now()->subDays($f['dias'] - 5),
                     'condicion_pago_id' => $condPago->id,
@@ -305,7 +305,7 @@ class ActivoFijoSeeder extends Seeder
                                 'fecha_adquisicion' => now()->subDays(rand(1, 20))->toDateString(),
                                 'costo_adquisicion' => (float) $oi->precio_unitario,
                                 'moneda_id' => $monedaUSD->id,
-                                'proveedor_id' => $f['prov']->id,
+                                'proveedor_id' => $f['prov']?->id,
                                 'recepcion_item_id' => $rcItem->id,
                                 'vida_util_meses' => 60,
                                 'estado' => EstadoActivo::Activo,

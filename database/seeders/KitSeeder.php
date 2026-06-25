@@ -18,13 +18,15 @@ class KitSeeder extends Seeder
             ->keyBy('codigo');
 
         $find = function (string $codigo) use ($variantes): int {
-            if (! $variantes->has($codigo)) {
+            $variante = $variantes->get($codigo);
+
+            if ($variante === null) {
                 $this->command->warn("Variante {$codigo} no encontrada, se omite.");
 
                 return 0;
             }
 
-            return $variantes[$codigo]->id;
+            return $variante->id;
         };
 
         // =====================================================================

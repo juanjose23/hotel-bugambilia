@@ -31,6 +31,6 @@ class PersonaNatural extends Model implements AuditableContract
             $this->segundo_apellido ?? '',
         ];
 
-        return trim(preg_replace('/\s+/', ' ', implode(' ', array_filter($parts))));
+        return trim(preg_replace('/\s+/', ' ', implode(' ', array_filter($parts))) ?? '');
     }
 }

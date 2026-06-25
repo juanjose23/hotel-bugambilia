@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Compras\Solicitudes\Schemas;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Models\Compras\Solicitud;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -38,7 +39,7 @@ class SolicitudInfolist
                         TextEntry::make('colaborador.codigo')
                             ->label('Colaborador')
                             ->icon(Heroicon::User)
-                            ->formatStateUsing(fn ($state, $record) => "{$record?->colaborador?->codigo} - {$record?->colaborador?->persona?->primer_nombre}"),
+                            ->formatStateUsing(fn ($state, ?Solicitud $record) => ($record && $record->colaborador) ? ($record->colaborador->codigo.' - '.($record->colaborador->persona ? $record->colaborador->persona->primer_nombre : '')) : ''),
 
                         TextEntry::make('departamentoSolicitante.nombre')
                             ->label('Departamento')

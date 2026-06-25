@@ -17,10 +17,14 @@ readonly class InventarioGeneralActivosFiltro
      */
     public static function fromArray(array $data): self
     {
+        $estado = $data['estado'] ?? null;
+        $productoId = $data['producto_id'] ?? null;
+        $ubicacionTipo = $data['ubicacion_tipo'] ?? null;
+
         return new self(
-            estado: $data['estado'] ?? null,
-            productoId: isset($data['producto_id']) ? (int) $data['producto_id'] : null,
-            ubicacionTipo: $data['ubicacion_tipo'] ?? null,
+            estado: is_string($estado) ? $estado : null,
+            productoId: is_numeric($productoId) ? (int) $productoId : null,
+            ubicacionTipo: is_string($ubicacionTipo) ? $ubicacionTipo : null,
         );
     }
 

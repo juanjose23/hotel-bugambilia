@@ -55,6 +55,6 @@ class CalendarMantenimiento extends Widget
                 ];
             });
 
-        return json_encode($events);
+        return json_encode($events) ?: '[]';
     }
 }

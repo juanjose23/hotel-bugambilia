@@ -8,6 +8,7 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Models\Activos\ActivoAsignacion;
 use App\Models\Catalogos\Ubicacion;
+use App\Models\Limpieza\LimpiezaHorarioDetalle;
 use App\Models\Politicas\Politica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -125,6 +126,14 @@ class Espacio extends Model implements AuditableContract
     public function inventarioFijo(): MorphMany
     {
         return $this->asignacionesActivos()->whereNull('fecha_fin');
+    }
+
+    /**
+     * @return MorphMany<LimpiezaHorarioDetalle, $this>
+     */
+    public function horariosLimpieza(): MorphMany
+    {
+        return $this->morphMany(LimpiezaHorarioDetalle::class, 'limpiable');
     }
 
     /**

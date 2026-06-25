@@ -115,7 +115,7 @@ class LoteTable
                                 'cantidad' => $cantidad,
                                 'ubicacion_origen_id' => $record->ubicacion_id,
                                 'referencia' => 'Merma: '.$data['motivo'],
-                                'creado_por_id' => auth()->id(),
+                                'creado_por_id' => (int) auth()->id(),
                             ]);
 
                             Notification::make()
@@ -171,8 +171,10 @@ class LoteTable
                         ->action(function (array $data, Lote $record) {
                             $ubicacionOrigen = $record->ubicacion_id;
                             $ubicacionDestino = (int) $data['ubicacion_destino_id'];
+                            /** @var int<0, max> $ubicacionDestinoVal */
+                            $ubicacionDestinoVal = $ubicacionDestino >= 0 ? $ubicacionDestino : 0;
 
-                            $record->ubicacion_id = $ubicacionDestino;
+                            $record->ubicacion_id = $ubicacionDestinoVal;
                             $record->save();
 
                             MovimientoStock::create([
@@ -183,7 +185,7 @@ class LoteTable
                                 'ubicacion_origen_id' => $ubicacionOrigen,
                                 'ubicacion_destino_id' => $ubicacionDestino,
                                 'referencia' => 'Traslado: '.$data['motivo'],
-                                'creado_por_id' => auth()->id(),
+                                'creado_por_id' => (int) auth()->id(),
                             ]);
 
                             Notification::make()
@@ -202,7 +204,7 @@ class LoteTable
                         ->modalHeading('Liberar Lote de Cuarentena')
                         ->modalDescription('El lote será marcado como Disponible y se le asignará una ubicación física según la PutawayPolicy.')
                         ->action(function (Lote $record) {
-                            app(LiberarLotesCuarentena::class)->execute([$record->id], auth()->id());
+                            app(LiberarLotesCuarentena::class)->execute([(int) $record->id], (int) auth()->id());
 
                             Notification::make()
                                 ->title('Lote liberado')
@@ -236,7 +238,7 @@ class LoteTable
                                 'ubicacion_origen_id' => $record->ubicacion_id,
                                 'ubicacion_destino_id' => $record->ubicacion_id,
                                 'referencia' => 'Envío a cuarentena: '.$data['motivo'],
-                                'creado_por_id' => auth()->id(),
+                                'creado_por_id' => (int) auth()->id(),
                                 'notas' => 'Retención manual por control de calidad.',
                             ]);
 
@@ -263,7 +265,7 @@ class LoteTable
                                 ->required(),
                         ])
                         ->action(function (array $data, Lote $record) {
-                            app(RechazarLotesCuarentena::class)->execute([$record->id], $data['motivo'], auth()->id());
+                            app(RechazarLotesCuarentena::class)->execute([(int) $record->id], $data['motivo'], (int) auth()->id());
 
                             Notification::make()
                                 ->title('Lote Rechazado')
@@ -285,8 +287,9 @@ class LoteTable
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(function (Collection $records) {
-                        app(LiberarLotesCuarentena::class)
-                            ->execute($records->pluck('id')->all());
+                        /** @var array<int> $loteIds */
+                        $loteIds = $records->pluck('id')->map(fn ($id) => is_numeric($id) ? (int) $id : 0)->all();
+                        app(LiberarLotesCuarentena::class)->execute($loteIds);
 
                         Notification::make()
                             ->title('Lotes liberados')
@@ -308,7 +311,10 @@ class LoteTable
                             ->required(),
                     ])
                     ->action(function (array $data, Collection $records) {
-                        app(RechazarLotesCuarentena::class)->execute($records->pluck('id')->all(), $data['motivo'], auth()->id());
+                        /** @var array<int> $loteIds */
+                        $loteIds = $records->pluck('id')->map(fn ($id) => is_numeric($id) ? (int) $id : 0)->all();
+                        $motivo = is_string($data['motivo']) ? $data['motivo'] : '';
+                        app(RechazarLotesCuarentena::class)->execute($loteIds, $motivo, (int) auth()->id());
 
                         Notification::make()
                             ->title('Lotes Rechazados')

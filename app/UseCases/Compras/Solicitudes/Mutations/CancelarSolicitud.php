@@ -24,9 +24,11 @@ class CancelarSolicitud
             $items = $solicitud->items()->get();
 
             foreach ($itemsCancelacion as $i => $itemData) {
-                if (isset($items[$i])) {
+                if (is_array($itemData) && isset($items[$i])) {
+                    $cantAprobadaVal = $itemData['cantidad_aprobada'] ?? 0;
+                    $cantAprobada = is_numeric($cantAprobadaVal) ? (int) $cantAprobadaVal : 0;
                     $items[$i]->update([
-                        'cantidad_aprobada' => $itemData['cantidad_aprobada'],
+                        'cantidad_aprobada' => $cantAprobada,
                     ]);
                 }
             }

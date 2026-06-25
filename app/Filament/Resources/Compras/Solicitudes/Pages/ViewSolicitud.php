@@ -42,7 +42,7 @@ class ViewSolicitud extends ViewRecord
                 ->color('info')
                 ->url(fn (Solicitud $record) => route('reporte.solicitud', $record))
                 ->openUrlInNewTab()
-                ->visible(fn () => auth()->user()->can('Compras:ImprimirSolicitud')),
+                ->visible(fn () => auth()->user()?->can('Compras:ImprimirSolicitud') ?? false),
             EditAction::make()
                 ->visible(function (): bool {
                     /** @var Solicitud $record */

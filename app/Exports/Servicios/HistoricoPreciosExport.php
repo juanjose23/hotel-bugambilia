@@ -26,8 +26,20 @@ class HistoricoPreciosExport implements FromView, ShouldAutoSize, WithStyles
 
     public function view(): View
     {
+        $rawServicioId = $this->filtros['servicio_id'] ?? null;
+        $rawMonedaId = $this->filtros['moneda_id'] ?? null;
+        $rawEstado = $this->filtros['estado'] ?? null;
+        $rawCategoriaId = $this->filtros['categoria_id'] ?? null;
+
+        $filtros = [
+            'servicio_id' => is_numeric($rawServicioId) ? (int) $rawServicioId : null,
+            'moneda_id' => is_numeric($rawMonedaId) ? (int) $rawMonedaId : null,
+            'estado' => is_numeric($rawEstado) ? (int) $rawEstado : null,
+            'categoria_id' => is_numeric($rawCategoriaId) ? (int) $rawCategoriaId : null,
+        ];
+
         /** @var Collection<int, mixed> $data */
-        $data = app(ObtenerHistoricoServiciosPrecios::class)->agrupadoPorCategoria($this->filtros);
+        $data = app(ObtenerHistoricoServiciosPrecios::class)->agrupadoPorCategoria($filtros);
 
         return view('exports.servicios.historico-precios', [
             'agrupado' => $data,

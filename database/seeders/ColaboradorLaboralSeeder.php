@@ -10,7 +10,9 @@ class ColaboradorLaboralSeeder extends Seeder
     public function run(): void
     {
         foreach ($this->registros() as $registro) {
-            $colaboradorId = $this->colaboradorId($registro['codigo']);
+            $codigoVal = $registro['codigo'] ?? '';
+            $codigo = is_string($codigoVal) ? $codigoVal : '';
+            $colaboradorId = $this->colaboradorId($codigo);
 
             if ($colaboradorId === null) {
                 continue;
@@ -19,22 +21,28 @@ class ColaboradorLaboralSeeder extends Seeder
             DB::table('colaborador_salarios')->updateOrInsert(
                 ['colaborador_id' => $colaboradorId, 'estado' => 1],
                 [
-                    'salario' => $registro['salario'],
-                    'fecha_inicio' => $registro['fecha_inicio'],
+                    'salario' => $registro['salario'] ?? 0,
+                    'fecha_inicio' => $registro['fecha_inicio'] ?? now(),
                     'fecha_fin' => null,
                     'updated_at' => now(),
                     'created_at' => now(),
                 ]
             );
 
+            $cargoCodVal = $registro['cargo_codigo'] ?? '';
+            $cargoCod = is_string($cargoCodVal) ? $cargoCodVal : '';
+
+            $deptCodVal = $registro['departamento_codigo'] ?? '';
+            $deptCod = is_string($deptCodVal) ? $deptCodVal : '';
+
             DB::table('colaborador_cargos_historial')->updateOrInsert(
                 [
                     'colaborador_id' => $colaboradorId,
-                    'cargo_id' => $this->catalogoId($registro['cargo_codigo']),
+                    'cargo_id' => $this->catalogoId($cargoCod),
                 ],
                 [
-                    'departamento_id' => $this->catalogoId($registro['departamento_codigo']),
-                    'fecha_inicio' => $registro['fecha_inicio'],
+                    'departamento_id' => $this->catalogoId($deptCod),
+                    'fecha_inicio' => $registro['fecha_inicio'] ?? now(),
                     'fecha_fin' => null,
                     'estado' => 1,
                     'updated_at' => now(),
@@ -42,18 +50,29 @@ class ColaboradorLaboralSeeder extends Seeder
                 ]
             );
 
-            foreach ($registro['documentos'] as $documento) {
-                DB::table('colaborador_documentos')->updateOrInsert(
-                    [
-                        'colaborador_id' => $colaboradorId,
-                        'tipo' => $documento['tipo'],
-                    ],
-                    [
-                        'archivo' => $documento['archivo'],
-                        'updated_at' => now(),
-                        'created_at' => now(),
-                    ]
-                );
+            $documentos = $registro['documentos'] ?? [];
+            if (is_array($documentos)) {
+                foreach ($documentos as $documento) {
+                    if (is_array($documento)) {
+                        $docTipoVal = $documento['tipo'] ?? '';
+                        $docTipo = is_string($docTipoVal) ? $docTipoVal : '';
+
+                        $docArchivoVal = $documento['archivo'] ?? '';
+                        $docArchivo = is_string($docArchivoVal) ? $docArchivoVal : '';
+
+                        DB::table('colaborador_documentos')->updateOrInsert(
+                            [
+                                'colaborador_id' => $colaboradorId,
+                                'tipo' => $docTipo,
+                            ],
+                            [
+                                'archivo' => $docArchivo,
+                                'updated_at' => now(),
+                                'created_at' => now(),
+                            ]
+                        );
+                    }
+                }
             }
         }
     }
@@ -124,7 +143,7 @@ class ColaboradorLaboralSeeder extends Seeder
             ->where('codigo', $codigo)
             ->value('id');
 
-        return $colaboradorId !== null ? (int) $colaboradorId : null;
+        return is_numeric($colaboradorId) ? (int) $colaboradorId : null;
     }
 
     private function catalogoId(string $codigo): int
@@ -133,7 +152,7 @@ class ColaboradorLaboralSeeder extends Seeder
             ->where('codigo', $codigo)
             ->value('id');
 
-        if ($catalogoId === null) {
+        if (! is_numeric($catalogoId)) {
             throw new \RuntimeException("No se encontro el catalogo requerido: {$codigo}");
         }
 

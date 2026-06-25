@@ -56,7 +56,8 @@ class ObtenerOrdenCompraConItems
     /** @return array<int, string> */
     public function getItemOptions(int $ordenId): array
     {
-        return OrdenCompra::findOrFail($ordenId)
+        /** @var array<int, string> $result */
+        $result = OrdenCompra::findOrFail($ordenId)
             ->items()
             ->with(['producto', 'variante'])
             ->withSum(['recepcionItems' => function ($q) {
@@ -69,15 +70,15 @@ class ObtenerOrdenCompraConItems
             }], 'cantidad_recibida')
             ->get()
             ->mapWithKeys(function ($item) {
-                $receivedQty = (float) ($item->recepcion_items_sum_cantidad_recibida ?? 0);
+                $receivedQty = floatval($item->recepcion_items_sum_cantidad_recibida ?? 0);
 
-                $pending = max(0, (float) $item->cantidad - $receivedQty);
+                $pending = max(0, floatval($item->cantidad) - $receivedQty);
 
                 if ($pending <= 0) {
                     return [];
                 }
 
-                $label = "{$item->producto->nombre}";
+                $label = $item->producto !== null ? $item->producto->nombre : 'Producto #'.$item->producto_id;
                 if ($item->variante) {
                     $label .= " ({$item->variante->codigo})";
                 }
@@ -86,5 +87,7 @@ class ObtenerOrdenCompraConItems
                 return [$item->id => $label];
             })
             ->toArray();
+
+        return $result;
     }
 }

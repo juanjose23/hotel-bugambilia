@@ -19,18 +19,22 @@ class AnalizarScoringCotizaciones
             return null;
         }
 
-        $minTotal = $cotizaciones->min('total');
-        $minDias = $cotizaciones->min('dias_entrega');
+        $minTotalRaw = $cotizaciones->min('total');
+        $minDiasRaw = $cotizaciones->min('dias_entrega');
+        $minTotal = is_numeric($minTotalRaw) ? (float) $minTotalRaw : 0.0;
+        $minDias = is_numeric($minDiasRaw) ? (float) $minDiasRaw : 0.0;
 
-        $minTotalRef = $minTotal > 0 ? $minTotal : 1;
-        $minDiasRef = $minDias > 0 ? $minDias : 1;
+        $minTotalRef = $minTotal > 0 ? $minTotal : 1.0;
+        $minDiasRef = $minDias > 0 ? $minDias : 1.0;
 
-        $mejorScore = -1;
+        $mejorScore = -1.0;
         $ganadoraId = null;
 
         foreach ($cotizaciones as $cot) {
-            $total = $cot->total > 0 ? $cot->total : 1;
-            $dias = $cot->dias_entrega > 0 ? $cot->dias_entrega : 1;
+            $rawTotal = $cot->total > 0 ? $cot->total : 1;
+            $rawDias = $cot->dias_entrega > 0 ? $cot->dias_entrega : 1;
+            $total = (float) $rawTotal;
+            $dias = (float) $rawDias;
 
             $scorePrecio = ($minTotalRef / $total) * 60;
             $scoreTiempo = ($minDiasRef / $dias) * 40;
@@ -56,14 +60,19 @@ class AnalizarScoringCotizaciones
             return collect();
         }
 
-        $minTotal = $cotizaciones->min('total');
-        $minDias = $cotizaciones->min('dias_entrega');
-        $minTotalRef = $minTotal > 0 ? $minTotal : 1;
-        $minDiasRef = $minDias > 0 ? $minDias : 1;
+        $minTotalRaw2 = $cotizaciones->min('total');
+        $minDiasRaw2 = $cotizaciones->min('dias_entrega');
+        $minTotal = is_numeric($minTotalRaw2) ? (float) $minTotalRaw2 : 0.0;
+        $minDias = is_numeric($minDiasRaw2) ? (float) $minDiasRaw2 : 0.0;
+        $minTotalRef = $minTotal > 0 ? $minTotal : 1.0;
+        $minDiasRef = $minDias > 0 ? $minDias : 1.0;
 
-        return $cotizaciones->map(function ($cot) use ($minTotalRef, $minDiasRef) {
-            $total = $cot->total > 0 ? $cot->total : 1;
-            $dias = $cot->dias_entrega > 0 ? $cot->dias_entrega : 1;
+        /** @var Collection<int, array{cotizacion_id: mixed, score_precio: float, score_tiempo: float, score_total: float}> $result */
+        $result = $cotizaciones->map(function ($cot) use ($minTotalRef, $minDiasRef) {
+            $rawTotal = $cot->total > 0 ? $cot->total : 1;
+            $rawDias = $cot->dias_entrega > 0 ? $cot->dias_entrega : 1;
+            $total = (float) $rawTotal;
+            $dias = (float) $rawDias;
 
             $scorePrecio = ($minTotalRef / $total) * 60;
             $scoreTiempo = ($minDiasRef / $dias) * 40;
@@ -75,5 +84,7 @@ class AnalizarScoringCotizaciones
                 'score_total' => round($scorePrecio + $scoreTiempo, 2),
             ];
         });
+
+        return $result;
     }
 }

@@ -8,15 +8,19 @@ final class HotelInfo
 {
     public static function getLogoBase64(): string
     {
-        $logoPath = public_path(config('hotel.logo'));
+        $logoConfig = config('hotel.logo');
+        $logo = is_string($logoConfig) ? $logoConfig : '';
+        $logoPath = public_path($logo);
 
         if (! file_exists($logoPath)) {
             return '';
         }
 
         $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+        $content = file_get_contents($logoPath);
+        $base64 = is_string($content) ? base64_encode($content) : '';
 
-        return 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
+        return 'data:image/'.$type.';base64,'.$base64;
     }
 
     /**

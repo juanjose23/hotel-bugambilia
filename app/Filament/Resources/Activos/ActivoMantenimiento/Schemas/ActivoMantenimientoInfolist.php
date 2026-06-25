@@ -100,8 +100,10 @@ class ActivoMantenimientoInfolist
                         ->label('Taller / Proveedor Externo')
                         ->icon(Heroicon::BuildingOffice2)
                         ->formatStateUsing(fn ($state, $record) => $record->plan && $record->plan->proveedor
-                            ? "{$record->plan->proveedor->codigo} - ".($record->plan->proveedor->persona->personaJuridica->razon_social
-                                ?? "{$record->plan->proveedor->persona->primer_nombre} {$record->plan->proveedor->persona->personaNatural?->primer_apellido}")
+                            ? $record->plan->proveedor->codigo.' - '.(
+                                ($record->plan->proveedor->persona && $record->plan->proveedor->persona->personaJuridica ? $record->plan->proveedor->persona->personaJuridica->razon_social : null)
+                                ?? ($record->plan->proveedor->persona ? $record->plan->proveedor->persona->primer_nombre.' '.($record->plan->proveedor->persona->personaNatural ? $record->plan->proveedor->persona->personaNatural->primer_apellido : '') : '')
+                            )
                             : null)
                         ->placeholder('Mantenimiento Interno'),
 
