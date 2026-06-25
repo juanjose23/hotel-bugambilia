@@ -6,6 +6,7 @@ namespace App\Filament\Pages\Inventario;
 
 use App\Models\Catalogos\Producto;
 use App\Models\Inventario\Lote;
+use App\Models\Monedas\Moneda;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesCuarentena;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesProximosVencer;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesVencidos;
@@ -70,9 +71,12 @@ class ReportesInventario extends Page
 
     public ?float $totalPerdidas = null;
 
+    public string $monedaSimbolo = 'C$';
+
     public function mount(): void
     {
-        // Cargar resúmenes rápidos al montar la página
+        $this->monedaSimbolo = Moneda::where('es_predeterminada', true)->value('simbolo') ?? 'C$';
+
         $this->stockPorProducto = app(ObtenerStockPorProducto::class)->ejecutar();
         $this->lotesCuarentena = app(ObtenerLotesCuarentena::class)->ejecutar();
         $this->lotesProximosVencer = app(ObtenerLotesProximosVencer::class)->ejecutar(['dias' => 30]);

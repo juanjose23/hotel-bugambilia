@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers;
 
 use App\Enums\HabitacionesEspacios\EstadoServicioAsignacion;
-use App\Models\Habitaciones\ServicioHabitacion;
+use App\Models\Shared\ServicioAsignacion;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -64,7 +64,7 @@ class ServiciosRelationManager extends RelationManager
                 return;
             }
 
-            $query = ServicioHabitacion::withTrashed()
+            $query = ServicioAsignacion::withTrashed()
                 ->where('servicio_id', $servicioId)
                 ->where('habitacion_id', $parentRecord->getKey());
 

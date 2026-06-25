@@ -32,6 +32,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->unique(['tipo_identificacion', 'numero_identificacion'], 'uq_personas_juridicas_identificacion');
+            $table->index('persona_id');
         });
 
         if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -51,6 +52,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('personas_juridicas', fn (Blueprint $t) => $t->dropIndex(['persona_id']));
         Schema::dropIfExists('personas_juridicas');
     }
 };

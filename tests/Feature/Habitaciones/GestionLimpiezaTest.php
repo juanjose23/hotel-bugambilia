@@ -6,6 +6,7 @@ namespace Tests\Feature\Habitaciones;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoLimpieza;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Ubicacion;
@@ -103,7 +104,7 @@ it('puede registrar una solicitud de limpieza para una habitacion y cambia el es
         ->and($solicitud->limpiable_type)->toBe(Habitacion::class)
         ->and($solicitud->limpiable_id)->toBe($habitacion->id)
         ->and($solicitud->prioridad)->toBe('alta')
-        ->and($solicitud->estado)->toBe('pendiente')
+        ->and($solicitud->estado)->toBe(EstadoLimpieza::Pendiente)
         ->and($solicitud->notas)->toBe('Huésped hizo check-out, limpiar a fondo')
         ->and($solicitud->personal_id)->toBeNull();
 
@@ -128,7 +129,7 @@ it('puede registrar una solicitud de limpieza para un espacio y cambia el estado
         ->and($solicitud->limpiable_type)->toBe(Espacio::class)
         ->and($solicitud->limpiable_id)->toBe($espacio->id)
         ->and($solicitud->prioridad)->toBe('normal')
-        ->and($solicitud->estado)->toBe('pendiente');
+        ->and($solicitud->estado)->toBe(EstadoLimpieza::Pendiente);
 
     // Validar que el espacio cambió su estado a Limpieza (3)
     $espacio->refresh();
@@ -172,7 +173,7 @@ it('notifica al personal de limpieza de forma especifica cuando se crea asignada
         'limpiable_type' => Habitacion::class,
         'limpiable_id' => $habitacion->id,
         'prioridad' => 'normal',
-        'estado' => 'pendiente',
+        'estado' => EstadoLimpieza::Pendiente,
         'personal_id' => $personal->id,
     ]);
 
@@ -202,7 +203,7 @@ it('notifica al personal de limpieza de forma especifica cuando se actualiza la 
         'limpiable_type' => Habitacion::class,
         'limpiable_id' => $habitacion->id,
         'prioridad' => 'normal',
-        'estado' => 'pendiente',
+        'estado' => EstadoLimpieza::Pendiente,
     ]);
 
     // No debe tener notificaciones el personal todavía
@@ -250,7 +251,7 @@ it('inicia la limpieza de una habitacion correctamente', function () {
         'limpiable_type' => Habitacion::class,
         'limpiable_id' => $habitacion->id,
         'prioridad' => 'normal',
-        'estado' => 'pendiente',
+        'estado' => EstadoLimpieza::Pendiente,
     ]);
 
     // Autenticar al usuario
@@ -258,7 +259,7 @@ it('inicia la limpieza de una habitacion correctamente', function () {
 
     // Simular el inicio de limpieza
     $solicitud->update([
-        'estado' => 'en_progreso',
+        'estado' => EstadoLimpieza::EnProgreso,
         'personal_id' => $user->id,
     ]);
 
@@ -268,7 +269,7 @@ it('inicia la limpieza de una habitacion correctamente', function () {
 
     // Validaciones
     $solicitud->refresh();
-    expect($solicitud->estado)->toBe('en_progreso')
+    expect($solicitud->estado)->toBe(EstadoLimpieza::EnProgreso)
         ->and($solicitud->personal_id)->toBe($user->id);
 
     $habitacion->refresh();
@@ -291,7 +292,7 @@ it('completa la limpieza de una habitacion correctamente', function () {
         'limpiable_id' => $habitacion->id,
         'personal_id' => $user->id,
         'prioridad' => 'normal',
-        'estado' => 'en_progreso',
+        'estado' => EstadoLimpieza::EnProgreso,
     ]);
 
     // Autenticar al usuario
@@ -299,7 +300,7 @@ it('completa la limpieza de una habitacion correctamente', function () {
 
     // Simular el término de limpieza
     $solicitud->update([
-        'estado' => 'completada',
+        'estado' => EstadoLimpieza::Completada,
     ]);
 
     $solicitud->limpiable->update([
@@ -308,7 +309,7 @@ it('completa la limpieza de una habitacion correctamente', function () {
 
     // Validaciones
     $solicitud->refresh();
-    expect($solicitud->estado)->toBe('completada');
+    expect($solicitud->estado)->toBe(EstadoLimpieza::Completada);
 
     $habitacion->refresh();
     expect($habitacion->estado)->toBe(EstadoHabitacion::Activa);

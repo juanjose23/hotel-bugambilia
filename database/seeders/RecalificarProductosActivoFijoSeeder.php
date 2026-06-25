@@ -93,7 +93,7 @@ class RecalificarProductosActivoFijoSeeder extends Seeder
 
         $this->command->info("   Total recalificados ahora: {$actualizados} (tenían tipo incorrecto: {$antes})");
 
-        // Verificación: confirmar que hay productos tipo=3 disponibles para el ActivosFlowSeeder
+        // Verificación: confirmar que hay productos tipo=3 disponibles para el ActivoFijoSeeder
         $totalActivos = DB::table('productos')->where('tipo', 3)->count();
         $this->command->info("   Total global tipo=3: {$totalActivos} productos listos para individualización.");
     }

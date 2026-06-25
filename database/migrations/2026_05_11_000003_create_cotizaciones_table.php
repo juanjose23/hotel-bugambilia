@@ -65,6 +65,11 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['solicitud_id', 'proveedor_id']);
+            $table->index('condicion_pago_id');
+            $table->index('moneda_id');
+            $table->index('creada_por');
+            $table->index('elegida_por');
+            $table->index('estado');
         });
 
         // Garantizar que solo exista una cotización elegida por solicitud
@@ -76,6 +81,13 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('cotizaciones', function (Blueprint $t) {
+            $t->dropIndex(['condicion_pago_id']);
+            $t->dropIndex(['moneda_id']);
+            $t->dropIndex(['creada_por']);
+            $t->dropIndex(['elegida_por']);
+            $t->dropIndex(['estado']);
+        });
         Schema::dropIfExists('cotizaciones');
     }
 };

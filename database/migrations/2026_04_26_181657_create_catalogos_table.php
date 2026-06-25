@@ -32,6 +32,8 @@ return new class extends Migration
             $table->integer('estado')->default(1)->comment('1=activo, 0=inactivo');
             $table->timestamps();
             $table->unique(['catalogo_tipo_id', 'codigo'], 'uq_catalogos_tipo_codigo');
+            $table->index('catalogo_tipo_id');
+            $table->index('padre_id');
         });
     }
 
@@ -40,6 +42,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('catalogos', fn (Blueprint $t) => $t->dropIndex(['catalogo_tipo_id']));
+        Schema::table('catalogos', fn (Blueprint $t) => $t->dropIndex(['padre_id']));
         Schema::dropIfExists('catalogos');
     }
 };

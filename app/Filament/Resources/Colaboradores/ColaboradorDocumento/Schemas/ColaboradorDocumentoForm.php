@@ -47,6 +47,8 @@ class ColaboradorDocumentoForm
                         ->disk('public')
                         ->directory('colaboradores/documentos')
                         ->visibility('public')
+                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/webp'])
+                        ->maxSize(10240)
                         ->downloadable()
                         ->openable()
                         ->helperText('Suba el archivo escaneado en formato PDF o imagen.')

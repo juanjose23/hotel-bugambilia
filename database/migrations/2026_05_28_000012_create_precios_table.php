@@ -22,12 +22,13 @@ return new class extends Migration
             $table->string('tipo_precio', 50)->default('base');
             $table->timestamps();
             $table->softDeletes();
-
+            $table->index('moneda_id');
         });
     }
 
     public function down(): void
     {
+        Schema::table('precios', fn (Blueprint $t) => $t->dropIndex(['moneda_id']));
         Schema::dropIfExists('precios');
     }
 };

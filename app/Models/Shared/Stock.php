@@ -28,8 +28,6 @@ class Stock extends Model implements AuditableContract
         'ultima_verificacion' => 'datetime',
     ];
 
-    protected $appends = ['estado_enum'];
-
     /**
      * @return MorphTo<Model, $this>
      */

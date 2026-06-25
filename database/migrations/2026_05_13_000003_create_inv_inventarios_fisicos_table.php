@@ -46,11 +46,13 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['estado']);
+            $table->index('creado_por_id');
         });
     }
 
     public function down(): void
     {
+        Schema::table('inv_inventarios_fisicos', fn (Blueprint $t) => $t->dropIndex(['creado_por_id']));
         Schema::dropIfExists('inv_inventarios_fisicos');
     }
 };

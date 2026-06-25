@@ -29,4 +29,8 @@ return [
     'mtto_notificar_proximos' => env('JOB_MANTENIMIENTO_NOTIFICAR_PROXIMOS_AT', '07:00'),
 
     'mtto_auto_completar' => env('JOB_MANTENIMIENTO_AUTO_COMPLETAR_AT', '23:30'),
+
+    'limpieza_materializar' => env('JOB_LIMPIEZA_MATERIALIZAR_AT', '05:30'),
+
+    'limpieza_recordatorio' => env('JOB_LIMPIEZA_RECORDATORIO_AT', '12:00'),
 ];

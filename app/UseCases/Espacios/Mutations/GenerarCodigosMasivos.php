@@ -11,13 +11,7 @@ use Illuminate\Support\Facades\DB;
 class GenerarCodigosMasivos
 {
     /**
-     * Genera códigos secuenciales en lote para espacios según su tipo.
-     *
-     * @param  TipoEspacio  $tipo  Tipo de espacio (MESA, SALON, etc.)
-     * @param  int  $cantidad  Número de espacios a generar
-     * @param  int|null  $padre_id  Espacio padre opcional (ej. restaurante padre de mesas)
-     * @param  string|null  $nombreBase  Base del nombre (ej. "Mesa" → "Mesa 1", "Mesa 2")
-     * @return list<array{id: int, codigo: string, nombre: string}> IDs y códigos generados
+     * @return list<array{id: int, codigo: string, nombre: string}>
      *
      * @throws \InvalidArgumentException
      */
@@ -44,7 +38,7 @@ class GenerarCodigosMasivos
                 $numero = $inicio + $i;
                 $codigo = $prefijo.'-'.str_pad((string) $numero, 4, '0', STR_PAD_LEFT);
 
-                $nombre = $nombreBase.' '.($tipo === TipoEspacio::RESTAURANTE ? '' : $numero);
+                $nombre = $nombreBase.' '.$numero;
 
                 $espacio = Espacio::create([
                     'codigo' => $codigo,

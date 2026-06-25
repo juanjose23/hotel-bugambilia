@@ -1,3 +1,4 @@
+@php use App\Filament\Resources\Catalogos\Ubicacions\UbicacionResource; @endphp
 <div x-data="{ expanded: true }" class="relative" style="margin-left: {{ $level > 0 ? '2rem' : '0' }}">
     <!-- Connector Line -->
     @if ($level > 0)
@@ -32,7 +33,7 @@
 
         <!-- Node Content Card -->
         <div class="flex-1 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-6 py-3 shadow-sm transition-all duration-300 hover:border-primary-500/30 hover:bg-gray-50 dark:border-white/5 dark:bg-gray-900 dark:shadow-none dark:hover:bg-gray-800 cursor-pointer"
-            @click="window.location.href = '{{ \App\Filament\Resources\Catalogos\Ubicacions\UbicacionResource::getUrl('view', ['record' => $node['id']]) }}'">
+            @click="window.location.href = '{{ UbicacionResource::getUrl('view', ['record' => $node['id']]) }}'">
             <div class="flex items-center gap-4">
                 <div>
                     <h4

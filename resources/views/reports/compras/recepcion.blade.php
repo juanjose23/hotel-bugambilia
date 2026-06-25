@@ -1,3 +1,5 @@
+@php use App\Enums\Compras\EstadoRecepcion; @endphp
+
 @extends('layouts.reporte-htb')
 
 @section('report_code', 'HTB-COM-004')
@@ -42,7 +44,7 @@
                                 <td style="width: 50%; vertical-align: top; text-align: right;">
                                     <strong style="color: #711C37; font-size: 9px; text-transform: uppercase;">Detalles Recepción</strong><br>
                                     <span style="font-size: 11px; font-weight: bold;">Fecha: {{ $record->fecha_recepcion->format('d/m/Y') }}</span><br>
-                                    <span class="badge {{ $record->estado === \App\Enums\Compras\EstadoRecepcion::Completa ? 'badge-on' : 'badge-off' }}">
+                                    <span class="badge {{ $record->estado === EstadoRecepcion::Completa ? 'badge-on' : 'badge-off' }}">
                                         {{ $record->estado?->label() ?? 'N/A' }}
                                     </span>
                                 </td>

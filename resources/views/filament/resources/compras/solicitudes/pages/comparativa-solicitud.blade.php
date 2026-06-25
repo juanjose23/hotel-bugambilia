@@ -111,7 +111,7 @@
                             <div @class(['pt-4', 'pb-2' => $cot['es_ganadora']])>
                                 @if(!$cot['es_ganadora'])
                                     <a 
-                                        href="/admin/compras/cotizaciones?tableFilters[solicitud_id][value]={{ $record->id }}"
+                                        href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('index', ['tableFilters' => ['solicitud_id' => ['value' => $record->id]]]) }}"
                                         @class([
                                             'block w-full px-4 py-2 text-sm font-bold text-center text-white transition-all rounded-xl focus:ring-4',
                                             'bg-amber-500 hover:bg-amber-600 focus:ring-amber-500/20 shadow-amber-200' => $cot['es_recomendada'],
@@ -124,7 +124,7 @@
                                     <div class="flex flex-col items-center justify-center p-2 text-sm font-bold text-primary-600 bg-primary-50 dark:bg-primary-900/20 rounded-xl">
                                         <x-heroicon-m-sparkles class="w-5 h-5 mb-1" /> Oferta Seleccionada
                                         <p class="text-[10px] text-gray-400 uppercase font-normal">Listo para generar Orden</p>
-                                        <a href="/admin/compras/cotizaciones?tableFilters[solicitud_id][value]={{ $record->id }}" class="mt-2 text-[11px] underline hover:text-primary-700">Ver Detalles</a>
+                                        <a href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('index', ['tableFilters' => ['solicitud_id' => ['value' => $record->id]]]) }}" class="mt-2 text-[11px] underline hover:text-primary-700">Ver Detalles</a>
                                     </div>
                                 @endif
                             </div>
@@ -142,7 +142,7 @@
                         color="gray" 
                         icon="heroicon-o-plus"
                         tag="a"
-                        href="/admin/compras/cotizaciones/create?solicitud_id={{ $record->id }}"
+                        href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('create', ['solicitud_id' => $record->id]) }}"
                     >
                         Registrar Primera Cotización
                     </x-filament::button>

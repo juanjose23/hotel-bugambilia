@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->index('estado');
+            $table->index('categoria_id');
 
         });
 
@@ -40,6 +41,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('servicios', fn (Blueprint $t) => $t->dropIndex(['categoria_id']));
         Schema::dropIfExists('servicios');
     }
 };

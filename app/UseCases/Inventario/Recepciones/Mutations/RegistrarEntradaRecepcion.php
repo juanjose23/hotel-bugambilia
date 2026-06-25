@@ -8,7 +8,9 @@ use App\Enums\Activos\EstadoIndividualizacion;
 use App\Enums\Inventario\EstadoLote;
 use App\Models\Activos\RegistroIndividualizacion;
 use App\Models\Catalogos\Producto;
+use App\Models\Catalogos\ProductoVariante;
 use App\Models\Catalogos\Ubicacion;
+use App\Models\Compras\RecepcionItem;
 use App\Models\Inventario\Lote;
 use App\Models\Inventario\MovimientoStock;
 use App\Models\Inventario\Stock;
@@ -105,6 +107,25 @@ class RegistrarEntradaRecepcion
             $ubicacion = PutawayPolicy::sugerirUbicacion();
         }
 
+        $costoUnitario = null;
+        $costoTotal = null;
+
+        $recepcionItem = RecepcionItem::with(['ordenItem.ordenCompra', 'variante'])->find((int) $item['id']);
+        if ($recepcionItem && $recepcionItem->ordenItem) {
+            $precioUnitario = (float) $recepcionItem->ordenItem->precio_unitario;
+            $tasaCambio = (float) ($recepcionItem->ordenItem->ordenCompra->tasa_cambio ?? 1.0);
+            $precioConvertido = $precioUnitario * $tasaCambio;
+
+            $unidadesPorEmpaque = 1.0;
+            if ($varianteId) {
+                $variante = $recepcionItem->variante ?? ProductoVariante::find($varianteId);
+                $unidadesPorEmpaque = (float) ($variante->unidades_por_empaque ?? 1.0);
+            }
+
+            $costoUnitario = $precioConvertido / max($unidadesPorEmpaque, 1.0);
+            $costoTotal = $costoUnitario * $cantidad;
+        }
+
         $lote = Lote::create([
             'codigo_lote' => $codigoLote,
             'producto_id' => $productoId,
@@ -112,6 +133,8 @@ class RegistrarEntradaRecepcion
             'estado' => $estado,
             'cantidad_disponible' => $cantidad,
             'cantidad_inicial' => $cantidad,
+            'costo_unitario' => $costoUnitario,
+            'costo_total' => $costoTotal,
             'ubicacion_id' => $ubicacion->id,
             'fecha_vencimiento' => $fechaVenc?->format('Y-m-d'),
             'lote_proveedor' => $item['lote_proveedor'],

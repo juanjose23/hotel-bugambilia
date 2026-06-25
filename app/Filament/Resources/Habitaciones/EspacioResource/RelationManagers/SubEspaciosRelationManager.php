@@ -103,7 +103,7 @@ class SubEspaciosRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->icon(Heroicon::Plus)
-                    ->before(function (CreateAction $action) {
+                    ->before(function (CreateAction $action, ValidarCapacidadMesas $validarCapacidadMesas, ConsultarCapacidadMesas $consultarCapacidadMesas) {
                         /** @var Espacio $padre */
                         $padre = $this->getOwnerRecord();
 
@@ -116,12 +116,12 @@ class SubEspaciosRelationManager extends RelationManager
                         $restauranteId = is_numeric($padreKey) ? (int) $padreKey : 0;
 
                         try {
-                            app(ValidarCapacidadMesas::class)->execute(
+                            $validarCapacidadMesas->execute(
                                 restauranteId: $restauranteId,
                                 crearSiValida: false,
                             );
                         } catch (OverflowException $e) {
-                            $capacidad = app(ConsultarCapacidadMesas::class)->execute($restauranteId);
+                            $capacidad = $consultarCapacidadMesas->execute($restauranteId);
 
                             Notification::make()
                                 ->title('Capacidad máxima de mesas alcanzada')
@@ -136,11 +136,19 @@ class SubEspaciosRelationManager extends RelationManager
                                 ->send();
 
                             $action->halt();
-                        } catch (InvalidArgumentException) {
-                            // El espacio padre no es restaurante — se permite sin validación
+                        } catch (InvalidArgumentException $e) {
+                            logger()->error($e->getMessage());
+                            Notification::make()
+                                ->title('Error')
+                                ->body('Ocurrió un error al validar la capacidad del restaurante.')
+                                ->danger()
+                                ->persistent()
+                                ->send();
+
+                            $action->halt();
                         }
                     })
-                    ->mutateDataUsing(function (array $data): array {
+                    ->mutateDataUsing(function (array $data, GenerarCodigoSubEspacio $generarCodigoSubEspacio): array {
                         $data['padre_id'] = $this->getOwnerRecord()->getKey();
 
                         if (empty($data['codigo'])) {
@@ -148,7 +156,7 @@ class SubEspaciosRelationManager extends RelationManager
                                 ? (is_string($data['tipo']) ? TipoEspacio::from($data['tipo']) : $data['tipo'])
                                 : TipoEspacio::OTRO;
 
-                            $data['codigo'] = app(GenerarCodigoSubEspacio::class)->execute($tipo);
+                            $data['codigo'] = $generarCodigoSubEspacio->execute($tipo);
                         }
 
                         return $data;

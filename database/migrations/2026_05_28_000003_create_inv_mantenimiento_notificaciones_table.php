@@ -31,6 +31,7 @@ return new class extends Migration
             $table->jsonb('metadata')->nullable()->comment('Información complementaria del envío');
 
             $table->index(['mantenimiento_id', 'tipo']);
+            $table->index('enviado_a');
         });
     }
 
@@ -39,6 +40,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('inv_mantenimiento_notificaciones', fn (Blueprint $t) => $t->dropIndex(['enviado_a']));
         Schema::dropIfExists('inv_mantenimiento_notificaciones');
     }
 };

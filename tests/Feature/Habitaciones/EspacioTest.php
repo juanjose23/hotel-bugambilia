@@ -16,10 +16,10 @@ use App\Models\Monedas\Moneda;
 use App\Models\Politicas\Politica;
 use App\Models\Servicios\Servicio;
 use App\Models\User;
-use App\UseCases\Espacios\Mutations\AsignarActivoAEspacio;
-use App\UseCases\Espacios\Mutations\AsignarPoliticaAEspacio;
-use App\UseCases\Espacios\Mutations\AsignarPrecioAEspacio;
-use App\UseCases\Espacios\Mutations\AsignarServicioAEspacio;
+use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
+use App\UseCases\Shared\Mutations\AsignarPolitica;
+use App\UseCases\Shared\Mutations\AsignarPrecio;
+use App\UseCases\Shared\Mutations\AsignarServicio;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
 use Database\Seeders\ServicioSeeder;
@@ -157,8 +157,9 @@ it('puede asignar tarifas y precios al espacio', function () {
         'ubicacion_id' => $this->ubicacion->id,
     ]);
 
-    $precio = app(AsignarPrecioAEspacio::class)->execute(
-        espacioId: $salon->id,
+    $precio = app(AsignarPrecio::class)->execute(
+        priceableType: Espacio::class,
+        priceableId: $salon->id,
         monedaId: $this->monedaNio->id,
         precio: 1500.00,
         fechaInicio: now()->toDateString(),
@@ -181,9 +182,10 @@ it('puede asociar y desasociar servicios a un espacio', function () {
         'ubicacion_id' => $this->ubicacion->id,
     ]);
 
-    $servicioEspacio = app(AsignarServicioAEspacio::class)->execute(
+    app(AsignarServicio::class)->execute(
         servicioId: $this->servicio->id,
-        espacioId: $salon->id,
+        serviceableType: Espacio::class,
+        serviceableId: $salon->id,
         incluido: true,
         estado: 1
     );
@@ -209,9 +211,9 @@ it('puede asociar politicas de forma polimorfica al espacio', function () {
     ]);
 
     // 2. Asociar de forma polimórfica usando Caso de Uso
-    app(AsignarPoliticaAEspacio::class)->execute(
+    app(AsignarPolitica::class)->execute(
         politicaId: $politica->id,
-        espacioId: $salon->id
+        entity: $salon
     );
 
     expect($salon->politicas)->toHaveCount(1);
@@ -265,9 +267,10 @@ it('puede asociar activos fijos de forma polimorfica al espacio', function () {
     ]);
 
     // 4. Asignar el activo usando el custom Caso de Uso de Habitaciones/Espacios
-    app(AsignarActivoAEspacio::class)->execute(
+    app(AsignarActivo::class)->execute(
         activoId: $activo->id,
-        espacioId: $salon->id,
+        asignableType: Espacio::class,
+        asignableId: $salon->id,
         userId: $user->id,
         motivo: 'Asignar mobiliario al salón'
     );

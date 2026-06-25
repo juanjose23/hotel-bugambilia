@@ -24,6 +24,7 @@ return new class extends Migration
             $table->timestamp('ultima_descarga_en')->nullable()->comment('Fecha de última descarga (luego renombrado a ultima_descarga_en)');
             $table->timestamps();
             $table->softDeletes();
+            $table->index('usuario_id');
         });
     }
 
@@ -32,6 +33,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('auditoria_reportes', fn (Blueprint $t) => $t->dropIndex(['usuario_id']));
         Schema::dropIfExists('auditoria_reportes');
     }
 };

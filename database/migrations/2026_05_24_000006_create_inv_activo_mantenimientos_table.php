@@ -24,17 +24,22 @@ return new class extends Migration
             $table->date('fecha_inicio')->comment('Fecha de inicio de vigencia del plan');
             $table->date('fecha_fin')->nullable()->comment('Fecha de fin de vigencia del contrato/plan');
             $table->decimal('costo_estimado', 12, 2)->nullable()->comment('Costo estimado total o por ciclo');
+            $table->date('fecha_ultimo_mantenimiento')->nullable()->comment('Fecha del último mantenimiento completado');
+            $table->date('fecha_proximo_mantenimiento')->nullable()->comment('Próxima fecha programada para mantenimiento');
             $table->foreignId('moneda_id')->nullable()->comment('Moneda del costo')->constrained('monedas')->nullOnDelete();
             $table->text('descripcion')->nullable()->comment('Detalle general de los trabajos a realizar');
             $table->integer('estado')->default(1)->comment('1=Activo, 2=Inactivo, 3=Completado');
             $table->timestamps();
             $table->softDeletes();
+            $table->index('proveedor_id');
+            $table->index('moneda_id');
         });
 
         Schema::create('inv_mantenimientos', function (Blueprint $table) {
             $table->comment('Tickets o registros individuales de mantenimiento ejecutados o programados');
             $table->id()->comment('Identificador único autoincremental');
             $table->foreignId('plan_id')->nullable()->comment('Plan asociado (opcional)')->constrained('inv_planes_mantenimiento')->cascadeOnDelete();
+            $table->string('tipo', 50)->nullable()->after('plan_id')->comment('Tipo de mantenimiento (preventivo, correctivo, garantia, inspeccion)');
             $table->foreignId('activo_id')->comment('Referencia al activo intervenido')->constrained('inv_activos')->cascadeOnDelete();
             $table->date('fecha_programada')->comment('Fecha para la que se programó el servicio');
             $table->date('fecha_realizada')->nullable()->comment('Fecha real en que se completó');
@@ -47,6 +52,14 @@ return new class extends Migration
 
             $table->index(['activo_id', 'fecha_programada']);
             $table->index('plan_id');
+            $table->index('realizado_por_id');
+        });
+
+        Schema::create('act_plan_activos', function (Blueprint $table) {
+            $table->comment('Relación explícita muchos a muchos entre planes y activos fijos');
+            $table->foreignId('plan_id')->comment('Identificador del plan de mantenimiento')->constrained('inv_planes_mantenimiento')->cascadeOnDelete();
+            $table->foreignId('activo_id')->comment('Identificador del activo fijo cubierto por el plan')->constrained('inv_activos')->cascadeOnDelete();
+            $table->primary(['plan_id', 'activo_id']);
         });
 
         if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -61,6 +74,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('act_plan_activos');
         Schema::dropIfExists('inv_mantenimientos');
         Schema::dropIfExists('inv_planes_mantenimiento');
     }

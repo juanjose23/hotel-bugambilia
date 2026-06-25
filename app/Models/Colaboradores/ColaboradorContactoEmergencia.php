@@ -16,6 +16,13 @@ class ColaboradorContactoEmergencia extends Model implements AuditableContract
 
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return [
+            'estado' => 'boolean',
+        ];
+    }
+
     /** @return BelongsTo<Colaborador, $this> */
     public function colaborador(): BelongsTo
     {

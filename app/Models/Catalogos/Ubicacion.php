@@ -3,7 +3,10 @@
 namespace App\Models\Catalogos;
 
 use App\Models\Activos\ActivoAsignacion;
+use App\Models\Limpieza\LimpiezaEjecucion;
 use App\Models\Limpieza\LimpiezaHorarioDetalle;
+use App\Models\Limpieza\SolicitudLimpieza;
+use App\Models\Shared\Stock;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,6 +23,28 @@ class Ubicacion extends Model implements AuditableContract
     protected $table = 'ubicaciones';
 
     protected $guarded = ['id'];
+
+    /**
+     * Obtiene los IDs de todas las ubicaciones descendientes, incluyendo esta misma.
+     *
+     * @return array<int>
+     */
+    public static function obtenerDescendientesIds(int $id): array
+    {
+        $descendants = [$id];
+        $toProcess = [$id];
+
+        while ($toProcess) {
+            $children = self::whereIn('padre_id', $toProcess)->pluck('id')->toArray();
+            if (empty($children)) {
+                break;
+            }
+            $descendants = array_merge($descendants, $children);
+            $toProcess = $children;
+        }
+
+        return array_unique($descendants);
+    }
 
     /**
      * @return BelongsTo<self, $this>
@@ -56,6 +81,14 @@ class Ubicacion extends Model implements AuditableContract
     }
 
     /**
+     * @return MorphMany<SolicitudLimpieza, $this>
+     */
+    public function solicitudesLimpieza(): MorphMany
+    {
+        return $this->morphMany(SolicitudLimpieza::class, 'limpiable');
+    }
+
+    /**
      * @return MorphMany<LimpiezaHorarioDetalle, $this>
      */
     public function horariosLimpieza(): MorphMany
@@ -64,17 +97,18 @@ class Ubicacion extends Model implements AuditableContract
     }
 
     /**
-     * @return array<int>
+     * @return MorphMany<LimpiezaEjecucion, $this>
      */
-    public static function obtenerDescendientesIds(int $padreId): array
+    public function ejecucionesLimpieza(): MorphMany
     {
-        $ids = [$padreId];
-        $hijos = self::where('padre_id', $padreId)->pluck('id')->toArray();
-        /** @var int[] $hijos */
-        foreach ($hijos as $hijoId) {
-            $ids = array_merge($ids, self::obtenerDescendientesIds($hijoId));
-        }
+        return $this->morphMany(LimpiezaEjecucion::class, 'limpiable');
+    }
 
-        return array_unique($ids);
+    /**
+     * @return MorphMany<Stock, $this>
+     */
+    public function stocks(): MorphMany
+    {
+        return $this->morphMany(Stock::class, 'stockable');
     }
 }

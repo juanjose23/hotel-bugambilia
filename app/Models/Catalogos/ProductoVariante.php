@@ -48,4 +48,14 @@ class ProductoVariante extends Model implements AuditableContract
     {
         return $this->belongsTo(Catalogo::class, 'unidad_medida_id');
     }
+
+    public function setPrecioCompraAttribute(mixed $value): void
+    {
+        // Ignored, not in schema
+    }
+
+    public function setPrecioVentaAttribute(mixed $value): void
+    {
+        // Ignored, not in schema
+    }
 }

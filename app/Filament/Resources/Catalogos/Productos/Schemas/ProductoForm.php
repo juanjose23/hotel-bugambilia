@@ -105,6 +105,7 @@ class ProductoForm
                             ->image()
                             ->disk('public')
                             ->directory('productos')
+                            ->maxSize(4096)
                             ->columnSpanFull()
                             ->helperText('Sube una imagen representativa del producto.'),
                     ]),

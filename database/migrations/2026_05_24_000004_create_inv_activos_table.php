@@ -38,6 +38,10 @@ return new class extends Migration
             $table->index(['producto_id', 'estado']);
             $table->index('individualizacion_id');
             $table->index('numero_serie');
+            $table->index('recepcion_item_id');
+            $table->index('producto_variante_id');
+            $table->index('moneda_id');
+            $table->index('proveedor_id');
         });
 
         if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -50,6 +54,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('inv_activos', function (Blueprint $t) {
+            $t->dropIndex(['recepcion_item_id']);
+            $t->dropIndex(['producto_variante_id']);
+            $t->dropIndex(['moneda_id']);
+            $t->dropIndex(['proveedor_id']);
+        });
         Schema::dropIfExists('inv_activos');
     }
 };

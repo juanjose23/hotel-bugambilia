@@ -28,6 +28,9 @@ return new class extends Migration
             $table->string('documento_soporte', 255)->nullable()->comment('Ruta física al archivo digital de soporte (acta firmada, denuncia)');
             $table->timestamps();
             $table->softDeletes();
+            $table->index('activo_id');
+            $table->index('aprobado_por_id');
+            $table->index('creado_por_id');
         });
 
         if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -40,6 +43,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('inv_activo_bajas', function (Blueprint $t) {
+            $t->dropIndex(['activo_id']);
+            $t->dropIndex(['aprobado_por_id']);
+            $t->dropIndex(['creado_por_id']);
+        });
         Schema::dropIfExists('inv_activo_bajas');
     }
 };

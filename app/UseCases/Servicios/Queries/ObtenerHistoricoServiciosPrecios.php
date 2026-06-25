@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\UseCases\Servicios\Queries;
 
-use App\Models\Servicios\Servicio;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use stdClass;
 
 /**
  * HTB-SER-001 — Histórico de Servicios por Precio por Moneda
@@ -16,6 +14,8 @@ use stdClass;
  */
 class ObtenerHistoricoServiciosPrecios
 {
+    private const SERVICIO_CLASS = 'App\\Models\\Servicios\\Servicio';
+
     /**
      * @param  array{servicio_id?: int|null, moneda_id?: int|null, estado?: int|null, categoria_id?: int|null}  $filtros
      * @return Collection<int, stdClass>
@@ -25,7 +25,7 @@ class ObtenerHistoricoServiciosPrecios
         return DB::table('precios as p')
             ->join('servicios as s', function ($join) {
                 $join->on('p.priceable_id', '=', 's.id')
-                    ->where('p.priceable_type', '=', Servicio::class);
+                    ->where('p.priceable_type', '=', self::SERVICIO_CLASS);
             })
             ->join('monedas as m', 'p.moneda_id', '=', 'm.id')
             ->leftJoin('catalogos as c', 's.categoria_id', '=', 'c.id')

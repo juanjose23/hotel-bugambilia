@@ -21,23 +21,15 @@ class DevolucionItem extends Model implements AuditableContract
 
     protected $table = 'devolucion_items';
 
-    protected $with = [
-        'producto',
-        'variante',
-        'unidadMedida',
-    ];
-
     protected $guarded = ['id'];
 
     protected $casts = [
         'cantidad_devolver' => 'float',
     ];
 
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-
-        static::saving(function ($item) {
+        static::saving(function (self $item) {
             // Auto fill producto, variante and unidad_medida from lote or recepcion_item if missing
             if ($item->lote_id && ! $item->producto_id) {
                 $lote = $item->lote;

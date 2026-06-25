@@ -57,6 +57,9 @@ class DatabaseSeeder extends Seeder
         $this->call(InventarioSeeder::class);
         $this->call(DevolucionSeeder::class);
 
+        // Módulo de Limpieza
+        $this->call(LimpiezaSeeder::class);
+
         // Seeder específico para validar todos los casos de uso de los Jobs de mantenimiento
         $this->call(MantenimientoCasosUsoSeeder::class);
     }

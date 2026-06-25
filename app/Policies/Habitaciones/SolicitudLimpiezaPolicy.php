@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies\Habitaciones;
 
-use App\Models\Habitaciones\SolicitudLimpieza;
+use App\Models\Limpieza\SolicitudLimpieza;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 

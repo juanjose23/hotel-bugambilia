@@ -13,12 +13,12 @@ use App\Models\Catalogos\ProductoVariante;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Habitaciones\DetalleHabitacion;
 use App\Models\Habitaciones\Habitacion;
-use App\Models\Habitaciones\HabitacionStock;
-use App\Models\Habitaciones\PrecioHabitacion;
-use App\Models\Habitaciones\ServicioHabitacion;
 use App\Models\Monedas\Moneda;
 use App\Models\Politicas\Politica;
 use App\Models\Servicios\Servicio;
+use App\Models\Shared\Precio;
+use App\Models\Shared\ServicioAsignacion;
+use App\Models\Shared\Stock as SharedStock;
 use App\UseCases\Habitaciones\Mutations\ClonarHabitacion;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
@@ -193,8 +193,9 @@ it('clona correctamente si la habitación origen no tiene detalle', function () 
 it('clona todos los servicios de la habitacion origen', function () {
     $origen = crearHabitacionOrigen(101, $this->categoria->id, $this->ubicacion->id);
 
-    ServicioHabitacion::create([
-        'habitacion_id' => $origen->id,
+    ServicioAsignacion::create([
+        'serviceable_type' => Habitacion::class,
+        'serviceable_id' => $origen->id,
         'servicio_id' => $this->servicio->id,
         'incluido' => true,
         'estado' => EstadoServicioAsignacion::Activo,
@@ -206,16 +207,17 @@ it('clona todos los servicios de la habitacion origen', function () {
     expect($nueva->serviciosHabitacion)->toHaveCount(1)
         ->and($nueva->serviciosHabitacion->first()->servicio_id)->toBe($this->servicio->id)
         ->and($nueva->serviciosHabitacion->first()->incluido)->toBeTrue()
-        ->and($nueva->serviciosHabitacion->first()->habitacion_id)->toBe($nueva->id);
+        ->and($nueva->serviciosHabitacion->first()->serviceable_id)->toBe($nueva->id);
 });
 
-// ─── PrecioHabitacion ────────────────────────────────────────────────────────
+// ─── Precio ───────────────────────────────────────────────────────────────────
 
 it('clona los precios de la habitacion origen como plantilla', function () {
     $origen = crearHabitacionOrigen(101, $this->categoria->id, $this->ubicacion->id);
 
-    PrecioHabitacion::create([
-        'habitacion_id' => $origen->id,
+    Precio::create([
+        'priceable_type' => Habitacion::class,
+        'priceable_id' => $origen->id,
         'moneda_id' => $this->monedaNio->id,
         'precio' => '1200.00',
         'tipo_precio' => 'base',
@@ -230,7 +232,7 @@ it('clona los precios de la habitacion origen como plantilla', function () {
     expect($nueva->precioshabitacion)->toHaveCount(1)
         ->and($nueva->precioshabitacion->first()->precio)->toBe('1200.00')
         ->and($nueva->precioshabitacion->first()->moneda_id)->toBe($this->monedaNio->id)
-        ->and($nueva->precioshabitacion->first()->habitacion_id)->toBe($nueva->id);
+        ->and($nueva->precioshabitacion->first()->priceable_id)->toBe($nueva->id);
 });
 
 // ─── Políticas ───────────────────────────────────────────────────────────────
@@ -253,7 +255,7 @@ it('clona los vinculos polimorfica de politicas', function () {
         ->and($nueva->politicas->first()->id)->toBe($politica->id);
 });
 
-// ─── HabitacionStock (plantilla de consumibles) ──────────────────────────────
+// ─── Stock (plantilla de consumibles) ──────────────────────────────
 
 it('clona la plantilla de stock con cantidad_ideal y fija cantidad_actual en cero', function () {
     $origen = crearHabitacionOrigen(101, $this->categoria->id, $this->ubicacion->id);
@@ -288,8 +290,9 @@ it('clona la plantilla de stock con cantidad_ideal y fija cantidad_actual en cer
     ]);
 
     // Stock del origen con 6 toallas ideales y 4 actuales (ya usadas)
-    HabitacionStock::create([
-        'habitacion_id' => $origen->id,
+    SharedStock::create([
+        'stockable_type' => Habitacion::class,
+        'stockable_id' => $origen->id,
         'producto_variante_id' => $variante->id,
         'lote_id' => null,
         'cantidad_ideal' => '6.0000',
@@ -297,17 +300,18 @@ it('clona la plantilla de stock con cantidad_ideal y fija cantidad_actual en cer
     ]);
 
     $nueva = $this->useCase->execute($origen, 102);
-    $nueva->load('habitacionStocks');
+    $nueva->load('stocks');
 
-    expect($nueva->habitacionStocks)->toHaveCount(1);
+    expect($nueva->stocks)->toHaveCount(1);
 
-    $stockClonado = $nueva->habitacionStocks->first();
+    $stockClonado = $nueva->stocks->first();
 
     expect((float) $stockClonado->cantidad_ideal)->toBe(6.0)   // Copia la plantilla
         ->and((float) $stockClonado->cantidad_actual)->toBe(0.0) // Nace vacía
         ->and($stockClonado->lote_id)->toBeNull()               // Sin lote real
         ->and($stockClonado->producto_variante_id)->toBe($variante->id)
-        ->and($stockClonado->habitacion_id)->toBe($nueva->id);
+        ->and($stockClonado->stockable_id)->toBe($nueva->id)
+        ->and($stockClonado->stockable_type)->toBe(Habitacion::class);
 });
 
 // ─── Activos fijos — jamás se clonan ─────────────────────────────────────────
@@ -328,8 +332,9 @@ it('la habitacion clonada no hereda activos fijos del origen', function () {
 it('puede clonar varias habitaciones en serie desde la misma plantilla', function () {
     $origen = crearHabitacionOrigen(101, $this->categoria->id, $this->ubicacion->id);
 
-    PrecioHabitacion::create([
-        'habitacion_id' => $origen->id,
+    Precio::create([
+        'priceable_type' => Habitacion::class,
+        'priceable_id' => $origen->id,
         'moneda_id' => $this->monedaNio->id,
         'precio' => '900.00',
         'tipo_precio' => 'base',

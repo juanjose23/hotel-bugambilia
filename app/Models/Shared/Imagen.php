@@ -16,6 +16,13 @@ class Imagen extends Model implements AuditableContract
 
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return [
+            'orden' => 'integer',
+        ];
+    }
+
     /**
      * Get the parent imageable model.
      *

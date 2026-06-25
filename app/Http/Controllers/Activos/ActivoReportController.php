@@ -8,6 +8,7 @@ use App\Exports\Activos\ActivosExport;
 use App\Http\Controllers\Controller;
 use App\Models\Activos\Activo;
 use App\Models\Activos\ActivoMantenimiento;
+use App\Support\HotelInfo;
 use App\Support\ReportePaginador;
 use App\UseCases\Activos\Queries\GenerarEtiquetasActivosUseCase;
 use App\UseCases\Activos\Queries\ObtenerActivosPorUbicacionUseCase;
@@ -24,28 +25,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ActivoReportController extends Controller
 {
-    /** @return array<string, mixed> */
-    private function baseData(): array
-    {
-        $logoPath = public_path('img/logo-horizontal.png');
-        $logoBase64 = '';
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
-        }
-
-        return [
-            'logo_base64' => $logoBase64,
-            'hotelInfo' => [
-                'telefono' => '+505 8713 6805',
-                'email' => 'recepcion@bugambiliashotel.com',
-                'direccion' => 'Salida Sur Estelí, Restaurante Absoluto 1c. Oeste, 2c. Sur, 1c. Oeste',
-            ],
-            'generadoEn' => now()->format('d/m/Y H:i'),
-            'usuario' => auth()->user()->name ?? 'Sistema',
-        ];
-    }
-
     private function auditoria(string $codigo, mixed $record = null): void
     {
         app(RegistrarAuditoriaReporteUseCase::class)->ejecutar($codigo, [
@@ -68,13 +47,9 @@ class ActivoReportController extends Controller
         ];
 
         $activos = $useCase->inventarioGeneral($filtros);
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $activos->chunk($filasPorPagina)
-            ->map(fn ($chunk) => $chunk->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($activos);
 
-        return Pdf::view('reports.activos.inventario-general', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.inventario-general', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
         ]))->name('HTB-ACT-001-Inventario-General.pdf')->download();
     }
@@ -98,7 +73,7 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-002', $activo);
 
-        return Pdf::view('reports.activos.activo', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.activo', array_merge(HotelInfo::getBaseData(), [
             'record' => $useCase->fichaActivo($activo),
         ]))->name("HTB-ACT-002-Ficha-Activo-{$activo->codigo_inventario}.pdf")->download();
     }
@@ -109,7 +84,7 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-003', $mantenimiento);
 
-        return Pdf::view('reports.activos.mantenimiento', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.mantenimiento', array_merge(HotelInfo::getBaseData(), [
             'record' => $useCase->fichaMantenimiento($mantenimiento),
         ]))->name("HTB-ACT-003-Ficha-Mantenimiento-{$mantenimiento->id}.pdf")->download();
     }
@@ -126,7 +101,7 @@ class ActivoReportController extends Controller
             'ubicacion_tipo' => request('ubicacion_tipo'),
         ];
 
-        return Pdf::view('reports.catalogos.etiquetas-codigos-barras', array_merge($this->baseData(), [
+        return Pdf::view('reports.catalogos.etiquetas-codigos-barras', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $useCase->ejecutar($filtros),
             'nombreReporte' => 'Etiquetas de Códigos de Barras de Activos',
             'codigoReporte' => 'HTB-ACT-004',
@@ -143,7 +118,7 @@ class ActivoReportController extends Controller
         $ubicacionTipo = request('ubicacion_tipo');
         $tipoFiltro = is_scalar($ubicacionTipo) ? (string) $ubicacionTipo : '';
 
-        return Pdf::view('reports.activos.por-ubicacion', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.por-ubicacion', array_merge(HotelInfo::getBaseData(), [
             'ubicaciones' => $useCase->ejecutar($tipoFiltro),
         ]))->name('HTB-ACT-005-Activos-por-Ubicacion.pdf')->download();
     }
@@ -174,13 +149,9 @@ class ActivoReportController extends Controller
         $this->auditoria('HTB-ACT-007');
 
         $activos = $useCase->enMantenimiento();
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $activos->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($activos);
 
-        return Pdf::view('reports.activos.en-mantenimiento', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.en-mantenimiento', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $activos->count(),
         ]))->name('HTB-ACT-007-Activos-en-Mantenimiento.pdf')->download();
@@ -195,13 +166,9 @@ class ActivoReportController extends Controller
         $reqDias = request('dias', 90);
         $dias = is_numeric($reqDias) ? (int) $reqDias : 90;
         $activos = $useCase->garantiasProximas($dias);
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $activos->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($activos);
 
-        return Pdf::view('reports.activos.garantias-proximas', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.garantias-proximas', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $activos->count(),
             'dias' => $dias,
@@ -215,13 +182,9 @@ class ActivoReportController extends Controller
         $this->auditoria('HTB-ACT-009');
 
         $bajas = $useCase->dadosDeBaja();
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $bajas->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($bajas);
 
-        return Pdf::view('reports.activos.dados-de-baja', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.dados-de-baja', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $bajas->count(),
             'totalValorResidual' => $bajas->sum('valor_residual'),
@@ -235,13 +198,9 @@ class ActivoReportController extends Controller
         $this->auditoria('HTB-ACT-010');
 
         $activos = $useCase->extraviados();
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie(rowPx: 26);
-        $paginas = $activos->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($activos, rowPx: 26);
 
-        return Pdf::view('reports.activos.extraviados', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.extraviados', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $activos->count(),
             'totalCosto' => $activos->sum('costo_adquisicion'),
@@ -255,13 +214,9 @@ class ActivoReportController extends Controller
         $this->auditoria('HTB-ACT-011');
 
         $activos = $useCase->sinAsignacion();
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $activos->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($activos);
 
-        return Pdf::view('reports.activos.sin-asignacion', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.sin-asignacion', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $activos->count(),
         ]))->name('HTB-ACT-011-Activos-Sin-Asignacion.pdf')->download();
@@ -274,13 +229,9 @@ class ActivoReportController extends Controller
         $this->auditoria('HTB-ACT-012');
 
         $mantenimientos = $useCase->mantenimientosVencidos();
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $mantenimientos->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($mantenimientos);
 
-        return Pdf::view('reports.activos.mantenimientos-vencidos', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.mantenimientos-vencidos', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $mantenimientos->count(),
         ]))->name('HTB-ACT-012-Mantenimientos-Vencidos.pdf')->download();
@@ -294,7 +245,7 @@ class ActivoReportController extends Controller
 
         $data = $useCase->ejecutar($tipo, $id);
 
-        return Pdf::view('reports.activos.hoja-habitacion', array_merge($this->baseData(), [
+        return Pdf::view('reports.activos.hoja-habitacion', array_merge(HotelInfo::getBaseData(), [
             'entidad' => $data['entidad'],
             'activos' => $data['activos'],
             'tipo' => $tipo,

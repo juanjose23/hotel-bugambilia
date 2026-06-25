@@ -98,11 +98,11 @@ it('registra automaticamente los activos fijos al recepcionar un producto tipo 3
         creadoPorId: $this->user->id,
     );
 
-    $this->assertDatabaseMissing('inv_lotes', [
+    $this->assertDatabaseMissing((new Lote)->getTable(), [
         'producto_id' => $activoProducto->id,
     ]);
 
-    $this->assertDatabaseHas('inv_registro_individualizacion', [
+    $this->assertDatabaseHas((new RegistroIndividualizacion)->getTable(), [
         'recepcion_item_id' => $recepcionItem->id,
         'producto_id' => $activoProducto->id,
         'cantidad_total' => 5,

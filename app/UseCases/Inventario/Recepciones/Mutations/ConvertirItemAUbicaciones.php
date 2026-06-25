@@ -26,7 +26,7 @@ class ConvertirItemAUbicaciones
     public function execute(array $data): array
     {
         return DB::transaction(function () use ($data) {
-            $item = RecepcionItem::findOrFail($data['recepcion_item_id']);
+            $item = RecepcionItem::with(['producto', 'recepcion'])->findOrFail($data['recepcion_item_id']);
             $parentId = $data['parent_id'] ?? null;
             $prefijo = $data['nombre_prefijo'];
             $cantidad = (int) $data['cantidad_a_convertir'];

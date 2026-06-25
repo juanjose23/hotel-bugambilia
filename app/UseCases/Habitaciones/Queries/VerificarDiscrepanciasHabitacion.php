@@ -43,7 +43,7 @@ class VerificarDiscrepanciasHabitacion
 
             $grupo[] = [
                 'id' => $stock->id,
-                'habitacion_id' => $habitacion?->id,
+                'habitacion_id' => $stock->stockable_id,
                 'habitacion_codigo' => $habitacion->codigo ?? 'N/A',
                 'habitacion_nombre' => $habitacion->nombre ?? 'N/A',
                 'variante_id' => $stock->producto_variante_id,

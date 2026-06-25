@@ -35,6 +35,7 @@ class ImagenesRelationManager extends RelationManager
                     ->image()
                     ->directory('habitaciones/galeria')
                     ->maxSize(2048)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                     ->required(),
 
                 TextInput::make('orden')

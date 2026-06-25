@@ -6,6 +6,7 @@ namespace App\Observers\Limpieza;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoLimpieza;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Limpieza\SolicitudLimpieza;
@@ -24,7 +25,7 @@ class SolicitudLimpiezaObserver
     {
         app(NotificadorLimpieza::class)->nuevaSolicitudLimpieza($solicitud);
 
-        if ($solicitud->estado === 'pendiente') {
+        if ($solicitud->estado === EstadoLimpieza::Pendiente) {
             $solicitud->load('limpiable');
             $limpiable = $solicitud->limpiable;
             if ($limpiable instanceof Habitacion) {

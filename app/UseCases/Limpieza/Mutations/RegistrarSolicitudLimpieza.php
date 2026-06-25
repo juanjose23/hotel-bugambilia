@@ -6,9 +6,13 @@ namespace App\UseCases\Limpieza\Mutations;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoLimpieza;
+use App\Models\Catalogos\Ubicacion;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
+use App\Models\Limpieza\LimpiezaEjecucion;
 use App\Models\Limpieza\SolicitudLimpieza;
+use App\Models\Limpieza\Turno;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -53,9 +57,46 @@ class RegistrarSolicitudLimpieza
                 'limpiable_type' => $modelClass,
                 'limpiable_id' => $modelId,
                 'prioridad' => $prioridad,
-                'estado' => 'pendiente',
+                'estado' => EstadoLimpieza::Pendiente,
                 'notas' => $notas,
             ]);
+
+            $ubicacion = null;
+            if ($instance instanceof Ubicacion) {
+                $ubicacion = $instance;
+            } elseif ($instance instanceof Habitacion || $instance instanceof Espacio) {
+                $ubicacion = $instance->ubicacion;
+            }
+
+            $turno = null;
+            $currentUbicacion = $ubicacion;
+            while ($currentUbicacion) {
+                $turno = Turno::where('estado', true)
+                    ->whereJsonContains('carritos_ids', $currentUbicacion->id)
+                    ->first();
+
+                if ($turno) {
+                    break;
+                }
+
+                $currentUbicacion = $currentUbicacion->padre;
+            }
+
+            if (! $turno) {
+                $turno = Turno::where('estado', true)->first() ?: Turno::first();
+            }
+
+            if ($turno) {
+                LimpiezaEjecucion::create([
+                    'solicitud_id' => $solicitud->id,
+                    'limpiable_type' => $modelClass,
+                    'limpiable_id' => $modelId,
+                    'turno_id' => $turno->id,
+                    'colaborador_id' => null, // starts unassigned
+                    'fecha' => now()->toDateString(),
+                    'estado' => EstadoLimpieza::Pendiente,
+                ]);
+            }
 
             return $solicitud;
         });

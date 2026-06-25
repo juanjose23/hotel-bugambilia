@@ -36,6 +36,8 @@ class ViewRecepcion extends ViewRecord
                             /** @var RecepcionCompra $record */
                             $record = $this->getRecord();
 
+                            $record->load('items.producto', 'items.variante', 'items.unidadMedida');
+
                             return $record->items->mapWithKeys(fn ($item) => [
                                 $item->id => ($item->producto ? $item->producto->nombre : 'N/A').' (Recibido: '.$item->cantidad_recibida.')',
                             ])->toArray();
@@ -45,7 +47,8 @@ class ViewRecepcion extends ViewRecord
                         ->afterStateUpdated(function ($state, $set) {
                             $item = RecepcionItem::find((int) $state);
                             if ($item) {
-                                $set('nombre_prefijo', $item->producto ? $item->producto->nombre : '');
+                                $item->load('producto');
+                                $set('nombre_prefijo', $item->producto?->nombre ?? '');
                                 $set('cantidad_a_convertir', (int) $item->cantidad_recibida);
                             }
                         }),

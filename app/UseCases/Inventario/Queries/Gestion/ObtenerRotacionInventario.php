@@ -55,7 +55,7 @@ class ObtenerRotacionInventario
                 'sal.producto',
                 'sal.total_salidas',
                 DB::raw('COALESCE(sp.stock_promedio, 0) as stock_promedio'),
-                DB::raw('CASE WHEN COALESCE(sp.stock_promedio, 0) > 0 THEN ROUND(CAST(sal.total_salidas AS REAL) / CAST(sp.stock_promedio AS REAL), 2) ELSE 0 END as indice_rotacion')
+                DB::raw('CASE WHEN COALESCE(sp.stock_promedio, 0) > 0 THEN ROUND((sal.total_salidas / sp.stock_promedio), 2) ELSE 0 END as indice_rotacion')
             )
             ->orderBy('indice_rotacion', 'desc')
             ->get();

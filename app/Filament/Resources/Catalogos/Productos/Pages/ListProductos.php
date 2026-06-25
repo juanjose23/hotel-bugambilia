@@ -58,6 +58,7 @@ class ListProductos extends ListRecords
                         ->required()
                         ->disk('local')
                         ->directory('imports')
+                        ->acceptedFileTypes(['text/csv', 'text/plain', 'application/vnd.ms-excel'])
                         ->maxSize(20480),
                 ])
                 ->action(function () {

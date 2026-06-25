@@ -3,6 +3,7 @@
 namespace App\Models\Colaboradores;
 
 use App\Enums\Catalogos\EstadoCatalogo;
+use App\Models\Limpieza\Turno;
 use App\Models\Personas\Persona;
 use App\Models\Shared\Imagen;
 use Database\Factories\ColaboradorFactory;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
@@ -90,5 +92,25 @@ class Colaborador extends Model implements AuditableContract
     public function documentos(): HasMany
     {
         return $this->hasMany(ColaboradorDocumento::class);
+    }
+
+    /** @return HasMany<Turno, $this> */
+    public function turnosLider(): HasMany
+    {
+        return $this->hasMany(Turno::class, 'lider_id');
+    }
+
+    /** @return HasMany<Turno, $this> */
+    public function turnosApoyo(): HasMany
+    {
+        return $this->hasMany(Turno::class, 'apoyo_id');
+    }
+
+    /** @return Collection<int, Turno> */
+    public function getTurnosAttribute(): Collection
+    {
+        return Turno::where('lider_id', $this->id)
+            ->orWhere('apoyo_id', $this->id)
+            ->get();
     }
 }

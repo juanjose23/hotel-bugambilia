@@ -12,6 +12,7 @@ use App\Exports\Inventario\RotacionInventarioExport;
 use App\Exports\Inventario\StockPorProductoExport;
 use App\Exports\Inventario\ValorizacionInventarioExport;
 use App\Http\Controllers\Controller;
+use App\Support\HotelInfo;
 use App\Support\ReportePaginador;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesCuarentena;
 use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesProximosVencer;
@@ -29,28 +30,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class InventarioReportController extends Controller
 {
-    /** @return array<string, mixed> */
-    private function baseData(): array
-    {
-        $logoPath = public_path('img/logo-horizontal.png');
-        $logoBase64 = '';
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
-        }
-
-        return [
-            'logo_base64' => $logoBase64,
-            'hotelInfo' => [
-                'telefono' => '+505 8713 6805',
-                'email' => 'recepcion@bugambiliashotel.com',
-                'direccion' => 'Salida Sur Estelí, Restaurante Absoluto 1c. Oeste, 2c. Sur, 1c. Oeste',
-            ],
-            'generadoEn' => now()->format('d/m/Y H:i'),
-            'usuario' => auth()->user()->name ?? 'Sistema',
-        ];
-    }
-
     private function auditoria(string $codigo): void
     {
         app(RegistrarAuditoriaReporteUseCase::class)->ejecutar($codigo, [
@@ -76,7 +55,7 @@ class InventarioReportController extends Controller
             'ubicacion_id' => $ubicacionId,
         ]);
 
-        return Pdf::view('reports.inventario.stock-por-producto', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.stock-por-producto', array_merge(HotelInfo::getBaseData(), [
             'filas' => $filas,
         ]))->name('HTB-INV-001-Stock-Producto.pdf')->download();
     }
@@ -113,7 +92,7 @@ class InventarioReportController extends Controller
 
         $movimientos = app(ObtenerMovimientosInventario::class)->ejecutar($filtros, 500)->items();
 
-        return Pdf::view('reports.inventario.movimientos', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.movimientos', array_merge(HotelInfo::getBaseData(), [
             'movimientos' => $movimientos,
             'filtros' => $filtros,
         ]))->name('HTB-INV-003-Movimientos.pdf')->download();
@@ -144,13 +123,9 @@ class InventarioReportController extends Controller
         $lotes = app(ObtenerLotesCuarentena::class)->ejecutar([
             'producto_id' => $productoId,
         ]);
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $lotes->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($lotes);
 
-        return Pdf::view('reports.inventario.cuarentena', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.cuarentena', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $lotes->count(),
         ]))->name('HTB-INV-004-Cuarentena.pdf')->download();
@@ -181,13 +156,9 @@ class InventarioReportController extends Controller
             'dias' => $dias,
             'producto_id' => $productoId,
         ]);
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $lotes->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($lotes);
 
-        return Pdf::view('reports.inventario.proximos-vencer', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.proximos-vencer', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $lotes->count(),
             'dias' => $dias,
@@ -226,13 +197,9 @@ class InventarioReportController extends Controller
         ];
 
         $lotes = app(ObtenerLotesMerma::class)->ejecutar($filtros);
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $lotes->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($lotes);
 
-        return Pdf::view('reports.inventario.mermas', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.mermas', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $lotes->count(),
             'filtros' => $filtros,
@@ -262,13 +229,9 @@ class InventarioReportController extends Controller
         $reqUbi = request('ubicacion_id');
         $filtros = ['ubicacion_id' => is_numeric($reqUbi) ? (int) $reqUbi : null];
         $filas = $uc->ejecutar($filtros);
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie(rowPx: 26);
-        $paginas = $filas->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($filas, rowPx: 26);
 
-        return Pdf::view('reports.inventario.valorizacion', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.valorizacion', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $filas->count(),
             'totalGeneral' => $uc->totalGeneral($filtros),
@@ -320,7 +283,7 @@ class InventarioReportController extends Controller
 
         $data = app(TrazabilidadLoteHaciaAdelante::class)->ejecutar($loteId);
 
-        return Pdf::view('reports.inventario.trazabilidad-lote', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.trazabilidad-lote', array_merge(HotelInfo::getBaseData(), [
             'lote' => $data['lote'],
             'movimientos' => $data['movimientos'],
         ]))->name("HTB-INV-011-Trazabilidad-Lote-{$loteId}.pdf")->download();
@@ -338,13 +301,9 @@ class InventarioReportController extends Controller
         $lotes = app(ObtenerLotesVencidos::class)->ejecutar([
             'producto_id' => $productoId,
         ]);
-        $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
-        $paginas = $lotes->chunk($filasPorPagina)
-            ->map(fn ($c) => $c->values())
-            ->values()
-            ->all();
+        $paginas = ReportePaginador::chunkParaPdf($lotes);
 
-        return Pdf::view('reports.inventario.vencidos', array_merge($this->baseData(), [
+        return Pdf::view('reports.inventario.vencidos', array_merge(HotelInfo::getBaseData(), [
             'paginas' => $paginas,
             'totalRegistros' => $lotes->count(),
         ]))->name('HTB-INV-012-Lotes-Vencidos.pdf')->download();

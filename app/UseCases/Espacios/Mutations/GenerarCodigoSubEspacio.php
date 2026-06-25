@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class GenerarCodigoSubEspacio
 {
     /**
-     * Genera el siguiente código secuencial para un sub-espacio según su tipo.
+     * Genera el siguiente código secuencial para un sub-espacio.
      * Formato: {PREFIJO}-{NNNN} (ej. MESA-0012, SALON-0005).
      */
     public function execute(TipoEspacio $tipo): string

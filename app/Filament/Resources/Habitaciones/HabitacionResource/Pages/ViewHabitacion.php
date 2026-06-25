@@ -58,8 +58,8 @@ class ViewHabitacion extends ViewRecord
                     try {
                         $nueva = app(ClonarHabitacion::class)->execute(
                             origen: $record,
-                            numero: (int) $data['nuevo_numero'],
-                            nombre: filled($data['nuevo_nombre']) ? $data['nuevo_nombre'] : null,
+                            nuevoNumero: (int) $data['nuevo_numero'],
+                            nuevoNombre: filled($data['nuevo_nombre']) ? $data['nuevo_nombre'] : null,
                         );
 
                         Notification::make()

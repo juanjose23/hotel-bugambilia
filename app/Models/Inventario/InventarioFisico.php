@@ -86,7 +86,8 @@ class InventarioFisico extends Model implements AuditableContract
      */
     public static function generarHojaInicial(): array
     {
-        $lotes = Lote::where('estado', '!=', EstadoLote::Agotado)->get();
+        $lotes = Lote::with(['producto', 'ubicacion'])
+            ->where('estado', '!=', EstadoLote::Agotado)->get();
 
         $cellData = [];
         // Row 0: Header style & value

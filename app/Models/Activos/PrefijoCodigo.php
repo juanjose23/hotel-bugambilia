@@ -18,4 +18,11 @@ class PrefijoCodigo extends Model implements Auditable
     protected $table = 'inv_prefijos_codigo';
 
     protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return [
+            'ultimo_numero' => 'integer',
+        ];
+    }
 }

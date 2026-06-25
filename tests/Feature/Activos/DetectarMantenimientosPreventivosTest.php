@@ -7,15 +7,13 @@ use App\Enums\Activos\EstadoMantenimiento;
 use App\Enums\Activos\EstadoPlanMantenimiento;
 use App\Enums\Activos\TipoPlanMantenimiento;
 use App\Models\Activos\Activo;
+use App\Models\Activos\ActivoMantenimiento;
 use App\Models\Activos\ActPlanMantenimiento;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\CatalogoTipo;
 use App\Models\Catalogos\Producto;
 use App\Models\User;
 use App\UseCases\Activos\Mutations\Mantenimiento\DetectarMantenimientosPreventivos;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -60,7 +58,7 @@ it('crea un mantenimiento preventivo programado cuando el plan vence', function 
 
     expect($creados)->toBe(1);
 
-    $this->assertDatabaseHas('inv_mantenimientos', [
+    $this->assertDatabaseHas((new ActivoMantenimiento)->getTable(), [
         'activo_id' => $activo->id,
         'estado' => EstadoMantenimiento::Programado->value,
     ]);
