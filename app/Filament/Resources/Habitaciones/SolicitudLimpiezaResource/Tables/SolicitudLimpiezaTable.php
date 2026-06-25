@@ -109,7 +109,10 @@ class SolicitudLimpiezaTable
                         $map = $all->keyBy('id');
                         $buildPath = function (Ubicacion $u) use (&$buildPath, $map): string {
                             if ($u->padre_id && $map->has($u->padre_id)) {
-                                return $buildPath($map->get($u->padre_id)).' ➔ '.$u->nombre;
+                                /** @var Ubicacion $padre */
+                                $padre = $map->get($u->padre_id);
+
+                                return $buildPath($padre).' ➔ '.$u->nombre;
                             }
 
                             return $u->nombre;
@@ -162,7 +165,7 @@ class SolicitudLimpiezaTable
                     ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === EstadoLimpieza::Pendiente)
                     ->action(function (SolicitudLimpieza $record, IniciarLimpieza $iniciarLimpieza) {
                         try {
-                            $iniciarLimpieza->execute($record, auth()->id());
+                            $iniciarLimpieza->execute($record, auth()->id() !== null ? (int) auth()->id() : null);
 
                             Notification::make()
                                 ->title('Limpieza iniciada')

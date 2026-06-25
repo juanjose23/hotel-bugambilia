@@ -32,10 +32,10 @@ class ClonarHabitacion
         }
 
         return DB::transaction(function () use ($origen, $nuevoNumero, $nuevoNombre, $nuevoSlug, $nuevoCodigo) {
-            $nombre = $nuevoNombre ?? preg_replace(
+            $nombre = $nuevoNombre ?? (string) preg_replace(
                 '/\d+/',
                 (string) $nuevoNumero,
-                $origen->nombre,
+                $origen->nombre ?? '',
                 1
             );
 
