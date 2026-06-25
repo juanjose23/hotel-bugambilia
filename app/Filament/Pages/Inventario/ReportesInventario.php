@@ -75,7 +75,8 @@ class ReportesInventario extends Page
 
     public function mount(): void
     {
-        $this->monedaSimbolo = Moneda::where('es_predeterminada', true)->value('simbolo') ?? 'C$';
+        $simbolo = Moneda::where('es_predeterminada', true)->value('simbolo');
+        $this->monedaSimbolo = is_string($simbolo) ? $simbolo : 'C$';
 
         $this->stockPorProducto = app(ObtenerStockPorProducto::class)->ejecutar();
         $this->lotesCuarentena = app(ObtenerLotesCuarentena::class)->ejecutar();
