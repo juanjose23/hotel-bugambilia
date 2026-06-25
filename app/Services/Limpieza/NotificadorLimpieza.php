@@ -31,7 +31,8 @@ class NotificadorLimpieza extends NotificadorBase
 
         try {
             // 2. Incluir super administradores
-            $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
+            $superAdminVal = config('filament-shield.super_admin.name', 'super_admin');
+            $superAdminRole = is_string($superAdminVal) ? $superAdminVal : 'super_admin';
             $superAdmins = User::role($superAdminRole)->get();
             $users = $users->merge($superAdmins);
         } catch (\Throwable $e) {

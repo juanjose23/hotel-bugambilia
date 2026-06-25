@@ -22,7 +22,7 @@ class GenerarCodigoDevolucion
                 ->lockForUpdate()
                 ->get()
                 ->first(function ($dev) {
-                    return preg_match('/-(\d+)$/', $dev->codigo);
+                    return (bool) preg_match('/-(\d+)$/', $dev->codigo);
                 });
 
             $max = $latest?->codigo;

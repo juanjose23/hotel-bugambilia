@@ -8,6 +8,7 @@ use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Models\Activos\ActivoAsignacion;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Ubicacion;
+use App\Models\Limpieza\LimpiezaHorarioDetalle;
 use App\Models\Limpieza\SolicitudLimpieza;
 use App\Models\Politicas\Politica;
 use App\Models\Shared\Imagen;
@@ -140,6 +141,14 @@ class Habitacion extends Model implements AuditableContract
     public function solicitudesLimpieza(): MorphMany
     {
         return $this->morphMany(SolicitudLimpieza::class, 'limpiable');
+    }
+
+    /**
+     * @return MorphMany<LimpiezaHorarioDetalle, $this>
+     */
+    public function horariosLimpieza(): MorphMany
+    {
+        return $this->morphMany(LimpiezaHorarioDetalle::class, 'limpiable');
     }
 
     /**

@@ -38,7 +38,8 @@ class GenerarCredencialesUsuario
             $counter++;
         }
 
-        $domain = config('app.email_domain', 'hotel.com');
+        $domainVal = config('app.email_domain', 'hotel.com');
+        $domain = is_string($domainVal) ? $domainVal : 'hotel.com';
 
         return [
             'name' => $username,

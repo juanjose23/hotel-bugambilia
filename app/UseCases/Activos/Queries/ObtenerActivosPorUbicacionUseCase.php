@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\UseCases\Activos\Queries;
 
+use App\Models\Activos\Activo;
 use App\Models\Activos\ActivoAsignacion;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
@@ -39,9 +40,9 @@ class ObtenerActivosPorUbicacionUseCase
             };
             $nombreUbicacion = $first->destinoLabel();
             $activosFiltrados = $items->pluck('activo')->filter();
-            $subtotal = $activosFiltrados->sum(fn ($a) => (float) ($a->costo_adquisicion ?? 0));
+            $subtotal = $activosFiltrados->sum(fn ($a) => (float) (($a instanceof Activo ? $a->costo_adquisicion : 0) ?? 0));
             $primerActivo = $activosFiltrados->first();
-            $simbolo = $primerActivo?->moneda->simbolo ?? '$';
+            $simbolo = $primerActivo instanceof Activo ? ($primerActivo->moneda->simbolo ?? '$') : '$';
             $ubicaciones[] = [
                 'tipo' => $tipoLabel,
                 'nombre' => $nombreUbicacion,

@@ -48,10 +48,10 @@ class EditActivo extends EditRecord
 
     protected function afterSave(): void
     {
-        $data = $this->form->getRawState();
+        $data = (array) $this->form->getRawState();
 
         $tipo = $data['asignacion_tipo'] ?? null;
-        $destinoId = $data['asignacion_destino_id'] ?? null;
+        $destinoId = isset($data['asignacion_destino_id']) ? (int) $data['asignacion_destino_id'] : null;
 
         if ($tipo && $destinoId) {
             $asignacionActual = $this->getRecord()->asignacionActiva;
@@ -66,8 +66,8 @@ class EditActivo extends EditRecord
                         $this->getRecord()->id,
                         $tipo,
                         (int) $destinoId,
-                        auth()->id() ?? 1,
-                        $data['asignacion_motivo'] ?? 'Actualización desde edición'
+                        (int) auth()->id(),
+                        isset($data['asignacion_motivo']) && $data['asignacion_motivo'] !== '' ? (string) $data['asignacion_motivo'] : 'Actualización desde edición'
                     );
                 } catch (\Throwable $e) {
                     report($e);

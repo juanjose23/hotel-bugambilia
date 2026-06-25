@@ -16,9 +16,12 @@ readonly class LotesProximosVencerFiltro
      */
     public static function fromArray(array $data): self
     {
+        $dias = $data['dias'] ?? null;
+        $productoId = $data['producto_id'] ?? null;
+
         return new self(
-            dias: isset($data['dias']) ? (int) $data['dias'] : null,
-            productoId: isset($data['producto_id']) ? (int) $data['producto_id'] : null,
+            dias: is_numeric($dias) ? (int) $dias : null,
+            productoId: is_numeric($productoId) ? (int) $productoId : null,
         );
     }
 

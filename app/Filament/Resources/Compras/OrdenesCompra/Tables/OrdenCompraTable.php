@@ -6,6 +6,8 @@ use App\Enums\Compras\EstadoOrdenCompra;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
 use App\Filament\Resources\Shared\Filters\FiltroEstado;
 use App\Models\Compras\OrdenCompra;
+use App\Models\Compras\OrdenCompraItem;
+use App\Models\Compras\Proveedor;
 use App\UseCases\Compras\OrdenesCompra\Mutations\CancelarOrdenCompra;
 use App\UseCases\Compras\OrdenesCompra\Mutations\EmitirOrdenCompra;
 use App\UseCases\Compras\OrdenesCompra\Mutations\FinalizarOrdenCompra;
@@ -19,6 +21,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class OrdenCompraTable
 {
@@ -33,8 +36,8 @@ class OrdenCompraTable
                     ->weight('bold')
                     ->copyable()
                     ->description(fn (OrdenCompra $record) => $record->cotizacion_id
-                            ? "Origen: COT-#{$record->cotizacion_id} ({$record->solicitud->codigo})"
-                            : ($record->solicitud_id ? "Ref: {$record->solicitud->codigo}" : 'Compra Directa')
+                            ? 'Origen: COT-#'.$record->cotizacion_id.' ('.($record->solicitud ? $record->solicitud->codigo : 'N/A').')'
+                            : ($record->solicitud_id ? 'Ref: '.($record->solicitud ? $record->solicitud->codigo : 'N/A') : 'Compra Directa')
                     ),
 
                 TextColumn::make('tipo')
@@ -51,8 +54,9 @@ class OrdenCompraTable
                     ->label('Proveedor')
                     ->searchable()
                     ->sortable()
-                    ->description(fn (OrdenCompra $record) => $record->proveedor->persona->personaJuridica->razon_social
-                        ?? $record->proveedor->persona->primer_nombre
+                    ->description(fn (OrdenCompra $record) => ($record->proveedor && $record->proveedor->persona && $record->proveedor->persona->personaJuridica)
+                            ? $record->proveedor->persona->personaJuridica->razon_social
+                            : (($record->proveedor && $record->proveedor->persona) ? $record->proveedor->persona->primer_nombre : '')
                     ),
 
                 TextColumn::make('cotizacion_id')
@@ -81,7 +85,10 @@ class OrdenCompraTable
                 TextColumn::make('progreso')
                     ->label('Progreso')
                     ->getStateUsing(function (OrdenCompra $record): string {
-                        $total = (float) $record->items->sum('cantidad');
+                        /** @var Collection<int, OrdenCompraItem> $items */
+                        $items = $record->items;
+                        /** @var int|float $total */
+                        $total = $items->sum('cantidad');
 
                         if ($record->estado === EstadoOrdenCompra::Recibida) {
                             return "{$total}/{$total}";
@@ -127,7 +134,11 @@ class OrdenCompraTable
                 SelectFilter::make('proveedor_id')
                     ->label('Filtrar por Proveedor')
                     ->relationship('proveedor', 'codigo')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->codigo}] - ".($record->persona->personaJuridica->razon_social ?? $record->persona->primer_nombre)
+                    ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "[{$record->codigo}] - ".(
+                        ($record->persona && $record->persona->personaJuridica)
+                            ? $record->persona->personaJuridica->razon_social
+                            : ($record->persona ? $record->persona->primer_nombre : '')
+                    )
                     )
                     ->searchable()
                     ->preload(),
@@ -166,7 +177,7 @@ class OrdenCompraTable
                         ->color('gray')
                         ->url(fn (OrdenCompra $record) => route('reporte.orden-compra', $record))
                         ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()->can('Compras:ImprimirOrdenCompra')),
+                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirOrdenCompra') ?? false),
 
                     Action::make('cancelar')
                         ->label('Cancelar')

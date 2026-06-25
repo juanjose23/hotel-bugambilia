@@ -173,9 +173,9 @@ class ActivoForm
                     ->label('Proveedor')
                     ->placeholder('Seleccione un proveedor')
                     ->relationship('proveedor', 'codigo')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->codigo} — ".(
-                        $record->persona->personaJuridica->razon_social
-                        ?? "{$record->persona->primer_nombre} {$record->persona->personaNatural?->primer_apellido}"
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->codigo.' — '.(
+                        ($record->persona && $record->persona->personaJuridica ? $record->persona->personaJuridica->razon_social : null)
+                        ?? ($record->persona ? $record->persona->primer_nombre.' '.($record->persona->personaNatural ? $record->persona->personaNatural->primer_apellido : '') : '')
                     ))
                     ->searchable()
                     ->preload()

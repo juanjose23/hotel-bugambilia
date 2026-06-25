@@ -31,7 +31,10 @@ class ViewSolicitudLimpieza extends ViewRecord
                 ->requiresConfirmation()
                 ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === 'pendiente')
                 ->action(function (SolicitudLimpieza $record) {
-                    app(IniciarLimpieza::class)->execute($record, auth()->id());
+                    $ejecucion = $record->ejecuciones()->first();
+                    if ($ejecucion) {
+                        app(IniciarLimpieza::class)->execute($ejecucion, (int) auth()->id());
+                    }
 
                     Notification::make()
                         ->title('Limpieza iniciada')
@@ -46,7 +49,10 @@ class ViewSolicitudLimpieza extends ViewRecord
                 ->requiresConfirmation()
                 ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === 'en_progreso')
                 ->action(function (SolicitudLimpieza $record) {
-                    app(TerminarLimpieza::class)->execute($record);
+                    $ejecucion = $record->ejecuciones()->first();
+                    if ($ejecucion) {
+                        app(TerminarLimpieza::class)->execute($ejecucion);
+                    }
 
                     Notification::make()
                         ->title('Ubicación lista y disponible')

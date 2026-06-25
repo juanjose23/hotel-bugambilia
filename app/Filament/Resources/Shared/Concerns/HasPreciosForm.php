@@ -12,9 +12,14 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\Column;
+use Filament\Tables\Columns\ColumnGroup;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\Layout\Component;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 trait HasPreciosForm
 {
@@ -115,6 +120,7 @@ trait HasPreciosForm
                 return;
             }
 
+            /** @var Model|null $record */
             $record = $component->getRecord();
             if ($record && $record->exists) {
                 $query->where('id', '!=', $record->getKey());
@@ -126,7 +132,10 @@ trait HasPreciosForm
         };
     }
 
-    protected function buildUniquePrecioQuery(callable $get, mixed $component, int $estado, bool $esOferta, int $monedaId): ?object
+    /**
+     * @return Builder<Model>|null
+     */
+    protected function buildUniquePrecioQuery(callable $get, mixed $component, int $estado, bool $esOferta, int $monedaId): ?Builder
     {
         if ($estado !== 1 || $esOferta || ! $monedaId) {
             return null;
@@ -170,7 +179,7 @@ trait HasPreciosForm
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<int, Column|ColumnGroup|Component>
      */
     protected function getPriceTableColumns(): array
     {
@@ -214,8 +223,8 @@ trait HasPreciosForm
             TextColumn::make('estado')
                 ->label('Estado')
                 ->badge()
-                ->color(fn ($state): string => PrecioEstado::colorFor($state))
-                ->formatStateUsing(fn ($state): string => PrecioEstado::labelFor($state))
+                ->color(fn ($state) => PrecioEstado::colorFor($state ?? '') ?? 'gray')
+                ->formatStateUsing(fn ($state): string => PrecioEstado::labelFor($state ?? ''))
                 ->sortable(),
         ];
     }

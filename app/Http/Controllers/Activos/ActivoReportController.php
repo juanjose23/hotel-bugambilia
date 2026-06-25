@@ -51,7 +51,7 @@ class ActivoReportController extends Controller
         app(RegistrarAuditoriaReporteUseCase::class)->ejecutar($codigo, [
             'usuario' => auth()->id(),
             'ip' => request()->ip(),
-            'referencia_id' => $record?->id,
+            'referencia_id' => (is_object($record) && method_exists($record, 'getKey')) ? $record->getKey() : null,
         ]);
     }
 
@@ -140,7 +140,8 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-005');
 
-        $tipoFiltro = request('ubicacion_tipo');
+        $ubicacionTipo = request('ubicacion_tipo');
+        $tipoFiltro = is_scalar($ubicacionTipo) ? (string) $ubicacionTipo : '';
 
         return Pdf::view('reports.activos.por-ubicacion', array_merge($this->baseData(), [
             'ubicaciones' => $useCase->ejecutar($tipoFiltro),
@@ -153,14 +154,17 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-006');
 
-        $activoId = (int) request('activo_id');
+        $reqActivoId = request('activo_id');
+        $activoId = is_numeric($reqActivoId) ? (int) $reqActivoId : 0;
         $data = $useCase->ejecutar($activoId);
+
+        $codigoInventario = $data['activo'] ? $data['activo']->codigo_inventario : 'Todos';
 
         return Pdf::view('reports.activos.historial-movimientos', array_merge($this->baseData(), [
             'activo' => $data['activo'],
             'lineaTiempo' => $data['lineaTiempo'],
             'filtroActivo' => $activoId > 0 ? $data['activo'] : null,
-        ]))->name("HTB-ACT-006-Historial-{$data['activo']->codigo_inventario}.pdf")->download();
+        ]))->name("HTB-ACT-006-Historial-{$codigoInventario}.pdf")->download();
     }
 
     // ─── HTB-ACT-007: Activos en Mantenimiento ─────────────────────────────
@@ -188,7 +192,8 @@ class ActivoReportController extends Controller
     {
         $this->auditoria('HTB-ACT-008');
 
-        $dias = (int) request('dias', 90);
+        $reqDias = request('dias', 90);
+        $dias = is_numeric($reqDias) ? (int) $reqDias : 90;
         $activos = $useCase->garantiasProximas($dias);
         $filasPorPagina = ReportePaginador::filasPorPaginaSpatie();
         $paginas = $activos->chunk($filasPorPagina)

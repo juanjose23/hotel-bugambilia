@@ -30,16 +30,19 @@ Artisan::command('mantenimiento:procesar-todos', function (): void {
 
 $shouldSchedule = function (string $key, string $default = '06:00'): ?string {
     $value = config($key, $default);
-    if ($value === null) {
+    if (! is_string($value)) {
         return null;
     }
-    $strValue = strtolower(trim((string) $value));
+    $strValue = strtolower(trim($value));
     if (in_array($strValue, ['null', 'false', 'disabled', 'none', ''], true)) {
         return null;
     }
 
-    return (string) $value;
+    return $value;
 };
+
+$timezone = config('app.timezone');
+$timezoneStr = is_string($timezone) ? $timezone : 'America/Managua';
 
 // 1. Verificar lotes vencidos y próximos a caducar
 if ($time = $shouldSchedule('jobs.inventario_caducidades', '06:00')) {
@@ -48,7 +51,7 @@ if ($time = $shouldSchedule('jobs.inventario_caducidades', '06:00')) {
         ->dailyAt($time)
         ->withoutOverlapping()
         ->onOneServer()
-        ->timezone(config('app.timezone', 'America/Managua'));
+        ->timezone($timezoneStr);
 }
 
 // 2. Generar mantenimientos preventivos lógicos (silencioso)
@@ -58,7 +61,7 @@ if ($time = $shouldSchedule('jobs.mtto_preventivo', '06:00')) {
         ->dailyAt($time)
         ->withoutOverlapping()
         ->onOneServer()
-        ->timezone(config('app.timezone', 'America/Managua'));
+        ->timezone($timezoneStr);
 }
 
 // 3. Notificación unificada de mantenimientos (tecnicos asignados / admin pool, anti-spam)
@@ -68,7 +71,7 @@ if ($time = $shouldSchedule('jobs.mtto_notificar_proximos', '07:00')) {
         ->dailyAt($time)
         ->withoutOverlapping()
         ->onOneServer()
-        ->timezone(config('app.timezone', 'America/Managua'));
+        ->timezone($timezoneStr);
 }
 
 // 4. Restaurar estados lógicos de activos completados
@@ -78,7 +81,7 @@ if ($time = $shouldSchedule('jobs.mtto_sincronizar', '06:40')) {
         ->dailyAt($time)
         ->withoutOverlapping()
         ->onOneServer()
-        ->timezone(config('app.timezone', 'America/Managua'));
+        ->timezone($timezoneStr);
 }
 
 // 5. Advertir garantías de activos a vencer en los siguientes 30 días
@@ -88,5 +91,5 @@ if ($time = $shouldSchedule('jobs.mtto_garantias', '06:15')) {
         ->dailyAt($time)
         ->withoutOverlapping()
         ->onOneServer()
-        ->timezone(config('app.timezone', 'America/Managua'));
+        ->timezone($timezoneStr);
 }

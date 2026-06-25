@@ -14,14 +14,14 @@ class HabitacionHistorialObserver
     public function creating(Habitacion $habitacion): void
     {
         if (blank($habitacion->slug)) {
-            $habitacion->slug = app(GenerarSlugHabitacion::class)->execute($habitacion->nombre);
+            $habitacion->slug = app(GenerarSlugHabitacion::class)->execute($habitacion->nombre ?? '');
         }
     }
 
     public function updating(Habitacion $habitacion): void
     {
         if ($habitacion->isDirty('nombre') && ! $habitacion->isDirty('slug')) {
-            $habitacion->slug = app(GenerarSlugHabitacion::class)->execute($habitacion->nombre, $habitacion->id);
+            $habitacion->slug = app(GenerarSlugHabitacion::class)->execute($habitacion->nombre ?? '', $habitacion->id);
         }
     }
 
@@ -46,7 +46,7 @@ class HabitacionHistorialObserver
         if ($originalRaw instanceof EstadoHabitacion) {
             $original = $originalRaw;
         } elseif ($originalRaw !== null) {
-            $original = EstadoHabitacion::tryFrom((int) $originalRaw);
+            $original = is_numeric($originalRaw) ? EstadoHabitacion::tryFrom((int) $originalRaw) : null;
         }
 
         HabitacionHistorial::create([

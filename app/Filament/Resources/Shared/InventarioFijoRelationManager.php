@@ -109,10 +109,10 @@ class InventarioFijoRelationManager extends RelationManager
                     ->using(function (array $data): Model {
                         $owner = $this->getOwnerRecord();
                         app(AsignarActivo::class)->execute(
-                            activoId: (int) $data['activo_id'],
+                            activoId: is_numeric($data['activo_id'] ?? null) ? intval($data['activo_id']) : 0,
                             asignableType: $owner::class,
-                            asignableId: $owner->getKey(),
-                            userId: auth()->id() ?? 1,
+                            asignableId: is_numeric($owner->getKey()) ? intval($owner->getKey()) : 0,
+                            userId: intval(auth()->id()),
                             motivo: $data['motivo']
                         );
 
@@ -171,7 +171,7 @@ class InventarioFijoRelationManager extends RelationManager
                             activoId: $record->activo_id,
                             asignableType: $data['asignable_type'],
                             asignableId: (int) $data['asignable_id'],
-                            userId: auth()->id() ?? 1,
+                            userId: (int) auth()->id(),
                             motivo: $data['motivo']
                         );
                     })

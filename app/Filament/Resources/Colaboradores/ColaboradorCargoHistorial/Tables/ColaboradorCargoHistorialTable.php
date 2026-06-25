@@ -52,7 +52,7 @@ class ColaboradorCargoHistorialTable
                     ->label('Estado')
                     ->badge()
                     ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
-                    ->color(fn ($state): string => EstadoCatalogo::colorFor($state)),
+                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null),
             ])
             ->filters([
                 FiltroEliminados::make(),

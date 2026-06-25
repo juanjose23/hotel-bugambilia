@@ -53,7 +53,7 @@ class DevolucionSeeder extends Seeder
             'recepcion_item_id' => $loteBorrador->recepcion_item_id,
             'producto_id' => $loteBorrador->producto_id,
             'producto_variante_id' => $loteBorrador->producto_variante_id,
-            'unidad_medida_id' => $loteBorrador->recepcionItem->unidad_medida_id ?? $loteBorrador->producto->unidad_medida_id,
+            'unidad_medida_id' => ($loteBorrador->recepcionItem ? $loteBorrador->recepcionItem->unidad_medida_id : null) ?? ($loteBorrador->producto ? $loteBorrador->producto->unidad_medida_id : null),
             'cantidad_devolver' => 1.00,
         ]);
 
@@ -77,7 +77,7 @@ class DevolucionSeeder extends Seeder
                 'recepcion_item_id' => $loteConfirmar->recepcion_item_id,
                 'producto_id' => $loteConfirmar->producto_id,
                 'producto_variante_id' => $loteConfirmar->producto_variante_id,
-                'unidad_medida_id' => $loteConfirmar->recepcionItem->unidad_medida_id ?? $loteConfirmar->producto->unidad_medida_id,
+                'unidad_medida_id' => ($loteConfirmar->recepcionItem ? $loteConfirmar->recepcionItem->unidad_medida_id : null) ?? ($loteConfirmar->producto ? $loteConfirmar->producto->unidad_medida_id : null),
                 'cantidad_devolver' => 2.00,
             ]);
 

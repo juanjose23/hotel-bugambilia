@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 class UserForm
 {
@@ -19,7 +20,7 @@ class UserForm
         return $schema->components(self::getSchema());
     }
 
-    /** @return array<mixed> */
+    /** @return array<int, Htmlable|string> */
     public static function getSchema(): array
     {
         return [
@@ -33,8 +34,10 @@ class UserForm
                                 ->pluck('persona_id')
                                 ->toArray();
 
+                            $excludedIds = array_map(fn (mixed $id): int => is_numeric($id) ? (int) $id : 0, $excludedIds);
+
                             if ($record && $record->persona_id) {
-                                $excludedIds = array_diff($excludedIds, [$record->persona_id]);
+                                $excludedIds = array_diff($excludedIds, [(int) $record->persona_id]);
                             }
 
                             $personas = Persona::whereHas('colaborador')
@@ -45,11 +48,11 @@ class UserForm
                             $result = [];
 
                             foreach ($personas as $p) {
-                                $result[$p->id] = $p->colaborador->codigo.' - '.
+                                $result[$p->id] = ($p->colaborador ? $p->colaborador->codigo : '').' - '.
                                     $p->primer_nombre.' '.
                                     ($p->segundo_nombre ?? '').' '.
-                                    ($p->personaNatural->primer_apellido ?? '').' '.
-                                    ($p->personaNatural->segundo_apellido ?? '');
+                                    ($p->personaNatural ? $p->personaNatural->primer_apellido : '').' '.
+                                    ($p->personaNatural ? $p->personaNatural->segundo_apellido : '');
                             }
 
                             return $result;
@@ -65,7 +68,7 @@ class UserForm
 
                             $persona = Persona::with(['personaNatural', 'pais'])->find($state);
 
-                            if (! $persona) {
+                            if (! ($persona instanceof Persona)) {
                                 return;
                             }
 

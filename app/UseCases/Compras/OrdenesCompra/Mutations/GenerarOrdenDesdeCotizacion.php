@@ -28,14 +28,16 @@ class GenerarOrdenDesdeCotizacion
 
             $codigo = app(GenerarCodigoOrdenCompra::class)->execute();
 
-            $subtotal = $itemsElegidos->sum('subtotal');
+            $rawSubtotal = $itemsElegidos->sum('subtotal') ?? 0;
+            $subtotal = is_numeric($rawSubtotal) ? (float) $rawSubtotal : 0.0;
             $impuestos = $subtotal * 0.15;
             $total = $subtotal + $impuestos;
 
-            $proveedorNombre = $cotizacion->proveedor->persona->personaJuridica->razon_social
-                ?? $cotizacion->proveedor->persona->primer_nombre;
+            $proveedorNombre = $cotizacion->proveedor?->persona?->personaJuridica->razon_social
+                ?? $cotizacion->proveedor?->persona->primer_nombre
+                ?? 'Proveedor #'.$cotizacion->proveedor_id;
 
-            $cotizacion->solicitud->update(['estado' => EstadoSolicitud::Aprobada]);
+            $cotizacion->solicitud?->update(['estado' => EstadoSolicitud::Aprobada]);
 
             $orden = OrdenCompra::create([
                 'codigo' => $codigo,

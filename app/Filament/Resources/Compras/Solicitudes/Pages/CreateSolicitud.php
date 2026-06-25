@@ -27,7 +27,8 @@ class CreateSolicitud extends CreateRecord
 
         $data['colaborador_id'] = $colaborador->id;
 
-        $data['codigo'] = app(GenerarCodigoSolicitud::class)->ejecutar($data['departamento_solicitante_id']);
+        $departamentoSolicitanteId = is_numeric($data['departamento_solicitante_id'] ?? null) ? intval($data['departamento_solicitante_id']) : 0;
+        $data['codigo'] = app(GenerarCodigoSolicitud::class)->ejecutar($departamentoSolicitanteId);
 
         $data['estado'] = EstadoSolicitud::Borrador->value;
 
@@ -42,7 +43,8 @@ class CreateSolicitud extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $items = $data['items'] ?? [];
+        /** @var array<int, array<string, mixed>> $items */
+        $items = (array) ($data['items'] ?? []);
         unset($data['items']);
 
         /** @var Solicitud $record */

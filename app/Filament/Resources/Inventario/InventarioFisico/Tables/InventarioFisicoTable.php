@@ -53,7 +53,15 @@ class InventarioFisicoTable
                         ->previewColumns(6)
                     : TextColumn::make('datos_hoja')
                         ->label('Lotes en Hoja')
-                        ->formatStateUsing(fn ($state) => is_array($state) ? (count($state['sheets']['sheet-1']['cellData'] ?? []) > 1 ? count($state['sheets']['sheet-1']['cellData'] ?? []) - 1 .' lotes' : '0 lotes') : '0 lotes')
+                        ->formatStateUsing(function ($state): string {
+                            if (! is_array($state)) {
+                                return '0 lotes';
+                            }
+                            $cells = data_get($state, 'sheets.sheet-1.cellData');
+                            $cellsArray = is_array($cells) ? $cells : [];
+
+                            return count($cellsArray) > 1 ? (count($cellsArray) - 1).' lotes' : '0 lotes';
+                        })
                         ->badge()
                         ->color('gray'),
 
@@ -75,7 +83,7 @@ class InventarioFisicoTable
                     ->modalDescription('Esta acción comparará la cantidad física registrada en la hoja de cálculo con el stock actual del sistema, generará los movimientos de ajuste (MOV_AJUSTE) en los lotes con discrepancia, y cerrará esta sesión como PROCESADO. Esta acción no se puede deshacer.')
                     ->action(function (InventarioFisico $record) {
                         try {
-                            app(ProcesarInventarioFisico::class)->execute($record, auth()->id());
+                            app(ProcesarInventarioFisico::class)->execute($record, (int) auth()->id());
 
                             Notification::make()
                                 ->title('Conciliación Procesada')

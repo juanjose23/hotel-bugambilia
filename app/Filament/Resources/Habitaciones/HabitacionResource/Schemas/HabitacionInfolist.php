@@ -155,7 +155,8 @@ class HabitacionInfolist
                             if (blank($state)) {
                                 return null;
                             }
-                            $ids = is_array($state) ? $state : (array) json_decode((string) $state, true);
+                            $stateStr = is_scalar($state) ? (string) $state : '';
+                            $ids = is_array($state) ? $state : (array) json_decode($stateStr, true);
                             $catalogos = Cache::remember(
                                 'catalogos_vistas',
                                 now()->addHour(),
@@ -163,7 +164,11 @@ class HabitacionInfolist
                             );
 
                             return collect($ids)
-                                ->map(fn ($id) => $catalogos[$id] ?? null)
+                                ->map(function ($id) use ($catalogos) {
+                                    $intId = is_numeric($id) ? (int) $id : 0;
+
+                                    return $catalogos[$intId] ?? null;
+                                })
                                 ->filter()
                                 ->implode(', ');
                         })

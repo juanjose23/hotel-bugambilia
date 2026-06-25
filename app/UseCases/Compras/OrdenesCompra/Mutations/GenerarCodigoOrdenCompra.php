@@ -18,7 +18,7 @@ class GenerarCodigoOrdenCompra
                 ->lockForUpdate()
                 ->get()
                 ->first(function ($order) {
-                    return preg_match('/-(\d+)$/', $order->codigo);
+                    return (bool) preg_match('/-(\d+)$/', $order->codigo);
                 });
 
             $max = $latest?->codigo;

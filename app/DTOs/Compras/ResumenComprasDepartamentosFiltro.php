@@ -16,9 +16,12 @@ readonly class ResumenComprasDepartamentosFiltro
      */
     public static function fromArray(array $data): self
     {
+        $fechaInicio = $data['fecha_inicio'] ?? null;
+        $fechaFin = $data['fecha_fin'] ?? null;
+
         return new self(
-            fechaInicio: $data['fecha_inicio'] ?? null,
-            fechaFin: $data['fecha_fin'] ?? null,
+            fechaInicio: is_string($fechaInicio) ? $fechaInicio : null,
+            fechaFin: is_string($fechaFin) ? $fechaFin : null,
         );
     }
 

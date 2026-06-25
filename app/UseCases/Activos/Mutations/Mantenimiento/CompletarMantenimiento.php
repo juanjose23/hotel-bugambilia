@@ -39,9 +39,11 @@ class CompletarMantenimiento
             ]);
 
             // 2. Reactivar el activo
-            $mantenimiento->activo->update([
-                'estado' => EstadoActivo::Activo,
-            ]);
+            if ($mantenimiento->activo) {
+                $mantenimiento->activo->update([
+                    'estado' => EstadoActivo::Activo,
+                ]);
+            }
 
             // 3. Cerrar la asignación de taller vigente
             ActivoAsignacion::where('activo_id', $mantenimiento->activo_id)

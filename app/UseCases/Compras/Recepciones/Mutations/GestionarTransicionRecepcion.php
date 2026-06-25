@@ -25,6 +25,6 @@ class GestionarTransicionRecepcion
             default => null,
         };
 
-        return $recepcion->fresh();
+        return $recepcion->fresh() ?? $recepcion;
     }
 }

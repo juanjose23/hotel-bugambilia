@@ -16,7 +16,7 @@ trait HasProductoVarianteSelect
         return ProductoVariante::with('producto')
             ->get()
             ->mapWithKeys(fn (ProductoVariante $v) => [
-                $v->id => "[{$v->producto->nombre}] {$v->nombre_variante} ({$v->codigo})",
+                $v->id => '['.($v->producto ? $v->producto->nombre : 'N/A').'] '.($v->nombre_variante ?? '').' ('.$v->codigo.')',
             ])
             ->all();
     }

@@ -139,9 +139,11 @@ class RecepcionForm
                                         $pending = $useCase->getItemPendingQuantity($state);
 
                                         // Obtener cantidad original de la orden
-                                        $ordenItem = OrdenCompraItem::find($state);
+                                        $ordenItem = OrdenCompraItem::find((int) $state);
 
-                                        $set('cantidad_ordenada', $ordenItem ? (float) $ordenItem->cantidad : 0);
+                                        if (is_callable($set)) {
+                                            $set('cantidad_ordenada', $ordenItem ? (float) $ordenItem->cantidad : 0);
+                                        }
                                         $set('cantidad_pendiente', $pending);
                                         $set('cantidad_recibida', $pending);
                                         $set('cantidad_rechazada', 0);
@@ -165,8 +167,10 @@ class RecepcionForm
                                     ->afterStateHydrated(function ($state, $set, $get) {
                                         $ordenItemId = $get('orden_item_id');
                                         if ($ordenItemId) {
-                                            $ordenItem = OrdenCompraItem::find($ordenItemId);
-                                            $set('cantidad_ordenada', $ordenItem ? (float) $ordenItem->cantidad : 0);
+                                            $ordenItem = OrdenCompraItem::find((int) $ordenItemId);
+                                            if (is_callable($set)) {
+                                                $set('cantidad_ordenada', $ordenItem ? (float) $ordenItem->cantidad : 0);
+                                            }
                                         }
                                     })
                                     ->columnSpan(3)
@@ -180,7 +184,9 @@ class RecepcionForm
                                     ->afterStateHydrated(function ($state, $set, $get) {
                                         $ordenItemId = $get('orden_item_id');
                                         if ($ordenItemId) {
-                                            $set('cantidad_pendiente', app(ObtenerOrdenCompraConItems::class)->getItemPendingQuantity($ordenItemId));
+                                            if (is_callable($set)) {
+                                                $set('cantidad_pendiente', app(ObtenerOrdenCompraConItems::class)->getItemPendingQuantity((int) $ordenItemId));
+                                            }
                                         }
                                     })
                                     ->columnSpan(3)

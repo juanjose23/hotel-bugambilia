@@ -47,6 +47,12 @@ class MantenimientoCasosUsoSeeder extends Seeder
         $categoria = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'CAT_PRO'))->first()
             ?? Catalogo::first();
 
+        if (! $categoria) {
+            $this->command->warn('No se encontró categoría para el producto.');
+
+            return;
+        }
+
         $producto = Producto::create([
             'categoria_id' => $categoria->id,
             'nombre' => 'Equipo de Climatización Industrial',

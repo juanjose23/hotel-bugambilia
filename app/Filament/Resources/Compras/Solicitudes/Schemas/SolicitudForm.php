@@ -16,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Collection;
 
 class SolicitudForm
 {
@@ -162,25 +163,31 @@ class SolicitudForm
             return [];
         }
 
-        return ProductoVariante::where('producto_id', $productoId)
+        /** @var array<int, string> $result */
+        $result = ProductoVariante::where('producto_id', $productoId)
             ->get()
             ->mapWithKeys(function (ProductoVariante $v) {
-                $info = $v->codigo;
+                $info = strval($v->codigo);
 
                 if ($v->atributos) {
-                    $attrs = collect($v->atributos)
-                        ->map(fn ($val, $key) => "{$key}: {$val}")
-                        ->implode(', ');
-                    $info .= " | {$attrs}";
+                    $attrParts = [];
+                    foreach ((array) $v->atributos as $attrKey => $attrVal) {
+                        $keyStr = (string) $attrKey;
+                        $valStr = is_scalar($attrVal) ? (string) $attrVal : '';
+                        $attrParts[] = $keyStr.': '.$valStr;
+                    }
+                    $info .= ' | '.implode(', ', $attrParts);
                 }
 
                 if ($v->unidadMedida) {
-                    $info .= " ({$v->unidadMedida->nombre})";
+                    $info .= ' ('.strval($v->unidadMedida->nombre).')';
                 }
 
-                return [$v->id => $info];
+                return [(int) $v->id => $info];
             })
             ->toArray();
+
+        return $result;
     }
 
     private static function getCurrentColaborador(): ?Colaborador
@@ -202,7 +209,9 @@ class SolicitudForm
             return '—';
         }
 
-        return "{$colaborador->codigo} - {$colaborador->persona?->primer_nombre}";
+        $nombre = $colaborador->persona->primer_nombre ?? '';
+
+        return $colaborador->codigo.' - '.$nombre;
     }
 
     /** @return array<int, string> */
@@ -214,13 +223,18 @@ class SolicitudForm
             return [];
         }
 
-        return ColaboradorCargoHistorial::where('colaborador_id', $colaborador->id)
+        /** @var Collection<int, string> $plucked */
+        $plucked = ColaboradorCargoHistorial::where('colaborador_id', $colaborador->id)
             ->where('estado', EstadoCatalogo::Activo->value)
             ->whereNull('fecha_fin')
             ->with('departamento')
             ->get()
             ->pluck('departamento.nombre', 'departamento.id')
-            ->filter()
-            ->toArray();
+            ->filter();
+
+        /** @var array<int, string> $result */
+        $result = $plucked->toArray();
+
+        return $result;
     }
 }

@@ -42,8 +42,12 @@ class ActivosRelationManager extends RelationManager
                         ->get()
                         ->mapWithKeys(function (Activo $activo) {
                             $ubicacionActual = data_get($activo, 'asignacionActiva.asignable.nombre') ?? 'Sin ubicación';
+                            $ubicacionActualStr = is_scalar($ubicacionActual) ? (string) $ubicacionActual : 'Sin ubicación';
 
-                            return [$activo->id => "{$activo->codigo_inventario} - {$activo->nombre_descriptivo} (Ubicación: {$ubicacionActual})"];
+                            $codigoInventario = (string) $activo->codigo_inventario;
+                            $nombreDescriptivo = (string) $activo->nombre_descriptivo;
+
+                            return [$activo->id => "{$codigoInventario} - {$nombreDescriptivo} (Ubicación: {$ubicacionActualStr})"];
                         })
                         ->all();
                 })
@@ -102,12 +106,14 @@ class ActivosRelationManager extends RelationManager
                     ->icon(Heroicon::Plus)
                     ->using(function (array $data): Model {
                         $owner = $this->getOwnerRecord();
+                        $ownerKey = $owner->getKey();
+                        $ownerId = is_numeric($ownerKey) ? (int) $ownerKey : 0;
 
                         app(AsignarActivo::class)->execute(
                             activoId: (int) $data['activo_id'],
                             asignableType: $owner::class,
-                            asignableId: $owner->getKey(),
-                            userId: auth()->id() ?? 1,
+                            asignableId: $ownerId,
+                            userId: (int) (auth()->id() ?? 1),
                             motivo: $data['motivo']
                         );
 

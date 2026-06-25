@@ -33,8 +33,8 @@ class ProveedorInfolist
                         TextEntry::make('estado')
                             ->label('Estado')
                             ->badge()
-                            ->color(fn ($state): string => EstadoCatalogo::colorFor($state))
-                            ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state)),
+                            ->color(fn ($state) => EstadoCatalogo::colorFor($state ?? '') ?? 'gray')
+                            ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state ?? '') ?? ''),
 
                         TextEntry::make('persona.primer_nombre')
                             ->label('Nombre / Razón Social')

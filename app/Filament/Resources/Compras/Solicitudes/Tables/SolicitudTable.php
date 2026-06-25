@@ -44,7 +44,7 @@ class SolicitudTable
                     ->label('Colaborador')
                     ->searchable()
                     ->sortable()
-                    ->description(fn (Solicitud $record) => $record->colaborador->codigo),
+                    ->description(fn (Solicitud $record) => $record->colaborador ? $record->colaborador->codigo : ''),
 
                 TextColumn::make('departamentoSolicitante.nombre')
                     ->label('Departamento')
@@ -111,7 +111,7 @@ class SolicitudTable
                         ->color('info')
                         ->url(fn (Solicitud $record) => route('reporte.solicitud', $record))
                         ->label('Imprimir Solicitud')
-                        ->visible(fn (Solicitud $record) => ! $record->trashed() && auth()->user()->can('Compras:ImprimirSolicitud'))
+                        ->visible(fn (Solicitud $record) => ! $record->trashed() && (auth()->user()?->can('Compras:ImprimirSolicitud') ?? false))
                         ->openUrlInNewTab(),
 
                     DeleteAction::make(),

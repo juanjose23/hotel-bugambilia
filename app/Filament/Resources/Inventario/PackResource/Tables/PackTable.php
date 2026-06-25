@@ -85,7 +85,7 @@ class PackTable
                             $ratios[] = $necesario > 0 ? (int) floor($stockTotal / $necesario) : 0;
                         }
 
-                        $min = min($ratios);
+                        $min = $ratios !== [] ? min($ratios) : 0;
 
                         return "{$min} pack".($min !== 1 ? 's' : '');
                     })
