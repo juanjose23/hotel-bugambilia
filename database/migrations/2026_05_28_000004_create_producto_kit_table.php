@@ -35,6 +35,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->unique(['producto_padre_id', 'producto_variante_id', 'deleted_at'], 'uq_producto_kit_padre_variante');
+            $table->index('lote_id');
         });
 
         $driver = DB::connection()->getDriverName();
@@ -49,6 +50,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('producto_kit', fn (Blueprint $t) => $t->dropIndex(['lote_id']));
         Schema::dropIfExists('producto_kit');
     }
 };

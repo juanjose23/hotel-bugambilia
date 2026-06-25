@@ -32,6 +32,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index('tipo_persona');
+            $table->index('pais_id');
         });
     }
 
@@ -40,6 +41,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('personas', fn (Blueprint $t) => $t->dropIndex(['pais_id']));
         Schema::dropIfExists('personas');
     }
 };

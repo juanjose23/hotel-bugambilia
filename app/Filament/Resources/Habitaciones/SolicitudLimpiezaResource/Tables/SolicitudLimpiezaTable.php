@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\SolicitudLimpiezaResource\Tables;
 
+use App\Enums\HabitacionesEspacios\EstadoLimpieza;
+use App\Filament\Resources\Shared\Filters\FiltroEstado;
+use App\Models\Catalogos\Ubicacion;
+use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
 use App\Models\Limpieza\SolicitudLimpieza;
 use App\UseCases\Limpieza\Mutations\IniciarLimpieza;
@@ -75,18 +79,6 @@ class SolicitudLimpiezaTable
                 TextColumn::make('estado')
                     ->label('Estado Solicitud')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pendiente' => 'warning',
-                        'en_progreso' => 'info',
-                        'completada' => 'success',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pendiente' => 'Pendiente',
-                        'en_progreso' => 'En Progreso',
-                        'completada' => 'Completada',
-                        default => ucfirst($state),
-                    })
                     ->sortable(),
 
                 TextColumn::make('notas')
@@ -109,12 +101,55 @@ class SolicitudLimpiezaTable
                         'normal' => 'Normal',
                         'alta' => 'Alta',
                     ]),
-                SelectFilter::make('estado')
-                    ->options([
-                        'pendiente' => 'Pendiente',
-                        'en_progreso' => 'En Progreso',
-                        'completada' => 'Completada',
-                    ]),
+                FiltroEstado::make(EstadoLimpieza::class),
+                SelectFilter::make('ubicacion_id')
+                    ->label('Ubicación')
+                    ->options(function () {
+                        $all = Ubicacion::all();
+                        $map = $all->keyBy('id');
+                        $buildPath = function (Ubicacion $u) use (&$buildPath, $map): string {
+                            if ($u->padre_id && $map->has($u->padre_id)) {
+                                return $buildPath($map->get($u->padre_id)).' ➔ '.$u->nombre;
+                            }
+
+                            return $u->nombre;
+                        };
+                        $result = [];
+                        foreach ($all as $u) {
+                            $result[$u->id] = $buildPath($u);
+                        }
+                        asort($result);
+
+                        return $result;
+                    })
+                    ->query(function (Builder $query, array $data) {
+                        if (empty($data['value'])) {
+                            return;
+                        }
+                        $selectedId = (int) $data['value'];
+                        $ubicacionIds = Ubicacion::obtenerDescendientesIds($selectedId);
+
+                        $query->where(function (Builder $q) use ($ubicacionIds) {
+                            $q->where(function ($sub) use ($ubicacionIds) {
+                                $sub->where('limpiable_type', Ubicacion::class)
+                                    ->whereIn('limpiable_id', $ubicacionIds);
+                            })->orWhere(function ($sub) use ($ubicacionIds) {
+                                $sub->where('limpiable_type', Habitacion::class)
+                                    ->whereIn('limpiable_id', function ($subQuery) use ($ubicacionIds) {
+                                        $subQuery->select('id')
+                                            ->from('habitaciones')
+                                            ->whereIn('ubicacion_id', $ubicacionIds);
+                                    });
+                            })->orWhere(function ($sub) use ($ubicacionIds) {
+                                $sub->where('limpiable_type', Espacio::class)
+                                    ->whereIn('limpiable_id', function ($subQuery) use ($ubicacionIds) {
+                                        $subQuery->select('id')
+                                            ->from('espacios')
+                                            ->whereIn('ubicacion_id', $ubicacionIds);
+                                    });
+                            });
+                        });
+                    }),
             ])
             ->actions([
                 ViewAction::make(),
@@ -124,17 +159,22 @@ class SolicitudLimpiezaTable
                     ->icon('heroicon-m-play')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === 'pendiente')
-                    ->action(function (SolicitudLimpieza $record) {
-                        $ejecucion = $record->ejecuciones()->first();
-                        if ($ejecucion) {
-                            app(IniciarLimpieza::class)->execute($ejecucion, (int) auth()->id());
-                        }
+                    ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === EstadoLimpieza::Pendiente)
+                    ->action(function (SolicitudLimpieza $record, IniciarLimpieza $iniciarLimpieza) {
+                        try {
+                            $iniciarLimpieza->execute($record, auth()->id());
 
-                        Notification::make()
-                            ->title('Limpieza iniciada')
-                            ->success()
-                            ->send();
+                            Notification::make()
+                                ->title('Limpieza iniciada')
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Error al iniciar limpieza')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     }),
 
                 Action::make('terminarLimpieza')
@@ -142,12 +182,9 @@ class SolicitudLimpiezaTable
                     ->icon('heroicon-m-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === 'en_progreso')
-                    ->action(function (SolicitudLimpieza $record) {
-                        $ejecucion = $record->ejecuciones()->first();
-                        if ($ejecucion) {
-                            app(TerminarLimpieza::class)->execute($ejecucion);
-                        }
+                    ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === EstadoLimpieza::EnProgreso)
+                    ->action(function (SolicitudLimpieza $record, TerminarLimpieza $terminarLimpieza) {
+                        $terminarLimpieza->execute($record);
 
                         Notification::make()
                             ->title('Ubicación lista y disponible')

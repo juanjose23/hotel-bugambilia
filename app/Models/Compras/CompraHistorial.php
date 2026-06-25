@@ -17,6 +17,14 @@ class CompraHistorial extends Model implements AuditableContract
 
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return [
+            'model_id' => 'integer',
+            'usuario_id' => 'integer',
+        ];
+    }
+
     /** @return BelongsTo<User, $this> */
     public function usuario(): BelongsTo
     {

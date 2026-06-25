@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\UseCases\Inventario\Movimientos\Mutations;
 
+use App\Models\Inventario\Lote;
 use App\Models\Inventario\MovimientoStock;
 use App\Models\Inventario\Stock;
 use Illuminate\Support\Facades\DB;
@@ -88,11 +89,19 @@ class TrasladarEntreBodegas
             }
 
             // 4. Registrar movimiento de inventario (TRASLADO)
+            $lote = Lote::find($loteId);
+            $costoUnitarioMov = $lote?->costo_unitario;
+            $costoTotalMov = $costoUnitarioMov !== null
+                ? $costoUnitarioMov * $cantidad
+                : null;
+
             MovimientoStock::create([
                 'tipo' => 'TRASLADO',
                 'lote_id' => $loteId,
                 'producto_id' => $productoId,
                 'cantidad' => $cantidad,
+                'costo_unitario' => $costoUnitarioMov,
+                'costo_total' => $costoTotalMov,
                 'ubicacion_origen_id' => $origenId,
                 'ubicacion_destino_id' => $destinoId,
                 'documento_tipo' => 'traslado',

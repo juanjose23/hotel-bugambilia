@@ -67,6 +67,8 @@ return new class extends Migration
             $table->index('solicitud_id');
             $table->index('cotizacion_id');
             $table->index('estado');
+            $table->index('proveedor_contacto_id');
+            $table->index('condicion_pago_id');
         });
 
         // Constraint de dominio para estados (1=Borrador, 2=Emitida, 3=En Tránsito, 4=Recibida, 5=Cancelada)
@@ -81,6 +83,10 @@ return new class extends Migration
             DB::statement('ALTER TABLE ordenes_compra DROP CONSTRAINT IF EXISTS chk_ordenes_estado');
         }
 
+        Schema::table('ordenes_compra', function (Blueprint $t) {
+            $t->dropIndex(['proveedor_contacto_id']);
+            $t->dropIndex(['condicion_pago_id']);
+        });
         Schema::dropIfExists('ordenes_compra');
     }
 };

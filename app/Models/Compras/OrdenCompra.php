@@ -159,7 +159,7 @@ class OrdenCompra extends Model implements AuditableContract
         );
     }
 
-    /** @param Builder<static> $query */
+    /** @param Builder<OrdenCompra> $query */
     public function scopeWherePendienteRecepcion(Builder $query): void
     {
         $query->whereIn('estado', [

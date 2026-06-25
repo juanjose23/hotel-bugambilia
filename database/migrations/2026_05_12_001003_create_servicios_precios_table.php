@@ -36,6 +36,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->index('servicio_id');
+            $table->index('moneda_id');
         });
 
         if (DB::connection()->getDriverName() === 'pgsql') {
@@ -49,6 +50,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('servicios_precios', fn (Blueprint $t) => $t->dropIndex(['moneda_id']));
         Schema::dropIfExists('servicios_precios');
     }
 };

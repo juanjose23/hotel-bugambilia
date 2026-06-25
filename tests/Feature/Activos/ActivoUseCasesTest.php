@@ -13,6 +13,9 @@ use App\Enums\Activos\TipoPlanMantenimiento;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Models\Activos\Activo;
+use App\Models\Activos\ActivoAsignacion;
+use App\Models\Activos\ActivoBaja;
+use App\Models\Activos\ActivoMantenimiento;
 use App\Models\Activos\ActPlanMantenimiento;
 use App\Models\Activos\PrefijoCodigo;
 use App\Models\Activos\RegistroIndividualizacion;
@@ -25,6 +28,8 @@ use App\Models\Compras\Proveedor;
 use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\RecepcionItem;
 use App\Models\Habitaciones\Habitacion;
+use App\Models\Inventario\Lote;
+use App\Models\Inventario\MovimientoStock;
 use App\Models\Inventario\Stock;
 use App\Models\User;
 use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
@@ -34,9 +39,6 @@ use App\UseCases\Activos\Mutations\Gestion\RegistrarActivoFijo;
 use App\UseCases\Activos\Mutations\Mantenimiento\CompletarMantenimiento;
 use App\UseCases\Activos\Mutations\Mantenimiento\EnviarAMantenimiento;
 use App\UseCases\Inventario\Recepciones\Mutations\RegistrarEntradaRecepcion;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     // Seed initial dependencies
@@ -135,12 +137,12 @@ it('registra automaticamente los activos fijos al recepcionar un producto tipo 3
     );
 
     // 2. Assert no inv_lote was created for this product
-    $this->assertDatabaseMissing('inv_lotes', [
+    $this->assertDatabaseMissing((new Lote)->getTable(), [
         'producto_id' => $activoProducto->id,
     ]);
 
     // 3. Assert inv_registro_individualizacion was created and completed automatically
-    $this->assertDatabaseHas('inv_registro_individualizacion', [
+    $this->assertDatabaseHas((new RegistroIndividualizacion)->getTable(), [
         'recepcion_item_id' => $recepcionItem->id,
         'producto_id' => $activoProducto->id,
         'cantidad_total' => 5,
@@ -200,7 +202,7 @@ it('successfully individualizes assets generating sequential codes, stock count 
 
     // 3. Verify Active Assignments pointing to Almacén General
     foreach ($activos as $activo) {
-        $this->assertDatabaseHas('inv_activo_asignaciones', [
+        $this->assertDatabaseHas((new ActivoAsignacion)->getTable(), [
             'activo_id' => $activo->id,
             'asignable_type' => Ubicacion::class,
             'asignable_id' => $this->ubicacionAlmacen->id,
@@ -217,7 +219,7 @@ it('successfully individualizes assets generating sequential codes, stock count 
     expect($stock->cantidad)->toBe(3.0);
 
     // 5. Verify movement logs
-    $this->assertDatabaseHas('inv_movimientos', [
+    $this->assertDatabaseHas((new MovimientoStock)->getTable(), [
         'producto_id' => $activoProducto->id,
         'cantidad' => 1.0,
         'tipo' => 'MOV_ENTRADA',
@@ -347,7 +349,7 @@ it('can send asset to technical maintenance and repair', function () {
     ]);
 
     // 3. Verify maintenance ticket was registered in process
-    $this->assertDatabaseHas('inv_mantenimientos', [
+    $this->assertDatabaseHas((new ActivoMantenimiento)->getTable(), [
         'activo_id' => $activo->id,
         'estado' => EstadoMantenimiento::EnProceso->value,
     ]);
@@ -409,7 +411,7 @@ it('can retire and decommission assets cleanly, updating stock count and bitacor
     ]);
 
     // 3. Verify Baja register was created
-    $this->assertDatabaseHas('inv_activo_bajas', [
+    $this->assertDatabaseHas((new ActivoBaja)->getTable(), [
         'activo_id' => $activo->id,
         'motivo_tipo' => TipoBaja::Robo->value,
     ]);
@@ -419,7 +421,7 @@ it('can retire and decommission assets cleanly, updating stock count and bitacor
     expect($stock->cantidad)->toBe(0.0);
 
     // 5. Verify movements bitacora output log
-    $this->assertDatabaseHas('inv_movimientos', [
+    $this->assertDatabaseHas((new MovimientoStock)->getTable(), [
         'producto_id' => $activoProducto->id,
         'cantidad' => 1.0,
         'tipo' => 'MOV_SALIDA',

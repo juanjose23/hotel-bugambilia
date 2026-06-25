@@ -24,23 +24,15 @@ class RecepcionItem extends Model implements AuditableContract
 
     protected $table = 'recepcion_items';
 
-    protected $with = [
-        'producto',
-        'variante',
-        'unidadMedida',
-    ];
-
     protected $casts = [
         'fecha_vencimiento' => 'date:Y-m-d',
     ];
 
     protected $guarded = ['id'];
 
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-
-        static::saving(function ($item) {
+        static::saving(function (self $item) {
             if ($item->orden_item_id && ! $item->producto_id) {
                 $ordenItem = $item->ordenItem;
                 if ($ordenItem) {

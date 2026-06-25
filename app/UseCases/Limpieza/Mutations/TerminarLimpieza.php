@@ -7,39 +7,110 @@ namespace App\UseCases\Limpieza\Mutations;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Enums\HabitacionesEspacios\EstadoLimpieza;
+use App\Models\Catalogos\Ubicacion;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
-use App\Models\Inventario\Stock as InventarioStock;
+use App\Models\Inventario\Stock as SharedStock;
 use App\Models\Limpieza\LimpiezaEjecucion;
-use App\Models\Shared\Stock as SharedStock;
+use App\Models\Limpieza\SolicitudLimpieza;
 use Illuminate\Support\Facades\DB;
 
 class TerminarLimpieza
 {
     /**
-     * Termina la limpieza de una ejecución.
+     * Termina la limpieza de una habitación o espacio.
      *
+     * @param  LimpiezaEjecucion|SolicitudLimpieza  $record
      * @param  array<string, bool>  $checklist
      * @param  array<int, float>  $consumos
      */
-    public function execute(LimpiezaEjecucion $ejecucion, array $checklist = [], string $observaciones = '', array $consumos = []): void
+    public function execute($record, array $checklist = [], ?string $observaciones = null, array $consumos = []): void
     {
-        DB::transaction(function () use ($ejecucion, $checklist, $observaciones, $consumos) {
-            $hasDiscrepancia = in_array(false, $checklist, true);
-            $estadoFinal = $hasDiscrepancia ? EstadoLimpieza::CompletadaConDiscrepancia : EstadoLimpieza::Completada;
+        DB::transaction(function () use ($record, $checklist, $observaciones, $consumos) {
+            $ejecucion = null;
+            $solicitud = null;
 
-            $ejecucion->update([
-                'estado' => $estadoFinal,
-                'detalles_checklist' => ! empty($checklist) ? $checklist : null,
-                'observaciones' => $observaciones ?: null,
-                'consumos' => ! empty($consumos) ? $consumos : null,
-                'hora_fin' => now(),
-            ]);
+            if ($record instanceof LimpiezaEjecucion) {
+                $ejecucion = $record;
+                $solicitud = $record->solicitud;
+            } elseif ($record instanceof SolicitudLimpieza) {
+                $solicitud = $record;
+                $ejecucion = LimpiezaEjecucion::where('solicitud_id', $record->id)->first();
+            }
 
-            $limpiable = $ejecucion->limpiable;
+            // 1. Update LimpiezaEjecucion
+            if ($ejecucion) {
+                $hasDiscrepancy = false;
+                foreach ($checklist as $task => $completed) {
+                    if (! $completed) {
+                        $hasDiscrepancy = true;
+                    }
+                }
+                $estado = $hasDiscrepancy ? EstadoLimpieza::CompletadaConDiscrepancia : EstadoLimpieza::Completada;
+
+                $ejecucion->update([
+                    'estado' => $estado,
+                    'hora_fin' => now()->format('H:i:s'),
+                    'detalles_checklist' => $checklist,
+                    'observaciones' => $observaciones,
+                    'consumos' => $consumos,
+                ]);
+
+                // Register Stock Consumption if cart is present
+                if ($ejecucion->carrito_id && ! empty($consumos)) {
+                    $tipoDestino = match ($ejecucion->limpiable_type) {
+                        Habitacion::class => 'habitacion',
+                        Espacio::class => 'espacio',
+                        Ubicacion::class => 'ubicacion',
+                        default => null,
+                    };
+
+                    if ($tipoDestino) {
+                        $items = [];
+                        foreach ($consumos as $varianteId => $cantidad) {
+                            if ($cantidad > 0) {
+                                $items[] = [
+                                    'producto_variante_id' => (int) $varianteId,
+                                    'cantidad' => (float) $cantidad,
+                                ];
+                            }
+                        }
+
+                        if (! empty($items)) {
+                            app(ReabastecerUbicacion::class)->execute(
+                                tipoDestino: $tipoDestino,
+                                destinoId: $ejecucion->limpiable_id,
+                                items: $items,
+                                bodegaOrigenId: $ejecucion->carrito_id,
+                                creadoPorId: auth()->id(),
+                                notas: "Consumo registrado al completar ejecución de limpieza #{$ejecucion->id}."
+                            );
+                        }
+                    }
+                }
+            }
+
+            // 2. Update SolicitudLimpieza
+            if ($solicitud) {
+                $solicitud->update([
+                    'estado' => EstadoLimpieza::Completada,
+                ]);
+            }
+
+            // 3. Update physical state
+            $limpiable = $record->limpiable;
             if ($limpiable instanceof Habitacion) {
+                $nuevoEstado = EstadoHabitacion::DISPONIBLE;
+
+                if ($ejecucion && $ejecucion->estado_previo !== null) {
+                    $prev = EstadoHabitacion::fromValue($ejecucion->estado_previo);
+                    if ($prev && in_array($prev, [EstadoHabitacion::Ocupada, EstadoHabitacion::Mantenimiento], true)) {
+                        $nuevoEstado = $prev;
+                    }
+                }
+
                 $limpiable->update([
-                    'estado' => EstadoHabitacion::DISPONIBLE,
+                    'estado' => $nuevoEstado,
                 ]);
             } elseif ($limpiable instanceof Espacio) {
                 $limpiable->update([

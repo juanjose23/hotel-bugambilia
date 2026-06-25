@@ -12,11 +12,11 @@ use Illuminate\Support\Collection;
 class ObtenerArbolUbicacionesConStock
 {
     /**
-     * @return Collection<int, array{ubicacion: Ubicacion, espacios: Collection<int, array{espacio: Espacio, hijos: Collection<int, mixed>, stocks: Collection<int, mixed>}>, habitaciones: Collection<int, array{habitacion: Habitacion, stocks: Collection<int, mixed>}>}>
+     * @return Collection<int, array{ubicacion: Ubicacion, espacios: Collection<int, array{espacio: Espacio, hijos: Collection<int, array{espacio: Espacio, stocks: Collection<int, mixed>}>, stocks: Collection<int, mixed>}>, habitaciones: Collection<int, array{habitacion: Habitacion, stocks: Collection<int, mixed>}>}>
      */
     public function execute(): Collection
     {
-        /** @var Collection<int, array{ubicacion: Ubicacion, espacios: Collection<int, array{espacio: Espacio, hijos: Collection<int, mixed>, stocks: Collection<int, mixed>}>, habitaciones: Collection<int, array{habitacion: Habitacion, stocks: Collection<int, mixed>}>}> $result */
+        /** @var Collection<int, array{ubicacion: Ubicacion, espacios: Collection<int, array{espacio: Espacio, hijos: Collection<int, array{espacio: Espacio, stocks: Collection<int, mixed>}>, stocks: Collection<int, mixed>}>, habitaciones: Collection<int, array{habitacion: Habitacion, stocks: Collection<int, mixed>}>}> $result */
         $result = Ubicacion::query()
             ->with([
                 'padre',
@@ -41,17 +41,17 @@ class ObtenerArbolUbicacionesConStock
             ->where('ubicacion_id', $ubicacionId)
             ->whereNull('padre_id')
             ->with([
-                'hijos' => fn ($q) => $q->with('espacioStocks.variante.producto'),
-                'espacioStocks.variante.producto',
+                'hijos' => fn ($q) => $q->with('stocks.variante.producto'),
+                'stocks.variante.producto',
             ])
             ->get()
             ->map(fn (Espacio $espacio) => [
                 'espacio' => $espacio,
                 'hijos' => $espacio->hijos->map(fn (Espacio $hijo) => [
                     'espacio' => $hijo,
-                    'stocks' => $hijo->espacioStocks->collect(),
+                    'stocks' => $hijo->stocks->collect(),
                 ])->collect(),
-                'stocks' => $espacio->espacioStocks->collect(),
+                'stocks' => $espacio->stocks->collect(),
             ]);
 
         return $result;
@@ -65,11 +65,11 @@ class ObtenerArbolUbicacionesConStock
         /** @var Collection<int, array{habitacion: Habitacion, stocks: Collection<int, mixed>}> $result */
         $result = Habitacion::query()
             ->where('ubicacion_id', $ubicacionId)
-            ->with('habitacionStocks.variante.producto')
+            ->with('stocks.variante.producto')
             ->get()
             ->map(fn (Habitacion $habitacion) => [
                 'habitacion' => $habitacion,
-                'stocks' => $habitacion->habitacionStocks->collect(),
+                'stocks' => $habitacion->stocks->collect(),
             ]);
 
         return $result;

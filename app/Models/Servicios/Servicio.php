@@ -6,10 +6,10 @@ namespace App\Models\Servicios;
 
 use App\Models\Catalogos\Catalogo;
 use App\Models\Shared\Imagen;
+use App\Models\Shared\Precio;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
@@ -36,10 +36,10 @@ class Servicio extends Model implements AuditableContract
         return $this->belongsTo(Catalogo::class, 'categoria_id');
     }
 
-    /** @return HasMany<ServiciosPrecio, $this> */
-    public function precios(): HasMany
+    /** @return MorphMany<Precio, $this> */
+    public function precios(): MorphMany
     {
-        return $this->hasMany(ServiciosPrecio::class, 'servicio_id');
+        return $this->morphMany(Precio::class, 'priceable');
     }
 
     /** @return MorphMany<Imagen, $this> */

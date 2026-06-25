@@ -18,7 +18,7 @@ class StocksRelationManager extends RelationManager
 {
     use HasProductoVarianteSelect, HasStandardCrudActions;
 
-    protected static string $relationship = 'stockEntries';
+    protected static string $relationship = 'stocks';
 
     protected static ?string $title = 'Stock de Consumibles';
 

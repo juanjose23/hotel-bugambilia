@@ -20,6 +20,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 
 /**
@@ -68,7 +69,11 @@ class ViewPack extends ViewRecord
                             TextInput::make('variante')->disabled(),
                             TextInput::make('cantidad')->disabled(),
                             TextInput::make('stock')->disabled()->label('Stock en bodega'),
-                            TextInput::make('estado')->disabled()->hiddenLabel(),
+                            TextInput::make('estado')
+                                ->disabled()
+                                ->hiddenLabel()
+                                ->prefixIcon(fn ($state) => $state === 'Suficiente' ? Heroicon::CheckCircle : Heroicon::XCircle)
+                                ->prefixIconColor(fn ($state) => $state === 'Suficiente' ? Color::Green : Color::Red),
                         ])
                         ->disabled()
                         ->columns(4)
@@ -93,7 +98,7 @@ class ViewPack extends ViewRecord
 
                             'cantidad' => "{$item->cantidad} x pack",
                             'stock' => (string) $stockTotal,
-                            'estado' => $suficiente ? '✅ Suficiente' : '❌ Insuficiente',
+                            'estado' => $suficiente ? 'Suficiente' : 'Insuficiente',
                         ];
                     }
                     $form->fill(['items_preview' => $preview]);
@@ -141,7 +146,7 @@ class ViewPack extends ViewRecord
                 'variante' => $item->variante->nombre_variante ?? '—',
                 'necesario' => (string) $necesario,
                 'disponible' => (string) $stockTotal,
-                'estado' => $suficiente ? '✅ Suficiente' : '❌ Insuficiente',
+                'estado' => $suficiente ? 'Suficiente' : 'Insuficiente',
             ];
         }
 
@@ -191,6 +196,8 @@ class ViewPack extends ViewRecord
                             TextInput::make('estado')
                                 ->label('Estado')
                                 ->disabled()
+                                ->prefixIcon(fn ($state) => $state === 'Suficiente' ? Heroicon::CheckCircle : Heroicon::XCircle)
+                                ->prefixIconColor(fn ($state) => $state === 'Suficiente' ? Color::Green : Color::Red)
                                 ->columnSpan(1)
                                 ->extraAttributes(['class' => 'text-center font-bold']),
                         ])

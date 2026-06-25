@@ -23,7 +23,7 @@ class RegistrarConsumoStock
         }
 
         DB::transaction(function () use ($stockId, $cantidad, $motivo, $creadoPorId, $referencia) {
-            $stock = Stock::with(['stockable', 'variante.producto'])->lockForUpdate()->findOrFail($stockId);
+            $stock = Stock::with(['stockable', 'variante.producto', 'lote'])->lockForUpdate()->findOrFail($stockId);
             /** @var ProductoVariante|null $variante */
             $variante = $stock->variante;
             $entidad = $stock->stockable;
@@ -49,11 +49,18 @@ class RegistrarConsumoStock
             $stock->ultima_verificacion = now();
             $stock->save();
 
+            $costoUnitarioMov = $stock->lote?->costo_unitario;
+            $costoTotalMov = $costoUnitarioMov !== null
+                ? $costoUnitarioMov * $cantidad
+                : null;
+
             MovimientoStock::create([
                 'tipo' => 'CONSUMO',
                 'lote_id' => $stock->lote_id,
                 'producto_id' => $producto->id,
                 'cantidad' => -$cantidad,
+                'costo_unitario' => $costoUnitarioMov,
+                'costo_total' => $costoTotalMov,
                 'ubicacion_origen_id' => null,
                 'ubicacion_destino_id' => null,
                 'documento_tipo' => 'consumo_stock',

@@ -27,11 +27,13 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['model_type', 'model_id']);
+            $table->index('usuario_id');
         });
     }
 
     public function down(): void
     {
+        Schema::table('compra_historial', fn (Blueprint $t) => $t->dropIndex(['usuario_id']));
         Schema::dropIfExists('compra_historial');
     }
 };

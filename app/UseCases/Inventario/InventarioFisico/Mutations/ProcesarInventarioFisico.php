@@ -108,11 +108,18 @@ class ProcesarInventarioFisico
                 // Create stock movement (MOV_AJUSTE)
                 $cantidadMovimiento = abs($discrepancia);
 
+                $costoUnitarioMov = $lote->costo_unitario;
+                $costoTotalMov = $costoUnitarioMov !== null
+                    ? $costoUnitarioMov * $cantidadMovimiento
+                    : null;
+
                 MovimientoStock::create([
                     'tipo' => 'MOV_AJUSTE',
                     'lote_id' => $lote->id,
                     'producto_id' => $lote->producto_id,
                     'cantidad' => $cantidadMovimiento,
+                    'costo_unitario' => $costoUnitarioMov,
+                    'costo_total' => $costoTotalMov,
                     // If discrepancia > 0 (sobrante): origen is null, destino is Lote's location
                     // If discrepancia < 0 (faltante): origen is Lote's location, destino is null
                     'ubicacion_origen_id' => $discrepancia < 0 ? $lote->ubicacion_id : null,

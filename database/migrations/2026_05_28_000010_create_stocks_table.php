@@ -24,6 +24,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->unique(['stockable_type', 'stockable_id', 'producto_variante_id', 'deleted_at'], 'uq_stock_variante');
+            $table->index('lote_id');
         });
 
         $driver = DB::connection()->getDriverName();
@@ -38,6 +39,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('stocks', fn (Blueprint $t) => $t->dropIndex(['lote_id']));
         Schema::dropIfExists('stocks');
     }
 };

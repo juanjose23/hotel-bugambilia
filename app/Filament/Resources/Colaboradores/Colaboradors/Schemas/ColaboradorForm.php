@@ -196,7 +196,8 @@ class ColaboradorForm
                                     ->imagePreviewHeight('200')
                                     ->panelAspectRatio('1:1')
                                     ->panelLayout('circle')
-                                    ->removeUploadedFileButtonPosition('center-bottom'),
+                                    ->removeUploadedFileButtonPosition('center-bottom')
+                                    ->maxSize(2048),
                             ]),
                     ]),
             ])

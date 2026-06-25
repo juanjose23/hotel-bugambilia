@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -20,6 +21,9 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable()->comment('Fecha y hora en que el usuario leyó la notificación');
             $table->timestamps();
         });
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE notifications ALTER COLUMN data TYPE jsonb USING data::jsonb');
+        }
     }
 
     /**
@@ -27,6 +31,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE notifications ALTER COLUMN data TYPE text');
+        }
         Schema::dropIfExists('notifications');
     }
 };

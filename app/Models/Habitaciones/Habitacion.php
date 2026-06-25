@@ -8,10 +8,14 @@ use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Models\Activos\ActivoAsignacion;
 use App\Models\Catalogos\Catalogo;
 use App\Models\Catalogos\Ubicacion;
+use App\Models\Limpieza\LimpiezaEjecucion;
 use App\Models\Limpieza\LimpiezaHorarioDetalle;
 use App\Models\Limpieza\SolicitudLimpieza;
 use App\Models\Politicas\Politica;
 use App\Models\Shared\Imagen;
+use App\Models\Shared\Precio;
+use App\Models\Shared\ServicioAsignacion;
+use App\Models\Shared\Stock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -112,27 +116,27 @@ class Habitacion extends Model implements AuditableContract
     }
 
     /**
-     * @return HasMany<ServicioHabitacion, $this>
+     * @return MorphMany<ServicioAsignacion, $this>
      */
-    public function serviciosHabitacion(): HasMany
+    public function serviciosHabitacion(): MorphMany
     {
-        return $this->hasMany(ServicioHabitacion::class, 'habitacion_id');
+        return $this->morphMany(ServicioAsignacion::class, 'serviceable');
     }
 
     /**
-     * @return HasMany<PrecioHabitacion, $this>
+     * @return MorphMany<Precio, $this>
      */
-    public function precioshabitacion(): HasMany
+    public function precioshabitacion(): MorphMany
     {
-        return $this->hasMany(PrecioHabitacion::class, 'habitacion_id');
+        return $this->morphMany(Precio::class, 'priceable');
     }
 
     /**
-     * @return HasMany<HabitacionStock, $this>
+     * @return MorphMany<Stock, $this>
      */
-    public function habitacionStocks(): HasMany
+    public function stocks(): MorphMany
     {
-        return $this->hasMany(HabitacionStock::class, 'habitacion_id');
+        return $this->morphMany(Stock::class, 'stockable');
     }
 
     /**
@@ -149,6 +153,14 @@ class Habitacion extends Model implements AuditableContract
     public function horariosLimpieza(): MorphMany
     {
         return $this->morphMany(LimpiezaHorarioDetalle::class, 'limpiable');
+    }
+
+    /**
+     * @return MorphMany<LimpiezaEjecucion, $this>
+     */
+    public function ejecucionesLimpieza(): MorphMany
+    {
+        return $this->morphMany(LimpiezaEjecucion::class, 'limpiable');
     }
 
     /**

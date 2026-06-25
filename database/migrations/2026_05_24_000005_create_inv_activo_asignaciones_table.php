@@ -32,6 +32,8 @@ return new class extends Migration
 
             $table->index(['activo_id', 'fecha_fin']);
             $table->index(['asignable_type', 'asignable_id', 'fecha_fin']);
+            $table->index('asignado_por_id');
+            $table->index('recibido_por_id');
         });
 
         if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -44,6 +46,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('inv_activo_asignaciones', function (Blueprint $t) {
+            $t->dropIndex(['asignado_por_id']);
+            $t->dropIndex(['recibido_por_id']);
+        });
         Schema::dropIfExists('inv_activo_asignaciones');
     }
 };

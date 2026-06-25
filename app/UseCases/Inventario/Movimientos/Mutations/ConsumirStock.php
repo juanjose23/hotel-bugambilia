@@ -114,11 +114,18 @@ class ConsumirStock
                 }
 
                 // Registrar en la bitácora histórica
+                $costoUnitarioMov = $stock->lote?->costo_unitario;
+                $costoTotalMov = $costoUnitarioMov !== null
+                    ? $costoUnitarioMov * abs($aConsumir)
+                    : null;
+
                 MovimientoStock::create([
                     'tipo' => $tipoMovimiento,
                     'lote_id' => $stock->lote_id,
                     'producto_id' => $productoId,
                     'cantidad' => -$aConsumir,
+                    'costo_unitario' => $costoUnitarioMov,
+                    'costo_total' => $costoTotalMov,
                     'ubicacion_origen_id' => $ubicacionId,
                     'ubicacion_destino_id' => $ubicacionDestinoId,
                     'documento_tipo' => $documentoTipo ?: 'consumo',

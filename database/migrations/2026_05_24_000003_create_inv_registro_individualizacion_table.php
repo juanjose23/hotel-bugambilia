@@ -30,6 +30,8 @@ return new class extends Migration
 
             $table->index('estado');
             $table->index(['producto_id', 'estado']);
+            $table->index('producto_variante_id');
+            $table->index('registrado_por_id');
         });
 
         if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -42,6 +44,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('inv_registro_individualizacion', function (Blueprint $t) {
+            $t->dropIndex(['producto_variante_id']);
+            $t->dropIndex(['registrado_por_id']);
+        });
         Schema::dropIfExists('inv_registro_individualizacion');
     }
 };

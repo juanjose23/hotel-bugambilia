@@ -45,11 +45,17 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['orden_compra_id', 'producto_id']);
+            $table->index('producto_variante_id');
+            $table->index('unidad_medida_id');
         });
     }
 
     public function down(): void
     {
+        Schema::table('orden_compra_items', function (Blueprint $t) {
+            $t->dropIndex(['producto_variante_id']);
+            $t->dropIndex(['unidad_medida_id']);
+        });
         Schema::dropIfExists('orden_compra_items');
     }
 };

@@ -7,6 +7,7 @@ use App\Models\Compras\Cotizacion;
 use App\Models\Compras\OrdenCompra;
 use App\Models\Compras\RecepcionCompra;
 use App\Models\Compras\Solicitud;
+use App\Support\HotelInfo;
 use App\UseCases\Reportes\Mutations\RegistrarAuditoriaReporteUseCase;
 use Carbon\Carbon;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -72,6 +73,7 @@ class CompraReportController extends Controller
             ->download();
     }
 
+    // TODO: Implementar un método para imprimir el resumen de compras por departamento
     public function imprimirResumenDepartamentos(): PdfBuilder
     {
         $this->authorize('Compras:ImprimirReportesCompras');
@@ -158,40 +160,23 @@ class CompraReportController extends Controller
         // Asegurar que las relaciones necesarias estén cargadas para evitar N+1 y datos faltantes
         if (is_object($record) && method_exists($record, 'load')) {
             // Relaciones comunes
-            $record->load(['items.producto', 'items.variante']);
-
             if ($record instanceof Solicitud) {
-                $record->load(['colaborador.persona', 'departamentoSolicitante', 'items.unidadMedida']);
-            }
-
-            if ($record instanceof OrdenCompra) {
-                $record->load(['proveedor.persona', 'condicionPago', 'items.unidadMedida', 'cotizacion.moneda']);
-            }
-
-            if ($record instanceof RecepcionCompra) {
-                $record->load(['ordenCompra.proveedor.persona', 'ordenCompra.cotizacion.moneda', 'receptor', 'items.unidadMedida']);
-            }
-
-            if ($record instanceof Cotizacion) {
-                $record->load(['proveedor.persona', 'solicitud.items.unidadMedida', 'moneda']);
+                $record->load(['colaborador.persona', 'departamentoSolicitante', 'items.producto', 'items.variante', 'items.unidadMedida']);
+            } elseif ($record instanceof OrdenCompra) {
+                $record->load(['proveedor.persona', 'condicionPago', 'items.producto', 'items.variante', 'items.unidadMedida', 'cotizacion.moneda']);
+            } elseif ($record instanceof RecepcionCompra) {
+                $record->load(['ordenCompra.proveedor.persona', 'ordenCompra.cotizacion.moneda', 'receptor', 'items.producto', 'items.variante', 'items.unidadMedida']);
+            } elseif ($record instanceof Cotizacion) {
+                $record->load(['proveedor.persona', 'solicitud.items.unidadMedida', 'items.producto', 'items.variante']);
+            } else {
+                $record->load(['items.producto', 'items.variante']);
             }
         }
 
-        $logoPath = public_path('img/logo-horizontal.png');
-        $logoBase64 = '';
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
-        }
+        $baseData = HotelInfo::getBaseData();
 
-        return [
+        return array_merge($baseData, [
             'record' => $record,
-            'logo_base64' => $logoBase64,
-            'hotelInfo' => [
-                'telefono' => '+505 8713 6805',
-                'email' => 'recepcion@bugambiliashotel.com',
-                'direccion' => 'Salida Sur Estelí, Restaurante Absoluto 1c. Oeste, 2c. Sur, 1c. Oeste',
-            ],
-        ];
+        ]);
     }
 }

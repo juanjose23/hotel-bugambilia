@@ -8,8 +8,13 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Models\Activos\ActivoAsignacion;
 use App\Models\Catalogos\Ubicacion;
+use App\Models\Limpieza\LimpiezaEjecucion;
 use App\Models\Limpieza\LimpiezaHorarioDetalle;
+use App\Models\Limpieza\SolicitudLimpieza;
 use App\Models\Politicas\Politica;
+use App\Models\Shared\Precio;
+use App\Models\Shared\ServicioAsignacion;
+use App\Models\Shared\Stock;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -81,21 +86,21 @@ class Espacio extends Model implements AuditableContract
     /**
      * Relación con las tarifas/precios configurados para el espacio
      *
-     * @return HasMany<PrecioEspacio, $this>
+     * @return MorphMany<Precio, $this>
      */
-    public function precios(): HasMany
+    public function precios(): MorphMany
     {
-        return $this->hasMany(PrecioEspacio::class, 'espacio_id');
+        return $this->morphMany(Precio::class, 'priceable');
     }
 
     /**
      * Relación con los servicios asignados a este espacio
      *
-     * @return HasMany<ServicioEspacio, $this>
+     * @return MorphMany<ServicioAsignacion, $this>
      */
-    public function serviciosEspacio(): HasMany
+    public function serviciosEspacio(): MorphMany
     {
-        return $this->hasMany(ServicioEspacio::class, 'espacio_id');
+        return $this->morphMany(ServicioAsignacion::class, 'serviceable');
     }
 
     /**
@@ -129,6 +134,22 @@ class Espacio extends Model implements AuditableContract
     }
 
     /**
+     * @return MorphMany<Stock, $this>
+     */
+    public function stocks(): MorphMany
+    {
+        return $this->morphMany(Stock::class, 'stockable');
+    }
+
+    /**
+     * @return MorphMany<SolicitudLimpieza, $this>
+     */
+    public function solicitudesLimpieza(): MorphMany
+    {
+        return $this->morphMany(SolicitudLimpieza::class, 'limpiable');
+    }
+
+    /**
      * @return MorphMany<LimpiezaHorarioDetalle, $this>
      */
     public function horariosLimpieza(): MorphMany
@@ -137,21 +158,20 @@ class Espacio extends Model implements AuditableContract
     }
 
     /**
-     * Relación con el stock de consumibles/blancos del espacio.
-     *
-     * @return HasMany<EspacioStock, $this>
+     * @return MorphMany<LimpiezaEjecucion, $this>
      */
-    public function espacioStocks(): HasMany
+    public function ejecucionesLimpieza(): MorphMany
     {
-        return $this->hasMany(EspacioStock::class, 'espacio_id');
+        return $this->morphMany(LimpiezaEjecucion::class, 'limpiable');
     }
 
     /**
      * Obtener el nombre jerárquico completo formateado del espacio (ej: "Restaurante Bugambilias > Mesa 1")
+     *
+     * Requires `padre.padre` to be eager-loaded before calling in a loop to avoid N+1.
      */
     public function getNombreCompleto(): string
     {
-        // Eager-load el árbol de padres para evitar lazy-loading violations
         $this->loadMissing('padre.padre');
 
         $nombre = $this->nombre;

@@ -1,3 +1,10 @@
+@php
+    use App\Filament\Resources\Inventario\Lote\Widgets\StockPorCategoriaChart;
+    use App\Filament\Resources\Inventario\Lote\Widgets\ValorizacionInventarioChart;
+    use App\Filament\Resources\Inventario\MovimientoStock\Widgets\RotacionInventarioChart;
+    use App\Filament\Resources\Inventario\MovimientoStock\Widgets\MermasPorCategoriaChart;
+    use App\Filament\Resources\Inventario\Lote\Widgets\LotesEnRiesgoChart;
+@endphp
 <x-filament-panels::page>
     <div x-data="{ activeTab: 'dashboard' }" class="space-y-6">
 
@@ -86,7 +93,7 @@
                 <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Valor
                     Monetario</p>
                 <p class="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {{ \App\Models\Monedas\Moneda::where('es_predeterminada', true)->first()?->simbolo ?? 'C$' }} {{ number_format((float) ($valorTotalInventario ?? 0), 2) }}
+                    {{ $monedaSimbolo }} {{ number_format((float) ($valorTotalInventario ?? 0), 2) }}
                 </p>
                 <p class="mt-1 text-[10px] text-emerald-500">capital total en mercadería</p>
             </div>
@@ -105,12 +112,12 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\StockPorCategoriaChart::class)
-                    @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\ValorizacionInventarioChart::class)
-                    @livewire(\App\Filament\Resources\Inventario\MovimientoStock\Widgets\RotacionInventarioChart::class)
-                    @livewire(\App\Filament\Resources\Inventario\MovimientoStock\Widgets\MermasPorCategoriaChart::class)
+                    @livewire(StockPorCategoriaChart::class)
+                    @livewire(ValorizacionInventarioChart::class)
+                    @livewire(RotacionInventarioChart::class)
+                    @livewire(MermasPorCategoriaChart::class)
                     <div class="lg:col-span-2">
-                        @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\LotesEnRiesgoChart::class)
+                        @livewire(LotesEnRiesgoChart::class)
                     </div>
                 </div>
             </div>

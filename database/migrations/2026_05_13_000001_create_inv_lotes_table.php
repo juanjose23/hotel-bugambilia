@@ -45,6 +45,8 @@ return new class extends Migration
             $table->decimal('cantidad_inicial', 14, 4)
                 ->default(0)
                 ->comment('Cantidad original al momento de la recepción. Nunca cambia después de la creación del lote.');
+            $table->decimal('costo_unitario', 14, 6)->nullable()->after('cantidad_inicial')->comment('Costo unitario del producto en este lote');
+            $table->decimal('costo_total', 14, 2)->nullable()->after('costo_unitario')->comment('Costo total del lote (cantidad_inicial * costo_unitario)');
             $table->foreignId('ubicacion_id')
                 ->nullable()
                 ->comment('Almacén o bodega inicial donde fue ubicado el lote. Asignado por PutawayPolicy si no se especifica. FK → ubicaciones, nullOnDelete.')
@@ -73,11 +75,24 @@ return new class extends Migration
 
             $table->index(['producto_id', 'estado'], 'inv_lotes_producto_estado_index');
             $table->index(['estado', 'fecha_vencimiento'], 'inv_lotes_estado_vencimiento_index');
+            $table->index('codigo_lote', 'uq_inv_lotes_codigo_lote');
+            $table->index('producto_variante_id');
+            $table->index('ubicacion_id');
+            $table->index('proveedor_id');
+            $table->index('recepcion_item_id');
         });
     }
 
     public function down(): void
     {
+        Schema::table('inv_lotes', function (Blueprint $t) {
+            $t->dropIndex('uq_inv_lotes_codigo_lote');
+            $t->dropIndex(['producto_variante_id']);
+            $t->dropIndex(['ubicacion_id']);
+            $t->dropIndex(['proveedor_id']);
+            $t->dropIndex(['recepcion_item_id']);
+            $t->dropColumn(['costo_unitario', 'costo_total']);
+        });
         Schema::dropIfExists('inv_lotes');
     }
 };

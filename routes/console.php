@@ -93,3 +93,23 @@ if ($time = $shouldSchedule('jobs.mtto_garantias', '06:15')) {
         ->onOneServer()
         ->timezone($timezoneStr);
 }
+
+// 6. Materializar ejecuciones de limpieza diariamente
+if ($time = $shouldSchedule('jobs.limpieza_materializar', '05:30')) {
+    Schedule::command('limpieza:materializar-ejecuciones')
+        ->name('materializar-ejecuciones-limpieza')
+        ->dailyAt($time)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone(config('app.timezone', 'America/Managua'));
+}
+
+// 7. Enviar recordatorios de limpieza pendientes/vencidos
+if ($time = $shouldSchedule('jobs.limpieza_recordatorio', '12:00')) {
+    Schedule::command('limpieza:enviar-recordatorios')
+        ->name('enviar-recordatorios-limpieza')
+        ->dailyAt($time)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone(config('app.timezone', 'America/Managua'));
+}

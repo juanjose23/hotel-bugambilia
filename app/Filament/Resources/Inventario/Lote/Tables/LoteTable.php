@@ -108,11 +108,18 @@ class LoteTable
                             }
                             $record->save();
 
+                            $costoUnitarioMov = $record->costo_unitario;
+                            $costoTotalMov = $costoUnitarioMov !== null
+                                ? $costoUnitarioMov * $cantidad
+                                : null;
+
                             MovimientoStock::create([
                                 'tipo' => 'AJUSTE_SALIDA',
                                 'lote_id' => $record->id,
                                 'producto_id' => $record->producto_id,
                                 'cantidad' => $cantidad,
+                                'costo_unitario' => $costoUnitarioMov,
+                                'costo_total' => $costoTotalMov,
                                 'ubicacion_origen_id' => $record->ubicacion_id,
                                 'referencia' => 'Merma: '.$data['motivo'],
                                 'creado_por_id' => (int) auth()->id(),
@@ -177,11 +184,18 @@ class LoteTable
                             $record->ubicacion_id = $ubicacionDestinoVal;
                             $record->save();
 
+                            $costoUnitarioMov = $record->costo_unitario;
+                            $costoTotalMov = $costoUnitarioMov !== null
+                                ? $costoUnitarioMov * $record->cantidad_disponible
+                                : null;
+
                             MovimientoStock::create([
                                 'tipo' => 'MOV_TRANSFERENCIA',
                                 'lote_id' => $record->id,
                                 'producto_id' => $record->producto_id,
                                 'cantidad' => $record->cantidad_disponible,
+                                'costo_unitario' => $costoUnitarioMov,
+                                'costo_total' => $costoTotalMov,
                                 'ubicacion_origen_id' => $ubicacionOrigen,
                                 'ubicacion_destino_id' => $ubicacionDestino,
                                 'referencia' => 'Traslado: '.$data['motivo'],
@@ -230,11 +244,18 @@ class LoteTable
                             $record->estado = EstadoLote::Cuarentena;
                             $record->save();
 
+                            $costoUnitarioMov = $record->costo_unitario;
+                            $costoTotalMov = $costoUnitarioMov !== null
+                                ? $costoUnitarioMov * $record->cantidad_disponible
+                                : null;
+
                             MovimientoStock::create([
                                 'tipo' => 'MOV_TRANSFERENCIA',
                                 'lote_id' => $record->id,
                                 'producto_id' => $record->producto_id,
                                 'cantidad' => $record->cantidad_disponible,
+                                'costo_unitario' => $costoUnitarioMov,
+                                'costo_total' => $costoTotalMov,
                                 'ubicacion_origen_id' => $record->ubicacion_id,
                                 'ubicacion_destino_id' => $record->ubicacion_id,
                                 'referencia' => 'Envío a cuarentena: '.$data['motivo'],

@@ -29,6 +29,7 @@ return new class extends Migration
             $table->rememberToken()->comment('Token de sesión para recordar usuario (remember me)');
             $table->timestamps();
             $table->softDeletes();
+            $table->index('persona_id');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -62,6 +63,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->unique(['provider', 'provider_id']);
+            $table->index('user_id');
         });
     }
 
@@ -70,6 +72,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('social_accounts', fn (Blueprint $t) => $t->dropIndex(['user_id']));
+        Schema::table('users', fn (Blueprint $t) => $t->dropIndex(['persona_id']));
 
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');

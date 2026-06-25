@@ -2,45 +2,13 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Collection;
+
 /**
  * Calcula cuántos elementos caben por página en un PDF A4 a 96 DPI.
  *
- * ─── DomPDF (serie HTB-CP) ───────────────────────────────────────────────
- * Referencia dimensional (todos los valores en px a 96dpi):
- *   A4 alto       = 1122px  (297mm)
- *
- *   @page margin  =   76px  (10mm top + 10mm bottom = 38 + 38)
- *
- * Bloques inline por página (HTB-CP, frame-body SIN padding propio):
- *   doc-header table height  =  72px
- *   doc-header border-bottom =   3px
- *   doc-header margin-bottom =  12px   → total header  =  87px
- *   frame-footer height      =  46px
- *   Total bloques            = 133px
- *   Área útil (AREA_PX)      = 1122 - 76 - 133 = 913px
- *
- * NOTA: El valor original estaba en 886px (tenía cálculo distinto de header).
- * Se mantiene AREA_PX = 886 para no romper CP-001/CP-002 ya calibrados.
- *
- * ─── Spatie PDF (series HTB-ACT / HTB-INV / HTB-COM / HTB-SER) ───────────
- * El mismo layout .reporte-htb, pero los blades añaden `padding: 40px` en
- * el td.frame-body, consumiendo 40px top + 40px bottom = 80px adicionales.
- *
- *   page-frame height  = 1046px   (.page-frame { height: 1046px })
- *   frame-footer       =   46px
- *   doc-header (real)  =   87px   (72 table + 3 border + 12 margin)
- *   frame-body padding =   80px   (40 top + 40 bottom)
- *   ─────────────────────────────────────────────────────────────────────
- *   Área datos Spatie  = 1046 - 46 - 87 - 80 = 833px  → AREA_SPATIE_PX
- *
- * CP-001 fila (área = 886px):
- *   thead (th)  = 34px
- *   Cada td     = 40px  → floor((886-34)/40) = 21 filas → -1 safety = 20
- *
- * ACT/INV fila simple (área = 833px, padding 6px×2 ≈ 21px/fila):
- *   thead (th) real ≈ 21px
- *   td simple  real ≈ 21px → usamos 22px con 1 de safety ≈ 36 filas
- *   td con 2 líneas       ≈ 32px → usamos 32px con 1 safety ≈ 24 filas
+ * AREA_PX = 886px para DomPDF (HTB-CP).
+ * AREA_SPATIE_PX = 833px para Spatie PDF (HTB-ACT/INV/COM/SER).
  */
 final class ReportePaginador
 {
@@ -117,5 +85,21 @@ final class ReportePaginador
         $rows = (int) floor(self::AREA_PX / $labelRowPx);
 
         return max(1, $rows) * $cols;
+    }
+
+    /**
+     * @template T
+     *
+     * @param  Collection<int, T>  $items
+     * @return list<Collection<int, T>>
+     */
+    public static function chunkParaPdf(Collection $items, int $rowPx = 32): array
+    {
+        $filasPorPagina = self::filasPorPaginaSpatie(rowPx: $rowPx);
+
+        return $items->chunk($filasPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
     }
 }

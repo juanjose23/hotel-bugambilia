@@ -12,11 +12,11 @@ use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\Imag
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PoliticasRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PreciosRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\ServiciosRelationManager;
-use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\StocksRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionForm;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionInfolist;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Tables\HabitacionTable;
 use App\Filament\Resources\Shared\InventarioFijoRelationManager;
+use App\Filament\Resources\Shared\StocksRelationManager;
 use App\Models\Habitaciones\Habitacion;
 use BackedEnum;
 use Filament\Resources\Resource;

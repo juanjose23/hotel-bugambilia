@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Servicios\Servicios\RelationManagers;
 
 use App\Filament\Resources\Shared\Concerns\HasPreciosForm;
-use App\Models\Servicios\ServiciosPrecio;
+use App\Models\Monedas\Moneda;
+use App\Models\Shared\Precio;
 use Filament\Resources\RelationManagers\RelationManager;
 
 class PreciosRelationManager extends RelationManager
@@ -22,17 +23,17 @@ class PreciosRelationManager extends RelationManager
 
     protected function getPriceableModelClass(): string
     {
-        return ServiciosPrecio::class;
+        return Precio::class;
     }
 
     protected function getPriceableForeignKey(): string
     {
-        return 'servicio_id';
+        return 'priceable_id';
     }
 
     protected function getPriceableForeignType(): ?string
     {
-        return null;
+        return 'priceable_type';
     }
 
     protected function hasTipoPrecioField(): bool
@@ -42,6 +43,16 @@ class PreciosRelationManager extends RelationManager
 
     protected function getDefaultMonedaId(): ?int
     {
-        return 1;
+        return Moneda::query()
+            ->where('codigo', 'NIO')
+            ->value('id')
+            ?? Moneda::query()
+                ->where('es_predeterminada', true)
+                ->value('id');
+    }
+
+    protected function getUniquePrecioErrorMessage(): string
+    {
+        return 'Ya existe un precio vigente activo para este servicio y esta moneda. Desactive el precio anterior antes de guardar.';
     }
 }

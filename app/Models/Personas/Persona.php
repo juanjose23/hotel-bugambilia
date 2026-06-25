@@ -49,6 +49,12 @@ class Persona extends Model implements AuditableContract
         return $this->hasOne(Colaborador::class);
     }
 
+    /** @return HasOne<User, $this> */
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class);
+    }
+
     /** @return HasOne<PersonaNatural, $this> */
     public function personaNatural(): HasOne
     {
@@ -59,11 +65,5 @@ class Persona extends Model implements AuditableContract
     public function personaJuridica(): HasOne
     {
         return $this->hasOne(PersonaJuridica::class);
-    }
-
-    /** @return HasOne<User, $this> */
-    public function user(): HasOne
-    {
-        return $this->hasOne(User::class);
     }
 }

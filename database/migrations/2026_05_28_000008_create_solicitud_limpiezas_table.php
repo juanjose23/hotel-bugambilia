@@ -14,11 +14,8 @@ return new class extends Migration
         Schema::create('solicitud_limpiezas', function (Blueprint $table) {
             $table->comment('Tabla que almacena las solicitudes de limpieza de las habitaciones');
             $table->id()->comment('Identificador único autoincremental de la solicitud de limpieza');
-            $table->foreignId('habitacion_id')
-                ->nullable()
-                ->comment('Identificador de la habitación asociada a la solicitud de limpieza')
-                ->constrained('habitaciones')
-                ->cascadeOnDelete();
+            $table->string('limpiable_type')->after('id')->comment('Modelo asociado a la limpieza (App\Models\Habitaciones\Habitacion o App\Models\Espacios\Espacio)');
+            $table->unsignedBigInteger('limpiable_id')->after('limpiable_type')->comment('Identificador único del modelo a limpiar');
             $table->foreignId('personal_id')
                 ->nullable()
                 ->comment('Usuario (personal de limpieza) asignado a la solicitud')
@@ -32,14 +29,13 @@ return new class extends Migration
             $table->string('prioridad', 20)
                 ->default('normal')
                 ->comment('Prioridad de la limpieza (alta, normal, baja)');
-            $table->string('estado', 30)
-                ->default('pendiente')
-                ->comment('Estado de la solicitud de limpieza (pendiente, en_progreso, completada)');
+            $table->integer('estado')->default(1);
             $table->text('notas')
                 ->nullable()
                 ->comment('Notas o instrucciones adicionales para la limpieza');
             $table->timestamps();
             $table->softDeletes();
+            $table->index(['limpiable_type', 'limpiable_id'], 'idx_solicitud_limpieza_limpiable');
         });
     }
 

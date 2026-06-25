@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\SolicitudLimpiezaResource\Pages;
 
+use App\Enums\HabitacionesEspacios\EstadoLimpieza;
 use App\Filament\Resources\Habitaciones\SolicitudLimpiezaResource\SolicitudLimpiezaResource;
 use App\Models\Limpieza\SolicitudLimpieza;
 use App\UseCases\Limpieza\Mutations\IniciarLimpieza;
@@ -29,17 +30,22 @@ class ViewSolicitudLimpieza extends ViewRecord
                 ->icon(Heroicon::Play)
                 ->color('warning')
                 ->requiresConfirmation()
-                ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === 'pendiente')
-                ->action(function (SolicitudLimpieza $record) {
-                    $ejecucion = $record->ejecuciones()->first();
-                    if ($ejecucion) {
-                        app(IniciarLimpieza::class)->execute($ejecucion, (int) auth()->id());
-                    }
+                ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === EstadoLimpieza::Pendiente)
+                ->action(function (SolicitudLimpieza $record, IniciarLimpieza $iniciarLimpieza) {
+                    try {
+                        $iniciarLimpieza->execute($record, auth()->id());
 
-                    Notification::make()
-                        ->title('Limpieza iniciada')
-                        ->success()
-                        ->send();
+                        Notification::make()
+                            ->title('Limpieza iniciada')
+                            ->success()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()
+                            ->title('Error al iniciar limpieza')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 }),
 
             Action::make('terminarLimpieza')
@@ -47,12 +53,9 @@ class ViewSolicitudLimpieza extends ViewRecord
                 ->icon(Heroicon::CheckCircle)
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === 'en_progreso')
-                ->action(function (SolicitudLimpieza $record) {
-                    $ejecucion = $record->ejecuciones()->first();
-                    if ($ejecucion) {
-                        app(TerminarLimpieza::class)->execute($ejecucion);
-                    }
+                ->visible(fn (SolicitudLimpieza $record): bool => $record->estado === EstadoLimpieza::EnProgreso)
+                ->action(function (SolicitudLimpieza $record, TerminarLimpieza $terminarLimpieza) {
+                    $terminarLimpieza->execute($record);
 
                     Notification::make()
                         ->title('Ubicación lista y disponible')

@@ -91,7 +91,8 @@ class ServicioForm
                             ->appendFiles()
                             ->directory('servicios/galeria')
                             ->maxFiles(5)
-                            ->helperText('Sube hasta 5 imágenes premium de alta calidad (16:9 recomendado) para la galería web.')
+                            ->maxSize(4096)
+                            ->helperText('Sube hasta 5 imágenes de alta calidad (16:9 recomendado) para la galería web.')
                             ->columnSpanFull()
                             ->afterStateHydrated(function (FileUpload $component, ?Servicio $record) {
                                 if ($record) {

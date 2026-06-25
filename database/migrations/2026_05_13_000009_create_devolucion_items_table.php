@@ -58,11 +58,21 @@ return new class extends Migration
 
             $table->index('lote_id');
             $table->index('producto_id');
+            $table->index('devolucion_id');
+            $table->index('recepcion_item_id');
+            $table->index('producto_variante_id');
+            $table->index('unidad_medida_id');
         });
     }
 
     public function down(): void
     {
+        Schema::table('devolucion_items', function (Blueprint $t) {
+            $t->dropIndex(['devolucion_id']);
+            $t->dropIndex(['recepcion_item_id']);
+            $t->dropIndex(['producto_variante_id']);
+            $t->dropIndex(['unidad_medida_id']);
+        });
         Schema::dropIfExists('devolucion_items');
     }
 };

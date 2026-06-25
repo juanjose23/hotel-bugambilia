@@ -44,6 +44,7 @@ return new class extends Migration
             $table->index('padre_id');
             $table->index('tipo');
             $table->index('estado');
+            $table->index('ubicacion_id');
         });
 
         if (DB::connection()->getDriverName() === 'pgsql') {
@@ -57,6 +58,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('espacios', fn (Blueprint $t) => $t->dropIndex(['ubicacion_id']));
         Schema::dropIfExists('espacios');
     }
 };

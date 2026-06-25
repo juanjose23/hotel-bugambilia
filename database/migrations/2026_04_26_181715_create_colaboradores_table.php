@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -32,6 +33,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->index(['estado']);
+            $table->index('persona_id');
         });
 
         Schema::create('colaborador_datos_medicos', function (Blueprint $table) {
@@ -46,6 +48,7 @@ return new class extends Migration
             $table->text('enfermedades_cronicas')->nullable()->comment('Enfermedades crónicas o condiciones preexistentes');
             $table->tinyInteger('estado')->default(1)->comment('1=activo, 0=inactivo');
             $table->timestamps();
+            $table->softDeletes();
             $table->unique('colaborador_id');
         });
 
@@ -61,6 +64,7 @@ return new class extends Migration
             $table->string('parentesco', 50)->nullable()->comment('Parentesco o relación con el colaborador');
             $table->tinyInteger('estado')->default(1)->comment('1=activo, 0=inactivo');
             $table->timestamps();
+            $table->softDeletes();
             $table->index(['colaborador_id']);
         });
 
@@ -76,6 +80,7 @@ return new class extends Migration
             $table->date('fecha_fin')->nullable()->comment('Fecha de fin de vigencia (null = vigente)');
             $table->tinyInteger('estado')->default(1)->comment('1=activo/vigente, 0=inactivo/histórico');
             $table->timestamps();
+            $table->softDeletes();
             $table->index(['colaborador_id', 'fecha_inicio']);
         });
 
@@ -99,6 +104,7 @@ return new class extends Migration
             $table->date('fecha_fin')->nullable()->comment('Fecha de fin en el cargo (null = cargo actual)');
             $table->tinyInteger('estado')->default(1)->comment('1=activo, 0=inactivo/histórico');
             $table->timestamps();
+            $table->softDeletes();
             $table->index(['colaborador_id', 'cargo_id']);
             $table->index(['departamento_id']);
         });
@@ -113,13 +119,21 @@ return new class extends Migration
             $table->string('tipo', 50)->comment('Tipo de documento (contrato, cv, certificado, etc.)');
             $table->string('archivo')->comment('Ruta al archivo subido en storage');
             $table->timestamps();
+            $table->softDeletes();
             $table->index(['colaborador_id']);
         });
 
+        DB::statement('
+            CREATE UNIQUE INDEX unique_active_salary_per_colaborador
+            ON colaborador_salarios (colaborador_id)
+            WHERE estado = 1
+        ');
     }
 
     public function down(): void
     {
+        DB::statement('DROP INDEX IF EXISTS unique_active_salary_per_colaborador');
+        Schema::table('colaboradores', fn (Blueprint $t) => $t->dropIndex(['persona_id']));
 
         Schema::dropIfExists('colaborador_documentos');
         Schema::dropIfExists('colaborador_cargos_historial');

@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Catalogos;
 
 use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
 use App\Actions\Catalogos\GenerarReporteProductosAction;
+use App\Http\Controllers\Controller;
 use App\Models\Catalogos\Producto;
 use Illuminate\Http\Response;
 
-class ReportesCodigosBarrasController
+class ReportesCodigosBarrasController extends Controller
 {
     public function reporteProductosVariantes(?Producto $producto = null): Response
     {

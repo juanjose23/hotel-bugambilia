@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers;
 
 use App\Filament\Resources\Shared\Concerns\HasPreciosForm;
-use App\Models\Espacios\PrecioEspacio;
 use App\Models\Monedas\Moneda;
+use App\Models\Shared\Precio;
 use Filament\Resources\RelationManagers\RelationManager;
 
 class PreciosRelationManager extends RelationManager
@@ -23,17 +23,17 @@ class PreciosRelationManager extends RelationManager
 
     protected function getPriceableModelClass(): string
     {
-        return PrecioEspacio::class;
+        return Precio::class;
     }
 
     protected function getPriceableForeignKey(): string
     {
-        return 'espacio_id';
+        return 'priceable_id';
     }
 
     protected function getPriceableForeignType(): ?string
     {
-        return null;
+        return 'priceable_type';
     }
 
     protected function hasTipoPrecioField(): bool

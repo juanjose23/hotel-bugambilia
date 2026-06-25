@@ -16,6 +16,13 @@ class PersonaNatural extends Model implements AuditableContract
 
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return [
+            'fecha_nacimiento' => 'date',
+        ];
+    }
+
     /** @return BelongsTo<Persona, $this> */
     public function persona(): BelongsTo
     {

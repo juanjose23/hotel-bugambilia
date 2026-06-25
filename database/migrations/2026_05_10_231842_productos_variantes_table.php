@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('nombre_variante', 200)->comment('Nombre de la variante (ej. 500ml, Rojo, Premium)');
             $table->json('atributos')->nullable()->comment('Atributos específicos en JSON (color, talla, sabor, etc.)');
             $table->foreignId('unidad_medida_id')->nullable()->comment('Unidad de medida específica de la variante')->constrained('catalogos')->cascadeOnDelete();
+            $table->decimal('unidades_por_empaque', 14, 4)->default(1.0000)->after('unidad_medida_id')->comment('Cantidad de unidades contenidas en un empaque completo');
             $table->decimal('peso', 8, 2)->nullable()->comment('Peso en gramos (opcional)');
             $table->decimal('volumen')->nullable()->comment('Volumen en mililitros (opcional)');
             $table->integer('estado')->default(1)->comment('1=activo, 0=inactivo');
@@ -42,6 +43,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('producto_variantes', fn (Blueprint $t) => $t->dropColumn('unidades_por_empaque'));
         Schema::dropIfExists('producto_variantes');
     }
 };

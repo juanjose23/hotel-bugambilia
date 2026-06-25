@@ -47,11 +47,18 @@ class DevolverMercanciaProveedor
                 if ($lote->estado === EstadoLote::Rechazado) {
                     // Si ya estaba en la zona de merma como rechazado, no restamos stock (ya era 0 disponible)
                     // pero registramos el movimiento de salida física hacia el proveedor.
+                    $costoUnitarioMov = $lote->costo_unitario;
+                    $costoTotalMov = $costoUnitarioMov !== null
+                        ? $costoUnitarioMov * $cantidadDevolver
+                        : null;
+
                     MovimientoStock::create([
                         'tipo' => 'MOV_SALIDA',
                         'lote_id' => $lote->id,
                         'producto_id' => $item->producto_id,
                         'cantidad' => $cantidadDevolver,
+                        'costo_unitario' => $costoUnitarioMov,
+                        'costo_total' => $costoTotalMov,
                         'ubicacion_origen_id' => $lote->ubicacion_id, // Zona de Merma
                         'ubicacion_destino_id' => null, // Sale del almacén
                         'documento_tipo' => 'devolucion_item',
@@ -94,11 +101,18 @@ class DevolverMercanciaProveedor
                     }
 
                     // Registrar movimiento de salida hacia proveedor
+                    $costoUnitarioMov = $lote->costo_unitario;
+                    $costoTotalMov = $costoUnitarioMov !== null
+                        ? $costoUnitarioMov * $cantidadDevolver
+                        : null;
+
                     MovimientoStock::create([
                         'tipo' => 'MOV_SALIDA',
                         'lote_id' => $lote->id,
                         'producto_id' => $item->producto_id,
                         'cantidad' => $cantidadDevolver,
+                        'costo_unitario' => $costoUnitarioMov,
+                        'costo_total' => $costoTotalMov,
                         'ubicacion_origen_id' => $ubicacionOrigen,
                         'ubicacion_destino_id' => null, // Sale del almacén
                         'documento_tipo' => 'devolucion_item',

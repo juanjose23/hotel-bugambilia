@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\SolicitudLimpiezaResource\Schemas;
 
+use App\Enums\HabitacionesEspacios\EstadoLimpieza;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
 use Filament\Forms\Components\Select;
@@ -92,12 +93,8 @@ class SolicitudLimpiezaForm
 
                         Select::make('estado')
                             ->label('Estado')
-                            ->options([
-                                'pendiente' => 'Pendiente',
-                                'en_progreso' => 'En Progreso',
-                                'completada' => 'Completada',
-                            ])
-                            ->default('pendiente')
+                            ->options(EstadoLimpieza::class)
+                            ->default(EstadoLimpieza::Pendiente)
                             ->required()
                             ->native(false)
                             ->prefixIcon(Heroicon::ArrowPath),

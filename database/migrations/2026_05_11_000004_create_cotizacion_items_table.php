@@ -28,11 +28,20 @@ return new class extends Migration
 
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('cotizacion_id');
+            $table->index('producto_id');
+            $table->index('producto_variante_id');
         });
     }
 
     public function down(): void
     {
+        Schema::table('cotizacion_items', function (Blueprint $t) {
+            $t->dropIndex(['cotizacion_id']);
+            $t->dropIndex(['producto_id']);
+            $t->dropIndex(['producto_variante_id']);
+        });
         Schema::dropIfExists('cotizacion_items');
     }
 };

@@ -16,6 +16,13 @@ class ColaboradorDocumento extends Model implements AuditableContract
 
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return [
+            'colaborador_id' => 'integer',
+        ];
+    }
+
     /** @return BelongsTo<Colaborador, $this> */
     public function colaborador(): BelongsTo
     {

@@ -47,6 +47,8 @@ return new class extends Migration
                 ->constrained('productos');
             $table->decimal('cantidad', 14, 4)
                 ->comment('Cantidad transaccionada. Negativa para salidas, positiva para entradas.');
+            $table->decimal('costo_unitario', 14, 6)->nullable()->after('cantidad')->comment('Costo unitario del producto al momento del movimiento');
+            $table->decimal('costo_total', 14, 2)->nullable()->after('costo_unitario')->comment('Costo total del movimiento (cantidad * costo_unitario)');
             $table->foreignId('ubicacion_origen_id')
                 ->nullable()
                 ->comment('Bodega de origen del movimiento. NULL si es ingreso externo (recepción de compra). FK → ubicaciones, nullOnDelete.')
@@ -79,11 +81,24 @@ return new class extends Migration
                 ->comment('Marca de tiempo inmutable del movimiento. No tiene updated_at (el modelo usa timestamps = false).');
 
             $table->index(['producto_id', 'created_at'], 'inv_movimientos_producto_fecha_index');
+            $table->index('lote_id');
+            $table->index('ubicacion_origen_id');
+            $table->index('ubicacion_destino_id');
+            $table->index('creado_por_id');
+            $table->index('tipo');
         });
     }
 
     public function down(): void
     {
+        Schema::table('inv_movimientos', function (Blueprint $t) {
+            $t->dropIndex(['lote_id']);
+            $t->dropIndex(['ubicacion_origen_id']);
+            $t->dropIndex(['ubicacion_destino_id']);
+            $t->dropIndex(['creado_por_id']);
+            $t->dropIndex(['tipo']);
+            $t->dropColumn(['costo_unitario', 'costo_total']);
+        });
         Schema::dropIfExists('inv_movimientos');
     }
 };

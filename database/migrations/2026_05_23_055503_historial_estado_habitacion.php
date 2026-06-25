@@ -25,6 +25,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['model_type', 'model_id']);
+            $table->index('usuario_id');
         });
     }
 
@@ -34,6 +35,7 @@ return new class extends Migration
     public function down(): void
     {
         //
+        Schema::table('habitacion_historial', fn (Blueprint $t) => $t->dropIndex(['usuario_id']));
         Schema::dropIfExists('habitacion_historial');
     }
 };

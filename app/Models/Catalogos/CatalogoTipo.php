@@ -21,4 +21,11 @@ class CatalogoTipo extends Model implements AuditableContract
     protected $table = 'catalogo_tipos';
 
     protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return [
+            'estado' => 'boolean',
+        ];
+    }
 }

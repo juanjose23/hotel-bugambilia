@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Filament\Resources\Servicios\Servicios\RelationManagers\PreciosRelationManager;
 use App\Models\Monedas\Moneda;
 use App\Models\Servicios\Servicio;
-use App\Models\Servicios\ServiciosPrecio;
+use App\Models\Shared\Precio;
 use App\UseCases\Servicios\Mutations\GenerarCodigoServicio;
 use Filament\Forms\Components\Component;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,8 +53,9 @@ it('valida que no existan precios vigentes duplicados para el mismo servicio y m
     ]);
 
     // Create a first price active
-    $precio1 = ServiciosPrecio::create([
-        'servicio_id' => $srv->id,
+    $precio1 = Precio::create([
+        'priceable_type' => Servicio::class,
+        'priceable_id' => $srv->id,
         'moneda_id' => $this->moneda->id,
         'precio' => 100.00,
         'fecha_inicio' => now()->toDateString(),
@@ -102,8 +103,9 @@ it('permite guardar al editar el mismo registro de precio activo', function () {
     ]);
 
     // Create a price active
-    $precio1 = ServiciosPrecio::create([
-        'servicio_id' => $srv->id,
+    $precio1 = Precio::create([
+        'priceable_type' => Servicio::class,
+        'priceable_id' => $srv->id,
         'moneda_id' => $this->moneda->id,
         'precio' => 100.00,
         'fecha_inicio' => now()->toDateString(),
