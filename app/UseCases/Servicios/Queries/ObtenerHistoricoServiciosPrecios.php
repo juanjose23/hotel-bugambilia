@@ -18,7 +18,7 @@ class ObtenerHistoricoServiciosPrecios
 
     /**
      * @param  array{servicio_id?: int|null, moneda_id?: int|null, estado?: int|null, categoria_id?: int|null}  $filtros
-     * @return Collection<int, stdClass>
+     * @return Collection<int, \stdClass>
      */
     public function ejecutar(array $filtros = []): Collection
     {
@@ -73,7 +73,7 @@ class ObtenerHistoricoServiciosPrecios
 
     /**
      * @param  array{servicio_id?: int|null, moneda_id?: int|null, estado?: int|null, categoria_id?: int|null}  $filtros
-     * @return Collection<string, Collection<int, stdClass>>
+     * @return Collection<string, Collection<int, \stdClass>>
      */
     public function agrupadoPorCategoria(array $filtros = []): Collection
     {

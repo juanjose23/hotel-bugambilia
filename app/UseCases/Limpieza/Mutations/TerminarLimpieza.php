@@ -10,9 +10,10 @@ use App\Enums\HabitacionesEspacios\EstadoLimpieza;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Espacios\Espacio;
 use App\Models\Habitaciones\Habitacion;
-use App\Models\Inventario\Stock as SharedStock;
+use App\Models\Inventario\Stock as InventarioStock;
 use App\Models\Limpieza\LimpiezaEjecucion;
 use App\Models\Limpieza\SolicitudLimpieza;
+use App\Models\Shared\Stock as SharedStock;
 use Illuminate\Support\Facades\DB;
 
 class TerminarLimpieza
@@ -82,7 +83,7 @@ class TerminarLimpieza
                                 destinoId: $ejecucion->limpiable_id,
                                 items: $items,
                                 bodegaOrigenId: $ejecucion->carrito_id,
-                                creadoPorId: auth()->id(),
+                                creadoPorId: auth()->id() !== null ? (int) auth()->id() : null,
                                 notas: "Consumo registrado al completar ejecución de limpieza #{$ejecucion->id}."
                             );
                         }
@@ -118,7 +119,7 @@ class TerminarLimpieza
                 ]);
             }
 
-            if (! empty($consumos) && $ejecucion->carrito_id) {
+            if ($ejecucion && ! empty($consumos) && $ejecucion->carrito_id) {
                 foreach ($consumos as $varianteId => $cantidad) {
                     $cartStock = InventarioStock::where('ubicacion_id', $ejecucion->carrito_id)
                         ->where('producto_variante_id', $varianteId)

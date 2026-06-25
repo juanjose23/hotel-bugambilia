@@ -91,7 +91,7 @@ final class ReportePaginador
      * @template T
      *
      * @param  Collection<int, T>  $items
-     * @return list<Collection<int, T>>
+     * @return array<int, Collection<int, T>>
      */
     public static function chunkParaPdf(Collection $items, int $rowPx = 32): array
     {

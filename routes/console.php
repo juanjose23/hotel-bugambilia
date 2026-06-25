@@ -101,7 +101,7 @@ if ($time = $shouldSchedule('jobs.limpieza_materializar', '05:30')) {
         ->dailyAt($time)
         ->withoutOverlapping()
         ->onOneServer()
-        ->timezone(config('app.timezone', 'America/Managua'));
+        ->timezone($timezoneStr);
 }
 
 // 7. Enviar recordatorios de limpieza pendientes/vencidos
@@ -111,5 +111,5 @@ if ($time = $shouldSchedule('jobs.limpieza_recordatorio', '12:00')) {
         ->dailyAt($time)
         ->withoutOverlapping()
         ->onOneServer()
-        ->timezone(config('app.timezone', 'America/Managua'));
+        ->timezone($timezoneStr);
 }
