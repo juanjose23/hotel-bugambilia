@@ -1,13 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Inventario\MovimientoStock\Widgets;
 
-use App\UseCases\Inventario\Queries\Gestion\ObtenerRotacionInventario;
+use App\Repository\Queries\Inventario\Gestion\ObtenerRotacionInventario;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Collection;
 
 class RotacionInventarioChart extends ChartWidget
 {
+    use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $permission = static::getWidgetPermission();
+        $user = auth()->user();
+
+        return $permission && $user
+            ? $user->can($permission)
+            : parent::canView();
+    }
+
     protected ?string $heading = 'Top 10 Productos con Mayor Rotación (3 meses)';
 
     protected static ?int $sort = 3;
@@ -21,18 +35,18 @@ class RotacionInventarioChart extends ChartWidget
 
     protected function getData(): array
     {
-        /** @var Collection<int, object> $filas */
-        $filas = app(ObtenerRotacionInventario::class)->ejecutar(['meses' => 3]);
+        $obtenerRotacionInventario = app(ObtenerRotacionInventario::class);
 
-        // Top 10 por índice de rotación
-        $top = $filas->sortByDesc('indice_rotacion')->take(10);
+        $filas = $obtenerRotacionInventario->ejecutar(['meses' => 3]);
+
+        $top = $filas->sortByDesc('indiceRotacion')->take(10);
 
         return [
             'datasets' => [
                 [
                     'label' => 'Índice de Rotación',
-                    'data' => $top->pluck('indice_rotacion')->toArray(),
-                    'backgroundColor' => '#0284c7', // Azul
+                    'data' => $top->pluck('indiceRotacion')->toArray(),
+                    'backgroundColor' => '#0284c7',
                     'borderRadius' => 4,
                 ],
             ],
@@ -48,7 +62,7 @@ class RotacionInventarioChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
-            'indexAxis' => 'y', // Hace que el gráfico de barras sea horizontal
+            'indexAxis' => 'y',
             'scales' => [
                 'x' => [
                     'beginAtZero' => true,

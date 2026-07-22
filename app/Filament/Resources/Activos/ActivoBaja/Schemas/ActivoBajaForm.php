@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoBaja\Schemas;
 
 use App\Enums\Activos\TipoBaja;
-use App\Models\Activos\Activo;
-use App\Models\User;
+use App\Repository\Models\Activos\Activo;
+use App\Repository\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -50,7 +50,7 @@ class ActivoBajaForm
                         ->required()
                         ->columnSpanFull(),
                 ])
-                ->columns(2),
+                ->columns(),
 
             Section::make('Autorizaciones y Recuperación')
                 ->description('Firmas administrativas y valor remanente del bien.')
@@ -79,7 +79,7 @@ class ActivoBajaForm
                         ->label('Documento Digital de Soporte')
                         ->placeholder('Ruta al acta escaneada o archivo PDF'),
                 ])
-                ->columns(2),
+                ->columns(),
         ]);
     }
 }

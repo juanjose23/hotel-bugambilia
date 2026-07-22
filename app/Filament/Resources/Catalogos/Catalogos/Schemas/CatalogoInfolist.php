@@ -2,11 +2,10 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -19,81 +18,82 @@ class CatalogoInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
+
                 Section::make('Información del Catálogo')
                     ->description('Detalles principales y clasificación en el sistema.')
                     ->icon(Heroicon::InformationCircle)
+                    ->columns(2)
                     ->schema([
-                        Grid::make(4)
-                            ->schema([
-                                TextEntry::make('nombre')
-                                    ->label('Nombre')
-                                    ->size(TextSize::Large)
-                                    ->weight(FontWeight::Bold)
-                                    ->color('primary')
-                                    ->icon(Heroicon::Tag)
-                                    ->columnSpan(2),
-
-                                TextEntry::make('estado')
-                                    ->label('Estado')
-                                    ->badge()
-                                    ->formatStateUsing(fn ($state) => EstadoCatalogo::labelFor($state))
-                                    ->color(fn ($state) => EstadoCatalogo::colorFor($state))
-                                    ->icon(fn ($state) => $state ? Heroicon::CheckCircle : Heroicon::XCircle)
-                                    ->columnSpan(2),
-                            ]),
-
-                        Grid::make(4)
-                            ->schema([
-                                TextEntry::make('codigo')
-                                    ->label('Código')
-                                    ->badge()
-                                    ->color('gray')
-                                    ->icon(Heroicon::Hashtag),
-
-                                TextEntry::make('catalogoTipo.nombre')
-                                    ->label('Tipo')
-                                    ->icon(Heroicon::Square2Stack)
-                                    ->weight(FontWeight::Medium),
-
-                                TextEntry::make('padre.nombre')
-                                    ->label('Padre')
-                                    ->placeholder('Registro Raíz')
-                                    ->icon(Heroicon::Link)
-                                    ->color('gray'),
-
-                                TextEntry::make('orden')
-                                    ->label('Orden')
-                                    ->icon(Heroicon::Bars3BottomLeft)
-                                    ->numeric(),
-                            ]),
-                    ]),
-
-                // DESCRIPCIÓN Y TRAZABILIDAD
-                Grid::make(3)
-                    ->schema([
-                        Section::make('Descripción')
-                            ->icon(Heroicon::DocumentText)
-                            ->schema([
-                                TextEntry::make('descripcion')
-                                    ->hiddenLabel()
-                                    ->placeholder('Sin descripción registrada.')
-                                    ->prose(),
-                            ])
+                        TextEntry::make('nombre')
+                            ->label('Nombre')
+                            ->size(TextSize::Large)
+                            ->weight(FontWeight::Bold)
+                            ->color('primary')
+                            ->icon(Heroicon::Tag)
                             ->columnSpan(2),
 
-                        Section::make('Trazabilidad')
-                            ->icon(Heroicon::Clock)
-                            ->schema([
-                                ...InfolistTimestamps::make(format: 'd/m/Y H:i', withIcons: true, size: TextSize::Small),
-                            ])
+                        TextEntry::make('estado')
+                            ->label('Estado')
+                            ->badge()
+                            ->formatStateUsing(fn ($state) => EstadoGeneral::labelFor($state))
+                            ->color(fn ($state) => EstadoGeneral::colorFor($state))
+                            ->icon(fn ($state) => $state ? Heroicon::CheckCircle : Heroicon::XCircle)
+                            ->columnSpan(2),
+
+                        TextEntry::make('codigo')
+                            ->label('Código')
+                            ->badge()
+                            ->color('gray')
+                            ->icon(Heroicon::Hashtag)
                             ->columnSpan(1),
-                    ]),
+
+                        TextEntry::make('catalogoTipo.nombre')
+                            ->label('Tipo')
+                            ->icon(Heroicon::Square2Stack)
+                            ->weight(FontWeight::Medium)
+                            ->columnSpan(1),
+
+                        TextEntry::make('padre.nombre')
+                            ->label('Padre')
+                            ->placeholder('Registro Raíz')
+                            ->icon(Heroicon::Link)
+                            ->color('gray')
+                            ->columnSpan(1),
+
+                        TextEntry::make('orden')
+                            ->label('Orden')
+                            ->icon(Heroicon::Bars3BottomLeft)
+                            ->numeric()
+                            ->columnSpan(1),
+                    ])
+                    ->columnSpan(1),
+
+                // NODO RAÍZ (Registro Actual)
+                Group::make([
+                    Section::make('Descripción')
+                        ->icon(Heroicon::DocumentText)
+                        ->schema([
+                            TextEntry::make('descripcion')
+                                ->hiddenLabel()
+                                ->placeholder('Sin descripción registrada.')
+                                ->prose(),
+                        ]),
+
+                    Section::make('Trazabilidad')
+                        ->icon(Heroicon::Clock)
+                        ->schema([
+                            ...TimestampsInfolistEntry::make(format: 'd/m/Y H:i', withIcons: true, size: TextSize::Small),
+                        ]),
+                ])
+                    ->columnSpan(1),
 
                 // ÁRBOL JERÁRQUICO VISUAL (Sitemap Style)
                 Section::make('Mapa de Estructura')
                     ->description('Representación visual de la jerarquía de este elemento.')
                     ->schema([
+
                         // NODO RAÍZ (Registro Actual)
                         Group::make([
                             TextEntry::make('nombre_raiz')
@@ -106,15 +106,16 @@ class CatalogoInfolist
                                 ->alignCenter(),
                         ])
                             ->extraAttributes([
-                                'class' => 'max-w-md mx-auto p-6 rounded-3xl border-2 border-primary-500 bg-primary-50/50 dark:bg-primary-950/20 shadow-lg text-center',
+                                'style' => 'max-width: 24rem; margin: 1.5rem auto; padding: 1.5rem; border-radius: 1.5rem; border: 2px solid var(--primary-500, #ec4899); background: rgba(236, 72, 153, 0.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); text-align: center;',
                             ]),
 
                         // LÍNEA DE CONEXIÓN VERTICAL
                         Group::make([])
                             ->visible(fn ($record) => $record?->children()->exists())
                             ->extraAttributes([
-                                'class' => 'h-12 w-1 bg-primary-500 mx-auto',
+                                'style' => 'height: 3rem; width: 4px; background: var(--primary-500, #ec4899); margin: 0 auto;',
                             ]),
+
                         RepeatableEntry::make('children')
                             ->label('Subcategorias')
                             ->visible(fn ($record) => $record?->children()->exists())
@@ -124,6 +125,7 @@ class CatalogoInfolist
                                 'lg' => 3,
                             ])
                             ->schema([
+                                // NODO RAÍZ (Registro Actual)
                                 Group::make([
                                     TextEntry::make('nombre')
                                         ->hiddenLabel()
@@ -131,6 +133,7 @@ class CatalogoInfolist
                                         ->color('primary')
                                         ->icon(Heroicon::ChevronRight),
 
+                                    // NODO RAÍZ (Registro Actual)
                                     Group::make([
                                         TextEntry::make('codigo')
                                             ->badge()
@@ -146,7 +149,7 @@ class CatalogoInfolist
                                         ->columns(2),
                                 ])
                                     ->extraAttributes([
-                                        'class' => 'p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm text-center relative before:absolute before:-top-6 before:left-1/2 before:w-px before:h-6 before:bg-primary-500',
+                                        'style' => 'padding: 1rem; border-radius: 1rem; border: 1px solid rgba(156, 163, 175, 0.2); background: rgba(255, 255, 255, 0.02); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); text-align: center; position: relative;',
                                     ]),
                             ])
                             ->contained(false),

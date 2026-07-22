@@ -2,20 +2,27 @@
 
 namespace App\Filament\Resources\Catalogos\Productos\Pages;
 
-use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
-use App\Actions\Catalogos\GenerarReporteProductosAction;
 use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\Producto;
-use App\UseCases\Catalogos\Queries\ExportProductosUseCase;
+use App\Interactors\Catalogos\ExportarProductosInteractor;
+use App\Interactors\Catalogos\ImportarProductos;
+use App\Interactors\Catalogos\Reportes\Productos\GenerarReporteProductosInteractor;
+use App\Jobs\GenerarReporteJob;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Producto;
+use App\Support\Pdf\FormatoPagina;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Storage;
 
 class ListProductos extends ListRecords
 {
@@ -23,7 +30,7 @@ class ListProductos extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        $sharedFilters = [
+        $sharedFilters = fn (): array => [
             Select::make('categoria_id')
                 ->label('Categoría')
                 ->options(Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value))->pluck('nombre', 'id'))
@@ -40,10 +47,17 @@ class ListProductos extends ListRecords
                 ]),
             Select::make('estado')
                 ->label('Estado')
-                ->options([
-                    1 => 'Activo',
-                    0 => 'Inactivo',
-                ]),
+                ->options(EstadoGeneral::options()),
+        ];
+
+        $pdfFilters = fn (): array => [
+            ...$sharedFilters(),
+            ToggleButtons::make('tipo_pagina')
+                ->label('Tipo de página')
+                ->options(FormatoPagina::options())
+                ->default(FormatoPagina::A4_Vertical->value)
+                ->columns(3)
+                ->required(),
         ];
 
         return [
@@ -58,20 +72,46 @@ class ListProductos extends ListRecords
                         ->required()
                         ->disk('local')
                         ->directory('imports')
+                        ->acceptedFileTypes(['text/csv', 'text/plain', 'application/vnd.ms-excel'])
                         ->maxSize(20480),
                 ])
-                ->action(function () {
-                    session()->flash('success', 'Importación terminada.');
+                ->action(function (array $data) {
+                    $archivo = $data['archivo'] ?? null;
+                    if ($archivo) {
+                        try {
+                            $path = Storage::disk('local')->path($archivo);
+                            $res = app(ImportarProductos::class)->ejecutar($path);
+
+                            if (count($res['errors']) > 0) {
+                                Notification::make()
+                                    ->title('Importación completada con observaciones')
+                                    ->body("Se procesaron {$res['processed']} productos. Ocurrieron ".count($res['errors']).' errores.')
+                                    ->warning()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Importación exitosa')
+                                    ->body("Se importaron exitosamente {$res['processed']} productos.")
+                                    ->success()
+                                    ->send();
+                            }
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Error en importación')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }
                 }),
 
             Action::make('excel')
                 ->label('Excel')
                 ->icon(Heroicon::TableCells)
                 ->color('success')
-                ->schema($sharedFilters)
+                ->schema($sharedFilters())
                 ->action(function (array $data) {
-                    $useCase = new ExportProductosUseCase;
-                    $path = $useCase->exportarCsv($data);
+                    $path = app(ExportarProductosInteractor::class)->ejecutar($data);
 
                     return response()->download($path);
                 }),
@@ -80,39 +120,107 @@ class ListProductos extends ListRecords
                 Action::make('simple')
                     ->label('Reporte Simple (CP-001)')
                     ->icon(Heroicon::Document)
-                    ->schema($sharedFilters)
+                    ->schema([
+                        ...$pdfFilters(),
+                        Checkbox::make('background')
+                            ->label('Generar en segundo plano (notificar cuando esté listo)')
+                            ->default(false),
+                    ])
                     ->action(function (array $data) {
-                        $action = new GenerarReporteProductosAction;
-                        $pdf = $action->ejecutar($data, incluirVariantes: false);
+                        if (! empty($data['background'])) {
+                            dispatch(new GenerarReporteJob(
+                                codigoReporte: 'HTB-CP001',
+                                parametros: $data,
+                                usuarioId: (int) auth()->id(),
+                            ));
+                            Notification::make()
+                                ->title('Reporte en proceso')
+                                ->body('Recibirás una notificación cuando esté listo.')
+                                ->success()
+                                ->send();
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), 'HTB-CP001-Simple.pdf');
+                            return;
+                        }
+                        $pdf = app(GenerarReporteProductosInteractor::class)->simple($data);
+
+                        return response()->stream(fn () => print ($pdf->output()), 200, [
+                            'Content-Type' => 'application/pdf',
+                            'Content-Disposition' => 'inline; filename="HTB-CP001-Simple.pdf"',
+                        ]);
                     }),
 
                 Action::make('detallado')
                     ->label('Reporte Detallado (CP-002)')
                     ->icon(Heroicon::DocumentCheck)
-                    ->schema($sharedFilters)
+                    ->schema([
+                        ...$pdfFilters(),
+                        Checkbox::make('background')
+                            ->label('Generar en segundo plano (notificar cuando esté listo)')
+                            ->default(false),
+                    ])
                     ->action(function (array $data) {
-                        $action = new GenerarReporteProductosAction;
-                        $pdf = $action->ejecutar($data);
+                        if (! empty($data['background'])) {
+                            dispatch(new GenerarReporteJob(
+                                codigoReporte: 'HTB-CP002',
+                                parametros: $data,
+                                usuarioId: (int) auth()->id(),
+                            ));
+                            Notification::make()
+                                ->title('Reporte en proceso')
+                                ->body('Recibirás una notificación cuando esté listo.')
+                                ->success()
+                                ->send();
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), 'HTB-CP002-Detallado.pdf');
+                            return;
+                        }
+                        $pdf = app(GenerarReporteProductosInteractor::class)->detallado($data);
+
+                        return response()->stream(fn () => print ($pdf->output()), 200, [
+                            'Content-Type' => 'application/pdf',
+                            'Content-Disposition' => 'inline; filename="HTB-CP002-Detallado.pdf"',
+                        ]);
                     }),
 
                 Action::make('etiquetas')
                     ->label('Etiquetas (CP-003)')
                     ->icon(Heroicon::QrCode)
                     ->schema([
+                        ...$sharedFilters(),
                         Select::make('producto_id')
-                            ->label('Filtrar por Producto')
+                            ->label('Filtrar por Producto (opcional)')
                             ->options(Producto::pluck('nombre', 'id'))
                             ->searchable(),
+                        ToggleButtons::make('tipo_pagina')
+                            ->label('Tipo de página')
+                            ->options(FormatoPagina::options())
+                            ->default(FormatoPagina::A4_Vertical->value)
+                            ->columns(3)
+                            ->required(),
+                        Checkbox::make('background')
+                            ->label('Generar en segundo plano (notificar cuando esté listo)')
+                            ->default(false),
                     ])
                     ->action(function (array $data) {
-                        $action = new GenerarEtiquetasCodigosBarrasAction;
-                        $pdf = $action->ejecutar($data['producto_id'] ?? null);
+                        if (! empty($data['background'])) {
+                            dispatch(new GenerarReporteJob(
+                                codigoReporte: 'HTB-CP003',
+                                parametros: $data,
+                                usuarioId: (int) auth()->id(),
+                            ));
+                            Notification::make()
+                                ->title('Reporte en proceso')
+                                ->body('Recibirás una notificación cuando esté listo.')
+                                ->success()
+                                ->send();
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), 'HTB-CP003-Etiquetas.pdf');
+                            return;
+                        }
+                        $pdf = app(GenerarReporteProductosInteractor::class)->etiquetas($data);
+
+                        return response()->stream(fn () => print ($pdf->output()), 200, [
+                            'Content-Type' => 'application/pdf',
+                            'Content-Disposition' => 'inline; filename="HTB-CP003-Etiquetas.pdf"',
+                        ]);
                     }),
             ])
                 ->label('PDF')

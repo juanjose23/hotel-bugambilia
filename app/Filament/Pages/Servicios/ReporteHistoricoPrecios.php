@@ -9,6 +9,7 @@ use App\Models\Catalogos\Catalogo;
 use App\Models\Monedas\Moneda;
 use App\Models\Servicios\Servicio;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
@@ -17,6 +18,8 @@ use UnitEnum;
 
 class ReporteHistoricoPrecios extends Page
 {
+    use HasPageShield;
+
     protected string $view = 'filament.pages.servicios.reporte-historico-precios';
 
     protected static ?string $slug = 'reporte-historico-precios-servicios';

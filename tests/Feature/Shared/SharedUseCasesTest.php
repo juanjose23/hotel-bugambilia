@@ -5,30 +5,27 @@ declare(strict_types=1);
 namespace Tests\Feature\Shared;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
-use App\Enums\HabitacionesEspacios\EstadoHabitacion;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Monedas\Moneda;
-use App\Models\Personas\Persona;
-use App\Models\Personas\PersonaJuridica;
-use App\Models\Personas\PersonaNatural;
-use App\Models\Servicios\Servicio;
-use App\Models\Shared\Precio;
-use App\Models\Shared\ServicioAsignacion;
-use App\UseCases\Shared\Mutations\AsignarPrecio;
-use App\UseCases\Shared\Mutations\AsignarServicio;
-use App\UseCases\Shared\Queries\ObtenerNombrePersona;
+use App\Enums\Shared\EstadoGeneral;
+use App\Interactors\Shared\AsignarPrecio;
+use App\Interactors\Shared\AsignarServicio;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Personas\PersonaJuridica;
+use App\Repository\Models\Personas\PersonaNatural;
+use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Models\Shared\Precio;
+use App\Repository\Models\Shared\ServicioAsignacion;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
 use Database\Seeders\ServicioSeeder;
 use Database\Seeders\UbicacionSeeder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -44,7 +41,7 @@ function crearHabitacionPrecio(): Habitacion
         'nombre' => 'Habitación Precio',
         'categoria_id' => $categoria->id,
         'ubicacion_id' => $ubicacion->id,
-        'estado' => EstadoHabitacion::Activa,
+        'estado' => EstadoEspacio::Activa,
     ]);
 }
 
@@ -99,7 +96,7 @@ describe('AsignarPrecio', function () {
             ->and($precio->priceable_type)->toBe(Habitacion::class)
             ->and($precio->priceable_id)->toBe($habitacion->id)
             ->and((float) $precio->precio)->toBe(150.00)
-            ->and($precio->estado)->toBe(1)
+            ->and($precio->estado)->toBe(EstadoGeneral::Activo)
             ->and($precio->es_oferta)->toBeFalse();
     });
 
@@ -146,7 +143,7 @@ describe('AsignarPrecio', function () {
         expect($precios)->toHaveCount(2);
 
         $anterior = $precios->firstWhere('id', '!=', $segundo->id);
-        expect($anterior->estado)->toBe(2);
+        expect($anterior->estado)->toBe(EstadoGeneral::Vencido);
     });
 
     it('lanza InvalidArgumentException si el precio es negativo', function () {
@@ -333,7 +330,7 @@ describe('ObtenerNombrePersona', function () {
             'segundo_apellido' => 'García',
         ]);
 
-        $nombre = app(ObtenerNombrePersona::class)->execute($persona->id);
+        $nombre = app(ObtenerNombrePersona::class)->ejecutarPorId($persona->id);
 
         expect($nombre)->toContain('Pérez')
             ->and($nombre)->toContain('García');
@@ -349,13 +346,13 @@ describe('ObtenerNombrePersona', function () {
             'razon_social' => 'Hotel Bugambilia S.A. de C.V.',
         ]);
 
-        $nombre = app(ObtenerNombrePersona::class)->execute($persona->id);
+        $nombre = app(ObtenerNombrePersona::class)->ejecutarPorId($persona->id);
 
         expect($nombre)->toBe('Hotel Bugambilia S.A. de C.V.');
     });
 
     it('retorna "Persona #ID" cuando la persona no existe', function () {
-        $nombre = app(ObtenerNombrePersona::class)->execute(99999);
+        $nombre = app(ObtenerNombrePersona::class)->ejecutarPorId(99999);
 
         expect($nombre)->toBe('Persona #99999');
     });
@@ -367,7 +364,7 @@ describe('ObtenerNombrePersona', function () {
             'segundo_nombre' => null,
         ]);
 
-        $nombre = app(ObtenerNombrePersona::class)->execute($persona->id);
+        $nombre = app(ObtenerNombrePersona::class)->ejecutarPorId($persona->id);
 
         expect($nombre)->toContain('María');
     });

@@ -6,7 +6,7 @@ use App\Filament\Resources\Catalogos\Catalogos\Pages\ListCatalogos;
 use App\Filament\Resources\Catalogos\Catalogos\Schemas\CatalogoForm;
 use App\Filament\Resources\Catalogos\Catalogos\Schemas\CatalogoInfolist;
 use App\Filament\Resources\Catalogos\Catalogos\Tables\CatalogosTable;
-use App\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Catalogo;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -51,6 +51,7 @@ class CatalogoResource extends Resource
     public static function getRelations(): array
     {
         return [
+
             //
         ];
     }

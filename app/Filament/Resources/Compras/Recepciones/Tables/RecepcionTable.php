@@ -5,9 +5,10 @@ namespace App\Filament\Resources\Compras\Recepciones\Tables;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
 use App\Filament\Resources\Compras\Recepciones\Actions\RecepcionEstadoActions;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Compras\RecepcionCompra;
-use Filament\Actions\Action;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Concerns\TieneAccionesImprimirExportar;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Repository\Models\Compras\RecepcionCompra;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -19,6 +20,9 @@ use Filament\Tables\Table;
 
 class RecepcionTable
 {
+    use TieneAccionesImprimirExportar;
+    use TieneAccionesImprimirExportar;
+
     public static function configure(Table $table): Table
     {
         return $table
@@ -46,9 +50,7 @@ class RecepcionTable
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoRecepcion::class),
 
                 TextColumn::make('items_count')
                     ->label('Ítems')
@@ -64,21 +66,15 @@ class RecepcionTable
                     ->searchable()
                     ->preload(),
             ])
-            ->actions([
-                ActionGroup::make(RecepcionEstadoActions::make())
+            ->recordActions([
+                ActionGroup::make(RecepcionEstadoActions::acciones())
                     ->label('Cambiar Estado')
                     ->icon(Heroicon::ArrowPath)
                     ->color('warning')
                     ->button(),
                 ActionGroup::make([
                     ViewAction::make(),
-                    Action::make('imprimir')
-                        ->label('Imprimir')
-                        ->icon(Heroicon::Printer)
-                        ->color('gray')
-                        ->url(fn (RecepcionCompra $record) => route('reporte.recepcion', $record))
-                        ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirRecepcion') ?? false),
+                    self::makeImprimirAction('reporte.recepcion', 'Compras:ImprimirRecepcion'),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])

@@ -10,7 +10,7 @@ use App\Filament\Resources\Activos\ActPlanMantenimiento\Pages\ListActPlanManteni
 use App\Filament\Resources\Activos\ActPlanMantenimiento\Pages\ViewActPlanMantenimiento;
 use App\Filament\Resources\Activos\ActPlanMantenimiento\Schemas\ActPlanMantenimientoForm;
 use App\Filament\Resources\Activos\ActPlanMantenimiento\Tables\ActPlanMantenimientoTable;
-use App\Models\Activos\ActPlanMantenimiento;
+use App\Repository\Models\Activos\ActPlanMantenimiento;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -45,7 +45,7 @@ class ActPlanMantenimientoResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return ActPlanMantenimientoForm::configure($schema);
+        return app(ActPlanMantenimientoForm::class)->configure($schema);
     }
 
     public static function table(Table $table): Table

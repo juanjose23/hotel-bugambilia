@@ -6,12 +6,13 @@ namespace App\Filament\Resources\Habitaciones\EspacioResource\Tables;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
+use App\Filament\Shared\Filters\FiltroEstado;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -79,9 +80,22 @@ class EspacioTable
                 FiltroEstado::make(EstadoEspacio::class),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    Action::make('ver')
+                        ->label('Ver')
+                        ->icon('heroicon-o-eye')
+                        ->color('gray')
+                        ->url(fn ($record) => route('filament.admin.resources.habitaciones.espacios.view', $record)),
+
+                    Action::make('editar')
+                        ->label('Editar')
+                        ->icon('heroicon-o-pencil-square')
+                        ->url(fn ($record) => route('filament.admin.resources.habitaciones.espacios.edit', $record)),
+
+                    DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

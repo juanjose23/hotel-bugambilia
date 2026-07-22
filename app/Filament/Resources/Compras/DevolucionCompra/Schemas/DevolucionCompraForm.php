@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Compras\DevolucionCompra\Schemas;
 
 use App\Enums\Compras\EstadoOrdenCompra;
-use App\Models\Compras\RecepcionCompra;
-use App\Models\Inventario\Lote;
+use App\Repository\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Inventario\Lote;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -30,7 +30,7 @@ class DevolucionCompraForm
                         TextInput::make('codigo')
                             ->label('Código Devolución')
                             ->disabled()
-                            ->dehydrated(true)
+                            ->dehydrated()
                             ->placeholder('DEV-YYYY-NNN')
                             ->prefixIcon(Heroicon::QrCode),
 

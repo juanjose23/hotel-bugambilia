@@ -3,7 +3,7 @@
 namespace Database\Factories\Compras;
 
 use App\Enums\Compras\EstadoOrdenCompra;
-use App\Models\Compras\OrdenCompra;
+use App\Repository\Models\Compras\OrdenCompra;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

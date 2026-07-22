@@ -8,11 +8,11 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Espacios\Espacio;
-use App\Models\Espacios\PrecioEspacio;
-use App\Models\Espacios\ServicioEspacio;
 use App\Models\Monedas\Moneda;
 use App\Models\Politicas\Politica;
 use App\Models\Servicios\Servicio;
+use App\Models\Shared\Precio;
+use App\Models\Shared\ServicioAsignacion;
 use Illuminate\Database\Seeder;
 
 class EspacioSeeder extends Seeder
@@ -80,9 +80,10 @@ class EspacioSeeder extends Seeder
         // Asociar servicio de WiFi al restaurante
         $wifi = Servicio::where('nombre', 'WiFi premium')->first();
         if ($wifi) {
-            ServicioEspacio::create([
+            ServicioAsignacion::create([
+                'serviceable_type' => Espacio::class,
+                'serviceable_id' => $restaurante->id,
                 'servicio_id' => $wifi->id,
-                'espacio_id' => $restaurante->id,
                 'incluido' => true,
                 'estado' => 1,
             ]);
@@ -150,8 +151,9 @@ class EspacioSeeder extends Seeder
         ]);
 
         // Registrar tarifas históricas por hora para el Gimnasio (NIO y USD)
-        PrecioEspacio::create([
-            'espacio_id' => $gym->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $gym->id,
             'moneda_id' => $nio->id,
             'precio' => 150.00, // C$ 150 por hora
             'tipo_precio' => 'por_hora',
@@ -159,8 +161,9 @@ class EspacioSeeder extends Seeder
             'estado' => 1,
             'es_oferta' => false,
         ]);
-        PrecioEspacio::create([
-            'espacio_id' => $gym->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $gym->id,
             'moneda_id' => $usd->id,
             'precio' => round(150.00 / $tipoCambio, 2), // Eq USD
             'tipo_precio' => 'por_hora',
@@ -170,9 +173,10 @@ class EspacioSeeder extends Seeder
         ]);
 
         if ($wifi) {
-            ServicioEspacio::create([
+            ServicioAsignacion::create([
+                'serviceable_type' => Espacio::class,
+                'serviceable_id' => $gym->id,
                 'servicio_id' => $wifi->id,
-                'espacio_id' => $gym->id,
                 'incluido' => true,
                 'estado' => 1,
             ]);
@@ -197,8 +201,9 @@ class EspacioSeeder extends Seeder
 
         // Tarifas para el Salón (Base y Por Hora)
         // 1. Precios Base (Reserva Completa / Evento)
-        PrecioEspacio::create([
-            'espacio_id' => $salon->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $salon->id,
             'moneda_id' => $nio->id,
             'precio' => 7000.00, // C$ 7,000 por reserva/evento completo
             'tipo_precio' => 'base',
@@ -206,8 +211,9 @@ class EspacioSeeder extends Seeder
             'estado' => 1,
             'es_oferta' => false,
         ]);
-        PrecioEspacio::create([
-            'espacio_id' => $salon->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $salon->id,
             'moneda_id' => $usd->id,
             'precio' => 200.00, // $ 200 USD
             'tipo_precio' => 'base',
@@ -217,8 +223,9 @@ class EspacioSeeder extends Seeder
         ]);
 
         // 2. Precios por Hora (Renta Fraccionada)
-        PrecioEspacio::create([
-            'espacio_id' => $salon->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $salon->id,
             'moneda_id' => $nio->id,
             'precio' => 1000.00, // C$ 1,000 por hora
             'tipo_precio' => 'por_hora',
@@ -226,8 +233,9 @@ class EspacioSeeder extends Seeder
             'estado' => 1,
             'es_oferta' => false,
         ]);
-        PrecioEspacio::create([
-            'espacio_id' => $salon->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $salon->id,
             'moneda_id' => $usd->id,
             'precio' => 28.00, // $ 28 USD
             'tipo_precio' => 'por_hora',
@@ -239,17 +247,19 @@ class EspacioSeeder extends Seeder
         // Servicios asociados al Salón
         $proyector = Servicio::where('nombre', 'Alquiler de proyector')->first();
         if ($proyector) {
-            ServicioEspacio::create([
+            ServicioAsignacion::create([
+                'serviceable_type' => Espacio::class,
+                'serviceable_id' => $salon->id,
                 'servicio_id' => $proyector->id,
-                'espacio_id' => $salon->id,
                 'incluido' => true, // Incluido en el precio base de alquiler
                 'estado' => 1,
             ]);
         }
         if ($wifi) {
-            ServicioEspacio::create([
+            ServicioAsignacion::create([
+                'serviceable_type' => Espacio::class,
+                'serviceable_id' => $salon->id,
                 'servicio_id' => $wifi->id,
-                'espacio_id' => $salon->id,
                 'incluido' => true,
                 'estado' => 1,
             ]);
@@ -270,8 +280,9 @@ class EspacioSeeder extends Seeder
         ]);
 
         // Tarifas base (Reserva / Sesión)
-        PrecioEspacio::create([
-            'espacio_id' => $spa->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $spa->id,
             'moneda_id' => $nio->id,
             'precio' => 600.00, // C$ 600 la sesión base
             'tipo_precio' => 'base',
@@ -279,8 +290,9 @@ class EspacioSeeder extends Seeder
             'estado' => 1,
             'es_oferta' => false,
         ]);
-        PrecioEspacio::create([
-            'espacio_id' => $spa->id,
+        Precio::create([
+            'priceable_type' => Espacio::class,
+            'priceable_id' => $spa->id,
             'moneda_id' => $usd->id,
             'precio' => 16.50, // $ 16.50 USD
             'tipo_precio' => 'base',

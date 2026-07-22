@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Pages;
 
 use App\Filament\Resources\Activos\Activo\ActivoResource;
-use App\UseCases\Activos\Mutations\Gestion\RegistrarActivoFijo;
+use App\Interactors\Activos\RegistrarActivoFijo;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateActivo extends CreateRecord
 {
+    private RegistrarActivoFijo $registrarActivoFijo;
+
+    public function boot(RegistrarActivoFijo $registrarActivoFijo): void
+    {
+        $this->registrarActivoFijo = $registrarActivoFijo;
+    }
+
     protected static string $resource = ActivoResource::class;
 
     protected function getHeaderActions(): array
@@ -56,7 +63,7 @@ class CreateActivo extends CreateRecord
         $asignacionMotivoVal = $data['asignacion_motivo'] ?? null;
         $asignacionMotivo = is_string($asignacionMotivoVal) && $asignacionMotivoVal !== '' ? $asignacionMotivoVal : null;
 
-        return app(RegistrarActivoFijo::class)->execute(
+        return $this->registrarActivoFijo->execute(
             recepcionItemId: $recepcionItemId,
             productoId: $productoId,
             productoVarianteId: $productoVarianteId,

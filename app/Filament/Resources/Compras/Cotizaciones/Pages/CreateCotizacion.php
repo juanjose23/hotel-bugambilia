@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Compras\Cotizaciones\Pages;
 
+use App\Events\Compras\CotizacionCreada;
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
-use App\Models\Compras\Cotizacion;
-use App\Services\Compras\NotificadorCompras;
+use App\Repository\Models\Compras\Cotizacion;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateCotizacion extends CreateRecord
@@ -15,7 +15,7 @@ class CreateCotizacion extends CreateRecord
     {
         /** @var Cotizacion $record */
         $record = $this->getRecord();
-        app(NotificadorCompras::class)->cotizacionCreada($record);
+        CotizacionCreada::dispatch($record);
     }
 
     protected function getRedirectUrl(): string

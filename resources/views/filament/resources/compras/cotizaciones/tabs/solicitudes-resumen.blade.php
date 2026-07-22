@@ -1,6 +1,4 @@
-@php
-    $solicitudes = $solicitudes ?? collect();
-@endphp
+@php $solicitudes = $solicitudes ?? collect(); @endphp
 
 <div class="p-6 space-y-4">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -30,7 +28,7 @@
 
                 <div class="mt-auto">
                     @if($solicitud->cotizaciones_count >= 1)
-                        @if(auth()->user()->can('Compras:ViewComparativaCotizaciones'))
+                        @if(auth()->user()->hasRole('super_admin') || auth()->user()->can('Compras:ViewComparativaCotizaciones'))
                             <a 
                                 href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('comparativa', ['solicitud_id' => $solicitud->id]) }}"
                                 class="flex items-center justify-center w-full px-4 py-2 text-xs font-bold text-white transition-all bg-primary-600 rounded-lg hover:bg-primary-700"

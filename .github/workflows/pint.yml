@@ -4,13 +4,13 @@ jobs:
   phplint:
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout@v4
-        - name: "laravel-pint"
-          uses: aglipanci/laravel-pint-action@latest
-          with:
-            preset: laravel
-            verboseMode: true
-            testMode: true
-            configPath: "pint.json"
-            pintVersion: 1.8.0
-            onlyDirty: true          
+      - uses: actions/checkout@v4
+      - name: 'laravel-pint'
+        uses: aglipanci/laravel-pint-action@latest
+        with:
+          preset: laravel
+          verboseMode: true
+          testMode: true
+          configPath: 'pint.json'
+          pintVersion: 1.8.0
+          onlyDirty: true

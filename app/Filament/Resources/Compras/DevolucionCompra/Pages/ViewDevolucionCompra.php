@@ -4,8 +4,9 @@ namespace App\Filament\Resources\Compras\DevolucionCompra\Pages;
 
 use App\Enums\Compras\EstadoDevolucion;
 use App\Filament\Resources\Compras\DevolucionCompra\DevolucionCompraResource;
-use App\Models\Compras\DevolucionCompra;
-use App\UseCases\Compras\Devoluciones\Mutations\DevolverMercanciaProveedor;
+use App\Interactors\Compras\Devoluciones\DevolverMercanciaProveedor;
+use App\Repository\Models\Compras\DevolucionCompra;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
@@ -17,11 +18,26 @@ use Filament\Support\Icons\Heroicon;
  */
 class ViewDevolucionCompra extends ViewRecord
 {
+    protected DevolverMercanciaProveedor $devolverMercanciaProveedor;
+
+    public function boot(DevolverMercanciaProveedor $devolverMercanciaProveedor): void
+    {
+        $this->devolverMercanciaProveedor = $devolverMercanciaProveedor;
+    }
+
     protected static string $resource = DevolucionCompraResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('imprimir')
+                ->label('Imprimir')
+                ->icon(Heroicon::Printer)
+                ->color('gray')
+                ->url(fn (DevolucionCompra $record) => route('reporte.devolucion', $record))
+                ->openUrlInNewTab()
+                ->visible(fn () => auth()->user()?->can('Compras:ImprimirDevolucion') ?? false),
+
             EditAction::make()
                 ->visible(fn () => $this->record->estado !== EstadoDevolucion::Confirmada),
 
@@ -34,7 +50,7 @@ class ViewDevolucionCompra extends ViewRecord
                 ->modalDescription('Al confirmar, se retirará el stock físico del inventario (registrando movimientos de tipo DEVOLUCION_PROVEEDOR) y se liberará el saldo de la Orden de Compra para futuras recepciones. Esta acción no se puede deshacer.')
                 ->action(function () {
                     try {
-                        app(DevolverMercanciaProveedor::class)->execute($this->record, (int) auth()->id());
+                        $this->devolverMercanciaProveedor->ejecutar($this->record, (int) auth()->id());
 
                         Notification::make()
                             ->title('Devolución Confirmada')
@@ -43,7 +59,7 @@ class ViewDevolucionCompra extends ViewRecord
                             ->send();
 
                         $this->refreshFormData(['estado']);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Notification::make()
                             ->title('Error al procesar devolución')
                             ->body($e->getMessage())

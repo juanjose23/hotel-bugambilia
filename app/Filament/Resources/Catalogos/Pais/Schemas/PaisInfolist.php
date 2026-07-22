@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Catalogos\Pais\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -31,8 +31,8 @@ class PaisInfolist
                                 ->color('primary'),
                             TextEntry::make('estado')
                                 ->badge()
-                                ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
-                                ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state)),
+                                ->color(fn ($state): ?string => is_string($color = EstadoGeneral::colorFor($state)) ? $color : null)
+                                ->formatStateUsing(fn ($state): string => EstadoGeneral::labelFor($state)),
                         ]),
                 ]),
 
@@ -63,7 +63,7 @@ class PaisInfolist
                 ->columnSpanFull()
                 ->columns(3)
                 ->schema([
-                    ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
+                    ...TimestampsInfolistEntry::make(format: 'd/m/Y H:i'),
                 ]),
         ]);
     }

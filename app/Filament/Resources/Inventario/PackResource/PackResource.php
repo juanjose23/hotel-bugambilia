@@ -10,7 +10,7 @@ use App\Filament\Resources\Inventario\PackResource\Pages\ListPacks;
 use App\Filament\Resources\Inventario\PackResource\Pages\ViewPack;
 use App\Filament\Resources\Inventario\PackResource\Schemas\PackForm;
 use App\Filament\Resources\Inventario\PackResource\Tables\PackTable;
-use App\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\Producto;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\EspacioResource\Pages;
 
 use App\Filament\Resources\Habitaciones\EspacioResource\EspacioResource;
-use App\Models\Espacios\Espacio;
+use App\Repository\Models\Espacios\Espacio;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;

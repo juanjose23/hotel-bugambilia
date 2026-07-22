@@ -1,17 +1,17 @@
 <?php
 
 use App\Enums\Inventario\EstadoLote;
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Inventario\Lote;
-use App\Models\User;
-use App\Services\Inventario\NotificadorInventario;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
+use App\Notifications\Inventario\NotificadorInventario;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Inventario\Lote;
+use App\Repository\Models\User;
+use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
+    Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+    $this->user->assignRole('super_admin');
     $this->actingAs($this->user);
     $this->notificador = app(NotificadorInventario::class);
 
@@ -38,11 +38,10 @@ it('despacha notificacion para loteEnCuarentena', function () {
 
     $notification = $this->user->notifications()->first();
     expect($notification)->not->toBeNull();
-    expect($notification->data['title'])->toBe('Lote en Cuarentena');
-    expect($notification->data['body'])->toBe('El lote LOT-CUAR-TEST (Producto: Producto Inventario) ha sido puesto en CUARENTENA. Motivo: Sospecha de contaminación.');
-    expect($notification->data['icon'])->toBe('heroicon-o-shield-exclamation');
-    expect($notification->data['iconColor'])->toBe('warning');
-    expect($notification->data['status'])->toBe('warning');
+    expect($notification->data['title'])->toBe('Lote LOT-CUAR-TEST en cuarentena');
+    expect($notification->data['body'])->toBe('El lote del producto "Producto Inventario" ha sido enviado a cuarentena. Motivo: Sospecha de contaminación');
+    expect($notification->data['icon'])->toBe('heroicon-s-exclamation-triangle');
+    expect($notification->data['color'])->toBe('warning');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/inventario/lotes/{$lote->id}"));
 });
 
@@ -61,10 +60,9 @@ it('despacha notificacion para loteLiberado', function () {
 
     $notification = $this->user->notifications()->first();
     expect($notification)->not->toBeNull();
-    expect($notification->data['title'])->toBe('Lote Liberado de Cuarentena');
-    expect($notification->data['body'])->toBe('El lote LOT-LIB-TEST (Producto: Producto Inventario) ha sido liberado de cuarentena y ahora está Disponible.');
-    expect($notification->data['icon'])->toBe('heroicon-o-check-circle');
-    expect($notification->data['iconColor'])->toBe('success');
-    expect($notification->data['status'])->toBe('success');
+    expect($notification->data['title'])->toBe('Lote LOT-LIB-TEST liberado');
+    expect($notification->data['body'])->toBe('El lote del producto "Producto Inventario" ha sido liberado de cuarentena y reubicado.');
+    expect($notification->data['icon'])->toBe('heroicon-s-check-circle');
+    expect($notification->data['color'])->toBe('success');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/inventario/lotes/{$lote->id}"));
 });

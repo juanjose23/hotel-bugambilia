@@ -122,7 +122,7 @@ return [
     */
 
     'policies' => [
-        'path' => app_path('Policies'),
+        'path' => app_path('Repository/Policies'),
         'merge' => true,
         'generate' => true,
         'methods' => [

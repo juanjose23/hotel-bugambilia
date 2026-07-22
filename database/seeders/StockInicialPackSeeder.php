@@ -22,29 +22,42 @@ class StockInicialPackSeeder extends Seeder
         $bodegaId = (int) $bodegaIdVal;
 
         $items = [
-            ['codigo' => 'SH-030-S',      'producto_id' => 1,  'variante_id' => 1,  'cantidad' => 200],
-            ['codigo' => 'AC-030-S',      'producto_id' => 2,  'variante_id' => 4,  'cantidad' => 200],
-            ['codigo' => 'JB-015-P',      'producto_id' => 3,  'variante_id' => 7,  'cantidad' => 300],
-            ['codigo' => 'GB-001-BCO',    'producto_id' => 4,  'variante_id' => 10, 'cantidad' => 100],
-            ['codigo' => 'KD-001-EST',    'producto_id' => 5,  'variante_id' => 13, 'cantidad' => 100],
-            ['codigo' => 'BOL-HAB-AZUL',  'producto_id' => 6,  'variante_id' => 16, 'cantidad' => 150],
-            ['codigo' => 'BLOC-NOT-BCO',  'producto_id' => 7,  'variante_id' => 19, 'cantidad' => 100],
-            ['codigo' => 'KC-001-BASICO', 'producto_id' => 8,  'variante_id' => 22, 'cantidad' => 80],
-            ['codigo' => 'SB-KING-BCO',   'producto_id' => 30, 'variante_id' => 88, 'cantidad' => 50],
-            ['codigo' => 'SE-KING-BCO',   'producto_id' => 31, 'variante_id' => 91, 'cantidad' => 50],
-            ['codigo' => 'FA-50-70-BCO',  'producto_id' => 32, 'variante_id' => 94, 'cantidad' => 100],
-            ['codigo' => 'T-BANIO-BCO',   'producto_id' => 33, 'variante_id' => 97, 'cantidad' => 80],
-            ['codigo' => 'T-MANOS-BCO',   'producto_id' => 34, 'variante_id' => 100, 'cantidad' => 80],
-            ['codigo' => 'T-PISO-BCO',    'producto_id' => 35, 'variante_id' => 103, 'cantidad' => 40],
+            ['codigo' => 'SH-030-S',      'cantidad' => 200, 'costo_unitario' => 8.50],
+            ['codigo' => 'AC-030-S',      'cantidad' => 200, 'costo_unitario' => 9.00],
+            ['codigo' => 'JB-015-P',      'cantidad' => 300, 'costo_unitario' => 3.75],
+            ['codigo' => 'CR-030-S',      'cantidad' => 200, 'costo_unitario' => 15.00],
+            ['codigo' => 'PH-ROLLO-STD',  'cantidad' => 200, 'costo_unitario' => 2.50],
+            ['codigo' => 'AG-500-BOT',    'cantidad' => 200, 'costo_unitario' => 1.80],
+            ['codigo' => 'GB-001-BCO',    'cantidad' => 100, 'costo_unitario' => 22.00],
+            ['codigo' => 'KD-001-EST',    'cantidad' => 100, 'costo_unitario' => 35.00],
+            ['codigo' => 'BOL-HAB-AZUL',  'cantidad' => 150, 'costo_unitario' => 5.25],
+            ['codigo' => 'BLOC-NOT-BCO',  'cantidad' => 100, 'costo_unitario' => 4.00],
+            ['codigo' => 'KC-001-BASICO', 'cantidad' => 80,  'costo_unitario' => 18.50],
+            ['codigo' => 'SB-KING-BCO',   'cantidad' => 50,  'costo_unitario' => 45.00],
+            ['codigo' => 'SE-KING-BCO',   'cantidad' => 50,  'costo_unitario' => 42.00],
+            ['codigo' => 'FA-50-70-BCO',  'cantidad' => 100, 'costo_unitario' => 12.00],
+            ['codigo' => 'T-BANIO-BCO',   'cantidad' => 80,  'costo_unitario' => 28.00],
+            ['codigo' => 'T-MANOS-BCO',   'cantidad' => 80,  'costo_unitario' => 18.00],
+            ['codigo' => 'T-PISO-BCO',    'cantidad' => 40,  'costo_unitario' => 35.00],
         ];
 
         $now = now();
         $contador = 0;
 
         foreach ($items as $item) {
+            $variant = DB::table('producto_variantes')
+                ->where('codigo', $item['codigo'])
+                ->first();
+
+            if (! $variant) {
+                $this->command->warn("No se encontró la variante con código: {$item['codigo']}");
+
+                continue;
+            }
+
             $exists = DB::table('inv_lotes')
-                ->where('producto_id', $item['producto_id'])
-                ->where('producto_variante_id', $item['variante_id'])
+                ->where('producto_id', $variant->producto_id)
+                ->where('producto_variante_id', $variant->id)
                 ->exists();
 
             if ($exists) {
@@ -53,13 +66,16 @@ class StockInicialPackSeeder extends Seeder
 
             $codigoLote = 'LOTE-PACK-'.strtoupper(substr(md5($item['codigo'].$now->timestamp), 0, 8));
 
+            $costoTotal = $item['costo_unitario'] * $item['cantidad'];
             $loteId = DB::table('inv_lotes')->insertGetId([
                 'codigo_lote' => $codigoLote,
-                'producto_id' => $item['producto_id'],
-                'producto_variante_id' => $item['variante_id'],
+                'producto_id' => $variant->producto_id,
+                'producto_variante_id' => $variant->id,
                 'estado' => EstadoLote::Disponible->value,
                 'cantidad_disponible' => $item['cantidad'],
                 'cantidad_inicial' => $item['cantidad'],
+                'costo_unitario' => $item['costo_unitario'],
+                'costo_total' => $costoTotal,
                 'ubicacion_id' => $bodegaId,
                 'fecha_vencimiento' => now()->addMonths(12),
                 'fecha_recepcion' => $now->toDateString(),
@@ -68,15 +84,15 @@ class StockInicialPackSeeder extends Seeder
             ]);
 
             $stockExists = DB::table('inv_stock')
-                ->where('producto_id', $item['producto_id'])
-                ->where('producto_variante_id', $item['variante_id'])
+                ->where('producto_id', $variant->producto_id)
+                ->where('producto_variante_id', $variant->id)
                 ->where('ubicacion_id', $bodegaId)
                 ->exists();
 
             if (! $stockExists) {
                 DB::table('inv_stock')->insert([
-                    'producto_id' => $item['producto_id'],
-                    'producto_variante_id' => $item['variante_id'],
+                    'producto_id' => $variant->producto_id,
+                    'producto_variante_id' => $variant->id,
                     'lote_id' => $loteId,
                     'ubicacion_id' => $bodegaId,
                     'cantidad' => $item['cantidad'],

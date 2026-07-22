@@ -2,19 +2,24 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Catalogos\Producto;
-use App\UseCases\Catalogos\Queries\GenerarCodigoBarrasUseCase;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Queries\Catalogos\GenerarCodigoBarras;
 use Illuminate\Console\Command;
 
 class GenerarCodigosBarrasCommand extends Command
 {
+    public function __construct(
+        private readonly GenerarCodigoBarras $generarCodigosBarras,
+    ) {
+        parent::__construct();
+    }
+
     protected $signature = 'catalogos:generar-codigos-barras {--producto-id= : ID específico del producto}';
 
     protected $description = 'Genera códigos de barras para productos y sus variantes';
 
     public function handle(): int
     {
-        $useCase = new GenerarCodigoBarrasUseCase;
         $productoId = $this->option('producto-id');
 
         $query = Producto::query();
@@ -34,7 +39,7 @@ class GenerarCodigosBarrasCommand extends Command
         $bar = $this->output->createProgressBar($productos->count());
 
         foreach ($productos as $producto) {
-            $codigosGenerados = $useCase->generarLote($producto);
+            $codigosGenerados = $this->generarCodigosBarras->generarLote($producto);
             $count = count($codigosGenerados);
             $this->line("\n✓ Producto: {$producto->nombre} ({$count} variantes)");
             $bar->advance();

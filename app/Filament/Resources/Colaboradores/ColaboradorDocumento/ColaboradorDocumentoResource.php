@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorDocumento;
 use App\Filament\Resources\Colaboradores\ColaboradorDocumento\Pages\ManageColaboradorDocumentos;
 use App\Filament\Resources\Colaboradores\ColaboradorDocumento\Schemas\ColaboradorDocumentoForm;
 use App\Filament\Resources\Colaboradores\ColaboradorDocumento\Tables\ColaboradorDocumentoTable;
-use App\Models\Colaboradores\ColaboradorDocumento;
+use App\Repository\Models\Colaboradores\ColaboradorDocumento;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -17,6 +17,8 @@ use UnitEnum;
 class ColaboradorDocumentoResource extends Resource
 {
     protected static ?string $model = ColaboradorDocumento::class;
+
+    protected static ?string $slug = 'colaboradores/documentos';
 
     protected static ?string $modelLabel = 'Documento';
 

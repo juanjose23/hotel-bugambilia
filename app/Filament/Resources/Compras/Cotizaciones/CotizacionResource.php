@@ -8,8 +8,9 @@ use App\Filament\Resources\Compras\Cotizaciones\Pages\EditCotizacion;
 use App\Filament\Resources\Compras\Cotizaciones\Pages\ListCotizaciones;
 use App\Filament\Resources\Compras\Cotizaciones\Pages\ViewCotizacion;
 use App\Filament\Resources\Compras\Cotizaciones\Schemas\CotizacionForm;
+use App\Filament\Resources\Compras\Cotizaciones\Schemas\CotizacionInfolist;
 use App\Filament\Resources\Compras\Cotizaciones\Tables\CotizacionTable;
-use App\Models\Compras\Cotizacion;
+use App\Repository\Models\Compras\Cotizacion;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -41,6 +42,11 @@ class CotizacionResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return CotizacionForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return CotizacionInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table

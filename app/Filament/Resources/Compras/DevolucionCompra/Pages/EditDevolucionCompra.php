@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Compras\DevolucionCompra\Pages;
 
 use App\Enums\Compras\EstadoDevolucion;
 use App\Filament\Resources\Compras\DevolucionCompra\DevolucionCompraResource;
-use App\Models\Compras\DevolucionCompra;
+use App\Repository\Models\Compras\DevolucionCompra;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 

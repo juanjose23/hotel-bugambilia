@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Limpieza\TurnoResource\Tables;
 
-use App\Models\Limpieza\Turno;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Repository\Models\Limpieza\Turno;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -17,12 +21,13 @@ class TurnoTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['lider.persona.personaNatural', 'apoyo.persona.personaNatural']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['lider.persona.personaNatural', 'apoyo.persona.personaNatural', 'carritos']))
             ->columns([
                 TextColumn::make('nombre')
                     ->label('Nombre del Turno')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->icon(Heroicon::Sparkles),
 
                 TextColumn::make('lider')
                     ->label('Líder')
@@ -38,7 +43,8 @@ class TurnoTable
                         return $query->whereHas('lider.persona', function ($q) use ($search) {
                             $q->where('primer_nombre', 'like', "%{$search}%");
                         });
-                    }),
+                    })
+                    ->icon(Heroicon::User),
 
                 TextColumn::make('apoyo')
                     ->label('Apoyo')
@@ -54,23 +60,27 @@ class TurnoTable
                         return $query->whereHas('apoyo.persona', function ($q) use ($search) {
                             $q->where('primer_nombre', 'like', "%{$search}%");
                         });
-                    }),
+                    })
+                    ->icon(Heroicon::UserGroup),
 
                 TextColumn::make('carritos_names')
                     ->label('Carritos/Bodegas')
                     ->getStateUsing(function (Turno $record) {
                         return $record->carritos->pluck('nombre')->join(', ') ?: 'Sin asignar';
-                    }),
+                    })
+                    ->icon(Heroicon::ShoppingBag),
 
                 TextColumn::make('hora_inicio')
                     ->label('Inicio')
                     ->time('H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon(Heroicon::Clock),
 
                 TextColumn::make('hora_fin')
                     ->label('Fin')
                     ->time('H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon(Heroicon::Clock),
 
                 IconColumn::make('estado')
                     ->label('Estado')
@@ -80,9 +90,17 @@ class TurnoTable
                     ->trueColor('success')
                     ->falseColor('danger'),
             ])
-            ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+            ->filters([
+                FiltroEliminados::make(),
+            ])
+            ->recordActions([
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ]);
     }
 }

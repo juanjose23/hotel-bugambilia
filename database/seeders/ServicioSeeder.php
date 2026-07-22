@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Catalogos\Catalogo;
-use App\Models\Monedas\Moneda;
-use App\Models\Servicios\Servicio;
-use App\Models\Servicios\ServiciosPrecio;
-use App\UseCases\Servicios\Mutations\GenerarCodigoServicio;
+use App\Interactors\Servicios\GenerarCodigoServicio;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Models\Shared\Precio;
 use Illuminate\Database\Seeder;
 
 class ServicioSeeder extends Seeder
@@ -219,8 +219,9 @@ class ServicioSeeder extends Seeder
                 ]);
 
                 // Precio en Córdoba Nicaragüense (C$)
-                ServiciosPrecio::create([
-                    'servicio_id' => $servicio->id,
+                Precio::create([
+                    'priceable_type' => Servicio::class,
+                    'priceable_id' => $servicio->id,
                     'moneda_id' => $nio->id,
                     'precio' => $sData['precio_nio'],
                     'fecha_inicio' => now()->toDateString(),
@@ -230,8 +231,9 @@ class ServicioSeeder extends Seeder
 
                 // Precio equivalente en Dólar Estadounidense ($)
                 $precioUsd = round($sData['precio_nio'] / $tipoCambio, 2);
-                ServiciosPrecio::create([
-                    'servicio_id' => $servicio->id,
+                Precio::create([
+                    'priceable_type' => Servicio::class,
+                    'priceable_id' => $servicio->id,
                     'moneda_id' => $usd->id,
                     'precio' => $precioUsd,
                     'fecha_inicio' => now()->toDateString(),

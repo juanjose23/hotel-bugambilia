@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\Activos;
 
-use App\UseCases\Activos\Mutations\Mantenimiento\DetectarMantenimientosPreventivos;
+use App\Interactors\Activos\DetectarMantenimientosPreventivos;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,6 +28,6 @@ class VerificarMantenimientosPreventivosJob implements ShouldQueue
      */
     public function handle(DetectarMantenimientosPreventivos $useCase): void
     {
-        $useCase->execute();
+        $useCase->ejecutar();
     }
 }

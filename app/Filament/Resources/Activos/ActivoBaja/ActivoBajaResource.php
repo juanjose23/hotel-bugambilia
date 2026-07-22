@@ -8,11 +8,13 @@ use App\Filament\Resources\Activos\ActivoBaja\Pages\CreateActivoBaja;
 use App\Filament\Resources\Activos\ActivoBaja\Pages\ListActivoBajas;
 use App\Filament\Resources\Activos\ActivoBaja\Schemas\ActivoBajaForm;
 use App\Filament\Resources\Activos\ActivoBaja\Tables\ActivoBajaTable;
-use App\Models\Activos\ActivoBaja;
+use App\Repository\Models\Activos\ActivoBaja;
+use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivoBajaResource extends Resource
 {
@@ -20,9 +22,9 @@ class ActivoBajaResource extends Resource
 
     protected static ?string $slug = 'activos/bajas';
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::Trash;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::Trash;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Activos Fijos';
+    protected static UnitEnum|string|null $navigationGroup = 'Activos Fijos';
 
     protected static ?string $navigationLabel = 'Bajas de Activos';
 

@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Compras\Proveedor;
-use App\Models\Monedas\Moneda;
-use App\UseCases\Shared\Queries\ObtenerNombrePersona;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Queries\Limpieza\Ubicacion\ObtenerPathUbicacion;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
-final class CachedOptions
+final readonly class CachedOptions
 {
+    public function __construct(
+        private ObtenerNombrePersona $obtenerNombrePersona,
+    ) {}
+
     /**
      * @return Collection<int, string>
      */
@@ -30,10 +35,11 @@ final class CachedOptions
     /**
      * @return Collection<int, string>
      */
-    public static function catalogos(string $codigoTipo): Collection
+    public static function productosKit(): Collection
     {
         /** @var array<int, string> $data */
-        $data = Cache::remember("cached_options:catalogos:{$codigoTipo}", 3600, fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', $codigoTipo))
+        $data = Cache::remember('cached_options:productos_kit', 3600, fn () => Producto::query()
+            ->whereHas('kitItems')
             ->orderBy('nombre')
             ->pluck('nombre', 'id')
             ->toArray()
@@ -45,13 +51,28 @@ final class CachedOptions
     /**
      * @return Collection<int, string>
      */
-    public static function proveedores(): Collection
+    public static function catalogos(string $codigoTipo): Collection
+    {
+        /** @var array<int, string> $data */
+        $data = Cache::remember("cached_options:catalogos:$codigoTipo", 3600, fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', $codigoTipo))
+            ->orderBy('nombre')
+            ->pluck('nombre', 'id')
+            ->toArray()
+        );
+
+        return collect($data);
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function proveedores(): Collection
     {
         /** @var array<int, string> $data */
         $data = Cache::remember('cached_options:proveedores', 3600, fn () => Proveedor::with(['persona.personaNatural', 'persona.personaJuridica'])
             ->get()
             ->mapWithKeys(fn ($prov) => [
-                $prov->id => $prov->persona ? app(ObtenerNombrePersona::class)->ejecutar($prov->persona) : "Proveedor #{$prov->id}",
+                $prov->id => $prov->persona ? $this->obtenerNombrePersona->ejecutar($prov->persona) : "Proveedor #$prov->id",
             ])
             ->toArray()
         );
@@ -65,7 +86,7 @@ final class CachedOptions
     public static function ubicacionesAlmacen(): Collection
     {
         /** @var array<int, string> $data */
-        $data = Cache::remember('cached_options:ubicaciones_almacen', 3600, fn () => Ubicacion::where('tipo', 'almacen')
+        $data = Cache::remember('cached_options:ubicaciones_almacen', 3600, fn () => Ubicacion::whereIn('tipo', ['almacen', 'bodega', 'carrito'])
             ->where('estado', 1)
             ->orderBy('nombre')
             ->pluck('nombre', 'id')
@@ -78,27 +99,25 @@ final class CachedOptions
     /**
      * @return Collection<int, string>
      */
-    public static function productosKit(): Collection
+    public static function monedas(): Collection
     {
         /** @var array<int, string> $data */
-        $data = Cache::remember('cached_options:productos_kit', 3600, function () {
-            $ids = Producto::whereIn('id', function ($q) {
-                $q->select('producto_padre_id')->from('producto_kit');
-            })->pluck('nombre', 'id')->toArray();
-
-            return $ids;
-        });
+        $data = Cache::remember('cached_options:monedas', 7200, fn () => Moneda::orderBy('codigo')->pluck('codigo', 'id')->toArray()
+        );
 
         return collect($data);
     }
 
     /**
-     * @return Collection<int, string>
+     * @return Collection<int|string, string>
      */
-    public static function monedas(): Collection
+    public static function ubicaciones(): Collection
     {
-        /** @var array<int, string> $data */
-        $data = Cache::remember('cached_options:monedas', 7200, fn () => Moneda::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+        /** @var array<int|string, string> $data */
+        $data = Cache::remember(
+            'catalogos.ubicaciones',
+            60 * 60 * 6,
+            fn () => app(ObtenerPathUbicacion::class)->ejecutar()
         );
 
         return collect($data);
@@ -111,5 +130,7 @@ final class CachedOptions
         Cache::forget('cached_options:proveedores');
         Cache::forget('cached_options:ubicaciones_almacen');
         Cache::forget('cached_options:monedas');
+        Cache::forget('cached_options:ubicaciones_activas');
+        Cache::forget('lote_table:sub_ubicaciones_all');
     }
 }

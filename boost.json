@@ -6,6 +6,9 @@
     "skills": [
         "laravel-best-practices",
         "pest-testing",
-        "tailwindcss-development"
+        "inertia-react-development",
+        "tailwindcss-development",
+        "eloquent-best-practices",
+        "laravel-filament"
     ]
 }

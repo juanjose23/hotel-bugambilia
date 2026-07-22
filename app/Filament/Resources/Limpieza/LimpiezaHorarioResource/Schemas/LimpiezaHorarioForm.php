@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Schemas;
 
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Limpieza\Turno;
+use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
+use App\Repository\Models\Limpieza\Turno;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -33,34 +31,11 @@ class LimpiezaHorarioForm
                             ->relationship('detalles')
                             ->label('Destinos / Ubicaciones a Limpiar')
                             ->schema([
-                                Select::make('limpiable_type')
-                                    ->label('Tipo')
-                                    ->options([
-                                        Habitacion::class => 'Habitación',
-                                        Espacio::class => 'Espacio Común',
-                                        Ubicacion::class => 'Ubicación Física / Zona',
-                                    ])
-                                    ->required()
-                                    ->live()
-                                    ->native(false)
-                                    ->prefixIcon(Heroicon::RectangleStack),
+                                UbicacionLimpiableSelects::makeTipo('limpiable_type')
+                                    ->required(),
 
-                                Select::make('limpiable_id')
-                                    ->label('Ubicación Específica')
-                                    ->placeholder('Seleccione')
-                                    ->options(function (Get $get) {
-                                        $type = $get('limpiable_type');
-                                        if (! is_string($type) || ! class_exists($type)) {
-                                            return [];
-                                        }
-
-                                        return $type::pluck('nombre', 'id');
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->native(false)
-                                    ->prefixIcon(Heroicon::Home),
+                                UbicacionLimpiableSelects::makeUbicacion('limpiable_id', 'limpiable_type')
+                                    ->required(),
                             ])
                             ->columns(2)
                             ->columnSpanFull(),

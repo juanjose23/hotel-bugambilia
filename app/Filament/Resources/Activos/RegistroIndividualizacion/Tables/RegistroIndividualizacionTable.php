@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\RegistroIndividualizacion\Tables;
 
 use App\Enums\Activos\EstadoIndividualizacion;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Activos\RegistroIndividualizacion;
-use App\UseCases\Activos\Mutations\Gestion\IndividualizarActivos;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Interactors\Activos\IndividualizarActivos;
+use App\Repository\Models\Activos\RegistroIndividualizacion;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
@@ -15,10 +17,15 @@ use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Throwable;
 
-class RegistroIndividualizacionTable
+readonly class RegistroIndividualizacionTable
 {
-    public static function configure(Table $table): Table
+    public function __construct(
+        private IndividualizarActivos $individualizarActivos,
+    ) {}
+
+    public function configure(Table $table): Table
     {
         return $table
             ->columns([
@@ -45,21 +52,13 @@ class RegistroIndividualizacionTable
                     ->sortable()
                     ->color(fn (RegistroIndividualizacion $record) => $record->cantidad_registrada === $record->cantidad_total ? 'success' : 'warning'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoIndividualizacion::class)
                     ->sortable(),
 
-                TextColumn::make('fecha_completado')
-                    ->label('Completado El')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
+                FechaStandardColumn::make('fecha_completado', 'Completado El')
                     ->toggleable(),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -94,14 +93,11 @@ class RegistroIndividualizacionTable
                                 'nombre_descriptivo' => '',
                                 'notas' => '',
                             ]) : [])
-                            ->disableItemCreation()
-                            ->disableItemDeletion()
-                            ->disableItemMovement()
                             ->columns(3),
                     ])
                     ->action(function (array $data, RegistroIndividualizacion $record) {
                         try {
-                            app(IndividualizarActivos::class)->execute(
+                            $this->individualizarActivos->ejecutar(
                                 $record->id,
                                 $data['unidades'],
                                 (int) auth()->id()
@@ -112,7 +108,7 @@ class RegistroIndividualizacionTable
                                 ->body('Las unidades físicas del activo fijo han sido registradas y agregadas al almacén general.')
                                 ->success()
                                 ->send();
-                        } catch (\Throwable $e) {
+                        } catch (Throwable $e) {
                             Notification::make()
                                 ->title('Error en Registro')
                                 ->body($e->getMessage())

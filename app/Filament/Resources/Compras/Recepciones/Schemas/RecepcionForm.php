@@ -3,8 +3,9 @@
 namespace App\Filament\Resources\Compras\Recepciones\Schemas;
 
 use App\Enums\Compras\EstadoOrdenCompra;
-use App\Models\Compras\OrdenCompraItem;
-use App\UseCases\Compras\OrdenesCompra\Queries\ObtenerOrdenCompraConItems;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Repository\Models\Compras\OrdenCompraItem;
+use App\Repository\Queries\Compras\OrdenesCompra\ObtenerOrdenCompraConItems;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -18,8 +19,21 @@ use Illuminate\Database\Eloquent\Builder;
 
 class RecepcionForm
 {
+    use InyectaDesdeContenedor;
+
+    public function __construct(
+        private readonly ObtenerOrdenCompraConItems $obtenerOrdenCompraConItems,
+    ) {}
+
     public static function configure(Schema $schema): Schema
     {
+        return static::make()->doConfigure($schema);
+    }
+
+    private function doConfigure(Schema $schema): Schema
+    {
+        $form = $this;
+
         return $schema
             ->components([
                 Section::make('Encabezado de Recepción')
@@ -50,15 +64,14 @@ class RecepcionForm
                             ->required()
                             ->live()
                             ->prefixIcon(Heroicon::DocumentText)
-                            ->afterStateUpdated(function ($state, $set) {
+                            ->afterStateUpdated(function ($state, $set) use ($form) {
                                 if (! $state) {
                                     $set('items', []);
 
                                     return;
                                 }
 
-                                $useCase = app(ObtenerOrdenCompraConItems::class);
-                                $orden = $useCase->execute($state);
+                                $orden = $form->obtenerOrdenCompraConItems->execute($state);
                                 if ($orden) {
                                     $items = [];
                                     foreach ($orden->items as $item) {
@@ -128,15 +141,14 @@ class RecepcionForm
                             ->schema([
                                 Select::make('orden_item_id')
                                     ->label('Producto de la Orden')
-                                    ->options(fn ($get) => self::getOrdenItemsOptions($get('../../orden_compra_id')))
+                                    ->options(fn ($get) => $form->getOrdenItemsOptions($get('../../orden_compra_id')))
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(function ($state, $set) {
+                                    ->afterStateUpdated(function ($state, $set) use ($form) {
                                         if (! $state) {
                                             return;
                                         }
-                                        $useCase = app(ObtenerOrdenCompraConItems::class);
-                                        $pending = $useCase->getItemPendingQuantity($state);
+                                        $pending = $form->obtenerOrdenCompraConItems->getItemPendingQuantity($state);
 
                                         // Obtener cantidad original de la orden
                                         $ordenItem = OrdenCompraItem::find((int) $state);
@@ -181,11 +193,11 @@ class RecepcionForm
                                     ->numeric()
                                     ->disabled()
                                     ->dehydrated(false)
-                                    ->afterStateHydrated(function ($state, $set, $get) {
+                                    ->afterStateHydrated(function ($state, $set, $get) use ($form) {
                                         $ordenItemId = $get('orden_item_id');
                                         if ($ordenItemId) {
                                             if (is_callable($set)) {
-                                                $set('cantidad_pendiente', app(ObtenerOrdenCompraConItems::class)->getItemPendingQuantity((int) $ordenItemId));
+                                                $set('cantidad_pendiente', $form->obtenerOrdenCompraConItems->getItemPendingQuantity((int) $ordenItemId));
                                             }
                                         }
                                     })
@@ -248,12 +260,12 @@ class RecepcionForm
     }
 
     /** @return array<int|string, string> */
-    private static function getOrdenItemsOptions(?int $ordenId): array
+    private function getOrdenItemsOptions(?int $ordenId): array
     {
         if (! $ordenId) {
             return [];
         }
 
-        return app(ObtenerOrdenCompraConItems::class)->getItemOptions($ordenId);
+        return $this->obtenerOrdenCompraConItems->getItemOptions($ordenId);
     }
 }

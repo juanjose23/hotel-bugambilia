@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
-use App\Models\Compras\Solicitud;
-use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\Cotizaciones\Queries\AnalizarScoringCotizaciones;
+use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Queries\Compras\Cotizaciones\AnalizarScoringCotizaciones;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
@@ -17,6 +18,13 @@ class ComparativaSolicitud extends Page
     use InteractsWithRecord;
 
     protected static string $resource = SolicitudResource::class;
+
+    protected AnalizarScoringCotizaciones $analizarScoring;
+
+    public function boot(AnalizarScoringCotizaciones $analizarScoring): void
+    {
+        $this->analizarScoring = $analizarScoring;
+    }
 
     protected string $view = 'filament.resources.compras.solicitudes.pages.comparativa-solicitud';
 
@@ -36,7 +44,7 @@ class ComparativaSolicitud extends Page
     {
         /** @var Solicitud $solicitud */
         $solicitud = $this->record;
-        $ganadoraId = app(AnalizarScoringCotizaciones::class)->execute($solicitud);
+        $ganadoraId = $this->analizarScoring->ejecutar($solicitud);
 
         if (! $ganadoraId) {
             Notification::make()
@@ -55,18 +63,14 @@ class ComparativaSolicitud extends Page
             ->body('El sistema ha identificado la opción más equilibrada entre costo y tiempo mediante el algoritmo de scoring.')
             ->success()
             ->send();
-
-        /** @var Solicitud $solicitud */
-        $solicitud = $this->record;
-        app(NotificadorCompras::class)->solicitudAprobada($solicitud);
     }
 
-    /** @return array<int, array<string, mixed>> */
+    /** @return array<int, array{id: int, proveedor: string, empresa: string, total: float, dias_entrega: int, condicion_pago: string, es_ganadora: bool, es_mas_barato: bool, es_mas_rapido: bool, es_recomendada: bool, observaciones: string|null, archivo: string|null}> */
     public function getCotizaciones(): array
     {
         /** @var Solicitud $solicitud */
         $solicitud = $this->record;
-        $cotizaciones = $solicitud->cotizaciones()->with(['proveedor', 'condicionPago'])->get();
+        $cotizaciones = $solicitud->cotizaciones()->with(['proveedor.persona.personaNatural', 'proveedor.persona.personaJuridica', 'condicionPago'])->get();
 
         if ($cotizaciones->isEmpty()) {
             return [];
@@ -75,7 +79,8 @@ class ComparativaSolicitud extends Page
         $minTotal = $cotizaciones->min('total');
         $minDias = $cotizaciones->min('dias_entrega');
 
-        $cotizacionesArray = $cotizaciones->map(function ($cot) use ($minTotal, $minDias) {
+        /** @var array<int, array{id: int, proveedor: string, empresa: string, total: float, dias_entrega: int, condicion_pago: string, es_ganadora: bool, es_mas_barato: bool, es_mas_rapido: bool, es_recomendada: bool, observaciones: string|null, archivo: string|null}> $result */
+        $result = $cotizaciones->map(function ($cot) use ($minTotal, $minDias) {
             $razonSocial = $cot->proveedor?->persona?->personaJuridica?->razon_social;
             $primerNombre = $cot->proveedor?->persona?->primer_nombre;
             $primerApellido = $cot->proveedor?->persona?->personaNatural?->primer_apellido;
@@ -96,12 +101,12 @@ class ComparativaSolicitud extends Page
             ];
         })->toArray();
 
-        /** @var array<int, array<string, mixed>> $cotizacionesArray */
-        return $cotizacionesArray;
+        return $result;
     }
 
     protected function getHeaderActions(): array
     {
+
         return [
             Action::make('analizar')
                 ->label('Analizar Mejor Opción')

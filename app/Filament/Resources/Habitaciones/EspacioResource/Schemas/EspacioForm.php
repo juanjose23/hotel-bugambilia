@@ -100,20 +100,22 @@ class EspacioForm
                                 $ubicaciones = Cache::remember('espacio_form:ubicaciones', 3600, function () {
                                     return Ubicacion::query()
                                         ->with('padre.padre.padre')
-                                        ->get();
+                                        ->get()
+                                        ->mapWithKeys(function (Ubicacion $u): array {
+                                            $path = $u->nombre;
+                                            $p = $u->padre;
+                                            while ($p !== null) {
+                                                $path = $p->nombre.' > '.$path;
+                                                $p->loadMissing('padre.padre');
+                                                $p = $p->padre;
+                                            }
+
+                                            return [$u->id => $path];
+                                        })
+                                        ->toArray();
                                 });
 
-                                return $ubicaciones->mapWithKeys(function (Ubicacion $u) {
-                                    $path = $u->nombre;
-                                    $p = $u->padre;
-                                    while ($p !== null) {
-                                        $path = $p->nombre.' > '.$path;
-                                        $p->loadMissing('padre.padre');
-                                        $p = $p->padre;
-                                    }
-
-                                    return [$u->id => $path];
-                                })->toArray();
+                                return $ubicaciones;
                             })
                             ->searchable()
                             ->preload()
@@ -151,6 +153,18 @@ class EspacioForm
                             ->numeric()
                             ->default(0)
                             ->columnSpan(1),
+
+                        Toggle::make('web')
+                            ->label('Visible en Sitio Web Público')
+                            ->helperText('Si se desactiva, el espacio no se mostrará en el catálogo web público.')
+                            ->default(true)
+                            ->columnSpan(1),
+
+                        Toggle::make('reservable')
+                            ->label('Permite Reservaciones Directas')
+                            ->helperText('Permite que los usuarios soliciten reservas directas para este espacio.')
+                            ->default(true)
+                            ->columnSpan(1),
                     ]),
 
                 Section::make('Configuración Específica del Tipo')
@@ -159,6 +173,9 @@ class EspacioForm
                     ->icon(Heroicon::WrenchScrewdriver)
                     ->visible(fn ($get) => in_array($get('tipo'), [
                         TipoEspacio::MESA->value,
+                        TipoEspacio::AMBIENTE->value,
+                        TipoEspacio::TERRAZA->value,
+                        TipoEspacio::BAR->value,
                         TipoEspacio::SALON->value,
                         TipoEspacio::GYM->value,
                         TipoEspacio::RESTAURANTE->value,
@@ -167,6 +184,42 @@ class EspacioForm
                         TipoEspacio::CANCHA->value,
                     ]))
                     ->schema([
+
+                        // ─── Ambiente / Terraza / Bar de Restaurante ──────
+                        Grid::make()
+                            ->columns(2)
+                            ->schema([
+                                Select::make('meta_datos.zona_restaurante')
+                                    ->label('Zona de Ubicación')
+                                    ->placeholder('Seleccione zona')
+                                    ->options([
+                                        'interior' => 'Salón Interior',
+                                        'terraza' => 'Terraza / Aire Libre',
+                                        'vip' => 'Zona Reservada / VIP',
+                                        'barra' => 'Barra de Tragos & Lounge',
+                                    ])
+                                    ->native(false)
+                                    ->prefixIcon(Heroicon::Map),
+
+                                CheckboxList::make('meta_datos.caracteristicas')
+                                    ->label('Características del Ambiente')
+                                    ->options([
+                                        'Aire Acondicionado' => 'Aire Acondicionado',
+                                        'Vista al Jardín' => 'Vista al Jardín',
+                                        'Pérgola Iluminada' => 'Pérgola Iluminada',
+                                        'Música de Fondo' => 'Música de Fondo',
+                                        'Barra de Cocteles' => 'Barra de Cocteles',
+                                        'Garzón Dedicado' => 'Garzón Dedicado / Servicio VIP',
+                                        'Asientos Lounge' => 'Asientos Lounge',
+                                    ])
+                                    ->columns(2),
+                            ])
+                            ->visible(fn ($get) => in_array($get('tipo'), [
+                                TipoEspacio::AMBIENTE->value,
+                                TipoEspacio::TERRAZA->value,
+                                TipoEspacio::BAR->value,
+                            ])),
+
                         // ─── Mesa de Restaurante/Bar ─────────────────────
                         Grid::make()
                             ->columns(2)

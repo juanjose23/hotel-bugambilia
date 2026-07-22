@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Compras\Proveedors\RelationManagers;
 
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -33,7 +33,7 @@ class ProveedorContactosRelationManager extends RelationManager
         return $schema
             ->schema(components: [
                 Section::make('Información del Contacto')
-                    ->columns(2)
+                    ->columns()
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('nombre')
@@ -138,7 +138,7 @@ class ProveedorContactosRelationManager extends RelationManager
                                     ->icon(Heroicon::Envelope)
                                     ->copyable(),
 
-                                ...InfolistTimestamps::make(format: 'd/m/Y H:i', withIcons: true),
+                                ...TimestampsInfolistEntry::make(withIcons: true),
                             ]),
                     ]),
                 EditAction::make()->iconButton(),

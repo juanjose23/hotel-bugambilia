@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Schemas;
 
-use App\Enums\HabitacionesEspacios\EstadoLimpieza;
-use App\Models\Catalogos\ProductoVariante;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Colaboradores\Colaborador;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Limpieza\Turno;
-use App\Models\Shared\Stock;
-use App\UseCases\Shared\Queries\ObtenerNombrePersona;
+use App\Enums\Limpieza\EstadoLimpieza;
+use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
+use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Limpieza\Turno;
+use App\Repository\Models\Shared\Stock;
+use App\Repository\Queries\Shared\ObtenerColaboradoresLimpieza;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
@@ -39,65 +39,12 @@ class LimpiezaEjecucionForm
                             ->icon(Heroicon::InformationCircle)
                             ->columns(2)
                             ->schema([
-                                Select::make('limpiable_type')
+                                UbicacionLimpiableSelects::makeTipo('limpiable_type')
                                     ->label('Tipo de Ubicación')
-                                    ->options([
-                                        Habitacion::class => 'Habitación',
-                                        Espacio::class => 'Espacio Común',
-                                        Ubicacion::class => 'Ubicación Física / Zona',
-                                    ])
-                                    ->required()
-                                    ->live()
-                                    ->native(false)
-                                    ->prefixIcon(Heroicon::RectangleStack),
+                                    ->required(),
 
-                                Select::make('limpiable_id')
-                                    ->label('Ubicación Específica')
-                                    ->placeholder('Seleccione ubicación')
-                                    ->options(function (Get $get) {
-                                        $type = $get('limpiable_type');
-
-                                        if ($type === Espacio::class) {
-                                            return Espacio::with('padre.padre')
-                                                ->get()
-                                                ->mapWithKeys(fn (Espacio $e) => [$e->id => $e->getNombreCompleto()])
-                                                ->toArray();
-                                        }
-
-                                        if ($type === Ubicacion::class) {
-                                            $all = Ubicacion::all();
-                                            $map = $all->keyBy('id');
-                                            $buildPath = function (Ubicacion $u) use (&$buildPath, $map): string {
-                                                if ($u->padre_id && $map->has($u->padre_id)) {
-                                                    /** @var Ubicacion $padre */
-                                                    $padre = $map->get($u->padre_id);
-
-                                                    return $buildPath($padre).' ➔ '.$u->nombre;
-                                                }
-
-                                                return $u->nombre;
-                                            };
-
-                                            $result = [];
-                                            foreach ($all as $u) {
-                                                $result[$u->id] = $buildPath($u);
-                                            }
-                                            asort($result);
-
-                                            return $result;
-                                        }
-
-                                        if (! is_string($type) || ! class_exists($type)) {
-                                            return [];
-                                        }
-
-                                        return $type::pluck('nombre', 'id')->toArray();
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->native(false)
-                                    ->prefixIcon(Heroicon::Home),
+                                UbicacionLimpiableSelects::makeUbicacion('limpiable_id', 'limpiable_type')
+                                    ->required(),
 
                                 Select::make('turno_id')
                                     ->label('Turno de Trabajo')
@@ -115,14 +62,14 @@ class LimpiezaEjecucionForm
                                     ->options(function (Get $get) {
                                         $turnoId = $get('turno_id');
                                         if (! $turnoId) {
-                                            return self::getColaboradoresOptions();
+                                            return ObtenerColaboradoresLimpieza::opciones();
                                         }
                                         $turno = Turno::with([
                                             'lider.persona.personaNatural',
                                             'apoyo.persona.personaNatural',
                                         ])->find($turnoId);
                                         if (! $turno instanceof Turno) {
-                                            return self::getColaboradoresOptions();
+                                            return ObtenerColaboradoresLimpieza::opciones();
                                         }
 
                                         $colaboradores = collect();
@@ -134,7 +81,7 @@ class LimpiezaEjecucionForm
                                         }
 
                                         if ($colaboradores->isEmpty()) {
-                                            return self::getColaboradoresOptions();
+                                            return ObtenerColaboradoresLimpieza::opciones();
                                         }
 
                                         return $colaboradores
@@ -211,7 +158,7 @@ class LimpiezaEjecucionForm
                                         }
 
                                         return empty($items)
-                                            ? '✓ Esta habitación cuenta con el stock ideal completo. No requiere abastecimiento inicial.'
+                                            ? ' Esta habitación cuenta con el stock ideal completo. No requiere abastecimiento inicial.'
                                             : new HtmlString(implode('<br>', $items));
                                     }),
                             ]),
@@ -258,26 +205,5 @@ class LimpiezaEjecucionForm
                             ]),
                     ]),
             ]);
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected static function getColaboradoresOptions(): array
-    {
-        /** @var array<int, string> $options */
-        $options = Colaborador::query()
-            ->with(['persona.personaNatural', 'persona.personaJuridica'])
-            ->get()
-            ->mapWithKeys(function (Colaborador $c) {
-                $name = $c->persona
-                    ? ObtenerNombrePersona::desde($c->persona)
-                    : "Colaborador #{$c->id}";
-
-                return [$c->id => $name];
-            })
-            ->toArray();
-
-        return $options;
     }
 }

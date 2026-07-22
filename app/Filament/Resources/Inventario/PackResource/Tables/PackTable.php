@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Inventario\PackResource\Tables;
 
+use App\BusinessLogic\Inventario\CalcularRatioMinStock;
+use App\BusinessLogic\Inventario\VerificarDisponibilidadPack;
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Models\Inventario\ProductoKit;
-use App\Models\Inventario\Stock;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -17,9 +19,21 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-class PackTable
+readonly class PackTable
 {
+    use InyectaDesdeContenedor;
+
+    public function __construct(
+        private VerificarDisponibilidadPack $verificarDisponibilidad,
+        private CalcularRatioMinStock $calcularRatioMinStock,
+    ) {}
+
     public static function configure(Table $table): Table
+    {
+        return static::make()->doConfigure($table);
+    }
+
+    private function doConfigure(Table $table): Table
     {
         return $table
             ->columns([
@@ -46,24 +60,13 @@ class PackTable
                 TextColumn::make('estado_stock')
                     ->label('Disponibilidad')
                     ->state(function ($record): string {
-                        $items = ProductoKit::where('producto_padre_id', $record->id)
-                            ->pluck('producto_variante_id', 'cantidad');
+                        $resultado = $this->verificarDisponibilidad->ejecutar($record->id);
 
-                        if ($items->isEmpty()) {
-                            return 'Sin items';
-                        }
-
-                        $todosSuficientes = true;
-                        foreach ($items as $necesario => $varianteId) {
-                            $stockTotal = Stock::where('producto_variante_id', $varianteId)
-                                ->sum('cantidad');
-                            if ($stockTotal < (float) $necesario) {
-                                $todosSuficientes = false;
-                                break;
-                            }
-                        }
-
-                        return $todosSuficientes ? 'Disponible' : 'Stock insuficiente';
+                        return match (true) {
+                            $resultado->items->isEmpty() => 'Sin items',
+                            $resultado->disponible => 'Disponible',
+                            default => 'Stock insuficiente',
+                        };
                     })
                     ->badge()
                     ->color(fn (string $state) => $state === 'Disponible' ? 'success' : 'danger')
@@ -71,33 +74,13 @@ class PackTable
 
                 TextColumn::make('variantes_min_stock')
                     ->label('Stock Mínimo')
-                    ->state(function ($record): string {
-                        $items = ProductoKit::where('producto_padre_id', $record->id)->get();
-                        if ($items->isEmpty()) {
-                            return '—';
-                        }
-
-                        $ratios = [];
-                        foreach ($items as $item) {
-                            $stockTotal = Stock::where('producto_variante_id', $item->producto_variante_id)
-                                ->sum('cantidad');
-                            $necesario = (float) $item->cantidad;
-                            $ratios[] = $necesario > 0 ? (int) floor($stockTotal / $necesario) : 0;
-                        }
-
-                        $min = $ratios !== [] ? min($ratios) : 0;
-
-                        return "{$min} pack".($min !== 1 ? 's' : '');
-                    })
+                    ->state(fn ($record): string => $this->calcularRatioMinStock->ejecutar($record->id))
                     ->badge()
                     ->color(fn (string $state) => $state === '0 packs' || str_starts_with($state, '0')
                         ? 'danger'
                         : ((int) filter_var($state, FILTER_SANITIZE_NUMBER_INT) < 3 ? 'warning' : 'success')),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime('d/m/Y')
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
@@ -115,14 +98,14 @@ class PackTable
                     ->searchable()
                     ->preload(),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
-                    ->tooltip('Más opciones'),
+                    ->tooltip('Acciones'),
             ]);
     }
 }

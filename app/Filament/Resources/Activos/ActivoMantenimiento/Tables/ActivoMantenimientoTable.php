@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoMantenimiento\Tables;
 
 use App\Enums\Activos\EstadoMantenimiento;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Activos\ActivoMantenimiento;
-use App\UseCases\Activos\Mutations\Mantenimiento\CompletarMantenimiento;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Interactors\Activos\CompletarMantenimiento;
+use App\Repository\Models\Activos\ActivoMantenimiento;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -24,7 +25,11 @@ use Throwable;
 
 class ActivoMantenimientoTable
 {
-    public static function configure(Table $table): Table
+    public function __construct(
+        private CompletarMantenimiento $completarMantenimiento,
+    ) {}
+
+    public function configure(Table $table): Table
     {
         return $table
             ->modifyQueryUsing(fn ($query) => $query->with(['activo', 'plan.moneda', 'realizadoPor']))
@@ -68,9 +73,7 @@ class ActivoMantenimientoTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoMantenimiento::class)
                     ->sortable(),
             ])
             ->filters([
@@ -102,7 +105,7 @@ class ActivoMantenimientoTable
                     ])
                     ->action(function (array $data, ActivoMantenimiento $record): void {
                         try {
-                            app(CompletarMantenimiento::class)->execute(
+                            $this->completarMantenimiento->execute(
                                 mantenimiento: $record,
                                 fechaRealizada: $data['fecha_realizada'],
                                 costoReal: (float) $data['costo_real'],

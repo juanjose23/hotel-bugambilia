@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Pages;
 
 use App\Filament\Resources\Activos\Activo\ActivoResource;
+use App\Interactors\Activos\AsignarActivo;
 use App\Models\Activos\Activo;
-use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
@@ -16,6 +16,13 @@ use Filament\Resources\Pages\EditRecord;
  */
 class EditActivo extends EditRecord
 {
+    private AsignarActivo $asignarActivo;
+
+    public function boot(AsignarActivo $asignarActivo): void
+    {
+        $this->asignarActivo = $asignarActivo;
+    }
+
     protected static string $resource = ActivoResource::class;
 
     protected function getHeaderActions(): array
@@ -62,7 +69,7 @@ class EditActivo extends EditRecord
 
             if ($cambio) {
                 try {
-                    app(AsignarActivo::class)->execute(
+                    $this->asignarActivo->ejecutar(
                         $this->getRecord()->id,
                         $tipo,
                         (int) $destinoId,

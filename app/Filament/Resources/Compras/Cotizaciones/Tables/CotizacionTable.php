@@ -2,19 +2,27 @@
 
 namespace App\Filament\Resources\Compras\Cotizaciones\Tables;
 
+use App\BusinessLogic\Compras\VerificarEdicionCotizacion;
+use App\BusinessLogic\Compras\VerificarSolicitudBloqueada;
 use App\Enums\Compras\EstadoCotizacion;
-use App\Enums\Compras\EstadoOrdenCompra;
+use App\Events\Compras\GanadorSeleccionado;
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
 use App\Filament\Resources\Compras\OrdenesCompra\OrdenCompraResource;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Compras\Cotizacion;
-use App\Models\Compras\Proveedor;
-use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\OrdenesCompra\Mutations\GenerarOrdenDesdeCotizacion;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Filament\Shared\Concerns\TieneAccionesImprimirExportar;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Interactors\Compras\Cotizaciones\RechazarCotizacion;
+use App\Interactors\Compras\OrdenesCompra\GenerarOrdenDesdeCotizacion;
+use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Models\Compras\Proveedor;
+use DomainException;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -24,7 +32,22 @@ use Filament\Tables\Table;
 
 class CotizacionTable
 {
+    use InyectaDesdeContenedor;
+    use TieneAccionesImprimirExportar;
+
+    public function __construct(
+        private readonly GenerarOrdenDesdeCotizacion $generarOrdenDesdeCotizacion,
+        private readonly VerificarSolicitudBloqueada $verificarSolicitudBloqueada,
+        private readonly VerificarEdicionCotizacion $verificarEdicionCotizacion,
+        private readonly RechazarCotizacion $rechazarCotizacion,
+    ) {}
+
     public static function configure(Table $table): Table
+    {
+        return static::make()->doConfigure($table);
+    }
+
+    private function doConfigure(Table $table): Table
     {
         return $table
             ->columns([
@@ -32,7 +55,7 @@ class CotizacionTable
                     ->label('Solicitud')
                     ->searchable()
                     ->sortable()
-                    ->description(fn (Cotizacion $record) => "ID: {$record->solicitud_id}"),
+                    ->description(fn (Cotizacion $record) => "ID: $record->solicitud_id"),
 
                 TextColumn::make('proveedor.codigo')
                     ->label('Proveedor')
@@ -67,19 +90,8 @@ class CotizacionTable
                     ->trueColor('success')
                     ->alignCenter(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoCotizacion::class)
                     ->sortable()
-                    ->alignCenter(),
-
-                TextColumn::make('items_elegidos_count')
-                    ->label('Ítems Elegidos')
-                    ->getStateUsing(function (Cotizacion $record) {
-                        return $record->items_elegidos_count > 0 ? $record->items_elegidos_count : null;
-                    })
-                    ->badge()
-                    ->color('success')
                     ->alignCenter(),
 
                 TextColumn::make('creadaPor.name')
@@ -90,16 +102,14 @@ class CotizacionTable
                     ->label('Elegida por')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('elegida_en')
-                    ->label('Fecha Selección')
-                    ->dateTime()
+                FechaStandardColumn::make('elegida_en', 'Fecha Selección')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('proveedor_id')
                     ->label('Proveedor')
                     ->relationship('proveedor', 'codigo')
-                    ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "[{$record->codigo}] - ".(
+                    ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "[$record->codigo] - ".(
                         ($record->persona && $record->persona->personaJuridica)
                             ? $record->persona->personaJuridica->razon_social
                             : ($record->persona ? $record->persona->primer_nombre : '')
@@ -121,67 +131,94 @@ class CotizacionTable
 
                 FiltroEstado::make(EstadoCotizacion::class),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
                     Action::make('generarOrden')
                         ->label('Generar Orden de Compra')
                         ->icon(Heroicon::ShoppingCart)
                         ->color('primary')
-                        ->visible(fn (Cotizacion $record) => ($record->es_elegida || $record->items_elegidos_count > 0)
-                            && ! $record->solicitud?->ordenesCompra
-                                ->where('proveedor_id', $record->proveedor_id)
-                                ->where('estado', '!=', EstadoOrdenCompra::Cancelada)
-                                ->isNotEmpty()
+                        ->visible(fn (?Cotizacion $record) => $record !== null
+                            && ($record->es_elegida || $record->items_elegidos_count > 0)
+                            && $record->solicitud !== null
+                            && ! $this->verificarSolicitudBloqueada->estaBloqueada($record->solicitud)
                         )
-                        ->action(function (Cotizacion $record) {
+                        ->action(action: function (Cotizacion $record) {
                             try {
-                                $orden = app(GenerarOrdenDesdeCotizacion::class)->execute($record->id);
+                                $orden = $this->generarOrdenDesdeCotizacion->ejecutar($record->id);
 
-                                app(NotificadorCompras::class)->ganadorSeleccionado($record);
+                                GanadorSeleccionado::dispatch($record);
 
                                 Notification::make()
                                     ->title('Orden de Compra Generada')
-                                    ->body("Se ha creado la orden {$orden->codigo}.")
+                                    ->body("Se ha creado la orden $orden->codigo.")
                                     ->success()
                                     ->send();
 
                                 return redirect(OrdenCompraResource::getUrl('edit', ['record' => $orden]));
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Notification::make()
                                     ->title('Error al generar la orden')
+                                    ->body($e->getMessage())
+                                    ->danger()
+                                    ->send();
+
+                                return \Illuminate\Log\log('Error', (array) $e->getMessage());
+                            }
+                        }),
+
+                    EditAction::make()
+                        ->visible(fn (?Cotizacion $record) => $record !== null && $this->verificarEdicionCotizacion->puedeEditar($record)),
+
+                    Action::make('view')
+                        ->label('Ver Cotización')
+                        ->icon(Heroicon::Eye)
+                        ->color('gray')
+                        ->url(fn (Cotizacion $record) => CotizacionResource::getUrl('view', ['record' => $record]))
+                        ->visible(fn (?Cotizacion $record) => $record !== null && auth()->user()?->can('View:Cotizacion')),
+
+                    Action::make('rechazar')
+                        ->label('Rechazar Cotización')
+                        ->icon(Heroicon::XCircle)
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Rechazar cotización')
+                        ->modalDescription('¿Está seguro de rechazar esta cotización?')
+                        ->schema([
+                            Textarea::make('motivo')
+                                ->label('Motivo de rechazo')
+                                ->required()
+                                ->placeholder('Indique la razón del rechazo...'),
+                        ])
+                        ->visible(fn (?Cotizacion $record) => $record !== null && $record->estado === EstadoCotizacion::Activa)
+                        ->action(function (Cotizacion $record, array $data) {
+                            try {
+                                $this->rechazarCotizacion->ejecutar($record, $data['motivo']);
+
+                                Notification::make()
+                                    ->title('Cotización Rechazada')
+                                    ->success()
+                                    ->send();
+                            } catch (DomainException $e) {
+
+                                Notification::make()
+                                    ->title('Error')
                                     ->body($e->getMessage())
                                     ->danger()
                                     ->send();
                             }
                         }),
 
-                    EditAction::make()
-                        ->visible(fn (Cotizacion $record) => ! $record->ordenCompra || $record->ordenCompra->estado === EstadoOrdenCompra::Cancelada),
-
-                    ViewAction::make(),
-
                     Action::make('verComparativa')
                         ->label('Ver Comparativa')
                         ->icon(Heroicon::ArrowsRightLeft)
                         ->color('success')
-                        ->url(fn (Cotizacion $record) => CotizacionResource::getUrl('comparativa', ['solicitud_id' => $record->solicitud_id]))
+                        ->url(fn (?Cotizacion $record) => $record ? CotizacionResource::getUrl('comparativa', ['solicitud_id' => $record->solicitud_id]) : '')
                         ->visible(fn () => auth()->user()?->can('Compras:ViewComparativaCotizaciones') ?? false),
 
-                    Action::make('imprimirComparativa')
-                        ->label('Imprimir Comparativo')
-                        ->icon(Heroicon::Printer)
-                        ->color('info')
-                        ->url(fn (Cotizacion $record) => route('reporte.comparativa', ['solicitud' => $record->solicitud_id]))
-                        ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirComparativa') ?? false),
+                    self::makeImprimirAction('reporte.comparativa', 'Compras:ImprimirComparativa', 'Imprimir Comparativo', fn (?Cotizacion $record) => $record ? route('reporte.comparativa', ['solicitud' => $record->solicitud_id]) : ''),
 
-                    Action::make('imprimir')
-                        ->label('Imprimir Cotización')
-                        ->icon(Heroicon::DocumentText)
-                        ->color('gray')
-                        ->url(fn (Cotizacion $record) => route('reporte.cotizacion', $record))
-                        ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirCotizacion') ?? false),
+                    self::makeImprimirAction('reporte.cotizacion', 'Compras:ImprimirCotizacion', 'Imprimir Cotización'),
+
                 ])
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Más opciones'),

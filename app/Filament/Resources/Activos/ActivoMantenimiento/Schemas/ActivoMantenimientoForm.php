@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoMantenimiento\Schemas;
 
 use App\Enums\Activos\EstadoMantenimiento;
-use App\Models\Activos\Activo;
-use App\Models\Monedas\Moneda;
-use App\Models\User;
+use App\Filament\Shared\Forms\MonedaSelect;
+use App\Repository\Models\Activos\Activo;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\User;
 use App\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -21,13 +22,22 @@ use Filament\Support\Icons\Heroicon;
 
 class ActivoMantenimientoForm
 {
+    private static ?CachedOptions $cachedOptions = null;
+
+    private static function resolve(): void
+    {
+        self::$cachedOptions ??= app(CachedOptions::class);
+    }
+
     public static function form(Schema $schema): Schema
     {
+        self::resolve();
+
         return $schema->components([
             Section::make('Intervención y Trabajo Realizado')
                 ->description('Detalles del activo, el tipo de mantenimiento y la fecha programada')
                 ->icon(Heroicon::Wrench)
-                ->columns(2)
+                ->columns()
                 ->columnSpanFull()
                 ->schema([
                     Select::make('plan_id')
@@ -80,14 +90,14 @@ class ActivoMantenimientoForm
                                         ->label('Fecha de Fin')
                                         ->placeholder('Opcional')
                                         ->prefixIcon(Heroicon::CalendarDays),
-                                ])->columns(2),
+                                ])->columns(),
 
                             Fieldset::make('Presupuesto y Proveedor')
                                 ->schema([
                                     Select::make('proveedor_id')
                                         ->label('Proveedor Externo')
                                         ->placeholder('Seleccione un proveedor (opcional)')
-                                        ->options(fn () => CachedOptions::proveedores())
+                                        ->options(fn () => (self::$cachedOptions ??= app(CachedOptions::class))->proveedores())
                                         ->searchable()
                                         ->native(false)
                                         ->prefixIcon(Heroicon::BuildingOffice)
@@ -100,13 +110,9 @@ class ActivoMantenimientoForm
                                         ->step(0.01)
                                         ->prefixIcon(Heroicon::CurrencyDollar),
 
-                                    Select::make('moneda_id')
-                                        ->label('Moneda')
-                                        ->options(fn () => CachedOptions::monedas())
-                                        ->native(false)
-                                        ->default(fn () => Moneda::where('es_predeterminada', true)->value('id') ?? Moneda::first()?->id)
-                                        ->prefixIcon(Heroicon::Banknotes),
-                                ])->columns(2),
+                                    MonedaSelect::make()
+                                        ->default(fn () => Moneda::where('es_predeterminada', true)->value('id') ?? Moneda::first()?->id),
+                                ])->columns(),
 
                             Textarea::make('descripcion')
                                 ->label('Descripción detallada')
@@ -143,7 +149,7 @@ class ActivoMantenimientoForm
             Section::make('Costos y Responsabilidad')
                 ->description('Técnico responsable y costo real de la intervención')
                 ->icon(Heroicon::CurrencyDollar)
-                ->columns(2)
+                ->columns()
                 ->columnSpanFull()
                 ->schema([
                     TextInput::make('costo_real')
@@ -168,7 +174,7 @@ class ActivoMantenimientoForm
             Section::make('Estado y Notas Adicionales')
                 ->description('Estado de la orden y observaciones finales de taller')
                 ->icon(Heroicon::DocumentText)
-                ->columns(2)
+                ->columns()
                 ->columnSpanFull()
                 ->schema([
                     Select::make('estado')

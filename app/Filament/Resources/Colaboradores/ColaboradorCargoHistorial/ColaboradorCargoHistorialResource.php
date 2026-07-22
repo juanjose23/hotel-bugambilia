@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial;
 use App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Pages\ManageColaboradorCargoHistorials;
 use App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Schemas\ColaboradorCargoHistorialForm;
 use App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Tables\ColaboradorCargoHistorialTable;
-use App\Models\Colaboradores\ColaboradorCargoHistorial;
+use App\Repository\Models\Colaboradores\ColaboradorCargoHistorial;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -17,6 +17,8 @@ use UnitEnum;
 class ColaboradorCargoHistorialResource extends Resource
 {
     protected static ?string $model = ColaboradorCargoHistorial::class;
+
+    protected static ?string $slug = 'colaboradores/historial-cargos';
 
     protected static ?string $modelLabel = 'Cargo';
 

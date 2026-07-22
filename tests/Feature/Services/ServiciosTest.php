@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Filament\Resources\Servicios\Servicios\RelationManagers\PreciosRelationManager;
-use App\Models\Monedas\Moneda;
-use App\Models\Servicios\Servicio;
-use App\Models\Servicios\ServiciosPrecio;
-use App\UseCases\Servicios\Mutations\GenerarCodigoServicio;
+use App\Filament\Shared\RelationManagers\PreciosRelationManager;
+use App\Interactors\Servicios\GenerarCodigoServicio;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Models\Shared\Precio;
+use App\Repository\Queries\Shared\VerificarPrecioDuplicado;
 use Filament\Forms\Components\Component;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->moneda = Moneda::create([
@@ -53,8 +51,9 @@ it('valida que no existan precios vigentes duplicados para el mismo servicio y m
     ]);
 
     // Create a first price active
-    $precio1 = ServiciosPrecio::create([
-        'servicio_id' => $srv->id,
+    $precio1 = Precio::create([
+        'priceable_type' => Servicio::class,
+        'priceable_id' => $srv->id,
         'moneda_id' => $this->moneda->id,
         'precio' => 100.00,
         'fecha_inicio' => now()->toDateString(),
@@ -65,6 +64,9 @@ it('valida que no existan precios vigentes duplicados para el mismo servicio y m
     // Now let's test our rule on a duplicate price edit/creation
     $relationManager = mock(PreciosRelationManager::class)->makePartial();
     $relationManager->shouldReceive('getOwnerRecord')->andReturn($srv);
+    app()->instance(VerificarPrecioDuplicado::class, app(VerificarPrecioDuplicado::class));
+    app()->instance(PreciosRelationManager::class, $relationManager);
+    Closure::bind(fn () => $this->verificarPrecioDuplicado = app(VerificarPrecioDuplicado::class), $relationManager, PreciosRelationManager::class)();
 
     // Call getUniquePrecioVigenteRule
     $ruleClosure = $relationManager->getUniquePrecioVigenteRule();
@@ -102,8 +104,9 @@ it('permite guardar al editar el mismo registro de precio activo', function () {
     ]);
 
     // Create a price active
-    $precio1 = ServiciosPrecio::create([
-        'servicio_id' => $srv->id,
+    $precio1 = Precio::create([
+        'priceable_type' => Servicio::class,
+        'priceable_id' => $srv->id,
         'moneda_id' => $this->moneda->id,
         'precio' => 100.00,
         'fecha_inicio' => now()->toDateString(),
@@ -113,6 +116,9 @@ it('permite guardar al editar el mismo registro de precio activo', function () {
 
     $relationManager = mock(PreciosRelationManager::class)->makePartial();
     $relationManager->shouldReceive('getOwnerRecord')->andReturn($srv);
+    app()->instance(VerificarPrecioDuplicado::class, app(VerificarPrecioDuplicado::class));
+    app()->instance(PreciosRelationManager::class, $relationManager);
+    Closure::bind(fn () => $this->verificarPrecioDuplicado = app(VerificarPrecioDuplicado::class), $relationManager, PreciosRelationManager::class)();
 
     $ruleClosure = $relationManager->getUniquePrecioVigenteRule();
 

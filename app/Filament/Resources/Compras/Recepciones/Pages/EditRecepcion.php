@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Compras\Recepciones\Pages;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Filament\Resources\Compras\Recepciones\Actions\RecepcionEstadoActions;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
-use App\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Compras\RecepcionCompra;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
@@ -36,7 +36,7 @@ class EditRecepcion extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            ...RecepcionEstadoActions::make(),
+            ...RecepcionEstadoActions::acciones(),
         ];
     }
 

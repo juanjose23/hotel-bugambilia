@@ -4,31 +4,39 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Activos\Widgets;
 
-use App\Enums\Activos\EstadoMantenimiento;
-use App\Models\Activos\ActivoMantenimiento;
+use App\Repository\Queries\Activos\ObtenerMantenimientosProximosUseCase;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class ProximosMantenimientosWidget extends BaseWidget
 {
+    use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $permission = static::getWidgetPermission();
+        $user = auth()->user();
+
+        return $permission && $user
+            ? $user->can($permission)
+            : parent::canView();
+    }
+
     protected ?string $pollingInterval = null;
+
+    protected ObtenerMantenimientosProximosUseCase $mantenimientosProximos;
+
+    public function boot(ObtenerMantenimientosProximosUseCase $mantenimientosProximos): void
+    {
+        $this->mantenimientosProximos = $mantenimientosProximos;
+    }
 
     protected function getStats(): array
     {
-        $hoy = now()->toDateString();
-        $en7dias = now()->addDays(7)->toDateString();
-        $en30dias = now()->addDays(30)->toDateString();
-
-        $proximos7 = ActivoMantenimiento::query()
-            ->where('estado', EstadoMantenimiento::Programado)
-            ->whereBetween('fecha_programada', [$hoy, $en7dias])
-            ->count();
-
-        $proximos30 = ActivoMantenimiento::query()
-            ->where('estado', EstadoMantenimiento::Programado)
-            ->whereBetween('fecha_programada', [$hoy, $en30dias])
-            ->count();
+        $proximos7 = $this->mantenimientosProximos->execute(7)->count();
+        $proximos30 = $this->mantenimientosProximos->execute(30)->count();
 
         return [
             Stat::make('Próximos 7 días', $proximos7)

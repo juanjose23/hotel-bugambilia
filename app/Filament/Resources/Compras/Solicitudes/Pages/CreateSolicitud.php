@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
-use App\Models\Colaboradores\Colaborador;
-use App\Models\Compras\Solicitud;
-use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\Solicitudes\Mutations\GenerarCodigoSolicitud;
+use App\Interactors\Compras\Solicitudes\CrearSolicitudConItems;
+use App\Interactors\Compras\Solicitudes\GenerarCodigoSolicitud;
+use App\Repository\Queries\Compras\Shared\ObtenerColaboradorDeSesion;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\CreateRecord;
@@ -15,20 +16,33 @@ use Illuminate\Database\Eloquent\Model;
 
 class CreateSolicitud extends CreateRecord
 {
+    protected ObtenerColaboradorDeSesion $colaboradorDeSesion;
+
+    protected CrearSolicitudConItems $crearSolicitudConItems;
+
+    protected GenerarCodigoSolicitud $generarCodigoSolicitud;
+
+    public function boot(ObtenerColaboradorDeSesion $colaboradorDeSesion, CrearSolicitudConItems $crearSolicitudConItems, GenerarCodigoSolicitud $generarCodigoSolicitud): void
+    {
+        $this->colaboradorDeSesion = $colaboradorDeSesion;
+        $this->crearSolicitudConItems = $crearSolicitudConItems;
+        $this->generarCodigoSolicitud = $generarCodigoSolicitud;
+    }
+
     protected static string $resource = SolicitudResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $colaborador = Colaborador::where('persona_id', auth()->user()?->persona_id)->first();
+        $colaborador = $this->colaboradorDeSesion->ejecutar();
 
         if ($colaborador === null) {
-            throw new \RuntimeException('El usuario actual no tiene un colaborador asignado.');
+            return $data;
         }
 
         $data['colaborador_id'] = $colaborador->id;
 
         $departamentoSolicitanteId = is_numeric($data['departamento_solicitante_id'] ?? null) ? intval($data['departamento_solicitante_id']) : 0;
-        $data['codigo'] = app(GenerarCodigoSolicitud::class)->ejecutar($departamentoSolicitanteId);
+        $data['codigo'] = $this->generarCodigoSolicitud->ejecutar($departamentoSolicitanteId);
 
         $data['estado'] = EstadoSolicitud::Borrador->value;
 
@@ -47,15 +61,6 @@ class CreateSolicitud extends CreateRecord
         $items = (array) ($data['items'] ?? []);
         unset($data['items']);
 
-        /** @var Solicitud $record */
-        $record = $this->getModel()::create($data);
-
-        if (! empty($items)) {
-            $record->items()->createMany($items);
-        }
-
-        app(NotificadorCompras::class)->solicitudCreada($record);
-
-        return $record;
+        return $this->crearSolicitudConItems->ejecutar($data, $items);
     }
 }

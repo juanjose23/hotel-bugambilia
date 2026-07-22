@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Compras\Proveedor;
-use App\Models\Compras\ProveedorContacto;
-use App\Models\Personas\Persona;
-use App\Models\Personas\PersonaJuridica;
-use App\UseCases\Compras\Proveedores\Queries\GenerarCodigoProveedor;
+use App\Interactors\Compras\Proveedores\GenerarCodigoProveedor;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Compras\ProveedorContacto;
+use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Personas\PersonaJuridica;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

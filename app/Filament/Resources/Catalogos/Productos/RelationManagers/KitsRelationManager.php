@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Catalogos\Productos\RelationManagers;
 
-use App\Models\Catalogos\ProductoVariante;
+use App\Repository\Models\Catalogos\ProductoVariante;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
