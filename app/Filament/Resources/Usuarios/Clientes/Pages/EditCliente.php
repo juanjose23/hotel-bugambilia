@@ -31,7 +31,7 @@ class EditCliente extends EditRecord
                 ->icon('heroicon-o-key')
                 ->color('success')
                 ->visible(! $tieneUsuario)
-                ->form([
+                ->schema([
                     TextInput::make('email')
                         ->label('Correo electrónico')
                         ->email()

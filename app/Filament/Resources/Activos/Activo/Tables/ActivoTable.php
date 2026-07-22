@@ -410,11 +410,11 @@ readonly class ActivoTable
                                     Ubicacion::class => 'Ubicación / Área',
                                 ])
                                 ->required()
-                                ->reactive(),
+                                ->live(),
 
                             Select::make('asignable_id')
                                 ->label('Seleccionar Destino')
-                                ->options(function (callable $get) {
+                                ->options(function (Get $get) {
                                     $type = $get('asignable_type');
                                     if ($type === Habitacion::class) {
                                         return Habitacion::pluck('nombre', 'id');

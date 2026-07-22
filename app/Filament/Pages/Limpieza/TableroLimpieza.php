@@ -26,6 +26,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
@@ -107,7 +108,7 @@ class TableroLimpieza extends Page implements HasForms
                         ])
                             ->label('Tipo de Ubicación')
                             ->placeholder('Todos los tipos')
-                            ->afterStateUpdated(function (callable $set): void {
+                            ->afterStateUpdated(function (Set $set): void {
                                 $set('selectedUbicacionId', null);
                                 $set('selectedSubUbicacionId', null);
                             }),
