@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Inventario\InventarioFisico\Pages;
 
 use App\Enums\Inventario\EstadoInventarioFisico;
 use App\Filament\Resources\Inventario\InventarioFisico\InventarioFisicoResource;
-use App\Models\Inventario\InventarioFisico;
+use App\Repository\Models\Inventario\InventarioFisico;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 

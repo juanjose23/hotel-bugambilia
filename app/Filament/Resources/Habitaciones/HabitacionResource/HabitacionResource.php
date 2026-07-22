@@ -8,16 +8,15 @@ use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\CreateHabitacio
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\EditHabitacion;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\ListHabitaciones;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\ViewHabitacion;
-use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\ImagenesRelationManager;
-use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PoliticasRelationManager;
-use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\PreciosRelationManager;
-use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\ServiciosRelationManager;
-use App\Filament\Resources\Habitaciones\HabitacionResource\RelationManagers\StocksRelationManager;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionForm;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionInfolist;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Tables\HabitacionTable;
-use App\Filament\Resources\Shared\InventarioFijoRelationManager;
-use App\Models\Habitaciones\Habitacion;
+use App\Filament\Shared\RelationManagers\InventarioFijoRelationManager;
+use App\Filament\Shared\RelationManagers\PoliticasRelationManager;
+use App\Filament\Shared\RelationManagers\PreciosRelationManager;
+use App\Filament\Shared\RelationManagers\ServiciosRelationManager;
+use App\Filament\Shared\RelationManagers\StocksRelationManager;
+use App\Repository\Models\Habitaciones\Habitacion;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -60,11 +59,10 @@ class HabitacionResource extends Resource
     {
         return [
             PoliticasRelationManager::class,
-            ServiciosRelationManager::class,
             PreciosRelationManager::class,
-            ImagenesRelationManager::class,
             StocksRelationManager::class,
             InventarioFijoRelationManager::class,
+            ServiciosRelationManager::class,
         ];
     }
 

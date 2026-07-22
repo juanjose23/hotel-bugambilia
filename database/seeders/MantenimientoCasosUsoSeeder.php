@@ -21,8 +21,6 @@ class MantenimientoCasosUsoSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('🎬 Iniciando MantenimientoCasosUsoSeeder...');
-
         $admin = User::where('email', 'admin@hotel.com')->first() ?? User::first();
         if (! $admin) {
             $this->command->warn('⚠ No se encontró usuario administrador.');
@@ -71,7 +69,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'fecha_garantia_fin' => today()->addDays(10)->toDateString(),
             'estado' => EstadoActivo::Activo,
         ]);
-        $this->command->info("✅ Caso Garantía Vence en 10 días: {$activoGarantia->codigo_inventario}");
+        $this->command->info("Caso Garantía Vence en 10 días: {$activoGarantia->codigo_inventario}");
 
         // ====================================================================
         // CASO 2: Plan preventivo vencido (debe gatillar VerificarMantenimientosPreventivosJob)
@@ -94,7 +92,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'proveedor_id' => $proveedor?->id,
         ]);
         $plan->activos()->attach($activoPlan->id);
-        $this->command->info("✅ Caso Plan Preventivo Vencido creado: '{$plan->nombre}'");
+        $this->command->info(" Caso Plan Preventivo Vencido creado: '{$plan->nombre}'");
 
         // ====================================================================
         // CASO 3: Ventana exacta: 7 días antes
@@ -113,7 +111,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoMantenimiento::Programado,
             'realizado_por_id' => $tecnico->id,
         ]);
-        $this->command->info('✅ Caso Notificación Proxima (7 días) creado.');
+        $this->command->info(' Caso Notificación Proxima (7 días) creado.');
 
         // ====================================================================
         // CASO 4: Ventana exacta: 3 días antes
@@ -132,7 +130,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoMantenimiento::Programado,
             'realizado_por_id' => $tecnico->id,
         ]);
-        $this->command->info('✅ Caso Notificación Proxima (3 días) creado.');
+        $this->command->info(' Caso Notificación Proxima (3 días) creado.');
 
         // ====================================================================
         // CASO 5: Ventana exacta: 1 día antes
@@ -151,7 +149,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoMantenimiento::Programado,
             'realizado_por_id' => $tecnico->id,
         ]);
-        $this->command->info('✅ Caso Notificación Proxima (1 día) creado.');
+        $this->command->info(' Caso Notificación Proxima (1 día) creado.');
 
         // ====================================================================
         // CASO 6: Ventana exacta: Mismo día (hoy)
@@ -170,7 +168,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoMantenimiento::Programado,
             'realizado_por_id' => $tecnico->id,
         ]);
-        $this->command->info('✅ Caso Notificación (Hoy) creado.');
+        $this->command->info(' Caso Notificación (Hoy) creado.');
 
         // ====================================================================
         // CASO 7: Mantenimiento vencido por 1 día
@@ -189,7 +187,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoMantenimiento::Programado,
             'realizado_por_id' => $tecnico->id,
         ]);
-        $this->command->info('✅ Caso Retrasado (1 día) creado.');
+        $this->command->info('Caso Retrasado (1 día) creado.');
 
         // ====================================================================
         // CASO 8: Mantenimiento Crítico vencido por 8 días
@@ -208,7 +206,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoMantenimiento::Programado,
             'realizado_por_id' => $tecnico->id,
         ]);
-        $this->command->info('✅ Caso Crítico (Vencido hace 8 días) creado.');
+        $this->command->info(' Caso Crítico (Vencido hace 8 días) creado.');
 
         // ====================================================================
         // CASO 9: Mantenimiento en curso y prolongado por 20 días
@@ -227,7 +225,6 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoMantenimiento::EnProceso,
             'realizado_por_id' => $tecnico->id,
         ]);
-        $this->command->info('✅ Caso Mantenimiento Prolongado (En Proceso, 20 días) creado.');
-        $this->command->info('🎉 MantenimientoCasosUsoSeeder completado con éxito.');
+        $this->command->info(' Caso Mantenimiento Prolongado (En Proceso, 20 días) creado.');
     }
 }

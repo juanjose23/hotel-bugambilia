@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Usuarios\Users\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class UsersTable
 {
@@ -15,40 +23,54 @@ class UsersTable
     {
         return $table
             ->recordTitleAttribute('email')
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['persona.cliente', 'persona.colaborador']))
             ->columns([
                 TextColumn::make('persona.colaborador.codigo')
-                    ->label('Código')
-                    ->searchable(),
+                    ->label('Código Colab.')
+                    ->searchable()
+                    ->placeholder('—'),
+
                 TextColumn::make('name')
-                    ->label('Nombre de usuario')
+                    ->label('Nombre')
                     ->searchable(),
-                TextColumn::make('persona.primer_nombre')
-                    ->label('Trabajador')
-                    ->formatStateUsing(fn ($record): string => $record->persona
-                        ? trim($record->persona->primer_nombre.' '.
-                            ($record->persona->segundo_nombre ?? '').' '.
-                            ($record->persona->personaNatural->primer_apellido ?? '').' '.
-                            ($record->persona->personaNatural->segundo_apellido ?? ''))
-                        : 'Sin trabajador asociado'
-                    )
-                    ->searchable(query: fn ($query, $search) => $query
-                        ->whereHas('persona', fn ($q) => $q
-                            ->where('primer_nombre', 'like', "%{$search}%")
-                            ->orWhere('segundo_nombre', 'like', "%{$search}%")
-                        )
-                        ->orWhereHas('persona.personaNatural', fn ($q) => $q
-                            ->where('primer_apellido', 'like', "%{$search}%")
-                            ->orWhere('segundo_apellido', 'like', "%{$search}%")
-                        )
-                    ),
+
                 TextColumn::make('email')
                     ->label('Correo electrónico')
                     ->searchable(),
+
+                TextColumn::make('persona.cliente.id')
+                    ->label('Cliente')
+                    ->formatStateUsing(fn ($record): string => $record->persona?->cliente ? 'Sí' : 'No')
+                    ->badge()
+                    ->color(fn ($state): string => $state === 'Sí' ? 'success' : 'gray'),
+
+                IconColumn::make('is_admin')
+                    ->label('Admin')
+                    ->boolean()
+                    ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('Creado')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([])
+            ->filters([
+                Filter::make('administradores')
+                    ->query(fn (Builder $query): Builder => $query->where('is_admin', true)),
+                Filter::make('clientes')
+                    ->query(fn (Builder $query): Builder => $query->where('is_admin', false)->whereHas('persona.cliente')),
+                Filter::make('sin_cliente')
+                    ->query(fn (Builder $query): Builder => $query->where('is_admin', false)->whereDoesntHave('persona.cliente')),
+            ])
+            ->filtersLayout(FiltersLayout::AboveContent)
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

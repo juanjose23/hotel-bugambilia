@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Tables;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
-use App\Models\Colaboradores\ColaboradorCargoHistorial;
-use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\ColaboradorNombreColumn;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Repository\Models\Colaboradores\ColaboradorCargoHistorial;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -24,14 +25,7 @@ class ColaboradorCargoHistorialTable
         return $table
             ->recordTitle(title: fn (ColaboradorCargoHistorial $record): string => $record->cargo->nombre ?? 'Cargo')
             ->columns([
-                TextColumn::make('colaborador')
-                    ->label('Colaborador')
-                    ->formatStateUsing(
-                        fn ($record) => app(ObtenerNombreCompleto::class)
-                            ->obtenerNombreCompleto($record->colaborador)
-                    )
-                    ->searchable()
-                    ->sortable(),
+                ColaboradorNombreColumn::make('colaborador.persona.nombre_completo'),
                 TextColumn::make('cargo.nombre')
                     ->label('Cargo')
                     ->searchable()
@@ -48,11 +42,7 @@ class ColaboradorCargoHistorialTable
                     ->label('Fin')
                     ->date('d/m/Y')
                     ->placeholder('Activo'),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
-                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
             ])
             ->filters([
                 FiltroEliminados::make(),

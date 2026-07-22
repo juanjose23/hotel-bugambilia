@@ -5,10 +5,10 @@ namespace App\Filament\Resources\Compras\Recepciones\Pages;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Filament\Resources\Compras\Recepciones\Actions\RecepcionEstadoActions;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Compras\RecepcionCompra;
-use App\Models\Compras\RecepcionItem;
-use App\UseCases\Inventario\Recepciones\Mutations\ConvertirItemAUbicaciones;
+use App\Interactors\Inventario\Recepciones\ConvertirItemAUbicaciones\ConvertirItemAUbicaciones;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Compras\RecepcionItem;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\Select;
@@ -18,13 +18,20 @@ use Filament\Resources\Pages\ViewRecord;
 
 class ViewRecepcion extends ViewRecord
 {
+    protected ConvertirItemAUbicaciones $convertirItemAUbicaciones;
+
+    public function boot(ConvertirItemAUbicaciones $convertirItemAUbicaciones): void
+    {
+        $this->convertirItemAUbicaciones = $convertirItemAUbicaciones;
+    }
+
     protected static string $resource = RecepcionResource::class;
 
     /** @return array<int, Action | ActionGroup> */
     protected function getHeaderActions(): array
     {
         return [
-            ...RecepcionEstadoActions::make(),
+            ...RecepcionEstadoActions::acciones(),
             Action::make('convertirUbicacion')
                 ->label('Convertir a Estructura Física')
                 ->icon('heroicon-o-squares-plus')
@@ -36,6 +43,8 @@ class ViewRecepcion extends ViewRecord
                             /** @var RecepcionCompra $record */
                             $record = $this->getRecord();
 
+                            $record->load('items.producto', 'items.variante', 'items.unidadMedida');
+
                             return $record->items->mapWithKeys(fn ($item) => [
                                 $item->id => ($item->producto ? $item->producto->nombre : 'N/A').' (Recibido: '.$item->cantidad_recibida.')',
                             ])->toArray();
@@ -45,7 +54,8 @@ class ViewRecepcion extends ViewRecord
                         ->afterStateUpdated(function ($state, $set) {
                             $item = RecepcionItem::find((int) $state);
                             if ($item) {
-                                $set('nombre_prefijo', $item->producto ? $item->producto->nombre : '');
+                                $item->load('producto');
+                                $set('nombre_prefijo', $item->producto->nombre ?? '');
                                 $set('cantidad_a_convertir', (int) $item->cantidad_recibida);
                             }
                         }),
@@ -87,7 +97,7 @@ class ViewRecepcion extends ViewRecord
                         $data['parent_id'] = $data['parent_id'] !== null ? intval($data['parent_id']) : null;
                         $data['nombre_prefijo'] = (string) $data['nombre_prefijo'];
                         /** @var array<int, Ubicacion> $creadas */
-                        $creadas = app(ConvertirItemAUbicaciones::class)->execute($data);
+                        $creadas = $this->convertirItemAUbicaciones->execute($data);
 
                         $count = count(array_filter($creadas, fn ($u) => $u->tipo === 'estante'));
 

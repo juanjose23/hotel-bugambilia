@@ -2,8 +2,8 @@
 
 namespace Database\Factories\Compras;
 
-use App\Models\Catalogos\Producto;
-use App\Models\Compras\OrdenCompraItem;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Compras\OrdenCompraItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

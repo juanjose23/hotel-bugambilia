@@ -5,20 +5,28 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Tables;
 
 use App\Enums\Activos\EstadoActivo;
+use App\Enums\Activos\EstadoAsignacion;
 use App\Enums\Activos\TipoBaja;
 use App\Enums\Activos\TipoMantenimiento;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Activos\Activo;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\User;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Filament\Shared\Forms\MonedaSelect;
+use App\Interactors\Activos\AsignarActivo;
+use App\Interactors\Activos\DarDeBajaActivo;
+use App\Interactors\Activos\EnviarAMantenimiento;
+use App\Repository\Models\Activos\Activo;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\User;
+use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorioInterface;
+use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
+use App\Repository\Queries\Catalogos\ObtenerUbicacionAlmacen;
 use App\Support\CachedOptions;
-use App\UseCases\Activos\Mutations\Asignacion\AsignarActivo;
-use App\UseCases\Activos\Mutations\Gestion\DarDeBajaActivo;
-use App\UseCases\Activos\Mutations\Mantenimiento\EnviarAMantenimiento;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup as TableActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
@@ -30,13 +38,25 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
-class ActivoTable
+readonly class ActivoTable
 {
-    public static function configure(Table $table): Table
+    public function __construct(
+        private AsignarActivo $asignarActivo,
+        private EnviarAMantenimiento $enviarAMantenimiento,
+        private DarDeBajaActivo $darDeBajaActivo,
+        private ActivoRepositorioInterface $activoRepositorio,
+        private ActivoAsignacionRepositorioInterface $asignacionRepositorio,
+        private ObtenerUbicacionAlmacen $obtenerAlmacen,
+    ) {}
+
+    public function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['producto', 'variante', 'asignacionActiva.asignable']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['producto', 'variante', 'moneda', 'asignacionActiva.asignable']))
             ->columns([
                 TextColumn::make('codigo_inventario')
                     ->label('Código')
@@ -90,9 +110,7 @@ class ActivoTable
                         default => 'gray',
                     }),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoActivo::class)
                     ->sortable(),
 
                 TextColumn::make('fecha_adquisicion')
@@ -100,6 +118,25 @@ class ActivoTable
                     ->date('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('valor_libros')
+                    ->label('Valor Neto')
+                    ->state(function (Activo $record) {
+                        if ($record->costo_adquisicion === null || $record->vida_util_meses === null) {
+                            return null;
+                        }
+                        $costo = (float) $record->costo_adquisicion;
+                        $vidaUtil = (int) $record->vida_util_meses;
+                        $meses = now()->diffInMonths($record->fecha_adquisicion);
+                        if ($meses >= $vidaUtil) {
+                            return 0.00;
+                        }
+                        $depAcumulada = ($costo / $vidaUtil) * $meses;
+
+                        return max(0.00, $costo - $depAcumulada);
+                    })
+                    ->money(fn ($record) => $record->moneda->codigo ?? 'USD')
+                    ->toggleable(),
             ])
             ->filters([
                 FiltroEstado::make(EstadoActivo::class),
@@ -114,7 +151,7 @@ class ActivoTable
                         Espacio::class => 'Espacio / Área Común',
                     ]),
             ])
-            ->actions([
+            ->groupedBulkActions([
                 ViewAction::make(),
                 EditAction::make(),
                 TableActionGroup::make([
@@ -161,7 +198,7 @@ class ActivoTable
                         ])
                         ->action(function (array $data, Activo $record) {
                             try {
-                                app(AsignarActivo::class)->execute(
+                                $this->asignarActivo->ejecutar(
                                     $record->id,
                                     $data['asignable_type'],
                                     (int) $data['asignable_id'],
@@ -171,10 +208,11 @@ class ActivoTable
 
                                 Notification::make()
                                     ->title('Activo Trasladado')
-                                    ->body("El activo {$record->codigo_inventario} ha sido asignado a su nueva ubicación.")
+                                    ->body("El activo $record->codigo_inventario ha sido asignado a su nueva ubicación.")
                                     ->success()
                                     ->send();
-                            } catch (\Throwable $e) {
+                            } catch (Throwable $e) {
+
                                 Notification::make()
                                     ->title('Error en Asignación')
                                     ->body($e->getMessage())
@@ -206,13 +244,11 @@ class ActivoTable
                                 ->numeric()
                                 ->placeholder('0.00'),
 
-                            Select::make('moneda_id')
-                                ->label('Moneda')
-                                ->options(CachedOptions::monedas()),
+                            MonedaSelect::make(),
 
                             Select::make('proveedor_id')
                                 ->label('Proveedor / Taller Externo')
-                                ->options(fn () => CachedOptions::proveedores())
+                                ->options(fn () => app(CachedOptions::class)->proveedores())
                                 ->searchable()
                                 ->placeholder('Seleccionar proveedor (opcional)'),
 
@@ -221,7 +257,7 @@ class ActivoTable
                         ])
                         ->action(function (array $data, Activo $record) {
                             try {
-                                app(EnviarAMantenimiento::class)->execute(
+                                $this->enviarAMantenimiento->execute(
                                     $record->id,
                                     $data['tipo'] instanceof TipoMantenimiento ? $data['tipo'] : TipoMantenimiento::from($data['tipo']),
                                     $data['descripcion'],
@@ -231,18 +267,8 @@ class ActivoTable
                                     $data['proveedor_id'] !== null ? (int) $data['proveedor_id'] : null,
                                     $data['notas'] ?: null
                                 );
+                            } catch (Throwable) {
 
-                                Notification::make()
-                                    ->title('Activo en Mantenimiento')
-                                    ->body("El activo {$record->codigo_inventario} ha sido ingresado a taller.")
-                                    ->warning()
-                                    ->send();
-                            } catch (\Throwable $e) {
-                                Notification::make()
-                                    ->title('Error en Registro')
-                                    ->body($e->getMessage())
-                                    ->danger()
-                                    ->send();
                             }
                         })
                         ->visible(fn (Activo $record) => $record->estado === EstadoActivo::Activo),
@@ -275,7 +301,7 @@ class ActivoTable
                         ])
                         ->action(function (array $data, Activo $record) {
                             try {
-                                app(DarDeBajaActivo::class)->execute(
+                                $this->darDeBajaActivo->execute(
                                     $record->id,
                                     $data['motivo_tipo'] instanceof TipoBaja ? $data['motivo_tipo'] : TipoBaja::from($data['motivo_tipo']),
                                     $data['motivo_detalle'],
@@ -283,21 +309,60 @@ class ActivoTable
                                     $data['valor_residual'] !== null ? (float) $data['valor_residual'] : null,
                                     $data['aprobado_por_id'] !== null ? (int) $data['aprobado_por_id'] : null
                                 );
+                            } catch (Throwable) {
+
+                            }
+                        })
+                        ->visible(fn (Activo $record) => $record->estado !== EstadoActivo::DadoDeBaja),
+
+                    Action::make('marcar_repuestos')
+                        ->label('Marcar para Repuestos')
+                        ->icon(Heroicon::Scissors)
+                        ->color('gray')
+                        ->requiresConfirmation()
+                        ->modalHeading('Designar Activo para Repuestos')
+                        ->modalDescription('¿Está seguro de que desea marcar este activo para repuestos? Se desactivará su asignación actual y se trasladará a la bodega general.')
+                        ->action(function (Activo $record) {
+                            try {
+                                DB::transaction(function () use ($record) {
+                                    $record->estado = EstadoActivo::Repuesto;
+                                    $this->activoRepositorio->guardar($record);
+
+                                    $this->asignacionRepositorio->cerrarAsignacionesVigentes(
+                                        activoId: $record->id,
+                                        fechaFin: now()->toDateString(),
+                                        estado: EstadoAsignacion::Cerrada->value
+                                    );
+
+                                    $almacen = $this->obtenerAlmacen->ejecutar();
+                                    if ($almacen) {
+                                        $this->asignacionRepositorio->crear([
+                                            'activo_id' => $record->id,
+                                            'asignable_type' => Ubicacion::class,
+                                            'asignable_id' => $almacen->id,
+                                            'fecha_inicio' => now()->toDateString(),
+                                            'motivo' => 'Designado para repuestos (Canibalizado)',
+                                            'asignado_por_id' => (int) auth()->id(),
+                                            'estado' => EstadoAsignacion::Vigente,
+                                        ]);
+                                    }
+                                });
 
                                 Notification::make()
-                                    ->title('Activo Dado de Baja')
-                                    ->body("El activo {$record->codigo_inventario} ha sido retirado definitivamente del inventario.")
-                                    ->danger()
+                                    ->title('Activo Designado para Repuestos')
+                                    ->body("El activo $record->codigo_inventario ahora está marcado para repuestos.")
+                                    ->success()
                                     ->send();
-                            } catch (\Throwable $e) {
+                            } catch (Throwable $e) {
+
                                 Notification::make()
-                                    ->title('Error en Registro')
+                                    ->title('Error')
                                     ->body($e->getMessage())
                                     ->danger()
                                     ->send();
                             }
                         })
-                        ->visible(fn (Activo $record) => $record->estado !== EstadoActivo::DadoDeBaja),
+                        ->visible(fn (Activo $record) => $record->estado !== EstadoActivo::DadoDeBaja && $record->estado !== EstadoActivo::Repuesto),
 
                     Action::make('imprimir_ficha')
                         ->label('Imprimir Ficha')
@@ -305,36 +370,13 @@ class ActivoTable
                         ->color('info')
                         ->url(fn (Activo $record) => route('reporte.activos.ficha.pdf', $record))
                         ->openUrlInNewTab()
-                        ->visible(fn (Activo $record) => ! $record->trashed() && auth()->user()?->can('Activos:ReporteFicha') ?? false),
+                        ->visible(fn (Activo $record) => ! $record->trashed() && auth()->user()?->can('Activos:ReporteFicha')),
                 ])
                     ->label('Acciones Especiales')
                     ->icon(Heroicon::ChevronDown)
                     ->color('info'),
             ])
             ->headerActions([
-                Action::make('reportes_activos')
-                    ->label('Reportes de Activos')
-                    ->icon(Heroicon::DocumentChartBar)
-                    ->color('gray')
-                    ->url('/admin/reportes-activos')
-                    ->openUrlInNewTab()
-                    ->visible(function () {
-                        $user = auth()->user();
-
-                        return $user && (
-                            $user->can('Activos:ReportePorUbicacion')
-                            || $user->can('Activos:ReporteHistorial')
-                            || $user->can('Activos:ReporteMantenimientoActivos')
-                            || $user->can('Activos:ReporteHojaHabitacion')
-                        );
-                    }),
-                Action::make('imprimir_reporte')
-                    ->label('Imprimir Inventario (PDF)')
-                    ->icon(Heroicon::Printer)
-                    ->color('info')
-                    ->url(fn () => route('reporte.activos.inventario-general.pdf', request()->query()))
-                    ->openUrlInNewTab()
-                    ->visible(fn () => auth()->user()?->can('Activos:ReporteInventario') ?? false),
                 Action::make('exportar_excel')
                     ->label('Exportar Inventario (Excel)')
                     ->icon(Heroicon::DocumentArrowDown)
@@ -349,6 +391,79 @@ class ActivoTable
                     ->url(fn () => route('reporte.activos.etiquetas.pdf', request()->query()))
                     ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->can('Activos:ReporteEtiquetas') ?? false),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('traslado_masivo')
+                        ->label('Traslado Masivo')
+                        ->icon(Heroicon::ArrowsRightLeft)
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->modalHeading('Trasladar Activos Seleccionados')
+                        ->modalDescription('Asigne los activos seleccionados a un nuevo espacio, habitación o ubicación física.')
+                        ->schema([
+                            Select::make('asignable_type')
+                                ->label('Tipo de Destino')
+                                ->options([
+                                    Habitacion::class => 'Habitación',
+                                    Espacio::class => 'Espacio Común',
+                                    Ubicacion::class => 'Ubicación / Área',
+                                ])
+                                ->required()
+                                ->live(),
+
+                            Select::make('asignable_id')
+                                ->label('Seleccionar Destino')
+                                ->options(function (Get $get) {
+                                    $type = $get('asignable_type');
+                                    if ($type === Habitacion::class) {
+                                        return Habitacion::pluck('nombre', 'id');
+                                    }
+                                    if ($type === Espacio::class) {
+                                        return Espacio::pluck('nombre', 'id');
+                                    }
+                                    if ($type === Ubicacion::class) {
+                                        return Ubicacion::pluck('nombre', 'id');
+                                    }
+
+                                    return [];
+                                })
+                                ->required()
+                                ->searchable(),
+
+                            TextInput::make('motivo')
+                                ->label('Motivo del traslado')
+                                ->placeholder('Ej. Reubicación masiva de mobiliario por remodelación')
+                                ->required(),
+                        ])
+                        ->action(function (Collection $records, array $data) {
+                            $successCount = 0;
+                            foreach ($records as $record) {
+                                /** @var Activo $record */
+                                if ($record->estado === EstadoActivo::DadoDeBaja) {
+                                    continue;
+                                }
+                                try {
+                                    $this->asignarActivo->ejecutar(
+                                        $record->id,
+                                        $data['asignable_type'],
+                                        (int) $data['asignable_id'],
+                                        (int) auth()->id(),
+                                        $data['motivo']
+                                    );
+                                    $successCount++;
+                                } catch (Throwable) {
+
+                                }
+                            }
+
+                            Notification::make()
+                                ->title('Traslado Masivo Completado')
+                                ->body("Se trasladaron exitosamente {$successCount} activos.")
+                                ->success()
+                                ->send();
+                        }),
+                ]),
             ]);
     }
 }

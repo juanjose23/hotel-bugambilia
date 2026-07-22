@@ -8,7 +8,7 @@ use App\Enums\Inventario\EstadoLote;
 use App\Filament\Pages\Inventario\ReportesInventario;
 use App\Filament\Resources\Inventario\Lote\LoteResource;
 use App\Filament\Resources\Inventario\Lote\Widgets\LoteStatsOverview;
-use App\Models\Inventario\Lote;
+use App\Repository\Queries\Inventario\Lotes\ContarLotesCuarentenaQuery;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -17,7 +17,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ListLotes extends ListRecords
 {
+    protected ContarLotesCuarentenaQuery $contarLotesCuarentena;
+
     protected static string $resource = LoteResource::class;
+
+    public function boot(ContarLotesCuarentenaQuery $contarLotesCuarentena): void
+    {
+        $this->contarLotesCuarentena = $contarLotesCuarentena;
+    }
 
     protected function getHeaderWidgets(): array
     {
@@ -47,7 +54,7 @@ class ListLotes extends ListRecords
             'Cuarentena' => Tab::make()
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoLote::Cuarentena))
                 ->icon(Heroicon::ShieldExclamation)
-                ->badge(Lote::where('estado', EstadoLote::Cuarentena)->count()),
+                ->badge($this->contarLotesCuarentena->ejecutar()),
             'Vencidos' => Tab::make()
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoLote::Vencido))
                 ->icon(Heroicon::XCircle),

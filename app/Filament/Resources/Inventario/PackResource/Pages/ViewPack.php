@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Inventario\PackResource\Pages;
 
 use App\Filament\Resources\Inventario\PackResource\PackResource;
-use App\Models\Catalogos\Producto;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Inventario\ProductoKit;
-use App\Models\Inventario\Stock;
+use App\Filament\Shared\Forms\ColaboradorSelect;
+use App\Interactors\Habitaciones\AsignarPackAHabitacion;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Queries\Inventario\Pack\ObtenerStockItemsPackQuery;
 use App\Support\CachedOptions;
-use App\UseCases\Habitaciones\Mutations\AsignarPackAHabitacion;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;
@@ -20,6 +21,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 
 /**
@@ -27,6 +29,18 @@ use Filament\Support\Icons\Heroicon;
  */
 class ViewPack extends ViewRecord
 {
+    protected AsignarPackAHabitacion $asignarPackAHabitacion;
+
+    protected ObtenerStockItemsPackQuery $obtenerStockItemsPack;
+
+    public function boot(
+        AsignarPackAHabitacion $asignarPackAHabitacion,
+        ObtenerStockItemsPackQuery $obtenerStockItemsPack,
+    ): void {
+        $this->asignarPackAHabitacion = $asignarPackAHabitacion;
+        $this->obtenerStockItemsPack = $obtenerStockItemsPack;
+    }
+
     protected static string $resource = PackResource::class;
 
     protected function getHeaderActions(): array
@@ -62,13 +76,20 @@ class ViewPack extends ViewRecord
                         ->minValue(1)
                         ->default(1),
 
+                    ColaboradorSelect::make('colaborador_id')
+                        ->label('Colaborador que llevó el pack'),
+
                     Repeater::make('items_preview')
                         ->label('Items incluidos en el pack')
                         ->schema([
                             TextInput::make('variante')->disabled(),
                             TextInput::make('cantidad')->disabled(),
                             TextInput::make('stock')->disabled()->label('Stock en bodega'),
-                            TextInput::make('estado')->disabled()->hiddenLabel(),
+                            TextInput::make('estado')
+                                ->disabled()
+                                ->hiddenLabel()
+                                ->prefixIcon(fn ($state) => $state === 'Suficiente' ? Heroicon::CheckCircle : Heroicon::XCircle)
+                                ->prefixIconColor(fn ($state) => $state === 'Suficiente' ? Color::Green : Color::Red),
                         ])
                         ->disabled()
                         ->columns(4)
@@ -79,40 +100,37 @@ class ViewPack extends ViewRecord
                         ->visible(fn () => $this->record->kitItems()->count() > 0),
                 ])
                 ->mountUsing(function ($form, $record) {
-                    $items = ProductoKit::with('variante')
-                        ->where('producto_padre_id', $record->id)
-                        ->get();
+                    $stockItems = $this->obtenerStockItemsPack->ejecutar($record->id);
                     $preview = [];
-                    foreach ($items as $item) {
-                        $stockTotal = Stock::where('producto_variante_id', $item->producto_variante_id)
-                            ->sum('cantidad');
-                        $variante = $item->variante;
-                        $suficiente = $stockTotal >= (float) $item->cantidad;
-                        $preview[] = [
-                            'variante' => $variante !== null ? "{$variante->nombre_variante} ({$variante->codigo})" : 'N/A',
 
-                            'cantidad' => "{$item->cantidad} x pack",
-                            'stock' => (string) $stockTotal,
-                            'estado' => $suficiente ? '✅ Suficiente' : '❌ Insuficiente',
+                    foreach ($stockItems as $item) {
+                        $suficiente = $item->stockTotal >= $item->cantidadNecesaria;
+                        $preview[] = [
+                            'variante' => $item->nombreVariante.' ('.$item->codigo.')',
+                            'cantidad' => "$item->cantidadNecesaria x pack",
+                            'stock' => (string) $item->stockTotal,
+                            'estado' => $suficiente ? 'Suficiente' : 'Insuficiente',
                         ];
                     }
+
                     $form->fill(['items_preview' => $preview]);
                 })
                 ->action(function (array $data, Action $action): void {
                     try {
-                        app(AsignarPackAHabitacion::class)->execute(
-                            habitacionId: (int) $data['habitacion_id'],
-                            productoPackId: (int) $this->record->id,
+                        $this->asignarPackAHabitacion->execute(
+                            destinoId: (int) $data['habitacion_id'],
+                            productoPackId: $this->record->id,
                             bodegaOrigenId: (int) $data['bodega_origen_id'],
                             cantidadPacks: (float) $data['cantidad_packs'],
                             creadoPorId: (int) auth()->id(),
+                            colaboradorId: $data['colaborador_id'] ? (int) $data['colaborador_id'] : null,
                         );
 
                         Notification::make()
                             ->title('Pack surtido exitosamente')
                             ->success()
                             ->send();
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Notification::make()
                             ->title('Error al surtir pack')
                             ->body($e->getMessage())
@@ -127,21 +145,19 @@ class ViewPack extends ViewRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $items = $this->record->kitItems()->with('variante.producto')->get();
+        $stockItems = $this->obtenerStockItemsPack->ejecutar($this->record->id);
         $stockRows = [];
 
-        foreach ($items as $item) {
-            $stockTotal = Stock::where('producto_variante_id', $item->producto_variante_id)
-                ->sum('cantidad');
-            $necesario = (float) $item->cantidad;
-            $suficiente = $stockTotal >= $necesario;
+        foreach ($stockItems as $item) {
+            $necesario = $item->cantidadNecesaria;
+            $suficiente = $item->stockTotal >= $necesario;
 
             $stockRows[] = [
-                'producto' => ($item->variante && $item->variante->producto) ? $item->variante->producto->nombre : '—',
-                'variante' => $item->variante->nombre_variante ?? '—',
+                'producto' => $item->nombreVariante,
+                'variante' => $item->codigo,
                 'necesario' => (string) $necesario,
-                'disponible' => (string) $stockTotal,
-                'estado' => $suficiente ? '✅ Suficiente' : '❌ Insuficiente',
+                'disponible' => (string) $item->stockTotal,
+                'estado' => $suficiente ? 'Suficiente' : 'Insuficiente',
             ];
         }
 
@@ -191,6 +207,8 @@ class ViewPack extends ViewRecord
                             TextInput::make('estado')
                                 ->label('Estado')
                                 ->disabled()
+                                ->prefixIcon(fn ($state) => $state === 'Suficiente' ? Heroicon::CheckCircle : Heroicon::XCircle)
+                                ->prefixIconColor(fn ($state) => $state === 'Suficiente' ? Color::Green : Color::Red)
                                 ->columnSpan(1)
                                 ->extraAttributes(['class' => 'text-center font-bold']),
                         ])

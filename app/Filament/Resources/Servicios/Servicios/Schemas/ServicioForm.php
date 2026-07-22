@@ -3,31 +3,39 @@
 namespace App\Filament\Resources\Servicios\Servicios\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Servicios\ServicioEstado;
-use App\Models\Servicios\Servicio;
-use App\UseCases\Servicios\Mutations\GenerarCodigoServicio;
+use App\Enums\Shared\EstadoGeneral;
+use App\Interactors\Servicios\GenerarCodigoServicio;
+use App\Interactors\Servicios\SincronizarGaleriaImagenes;
+use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Queries\Servicios\ObtenerListadoHeroicons;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
+use Stringable;
 
 class ServicioForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $generarCodigoServicio = app(GenerarCodigoServicio::class);
+        $listadoHeroicons = app(ObtenerListadoHeroicons::class);
+        $sincronizarGaleria = app(SincronizarGaleriaImagenes::class);
+
         return $schema
             ->components([
                 Section::make('Información General del Servicio')
-                    ->columns(2)
+                    ->columns()
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('codigo')
                             ->label('Código')
-                            ->default(fn (?Servicio $record) => $record ? $record->codigo : app(GenerarCodigoServicio::class)->ejecutar())
+                            ->default(fn (?Servicio $record) => $record ? $record->codigo : $generarCodigoServicio->ejecutar())
                             ->disabled()
                             ->dehydrated()
                             ->required()
@@ -62,14 +70,20 @@ class ServicioForm
 
                         Select::make('estado')
                             ->label('Estado')
-                            ->options(ServicioEstado::options())
-                            ->default(ServicioEstado::Activo->value)
+                            ->options(EstadoGeneral::options())
+                            ->default(EstadoGeneral::Activo->value)
                             ->required()
                             ->prefixIcon(Heroicon::CheckCircle),
 
+                        Toggle::make('web')
+                            ->label('Mostrar en Web')
+                            ->default(false)
+                            ->inline(false)
+                            ->helperText('Activar para que este servicio sea visible en el sitio web público.'),
+
                         Select::make('icono')
                             ->label('Icono Representativo')
-                            ->options(self::getHeroicons())
+                            ->options($listadoHeroicons->ejecutar())
                             ->searchable()
                             ->preload()
                             ->live()
@@ -89,9 +103,12 @@ class ServicioForm
                             ->multiple()
                             ->reorderable()
                             ->appendFiles()
+                            ->disk('public')
+                            ->visibility('public')
                             ->directory('servicios/galeria')
                             ->maxFiles(5)
-                            ->helperText('Sube hasta 5 imágenes premium de alta calidad (16:9 recomendado) para la galería web.')
+                            ->maxSize(4096)
+                            ->helperText('Sube hasta 5 imágenes de alta calidad (16:9 recomendado) para la galería web.')
                             ->columnSpanFull()
                             ->afterStateHydrated(function (FileUpload $component, ?Servicio $record) {
                                 if ($record) {
@@ -104,60 +121,11 @@ class ServicioForm
                                 }
                             })
                             ->dehydrated(false)
-                            ->saveRelationshipsUsing(function (Servicio $record, $state) {
-                                $state = is_array($state) ? $state : [];
-
-                                // 1. Eliminar imágenes que ya no están presentes en el estado
-                                /** @var array<string> $existingImages */
-                                $existingImages = $record->imagenes()->pluck('url')->map(fn ($u) => is_scalar($u) ? (string) $u : '')->toArray();
-                                /** @var array<string> $stateImages */
-                                $stateImages = collect((array) $state)->map(fn ($u) => is_scalar($u) ? (string) $u : '')->toArray();
-                                $toDelete = array_diff($existingImages, $stateImages);
-                                if (! empty($toDelete)) {
-                                    $record->imagenes()->whereIn('url', $toDelete)->delete();
-                                }
-
-                                // 2. Guardar y reordenar las imágenes actuales
-                                foreach ($state as $index => $url) {
-                                    $record->imagenes()->updateOrCreate(
-                                        ['url' => $url],
-                                        ['orden' => $index + 1]
-                                    );
-                                }
+                            ->saveRelationshipsUsing(function (Servicio $record, $state) use ($sincronizarGaleria) {
+                                $imageUrls = array_map(fn (mixed $val): string => is_scalar($val) || $val instanceof Stringable ? (string) $val : '', is_array($state) ? $state : []);
+                                $sincronizarGaleria->execute($record, $imageUrls);
                             }),
                     ]),
             ]);
-    }
-
-    /**
-     * Obtiene y almacena en caché todos los iconos Outline de Heroicons
-     * disponibles en el paquete blade-heroicons.
-     *
-     * @return array<string, string>
-     */
-    protected static function getHeroicons(): array
-    {
-        return cache()->rememberForever('heroicons_outline_list', function () {
-            $svgPath = base_path('vendor/blade-ui-kit/blade-heroicons/resources/svg');
-            $icons = [];
-
-            if (is_dir($svgPath)) {
-                $files = scandir($svgPath);
-                if ($files !== false) {
-                    foreach ($files as $file) {
-                        if (str_starts_with($file, 'o-') && str_ends_with($file, '.svg')) {
-                            $name = substr($file, 2, -4); // Quitar 'o-' y '.svg'
-                            $key = 'heroicon-o-'.$name;
-                            $label = ucwords(str_replace('-', ' ', $name));
-                            $icons[$key] = $label;
-                        }
-                    }
-                }
-            }
-
-            asort($icons);
-
-            return $icons;
-        });
     }
 }

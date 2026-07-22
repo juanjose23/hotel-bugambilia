@@ -7,9 +7,11 @@ namespace App\Filament\Resources\Limpieza\LimpiezaHorarioResource;
 use App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Pages\CreateLimpiezaHorario;
 use App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Pages\EditLimpiezaHorario;
 use App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Pages\ListLimpiezaHorarios;
+use App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Pages\ViewLimpiezaHorario;
 use App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Schemas\LimpiezaHorarioForm;
+use App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Schemas\LimpiezaHorarioInfolist;
 use App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Tables\LimpiezaHorarioTable;
-use App\Models\Limpieza\LimpiezaHorario;
+use App\Repository\Models\Limpieza\LimpiezaHorario;
 use BackedEnum;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
@@ -39,6 +41,11 @@ class LimpiezaHorarioResource extends Resource
         return LimpiezaHorarioForm::configure($schema);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return LimpiezaHorarioInfolist::configure($schema);
+    }
+
     public static function table(Table $table): Table
     {
         return LimpiezaHorarioTable::configure($table);
@@ -52,6 +59,7 @@ class LimpiezaHorarioResource extends Resource
         return [
             'index' => ListLimpiezaHorarios::route('/'),
             'create' => CreateLimpiezaHorario::route('/create'),
+            'view' => ViewLimpiezaHorario::route('/{record}'),
             'edit' => EditLimpiezaHorario::route('/{record}/edit'),
         ];
     }

@@ -26,7 +26,7 @@ class InventarioFisicoForm
                         TextInput::make('codigo')
                             ->label('Código')
                             ->disabled()
-                            ->dehydrated(true)
+                            ->dehydrated()
                             ->placeholder('INF-YYYYMMDD-XXX')
                             ->prefixIcon(Heroicon::QrCode),
 

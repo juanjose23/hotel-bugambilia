@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Enums\Personas;
 
-use App\Enums\Concerns\HasEnumHelpers;
+use App\Enums\Concerns\TieneAyudantesEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
 enum Sexo: string implements HasColor, HasLabel
 {
-    use HasEnumHelpers;
+    use TieneAyudantesEnum;
 
     case MASCULINO = 'M';
     case FEMENINO = 'F';

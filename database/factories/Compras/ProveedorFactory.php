@@ -2,7 +2,7 @@
 
 namespace Database\Factories\Compras;
 
-use App\Models\Compras\Proveedor;
+use App\Repository\Models\Compras\Proveedor;
 use Database\Factories\CatalogoFactory;
 use Database\Factories\PersonaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;

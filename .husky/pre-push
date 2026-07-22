@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+set -e
+# shellcheck disable=SC2034
+HERD_PHP_DIR="/c/Users/jrios/.config/herd/bin/php84"
+
+if [ -d "$HERD_PHP_DIR" ]; then
+	export PATH="$HERD_PHP_DIR:$PATH"
+fi
+
+if ! command -v php >/dev/null 2>&1; then
+	echo "[pre-push] PHP no encontrado en PATH ni en Herd."
+	exit 1
+fi
+
+echo "[pre-push] Ejecutando analisis estatico PHPStan Nivel 9..."
+vendor/bin/phpstan analyse --level=9 --memory-limit=1G
+
+echo "[pre-push] Ejecutando suite de pruebas Pest..."
+php artisan test
+
+echo "[pre-push] Verificando build del frontend..."
+npm run build

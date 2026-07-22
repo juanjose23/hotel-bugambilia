@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Catalogos\Pais\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Shared\EstadoGeneral;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -41,8 +41,8 @@ class PaisForm
                             ->tel(),
                         Select::make('estado')
                             ->label('Estado')
-                            ->options(EstadoCatalogo::options())
-                            ->default(EstadoCatalogo::Activo->value)
+                            ->options(EstadoGeneral::options())
+                            ->default(EstadoGeneral::Activo->value)
                             ->required(),
 
                     ]),

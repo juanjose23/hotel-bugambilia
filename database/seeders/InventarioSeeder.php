@@ -30,14 +30,19 @@ class InventarioSeeder extends Seeder
         $proveedor = Proveedor::first();
         $admin = User::first();
 
+        $costosBase = [12.50, 8.00, 45.00, 3.25, 22.00, 15.00, 60.00, 5.50, 30.00, 18.00];
+
         // 1. Crear Lotes Disponibles y su Stock en Bodega
-        foreach ($productos->take(5) as $prod) {
+        foreach ($productos->take(5)->values() as $i => $prod) {
+            $costoUnitario = $costosBase[$i];
             $lote = Lote::create([
                 'codigo_lote' => 'LOT-DISP-'.Str::random(4),
                 'producto_id' => $prod->id,
                 'estado' => EstadoLote::Disponible,
                 'cantidad_disponible' => 100.0,
                 'cantidad_inicial' => 100.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 100.0,
                 'ubicacion_id' => $almacen->id,
                 'fecha_vencimiento' => now()->addMonths(6)->format('Y-m-d'),
                 'fecha_recepcion' => now()->subDays(5)->format('Y-m-d'),
@@ -56,6 +61,8 @@ class InventarioSeeder extends Seeder
                 'lote_id' => $lote->id,
                 'producto_id' => $prod->id,
                 'cantidad' => 100.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 100.0,
                 'ubicacion_destino_id' => $almacen->id,
                 'creado_por_id' => $admin?->id,
                 'referencia' => 'Entrada Inicial',
@@ -65,13 +72,16 @@ class InventarioSeeder extends Seeder
         }
 
         // 2. Crear Lotes en Cuarentena y su Stock en Bodega
-        foreach ($productos->skip(5)->take(3) as $prod) {
+        foreach ($productos->skip(5)->take(3)->values() as $i => $prod) {
+            $costoUnitario = $costosBase[5 + $i];
             $lote = Lote::create([
                 'codigo_lote' => 'LOT-CUAR-'.Str::random(4),
                 'producto_id' => $prod->id,
                 'estado' => EstadoLote::Cuarentena,
                 'cantidad_disponible' => 50.0,
                 'cantidad_inicial' => 50.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 50.0,
                 'ubicacion_id' => $almacen->id,
                 'fecha_vencimiento' => now()->addMonths(12)->format('Y-m-d'),
                 'fecha_recepcion' => now()->subDays(2)->format('Y-m-d'),
@@ -90,6 +100,8 @@ class InventarioSeeder extends Seeder
                 'lote_id' => $lote->id,
                 'producto_id' => $prod->id,
                 'cantidad' => 50.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 50.0,
                 'ubicacion_destino_id' => $almacen->id,
                 'creado_por_id' => $admin?->id,
                 'referencia' => 'Entrada en Cuarentena',
@@ -99,13 +111,16 @@ class InventarioSeeder extends Seeder
         }
 
         // 3. Crear Lotes Vencidos
-        foreach ($productos->skip(8)->take(2) as $prod) {
+        foreach ($productos->skip(8)->take(2)->values() as $i => $prod) {
+            $costoUnitario = $costosBase[8 + $i];
             $lote = Lote::create([
                 'codigo_lote' => 'LOT-VENC-'.Str::random(4),
                 'producto_id' => $prod->id,
                 'estado' => EstadoLote::Vencido,
                 'cantidad_disponible' => 0.0,
                 'cantidad_inicial' => 50.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 50.0,
                 'ubicacion_id' => $almacen->id,
                 'fecha_vencimiento' => now()->subDays(10)->format('Y-m-d'),
                 'fecha_recepcion' => now()->subMonths(3)->format('Y-m-d'),
@@ -117,6 +132,8 @@ class InventarioSeeder extends Seeder
                 'lote_id' => $lote->id,
                 'producto_id' => $prod->id,
                 'cantidad' => 50.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 50.0,
                 'ubicacion_destino_id' => $almacen->id,
                 'creado_por_id' => $admin?->id,
                 'referencia' => 'Entrada Histórica',
@@ -128,6 +145,8 @@ class InventarioSeeder extends Seeder
                 'lote_id' => $lote->id,
                 'producto_id' => $prod->id,
                 'cantidad' => -50.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 50.0,
                 'ubicacion_origen_id' => $almacen->id,
                 'creado_por_id' => $admin?->id,
                 'referencia' => 'Consumo Completo / Vencido',

@@ -71,6 +71,42 @@ class ProductoSeeder extends Seeder
 
         $this->crearProductoConVariante(
             (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
+            (int) $catalogoIds['MARC_PG'],
+            (int) $catalogoIds['UNI_ML'],
+            'Crema corporal',
+            'Crema corporal hidratante',
+            2,
+            [
+                ['codigo' => 'CR-030-S', 'nombre' => 'Crema corporal 30 ml sobre', 'atributos' => ['tamaño' => '30ml', 'formato' => 'sobre'], 'volumen' => 30],
+            ]
+        );
+
+        $this->crearProductoConVariante(
+            (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
+            null,
+            (int) $catalogoIds['UNI_UD'],
+            'Papel higiénico',
+            'Papel higiénico para baño',
+            2,
+            [
+                ['codigo' => 'PH-ROLLO-STD', 'nombre' => 'Papel higiénico estándar', 'atributos' => ['formato' => 'rollo']],
+            ]
+        );
+
+        $this->crearProductoConVariante(
+            (int) $catalogoIds['CAT_PRO_ALIM_NOPER'],
+            null,
+            (int) $catalogoIds['UNI_UD'],
+            'Agua embotellada',
+            'Agua embotellada sin gas',
+            2,
+            [
+                ['codigo' => 'AG-500-BOT', 'nombre' => 'Agua embotellada 500ml', 'atributos' => ['volumen' => '500ml', 'formato' => 'botella']],
+            ]
+        );
+
+        $this->crearProductoConVariante(
+            (int) $catalogoIds['CAT_PRO_AMEN_BANIO'],
             null,
             (int) $catalogoIds['UNI_UD'],
             'Kit dental',

@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Limpieza;
 
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Inventario\Stock;
-use App\UseCases\Inventario\Movimientos\Mutations\ConsumirStock;
-use App\UseCases\Limpieza\Mutations\ReabastecerUbicacion;
+use App\BusinessLogic\Limpieza\Data\ReabastecerItemData;
+use App\BusinessLogic\Limpieza\Data\ReabastecerUbicacionData;
+use App\Interactors\Inventario\ConsumirStock\ConsumirStock;
+use App\Interactors\Limpieza\Stock\ReabastecerUbicacion;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Inventario\Stock;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -37,7 +40,9 @@ use UnitEnum;
  */
 class ControlLavanderia extends Page implements HasForms, HasTable
 {
+    use HasPageShield;
     use InteractsWithForms;
+    use InteractsWithTable;
     use InteractsWithTable;
 
     protected string $view = 'filament.pages.limpieza.control-lavanderia';
@@ -318,31 +323,26 @@ class ControlLavanderia extends Page implements HasForms, HasTable
         }
 
         try {
-            $items = array_map(function ($item) {
-                if (! is_array($item)) {
-                    return [
-                        'producto_variante_id' => 0,
-                        'cantidad' => 0.0,
-                    ];
-                }
+            $items = array_map(function (mixed $item) {
+                $itemArr = is_array($item) ? $item : [];
 
-                return [
-                    'producto_variante_id' => isset($item['producto_variante_id']) && is_numeric($item['producto_variante_id']) ? (int) $item['producto_variante_id'] : 0,
-                    'cantidad' => isset($item['cantidad']) && is_numeric($item['cantidad']) ? (float) $item['cantidad'] : 0.0,
-                ];
+                return ReabastecerItemData::fromArray([
+                    'producto_variante_id' => isset($itemArr['producto_variante_id']) && is_numeric($itemArr['producto_variante_id']) ? (int) $itemArr['producto_variante_id'] : 0,
+                    'cantidad' => isset($itemArr['cantidad']) && is_numeric($itemArr['cantidad']) ? (float) $itemArr['cantidad'] : 0.0,
+                ]);
             }, $itemsData);
 
             $tipoDestino = isset($data['tipo_destino']) && is_string($data['tipo_destino']) ? $data['tipo_destino'] : '';
             $destinoId = isset($data['destino_id']) && is_numeric($data['destino_id']) ? (int) $data['destino_id'] : 0;
 
-            $reabastecerUbicacion->execute(
+            $reabastecerUbicacion->execute(new ReabastecerUbicacionData(
                 tipoDestino: $tipoDestino,
                 destinoId: $destinoId,
                 items: $items,
                 bodegaOrigenId: (int) $this->lavanderiaId,
                 creadoPorId: (int) auth()->id(),
                 notas: 'Reposición de blancos/insumos desde lavandería.'
-            );
+            ));
 
             Notification::make()
                 ->title('Reposición Completada')

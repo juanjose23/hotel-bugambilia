@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Traits;
 
-use App\Enums\HabitacionesEspacios\EstadoStock;
+use App\Enums\Shared\EstadoStock;
 
 trait HasStockStatus
 {

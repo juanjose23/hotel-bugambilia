@@ -1,14 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Inventario\Lote\Widgets;
 
-use App\Models\Inventario\Lote;
-use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesProximosVencer;
+use App\Repository\Models\Inventario\Lote;
+use App\Repository\Queries\Inventario\Alertas\ObtenerLotesProximosVencer;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Database\Eloquent\Collection;
 
 class LotesEnRiesgoChart extends ChartWidget
 {
+    use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $permission = static::getWidgetPermission();
+        $user = auth()->user();
+
+        return $permission && $user
+            ? $user->can($permission)
+            : parent::canView();
+    }
+
     protected ?string $heading = 'Lotes Próximos a Vencer (Línea de Tiempo)';
 
     protected static ?int $sort = 5;
@@ -22,19 +36,20 @@ class LotesEnRiesgoChart extends ChartWidget
 
     protected function getData(): array
     {
-        /** @var Collection<int, Lote> $lotes */
-        $lotes = app(ObtenerLotesProximosVencer::class)->ejecutar(['dias' => 30]);
+        $obtenerLotesProximosVencer = app(ObtenerLotesProximosVencer::class);
 
-        $menosDe7Dias = $lotes->filter(fn ($l) => now()->diffInDays($l->fecha_vencimiento) <= 7)->count();
-        $de8a15Dias = $lotes->filter(fn ($l) => now()->diffInDays($l->fecha_vencimiento) > 7 && now()->diffInDays($l->fecha_vencimiento) <= 15)->count();
-        $de16a30Dias = $lotes->filter(fn ($l) => now()->diffInDays($l->fecha_vencimiento) > 15 && now()->diffInDays($l->fecha_vencimiento) <= 30)->count();
+        $lotes = $obtenerLotesProximosVencer->ejecutar(['dias' => 30]);
+
+        $menosDe7Dias = $lotes->filter(fn (Lote $l) => now()->diffInDays($l->fecha_vencimiento) <= 7)->count();
+        $de8a15Dias = $lotes->filter(fn (Lote $l) => now()->diffInDays($l->fecha_vencimiento) > 7 && now()->diffInDays($l->fecha_vencimiento) <= 15)->count();
+        $de16a30Dias = $lotes->filter(fn (Lote $l) => now()->diffInDays($l->fecha_vencimiento) > 15 && now()->diffInDays($l->fecha_vencimiento) <= 30)->count();
 
         return [
             'datasets' => [
                 [
                     'label' => 'Cantidad de Lotes',
                     'data' => [$menosDe7Dias, $de8a15Dias, $de16a30Dias],
-                    'backgroundColor' => ['#dc2626', '#f59e0b', '#fbbf24'], // Rojo, Naranja, Amarillo
+                    'backgroundColor' => ['#dc2626', '#f59e0b', '#fbbf24'],
                     'borderRadius' => 4,
                 ],
             ],

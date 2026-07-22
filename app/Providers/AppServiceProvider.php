@@ -2,35 +2,69 @@
 
 namespace App\Providers;
 
-use App\Models\Activos\ActivoMantenimiento;
-use App\Models\Audits\AuditoriaReporte;
-use App\Models\Compras\DevolucionCompra;
-use App\Models\Compras\OrdenCompra;
-use App\Models\Compras\RecepcionCompra;
-use App\Models\Compras\Solicitud;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Limpieza\SolicitudLimpieza;
-use App\Models\User;
-use App\Observers\Activos\ActivoMantenimientoObserver;
-use App\Observers\Compras\OrdenCompraObserver;
-use App\Observers\Compras\RecepcionObserver;
-use App\Observers\Habitaciones\HabitacionHistorialObserver;
-use App\Observers\Inventario\RecepcionInventoryObserver;
-use App\Observers\Limpieza\SolicitudLimpiezaObserver;
-use App\Policies\AuditPolicy;
-use App\Policies\Audits\AuditoriaReportePolicy;
-use App\Policies\Compras\DevolucionCompraPolicy;
-use App\Policies\Compras\OrdenCompraPolicy;
-use App\Policies\Compras\RecepcionCompraPolicy;
-use App\Policies\Compras\SolicitudPolicy;
-use App\Policies\Limpieza\SolicitudLimpiezaPolicy;
-use App\Policies\RolePolicy;
-use App\Policies\UserPolicy;
+use App\Repository\Models\Activos\ActivoMantenimiento;
+use App\Repository\Models\Compras\OrdenCompra;
+use App\Repository\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Models\Limpieza\SolicitudLimpieza;
+use App\Repository\Models\Restaurante\Pedido;
+use App\Repository\Models\User;
+use App\Repository\Observers\Activos\ActivoMantenimientoObserver;
+use App\Repository\Observers\Compras\OrdenCompraObserver;
+use App\Repository\Observers\Compras\RecepcionObserver;
+use App\Repository\Observers\Espacios\EspacioHistorialObserver;
+use App\Repository\Observers\Habitaciones\HabitacionHistorialObserver;
+use App\Repository\Observers\Inventario\RecepcionInventoryObserver;
+use App\Repository\Observers\Limpieza\LimpiezaEjecucionObserver;
+use App\Repository\Observers\Limpieza\SolicitudLimpiezaObserver;
+use App\Repository\Observers\Restaurante\PedidoObserver;
+use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorio;
+use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorioInterface;
+use App\Repository\Persistencia\Activos\ActivoBajaRepositorio;
+use App\Repository\Persistencia\Activos\ActivoBajaRepositorioInterface;
+use App\Repository\Persistencia\Activos\ActivoMantenimientoRepositorio;
+use App\Repository\Persistencia\Activos\ActivoMantenimientoRepositorioInterface;
+use App\Repository\Persistencia\Activos\ActivoRepositorio;
+use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
+use App\Repository\Persistencia\Activos\ActPlanMantenimientoRepositorio;
+use App\Repository\Persistencia\Activos\ActPlanMantenimientoRepositorioInterface;
+use App\Repository\Persistencia\Activos\PrefijoCodigoRepositorio;
+use App\Repository\Persistencia\Activos\PrefijoCodigoRepositorioInterface;
+use App\Repository\Persistencia\Activos\RegistroIndividualizacionRepositorio;
+use App\Repository\Persistencia\Activos\RegistroIndividualizacionRepositorioInterface;
+use App\Repository\Persistencia\Compras\DevolucionRepositorio;
+use App\Repository\Persistencia\Compras\DevolucionRepositorioInterface;
+use App\Repository\Persistencia\Compras\OrdenCompraRepositorio;
+use App\Repository\Persistencia\Compras\OrdenCompraRepositorioInterface;
+use App\Repository\Persistencia\Compras\ProveedorRepositorio;
+use App\Repository\Persistencia\Compras\ProveedorRepositorioInterface;
+use App\Repository\Persistencia\Compras\RecepcionRepositorio;
+use App\Repository\Persistencia\Compras\RecepcionRepositorioInterface;
+use App\Repository\Persistencia\Compras\SolicitudRepositorio;
+use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorio;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use App\Repository\Persistencia\Inventario\InventarioFisicoRepositorio;
+use App\Repository\Persistencia\Inventario\InventarioFisicoRepositorioInterface;
+use App\Repository\Persistencia\Inventario\LoteRepositorio;
+use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
+use App\Repository\Persistencia\Inventario\MovimientoStockRepositorio;
+use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
+use App\Repository\Persistencia\Inventario\StockRepositorio;
+use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
+use App\Repository\Persistencia\Servicios\ServicioRepositorio;
+use App\Repository\Persistencia\Servicios\ServicioRepositorioInterface;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use OwenIt\Auditing\Models\Audit;
-use Spatie\Permission\Models\Role;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,7 +73,95 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            HabitacionRepositorioInterface::class,
+            HabitacionRepositorio::class
+        );
+
+        $this->app->bind(
+            ServicioRepositorioInterface::class,
+            ServicioRepositorio::class
+        );
+
+        $this->app->bind(
+            ProveedorRepositorioInterface::class,
+            ProveedorRepositorio::class
+        );
+
+        $this->app->bind(
+            LoteRepositorioInterface::class,
+            LoteRepositorio::class
+        );
+
+        $this->app->bind(
+            StockRepositorioInterface::class,
+            StockRepositorio::class
+        );
+
+        $this->app->bind(
+            MovimientoStockRepositorioInterface::class,
+            MovimientoStockRepositorio::class
+        );
+
+        $this->app->bind(
+            InventarioFisicoRepositorioInterface::class,
+            InventarioFisicoRepositorio::class
+        );
+
+        $this->app->bind(
+            DevolucionRepositorioInterface::class,
+            DevolucionRepositorio::class
+        );
+
+        $this->app->bind(
+            ActivoRepositorioInterface::class,
+            ActivoRepositorio::class
+        );
+
+        $this->app->bind(
+            ActivoAsignacionRepositorioInterface::class,
+            ActivoAsignacionRepositorio::class
+        );
+
+        $this->app->bind(
+            ActivoMantenimientoRepositorioInterface::class,
+            ActivoMantenimientoRepositorio::class
+        );
+
+        $this->app->bind(
+            ActivoBajaRepositorioInterface::class,
+            ActivoBajaRepositorio::class
+        );
+
+        $this->app->bind(
+            ActPlanMantenimientoRepositorioInterface::class,
+            ActPlanMantenimientoRepositorio::class
+        );
+
+        $this->app->bind(
+            PrefijoCodigoRepositorioInterface::class,
+            PrefijoCodigoRepositorio::class
+        );
+
+        $this->app->bind(
+            RegistroIndividualizacionRepositorioInterface::class,
+            RegistroIndividualizacionRepositorio::class
+        );
+
+        $this->app->bind(
+            OrdenCompraRepositorioInterface::class,
+            OrdenCompraRepositorio::class
+        );
+
+        $this->app->bind(
+            RecepcionRepositorioInterface::class,
+            RecepcionRepositorio::class
+        );
+
+        $this->app->bind(
+            SolicitudRepositorioInterface::class,
+            SolicitudRepositorio::class
+        );
     }
 
     /**
@@ -47,25 +169,85 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // @phpstan-ignore argument.type (Larastan factory namespace resolution)
+        Factory::guessFactoryNamesUsing(function (string $modelClass): string {
+            $prefix = 'App\\Repository\\Models\\';
+
+            if (str_starts_with($modelClass, $prefix)) {
+                $relative = substr($modelClass, strlen($prefix));
+                $parts = explode('\\', $relative);
+                $className = array_pop($parts);
+                $factoryClass = 'Database\\Factories\\'.implode('\\', $parts).'\\'.$className.'Factory';
+                if (class_exists($factoryClass)) {
+                    return $factoryClass;
+                }
+            }
+
+            // Standard Laravel convention: Database\\Factories\\<ClassName>Factory
+            $baseName = class_basename($modelClass);
+
+            return 'Database\\Factories\\'.$baseName.'Factory';
+        });
+
+        $this->configureDefaults();
+
+        View::composer('reports.*', function ($view) {
+            $view->with('usuario', auth()->user() ? auth()->user()->name : 'Sistema');
+        });
+
+        OrdenCompra::observe(OrdenCompraObserver::class);
         RecepcionCompra::observe(RecepcionObserver::class);
         RecepcionCompra::observe(RecepcionInventoryObserver::class);
-        OrdenCompra::observe(OrdenCompraObserver::class);
         ActivoMantenimiento::observe(ActivoMantenimientoObserver::class);
-        Habitacion::observe(HabitacionHistorialObserver::class);
         SolicitudLimpieza::observe(SolicitudLimpiezaObserver::class);
-        Gate::policy(Solicitud::class, SolicitudPolicy::class);
-        Gate::policy(OrdenCompra::class, OrdenCompraPolicy::class);
-        Gate::policy(RecepcionCompra::class, RecepcionCompraPolicy::class);
-        Gate::policy(DevolucionCompra::class, DevolucionCompraPolicy::class);
+        Habitacion::observe(HabitacionHistorialObserver::class);
+        LimpiezaEjecucion::observe(LimpiezaEjecucionObserver::class);
+        Espacio::observe(EspacioHistorialObserver::class);
+        Pedido::observe(PedidoObserver::class);
 
-        // Registrar políticas para modelos externos o en rutas no estándar
-        Gate::policy(User::class, UserPolicy::class);
-        Gate::policy(Audit::class, AuditPolicy::class);
-        Gate::policy(Role::class, RolePolicy::class);
-        Gate::policy(AuditoriaReporte::class, AuditoriaReportePolicy::class);
-        Gate::policy(SolicitudLimpieza::class, SolicitudLimpiezaPolicy::class);
+        Gate::before(function ($user, $ability) {
+            return $user instanceof User && $user->hasRole('super_admin') ? true : null;
+        });
 
-        // Prevenir carga diferida (lazy loading) en desarrollo y testing para atrapar consultas N+1
-        Model::preventLazyLoading(! $this->app->isProduction());
+        // Registrar migraciones en subcarpetas de módulos
+        if ($this->app->runningInConsole()) {
+            $migrationsPath = database_path('migrations');
+            $paths = glob($migrationsPath.DIRECTORY_SEPARATOR.'*', GLOB_ONLYDIR);
+            $this->loadMigrationsFrom(array_merge([$migrationsPath], is_array($paths) ? $paths : []));
+        }
+
+        // Resolver nombres de políticas modularizadas en Repository/Policies
+        Gate::guessPolicyNamesUsing(function (string $modelClass) {
+            if (str_starts_with($modelClass, 'App\\Repository\\Models\\')) {
+                return str_replace('App\\Repository\\Models\\', 'App\\Repository\\Policies\\', $modelClass).'Policy';
+            }
+
+            return 'App\\Policies\\'.class_basename($modelClass).'Policy';
+        });
     }
+
+    protected function configureDefaults(): void
+    {
+        Date::use(CarbonImmutable::class);
+
+        Model::preventLazyLoading(
+            ! $this->app->isProduction(),
+        );
+
+        DB::prohibitDestructiveCommands(
+            app()->isProduction(),
+        );
+
+        Password::defaults(fn (): ?Password => app()->isProduction()
+            ? Password::min(12)
+                ->mixedCase()
+                ->letters()
+                ->numbers()
+                ->symbols()
+                ->uncompromised()
+            : null,
+        );
+        //
+    }
+    //
 }

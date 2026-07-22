@@ -1,14 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Inventario\MovimientoStock\Widgets;
 
-use App\UseCases\Inventario\Queries\Mermas\ObtenerMermasTotales;
+use App\BusinessLogic\Inventario\Data\Mermas\MermaDetalleData;
+use App\Repository\Queries\Inventario\Mermas\ObtenerMermasTotales;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
+use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Collection;
-use stdClass;
 
 class MermasPorCategoriaChart extends ChartWidget
 {
+    use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $permission = static::getWidgetPermission();
+        $user = auth()->user();
+
+        return $permission && $user
+            ? $user->can($permission)
+            : parent::canView();
+    }
+
     protected ?string $heading = 'Impacto de Mermas por Categoría ($)';
 
     protected static ?int $sort = 4;
@@ -22,15 +37,15 @@ class MermasPorCategoriaChart extends ChartWidget
 
     protected function getData(): array
     {
-        /** @var Collection<int, stdClass> $filas */
-        $filas = app(ObtenerMermasTotales::class)->ejecutar([
-            'periodo_desde' => now()->startOfMonth(),
-            'periodo_hasta' => now(),
+        $obtenerMermasTotales = app(ObtenerMermasTotales::class);
+
+        $filas = $obtenerMermasTotales->ejecutar([
+            'periodo_desde' => Carbon::now()->startOfMonth(),
+            'periodo_hasta' => Carbon::now(),
         ]);
 
-        /** @var Collection<string, float> $agrupado */
-        $agrupado = $filas->groupBy(fn (stdClass $f): string => (string) ($f->categoria ?? 'Sin Categoría'))
-            ->map(fn ($grupo) => $grupo->sum('perdida_total'))
+        $agrupado = $filas->groupBy(fn (MermaDetalleData $f): string => $f->categoria)
+            ->map(fn ($grupo) => $grupo->sum('perdidaTotal'))
             ->sortDesc();
 
         return [

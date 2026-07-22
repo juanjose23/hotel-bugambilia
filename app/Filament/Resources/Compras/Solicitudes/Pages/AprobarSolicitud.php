@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
-use App\Models\Compras\Solicitud;
-use App\UseCases\Compras\Solicitudes\Mutations\AprobarSolicitud as AprobarSolicitudUseCase;
+use App\Interactors\Compras\Solicitudes\AprobarSolicitud as AprobarSolicitudUseCase;
+use App\Repository\Models\Compras\Solicitud;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -17,9 +17,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class AprobarSolicitud extends EditRecord
 {
+    protected AprobarSolicitudUseCase $aprobarSolicitudUseCase;
+
+    public function boot(AprobarSolicitudUseCase $aprobarSolicitudUseCase): void
+    {
+        $this->aprobarSolicitudUseCase = $aprobarSolicitudUseCase;
+    }
+
     protected static string $resource = SolicitudResource::class;
 
-    /** @var Solicitud */
     public Model|int|string|null $record = null;
 
     protected static ?string $title = 'Aprobar Solicitud';
@@ -81,35 +87,76 @@ class AprobarSolicitud extends EditRecord
             ]);
     }
 
-    public function save(bool $shouldRedirect = true, bool $shouldSendSavedNotification = true): void
-    {
+    public function save(
+        bool $shouldRedirect = true,
+        bool $shouldSendSavedNotification = true,
+    ): void {
         $this->validate();
-
-        $data = $this->form->getState();
 
         assert($this->record instanceof Solicitud);
 
-        /** @var array<int, array{id: int, cantidad_aprobada: float}> $itemsAprobados */
-        $itemsAprobados = (array) ($data['items_aprobados'] ?? []);
-        app(AprobarSolicitudUseCase::class)->execute($this->record, $itemsAprobados);
+        $this->aprobarSolicitudUseCase->ejecutar(
+            $this->record,
+            $this->obtenerItemsAprobados(),
+        );
 
         if ($shouldSendSavedNotification) {
             Notification::make()
-                ->success()
                 ->title('Solicitud aprobada')
+                ->success()
                 ->send();
         }
 
         if ($shouldRedirect) {
-            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
+            $this->redirect(
+                static::getResource()::getUrl('view', [
+                    'record' => $this->record,
+                ]),
+            );
         }
+    }
+
+    /**
+     * @return list<array{id:int,cantidad_aprobada:int|float|string}>
+     */
+    private function obtenerItemsAprobados(): array
+    {
+        /** @var mixed $items */
+        $items = $this->form->getState()['items_aprobados'] ?? [];
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $resultado = [];
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $id = $item['id'] ?? null;
+            $cantidad = $item['cantidad_aprobada'] ?? 0;
+
+            if (! is_numeric($id)) {
+                continue;
+            }
+            $resultado[] = [
+                'id' => (int) $id,
+                'cantidad_aprobada' => is_numeric($cantidad)
+                    ? $cantidad
+                    : 0,
+            ];
+        }
+
+        return $resultado;
     }
 
     public function aceptarTodasLasCantidades(): void
     {
-        /** @var array<int, array<string, mixed>> $items */
+        /** @var list<array<string, mixed>> $items */
         $items = $this->data['items_aprobados'] ?? [];
         foreach ($items as $key => $item) {
+            /** @var array<string, mixed> $item */
             $cantidadSolicitada = $item['cantidad_solicitada'] ?? 0;
             $items[$key]['cantidad_aprobada'] = floatval(is_numeric($cantidadSolicitada) ? $cantidadSolicitada : 0);
         }

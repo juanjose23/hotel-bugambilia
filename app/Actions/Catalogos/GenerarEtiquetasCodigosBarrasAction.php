@@ -4,96 +4,161 @@ declare(strict_types=1);
 
 namespace App\Actions\Catalogos;
 
-use App\Models\Catalogos\ProductoVariante;
+use App\Actions\Catalogos\Concerns\FiltrosProducto;
+use App\BusinessLogic\Catalogos\Data\EtiquetaProductoData;
+use App\BusinessLogic\Catalogos\Data\ProductoFiltrosData;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Support\Barcode\BarcodeColor;
+use App\Support\Barcode\BarcodeGenerator;
+use App\Support\Barcode\BarcodeType;
+use App\Support\HotelInfo;
+use App\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Pdf\LayoutPdf;
+use App\Support\Pdf\TipoPaginaResolver;
+use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
-use App\UseCases\Reportes\Mutations\RegistrarAuditoriaReporteUseCase;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
-use Picqer\Barcode\BarcodeGeneratorPNG;
-use Throwable;
 
-class GenerarEtiquetasCodigosBarrasAction
+final class GenerarEtiquetasCodigosBarrasAction
 {
-    public function ejecutar(?int $productoId = null): \Barryvdh\DomPDF\PDF
+    use FiltrosProducto, GuardaReporte;
+
+    private const string CODIGO_REPORTE = 'HTB-CP003';
+
+    public function __construct(
+        private readonly BarcodeGenerator $barcodeGenerator,
+    ) {}
+
+    public function ejecutar(ProductoFiltrosData $filtros): \Barryvdh\DomPDF\PDF
     {
-        $query = ProductoVariante::with('producto');
+        [$tamanoPapel, $orientacion] = app(TipoPaginaResolver::class)
+            ->resolver($filtros->tipoPagina);
 
-        if ($productoId) {
-            $query->where('producto_id', $productoId);
-        }
+        $layout = new LayoutPdf(
+            tamano: $tamanoPapel,
+            orientacion: $orientacion,
+            margenSuperiorMm: 8,
+            margenInferiorMm: 10,
+            altoPieMm: 0,
+        );
 
-        $variantes = $query->join('productos', 'producto_variantes.producto_id', '=', 'productos.id')
-            ->orderBy('productos.nombre')
-            ->orderBy('producto_variantes.codigo')
-            ->select('producto_variantes.*')
-            ->get();
+        $productos = $this->obtenerProductos($filtros);
+        $etiquetas = $this->construirEtiquetas($productos);
 
-        $generator = new BarcodeGeneratorPNG;
-        $etiquetas = [];
+        $etiquetasArray = collect($etiquetas)->map(
+            fn (EtiquetaProductoData $etiqueta) => $etiqueta->toArray()
+        );
 
-        foreach ($variantes as $variante) {
-            if (! empty($variante->codigo)) {
-                $sku = $variante->codigo;
-            }
-            if (empty($sku)) {
-                continue;
-            }
+        $paginas = (new ReportePaginador($layout))->paginar(
+            items: $etiquetasArray,
+            tipo: TiposReporte::ETIQUETA,
+        );
 
-            try {
-                $barcodeBase64 = base64_encode($generator->getBarcode($sku, $generator::TYPE_CODE_128));
-
-                $etiquetas[] = [
-                    'codigo_barras' => $sku,
-                    'imagen' => 'data:image/png;base64,'.$barcodeBase64,
-                    'producto' => $variante->producto ? $variante->producto->nombre : 'Sin producto',
-                    'variante' => $variante->nombre_variante ?? 'Principal',
-                    'codigo_completo' => $sku,
-                ];
-            } catch (Throwable $e) {
-                logger($e->getMessage());
-
-                continue;
-            }
-        }
-
-        // Cargar logo en base64
-        $logoPath = public_path('img/logo-horizontal.png');
-        $logoBase64 = '';
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $logoBase64 = 'data:image/'.$type.';base64,'.base64_encode((string) file_get_contents($logoPath));
-        }
-
-        /*
-         * Estructura de $paginas para la vista:
-         *   [
-         *     ['filas' => [ [etiqueta, etiqueta, etiqueta], [...] ]],  // página 1
-         *     ['filas' => [ ... ]],                                     // página 2
-         *   ]
-         *
-         * etiquetasPorPagina() devuelve el total de etiquetas (ya múltiplo de cols=3).
-         * Dividimos en páginas y luego cada página en filas de 3.
-         */
-        $porPagina = ReportePaginador::etiquetasPorPagina();
-        $paginas = collect($etiquetas)
-            ->chunk($porPagina)
-            ->map(fn (Collection $pagEtiquetas): array => [
-                'filas' => $pagEtiquetas->chunk(3)->map(fn (Collection $f): array => $f->values()->all())->values()->all(),
-            ])
-            ->values()
-            ->all();
-        $pdf = Pdf::loadView('reports.catalogos.etiquetas-codigos-barras', data: [
+        $pdf = Pdf::loadView('reports.catalogos.etiquetas', [
             'paginas' => $paginas,
-            'fecha' => now()->format('d/m/Y H:i'),
-            'usuario' => auth()->user()->name ?? 'Sistema',
-            'codigoReporte' => 'HTB-CP-003',
+            'totalRegistros' => $etiquetasArray->count(),
+            'datosHotel' => HotelInfo::getBaseData(),
+            'codigoReporte' => self::CODIGO_REPORTE,
             'nombreReporte' => 'Etiquetas de Códigos de Barras',
-            'logo_base64' => $logoBase64,
-        ]);
+            'filtrosResueltos' => $this->prepararFiltros($filtros),
+            'columnas' => TiposReporte::ETIQUETA->configuracion()->columnas ?? 4,
+            'pageMarginTop' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginBottom' => $layout->margenInferiorMm,
+            'pageMarginLeft' => $layout->margenSuperiorMm,
+        ])->setPaper(
+            $tamanoPapel->dompdfName(),
+            $orientacion->dompdfName(),
+        );
 
-        $auditoria = new RegistrarAuditoriaReporteUseCase;
-        $auditoria->ejecutar('HTB-CP-003', ['producto_id' => $productoId]);
+        $this->guardarAuditoria(
+            tipoReporte: self::CODIGO_REPORTE,
+            parametros: $filtros->toArray(),
+            pdf: $pdf,
+        );
 
         return $pdf;
+    }
+
+    /**
+     * @param  Collection<int, Producto>  $productos
+     * @return array<int, EtiquetaProductoData>
+     */
+    private function construirEtiquetas(Collection $productos): array
+    {
+        return $productos
+            ->flatMap(fn (Producto $producto) => $this->buildEtiquetasProducto($producto))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return Collection<int, EtiquetaProductoData>
+     */
+    private function buildEtiquetasProducto(Producto $producto): Collection
+    {
+        $codigoBase = $this->resolverCodigo($producto->codigo, $producto->id);
+
+        if ($producto->variantes->isNotEmpty()) {
+            return $producto->variantes->map(
+                fn (ProductoVariante $variante) => $this->buildEtiqueta(
+                    nombreProducto: $producto->nombre ?? '',
+                    nombreVariante: $variante->nombre_variante ?? 'Estándar',
+                    codigo: $this->resolverCodigo($variante->codigo, $producto->id),
+                )
+            );
+        }
+
+        return collect([$this->buildEtiqueta(
+            nombreProducto: $producto->nombre ?? '',
+            nombreVariante: 'Estándar',
+            codigo: $codigoBase,
+        )]);
+    }
+
+    private function buildEtiqueta(
+        string $nombreProducto,
+        string $nombreVariante,
+        string $codigo,
+    ): EtiquetaProductoData {
+        $barcode = $this->barcodeGenerator->data(
+            code: $codigo,
+            type: BarcodeType::Code128,
+            height: 70,
+            color: BarcodeColor::HOTEL,
+        );
+
+        return new EtiquetaProductoData(
+            producto: $nombreProducto,
+            variante: $nombreVariante,
+            codigo: $codigo,
+            barcodeBase64: $barcode->base64,
+        );
+    }
+
+    private function resolverCodigo(?string $codigo, int $productoId): string
+    {
+        return (! empty($codigo)) ? $codigo : 'SKU-'.$productoId;
+    }
+
+    /**
+     * @return Collection<int, Producto>
+     */
+    private function obtenerProductos(
+        ProductoFiltrosData $filtros,
+    ): Collection {
+        $query = Producto::query()->with('variantes');
+
+        $this->aplicarFiltrosQuery($query, $filtros);
+
+        if ($filtros->productoId !== null) {
+            $query->whereKey($filtros->productoId);
+        }
+
+        return $query
+            ->orderBy('nombre')
+            ->get();
     }
 }

@@ -1,112 +1,54 @@
-@extends('layouts.reporte-htb')
-
-@section('report_code', 'HTB-ACT-006')
-@section('report_name', 'Historial de Movimientos de Activo')
-
+@extends('reports.layout.app', [
+    'nombreReporte' => $nombreReporte,
+    'codigoReporte' => $codigoReporte,
+])
 @section('content')
-<div class="report-page">
-    <table class="page-frame">
-        <tbody>
-            <tr>
-                <td class="frame-body" style="padding: 40px;">
-                    <div class="doc-header">
-                        <table>
-                            <tr>
-                                <td style="width:35%;">
-                                    @if(!empty($logo_base64))
-                                        <img src="{{ $logo_base64 }}" class="hdr-logo">
-                                    @else
-                                        <div class="hdr-title">Hotel Bugambilias</div>
-                                    @endif
-                                </td>
-                                <td style="text-align:right;">
-                                    <div class="hdr-title" style="font-size: 14px;">Historial de Movimientos</div>
-                                    <div class="hdr-code">HTB-ACT-006</div>
-                                    <div class="hdr-sub">{{ $hotelInfo['direccion'] }}</div>
-                                    <div class="hdr-sub">Tel: {{ $hotelInfo['telefono'] }} | {{ $hotelInfo['email'] }}</div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+    <div class="pagina">
+        <div class="report-header">
+            @include('reports.layout.partials.header', [
+                'logo_base64' => $datosHotel['logo_base64'] ?? null,
+                'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
+            ])
+        </div>
 
-                    <div style="margin-bottom: 20px; font-size: 10px; color: #666;">
-                        <span><strong>Generado en:</strong> {{ $generadoEn }}</span> &nbsp;|&nbsp;
-                        <span><strong>Generado por:</strong> {{ $usuario }}</span>
-                        @if($filtroActivo)
-                            &nbsp;|&nbsp; <strong>Activo:</strong> {{ $filtroActivo->codigo_inventario }} - {{ $filtroActivo->nombre_descriptivo }}
-                        @endif
-                    </div>
+        <div class="report-content">
+            @if($activo)
+                <div style="margin-bottom:16px;background:#f8fafc;padding:12px 15px;border:1px solid #e2e8f0;border-radius:4px;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:50%;vertical-align:top;border:none;padding:0;">
+                                <strong style="color:#711C37;font-size:11px;text-transform:uppercase;">Activo:</strong><br>
+                                @include('reports.activos.partials.sku', ['codigo' => $activo->codigo_inventario, 'fontSize' => '13px'])
+                                <br><strong>{{ $activo->producto?->nombre ?? '—' }}</strong>
+                            </td>
+                            <td style="width:50%;vertical-align:top;border:none;padding:0;text-align:right;">
+                                @if($filtroActivo)
+                                    <span class="badge" style="background:#dbeafe;color:#1e40af;border:1px solid #1e40af;font-size:8px;">
+                                        Historial de un activo
+                                    </span>
+                                @else
+                                    <span class="badge" style="background:#d1fae5;color:#065f46;border:1px solid #065f46;font-size:8px;">
+                                        Historial general
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            @endif
 
-                    <div class="pcard">
-                        <div class="pcard-hdr">
-                            <table>
-                                <tr>
-                                    <td>
-                                        <div class="pcard-title">Línea de Tiempo del Activo</div>
-                                        <div class="pcard-meta">
-                                            {{ $activo->codigo_inventario }} — {{ $activo->nombre_descriptivo }}
-                                            @if($activo->producto)
-                                                | {{ $activo->producto->nombre }}
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td style="text-align:right;">
-                                        <span class="badge">{{ $activo->estado?->label() }}</span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
+            @forelse($lineaTiempo as $evento)
+                @include('reports.activos.partials.timeline-item', ['evento' => $evento])
+            @empty
+                @include('reports.activos.partials.empty-state', ['type' => 'div', 'mensaje' => 'No se registran movimientos para este activo.'])
+            @endforelse
+        </div>
 
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:80px;">Fecha</th>
-                                    <th style="width:120px;">Tipo de Evento</th>
-                                    <th>Detalle</th>
-                                    <th style="width:100px;">Responsable</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($lineaTiempo as $evento)
-                                <tr>
-                                    <td>{{ $evento['fecha'] }}</td>
-                                    <td>
-                                        <span class="badge" style="
-                                            background: {{ $evento['color'] }}20;
-                                            color: {{ $evento['color'] }};
-                                            border: 1px solid {{ $evento['color'] }}40;
-                                        ">{{ $evento['tipo'] }}</span>
-                                    </td>
-                                    <td>{{ $evento['detalle'] }}</td>
-                                    <td>{{ $evento['responsable'] ?: '—' }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="4" style="text-align:center;color:#999;font-style:italic;">No hay movimientos registrados para este activo.</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style="margin-top:20px;font-size:9px;color:#666;">
-                        <strong>Nota:</strong> Se muestran todas las asignaciones, mantenimientos y bajas registradas para este activo en orden cronológico.
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="frame-footer">
-                    <div class="doc-footer">
-                        <table style="width:100%;">
-                            <tr>
-                                <td style="font-size:8px;color:#999;">Reporte de trazabilidad individual del activo.</td>
-                                <td style="text-align:right;font-weight:bold;color:#711C37;text-transform:uppercase;">Sistema de Gestión de Activos</td>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+        <div class="report-footer">
+            @include('reports.layout.partials.footer', [
+                'generadoEn' => $generadoEn ?? now()->format('d/m/Y H:i'),
+                'usuario' => $usuario ?? 'Sistema',
+            ])
+        </div>
+    </div>
 @endsection

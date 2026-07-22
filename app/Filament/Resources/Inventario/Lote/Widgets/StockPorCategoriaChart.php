@@ -1,14 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Inventario\Lote\Widgets;
 
-use App\UseCases\Inventario\Queries\Stock\ObtenerStockPorProducto;
+use App\BusinessLogic\Inventario\Data\Stock\StockProductoData;
+use App\Repository\Queries\Inventario\Stock\ObtenerStockPorProducto;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Collection;
-use stdClass;
 
 class StockPorCategoriaChart extends ChartWidget
 {
+    use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $permission = static::getWidgetPermission();
+        $user = auth()->user();
+
+        return $permission && $user
+            ? $user->can($permission)
+            : parent::canView();
+    }
+
     protected ?string $heading = 'Stock Disponible por Categoría';
 
     protected static ?int $sort = 1;
@@ -22,21 +36,21 @@ class StockPorCategoriaChart extends ChartWidget
 
     protected function getData(): array
     {
-        /** @var Collection<int, stdClass> $filas */
-        $filas = app(ObtenerStockPorProducto::class)->ejecutar();
+        $obtenerStockPorProducto = app(ObtenerStockPorProducto::class);
 
-        /** @var Collection<string, float> $agrupado */
-        $agrupado = $filas->groupBy(fn (stdClass $f): string => (string) ($f->categoria ?? 'Sin Categoría'))
-            ->map(fn ($grupo) => $grupo->sum('stock_disponible'))
+        $filas = $obtenerStockPorProducto->ejecutar();
+
+        $agrupado = $filas->groupBy(fn (StockProductoData $f): string => $f->categoria ?? 'Sin Categoría')
+            ->map(fn ($grupo) => $grupo->sum('stockDisponible'))
             ->sortDesc()
-            ->take(10); // Top 10 categorías
+            ->take(10);
 
         return [
             'datasets' => [
                 [
                     'label' => 'Stock Disponible',
                     'data' => $agrupado->values()->toArray(),
-                    'backgroundColor' => '#10b981', // Verde
+                    'backgroundColor' => '#10b981',
                     'borderRadius' => 4,
                 ],
             ],

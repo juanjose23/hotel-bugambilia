@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Enums\HabitacionesEspacios;
 
-use BackedEnum;
+use App\Enums\Concerns\TieneAyudantesEnum;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
-use Filament\Support\Icons\Heroicon;
 
 enum TipoEspacio: string implements HasIcon, HasLabel
 {
+    use TieneAyudantesEnum;
+
     case RESTAURANTE = 'restaurante';
+    case AMBIENTE = 'ambiente';
+    case TERRAZA = 'terraza';
+    case BAR = 'bar';
     case MESA = 'mesa';
     case GYM = 'gym';
     case SALON = 'salon';
@@ -23,39 +27,34 @@ enum TipoEspacio: string implements HasIcon, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::RESTAURANTE => 'Restaurante / Bar',
-            self::MESA => 'Mesa de Restaurante/Bar',
-            self::GYM => 'Gimnasio / Área de Fitness',
-            self::SALON => 'Salón / Sala de Eventos',
-            self::SPA => 'Cabina de Spa / Masajes',
-            self::PISCINA => 'Área de Piscina / Camastro',
-            self::CANCHA => 'Cancha Deportiva',
-            self::OTRO => 'Otro Espacio',
+            self::RESTAURANTE => 'Restaurante',
+            self::AMBIENTE => 'Ambiente / Área',
+            self::TERRAZA => 'Terraza',
+            self::BAR => 'Bar & Lounge',
+            self::MESA => 'Mesa',
+            self::GYM => 'Gimnasio',
+            self::SALON => 'Salón',
+            self::SPA => 'Spa',
+            self::PISCINA => 'Piscina',
+            self::CANCHA => 'Cancha',
+            self::OTRO => 'Otro',
         };
     }
 
-    public function getIcon(): BackedEnum
+    public function getIcon(): string
     {
         return match ($this) {
-            self::RESTAURANTE => Heroicon::BuildingStorefront,
-            self::MESA => Heroicon::TableCells,
-            self::GYM => Heroicon::Trophy,
-            self::SALON => Heroicon::PresentationChartBar,
-            self::SPA => Heroicon::Sparkles,
-            self::PISCINA => Heroicon::Sun,
-            self::CANCHA => Heroicon::Flag,
-            self::OTRO => Heroicon::MapPin,
+            self::RESTAURANTE => 'heroicon-o-building-storefront',
+            self::AMBIENTE => 'heroicon-o-sun',
+            self::TERRAZA => 'heroicon-o-home-modern',
+            self::BAR => 'heroicon-o-beaker',
+            self::MESA => 'heroicon-o-users',
+            self::GYM => 'heroicon-o-wrench-screwdriver',
+            self::SALON => 'heroicon-o-star',
+            self::SPA => 'heroicon-o-sparkles',
+            self::PISCINA => 'heroicon-o-circle-stack',
+            self::CANCHA => 'heroicon-o-map',
+            self::OTRO => 'heroicon-o-question-mark-circle',
         };
-    }
-
-    /** @return array<string, string> */
-    public static function options(): array
-    {
-        $options = [];
-        foreach (self::cases() as $tipo) {
-            $options[$tipo->value] = $tipo->getLabel();
-        }
-
-        return $options;
     }
 }

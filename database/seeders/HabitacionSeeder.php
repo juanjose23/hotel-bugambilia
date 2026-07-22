@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\HabitacionesEspacios\EstadoHabitacion;
-use App\Enums\HabitacionesEspacios\EstadoServicioAsignacion;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Habitaciones\DetalleHabitacion;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Habitaciones\PrecioHabitacion;
-use App\Models\Habitaciones\ServicioHabitacion;
-use App\Models\Monedas\Moneda;
-use App\Models\Politicas\Politica;
-use App\Models\Servicios\Servicio;
-use App\UseCases\Habitaciones\Mutations\GenerarCodigoHabitacion;
-use App\UseCases\Habitaciones\Mutations\GenerarSlugHabitacion;
+use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\Shared\EstadoGeneral;
+use App\Interactors\Habitaciones\GenerarCodigoHabitacion;
+use App\Interactors\Habitaciones\GenerarSlugHabitacion;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Habitaciones\DetalleHabitacion;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Politicas\Politica;
+use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Models\Shared\Precio;
+use App\Repository\Models\Shared\ServicioAsignacion;
 use Illuminate\Database\Seeder;
 
 class HabitacionSeeder extends Seeder
@@ -314,8 +314,8 @@ class HabitacionSeeder extends Seeder
             }
 
             // Generar código autotraducido
-            $codigo = app(GenerarCodigoHabitacion::class)->execute();
-            $slug = app(GenerarSlugHabitacion::class)->execute($rData['nombre']);
+            $codigo = app(GenerarCodigoHabitacion::class)->ejecutar();
+            $slug = app(GenerarSlugHabitacion::class)->ejecutar($rData['nombre']);
 
             // Crear Habitación
             $habitacion = Habitacion::create([
@@ -326,7 +326,7 @@ class HabitacionSeeder extends Seeder
                 'descripcion' => $rData['descripcion'],
                 'categoria_id' => $categoria->id,
                 'ubicacion_id' => $ubicacion->id,
-                'estado' => EstadoHabitacion::Activa,
+                'estado' => EstadoEspacio::Activa,
             ]);
 
             // Mapear códigos de vistas a IDs
@@ -349,8 +349,9 @@ class HabitacionSeeder extends Seeder
 
             // Precio en Córdoba Nicaragüense (C$)
             $precioNio = round($rData['precio_usd'] * $tipoCambio, 2);
-            PrecioHabitacion::create([
-                'habitacion_id' => $habitacion->id,
+            Precio::create([
+                'priceable_type' => Habitacion::class,
+                'priceable_id' => $habitacion->id,
                 'moneda_id' => $nio->id,
                 'precio' => $precioNio,
                 'fecha_inicio' => now()->toDateString(),
@@ -359,8 +360,9 @@ class HabitacionSeeder extends Seeder
             ]);
 
             // Precio en Dólar Estadounidense ($)
-            PrecioHabitacion::create([
-                'habitacion_id' => $habitacion->id,
+            Precio::create([
+                'priceable_type' => Habitacion::class,
+                'priceable_id' => $habitacion->id,
                 'moneda_id' => $usd->id,
                 'precio' => $rData['precio_usd'],
                 'fecha_inicio' => now()->toDateString(),
@@ -372,11 +374,12 @@ class HabitacionSeeder extends Seeder
             foreach ($rData['servicios'] as $sData) {
                 $servicio = Servicio::where('nombre', $sData['nombre'])->first();
                 if ($servicio) {
-                    ServicioHabitacion::create([
+                    ServicioAsignacion::create([
+                        'serviceable_type' => Habitacion::class,
+                        'serviceable_id' => $habitacion->id,
                         'servicio_id' => $servicio->id,
-                        'habitacion_id' => $habitacion->id,
                         'incluido' => $sData['incluido'],
-                        'estado' => EstadoServicioAsignacion::Activo,
+                        'estado' => EstadoGeneral::Activo,
                     ]);
                 }
             }

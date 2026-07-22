@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Inventario\PackResource\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Models\Catalogos\ProductoVariante;
+use App\Repository\Queries\Inventario\Pack\ObtenerVariantesParaPackQuery;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -16,10 +16,22 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 
-class PackForm
+readonly class PackForm
 {
+    public function __construct(
+        private ObtenerVariantesParaPackQuery $obtenerVariantes,
+    ) {}
+
     public static function configure(Schema $schema): Schema
     {
+        return app(static::class)->doConfigure($schema);
+    }
+
+    private function doConfigure(Schema $schema): Schema
+    {
+        $variantes = $this->obtenerVariantes->ejecutar()
+            ->mapWithKeys(fn (object $v) => [$v->id => $v->label]);
+
         return $schema
             ->components([
                 Section::make('Información del Pack')
@@ -99,14 +111,7 @@ class PackForm
                             ->schema([
                                 Select::make('producto_variante_id')
                                     ->label('Producto / Variante')
-                                    ->options(function () {
-                                        return ProductoVariante::with('producto')
-                                            ->whereHas('producto', fn ($q) => $q->whereIn('tipo', [1, 2]))
-                                            ->get()
-                                            ->mapWithKeys(fn ($v) => [
-                                                $v->id => ($v->producto->nombre ?? '?').' — '.($v->nombre_variante ?? $v->codigo),
-                                            ]);
-                                    })
+                                    ->options(fn () => $variantes)
                                     ->searchable()
                                     ->preload()
                                     ->required()
@@ -130,8 +135,8 @@ class PackForm
                             ->columns(5)
                             ->defaultItems(0)
                             ->collapsible()
-                            ->itemLabel(fn (array $state): string => $state['producto_variante_id'] ?? null
-                                ? (ProductoVariante::find($state['producto_variante_id'])->nombre_variante ?? 'Item')
+                            ->itemLabel(fn (array $state): string => isset($state['producto_variante_id'])
+                                ? ($variantes->get($state['producto_variante_id']) ?? 'Item')
                                 : 'Nuevo Item'),
                     ]),
             ]);

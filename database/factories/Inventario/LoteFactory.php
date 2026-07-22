@@ -3,11 +3,11 @@
 namespace Database\Factories\Inventario;
 
 use App\Enums\Inventario\EstadoLote;
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\ProductoVariante;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Compras\Proveedor;
-use App\Models\Inventario\Lote;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Inventario\Lote;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

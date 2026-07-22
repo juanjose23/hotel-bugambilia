@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums\HabitacionesEspacios;
 
-use App\Enums\Concerns\HasEnumHelpers;
+use App\Enums\Concerns\TieneAyudantesEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
@@ -12,7 +12,7 @@ use Filament\Support\Icons\Heroicon;
 
 enum TipoCocina: string implements HasColor, HasIcon, HasLabel
 {
-    use HasEnumHelpers;
+    use TieneAyudantesEnum;
 
     case Buffet = 'buffet';
     case ACarta = 'a_la_carta';

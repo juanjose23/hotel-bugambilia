@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Servicios\Servicios\Schemas;
 
-use App\Enums\Servicios\ServicioEstado;
-use App\Filament\Resources\Shared\InfolistTimestamps;
-use App\Models\Servicios\Servicio;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
+use App\Repository\Models\Servicios\Servicio;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -34,8 +34,8 @@ class ServicioInfolist
                         TextEntry::make('estado')
                             ->label('Estado')
                             ->badge()
-                            ->color(fn ($state): ?string => is_string($color = ServicioEstado::colorFor($state)) ? $color : null)
-                            ->formatStateUsing(fn ($state): string => ServicioEstado::labelFor($state)),
+                            ->color(fn ($state): ?string => is_string($color = EstadoGeneral::colorFor($state)) ? $color : null)
+                            ->formatStateUsing(fn ($state): string => EstadoGeneral::labelFor($state)),
 
                         TextEntry::make('icono')
                             ->label('Icono Representativo')
@@ -43,7 +43,7 @@ class ServicioInfolist
                             ->icon(fn ($state) => $state)
                             ->formatStateUsing(fn ($state) => $state ? ucwords(str_replace(['heroicon-o-', '-'], ['', ' '], $state)) : 'Ninguno'),
 
-                        ...InfolistTimestamps::make(),
+                        ...TimestampsInfolistEntry::make(),
 
                         TextEntry::make('descripcion')
                             ->label('Descripción')

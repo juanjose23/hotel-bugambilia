@@ -1,5 +1,92 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
-@source '../../../../app/Filament';
-@source '../../../../resources/views/filament';
-@source '../../../../resources/views/livewire';
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* ============================================
+   ☀️ MODO CLARO — Hotel Bugambilias
+   Fresco, limpio y artesanal
+   ============================================ */
+:root {
+    --background: oklch(0.99 0.005 106);
+    --foreground: oklch(0.16 0.006 140);
+    --card: oklch(0.96 0.004 106);
+    --card-foreground: oklch(0.16 0.006 140);
+    --popover: oklch(0.96 0.004 106);
+    --popover-foreground: oklch(0.16 0.006 140);
+    --primary: oklch(0.3 0.19 358);
+    --primary-foreground: oklch(0.99 0.005 106);
+    --secondary: oklch(0.93 0.02 358);
+    --secondary-foreground: oklch(0.3 0.19 358);
+    --muted: oklch(0.93 0.02 358);
+    --muted-foreground: oklch(0.35 0.008 140);
+    --accent: oklch(0.9 0.03 358);
+    --accent-foreground: oklch(0.3 0.19 358);
+    --destructive: oklch(0.55 0.25 27);
+    --destructive-foreground: oklch(0.99 0.005 106);
+    --border: oklch(0.88 0.003 106);
+    --input: oklch(0.88 0.003 106);
+    --ring: oklch(0.3 0.19 358);
+    --sidebar: oklch(0.96 0.004 106);
+    --sidebar-foreground: oklch(0.16 0.006 140);
+    --sidebar-primary: oklch(0.3 0.19 358);
+    --sidebar-primary-foreground: oklch(0.99 0.005 106);
+    --sidebar-accent: oklch(0.93 0.02 358);
+    --sidebar-accent-foreground: oklch(0.3 0.19 358);
+    --sidebar-border: oklch(0.88 0.003 106);
+    --sidebar-ring: oklch(0.3 0.19 358);
+    --bugambilia-50: oklch(0.95 0.02 358);
+    --bugambilia-100: oklch(0.88 0.05 358);
+    --bugambilia-200: oklch(0.8 0.08 358);
+    --bugambilia-300: oklch(0.65 0.12 358);
+    --bugambilia-400: oklch(0.48 0.15 358);
+    --bugambilia-500: oklch(0.3 0.19 358);
+    --bugambilia-600: oklch(0.26 0.17 358);
+    --bugambilia-700: oklch(0.22 0.15 358);
+    --bugambilia-800: oklch(0.18 0.12 358);
+    --bugambilia-900: oklch(0.14 0.1 358);
+}
+
+/* ============================================
+   🌙 MODO OSCURO — Hotel Bugambilias
+   Lujo nocturno y elegancia — Tema predeterminado
+   ============================================ */
+.dark {
+    --background: oklch(0.12 0.003 150);
+    --foreground: oklch(0.91 0.006 106);
+    --card: oklch(0.16 0.004 150);
+    --card-foreground: oklch(0.91 0.006 106);
+    --popover: oklch(0.16 0.004 150);
+    --popover-foreground: oklch(0.91 0.006 106);
+    --primary: oklch(0.45 0.18 358);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.22 0.02 358);
+    --secondary-foreground: oklch(0.91 0.006 106);
+    --muted: oklch(0.22 0.02 358);
+    --muted-foreground: oklch(0.81 0.006 106);
+    --accent: oklch(0.28 0.06 358);
+    --accent-foreground: oklch(0.91 0.006 106);
+    --destructive: oklch(0.65 0.22 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(1 0 0 / 8%);
+    --input: oklch(1 0 0 / 12%);
+    --ring: oklch(0.45 0.18 358);
+    --sidebar: oklch(0.16 0.004 150);
+    --sidebar-foreground: oklch(0.91 0.006 106);
+    --sidebar-primary: oklch(0.45 0.18 358);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.28 0.06 358);
+    --sidebar-accent-foreground: oklch(0.91 0.006 106);
+    --sidebar-border: oklch(1 0 0 / 8%);
+    --sidebar-ring: oklch(0.45 0.18 358);
+    --bugambilia-50: oklch(0.2 0.03 358);
+    --bugambilia-100: oklch(0.24 0.05 358);
+    --bugambilia-200: oklch(0.28 0.08 358);
+    --bugambilia-300: oklch(0.34 0.11 358);
+    --bugambilia-400: oklch(0.4 0.15 358);
+    --bugambilia-500: oklch(0.45 0.18 358);
+    --bugambilia-600: oklch(0.4 0.16 358);
+    --bugambilia-700: oklch(0.35 0.14 358);
+    --bugambilia-800: oklch(0.3 0.12 358);
+    --bugambilia-900: oklch(0.25 0.1 358);
+}

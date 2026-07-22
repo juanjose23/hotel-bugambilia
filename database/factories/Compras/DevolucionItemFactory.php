@@ -2,7 +2,7 @@
 
 namespace Database\Factories\Compras;
 
-use App\Models\Compras\DevolucionItem;
+use App\Repository\Models\Compras\DevolucionItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

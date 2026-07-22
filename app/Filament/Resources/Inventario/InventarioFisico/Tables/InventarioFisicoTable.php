@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Inventario\InventarioFisico\Tables;
 
 use App\Enums\Inventario\EstadoInventarioFisico;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Inventario\InventarioFisico;
-use App\UseCases\Inventario\InventarioFisico\Mutations\ProcesarInventarioFisico;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Interactors\Inventario\InventarioFisico\ProcesarInventarioFisico\ProcesarInventarioFisico;
+use App\Repository\Models\Inventario\InventarioFisico;
+use Exception;
 use Filament\Actions\Action as TableAction;
-use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -19,9 +21,20 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Qalainau\UniverSheet\SpreadsheetColumn;
 
-class InventarioFisicoTable
+readonly class InventarioFisicoTable
 {
+    use InyectaDesdeContenedor;
+
+    public function __construct(
+        private ProcesarInventarioFisico $procesarInventarioFisico,
+    ) {}
+
     public static function configure(Table $table): Table
+    {
+        return static::make()->doConfigure($table);
+    }
+
+    private function doConfigure(Table $table): Table
     {
         return $table
             ->columns([
@@ -65,15 +78,13 @@ class InventarioFisicoTable
                         ->badge()
                         ->color('gray'),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime('d/m/Y H:i')
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 FiltroEstado::make(EstadoInventarioFisico::class),
             ])
-            ->actions([
+            ->recordActions([
                 TableAction::make('procesar_conciliacion')
                     ->label('Conciliar')
                     ->icon(Heroicon::CheckCircle)
@@ -83,14 +94,15 @@ class InventarioFisicoTable
                     ->modalDescription('Esta acción comparará la cantidad física registrada en la hoja de cálculo con el stock actual del sistema, generará los movimientos de ajuste (MOV_AJUSTE) en los lotes con discrepancia, y cerrará esta sesión como PROCESADO. Esta acción no se puede deshacer.')
                     ->action(function (InventarioFisico $record) {
                         try {
-                            app(ProcesarInventarioFisico::class)->execute($record, (int) auth()->id());
+                            $this->procesarInventarioFisico->execute($record, (int) auth()->id());
 
                             Notification::make()
                                 ->title('Conciliación Procesada')
-                                ->body("La toma de inventario {$record->codigo} ha sido procesada de manera exitosa y los ajustes han sido aplicados.")
+                                ->body("La toma de inventario $record->codigo ha sido procesada de manera exitosa y los ajustes han sido aplicados.")
                                 ->success()
                                 ->send();
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
+
                             Notification::make()
                                 ->title('Error al procesar conciliación')
                                 ->body($e->getMessage())
@@ -100,15 +112,11 @@ class InventarioFisicoTable
                     })
                     ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
 
-                ActionGroup::make([
-                    ViewAction::make(),
-                    EditAction::make()
-                        ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
-                    DeleteAction::make()
-                        ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
-                ])
-                    ->icon(Heroicon::EllipsisVertical)
-                    ->tooltip('Más opciones'),
+                ViewAction::make(),
+                EditAction::make()
+                    ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
+                DeleteAction::make()
+                    ->visible(fn (InventarioFisico $record) => $record->estado === EstadoInventarioFisico::Borrador),
             ])
             ->defaultSort('created_at', 'desc');
     }

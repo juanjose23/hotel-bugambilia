@@ -36,7 +36,7 @@ class RegistroIndividualizacionForm
                         ->label('Estado')
                         ->getStateUsing(fn ($record) => $record->estado?->label() ?? '-'),
                 ])
-                ->columns(2),
+                ->columns(),
         ]);
     }
 }

@@ -2,21 +2,19 @@
 
 use App\Enums\Compras\EstadoCotizacion;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Colaboradores\Colaborador;
-use App\Models\Compras\Cotizacion;
-use App\Models\Compras\DevolucionCompra;
-use App\Models\Compras\OrdenCompra;
-use App\Models\Compras\Proveedor;
-use App\Models\Compras\RecepcionCompra;
-use App\Models\Compras\Solicitud;
-use App\Models\Personas\Persona;
-use App\Models\User;
-use App\Services\Compras\NotificadorCompras;
+use App\Notifications\Compras\NotificadorCompras;
+use App\Repository\Models\Colaboradores\Colaborador;
+use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Models\Compras\DevolucionCompra;
+use App\Repository\Models\Compras\OrdenCompra;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\User;
+use Database\Factories\CatalogoFactory;
 use Database\Seeders\TasaCambioSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
+use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     $persona = Persona::factory()->create();
@@ -30,6 +28,10 @@ beforeEach(function () {
     $seeder = new TasaCambioSeeder;
     $seeder->run();
 
+    // Assign a compras role so the user is found by DestinatariosCompra
+    Role::firstOrCreate(['name' => 'compras_encargado', 'guard_name' => 'web']);
+    $this->user->assignRole('compras_encargado');
+
     $this->notificador = app(NotificadorCompras::class);
     $this->proveedor = Proveedor::factory()->create();
 
@@ -37,7 +39,7 @@ beforeEach(function () {
     $this->colaborador = Colaborador::factory()->create([
         'persona_id' => $persona->id,
     ]);
-    $this->departamento = Catalogo::factory()->create();
+    $this->departamento = CatalogoFactory::new()->create();
 });
 
 it('despacha notificacion para solicitudCreada', function () {
@@ -56,8 +58,8 @@ it('despacha notificacion para solicitudCreada', function () {
     $notification = $this->user->notifications()->first();
     expect($notification)->not->toBeNull();
     expect($notification->data['title'])->toBe('Solicitud Creada');
-    expect($notification->data['body'])->toBe('La solicitud SOL-TEST-001 ha sido creada exitosamente.');
-    expect($notification->data['icon'])->toBe('heroicon-o-document-text');
+    expect($notification->data['body'])->toBe('Se ha registrado la solicitud SOL-TEST-001 por '.$this->colaborador->persona->nombre_completo.'.');
+    expect($notification->data['icon'])->toBe('heroicon-s-information-circle');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/compras/solicitudes/{$solicitud->id}"));
 });
 
@@ -77,8 +79,8 @@ it('despacha notificacion para solicitudAprobada', function () {
     $notification = $this->user->notifications()->first();
     expect($notification)->not->toBeNull();
     expect($notification->data['title'])->toBe('Solicitud Aprobada');
-    expect($notification->data['body'])->toBe('La solicitud SOL-TEST-002 ha sido aprobada y está lista para cotizar.');
-    expect($notification->data['icon'])->toBe('heroicon-o-check-circle');
+    expect($notification->data['body'])->toBe('La solicitud SOL-TEST-002 ha sido aprobada.');
+    expect($notification->data['icon'])->toBe('heroicon-s-check-circle');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/compras/solicitudes/{$solicitud->id}"));
 });
 
@@ -107,8 +109,9 @@ it('despacha notificacion para cotizacionCreada', function () {
     $notification = $this->user->notifications()->first();
     expect($notification)->not->toBeNull();
     expect($notification->data['title'])->toBe('Nueva Cotización');
-    expect($notification->data['body'])->toBe("Se ha registrado una cotización de {$this->proveedor->codigo} para la solicitud SOL-TEST-003.");
-    expect($notification->data['icon'])->toBe('heroicon-o-document-currency-dollar');
+    $nombreProveedor = $this->proveedor->persona->nombre_completo;
+    expect($notification->data['body'])->toBe("Se ha registrado una cotización de {$nombreProveedor} para la solicitud SOL-TEST-003.");
+    expect($notification->data['icon'])->toBe('heroicon-s-information-circle');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/compras/cotizaciones/{$cotizacion->id}"));
 });
 
@@ -137,8 +140,9 @@ it('despacha notificacion para ganadorSeleccionado', function () {
     $notification = $this->user->notifications()->first();
     expect($notification)->not->toBeNull();
     expect($notification->data['title'])->toBe('Ganador Seleccionado');
-    expect($notification->data['body'])->toBe("El proveedor {$this->proveedor->codigo} ha sido seleccionado como ganador de la solicitud SOL-TEST-004.");
-    expect($notification->data['icon'])->toBe('heroicon-o-trophy');
+    $nombreProveedor = $this->proveedor->persona->nombre_completo;
+    expect($notification->data['body'])->toBe("Se ha elegido la cotización de {$nombreProveedor} como ganadora para la solicitud SOL-TEST-004.");
+    expect($notification->data['icon'])->toBe('heroicon-s-check-circle');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/compras/cotizaciones/{$cotizacion->id}"));
 });
 
@@ -152,9 +156,10 @@ it('despacha notificacion para ordenCreada', function () {
 
     $notification = $this->user->notifications()->first();
     expect($notification)->not->toBeNull();
+    $nombreProveedor = $orden->proveedor->persona->nombre_completo;
     expect($notification->data['title'])->toBe('Orden de Compra Creada');
-    expect($notification->data['body'])->toBe('Se ha creado la orden OC-TEST-001 por un total de $1,250.50.');
-    expect($notification->data['icon'])->toBe('heroicon-o-shopping-cart');
+    expect($notification->data['body'])->toBe("Se ha creado la Orden de Compra OC-TEST-001 en borrador para el proveedor {$nombreProveedor}.");
+    expect($notification->data['icon'])->toBe('heroicon-s-shopping-cart');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/compras/ordenes-compra/{$orden->id}"));
 });
 
@@ -172,8 +177,8 @@ it('despacha notificacion para recepcionCompletada', function () {
     $notification = $this->user->notifications()->where('data->title', 'Recepción Completada')->first();
     expect($notification)->not->toBeNull();
     expect($notification->data['title'])->toBe('Recepción Completada');
-    expect($notification->data['body'])->toBe('La recepción REC-TEST-001 ha sido completada exitosamente. La orden OC-TEST-002 ha sido marcada como Recibida.');
-    expect($notification->data['icon'])->toBe('heroicon-o-check-badge');
+    expect($notification->data['body'])->toBe('La recepción REC-TEST-001 ha sido completada para la OC OC-TEST-002.');
+    expect($notification->data['icon'])->toBe('heroicon-s-truck');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/compras/recepciones/{$recepcion->id}"));
 });
 
@@ -191,7 +196,8 @@ it('despacha notificacion para devolucionConfirmada', function () {
     $notification = $this->user->notifications()->where('data->title', 'Devolución Confirmada')->first();
     expect($notification)->not->toBeNull();
     expect($notification->data['title'])->toBe('Devolución Confirmada');
-    expect($notification->data['body'])->toBe('La devolución DEV-TEST-001 vinculada a la orden OC-TEST-003 ha sido confirmada. Se ha retirado el stock físico y liberado el saldo del contrato.');
-    expect($notification->data['icon'])->toBe('heroicon-o-check-circle');
+    $nombreProveedor = $devolucion->ordenCompra->proveedor->persona->nombre_completo;
+    expect($notification->data['body'])->toBe("La devolución DEV-TEST-001 ha sido confirmada para el proveedor {$nombreProveedor}.");
+    expect($notification->data['icon'])->toBe('heroicon-s-check-circle');
     expect($notification->data['actions'][0]['url'])->toBe(url("/admin/compras/devoluciones/{$devolucion->id}"));
 });

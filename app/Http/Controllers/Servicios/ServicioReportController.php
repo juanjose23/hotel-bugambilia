@@ -5,24 +5,34 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Servicios;
 
 use App\Http\Controllers\Controller;
-use App\UseCases\Servicios\Reportes\Queries\GenerarHistoricoPreciosExcel;
-use App\UseCases\Servicios\Reportes\Queries\GenerarHistoricoPreciosPdf;
-use Spatie\LaravelPdf\PdfBuilder;
+use App\Repository\Queries\Servicios\Reportes\GenerarHistoricoPreciosExcel;
+use App\Repository\Queries\Servicios\Reportes\GenerarHistoricoPreciosPdf;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ServicioReportController extends Controller
 {
-    public function historicoPreciosPdf(): PdfBuilder
+    public function __construct(
+        private readonly GenerarHistoricoPreciosPdf $historicoPreciosPdf,
+        private readonly GenerarHistoricoPreciosExcel $historicoPreciosExcel,
+    ) {}
+
+    public function historicoPreciosPdf(Request $request): Response
     {
         $this->authorize('Servicios:ReporteHistoricoPrecios');
 
-        return app(GenerarHistoricoPreciosPdf::class)->ejecutar(request()->all());
+        return $this->historicoPreciosPdf->ejecutar(
+            $request->only(['producto_id', 'fecha_desde', 'fecha_hasta'])
+        );
     }
 
-    public function historicoPreciosExcel(): BinaryFileResponse
+    public function historicoPreciosExcel(Request $request): BinaryFileResponse
     {
         $this->authorize('Servicios:ReporteHistoricoPrecios');
 
-        return app(GenerarHistoricoPreciosExcel::class)->ejecutar(request()->all());
+        return $this->historicoPreciosExcel->ejecutar(
+            $request->only(['producto_id', 'fecha_desde', 'fecha_hasta'])
+        );
     }
 }

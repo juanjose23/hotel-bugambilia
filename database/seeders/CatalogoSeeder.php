@@ -184,6 +184,15 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'PROV_INTERNACIONAL', 'nombre' => 'Internacional'],
         ]);
 
+        // --- 15. TIPOS DE PROMOCIÓN (Plano) ---
+        $this->insertar((int) $tipos['TIPO_PROMOCION'], [
+            ['codigo' => 'PROMO_TEMPORADA', 'nombre' => 'Descuento por Temporada'],
+            ['codigo' => 'PROMO_PAQUETE', 'nombre' => 'Paquete / Combo'],
+            ['codigo' => 'PROMO_ESTANCIA', 'nombre' => 'Estancia Prolongada'],
+            ['codigo' => 'PROMO_ANTICIPADA', 'nombre' => 'Reserva Anticipada'],
+            ['codigo' => 'PROMO_EVENTO', 'nombre' => 'Evento Especial'],
+        ]);
+
     }
 
     // -------------------- HELPERS --------------------

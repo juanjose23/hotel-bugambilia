@@ -9,7 +9,7 @@ use App\Filament\Resources\Compras\DevolucionCompra\Pages\ViewDevolucionCompra;
 use App\Filament\Resources\Compras\DevolucionCompra\Schemas\DevolucionCompraForm;
 use App\Filament\Resources\Compras\DevolucionCompra\Schemas\DevolucionCompraInfolist;
 use App\Filament\Resources\Compras\DevolucionCompra\Tables\DevolucionCompraTable;
-use App\Models\Compras\DevolucionCompra;
+use App\Repository\Models\Compras\DevolucionCompra;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

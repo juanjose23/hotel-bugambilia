@@ -1,24 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Compras\Recepciones\Pages;
 
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
-use App\UseCases\Compras\OrdenesCompra\Queries\ObtenerOrdenCompraConItems;
-use App\UseCases\Compras\Recepciones\Mutations\CalcularYPrepararRecepcion;
+use App\Interactors\Compras\Recepciones\CalcularYPrepararRecepcion;
+use App\Repository\Queries\Compras\OrdenesCompra\ObtenerOrdenCompraConItems;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\QueryException;
-use PDOException;
+use Illuminate\Support\Facades\Log;
 
 class CreateRecepcion extends CreateRecord
 {
+    protected CalcularYPrepararRecepcion $calcularYPrepararRecepcion;
+
+    protected ObtenerOrdenCompraConItems $obtenerOrdenCompraConItems;
+
+    public function boot(
+        CalcularYPrepararRecepcion $calcularYPrepararRecepcion,
+        ObtenerOrdenCompraConItems $obtenerOrdenCompraConItems
+    ): void {
+        $this->calcularYPrepararRecepcion = $calcularYPrepararRecepcion;
+        $this->obtenerOrdenCompraConItems = $obtenerOrdenCompraConItems;
+    }
+
     protected static string $resource = RecepcionResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        return app(CalcularYPrepararRecepcion::class)->execute($data);
+        return $this->calcularYPrepararRecepcion->ejecutar($data);
     }
 
     public function mount(): void
@@ -28,8 +41,7 @@ class CreateRecepcion extends CreateRecord
         $ordenId = (int) request()->query('orden_compra_id');
 
         if ($ordenId) {
-            $useCase = app(ObtenerOrdenCompraConItems::class);
-            $orden = $useCase->execute($ordenId);
+            $orden = $this->obtenerOrdenCompraConItems->ejecutar($ordenId);
 
             if ($orden) {
                 $items = [];
@@ -71,26 +83,23 @@ class CreateRecepcion extends CreateRecord
     {
         try {
             parent::create($another);
-        } catch (PDOException|QueryException $e) {
-            $message = $e->getMessage();
+        } catch (\InvalidArgumentException $e) {
 
-            if (str_contains($message, 'CONTROL INDUSTRIAL')) {
-                preg_match('/La cantidad recibida \(.*?\) supera la cantidad ordenada/', $message, $matches);
+            Notification::make()
+                ->danger()
+                ->title('Error de recepción')
+                ->body($e->getMessage())
+                ->persistent()
+                ->send();
+        } catch (\Throwable $e) {
+            Log::error('Error al crear recepción', ['error' => $e->getMessage()]);
 
-                Notification::make()
-                    ->danger()
-                    ->title('Error de recepción')
-                    ->body($matches[0] ?? 'La cantidad recibida excede la cantidad ordenada en la Orden de Compra.')
-                    ->persistent()
-                    ->send();
-            } else {
-                Notification::make()
-                    ->danger()
-                    ->title('Error al guardar la recepción')
-                    ->body('Ocurrió un error inesperado. Verifique los datos e intente nuevamente.')
-                    ->persistent()
-                    ->send();
-            }
+            Notification::make()
+                ->danger()
+                ->title('Error al guardar la recepción')
+                ->body('Ocurrió un error inesperado. Verifique los datos e intente nuevamente.')
+                ->persistent()
+                ->send();
         }
     }
 

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Catalogos\CatalogoTipo;
+use App\Repository\Models\Catalogos\CatalogoTipo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

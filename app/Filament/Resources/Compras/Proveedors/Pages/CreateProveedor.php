@@ -3,19 +3,29 @@
 namespace App\Filament\Resources\Compras\Proveedors\Pages;
 
 use App\Filament\Resources\Compras\Proveedors\ProveedorResource;
-use App\UseCases\Compras\Proveedores\Mutations\CrearProveedor;
-use App\UseCases\Compras\Proveedores\Queries\GenerarCodigoProveedor;
+use App\Interactors\Compras\Proveedores\CrearProveedor;
+use App\Interactors\Compras\Proveedores\GenerarCodigoProveedor;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateProveedor extends CreateRecord
 {
+    protected GenerarCodigoProveedor $generarCodigoProveedor;
+
+    protected CrearProveedor $crearProveedor;
+
+    public function boot(GenerarCodigoProveedor $generarCodigoProveedor, CrearProveedor $crearProveedor): void
+    {
+        $this->generarCodigoProveedor = $generarCodigoProveedor;
+        $this->crearProveedor = $crearProveedor;
+    }
+
     protected static string $resource = ProveedorResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         if (blank($data['codigo'] ?? null)) {
-            $data['codigo'] = app(GenerarCodigoProveedor::class)->ejecutar();
+            $data['codigo'] = $this->generarCodigoProveedor->ejecutar();
         }
 
         return $data;
@@ -23,6 +33,6 @@ class CreateProveedor extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        return app(CrearProveedor::class)->execute($data);
+        return $this->crearProveedor->ejecutar($data);
     }
 }

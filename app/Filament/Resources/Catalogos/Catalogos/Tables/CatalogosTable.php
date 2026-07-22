@@ -2,13 +2,15 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos\Tables;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Catalogos\CatalogoTipo;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Repository\Models\Catalogos\CatalogoTipo;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -23,25 +25,24 @@ class CatalogosTable
                     ->label('Tipo')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('padre.nombre')
-                    ->label('Padre')
+                TextColumn::make('codigo')
+                    ->label('Código')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('codigo')
-                    ->searchable(),
                 TextColumn::make('nombre')
+                    ->label('Nombre')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('valor')
+                    ->label('Valor')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('descripcion')
+                    ->label('Descripción')
+                    ->sortable()
                     ->searchable()
-                    ->wrap(),
-                TextColumn::make('orden')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->searchable()
-                    ->badge()
-                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
-                    ->sortable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -55,13 +56,14 @@ class CatalogosTable
                 SelectFilter::make('catalogo_tipo_id')
                     ->label('Tipo')
                     ->options(fn () => CatalogoTipo::query()->orderBy('nombre')->pluck('nombre', 'id')->all()),
-                FiltroEstado::make(EstadoCatalogo::class),
+                FiltroEstado::make(EstadoGeneral::class),
             ])
-            ->recordActions([
-                ViewAction::make(),
+            ->actions([
+                ViewAction::make()
+                    ->modalWidth(Width::FourExtraLarge),
                 EditAction::make()
                     ->modalHeading('Editar catálogo')
-                    ->modalWidth('4xl'),
+                    ->modalWidth(Width::FourExtraLarge),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
