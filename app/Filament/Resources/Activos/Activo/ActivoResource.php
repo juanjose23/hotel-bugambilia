@@ -8,15 +8,16 @@ use App\Filament\Resources\Activos\Activo\Pages\CreateActivo;
 use App\Filament\Resources\Activos\Activo\Pages\EditActivo;
 use App\Filament\Resources\Activos\Activo\Pages\ListActivos;
 use App\Filament\Resources\Activos\Activo\Pages\ViewActivo;
-use App\Filament\Resources\Activos\Activo\RelationManagers\AsignacionesRelationManager;
 use App\Filament\Resources\Activos\Activo\Schemas\ActivoForm;
 use App\Filament\Resources\Activos\Activo\Schemas\ActivoInfolist;
 use App\Filament\Resources\Activos\Activo\Tables\ActivoTable;
-use App\Models\Activos\Activo;
+use App\Repository\Models\Activos\Activo;
+use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivoResource extends Resource
 {
@@ -24,9 +25,9 @@ class ActivoResource extends Resource
 
     protected static ?string $slug = 'activos/registro';
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::CpuChip;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::CpuChip;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Activos Fijos';
+    protected static UnitEnum|string|null $navigationGroup = 'Activos Fijos';
 
     protected static ?string $navigationLabel = 'Inventario de Activos';
 
@@ -41,7 +42,7 @@ class ActivoResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return ActivoTable::configure($table);
+        return app(ActivoTable::class)->configure($table);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -52,7 +53,7 @@ class ActivoResource extends Resource
     public static function getRelations(): array
     {
         return [
-            AsignacionesRelationManager::class,
+
         ];
     }
 

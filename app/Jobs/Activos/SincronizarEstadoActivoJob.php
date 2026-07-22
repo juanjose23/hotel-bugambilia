@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\Activos;
 
-use App\UseCases\Activos\Mutations\Mantenimiento\SincronizarEstadoActivo;
+use App\Interactors\Activos\SincronizarEstadoActivo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

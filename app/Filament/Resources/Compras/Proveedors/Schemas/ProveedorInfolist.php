@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Compras\Proveedors\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -33,8 +33,8 @@ class ProveedorInfolist
                         TextEntry::make('estado')
                             ->label('Estado')
                             ->badge()
-                            ->color(fn ($state) => EstadoCatalogo::colorFor($state ?? '') ?? 'gray')
-                            ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state ?? '') ?? ''),
+                            ->color(fn ($state) => EstadoGeneral::colorFor($state ?? '') ?? 'gray')
+                            ->formatStateUsing(fn ($state): string => EstadoGeneral::labelFor($state)),
 
                         TextEntry::make('persona.primer_nombre')
                             ->label('Nombre / Razón Social')
@@ -143,7 +143,7 @@ class ProveedorInfolist
                     ->columnSpanFull()
                     ->columns(3)
                     ->schema([
-                        ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
+                        ...TimestampsInfolistEntry::make(),
                     ]),
             ]);
     }

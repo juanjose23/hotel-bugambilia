@@ -11,7 +11,7 @@ use App\Filament\Resources\Activos\ActivoMantenimiento\Pages\ViewActivoMantenimi
 use App\Filament\Resources\Activos\ActivoMantenimiento\Schemas\ActivoMantenimientoForm;
 use App\Filament\Resources\Activos\ActivoMantenimiento\Schemas\ActivoMantenimientoInfolist;
 use App\Filament\Resources\Activos\ActivoMantenimiento\Tables\ActivoMantenimientoTable;
-use App\Models\Activos\ActivoMantenimiento;
+use App\Repository\Models\Activos\ActivoMantenimiento;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -42,7 +42,7 @@ class ActivoMantenimientoResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return ActivoMantenimientoTable::configure($table);
+        return app(ActivoMantenimientoTable::class)->configure($table);
     }
 
     public static function infolist(Schema $schema): Schema

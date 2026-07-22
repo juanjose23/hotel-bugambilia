@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Usuarios\Users\Schemas;
 
+use App\Interactors\Usuarios\GenerarCredencialesUsuario;
 use App\Models\Personas\Persona;
 use App\Models\User;
-use App\UseCases\Usuarios\Mutations\GenerarCredencialesUsuario;
+use App\Repository\Queries\Usuarios\ObtenerPersonasDisponibles;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -15,13 +17,18 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class UserForm
 {
+    public function __construct(
+        private readonly ObtenerPersonasDisponibles $personasDisponibles,
+        private readonly GenerarCredencialesUsuario $credencialesUsuario,
+    ) {}
+
     public function configure(Schema $schema): Schema
     {
-        return $schema->components(self::getSchema());
+        return $schema->components($this->getSchema());
     }
 
     /** @return array<int, Htmlable|string> */
-    public static function getSchema(): array
+    public function getSchema(): array
     {
         return [
             Grid::make(2)
@@ -30,32 +37,11 @@ class UserForm
                     Select::make('persona_id')
                         ->label('Trabajador')
                         ->options(function (?User $record = null): array {
-                            $excludedIds = User::whereNotNull('persona_id')
-                                ->pluck('persona_id')
-                                ->toArray();
+                            $currentPersonaId = $record?->persona_id
+                                ? (int) $record->persona_id
+                                : null;
 
-                            $excludedIds = array_map(fn (mixed $id): int => is_numeric($id) ? (int) $id : 0, $excludedIds);
-
-                            if ($record && $record->persona_id) {
-                                $excludedIds = array_diff($excludedIds, [(int) $record->persona_id]);
-                            }
-
-                            $personas = Persona::whereHas('colaborador')
-                                ->with(['colaborador', 'personaNatural'])
-                                ->whereNotIn('id', $excludedIds)
-                                ->get();
-
-                            $result = [];
-
-                            foreach ($personas as $p) {
-                                $result[$p->id] = ($p->colaborador ? $p->colaborador->codigo : '').' - '.
-                                    $p->primer_nombre.' '.
-                                    ($p->segundo_nombre ?? '').' '.
-                                    ($p->personaNatural ? $p->personaNatural->primer_apellido : '').' '.
-                                    ($p->personaNatural ? $p->personaNatural->segundo_apellido : '');
-                            }
-
-                            return $result;
+                            return $this->personasDisponibles->ejecutar($currentPersonaId);
                         })
                         ->searchable()
                         ->preload()
@@ -72,7 +58,7 @@ class UserForm
                                 return;
                             }
 
-                            $credenciales = app(GenerarCredencialesUsuario::class)->execute($persona);
+                            $credenciales = $this->credencialesUsuario->execute($persona);
 
                             $set('name', $credenciales['name']);
                             $set('email', $credenciales['email']);
@@ -101,6 +87,11 @@ class UserForm
                         ->dehydrated(fn (?string $state): bool => filled($state))
                         ->maxLength(255)
                         ->prefixIcon(Heroicon::LockClosed),
+
+                    Toggle::make('is_admin')
+                        ->label('¿Es Administrador / Acceso al Panel?')
+                        ->default(true)
+                        ->required(),
                 ]),
 
             Section::make('Roles y Permisos')

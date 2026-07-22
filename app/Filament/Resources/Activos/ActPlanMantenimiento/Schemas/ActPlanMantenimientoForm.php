@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActPlanMantenimiento\Schemas;
 
 use App\Enums\Activos\EstadoMantenimiento;
-use App\Models\Activos\Activo;
-use App\Models\Compras\Proveedor;
-use App\Models\Monedas\Moneda;
-use App\Models\User;
-use App\UseCases\Shared\Queries\ObtenerNombrePersona;
+use App\Repository\Models\Activos\Activo;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\User;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -21,9 +21,13 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
-class ActPlanMantenimientoForm
+readonly class ActPlanMantenimientoForm
 {
-    public static function configure(Schema $schema): Schema
+    public function __construct(
+        private ObtenerNombrePersona $obtenerNombrePersona,
+    ) {}
+
+    public function configure(Schema $schema): Schema
     {
         return $schema->components([
             Section::make('Datos Generales del Plan')
@@ -32,7 +36,7 @@ class ActPlanMantenimientoForm
                 ->columns(1)
                 ->columnSpanFull()
                 ->schema([
-                    Grid::make(2)
+                    Grid::make()
                         ->schema([
                             TextInput::make('nombre')
                                 ->label('Nombre del Plan')
@@ -72,7 +76,7 @@ class ActPlanMantenimientoForm
                                 ->label('Fecha de Fin')
                                 ->native(false)
                                 ->prefixIcon(Heroicon::CalendarDays),
-                        ])->columns(2),
+                        ])->columns(),
 
                     Fieldset::make('Presupuesto y Proveedor')
                         ->schema([
@@ -81,7 +85,7 @@ class ActPlanMantenimientoForm
                                 ->options(fn () => Proveedor::with(['persona.personaNatural', 'persona.personaJuridica'])->get()->mapWithKeys(function ($prov) {
                                     $persona = $prov->persona;
 
-                                    return [$prov->id => $persona !== null ? app(ObtenerNombrePersona::class)->ejecutar($persona) : ''];
+                                    return [$prov->id => $persona !== null ? $this->obtenerNombrePersona->ejecutar($persona) : ''];
                                 }))
                                 ->searchable()
                                 ->native(false)
@@ -100,7 +104,7 @@ class ActPlanMantenimientoForm
                                 ->native(false)
                                 ->default(fn () => Moneda::where('es_predeterminada', true)->value('id') ?? Moneda::first()?->id)
                                 ->prefixIcon(Heroicon::Banknotes),
-                        ])->columns(2),
+                        ])->columns(),
 
                     Textarea::make('descripcion')
                         ->label('Descripción detallada')

@@ -1,12 +1,5 @@
-@php
-    use App\Filament\Resources\Inventario\Lote\Widgets\StockPorCategoriaChart;
-    use App\Filament\Resources\Inventario\Lote\Widgets\ValorizacionInventarioChart;
-    use App\Filament\Resources\Inventario\MovimientoStock\Widgets\RotacionInventarioChart;
-    use App\Filament\Resources\Inventario\MovimientoStock\Widgets\MermasPorCategoriaChart;
-    use App\Filament\Resources\Inventario\Lote\Widgets\LotesEnRiesgoChart;
-@endphp
 <x-filament-panels::page>
-    <div x-data="{ activeTab: 'dashboard' }" class="space-y-6">
+    <div x-data="{ activeTab: 'dashboard' }" x-on:open-new-tab.window="window.open($event.detail.url, '_blank')" class="space-y-6">
 
         {{-- ─── Navegación de Pestañas (Modern Tabs) ─────────────────────────── --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-3 gap-4 dark:border-gray-700">
@@ -112,12 +105,12 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    @livewire(StockPorCategoriaChart::class)
-                    @livewire(ValorizacionInventarioChart::class)
-                    @livewire(RotacionInventarioChart::class)
-                    @livewire(MermasPorCategoriaChart::class)
+                    @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\StockPorCategoriaChart::class)
+                    @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\ValorizacionInventarioChart::class)
+                    @livewire(\App\Filament\Resources\Inventario\MovimientoStock\Widgets\RotacionInventarioChart::class)
+                    @livewire(\App\Filament\Resources\Inventario\MovimientoStock\Widgets\MermasPorCategoriaChart::class)
                     <div class="lg:col-span-2">
-                        @livewire(LotesEnRiesgoChart::class)
+                        @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\LotesEnRiesgoChart::class)
                     </div>
                 </div>
             </div>
@@ -296,139 +289,33 @@
         {{-- ─── PESTAÑA 3: DESCARGAR REPORTES (CENTRO DE REPORTES) ────────────── --}}
         <div x-show="activeTab === 'reports'" x-transition class="space-y-6" style="display: none;">
 
-            <div class="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-                <div class="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3 dark:border-gray-700">
-                    <x-heroicon-o-arrow-down-tray class="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <div class="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800 max-w-3xl mx-auto">
+                <div class="flex items-center gap-4 mb-6 border-b border-gray-50 dark:border-gray-850 pb-4">
+                    <div class="p-3 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 rounded-xl shadow-sm ring-1 ring-primary-100/10">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
                     <div>
-                        <h2 class="text-base font-bold text-gray-900 dark:text-white">Centro de Descarga de
-                            Documentos</h2>
-                        <p class="text-xs text-gray-500 mt-0.5">Configura formatos y filtros a medida antes de generar y
-                            descargar tus archivos oficiales.</p>
+                        <h3 class="text-base font-bold text-gray-950 dark:text-white">Centro de Reportes y Análisis</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Genera y descarga informes analíticos de inventario en formato PDF.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
-                    {{-- 1. Stock Físico --}}
-                    <div class="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-700 dark:bg-gray-900/50 hover:shadow-md transition">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <x-heroicon-o-cube class="h-5 w-5 text-blue-500" />
-                                <h3 class="text-sm font-bold text-gray-950 dark:text-white">Inventario de Productos</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">Listado detallado de todos los
-                                productos y el stock físico actual que se encuentra en los almacenes.</p>
-                        </div>
-                        <button wire:click="mountAction('descargar_stock')"
-                                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-xs font-bold text-white rounded-xl shadow-sm hover:shadow transition-all duration-200">
-                            <x-heroicon-m-cog-6-tooth class="h-4 w-4" />
-                            <span>Configurar y Descargar</span>
-                        </button>
+                <form wire:submit.prevent="descargarReporte" class="space-y-5 flex-grow flex flex-col justify-between">
+                    <div class="space-y-4">
+                        {{ $this->reportForm }}
                     </div>
 
-                    {{-- 2. Lotes Vencidos --}}
-                    <div class="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-700 dark:bg-gray-900/50 hover:shadow-md transition">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <x-heroicon-o-clock class="h-5 w-5 text-red-500" />
-                                <h3 class="text-sm font-bold text-gray-950 dark:text-white">Productos Vencidos</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">Listado de productos cuya fecha de
-                                vencimiento ya expiró. Necesario para planificar destrucciones o descartes.</p>
-                        </div>
-                        <button wire:click="mountAction('descargar_vencidos')"
-                                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-xs font-bold text-white rounded-xl shadow-sm hover:shadow transition-all duration-200">
-                            <x-heroicon-m-cog-6-tooth class="h-4 w-4" />
-                            <span>Configurar y Descargar</span>
-                        </button>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-6">
+                        <x-filament::button type="button" color="success" icon="heroicon-o-table-cells" wire:click="descargarExcel" class="hover:scale-[1.02] transition-transform duration-200">
+                            Descargar Excel
+                        </x-filament::button>
+                        <x-filament::button type="submit" color="primary" icon="heroicon-o-document-arrow-down" class="hover:scale-[1.02] transition-transform duration-200">
+                            Generar y Descargar PDF
+                        </x-filament::button>
                     </div>
-
-                    {{-- 3. Próximos a Vencer --}}
-                    <div class="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-700 dark:bg-gray-900/50 hover:shadow-md transition">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <x-heroicon-o-bell-alert class="h-5 w-5 text-orange-500" />
-                                <h3 class="text-sm font-bold text-gray-950 dark:text-white">Próximos Vencimientos</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">Reporte de lotes que vencerán
-                                próximamente. Ideal para darles salida rápida y prioritaria.</p>
-                        </div>
-                        <button wire:click="mountAction('descargar_proximos_vencer')"
-                                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-xs font-bold text-white rounded-xl shadow-sm hover:shadow transition-all duration-200">
-                            <x-heroicon-m-cog-6-tooth class="h-4 w-4" />
-                            <span>Configurar y Descargar</span>
-                        </button>
-                    </div>
-
-                    {{-- 4. Cuarentena --}}
-                    <div class="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-700 dark:bg-gray-900/50 hover:shadow-md transition">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <x-heroicon-o-shield-check class="h-5 w-5 text-amber-500" />
-                                <h3 class="text-sm font-bold text-gray-950 dark:text-white">Productos en Cuarentena</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">Lotes retenidos temporalmente por
-                                revisiones de calidad. Estos productos no se pueden consumir todavía.</p>
-                        </div>
-                        <button wire:click="mountAction('descargar_cuarentena')"
-                                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-xs font-bold text-white rounded-xl shadow-sm hover:shadow transition-all duration-200">
-                            <x-heroicon-m-cog-6-tooth class="h-4 w-4" />
-                            <span>Configurar y Descargar</span>
-                        </button>
-                    </div>
-
-                    {{-- 5. Valorización Financiera --}}
-                    <div class="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-700 dark:bg-gray-900/50 hover:shadow-md transition">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <x-heroicon-o-currency-dollar class="h-5 w-5 text-emerald-500" />
-                                <h3 class="text-sm font-bold text-gray-950 dark:text-white">Valorización de Almacén</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">Costo real total de todo el stock
-                                actual calculado a partir del valor de compra. Útil para contabilidad del hotel.</p>
-                        </div>
-                        <button wire:click="mountAction('descargar_valorizacion')"
-                                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-xs font-bold text-white rounded-xl shadow-sm hover:shadow transition-all duration-200">
-                            <x-heroicon-m-cog-6-tooth class="h-4 w-4" />
-                            <span>Configurar y Descargar</span>
-                        </button>
-                    </div>
-
-                    {{-- 6. Rotación --}}
-                    <div class="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-700 dark:bg-gray-900/50 hover:shadow-md transition">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <x-heroicon-o-arrow-path class="h-5 w-5 text-indigo-500" />
-                                <h3 class="text-sm font-bold text-gray-950 dark:text-white">Rotación de Inventario</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">Análisis del consumo promedio
-                                mensual para ver qué productos se gastan más rápido y cuáles están estancados.</p>
-                        </div>
-                        <button wire:click="mountAction('descargar_rotacion')"
-                                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-xs font-bold text-white rounded-xl shadow-sm hover:shadow transition-all duration-200">
-                            <x-heroicon-m-cog-6-tooth class="h-4 w-4" />
-                            <span>Configurar y Descargar</span>
-                        </button>
-                    </div>
-
-                    {{-- 7. Registro de Mermas --}}
-                    <div class="flex flex-col justify-between rounded-2xl border border-gray-100 bg-gray-50/50 p-5 dark:border-gray-700 dark:bg-gray-900/50 hover:shadow-md transition text-left">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <x-heroicon-o-trash class="h-5 w-5 text-rose-500" />
-                                <h3 class="text-sm font-bold text-gray-950 dark:text-white">Mermas y Pérdidas</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">Historial completo de productos
-                                desechados por daños, robo o fecha de vencimiento expirada en el período.</p>
-                        </div>
-                        <button wire:click="mountAction('descargar_mermas')"
-                                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white rounded-xl shadow-sm hover:shadow transition-all duration-200">
-                            <x-heroicon-m-cog-6-tooth class="h-4 w-4" />
-                            <span>Configurar y Descargar</span>
-                        </button>
-                    </div>
-
-                </div>
+                </form>
             </div>
 
         </div>

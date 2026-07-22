@@ -4,34 +4,27 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Limpieza;
 
-use App\Enums\HabitacionesEspacios\EstadoLimpieza;
-use App\Models\Limpieza\LimpiezaEjecucion;
-use App\Models\Limpieza\LimpiezaHorario;
-use App\Models\Limpieza\Turno;
-use App\Models\User;
-use App\Notifications\Limpieza\NuevasAsignacionesLimpiezaDisponibles;
+use App\Enums\Limpieza\EstadoLimpieza;
+use App\Notifications\Limpieza\NotificadorLimpieza;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Models\Limpieza\LimpiezaHorario;
+use App\Repository\Models\Limpieza\Turno;
+use App\Repository\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class MaterializarEjecucionesLimpieza extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'limpieza:materializar-ejecuciones {fecha?}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Materializa los horarios de limpieza activos en ejecuciones para un día específico (por defecto hoy).';
 
-    /**
-     * Execute the console command.
-     */
+    public function __construct(
+        private readonly NotificadorLimpieza $notificador,
+    ) {
+        parent::__construct();
+    }
+
     public function handle(): int
     {
         $fechaInput = $this->argument('fecha');
@@ -124,8 +117,8 @@ class MaterializarEjecucionesLimpieza extends Command
 
             $destinatarios = $destinatarios->filter()->unique('id');
 
-            foreach ($destinatarios as $usuario) {
-                $usuario->notify(new NuevasAsignacionesLimpiezaDisponibles($turno, $cantidad));
+            if ($destinatarios->isNotEmpty()) {
+                $this->notificador->nuevasAsignaciones($turno, $cantidad, $destinatarios);
             }
         }
 

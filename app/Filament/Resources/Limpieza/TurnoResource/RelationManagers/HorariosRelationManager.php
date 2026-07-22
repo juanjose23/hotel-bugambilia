@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Limpieza\TurnoResource\RelationManagers;
 
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Limpieza\LimpiezaHorario;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Limpieza\LimpiezaHorario;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -46,7 +48,8 @@ class HorariosRelationManager extends RelationManager
                 TextColumn::make('limpiable.nombre')
                     ->label('Ubicación / Área')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->icon(Heroicon::MapPin),
 
                 TextColumn::make('limpiable_type')
                     ->label('Tipo de Ubicación')
@@ -68,7 +71,8 @@ class HorariosRelationManager extends RelationManager
                 TextColumn::make('hora_estimada')
                     ->label('Hora Estimada')
                     ->time('H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon(Heroicon::Clock),
 
                 TextColumn::make('frecuencia')
                     ->label('Frecuencia')
@@ -81,7 +85,8 @@ class HorariosRelationManager extends RelationManager
                     ->label('Día de la Semana')
                     ->placeholder('Todos los días')
                     ->formatStateUsing(fn (string $state): string => ucfirst($state))
-                    ->sortable(),
+                    ->sortable()
+                    ->icon(Heroicon::Calendar),
             ])
             ->headerActions([
                 AssociateAction::make()
@@ -118,6 +123,7 @@ class HorariosRelationManager extends RelationManager
                     }),
             ])
             ->actions([
+                ViewAction::make(),
                 DissociateAction::make()
                     ->label('Desasociar')
                     ->modalHeading('Desasociar Horario del Turno'),

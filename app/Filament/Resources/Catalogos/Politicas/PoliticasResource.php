@@ -9,7 +9,7 @@ use App\Filament\Resources\Catalogos\Politicas\Pages\ViewPoliticas;
 use App\Filament\Resources\Catalogos\Politicas\Schemas\PoliticasForm;
 use App\Filament\Resources\Catalogos\Politicas\Schemas\PoliticasInfolist;
 use App\Filament\Resources\Catalogos\Politicas\Tables\PoliticasTable;
-use App\Models\Politicas\Politica;
+use App\Repository\Models\Politicas\Politica;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -51,6 +51,7 @@ class PoliticasResource extends Resource
     public static function getRelations(): array
     {
         return [
+
             //
         ];
     }

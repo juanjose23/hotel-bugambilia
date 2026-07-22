@@ -4,27 +4,31 @@ namespace App\Filament\Resources\Compras\Solicitudes\Tables;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Compras\Solicitud;
-use App\UseCases\Compras\Solicitudes\Mutations\CancelarSolicitud;
-use App\UseCases\Compras\Solicitudes\Mutations\RechazarSolicitud;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Concerns\TieneAccionesImprimirExportar;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Interactors\Compras\Solicitudes\CancelarSolicitud;
+use App\Interactors\Compras\Solicitudes\RechazarSolicitud;
+use App\Repository\Models\Compras\Solicitud;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class SolicitudTable
+readonly class SolicitudTable
 {
-    public static function configure(Table $table): Table
+    use TieneAccionesImprimirExportar;
+
+    public function __construct(
+        private CancelarSolicitud $cancelarSolicitud,
+        private RechazarSolicitud $rechazarSolicitud,
+    ) {}
+
+    public function configure(Table $table): Table
     {
         return $table
             ->columns([
@@ -67,14 +71,13 @@ class SolicitudTable
                     })
                     ->alignCenter(),
 
-                TextColumn::make('estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoSolicitud::class),
             ])
             ->filters([
                 FiltroEstado::make(EstadoSolicitud::class),
                 FiltroEliminados::make(),
             ])
-            ->actions([
+            ->recordActions([
                 // 1. Acciones Principales
                 // 2. Grupo de Acciones
                 ActionGroup::make([
@@ -82,8 +85,8 @@ class SolicitudTable
                         ->label('Aprobar')
                         ->icon(Heroicon::CheckCircle)
                         ->color('success')
-                        ->url(fn (Solicitud $record) => SolicitudResource::getUrl('aprobar', ['record' => $record]))
-                        ->visible(fn (Solicitud $record) => in_array($record->estado, [EstadoSolicitud::Borrador, EstadoSolicitud::Pendiente])),
+                        ->url(fn (?Solicitud $record) => $record ? SolicitudResource::getUrl('aprobar', ['record' => $record]) : '#')
+                        ->visible(fn (?Solicitud $record) => $record && in_array($record->estado, [EstadoSolicitud::Borrador, EstadoSolicitud::Pendiente])),
 
                     Action::make('cancelar')
                         ->label('Cancelar')
@@ -92,31 +95,63 @@ class SolicitudTable
                         ->requiresConfirmation()
                         ->modalHeading('¿Anular solicitud?')
                         ->modalDescription('Esta acción es irreversible y quedará registrada en el historial de trazabilidad.')
-                        ->action(fn (Solicitud $record) => app(CancelarSolicitud::class)->execute($record))
-                        ->visible(fn (Solicitud $record) => $record->estado === EstadoSolicitud::Aprobada
+                        ->action(fn (Solicitud $record) => $this->cancelarSolicitud->ejecutar($record))
+                        ->visible(fn (?Solicitud $record) => $record
+                            && $record->estado === EstadoSolicitud::Aprobada
                             && ! $record->ordenes_compra_exists
                         ),
-                    ViewAction::make(),
-                    EditAction::make(),
+
+                    Action::make('ver')
+                        ->label('Ver')
+                        ->icon(Heroicon::Eye)
+                        ->color('gray')
+                        ->url(fn (?Solicitud $record) => $record ? SolicitudResource::getUrl('view', ['record' => $record]) : '#')
+                        ->visible(fn (?Solicitud $record) => $record !== null),
+
+                    Action::make('editar')
+                        ->label('Editar')
+                        ->icon(Heroicon::PencilSquare)
+                        ->url(fn (?Solicitud $record) => $record ? SolicitudResource::getUrl('edit', ['record' => $record]) : '#')
+                        ->visible(fn (?Solicitud $record) => $record && $record->estado === EstadoSolicitud::Borrador),
 
                     Action::make('rechazar')
                         ->label('Rechazar')
                         ->icon(Heroicon::NoSymbol)
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->action(fn (Solicitud $record) => app(RechazarSolicitud::class)->execute($record))
-                        ->visible(fn (Solicitud $record) => $record->estado === EstadoSolicitud::Pendiente),
-                    Action::make('ImprimirSolicitud')
-                        ->icon(Heroicon::Printer)
-                        ->color('info')
-                        ->url(fn (Solicitud $record) => route('reporte.solicitud', $record))
-                        ->label('Imprimir Solicitud')
-                        ->visible(fn (Solicitud $record) => ! $record->trashed() && (auth()->user()?->can('Compras:ImprimirSolicitud') ?? false))
-                        ->openUrlInNewTab(),
+                        ->action(fn (Solicitud $record) => $this->rechazarSolicitud->ejecutar($record))
+                        ->visible(fn (?Solicitud $record) => $record && $record->estado === EstadoSolicitud::Pendiente),
 
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    Action::make('imprimir')
+                        ->label('Imprimir')
+                        ->icon(Heroicon::Printer)
+                        ->color('gray')
+                        ->url(fn (Solicitud $record) => route('reporte.solicitud', $record))
+                        ->openUrlInNewTab()
+                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirSolicitud') ?? false),
+
+                    Action::make('eliminar')
+                        ->label('Eliminar')
+                        ->icon(Heroicon::Trash)
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(fn (Solicitud $record) => $record->delete())
+                        ->visible(fn (?Solicitud $record) => $record && $record->estado === EstadoSolicitud::Borrador),
+
+                    Action::make('restaurar')
+                        ->label('Restaurar')
+                        ->icon(Heroicon::ArrowUturnLeft)
+                        ->color('warning')
+                        ->action(fn (Solicitud $record) => $record->restore())
+                        ->visible(fn (?Solicitud $record) => $record && $record->trashed()),
+
+                    Action::make('eliminar-permanente')
+                        ->label('Eliminar permanentemente')
+                        ->icon(Heroicon::Trash)
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(fn (Solicitud $record) => $record->forceDelete())
+                        ->visible(fn (?Solicitud $record) => $record && $record->trashed()),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Más opciones'),

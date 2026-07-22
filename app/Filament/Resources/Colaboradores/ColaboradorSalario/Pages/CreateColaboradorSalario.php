@@ -2,29 +2,36 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Pages;
 
-use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Resources\Colaboradores\ColaboradorSalario\ColaboradorSalarioResource;
-use App\Models\Colaboradores\ColaboradorSalario;
-use App\UseCases\Colaboradores\Mutations\CrearNuevoSalario;
+use App\Interactors\Colaboradores\CrearNuevoSalario;
+use App\Repository\Models\Colaboradores\ColaboradorSalario;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateColaboradorSalario extends CreateRecord
 {
+    protected CrearNuevoSalario $crearNuevoSalario;
+
+    public function boot(CrearNuevoSalario $crearNuevoSalario): void
+    {
+        $this->crearNuevoSalario = $crearNuevoSalario;
+    }
+
     protected static string $resource = ColaboradorSalarioResource::class;
 
     protected function handleRecordCreation(array $data): Model
     {
         $salarioAnterior = ColaboradorSalario::where('colaborador_id', $data['colaborador_id'])
-            ->where('estado', EstadoCatalogo::Activo->value)
+            ->where('estado', EstadoGeneral::Activo->value)
             ->latest('fecha_inicio')
             ->first();
 
-        $estadoVal = $data['estado'] ?? EstadoCatalogo::Activo->value;
-        $estadoInt = is_scalar($estadoVal) ? (int) $estadoVal : EstadoCatalogo::Activo->value;
+        $estadoVal = $data['estado'] ?? EstadoGeneral::Activo->value;
+        $estadoInt = is_scalar($estadoVal) ? (int) $estadoVal : EstadoGeneral::Activo->value;
 
-        if ($salarioAnterior && ($estadoInt === EstadoCatalogo::Activo->value)) {
+        if ($salarioAnterior && ($estadoInt === EstadoGeneral::Activo->value)) {
             Notification::make()
                 ->title('Salario Anterior será Inactivo')
                 ->body("El salario anterior de NIO {$salarioAnterior->salario} será puesto automáticamente en Inactivo")
@@ -34,7 +41,7 @@ class CreateColaboradorSalario extends CreateRecord
 
         $colaboradorId = is_numeric($data['colaborador_id'] ?? null) ? (int) $data['colaborador_id'] : 0;
 
-        $record = app(CrearNuevoSalario::class)(
+        $record = ($this->crearNuevoSalario)(
             $colaboradorId,
             $data
         );

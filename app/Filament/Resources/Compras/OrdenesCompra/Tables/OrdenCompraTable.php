@@ -1,16 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Compras\OrdenesCompra\Tables;
 
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Compras\OrdenCompra;
-use App\Models\Compras\OrdenCompraItem;
-use App\Models\Compras\Proveedor;
-use App\UseCases\Compras\OrdenesCompra\Mutations\CancelarOrdenCompra;
-use App\UseCases\Compras\OrdenesCompra\Mutations\EmitirOrdenCompra;
-use App\UseCases\Compras\OrdenesCompra\Mutations\FinalizarOrdenCompra;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Filament\Shared\Concerns\TieneAccionesImprimirExportar;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Interactors\Compras\OrdenesCompra\CancelarOrdenCompra;
+use App\Interactors\Compras\OrdenesCompra\EmitirOrdenCompra;
+use App\Interactors\Compras\OrdenesCompra\FinalizarOrdenCompra;
+use App\Repository\Models\Compras\OrdenCompra;
+use App\Repository\Models\Compras\OrdenCompraItem;
+use App\Repository\Models\Compras\Proveedor;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -25,7 +31,32 @@ use Illuminate\Database\Eloquent\Collection;
 
 class OrdenCompraTable
 {
+    use InyectaDesdeContenedor;
+    use TieneAccionesImprimirExportar;
+    use TieneAccionesImprimirExportar;
+
+    private readonly EmitirOrdenCompra $emitirOrdenCompra;
+
+    private readonly FinalizarOrdenCompra $finalizarOrdenCompra;
+
+    private readonly CancelarOrdenCompra $cancelarOrdenCompra;
+
+    public function __construct(
+        EmitirOrdenCompra $emitirOrdenCompra,
+        FinalizarOrdenCompra $finalizarOrdenCompra,
+        CancelarOrdenCompra $cancelarOrdenCompra,
+    ) {
+        $this->emitirOrdenCompra = $emitirOrdenCompra;
+        $this->finalizarOrdenCompra = $finalizarOrdenCompra;
+        $this->cancelarOrdenCompra = $cancelarOrdenCompra;
+    }
+
     public static function configure(Table $table): Table
+    {
+        return static::make()->doConfigure($table);
+    }
+
+    private function doConfigure(Table $table): Table
     {
         return $table
             ->columns([
@@ -62,7 +93,7 @@ class OrdenCompraTable
                 TextColumn::make('cotizacion_id')
                     ->label('Cotización')
                     ->placeholder('— Directa')
-                    ->formatStateUsing(fn ($state) => $state ? "#COT-{$state}" : null)
+                    ->formatStateUsing(fn ($state) => $state ? "#COT-$state" : null)
                     ->badge()
                     ->color('info')
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -77,9 +108,7 @@ class OrdenCompraTable
                     ->money('USD')
                     ->sortable(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoOrdenCompra::class)
                     ->sortable(),
 
                 TextColumn::make('progreso')
@@ -91,16 +120,16 @@ class OrdenCompraTable
                         $total = $items->sum('cantidad');
 
                         if ($record->estado === EstadoOrdenCompra::Recibida) {
-                            return "{$total}/{$total}";
+                            return "$total/$total";
                         }
 
                         if ($record->recepciones_exists) {
                             $received = $record->totalReceivedQuantity();
 
-                            return "{$received}/{$total}";
+                            return "$received/$total";
                         }
 
-                        return "0/{$total}";
+                        return "0/$total";
                     })
                     ->badge()
                     ->color(fn (OrdenCompra $record): string => match (true) {
@@ -109,8 +138,7 @@ class OrdenCompraTable
                         default => 'gray',
                     }),
 
-                TextColumn::make('created_at')
-                    ->dateTime('d/m/Y H:i')
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -134,7 +162,7 @@ class OrdenCompraTable
                 SelectFilter::make('proveedor_id')
                     ->label('Filtrar por Proveedor')
                     ->relationship('proveedor', 'codigo')
-                    ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "[{$record->codigo}] - ".(
+                    ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "[$record->codigo] - ".(
                         ($record->persona && $record->persona->personaJuridica)
                             ? $record->persona->personaJuridica->razon_social
                             : ($record->persona ? $record->persona->primer_nombre : '')
@@ -143,7 +171,7 @@ class OrdenCompraTable
                     ->searchable()
                     ->preload(),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
                     Action::make('emitir')
                         ->label('Emitir OC')
@@ -151,7 +179,7 @@ class OrdenCompraTable
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalDescription('Al emitir la orden, se considera un compromiso oficial con el proveedor y dejará de ser editable.')
-                        ->action(fn (OrdenCompra $record) => app(EmitirOrdenCompra::class)->execute($record))
+                        ->action(fn (OrdenCompra $record) => $this->emitirOrdenCompra->ejecutar($record))
                         ->visible(fn (OrdenCompra $record) => $record->estado === EstadoOrdenCompra::Borrador),
 
                     Action::make('registrar_recepcion')
@@ -168,16 +196,10 @@ class OrdenCompraTable
                         ->requiresConfirmation()
                         ->modalHeading('¿Finalizar Orden de Compra?')
                         ->modalDescription('Esta acción marcará la orden como Recibida/Completada y ajustará los costos y cantidades finales a lo realmente entregado.')
-                        ->action(fn (OrdenCompra $record) => app(FinalizarOrdenCompra::class)->execute($record))
+                        ->action(fn (OrdenCompra $record) => $this->finalizarOrdenCompra->ejecutar($record))
                         ->visible(fn (OrdenCompra $record) => $record->estado === EstadoOrdenCompra::Parcial),
 
-                    Action::make('imprimir')
-                        ->label('Imprimir')
-                        ->icon(Heroicon::Printer)
-                        ->color('gray')
-                        ->url(fn (OrdenCompra $record) => route('reporte.orden-compra', $record))
-                        ->openUrlInNewTab()
-                        ->visible(fn () => auth()->user()?->can('Compras:ImprimirOrdenCompra') ?? false),
+                    self::makeImprimirAction('reporte.orden-compra', 'Compras:ImprimirOrdenCompra'),
 
                     Action::make('cancelar')
                         ->label('Cancelar')
@@ -186,7 +208,7 @@ class OrdenCompraTable
                         ->requiresConfirmation()
                         ->modalHeading('¿Anular Orden de Compra?')
                         ->modalDescription('Esta acción anula el compromiso legal. Solo permitido si no hay recepciones parciales vinculadas.')
-                        ->action(fn (OrdenCompra $record) => app(CancelarOrdenCompra::class)->execute($record))
+                        ->action(fn (OrdenCompra $record) => $this->cancelarOrdenCompra->ejecutar($record))
                         ->visible(fn (OrdenCompra $record) => in_array($record->estado, [EstadoOrdenCompra::Emitida, EstadoOrdenCompra::EnTransito]) &&
                             ! $record->recepciones_exists
                         ),
@@ -195,7 +217,7 @@ class OrdenCompraTable
                         ->visible(fn (OrdenCompra $record) => $record->estado === EstadoOrdenCompra::Borrador),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
-                    ->tooltip('Más opciones'),
+                    ->tooltip('Acciones'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

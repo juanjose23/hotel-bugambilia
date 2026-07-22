@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorSalario;
 use App\Filament\Resources\Colaboradores\ColaboradorSalario\Pages\ManageColaboradorSalarios;
 use App\Filament\Resources\Colaboradores\ColaboradorSalario\Schemas\ColaboradorSalarioForm;
 use App\Filament\Resources\Colaboradores\ColaboradorSalario\Tables\ColaboradorSalarioTable;
-use App\Models\Colaboradores\ColaboradorSalario;
+use App\Repository\Models\Colaboradores\ColaboradorSalario;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -17,6 +17,8 @@ use UnitEnum;
 class ColaboradorSalarioResource extends Resource
 {
     protected static ?string $model = ColaboradorSalario::class;
+
+    protected static ?string $slug = 'colaboradores/salarios';
 
     protected static ?string $modelLabel = 'Salario';
 

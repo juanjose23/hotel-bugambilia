@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums\Inventario;
 
+use App\Enums\Concerns\TieneAyudantesEnum;
 use BackedEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
@@ -12,6 +13,8 @@ use Filament\Support\Icons\Heroicon;
 
 enum EstadoInventarioFisico: string implements HasColor, HasIcon, HasLabel
 {
+    use TieneAyudantesEnum;
+
     case Borrador = 'borrador';
     case Procesado = 'procesado';
 

@@ -3,14 +3,22 @@
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
-use App\Models\Personas\Persona;
-use App\UseCases\Colaboradores\Queries\ObtenerDatosCarnet;
+use App\Repository\Models\Personas\Persona;
+use App\Repository\Queries\Colaboradores\ObtenerDatosCarnet;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Illuminate\Database\Eloquent\Model;
 
 class CarnetColaborador extends Page
 {
+    protected ObtenerDatosCarnet $obtenerDatosCarnet;
+
+    public function boot(ObtenerDatosCarnet $obtenerDatosCarnet): void
+    {
+        $this->obtenerDatosCarnet = $obtenerDatosCarnet;
+    }
+
+    use InteractsWithRecord;
     use InteractsWithRecord;
 
     protected static string $resource = ColaboradorResource::class;
@@ -40,7 +48,7 @@ class CarnetColaborador extends Page
 
         /** @var Persona $persona */
         $persona = $this->record;
-        $this->carnetData = app(ObtenerDatosCarnet::class)->ejecutar($persona);
+        $this->carnetData = $this->obtenerDatosCarnet->ejecutar($persona);
     }
 
     protected function authorizeAccess(): void

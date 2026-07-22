@@ -1,11 +1,22 @@
 <?php
 
-use App\Exceptions\ErrorInternoException;
-use App\Exceptions\HotelException;
-use Illuminate\Database\QueryException;
+// Dynamically alias old App\Models namespace to the new App\Repository\Models namespace
+spl_autoload_register(function (string $class): void {
+    if (str_starts_with($class, 'App\\Models\\')) {
+        $target = str_replace('App\\Models\\', 'App\\Repository\\Models\\', $class);
+        if (class_exists($target)) {
+            class_alias($target, $class);
+        }
+    }
+}, true, true);
+
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequerirCambioContrasena;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,30 +25,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->web(append: [
+            HandleInertiaRequests::class,
+            AddLinkHeadersForPreloadedAssets::class,
+            RequerirCambioContrasena::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (QueryException $e) {
-            return response()->view('errors.500', [
-                'exception' => new ErrorInternoException(
-                    'Ha ocurrido un error en la base de datos. Por favor, verifique la información e intente de nuevo.'
-                ),
-            ], 500);
-        });
-
-        $exceptions->render(function (Throwable $e) {
-            if ($e instanceof HotelException) {
-                return response()->view("errors.{$e->getStatusCode()}", [
-                    'exception' => $e,
-                ], $e->getStatusCode());
-            }
-
-            if (! config('app.debug')) {
-                return response()->view('errors.500', [
-                    'exception' => new ErrorInternoException(
-                        'Se ha producido un error inesperado en el servidor.'
-                    ),
-                ], 500);
-            }
-        });
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+        );
     })->create();

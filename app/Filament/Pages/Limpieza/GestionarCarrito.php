@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Limpieza;
 
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Inventario\MovimientoStock;
-use App\Models\Inventario\Stock;
-use App\UseCases\Inventario\Movimientos\Mutations\TrasladarEntreBodegas;
+use App\BusinessLogic\Limpieza\Data\CarritoEstadisticasData;
+use App\Enums\Limpieza\EstadoLimpieza;
+use App\Interactors\Inventario\TrasladarEntreBodegas\TrasladarEntreBodegas;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Inventario\MovimientoStock;
+use App\Repository\Models\Inventario\Stock;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Queries\Limpieza\Carrito\ObtenerEstadisticasCarrito;
+use App\Repository\Queries\Limpieza\Stock\ObtenerStockPorUbicacion;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -20,6 +26,10 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Url;
@@ -28,11 +38,39 @@ use Livewire\Attributes\Url;
  * @property Schema $abastecerForm
  * @property Schema $devolverForm
  * @property Schema $traspasarForm
+ * @property Schema $assignForm
  * @property Ubicacion|null $carrito
+ * @property bool $bloqueado
+ * @property bool $puedeLiberar
+ * @property bool $isSuperAdmin
+ * @property int $totalItems
+ * @property float $totalCantidad
+ * @property int $totalMovimientos
+ * @property LimpiezaEjecucion|null $ejecucionActiva
+ * @property string|null $nombreColaborador
+ * @property MovimientoStock|null $ultimoAbastecimiento
+ * @property string $ultimoAbastecimientoColaborador
+ * @property bool $puedeGestionar
+ * @property Collection<int, MovimientoStock> $movimientos
+ * @property Collection<int, Stock> $stocks
  */
-class GestionarCarrito extends Page implements HasForms
+class GestionarCarrito extends Page implements HasForms, HasTable
 {
+    use HasPageShield;
     use InteractsWithForms;
+    use InteractsWithTable;
+
+    protected ObtenerStockPorUbicacion $stockPorUbicacion;
+
+    protected ObtenerEstadisticasCarrito $estadisticasQuery;
+
+    public function boot(
+        ObtenerStockPorUbicacion $stockPorUbicacion,
+        ObtenerEstadisticasCarrito $estadisticasQuery
+    ): void {
+        $this->stockPorUbicacion = $stockPorUbicacion;
+        $this->estadisticasQuery = $estadisticasQuery;
+    }
 
     #[Url(as: 'carrito')]
     public ?int $carritoId = null;
@@ -45,6 +83,12 @@ class GestionarCarrito extends Page implements HasForms
 
     /** @var array<string, mixed>|null */
     public ?array $traspasarData = [];
+
+    /** @var array<string, mixed>|null */
+    public ?array $assignData = [];
+
+    /** @var array<string, mixed>|null */
+    public ?array $liberarWarningData = null;
 
     public string $activeTab = 'abastecer';
 
@@ -67,6 +111,7 @@ class GestionarCarrito extends Page implements HasForms
         $this->abastecerForm->fill();
         $this->devolverForm->fill();
         $this->traspasarForm->fill();
+        $this->assignForm->fill();
     }
 
     public function getCarritoProperty(): ?Ubicacion
@@ -74,11 +119,148 @@ class GestionarCarrito extends Page implements HasForms
         return $this->carritoId ? Ubicacion::find($this->carritoId) : null;
     }
 
+    protected function getEstadisticasData(): CarritoEstadisticasData
+    {
+        if (! $this->carritoId) {
+            return new CarritoEstadisticasData(
+                totalItems: 0,
+                totalCantidad: 0.0,
+                totalMovimientos: 0,
+                bloqueado: false,
+                esAsignado: false,
+                nombreColaborador: null,
+                ejecucionActiva: null,
+                ultimoAbastecimiento: null,
+            );
+        }
+
+        return $this->estadisticasQuery->execute($this->carritoId);
+    }
+
+    public function getBloqueadoProperty(): bool
+    {
+        return $this->getEstadisticasData()->bloqueado;
+    }
+
+    public function getPuedeLiberarProperty(): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        return $user->hasRole(['super-admin', 'admin', 'limpieza-supervisor'])
+            || $user->can('liberar-carrito');
+    }
+
+    public function getIsSuperAdminProperty(): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        return $user->hasRole('super-admin')
+            || $user->can('asignar-carrito-limpieza');
+    }
+
+    public function getTotalItemsProperty(): int
+    {
+        return $this->getEstadisticasData()->totalItems;
+    }
+
+    public function getTotalCantidadProperty(): float
+    {
+        return $this->getEstadisticasData()->totalCantidad;
+    }
+
+    public function getTotalMovimientosProperty(): int
+    {
+        return $this->getEstadisticasData()->totalMovimientos;
+    }
+
+    public function getEjecucionActivaProperty(): ?LimpiezaEjecucion
+    {
+        return $this->getEstadisticasData()->ejecucionActiva;
+    }
+
+    public function getNombreColaboradorProperty(): ?string
+    {
+        return $this->getEstadisticasData()->nombreColaborador;
+    }
+
+    public function getUltimoAbastecimientoProperty(): ?MovimientoStock
+    {
+        return $this->getEstadisticasData()->ultimoAbastecimiento;
+    }
+
+    public function getUltimoAbastecimientoColaboradorProperty(): string
+    {
+        $mov = $this->ultimoAbastecimiento;
+        if (! $mov || ! $mov->creadoPor) {
+            return 'Sistema';
+        }
+
+        $persona = $mov->creadoPor->persona;
+        if (! $persona) {
+            return $mov->creadoPor->name ?? 'Usuario';
+        }
+
+        $pn = $persona->personaNatural;
+
+        return trim(
+            ($persona->primer_nombre ?? '')
+            .' '.($persona->segundo_nombre ?? '')
+            .' '.($pn->primer_apellido ?? '')
+            .' '.($pn->segundo_apellido ?? '')
+        );
+    }
+
+    public function getPuedeGestionarProperty(): bool
+    {
+        $stats = $this->getEstadisticasData();
+
+        return ! $stats->bloqueado || $stats->esAsignado || $this->isSuperAdmin;
+    }
+
     public function getTitle(): string|Htmlable
     {
         return $this->carrito
             ? "Gestionar Carrito: {$this->carrito->nombre}"
             : 'Gestionar Carrito';
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(
+                Stock::query()
+                    ->where('ubicacion_id', $this->carritoId ?? 0)
+                    ->where('cantidad', '>', 0)
+                    ->with(['variante.producto', 'lote'])
+            )
+            ->columns([
+                TextColumn::make('variante.producto.nombre')
+                    ->label('Insumo')
+                    ->formatStateUsing(fn (Stock $record): string => ($record->variante?->producto->nombre ?? 'Insumo')
+                        .($record->variante?->nombre_variante ? " ({$record->variante->nombre_variante})" : '')
+                    )
+                    ->searchable(),
+                TextColumn::make('lote.codigo_lote')
+                    ->label('Lote')
+                    ->placeholder('N/A')
+                    ->searchable(),
+                TextColumn::make('lote.fecha_vencimiento')
+                    ->label('Vencimiento')
+                    ->date()
+                    ->placeholder('N/A'),
+                TextColumn::make('cantidad')
+                    ->label('Cantidad')
+                    ->numeric(2)
+                    ->alignEnd(),
+            ]);
     }
 
     /** @return array<string, Schema> */
@@ -90,7 +272,7 @@ class GestionarCarrito extends Page implements HasForms
                     Select::make('bodega_origen_id')
                         ->label('Bodega / Almacén de Origen')
                         ->placeholder('Seleccione bodega de origen')
-                        ->options(fn () => Ubicacion::whereIn('tipo', ['almacen', 'bodega'])
+                        ->options(fn (): array => Ubicacion::whereIn('tipo', ['almacen', 'bodega'])
                             ->where('nombre', 'not like', 'Carrito%')
                             ->pluck('nombre', 'id')
                             ->toArray())
@@ -107,18 +289,17 @@ class GestionarCarrito extends Page implements HasForms
                             Select::make('stock_id')
                                 ->label('Seleccionar Insumo (Lote & Disponible)')
                                 ->placeholder('Seleccione insumo')
-                                ->options(function (Get $get) {
+                                ->options(function (Get $get): array {
                                     $origenId = $get('../../bodega_origen_id');
                                     if (! $origenId) {
                                         return [];
                                     }
 
-                                    return Stock::with(['variante.producto', 'lote'])
-                                        ->where('ubicacion_id', $origenId)
-                                        ->where('cantidad', '>', 0)
+                                    return $this->stockPorUbicacion->execute(intval(is_scalar($origenId) ? $origenId : 0))
+                                        ->with(['variante.producto', 'lote'])
                                         ->get()
-                                        ->mapWithKeys(function ($stock) {
-                                            $nombre = ($stock->variante->producto->nombre ?? 'Insumo')
+                                        ->mapWithKeys(function ($stock): array {
+                                            $nombre = ($stock->variante?->producto->nombre ?? 'Insumo')
                                                 .($stock->variante?->nombre_variante ? " ({$stock->variante->nombre_variante})" : '')
                                                 .' [Lote: '.($stock->lote->codigo_lote ?? 'N/A').']'
                                                 ." (Disp: {$stock->cantidad})";
@@ -131,7 +312,7 @@ class GestionarCarrito extends Page implements HasForms
                                 ->live()
                                 ->native(false)
                                 ->prefixIcon(Heroicon::ListBullet)
-                                ->afterStateUpdated(function (?int $state, Set $set) {
+                                ->afterStateUpdated(function (?int $state, Set $set): void {
                                     if ($state) {
                                         $stock = Stock::find($state);
                                         if ($stock) {
@@ -148,7 +329,7 @@ class GestionarCarrito extends Page implements HasForms
                                 ->required()
                                 ->prefixIcon(Heroicon::Sparkles)
                                 ->minValue(0.01)
-                                ->maxValue(fn (Get $get) => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 999999.0),
+                                ->maxValue(fn (Get $get): float => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 999999.0),
 
                             Hidden::make('max_qty')
                                 ->default(0),
@@ -162,12 +343,11 @@ class GestionarCarrito extends Page implements HasForms
                     Select::make('stock_id')
                         ->label('Insumo en Carrito')
                         ->placeholder('Seleccione insumo')
-                        ->options(fn () => $this->carritoId ? Stock::with(['variante.producto', 'lote'])
-                            ->where('ubicacion_id', $this->carritoId)
-                            ->where('cantidad', '>', 0)
+                        ->options(fn (): array => $this->carritoId ? $this->stockPorUbicacion->execute($this->carritoId)
+                            ->with(['variante.producto', 'lote'])
                             ->get()
-                            ->mapWithKeys(function ($stock) {
-                                $nombre = ($stock->variante->producto->nombre ?? 'Insumo')
+                            ->mapWithKeys(function ($stock): array {
+                                $nombre = ($stock->variante?->producto->nombre ?? 'Insumo')
                                     .($stock->variante?->nombre_variante ? " ({$stock->variante->nombre_variante})" : '')
                                     .' [Lote: '.($stock->lote->codigo_lote ?? 'N/A').']'
                                     ." (Disp: {$stock->cantidad})";
@@ -179,7 +359,7 @@ class GestionarCarrito extends Page implements HasForms
                         ->required()
                         ->live()
                         ->native(false)
-                        ->afterStateUpdated(function (?int $state, Set $set) {
+                        ->afterStateUpdated(function (?int $state, Set $set): void {
                             if ($state) {
                                 $stock = Stock::find($state);
                                 if ($stock) {
@@ -192,7 +372,7 @@ class GestionarCarrito extends Page implements HasForms
                     Select::make('bodega_destino_id')
                         ->label('Bodega de Destino')
                         ->placeholder('Seleccione destino')
-                        ->options(fn () => Ubicacion::whereIn('tipo', ['almacen', 'bodega'])
+                        ->options(fn (): array => Ubicacion::whereIn('tipo', ['almacen', 'bodega'])
                             ->where('nombre', 'not like', 'Carrito%')
                             ->pluck('nombre', 'id')
                             ->toArray())
@@ -204,7 +384,7 @@ class GestionarCarrito extends Page implements HasForms
                         ->numeric()
                         ->required()
                         ->minValue(0.01)
-                        ->maxValue(fn (Get $get) => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 99999.0),
+                        ->maxValue(fn (Get $get): float => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 99999.0),
 
                     Hidden::make('max_qty')
                         ->default(0),
@@ -216,12 +396,11 @@ class GestionarCarrito extends Page implements HasForms
                     Select::make('stock_id')
                         ->label('Insumo en Carrito')
                         ->placeholder('Seleccione insumo')
-                        ->options(fn () => $this->carritoId ? Stock::with(['variante.producto', 'lote'])
-                            ->where('ubicacion_id', $this->carritoId)
-                            ->where('cantidad', '>', 0)
+                        ->options(fn (): array => $this->carritoId ? $this->stockPorUbicacion->execute($this->carritoId)
+                            ->with(['variante.producto', 'lote'])
                             ->get()
-                            ->mapWithKeys(function ($stock) {
-                                $nombre = ($stock->variante->producto->nombre ?? 'Insumo')
+                            ->mapWithKeys(function ($stock): array {
+                                $nombre = ($stock->variante?->producto->nombre ?? 'Insumo')
                                     .($stock->variante?->nombre_variante ? " ({$stock->variante->nombre_variante})" : '')
                                     .' [Lote: '.($stock->lote->codigo_lote ?? 'N/A').']'
                                     ." (Disp: {$stock->cantidad})";
@@ -233,7 +412,7 @@ class GestionarCarrito extends Page implements HasForms
                         ->required()
                         ->live()
                         ->native(false)
-                        ->afterStateUpdated(function (?int $state, Set $set) {
+                        ->afterStateUpdated(function (?int $state, Set $set): void {
                             if ($state) {
                                 $stock = Stock::find($state);
                                 if ($stock) {
@@ -246,7 +425,7 @@ class GestionarCarrito extends Page implements HasForms
                     Select::make('carrito_destino_id')
                         ->label('Carrito de Destino')
                         ->placeholder('Seleccione carrito destino')
-                        ->options(fn () => Ubicacion::where('nombre', 'like', 'Carrito%')
+                        ->options(fn (): array => Ubicacion::where('nombre', 'like', 'Carrito%')
                             ->where('id', '!=', $this->carritoId)
                             ->pluck('nombre', 'id')
                             ->toArray())
@@ -258,12 +437,35 @@ class GestionarCarrito extends Page implements HasForms
                         ->numeric()
                         ->required()
                         ->minValue(0.01)
-                        ->maxValue(fn (Get $get) => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 99999.0),
+                        ->maxValue(fn (Get $get): float => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 99999.0),
 
                     Hidden::make('max_qty')
                         ->default(0),
                 ])
                 ->statePath('traspasarData'),
+
+            'assignForm' => $this->makeSchema()
+                ->schema([
+                    Select::make('limpieza_ejecucion_id')
+                        ->label('Tarea de Limpieza Pendiente')
+                        ->placeholder('Seleccione una tarea pendiente')
+                        ->options(fn (): array => LimpiezaEjecucion::where('estado', EstadoLimpieza::Pendiente)
+                            ->whereNull('carrito_id')
+                            ->whereDate('fecha', now()->toDateString())
+                            ->with(['limpiable', 'colaborador.persona'])
+                            ->get()
+                            ->mapWithKeys(function ($e): array {
+                                $area = $e->limpiable ? (string) ($e->limpiable->nombre ?? $e->limpiable_type) : 'Área';
+                                $col = $e->colaborador?->persona ? $e->colaborador->persona->primer_nombre : 'Sin asignación';
+
+                                return [$e->id => "Limpieza #{$e->id} - {$area} ({$col})"];
+                            })
+                            ->toArray()
+                        )
+                        ->required()
+                        ->native(false),
+                ])
+                ->statePath('assignData'),
         ];
     }
 
@@ -308,6 +510,7 @@ class GestionarCarrito extends Page implements HasForms
                 }
             }
             Notification::make()->title('Abastecimiento Exitoso')->body('Se cargaron los insumos correctamente al carrito.')->success()->send();
+
             $this->abastecerForm->fill();
         } catch (\Throwable $e) {
             Notification::make()->title('Error de traslado')->body($e->getMessage())->danger()->send();
@@ -378,15 +581,98 @@ class GestionarCarrito extends Page implements HasForms
         }
     }
 
+    public function prepararLiberacion(): void
+    {
+        $ejecucion = $this->ejecucionActiva;
+        if (! $ejecucion) {
+            $this->liberarWarningData = null;
+            $this->dispatch('open-modal', id: 'confirm-liberar-modal');
+
+            return;
+        }
+
+        $colaboradorNombre = $this->nombreColaborador ?? 'Sin asignar';
+        $areaNombre = $ejecucion->limpiable ? (string) ($ejecucion->limpiable->nombre ?? $ejecucion->limpiable_type) : 'Área no especificada';
+
+        $this->liberarWarningData = [
+            'is_active' => $ejecucion->estado === EstadoLimpieza::EnProgreso,
+            'ejecucion_id' => $ejecucion->id,
+            'area' => $areaNombre,
+            'colaborador' => $colaboradorNombre,
+            'estado' => $ejecucion->estado->getLabel(),
+        ];
+
+        $this->dispatch('open-modal', id: 'confirm-liberar-modal');
+    }
+
+    public function liberarCarrito(): void
+    {
+        $ejecucion = $this->ejecucionActiva;
+        if ($ejecucion) {
+            if ($ejecucion->estado === EstadoLimpieza::EnProgreso) {
+                $ejecucion->update([
+                    'estado' => EstadoLimpieza::Pendiente,
+                    'carrito_id' => null,
+                    'hora_inicio' => null,
+                ]);
+            } else {
+                $ejecucion->update([
+                    'carrito_id' => null,
+                ]);
+            }
+        }
+
+        $this->dispatch('close-modal', id: 'confirm-liberar-modal');
+        $this->liberarWarningData = null;
+
+        Notification::make()
+            ->title('Carrito Liberado')
+            ->body('El carrito ha sido liberado exitosamente.')
+            ->success()
+            ->send();
+    }
+
+    public function openAssignModal(): void
+    {
+        $this->assignForm->fill();
+        $this->dispatch('open-modal', id: 'assign-carrito-modal');
+    }
+
+    public function closeAssignModal(): void
+    {
+        $this->dispatch('close-modal', id: 'assign-carrito-modal');
+    }
+
+    public function confirmAssign(): void
+    {
+        $data = $this->assignForm->getState();
+        $rawId = $data['limpieza_ejecucion_id'] ?? null;
+        $ejecucionId = is_numeric($rawId) ? (int) $rawId : 0;
+        $ejecucion = LimpiezaEjecucion::find($ejecucionId);
+
+        if ($ejecucion && $this->carritoId) {
+            $ejecucion->update([
+                'carrito_id' => $this->carritoId,
+            ]);
+
+            Notification::make()
+                ->title('Carrito Asignado')
+                ->body("El carrito fue asignado a la tarea de limpieza #{$ejecucion->id}.")
+                ->success()
+                ->send();
+        }
+
+        $this->closeAssignModal();
+    }
+
     /**
      * @return Collection<int, Stock>
      */
-    public function getStocks(): Collection
+    public function getStocksProperty(): Collection
     {
         return $this->carritoId
-            ? Stock::with(['variante.producto', 'lote'])
-                ->where('ubicacion_id', $this->carritoId)
-                ->where('cantidad', '>', 0)
+            ? $this->stockPorUbicacion->execute($this->carritoId)
+                ->with(['variante.producto', 'lote'])
                 ->get()
             : new Collection;
     }
@@ -394,7 +680,7 @@ class GestionarCarrito extends Page implements HasForms
     /**
      * @return Collection<int, MovimientoStock>
      */
-    public function getMovimientos(): Collection
+    public function getMovimientosProperty(): Collection
     {
         if (! $this->carritoId) {
             return new Collection;

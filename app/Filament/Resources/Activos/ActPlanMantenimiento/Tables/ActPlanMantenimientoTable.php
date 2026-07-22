@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Activos\ActPlanMantenimiento\Tables;
 
-use App\Models\Activos\ActPlanMantenimiento;
+use App\Repository\Models\Activos\ActPlanMantenimiento;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -57,6 +57,7 @@ class ActPlanMantenimientoTable
                     ->sortable(),
             ])
             ->filters([
+
                 // Filtros adicionales si se requieren
             ])
             ->actions([

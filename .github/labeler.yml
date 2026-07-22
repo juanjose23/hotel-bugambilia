@@ -1,104 +1,108 @@
 # Auto-label PRs based on changed paths
 
 # Modules
-"module: compras":
+'module: compras':
   - changed-files:
-    - any-glob-to-any-file: "app/UseCases/Compras/**"
-    - any-glob-to-any-file: "app/Models/Compras/**"
-    - any-glob-to-any-file: "app/Filament/Resources/Compras/**"
-    - any-glob-to-any-file: "database/migrations/*compras*"
+      - any-glob-to-any-file: 'app/Interactors/Compras/**'
+      - any-glob-to-any-file: 'app/Models/Compras/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Compras/**'
+      - any-glob-to-any-file: 'database/migrations/*compras*'
 
-"module: inventarios":
+'module: inventarios':
   - changed-files:
-    - any-glob-to-any-file: "app/UseCases/Inventarios/**"
-    - any-glob-to-any-file: "app/Models/Inventario/**"
-    - any-glob-to-any-file: "database/migrations/*inventario*"
+      - any-glob-to-any-file: 'app/Interactors/Inventarios/**'
+      - any-glob-to-any-file: 'app/Models/Inventario/**'
+      - any-glob-to-any-file: 'database/migrations/*inventario*'
 
-"module: habitaciones":
+'module: habitaciones':
   - changed-files:
-    - any-glob-to-any-file: "app/UseCases/Habitaciones/**"
-    - any-glob-to-any-file: "app/Models/Habitaciones/**"
-    - any-glob-to-any-file: "database/migrations/*habitacion*"
+      - any-glob-to-any-file: 'app/Interactors/Habitaciones/**'
+      - any-glob-to-any-file: 'app/Models/Habitaciones/**'
+      - any-glob-to-any-file: 'database/migrations/*habitacion*'
 
-"module: espacios":
+'module: espacios':
   - changed-files:
-    - any-glob-to-any-file: "app/UseCases/Espacios/**"
-    - any-glob-to-any-file: "app/Models/Espacios/**"
-    - any-glob-to-any-file: "database/migrations/*espacio*"
+      - any-glob-to-any-file: 'app/Interactors/Espacios/**'
+      - any-glob-to-any-file: 'app/Models/Espacios/**'
+      - any-glob-to-any-file: 'database/migrations/*espacio*'
 
-"module: servicios":
+'module: servicios':
   - changed-files:
-    - any-glob-to-any-file: "app/UseCases/Servicios/**"
-    - any-glob-to-any-file: "app/Models/Servicios/**"
-    - any-glob-to-any-file: "database/migrations/*servicio*"
+      - any-glob-to-any-file: 'app/Interactors/Servicios/**'
+      - any-glob-to-any-file: 'app/Models/Servicios/**'
+      - any-glob-to-any-file: 'database/migrations/*servicio*'
 
-"module: activos":
+'module: activos':
   - changed-files:
-    - any-glob-to-any-file: "app/UseCases/Activos/**"
-    - any-glob-to-any-file: "database/migrations/*activo*"
+      - any-glob-to-any-file: 'app/Interactors/Activos/**'
+      - any-glob-to-any-file: 'database/migrations/*activo*'
 
-"module: colaboradores":
+'module: colaboradores':
   - changed-files:
-    - any-glob-to-any-file: "app/Filament/Resources/Colaboradores/**"
-    - any-glob-to-any-file: "database/migrations/*colaborador*"
+      - any-glob-to-any-file: 'app/Filament/Resources/Colaboradores/**'
+      - any-glob-to-any-file: 'database/migrations/*colaborador*'
 
-"module: catalogos":
+'module: catalogos':
   - changed-files:
-    - any-glob-to-any-file: "app/Models/Catalogos/**"
-    - any-glob-to-any-file: "database/migrations/*catalogo*"
+      - any-glob-to-any-file: 'app/Models/Catalogos/**'
+      - any-glob-to-any-file: 'database/migrations/*catalogo*'
 
-"module: personas":
+'module: personas':
   - changed-files:
-    - any-glob-to-any-file: "app/Models/Personas/**"
-    - any-glob-to-any-file: "database/migrations/*persona*"
+      - any-glob-to-any-file: 'app/Models/Personas/**'
+      - any-glob-to-any-file: 'database/migrations/*persona*'
 
-"module: politicas":
+'module: politicas':
   - changed-files:
-    - any-glob-to-any-file: "app/Models/Politicas/**"
-    - any-glob-to-any-file: "app/Filament/Resources/Politicas/**"
-    - any-glob-to-any-file: "database/migrations/*politica*"
+      - any-glob-to-any-file: 'app/Models/Politicas/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Politicas/**'
+      - any-glob-to-any-file: 'database/migrations/*politica*'
 
-"module: core":
+'module: core':
   - changed-files:
-    - any-glob-to-any-file: "app/Models/**"
-    - any-glob-to-any-file: "app/Filament/Resources/Shared/**"
-    - any-glob-to-any-file: "database/migrations/**"
+      - any-glob-to-any-file: 'app/Models/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Shared/**'
+      - any-glob-to-any-file: 'database/migrations/**'
 
-"module: monitoreo":
+'module: monitoreo':
   - changed-files:
-    - any-glob-to-any-file: "app/Jobs/**"
-    - any-glob-to-any-file: "app/Helpers/**"
-    - any-glob-to-any-file: "app/Facades/**"
-    - any-glob-to-any-file: "app/Observers/**"
+      - any-glob-to-any-file: 'app/Jobs/**'
+      - any-glob-to-any-file: 'app/Helpers/**'
+      - any-glob-to-any-file: 'app/Facades/**'
+      - any-glob-to-any-file: 'app/Observers/**'
 
-"module: limpieza":
+'module: limpieza':
   - changed-files:
-    - any-glob-to-any-file: "app/UseCases/Limpieza/**"
-    - any-glob-to-any-file: "app/Models/Limpieza/**"
-    - any-glob-to-any-file: "app/Filament/Resources/Habitaciones/SolicitudLimpiezaResource/**"
-    - any-glob-to-any-file: "database/migrations/*limpieza*"
+      - any-glob-to-any-file: 'Interactors/Limpieza/**'
+      - any-glob-to-any-file: 'app/Models/Limpieza/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Habitaciones/SolicitudLimpiezaResource/**'
+      - any-glob-to-any-file: 'database/migrations/*limpieza*'
 
 # Types
-"type: filament":
+'type: filament':
   - changed-files:
-    - any-glob-to-any-file: "app/Filament/**"
+      - any-glob-to-any-file: 'app/Filament/**'
 
-"type: migration":
+'type: migration':
   - changed-files:
-    - any-glob-to-any-file: "database/migrations/**"
+      - any-glob-to-any-file: 'database/migrations/**'
 
-"type: test":
+'type: test':
   - changed-files:
-    - any-glob-to-any-file: "tests/**"
+      - any-glob-to-any-file: 'tests/**'
 
-"type: config":
+'type: config':
   - changed-files:
-    - any-glob-to-any-file: "config/**"
+      - any-glob-to-any-file: 'config/**'
 
-"type: seeders":
+'type: seeders':
   - changed-files:
-    - any-glob-to-any-file: "database/seeders/**"
+      - any-glob-to-any-file: 'database/seeders/**'
 
-"type: workflow":
+'type: funciones-sql':
   - changed-files:
-    - any-glob-to-any-file: ".github/workflows/**"
+      - any-glob-to-any-file: 'database/funciones/**'
+
+'type: workflow':
+  - changed-files:
+      - any-glob-to-any-file: '.github/workflows/**'

@@ -1,21 +1,308 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
-@source "../../storage/framework/views/*.php";
-@source "../**/*.blade.php";
-@source "../**/*.js";
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-sidebar-background: var(--sidebar-background);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-bugambilia-50: var(--bugambilia-50);
+    --color-bugambilia-100: var(--bugambilia-100);
+    --color-bugambilia-200: var(--bugambilia-200);
+    --color-bugambilia-300: var(--bugambilia-300);
+    --color-bugambilia-400: var(--bugambilia-400);
+    --color-bugambilia-500: var(--bugambilia-500);
+    --color-bugambilia-600: var(--bugambilia-600);
+    --color-bugambilia-700: var(--bugambilia-700);
+    --color-bugambilia-800: var(--bugambilia-800);
+    --color-bugambilia-900: var(--bugambilia-900);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --animate-accordion-down: accordion-down 0.2s ease-out;
+    --animate-accordion-up: accordion-up 0.2s ease-out;
+    --animate-soft-pulse: soft-pulse 3s ease-in-out infinite;
+    --animate-float: float 4s ease-in-out infinite;
+    --animate-slow-zoom: slow-zoom 20s ease-in-out infinite alternate;
+
+    @keyframes accordion-down {
+        from {
+            height: 0;
+        }
+        to {
+            height: var(--radix-accordion-content-height);
+        }
+    }
+    @keyframes accordion-up {
+        from {
+            height: var(--radix-accordion-content-height);
+        }
+        to {
+            height: 0;
+        }
+    }
+    @keyframes soft-pulse {
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+    }
+    @keyframes float {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+    @keyframes slow-zoom {
+        0% {
+            transform: scale(1);
+        }
+        100% {
+            transform: scale(1.05);
+        }
+    }
+}
+
+/* ============================================
+   ☀️ MODO CLARO (:root)
+   Fresco, limpio y artesanal
+   ============================================ */
+:root {
+    --radius: 0.625rem;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.18 0.02 260);
+    --card: oklch(0.985 0.003 260);
+    --card-foreground: oklch(0.18 0.02 260);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.18 0.02 260);
+    --primary: oklch(0.3 0.19 358);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.96 0.005 260);
+    --secondary-foreground: oklch(0.3 0.19 358);
+    --muted: oklch(0.96 0.005 260);
+    --muted-foreground: oklch(0.42 0.02 260);
+    --accent: oklch(0.94 0.01 358);
+    --accent-foreground: oklch(0.3 0.19 358);
+    --destructive: oklch(0.55 0.25 27);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(0.92 0.005 260);
+    --input: oklch(0.92 0.005 260);
+    --ring: oklch(0.3 0.19 358);
+    --sidebar: oklch(0.985 0.003 260);
+    --sidebar-foreground: oklch(0.18 0.02 260);
+    --sidebar-primary: oklch(0.3 0.19 358);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.96 0.005 260);
+    --sidebar-accent-foreground: oklch(0.3 0.19 358);
+    --sidebar-border: oklch(0.92 0.005 260);
+    --sidebar-ring: oklch(0.3 0.19 358);
+    --bugambilia-50: oklch(0.96 0.01 358);
+    --bugambilia-100: oklch(0.9 0.04 358);
+    --bugambilia-200: oklch(0.82 0.08 358);
+    --bugambilia-300: oklch(0.68 0.13 358);
+    --bugambilia-400: oklch(0.52 0.16 358);
+    --bugambilia-500: oklch(0.32 0.2 358);
+    --bugambilia-600: oklch(0.28 0.18 358);
+    --bugambilia-700: oklch(0.24 0.15 358);
+    --bugambilia-800: oklch(0.19 0.12 358);
+    --bugambilia-900: oklch(0.14 0.1 358);
+}
+
+/* ============================================
+   🌙 MODO OSCURO (.dark)
+   Lujo nocturno y elegancia — Tema predeterminado
+   ============================================ */
+.dark {
+    --background: oklch(0.13 0.01 260);
+    --foreground: oklch(0.96 0.005 260);
+    --card: oklch(0.17 0.01 260);
+    --card-foreground: oklch(0.96 0.005 260);
+    --popover: oklch(0.17 0.01 260);
+    --popover-foreground: oklch(0.96 0.005 260);
+    --primary: oklch(0.48 0.18 358);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.22 0.01 260);
+    --secondary-foreground: oklch(0.96 0.005 260);
+    --muted: oklch(0.22 0.01 260);
+    --muted-foreground: oklch(0.75 0.01 260);
+    --accent: oklch(0.28 0.05 358);
+    --accent-foreground: oklch(0.96 0.005 260);
+    --destructive: oklch(0.65 0.22 25);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 14%);
+    --ring: oklch(0.48 0.18 358);
+    --sidebar: oklch(0.17 0.01 260);
+    --sidebar-foreground: oklch(0.96 0.005 260);
+    --sidebar-primary: oklch(0.48 0.18 358);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.28 0.05 358);
+    --sidebar-accent-foreground: oklch(0.96 0.005 260);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.48 0.18 358);
+    --bugambilia-50: oklch(0.2 0.03 358);
+    --bugambilia-100: oklch(0.24 0.05 358);
+    --bugambilia-200: oklch(0.28 0.08 358);
+    --bugambilia-300: oklch(0.34 0.11 358);
+    --bugambilia-400: oklch(0.4 0.15 358);
+    --bugambilia-500: oklch(0.45 0.18 358);
+    --bugambilia-600: oklch(0.4 0.16 358);
+    --bugambilia-700: oklch(0.35 0.14 358);
+    --bugambilia-800: oklch(0.3 0.12 358);
+    --bugambilia-900: oklch(0.25 0.1 358);
+}
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-sans:
+        'Plus Jakarta Sans', 'Instrument Sans', ui-sans-serif, system-ui,
+        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-serif:
+        'Playfair Display', Georgia, Cambria, 'Times New Roman', Times, serif;
+}
 
-    --color-primary-50: #fdf2f4;
-    --color-primary-100: #fbe6e9;
-    --color-primary-200: #f7ced6;
-    --color-primary-300: #f1a9b9;
-    --color-primary-400: #e77c8e;
-    --color-primary-500: #711c37;
-    --color-primary-600: #661932;
-    --color-primary-700: #55152a;
-    --color-primary-800: #441121;
-    --color-primary-900: #380e1b;
+@layer base {
+    * {
+        outline: none;
+    }
+    html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    body {
+        background-color: var(--background);
+        color: var(--foreground);
+        font-family: var(--font-sans);
+    }
+    ::selection {
+        background-color: var(--primary);
+        color: var(--primary-foreground);
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        letter-spacing: -0.02em;
+        font-weight: 800;
+    }
+}
+
+@layer components {
+    .shadow-airbnb {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    }
+    .shadow-airbnb-hover {
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.16);
+    }
+    .shadow-airbnb-subtle {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .transition-airbnb {
+        transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .bugambilia-gradient {
+        background: linear-gradient(
+            135deg,
+            oklch(0.35 0.19 358) 0%,
+            oklch(0.24 0.16 358) 100%
+        );
+    }
+    .bugambilia-gradient-light {
+        background: linear-gradient(
+            135deg,
+            oklch(0.48 0.15 358) 0%,
+            oklch(0.35 0.18 358) 100%
+        );
+    }
+    .text-bugambilia-gradient {
+        background: linear-gradient(
+            135deg,
+            oklch(0.48 0.19 358) 0%,
+            oklch(0.28 0.16 358) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .gold-gradient {
+        background: linear-gradient(
+            135deg,
+            #f5d061 0%,
+            #e5c158 50%,
+            #c59b27 100%
+        );
+    }
+    .text-gold-gradient {
+        background: linear-gradient(
+            135deg,
+            #f5d061 0%,
+            #e5c158 50%,
+            #c59b27 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .luxury-glass {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .luxury-glass {
+        background: rgba(18, 20, 26, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
 }

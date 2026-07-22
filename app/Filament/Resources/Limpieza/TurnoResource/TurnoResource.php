@@ -7,10 +7,12 @@ namespace App\Filament\Resources\Limpieza\TurnoResource;
 use App\Filament\Resources\Limpieza\TurnoResource\Pages\CreateTurno;
 use App\Filament\Resources\Limpieza\TurnoResource\Pages\EditTurno;
 use App\Filament\Resources\Limpieza\TurnoResource\Pages\ListTurnos;
+use App\Filament\Resources\Limpieza\TurnoResource\Pages\ViewTurno;
 use App\Filament\Resources\Limpieza\TurnoResource\RelationManagers\HorariosRelationManager;
 use App\Filament\Resources\Limpieza\TurnoResource\Schemas\TurnoForm;
+use App\Filament\Resources\Limpieza\TurnoResource\Schemas\TurnoInfolist;
 use App\Filament\Resources\Limpieza\TurnoResource\Tables\TurnoTable;
-use App\Models\Limpieza\Turno;
+use App\Repository\Models\Limpieza\Turno;
 use BackedEnum;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
@@ -40,6 +42,11 @@ class TurnoResource extends Resource
         return TurnoForm::configure($schema);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return TurnoInfolist::configure($schema);
+    }
+
     public static function table(Table $table): Table
     {
         return TurnoTable::configure($table);
@@ -60,6 +67,7 @@ class TurnoResource extends Resource
         return [
             'index' => ListTurnos::route('/'),
             'create' => CreateTurno::route('/create'),
+            'view' => ViewTurno::route('/{record}'),
             'edit' => EditTurno::route('/{record}/edit'),
         ];
     }

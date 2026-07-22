@@ -47,7 +47,7 @@ class ComandoCrearUsuarioAdmin extends Command
 
             DB::commit();
 
-            $this->info('✔ Usuario creado correctamente');
+            $this->info('Usuario creado correctamente');
             $this->line("Email: $user->email");
 
             return CommandAlias::SUCCESS;

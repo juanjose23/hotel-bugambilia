@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use App\Enums\Compras\EstadoDevolucion;
-use App\Models\Compras\DevolucionCompra;
-use App\Models\Compras\RecepcionCompra;
-use App\Models\Inventario\Lote;
-use App\Models\User;
-use App\UseCases\Compras\Devoluciones\Mutations\DevolverMercanciaProveedor;
-use App\UseCases\Compras\Devoluciones\Mutations\GenerarCodigoDevolucion;
+use App\Interactors\Compras\Devoluciones\DevolverMercanciaProveedor;
+use App\Interactors\Compras\Devoluciones\GenerarCodigoDevolucion;
+use App\Repository\Models\Compras\DevolucionCompra;
+use App\Repository\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Inventario\Lote;
+use App\Repository\Models\User;
 use Illuminate\Database\Seeder;
 
 class DevolucionSeeder extends Seeder
@@ -35,7 +35,7 @@ class DevolucionSeeder extends Seeder
         }
 
         // --- 1. Devolución en estado BORRADOR ---
-        $codigoBorrador = app(GenerarCodigoDevolucion::class)->execute();
+        $codigoBorrador = app(GenerarCodigoDevolucion::class)->ejecutar();
         $devolucionBorrador = DevolucionCompra::create([
             'codigo' => $codigoBorrador,
             'orden_compra_id' => $recepcion->orden_compra_id,
@@ -59,7 +59,7 @@ class DevolucionSeeder extends Seeder
 
         // --- 2. Devolución en estado CONFIRMADA (Procesada) ---
         if ($lotes->count() > 1) {
-            $codigoConfirmada = app(GenerarCodigoDevolucion::class)->execute();
+            $codigoConfirmada = app(GenerarCodigoDevolucion::class)->ejecutar();
             $devolucionConfirmada = DevolucionCompra::create([
                 'codigo' => $codigoConfirmada,
                 'orden_compra_id' => $recepcion->orden_compra_id,
@@ -82,7 +82,7 @@ class DevolucionSeeder extends Seeder
             ]);
 
             // Confirmar usando el Caso de Uso UC-05
-            app(DevolverMercanciaProveedor::class)->execute($devolucionConfirmada, $admin->id);
+            app(DevolverMercanciaProveedor::class)->ejecutar($devolucionConfirmada, $admin->id);
         }
     }
 }

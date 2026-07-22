@@ -4,61 +4,42 @@ declare(strict_types=1);
 
 namespace App\Enums\Compras;
 
-use BackedEnum;
+use App\Enums\Concerns\TieneAyudantesEnum;
 use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
-use Filament\Support\Icons\Heroicon;
 
-enum EstadoCotizacion: int implements HasColor, HasIcon, HasLabel
+enum EstadoCotizacion: int implements HasColor, HasLabel
 {
-    case Activa = 0;
-    case Aceptada = 1;
-    case AceptadaParcial = 2;
-    case Rechazada = 3;
+    use TieneAyudantesEnum;
+
+    case Borrador = 0;
+    case Activa = 1;
+    case Aceptada = 3;
+    case Rechazada = 4;
+    case Cancelada = 5;
+    case AceptadaParcial = 6;
 
     public function getLabel(): string
     {
-        return $this->label();
+        return match ($this) {
+            self::Borrador => 'Borrador',
+            self::Activa => 'Activa',
+            self::Aceptada => 'Aceptada',
+            self::Rechazada => 'Rechazada',
+            self::Cancelada => 'Cancelada',
+            self::AceptadaParcial => 'Aceptada Parcial',
+        };
     }
 
     public function getColor(): string
     {
-        return $this->color();
-    }
-
-    public function getIcon(): BackedEnum
-    {
-        return $this->icon();
-    }
-
-    public function label(): string
-    {
         return match ($this) {
-            self::Activa => 'Activa',
-            self::Aceptada => 'Aceptada',
-            self::AceptadaParcial => 'Aceptada Parcial',
-            self::Rechazada => 'Rechazada',
-        };
-    }
-
-    public function color(): string
-    {
-        return match ($this) {
-            self::Activa => 'gray',
+            self::Borrador => 'gray',
+            self::Activa => 'info',
             self::Aceptada => 'success',
-            self::AceptadaParcial => 'warning',
             self::Rechazada => 'danger',
-        };
-    }
-
-    public function icon(): Heroicon
-    {
-        return match ($this) {
-            self::Activa => Heroicon::Clock,
-            self::Aceptada => Heroicon::CheckBadge,
-            self::AceptadaParcial => Heroicon::AdjustmentsHorizontal,
-            self::Rechazada => Heroicon::NoSymbol,
+            self::Cancelada => 'danger',
+            self::AceptadaParcial => 'warning',
         };
     }
 }

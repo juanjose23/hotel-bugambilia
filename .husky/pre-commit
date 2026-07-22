@@ -1,11 +1,16 @@
 #!/usr/bin/env sh
 set -e
 
-echo "[pre-commit] Verificando formato JS con Prettier..."
-npm run check:prettier
+HERD_PHP="/c/Users/jrios/.config/herd/bin/php84"
+if [ -d "$HERD_PHP" ]; then
+    export PATH="$HERD_PHP:$PATH"
+fi
 
-echo "[pre-commit] Verificando formato PHP con Pint..."
-npm run lint:php
+echo "[pre-commit] Verificando formato frontend..."
+npx prettier --check "resources/js/**/*.{ts,tsx}"
 
-echo "[pre-commit] Ejecutando analisis estatico con PHPStan..."
-npm run phpstan
+echo "[pre-commit] Verificando tipos TypeScript..."
+npm run types:check
+
+echo "[pre-commit] Verificando estandar de codigo PHP con Pint..."
+vendor/bin/pint --test

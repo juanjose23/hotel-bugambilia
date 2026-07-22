@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Compras\Proveedors\Pages;
 
 use App\Filament\Resources\Compras\Proveedors\ProveedorResource;
-use App\Models\Compras\Proveedor;
-use App\UseCases\Compras\Proveedores\Mutations\ActualizarProveedor;
+use App\Interactors\Compras\Proveedores\ActualizarProveedor;
+use App\Repository\Models\Compras\Proveedor;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -14,6 +14,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditProveedor extends EditRecord
 {
+    protected ActualizarProveedor $actualizarProveedor;
+
+    public function boot(ActualizarProveedor $actualizarProveedor): void
+    {
+        $this->actualizarProveedor = $actualizarProveedor;
+    }
+
     protected static string $resource = ProveedorResource::class;
 
     protected function mutateFormDataBeforeFill(array $data): array
@@ -45,7 +52,7 @@ class EditProveedor extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         /** @var Proveedor $record */
-        return app(ActualizarProveedor::class)->execute($record, $data);
+        return $this->actualizarProveedor->ejecutar($record, $data);
     }
 
     protected function getHeaderActions(): array

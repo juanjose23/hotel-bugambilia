@@ -6,11 +6,13 @@ use App\Filament\Resources\Servicios\Servicios\Pages\CreateServicio;
 use App\Filament\Resources\Servicios\Servicios\Pages\EditServicio;
 use App\Filament\Resources\Servicios\Servicios\Pages\ListServicios;
 use App\Filament\Resources\Servicios\Servicios\Pages\ViewServicio;
-use App\Filament\Resources\Servicios\Servicios\RelationManagers\PreciosRelationManager;
 use App\Filament\Resources\Servicios\Servicios\Schemas\ServicioForm;
 use App\Filament\Resources\Servicios\Servicios\Schemas\ServicioInfolist;
 use App\Filament\Resources\Servicios\Servicios\Tables\ServiciosTable;
-use App\Models\Servicios\Servicio;
+use App\Filament\Shared\RelationManagers\PoliticasRelationManager;
+use App\Filament\Shared\RelationManagers\PreciosRelationManager;
+use App\Filament\Shared\RelationManagers\StocksRelationManager;
+use App\Repository\Models\Servicios\Servicio;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -57,6 +59,8 @@ class ServicioResource extends Resource
     {
         return [
             PreciosRelationManager::class,
+            StocksRelationManager::class,
+            PoliticasRelationManager::class,
         ];
     }
 

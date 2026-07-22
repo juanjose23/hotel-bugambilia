@@ -6,13 +6,16 @@ use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Compras\EstadoCotizacion;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Models\Catalogos\ProductoVariante;
-use App\Models\Compras\Proveedor;
-use App\Models\Compras\ProveedorContacto;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Filament\Shared\Forms\ProductoSelect;
+use App\Filament\Shared\Forms\ProductoVarianteSelect;
+use App\Repository\Models\Compras\CotizacionItem;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Compras\ProveedorContacto;
+use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionConItemsProveedor;
+use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionesPorSolicitud;
+use App\Repository\Queries\Compras\Solicitudes\ObtenerSolicitudConItems;
 use App\Support\CachedOptions;
-use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionConItemsProveedor;
-use App\UseCases\Compras\Cotizaciones\Queries\ObtenerCotizacionesPorSolicitud;
-use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudConItems;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -26,8 +29,23 @@ use Illuminate\Database\Eloquent\Builder;
 
 class OrdenCompraForm
 {
+    use InyectaDesdeContenedor;
+
+    public function __construct(
+        private readonly ObtenerSolicitudConItems $obtenerSolicitudConItems,
+        private readonly ObtenerCotizacionesPorSolicitud $obtenerCotizacionesPorSolicitud,
+        private readonly ObtenerCotizacionConItemsProveedor $obtenerCotizacionConItemsProveedor,
+    ) {}
+
     public static function configure(Schema $schema): Schema
     {
+        return static::make()->doConfigure($schema);
+    }
+
+    private function doConfigure(Schema $schema): Schema
+    {
+        $form = $this;
+
         return $schema
             ->components([
                 Section::make('Identificación de la Orden')
@@ -39,7 +57,7 @@ class OrdenCompraForm
                             ->label('Número de Orden')
                             ->placeholder('OC-YYYY-NNN')
                             ->disabled()
-                            ->dehydrated(true)
+                            ->dehydrated()
                             ->prefixIcon(Heroicon::QrCode),
 
                         Select::make('estado')
@@ -67,14 +85,14 @@ class OrdenCompraForm
                             ->preload()
                             ->nullable()
                             ->live()
-                            ->afterStateUpdated(function (mixed $state, mixed $set, mixed $get): void {
+                            ->afterStateUpdated(function (mixed $state, mixed $set, mixed $get) use ($form): void {
                                 if (is_callable($set)) {
                                     $set('cotizacion_id', null);
                                     $set('items', []);
                                 }
 
                                 if ($state) {
-                                    $solicitud = app(ObtenerSolicitudConItems::class)->execute(is_numeric($state) ? intval($state) : 0);
+                                    $solicitud = $form->obtenerSolicitudConItems->execute(is_numeric($state) ? intval($state) : 0);
                                     if ($solicitud && is_callable($set)) {
                                         $set('items', $solicitud->items->map(fn ($item) => [
                                             'producto_id' => $item->producto_id,
@@ -86,16 +104,16 @@ class OrdenCompraForm
                                         ])->toArray());
                                     }
                                 }
-                                self::updateTotals($get, $set);
+                                $form->updateTotals($get, $set);
                             })
                             ->prefixIcon(Heroicon::DocumentText),
 
                         Select::make('cotizacion_id')
                             ->label('Cotización Ganadora')
-                            ->options(function (mixed $get): array {
+                            ->options(function (mixed $get) use ($form): array {
                                 $solicitudId = is_callable($get) ? intval($get('solicitud_id')) : null;
 
-                                return app(ObtenerCotizacionesPorSolicitud::class)
+                                return $form->obtenerCotizacionesPorSolicitud
                                     ->execute($solicitudId ?: null)
                                     ->filter(fn ($c) => in_array($c->estado, [EstadoCotizacion::Aceptada, EstadoCotizacion::AceptadaParcial]))
                                     ->mapWithKeys(fn ($c) => [$c->id => '#'.$c->id.' - '.($c->proveedor ? $c->proveedor->codigo : '')])
@@ -104,11 +122,11 @@ class OrdenCompraForm
                             ->searchable()
                             ->nullable()
                             ->live()
-                            ->afterStateUpdated(function (mixed $state, mixed $set, mixed $get): void {
+                            ->afterStateUpdated(function (mixed $state, mixed $set, mixed $get) use ($form): void {
                                 if (! $state) {
                                     $solicitudId = is_callable($get) ? intval($get('solicitud_id')) : null;
                                     if ($solicitudId) {
-                                        $solicitud = app(ObtenerSolicitudConItems::class)->execute((int) $solicitudId);
+                                        $solicitud = $form->obtenerSolicitudConItems->execute($solicitudId);
                                         if ($solicitud && is_callable($set)) {
                                             $set('items', $solicitud->items->map(fn ($item) => [
                                                 'producto_id' => $item->producto_id,
@@ -127,22 +145,25 @@ class OrdenCompraForm
                                 if (is_callable($set)) {
                                     $set('items', []);
                                 }
-                                $cotizacion = app(ObtenerCotizacionConItemsProveedor::class)->execute(is_numeric($state) ? intval($state) : 0);
+                                $cotizacion = $form->obtenerCotizacionConItemsProveedor->execute(is_numeric($state) ? intval($state) : 0);
                                 if ($cotizacion && is_callable($set)) {
                                     $set('proveedor_id', $cotizacion->proveedor_id);
                                     $set('condicion_pago_id', $cotizacion->condicion_pago_id);
                                     $set('tasa_cambio', $cotizacion->tasa_cambio ?? 1.0000);
 
-                                    $set('items', $cotizacion->items->map(fn ($item) => [
-                                        'producto_id' => $item->producto_id,
-                                        'producto_variante_id' => $item->producto_variante_id,
-                                        'unidad_medida_id' => $item->unidad_medida_id,
-                                        'cantidad' => $item->cantidad,
-                                        'precio_unitario' => $item->precio_unitario,
-                                        'subtotal' => $item->subtotal,
-                                    ])->toArray());
+                                    $set('items', $cotizacion->items->map(function ($item) {
+                                        /** @var CotizacionItem $item */
+                                        return [
+                                            'producto_id' => $item->producto_id,
+                                            'producto_variante_id' => $item->producto_variante_id,
+                                            'unidad_medida_id' => $item->unidad_medida_id,
+                                            'cantidad' => $item->cantidad,
+                                            'precio_unitario' => $item->precio_unitario,
+                                            'subtotal' => $item->subtotal,
+                                        ];
+                                    })->toArray());
 
-                                    self::updateTotals($get, $set);
+                                    $form->updateTotals($get, $set);
                                 }
                             })
                             ->prefixIcon(Heroicon::DocumentCheck)
@@ -151,7 +172,7 @@ class OrdenCompraForm
                         Select::make('proveedor_id')
                             ->label('Proveedor')
                             ->relationship('proveedor', 'codigo')
-                            ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "{$record->codigo} - ".(
+                            ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "$record->codigo - ".(
                                 ($record->persona && $record->persona->personaJuridica)
                                     ? $record->persona->personaJuridica->razon_social
                                     : (($record->persona ? $record->persona->primer_nombre : '').' '.($record->persona && $record->persona->personaNatural ? $record->persona->personaNatural->primer_apellido : ''))
@@ -183,7 +204,7 @@ class OrdenCompraForm
 
                 // SECCIÓN 2: FECHAS
                 Section::make('Cronograma de Compra')
-                    ->columns(2)
+                    ->columns()
                     ->columnSpanFull()
                     ->schema([
                         DatePicker::make('fecha_orden')
@@ -209,21 +230,15 @@ class OrdenCompraForm
                             ->relationship()
                             ->minItems(1)
                             ->schema([
-                                Select::make('producto_id')
-                                    ->label('Producto')
+                                ProductoSelect::make('producto_id')
                                     ->relationship('producto', 'nombre')
-                                    ->searchable()
-                                    ->preload()
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(fn ($set) => $set('producto_variante_id', null))
                                     ->columnSpan(6)
                                     ->prefixIcon(Heroicon::Cube),
 
-                                Select::make('producto_variante_id')
-                                    ->label('Variante')
-                                    ->options(fn ($get) => ProductoVariante::where('producto_id', $get('producto_id'))->pluck('codigo', 'id'))
-                                    ->searchable()
+                                ProductoVarianteSelect::make('producto_variante_id', 'producto_id')
                                     ->columnSpan(6)
                                     ->prefixIcon(Heroicon::AdjustmentsHorizontal),
 
@@ -263,8 +278,8 @@ class OrdenCompraForm
                             ->columns(12)
                             ->collapsible()
                             ->live()
-                            ->afterStateUpdated(function ($get, $set) {
-                                self::updateTotals($get, $set);
+                            ->afterStateUpdated(function ($get, $set) use ($form) {
+                                $form->updateTotals($get, $set);
                             })
                             ->addActionLabel('Agregar producto a la orden'),
                     ]),
@@ -274,6 +289,7 @@ class OrdenCompraForm
                     ->columns(3)
                     ->columnSpanFull()
                     ->schema([
+
                         TextInput::make('subtotal')
                             ->label('Subtotal')
                             ->disabled()
@@ -303,9 +319,10 @@ class OrdenCompraForm
             ]);
     }
 
-    public static function updateTotals(mixed $get, mixed $set): void
+    private function updateTotals(mixed $get, mixed $set): void
     {
         if (! is_callable($set) || ! is_callable($get)) {
+
             return;
         }
 
@@ -317,7 +334,7 @@ class OrdenCompraForm
             $precio = floatval($item['precio_unitario'] ?? 0);
             $subtotalItem = $cantidad * $precio;
 
-            $set("items.{$key}.subtotal", $subtotalItem);
+            $set("items.$key.subtotal", $subtotalItem);
             $subtotalGeneral += $subtotalItem;
         }
 

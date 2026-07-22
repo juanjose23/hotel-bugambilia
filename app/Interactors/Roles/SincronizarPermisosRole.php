@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Interactors\Roles;
+
+use BezhanSalleh\FilamentShield\Support\Utils;
+use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Role;
+
+class SincronizarPermisosRole
+{
+    /**
+     * @param  array<string, mixed>  $formData
+     * @param  Collection<int, string>  $permissions
+     */
+    public function execute(Role $role, array $formData, Collection $permissions): void
+    {
+        $permissionModels = collect();
+
+        $permissions->each(function (string $permission) use ($permissionModels, $formData): void {
+            $permissionModels->push(Utils::getPermissionModel()::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => $formData['guard_name'],
+            ]));
+        });
+
+        $role->syncPermissions($permissionModels);
+    }
+}

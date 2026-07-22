@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Limpieza\LimpiezaHorarioResource\Tables;
 
+use App\Filament\Shared\Filters\FiltroEliminados;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -25,17 +29,20 @@ class LimpiezaHorarioTable
                         return $record->detalles->map(function ($d) {
                             return $d->limpiable->nombre ?? 'N/A';
                         })->join(', ');
-                    }),
+                    })
+                    ->icon(Heroicon::MapPin),
 
                 TextColumn::make('turno.nombre')
                     ->label('Turno')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->icon(Heroicon::Clock),
 
                 TextColumn::make('hora_estimada')
                     ->label('Hora Estimada')
                     ->time('H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon(Heroicon::Clock),
 
                 TextColumn::make('frecuencia')
                     ->label('Frecuencia')
@@ -52,7 +59,8 @@ class LimpiezaHorarioTable
                     ->label('Día')
                     ->formatStateUsing(fn (?string $state): string => $state ? ucfirst($state) : 'Todos')
                     ->placeholder('Todos')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon(Heroicon::Calendar),
 
                 IconColumn::make('activo')
                     ->label('Activo')
@@ -78,10 +86,16 @@ class LimpiezaHorarioTable
                         'sabado' => 'Sábado',
                         'domingo' => 'Domingo',
                     ]),
+                FiltroEliminados::make(),
             ])
-            ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+            ->recordActions([
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ]);
     }
 }

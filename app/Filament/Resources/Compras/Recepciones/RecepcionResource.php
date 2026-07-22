@@ -9,7 +9,7 @@ use App\Filament\Resources\Compras\Recepciones\Pages\ViewRecepcion;
 use App\Filament\Resources\Compras\Recepciones\Schemas\RecepcionForm;
 use App\Filament\Resources\Compras\Recepciones\Schemas\RecepcionInfolist;
 use App\Filament\Resources\Compras\Recepciones\Tables\RecepcionTable;
-use App\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Compras\RecepcionCompra;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

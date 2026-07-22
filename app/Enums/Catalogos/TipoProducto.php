@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Enums\Catalogos;
 
-use App\Enums\Concerns\HasEnumHelpers;
+use App\Enums\Concerns\TieneAyudantesEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
 enum TipoProducto: int implements HasColor, HasLabel
 {
-    use HasEnumHelpers;
+    use TieneAyudantesEnum;
 
     case Perecedero = 1;
     case NoPerecedero = 2;

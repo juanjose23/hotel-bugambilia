@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Catalogos\Productos\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Catalogos\TipoProducto;
+use App\Enums\Shared\EstadoGeneral;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -96,8 +96,8 @@ class ProductoForm
                             ->helperText('Detalles adicionales del producto.'),
                         Select::make('estado')
                             ->label('Estado')
-                            ->options(EstadoCatalogo::options())
-                            ->default(EstadoCatalogo::Activo->value)
+                            ->options(EstadoGeneral::options())
+                            ->default(EstadoGeneral::Activo->value)
                             ->required()
                             ->prefixIcon(Heroicon::CheckCircle),
                         FileUpload::make('imagen_upload')

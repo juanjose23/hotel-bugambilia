@@ -4,8 +4,8 @@ namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
-use App\Models\Compras\Solicitud;
-use App\UseCases\Compras\Solicitudes\Mutations\CancelarSolicitud;
+use App\Interactors\Compras\Solicitudes\CancelarSolicitud;
+use App\Repository\Models\Compras\Solicitud;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -19,6 +19,13 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditSolicitud extends EditRecord
 {
+    protected CancelarSolicitud $cancelarSolicitud;
+
+    public function boot(CancelarSolicitud $cancelarSolicitud): void
+    {
+        $this->cancelarSolicitud = $cancelarSolicitud;
+    }
+
     protected static string $resource = SolicitudResource::class;
 
     protected function beforeFill(): void
@@ -95,7 +102,7 @@ class EditSolicitud extends EditRecord
                     /** @var Solicitud $record */
                     $record = $this->getRecord();
 
-                    app(CancelarSolicitud::class)->execute(
+                    $this->cancelarSolicitud->ejecutar(
                         $record,
                         $data['items_cancelacion'],
                         $data['nota_compras']

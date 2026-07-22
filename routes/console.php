@@ -28,88 +28,69 @@ Artisan::command('mantenimiento:procesar-todos', function (): void {
     fwrite(STDOUT, "Todos los jobs de mantenimiento procesados síncronamente.\n");
 })->purpose('Forzar la ejecución síncrona de todos los jobs de mantenimiento y garantías');
 
-$shouldSchedule = function (string $key, string $default = '06:00'): ?string {
-    $value = config($key, $default);
-    if (! is_string($value)) {
-        return null;
+$registerScheduledEvent = function (mixed $event, string $key, string $default, string $timezoneStr): void {
+    $time = config($key, $default);
+    if (! is_string($time)) {
+        return;
     }
-    $strValue = strtolower(trim($value));
+    $strValue = strtolower(trim($time));
     if (in_array($strValue, ['null', 'false', 'disabled', 'none', ''], true)) {
-        return null;
+        return;
     }
 
-    return $value;
+    if (is_string($event)) {
+        $scheduled = Schedule::command($event);
+    } else {
+        assert(is_object($event));
+        $scheduled = Schedule::job($event);
+    }
+
+    $scheduled->name($key)
+        ->withoutOverlapping()
+        ->onOneServer()
+        ->timezone($timezoneStr);
+
+    if ($strValue === 'hourly') {
+        $scheduled->hourly();
+    } elseif ($strValue === 'daily') {
+        $scheduled->daily();
+    } elseif ($strValue === 'everyminute') {
+        $scheduled->everyMinute();
+    } elseif ($strValue === 'everyfiveminutes') {
+        $scheduled->everyFiveMinutes();
+    } elseif ($strValue === 'everytenminutes') {
+        $scheduled->everyTenMinutes();
+    } elseif ($strValue === 'everyfifteenminutes') {
+        $scheduled->everyFifteenMinutes();
+    } elseif ($strValue === 'everythirtyminutes') {
+        $scheduled->everyThirtyMinutes();
+    } elseif (count(explode(' ', $time)) === 5) {
+        $scheduled->cron($time);
+    } else {
+        $scheduled->dailyAt($time);
+    }
 };
 
 $timezone = config('app.timezone');
 $timezoneStr = is_string($timezone) ? $timezone : 'America/Managua';
 
 // 1. Verificar lotes vencidos y próximos a caducar
-if ($time = $shouldSchedule('jobs.inventario_caducidades', '06:00')) {
-    Schedule::job(new VerificarCaducidadesJob)
-        ->name('verificar-caducidades')
-        ->dailyAt($time)
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->timezone($timezoneStr);
-}
+$registerScheduledEvent(new VerificarCaducidadesJob, 'jobs.inventario_caducidades', '06:00', $timezoneStr);
 
 // 2. Generar mantenimientos preventivos lógicos (silencioso)
-if ($time = $shouldSchedule('jobs.mtto_preventivo', '06:00')) {
-    Schedule::job(new VerificarMantenimientosPreventivosJob)
-        ->name('verificar-mantenimientos-preventivos')
-        ->dailyAt($time)
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->timezone($timezoneStr);
-}
+$registerScheduledEvent(new VerificarMantenimientosPreventivosJob, 'jobs.mtto_preventivo', '06:00', $timezoneStr);
 
-// 3. Notificación unificada de mantenimientos (tecnicos asignados / admin pool, anti-spam)
-if ($time = $shouldSchedule('jobs.mtto_notificar_proximos', '07:00')) {
-    Schedule::job(new NotificarMantenimientosJob)
-        ->name('notificar-mantenimientos')
-        ->dailyAt($time)
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->timezone($timezoneStr);
-}
+// 3. Notificación unificada de mantenimientos
+$registerScheduledEvent(new NotificarMantenimientosJob, 'jobs.mtto_notificar_proximos', '07:00', $timezoneStr);
 
 // 4. Restaurar estados lógicos de activos completados
-if ($time = $shouldSchedule('jobs.mtto_sincronizar', '06:40')) {
-    Schedule::job(new SincronizarEstadoActivoJob)
-        ->name('sincronizar-estado-activo')
-        ->dailyAt($time)
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->timezone($timezoneStr);
-}
+$registerScheduledEvent(new SincronizarEstadoActivoJob, 'jobs.mtto_sincronizar', '06:40', $timezoneStr);
 
 // 5. Advertir garantías de activos a vencer en los siguientes 30 días
-if ($time = $shouldSchedule('jobs.mtto_garantias', '06:15')) {
-    Schedule::job(new VerificarGarantiasJob)
-        ->name('verificar-garantias-activos')
-        ->dailyAt($time)
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->timezone($timezoneStr);
-}
+$registerScheduledEvent(new VerificarGarantiasJob, 'jobs.mtto_garantias', '06:15', $timezoneStr);
 
-// 6. Materializar ejecuciones de limpieza diariamente
-if ($time = $shouldSchedule('jobs.limpieza_materializar', '05:30')) {
-    Schedule::command('limpieza:materializar-ejecuciones')
-        ->name('materializar-ejecuciones-limpieza')
-        ->dailyAt($time)
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->timezone($timezoneStr);
-}
+// 6. Materializar ejecuciones de limpieza
+$registerScheduledEvent('limpieza:materializar-ejecuciones', 'jobs.limpieza_materializar', 'hourly', $timezoneStr);
 
 // 7. Enviar recordatorios de limpieza pendientes/vencidos
-if ($time = $shouldSchedule('jobs.limpieza_recordatorio', '12:00')) {
-    Schedule::command('limpieza:enviar-recordatorios')
-        ->name('enviar-recordatorios-limpieza')
-        ->dailyAt($time)
-        ->withoutOverlapping()
-        ->onOneServer()
-        ->timezone($timezoneStr);
-}
+$registerScheduledEvent('limpieza:enviar-recordatorios', 'jobs.limpieza_recordatorio', '12:00', $timezoneStr);

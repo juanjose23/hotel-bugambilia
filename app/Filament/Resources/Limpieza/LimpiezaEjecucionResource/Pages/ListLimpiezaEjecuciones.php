@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Pages;
 
-use App\Enums\HabitacionesEspacios\EstadoLimpieza;
+use App\Enums\Limpieza\EstadoLimpieza;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\LimpiezaEjecucionResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;

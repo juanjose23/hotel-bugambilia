@@ -7,7 +7,7 @@ use App\Filament\Resources\Catalogos\Moneda\Pages\EditMoneda;
 use App\Filament\Resources\Catalogos\Moneda\Pages\ListMonedas;
 use App\Filament\Resources\Catalogos\Moneda\Schemas\MonedaForm;
 use App\Filament\Resources\Catalogos\Moneda\Tables\MonedaTable;
-use App\Models\Monedas\Moneda;
+use App\Repository\Models\Monedas\Moneda;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

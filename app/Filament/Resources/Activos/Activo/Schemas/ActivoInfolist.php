@@ -51,6 +51,16 @@ class ActivoInfolist
                                 ->placeholder('Sin variante')
                                 ->icon(Heroicon::RectangleStack),
 
+                            TextEntry::make('producto.categoria.nombre')
+                                ->label('Categoría')
+                                ->icon(Heroicon::Folder)
+                                ->placeholder('Sin categoría'),
+
+                            TextEntry::make('producto.marca.nombre')
+                                ->label('Marca')
+                                ->icon(Heroicon::Bookmark)
+                                ->placeholder('Sin marca'),
+
                             TextEntry::make('estado')
                                 ->label('Estado Operativo')
                                 ->badge(),
@@ -93,6 +103,46 @@ class ActivoInfolist
                                 ->date('d/m/Y')
                                 ->icon(Heroicon::ShieldCheck)
                                 ->placeholder('Sin garantía registrada'),
+
+                            TextEntry::make('valor_libros')
+                                ->label('Valor Neto en Libros')
+                                ->state(function ($record) {
+                                    if (! $record->costo_adquisicion || ! $record->fecha_adquisicion || ! $record->vida_util_meses) {
+                                        return null;
+                                    }
+                                    $costo = (float) $record->costo_adquisicion;
+                                    $vidaUtil = (int) $record->vida_util_meses;
+                                    $meses = now()->diffInMonths($record->fecha_adquisicion);
+                                    if ($meses >= $vidaUtil) {
+                                        return 0.00;
+                                    }
+                                    $depAcumulada = ($costo / $vidaUtil) * $meses;
+
+                                    return max(0.00, $costo - $depAcumulada);
+                                })
+                                ->money(fn ($record) => $record->moneda->codigo ?? 'USD')
+                                ->icon(Heroicon::Banknotes)
+                                ->color('success')
+                                ->weight(FontWeight::Bold),
+
+                            TextEntry::make('depreciacion_acumulada')
+                                ->label('Depreciación Acumulada')
+                                ->state(function ($record) {
+                                    if (! $record->costo_adquisicion || ! $record->fecha_adquisicion || ! $record->vida_util_meses) {
+                                        return null;
+                                    }
+                                    $costo = (float) $record->costo_adquisicion;
+                                    $vidaUtil = (int) $record->vida_util_meses;
+                                    $meses = now()->diffInMonths($record->fecha_adquisicion);
+                                    if ($meses >= $vidaUtil) {
+                                        return $costo;
+                                    }
+
+                                    return ($costo / $vidaUtil) * $meses;
+                                })
+                                ->money(fn ($record) => $record->moneda->codigo ?? 'USD')
+                                ->icon(Heroicon::ArrowTrendingDown)
+                                ->placeholder('0.00'),
                         ]),
 
                     Tab::make('Mantenimiento')
@@ -118,11 +168,50 @@ class ActivoInfolist
                                         ->label('Costo')
                                         ->money('USD')
                                         ->placeholder('—'),
+
                                     TextEntry::make('estado')
                                         ->label('Estado')
                                         ->badge(),
                                 ])
                                 ->placeholder('No hay mantenimientos registrados.'),
+                        ]),
+
+                    Tab::make('Historial de Ubicaciones')
+                        ->icon(Heroicon::MapPin)
+                        ->schema([
+                            RepeatableEntry::make('asignaciones')
+                                ->hiddenLabel()
+                                ->contained(false)
+                                ->schema([
+                                    TextEntry::make('fecha_inicio')
+                                        ->label('Inicio')
+                                        ->date('d/m/Y')
+                                        ->badge()
+                                        ->color('success')
+                                        ->icon(Heroicon::Calendar),
+                                    TextEntry::make('fecha_fin')
+                                        ->label('Fin')
+                                        ->date('d/m/Y')
+                                        ->badge()
+                                        ->color('danger')
+                                        ->icon(Heroicon::Calendar)
+                                        ->placeholder('Vigente'),
+                                    TextEntry::make('tipo_destino')
+                                        ->label('Tipo de Destino')
+                                        ->state(fn ($record) => $record->tipoDestinoLabel())
+                                        ->badge()
+                                        ->color(fn ($record) => $record->tipoDestinoColor()),
+                                    TextEntry::make('destino')
+                                        ->label('Destino')
+                                        ->state(fn ($record) => $record->destinoLabel())
+                                        ->weight(FontWeight::Bold),
+                                    TextEntry::make('motivo')
+                                        ->label('Motivo / Justificación'),
+                                    TextEntry::make('asignadoPor.name')
+                                        ->label('Asignado Por')
+                                        ->placeholder('Sistema'),
+                                ])
+                                ->placeholder('No hay historial de traslados registrado.'),
                         ]),
 
                     Tab::make('Notas')

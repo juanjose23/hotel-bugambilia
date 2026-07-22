@@ -10,7 +10,7 @@ use App\Filament\Resources\Inventario\InventarioFisico\Pages\ListInventariosFisi
 use App\Filament\Resources\Inventario\InventarioFisico\Pages\ViewInventarioFisico;
 use App\Filament\Resources\Inventario\InventarioFisico\Schemas\InventarioFisicoForm;
 use App\Filament\Resources\Inventario\InventarioFisico\Tables\InventarioFisicoTable;
-use App\Models\Inventario\InventarioFisico;
+use App\Repository\Models\Inventario\InventarioFisico;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

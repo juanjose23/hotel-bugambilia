@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoMantenimiento\Pages;
 
 use App\Filament\Resources\Activos\ActivoMantenimiento\ActivoMantenimientoResource;
-use App\Models\Activos\ActivoMantenimiento;
+use App\Repository\Models\Activos\ActivoMantenimiento;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;

@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\Compras\Proveedors\Tables;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
@@ -12,6 +15,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -26,26 +30,21 @@ class ProveedorTable
                 TextColumn::make('codigo')
                     ->label('Código')
                     ->searchable()
-                    ->sortable()
-                    ->copyable()
-                    ->weight('bold'),
-
-                TextColumn::make('persona.primer_nombre')
-                    ->label('Nombre')
-                    ->searchable()
                     ->sortable(),
 
-                TextColumn::make('tipoProveedor.nombre')
-                    ->label('Tipo')
-                    ->sortable()
-                    ->badge()
-                    ->placeholder('—'),
-
-                TextColumn::make('contactoPrincipal.nombre')
-                    ->label('Contacto Principal')
+                TextColumn::make('persona.nombre_completo')
+                    ->label('Razón Social / Nombre')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->placeholder('—'),
+                    ->sortable()
+                    ->state(fn ($record) => ($record->persona && $record->persona->personaJuridica)
+                        ? $record->persona->personaJuridica->razon_social
+                        : ($record->persona ? $record->persona->nombre_completo : '—')
+                    ),
+
+                TextColumn::make('tipoProveedor.nombre')
+                    ->label('Tipo de Proveedor')
+                    ->searchable()
+                    ->sortable(),
 
                 TextColumn::make('contactoPrincipal.telefono')
                     ->label('Teléfono')
@@ -53,19 +52,13 @@ class ProveedorTable
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->placeholder('—'),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime('d/m/Y')
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
+                EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->searchable()
-                    ->badge()
-                    ->color(fn ($state) => EstadoCatalogo::colorFor($state ?? '') ?? 'gray')
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state ?? '') ?? '')
                     ->sortable(),
+
             ])
             ->filters([
                 FiltroEliminados::make(),
@@ -85,8 +78,12 @@ class ProveedorTable
 
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

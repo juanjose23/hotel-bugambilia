@@ -4,29 +4,39 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Activos\Widgets;
 
-use App\Enums\Activos\EstadoMantenimiento;
-use App\Models\Activos\ActivoMantenimiento;
+use App\Repository\Queries\Activos\ObtenerMantenimientosVencidosUseCase;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class MantenimientosVencidosWidget extends BaseWidget
 {
+    use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $permission = static::getWidgetPermission();
+        $user = auth()->user();
+
+        return $permission && $user
+            ? $user->can($permission)
+            : parent::canView();
+    }
+
     protected ?string $pollingInterval = null;
+
+    protected ObtenerMantenimientosVencidosUseCase $mantenimientosVencidos;
+
+    public function boot(ObtenerMantenimientosVencidosUseCase $mantenimientosVencidos): void
+    {
+        $this->mantenimientosVencidos = $mantenimientosVencidos;
+    }
 
     protected function getStats(): array
     {
-        $ayer = now()->subDay()->toDateString();
-
-        $programadosVencidos = ActivoMantenimiento::query()
-            ->where('estado', EstadoMantenimiento::Programado)
-            ->where('fecha_programada', '<=', $ayer)
-            ->count();
-
-        $enProcesoSobrepasados = ActivoMantenimiento::query()
-            ->where('estado', EstadoMantenimiento::EnProceso)
-            ->where('fecha_programada', '<=', now()->subDays(15)->toDateString())
-            ->count();
+        $programadosVencidos = $this->mantenimientosVencidos->obtenerProgramadosVencidos()->count();
+        $enProcesoSobrepasados = $this->mantenimientosVencidos->obtenerEnProcesoSobrepasados()->count();
 
         return [
             Stat::make('Programados Vencidos', $programadosVencidos)

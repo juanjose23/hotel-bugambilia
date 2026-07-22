@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Compras\Solicitudes\Schemas;
 
 use App\Enums\Compras\EstadoSolicitud;
-use App\Filament\Resources\Shared\InfolistTimestamps;
-use App\Models\Compras\Solicitud;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
+use App\Repository\Models\Compras\Solicitud;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -107,7 +107,7 @@ class SolicitudInfolist
                     ->columnSpanFull()
                     ->columns(3)
                     ->schema([
-                        ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
+                        ...TimestampsInfolistEntry::make(),
                     ]),
             ]);
     }

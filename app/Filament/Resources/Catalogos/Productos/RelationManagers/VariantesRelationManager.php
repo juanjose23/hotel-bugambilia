@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Catalogos\Productos\RelationManagers;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -87,8 +89,8 @@ class VariantesRelationManager extends RelationManager
 
                         Select::make('estado')
                             ->label('Estado')
-                            ->options(EstadoCatalogo::options())
-                            ->default(EstadoCatalogo::Activo->value)
+                            ->options(EstadoGeneral::options())
+                            ->default(EstadoGeneral::Activo->value)
                             ->prefixIcon(Heroicon::CheckCircle)
                             ->required(),
                     ]),
@@ -122,31 +124,24 @@ class VariantesRelationManager extends RelationManager
 
                 TextColumn::make('unidadMedida.nombre')
                     ->label('Unidad')
-                    ->placeholder('—'),
+                    ->placeholder('â€”'),
 
                 TextColumn::make('peso')
                     ->label('Peso (kg)')
                     ->numeric(decimalPlaces: 2)
-                    ->placeholder('—'),
+                    ->placeholder('â€”'),
 
                 TextColumn::make('volumen')
                     ->label('Volumen (lt)')
                     ->numeric(decimalPlaces: 2)
-                    ->placeholder('—'),
+                    ->placeholder('â€”'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->formatStateUsing(fn (int $state): string => $state == 1 ? 'Activo' : 'Inactivo')
-                    ->color(fn (int $state) => $state == 1 ? 'success' : 'danger'),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime('d/m/Y')
+                FechaStandardColumn::make('created_at', 'Creado')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
-                    ->dateTime('d/m/Y')
+                FechaStandardColumn::make('updated_at', 'Actualizado')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -159,7 +154,7 @@ class VariantesRelationManager extends RelationManager
                     ->searchable()
                     ->preload(),
 
-                FiltroEstado::make(EstadoCatalogo::class)->default(1),
+                FiltroEstado::make(EstadoGeneral::class)->default(1),
             ])
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-plus'),
@@ -181,8 +176,8 @@ class VariantesRelationManager extends RelationManager
                                 TextEntry::make('estado')
                                     ->label('Estado')
                                     ->badge()
-                                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
-                                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state)),
+                                    ->color(fn ($state): ?string => is_string($color = EstadoGeneral::colorFor($state)) ? $color : null)
+                                    ->formatStateUsing(fn ($state): string => EstadoGeneral::labelFor($state)),
 
                                 TextEntry::make('nombre_variante')
                                     ->label('Nombre')
@@ -196,19 +191,19 @@ class VariantesRelationManager extends RelationManager
 
                                 TextEntry::make('unidadMedida.nombre')
                                     ->label('Unidad de medida')
-                                    ->placeholder('—')
+                                    ->placeholder('â€”')
                                     ->icon(Heroicon::Scale),
 
                                 TextEntry::make('peso')
                                     ->label('Peso')
                                     ->suffix(' kg')
-                                    ->placeholder('—')
+                                    ->placeholder('â€”')
                                     ->icon(Heroicon::Scale),
 
                                 TextEntry::make('volumen')
                                     ->label('Volumen')
                                     ->suffix(' lt')
-                                    ->placeholder('—')
+                                    ->placeholder('â€”')
                                     ->icon(Heroicon::Beaker),
 
                                 TextEntry::make('atributos')
@@ -217,7 +212,7 @@ class VariantesRelationManager extends RelationManager
                                     ->placeholder('Sin atributos')
                                     ->columnSpanFull(),
 
-                                ...InfolistTimestamps::make(format: 'd/m/Y H:i', withIcons: true),
+                                ...TimestampsInfolistEntry::make(format: 'd/m/Y H:i', withIcons: true),
                             ]),
                     ]),
                 EditAction::make()->iconButton(),

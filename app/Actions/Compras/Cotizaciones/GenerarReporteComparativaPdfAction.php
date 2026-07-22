@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Compras\Cotizaciones;
+
+use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Queries\Compras\Cotizaciones\ObtenerComparativaReporteQuery;
+use App\Support\HotelInfo;
+use App\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Pdf\LayoutPdf;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+final class GenerarReporteComparativaPdfAction
+{
+    use GuardaReporte;
+
+    public function __construct(
+        private readonly ObtenerComparativaReporteQuery $query,
+    ) {}
+
+    public function ejecutar(Solicitud $solicitud): \Barryvdh\DomPDF\PDF
+    {
+        $solicitudConRelaciones = $this->query->ejecutar($solicitud->id) ?? $solicitud;
+
+        $codigoReporte = 'HTB-COM-006';
+        $nombreReporte = 'Cuadro Comparativo de Cotizaciones';
+        $datosHotel = HotelInfo::getBaseData();
+
+        $layout = new LayoutPdf(
+            margenSuperiorMm: 8,
+            margenInferiorMm: 10,
+            altoPieMm: 0,
+        );
+
+        $pdf = Pdf::loadView('reports.compras.cotizaciones.comparativa', [
+            'record' => $solicitudConRelaciones,
+            'codigoReporte' => $codigoReporte,
+            'nombreReporte' => $nombreReporte,
+            'datosHotel' => $datosHotel,
+            'pageMarginTop' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginBottom' => $layout->margenInferiorMm,
+            'pageMarginLeft' => $layout->margenSuperiorMm,
+        ])->setPaper('letter');
+
+        $this->guardarAuditoria(
+            tipoReporte: $codigoReporte,
+            parametros: [
+                'solicitud_id' => $solicitud->id,
+                'codigo' => $solicitud->codigo,
+            ],
+            pdf: $pdf,
+        );
+
+        return $pdf;
+    }
+}

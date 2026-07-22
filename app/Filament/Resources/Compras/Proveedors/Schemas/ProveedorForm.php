@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Compras\Proveedors\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Personas\TipoIdentificacion;
+use App\Enums\Shared\EstadoGeneral;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -154,15 +154,15 @@ class ProveedorForm
 
                         Select::make('estado')
                             ->label('Estado')
-                            ->options(EstadoCatalogo::options())
-                            ->default(EstadoCatalogo::Activo->value)
+                            ->options(EstadoGeneral::options())
+                            ->default(EstadoGeneral::Activo->value)
                             ->required()
                             ->columnSpanFull()
                             ->prefixIcon(Heroicon::CheckCircle),
 
                         Section::make('Datos Comerciales')
                             ->description('Dirección fiscal y notas internas del proveedor')
-                            ->columns(2)
+                            ->columns()
                             ->columnSpanFull()
                             ->schema([
                                 Textarea::make('direccion_fiscal')

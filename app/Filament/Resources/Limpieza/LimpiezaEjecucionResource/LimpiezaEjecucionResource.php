@@ -7,9 +7,11 @@ namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Pages\CreateLimpiezaEjecucion;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Pages\EditLimpiezaEjecucion;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Pages\ListLimpiezaEjecuciones;
+use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Pages\ViewLimpiezaEjecucion;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Schemas\LimpiezaEjecucionForm;
+use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Schemas\LimpiezaEjecucionInfolist;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Tables\LimpiezaEjecucionTable;
-use App\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use BackedEnum;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
@@ -39,6 +41,11 @@ class LimpiezaEjecucionResource extends Resource
         return LimpiezaEjecucionForm::configure($schema);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return LimpiezaEjecucionInfolist::configure($schema);
+    }
+
     public static function table(Table $table): Table
     {
         return LimpiezaEjecucionTable::configure($table);
@@ -52,6 +59,7 @@ class LimpiezaEjecucionResource extends Resource
         return [
             'index' => ListLimpiezaEjecuciones::route('/'),
             'create' => CreateLimpiezaEjecucion::route('/create'),
+            'view' => ViewLimpiezaEjecucion::route('/{record}'),
             'edit' => EditLimpiezaEjecucion::route('/{record}/edit'),
         ];
     }

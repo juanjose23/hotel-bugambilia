@@ -9,7 +9,7 @@ use App\Filament\Resources\Compras\Proveedors\Pages\ViewProveedor;
 use App\Filament\Resources\Compras\Proveedors\Schemas\ProveedorForm;
 use App\Filament\Resources\Compras\Proveedors\Schemas\ProveedorInfolist;
 use App\Filament\Resources\Compras\Proveedors\Tables\ProveedorTable;
-use App\Models\Compras\Proveedor;
+use App\Repository\Models\Compras\Proveedor;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

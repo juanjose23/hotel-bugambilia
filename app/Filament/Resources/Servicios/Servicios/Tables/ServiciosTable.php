@@ -3,18 +3,22 @@
 namespace App\Filament\Resources\Servicios\Servicios\Tables;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Servicios\ServicioEstado;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Filament\Shared\Filters\FiltroEstado;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -51,8 +55,13 @@ class ServiciosTable
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
-                    ->color(fn ($state): ?string => is_string($color = ServicioEstado::colorFor($state)) ? $color : null)
-                    ->formatStateUsing(fn ($state): string => ServicioEstado::labelFor($state))
+                    ->color(fn ($state): ?string => is_string($color = EstadoGeneral::colorFor($state)) ? $color : null)
+                    ->formatStateUsing(fn ($state): string => EstadoGeneral::labelFor($state))
+                    ->sortable(),
+
+                IconColumn::make('web')
+                    ->label('Web')
+                    ->boolean()
                     ->sortable(),
 
                 TextColumn::make('created_at')
@@ -74,7 +83,7 @@ class ServiciosTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                FiltroEstado::make(ServicioEstado::class),
+                FiltroEstado::make(EstadoGeneral::class),
 
                 SelectFilter::make('categoria_id')
                     ->label('Categoría')
@@ -90,10 +99,16 @@ class ServiciosTable
                     ->preload(),
 
                 FiltroEliminados::make(),
+                TernaryFilter::make('web')
+                    ->label('Mostrar en Web'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

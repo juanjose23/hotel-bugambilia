@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Compras\OrdenesCompra\Schemas;
 
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -96,7 +96,7 @@ class OrdenCompraInfolist
                     ->columnSpanFull()
                     ->columns(3)
                     ->schema([
-                        ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
+                        ...TimestampsInfolistEntry::make(),
                     ]),
             ]);
     }

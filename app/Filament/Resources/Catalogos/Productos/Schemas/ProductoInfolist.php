@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Catalogos\Productos\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Catalogos\TipoProducto;
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -33,8 +33,8 @@ class ProductoInfolist
                             ->label('Estado')
                             ->icon(Heroicon::CheckCircle)
                             ->badge()
-                            ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
-                            ->formatStateUsing(callback: fn ($state): string => EstadoCatalogo::labelFor($state))
+                            ->color(fn ($state): ?string => is_string($color = EstadoGeneral::colorFor($state)) ? $color : null)
+                            ->formatStateUsing(callback: fn ($state): string => EstadoGeneral::labelFor($state))
                             ->columnSpan(1),
                         TextEntry::make('categoria.nombre')
                             ->label('Categoría')
@@ -73,7 +73,7 @@ class ProductoInfolist
                     ->columnSpanFull()
                     ->columns(3)
                     ->schema([
-                        ...InfolistTimestamps::make(format: 'd/m/Y H:i'),
+                        ...TimestampsInfolistEntry::make(format: 'd/m/Y H:i'),
                     ]),
             ]);
     }

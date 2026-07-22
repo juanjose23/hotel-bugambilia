@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
+use App\BusinessLogic\Colaboradores\ValidCodigoColaborador;
+use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\Enums\Personas\Sexo;
 use App\Enums\Personas\TipoIdentificacion;
-use App\Models\Personas\Persona;
-use App\Rules\Colaboradores\Colaborador\ValidCodigoColaborador;
-use App\Rules\Personas\PersonaNatural\ValidCedulaNicaragua;
-use App\UseCases\Colaboradores\Mutations\GenerarCodigo;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Interactors\Colaboradores\GenerarCodigoColaborador;
+use App\Repository\Models\Personas\Persona;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -27,13 +28,24 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class ColaboradorForm
 {
+    use InyectaDesdeContenedor;
+
+    public function __construct(
+        private readonly GenerarCodigoColaborador $generarCodigo,
+    ) {}
+
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components(self::getSchema());
+        return static::make()->doConfigure($schema);
+    }
+
+    private function doConfigure(Schema $schema): Schema
+    {
+        return $schema->components($this->getSchema());
     }
 
     /** @return array<int, Htmlable|string> */
-    public static function getSchema(): array
+    private function getSchema(): array
     {
         return [
             Wizard::make([
@@ -146,7 +158,7 @@ class ColaboradorForm
                                 ->schema(components: [
                                     TextInput::make('codigo')
                                         ->label('Código Interno')
-                                        ->default(fn (?Persona $record) => $record?->colaborador->codigo ?? app(GenerarCodigo::class)->generarCodigo())
+                                        ->default(fn (?Persona $record) => $record?->colaborador->codigo ?? $this->generarCodigo->execute())
                                         ->disabled()
                                         ->dehydrated()
                                         ->required()
@@ -165,8 +177,8 @@ class ColaboradorForm
                                         ->prefixIcon(Heroicon::CalendarDays),
                                     Select::make('estado')
                                         ->label('Estatus Laboral')
-                                        ->options(EstadoCatalogo::options())
-                                        ->default(EstadoCatalogo::Activo->value)
+                                        ->options(EstadoGeneral::options())
+                                        ->default(EstadoGeneral::Activo->value)
                                         ->required()
                                         ->selectablePlaceholder(false)
                                         ->prefixIcon(Heroicon::Check),

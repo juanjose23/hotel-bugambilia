@@ -6,7 +6,7 @@ use App\Filament\Resources\Catalogos\Pais\Pages\ListPais;
 use App\Filament\Resources\Catalogos\Pais\Schemas\PaisForm;
 use App\Filament\Resources\Catalogos\Pais\Schemas\PaisInfolist;
 use App\Filament\Resources\Catalogos\Pais\Tables\PaisTable;
-use App\Models\Catalogos\Pais;
+use App\Repository\Models\Catalogos\Pais;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -42,6 +42,7 @@ class PaisResource extends Resource
     public static function getRelations(): array
     {
         return [
+
             //
         ];
     }

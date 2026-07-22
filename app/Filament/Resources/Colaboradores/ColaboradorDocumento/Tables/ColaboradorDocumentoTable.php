@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorDocumento\Tables;
 
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
-use App\Models\Colaboradores\ColaboradorDocumento;
-use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
+use App\Filament\Shared\Columns\ColaboradorNombreColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Repository\Models\Colaboradores\ColaboradorDocumento;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -13,6 +14,7 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -23,14 +25,7 @@ class ColaboradorDocumentoTable
         return $table
             ->recordTitle(fn (ColaboradorDocumento $record): string => $record->tipo ?? 'Documento')
             ->columns([
-                TextColumn::make('colaborador')
-                    ->label('Colaborador')
-                    ->formatStateUsing(
-                        fn ($record) => app(ObtenerNombreCompleto::class)
-                            ->obtenerNombreCompleto($record->colaborador)
-                    )
-                    ->searchable()
-                    ->sortable(),
+                ColaboradorNombreColumn::make('colaborador.persona.nombre_completo'),
                 TextColumn::make('tipo')
                     ->label('Tipo')
                     ->searchable()
@@ -41,10 +36,8 @@ class ColaboradorDocumentoTable
                     ->url(fn (ColaboradorDocumento $record): string => asset('storage/'.$record->archivo))
                     ->openUrlInNewTab()
                     ->color('primary')
-                    ->icon('heroicon-o-document'),
-                TextColumn::make('created_at')
-                    ->label('Fecha de Carga')
-                    ->dateTime('d/m/Y H:i')
+                    ->icon(Heroicon::Document),
+                FechaStandardColumn::make('created_at', 'Fecha de Carga')
                     ->sortable(),
             ])
             ->filters([

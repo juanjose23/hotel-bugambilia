@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Compras\Solicitudes\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Models\Catalogos\ProductoVariante;
-use App\Models\Colaboradores\Colaborador;
-use App\Models\Colaboradores\ColaboradorCargoHistorial;
+use App\Filament\Shared\Forms\ProductoSelect;
+use App\Filament\Shared\Forms\ProductoVarianteSelect;
+use App\Repository\Queries\Compras\Shared\ObtenerColaboradorDeSesion;
+use App\Repository\Queries\Compras\Shared\ObtenerDepartamentosColaboradorQuery;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -16,7 +18,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Collection;
 
 class SolicitudForm
 {
@@ -91,24 +92,16 @@ class SolicitudForm
                             ->relationship('items')
                             ->minItems(1)
                             ->schema([
-                                Select::make('producto_id')
-                                    ->label('Producto')
-                                    ->placeholder('Seleccionar producto')
+                                ProductoSelect::make('producto_id')
                                     ->relationship('producto', 'nombre')
-                                    ->searchable()
-                                    ->preload()
                                     ->required()
                                     ->live()
                                     ->columnSpan(6)
                                     ->prefixIcon(Heroicon::Cube)
                                     ->afterStateUpdated(fn ($set) => $set('producto_variante_id', null)),
 
-                                Select::make('producto_variante_id')
-                                    ->label('Variante')
+                                ProductoVarianteSelect::make('producto_variante_id', 'producto_id')
                                     ->placeholder('Primero seleccione un producto')
-                                    ->options(fn ($get): array => self::getVariantesOptions($get('producto_id')))
-                                    ->searchable()
-                                    ->preload()
                                     ->nullable()
                                     ->columnSpan(6)
                                     ->prefixIcon(Heroicon::AdjustmentsHorizontal),
@@ -156,54 +149,9 @@ class SolicitudForm
             ]);
     }
 
-    /** @return array<int, string> */
-    private static function getVariantesOptions(?int $productoId): array
-    {
-        if ($productoId === null) {
-            return [];
-        }
-
-        /** @var array<int, string> $result */
-        $result = ProductoVariante::where('producto_id', $productoId)
-            ->get()
-            ->mapWithKeys(function (ProductoVariante $v) {
-                $info = strval($v->codigo);
-
-                if ($v->atributos) {
-                    $attrParts = [];
-                    foreach ((array) $v->atributos as $attrKey => $attrVal) {
-                        $keyStr = (string) $attrKey;
-                        $valStr = is_scalar($attrVal) ? (string) $attrVal : '';
-                        $attrParts[] = $keyStr.': '.$valStr;
-                    }
-                    $info .= ' | '.implode(', ', $attrParts);
-                }
-
-                if ($v->unidadMedida) {
-                    $info .= ' ('.strval($v->unidadMedida->nombre).')';
-                }
-
-                return [(int) $v->id => $info];
-            })
-            ->toArray();
-
-        return $result;
-    }
-
-    private static function getCurrentColaborador(): ?Colaborador
-    {
-        $personaId = auth()->user()?->persona_id;
-
-        if ($personaId === null) {
-            return null;
-        }
-
-        return Colaborador::where('persona_id', $personaId)->first();
-    }
-
     private static function getCurrentColaboradorLabel(): string
     {
-        $colaborador = self::getCurrentColaborador();
+        $colaborador = app(ObtenerColaboradorDeSesion::class)->ejecutar(lanzarSiNoExiste: false);
 
         if ($colaborador === null) {
             return '—';
@@ -214,27 +162,15 @@ class SolicitudForm
         return $colaborador->codigo.' - '.$nombre;
     }
 
-    /** @return array<int, string> */
+    /** @return array<int|string, string> */
     private static function getCurrentDepartamentosOptions(): array
     {
-        $colaborador = self::getCurrentColaborador();
+        $colaborador = app(ObtenerColaboradorDeSesion::class)->ejecutar(lanzarSiNoExiste: false);
 
         if ($colaborador === null) {
             return [];
         }
 
-        /** @var Collection<int, string> $plucked */
-        $plucked = ColaboradorCargoHistorial::where('colaborador_id', $colaborador->id)
-            ->where('estado', EstadoCatalogo::Activo->value)
-            ->whereNull('fecha_fin')
-            ->with('departamento')
-            ->get()
-            ->pluck('departamento.nombre', 'departamento.id')
-            ->filter();
-
-        /** @var array<int, string> $result */
-        $result = $plucked->toArray();
-
-        return $result;
+        return app(ObtenerDepartamentosColaboradorQuery::class)->ejecutar($colaborador->id);
     }
 }
