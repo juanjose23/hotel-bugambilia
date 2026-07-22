@@ -3,9 +3,10 @@
 namespace App\Filament\Resources\Catalogos\Productos\Tables;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Catalogos\TipoProducto;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEliminados;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
@@ -41,12 +42,8 @@ class ProductosTable
                     ->color(fn ($state): ?string => is_string($color = TipoProducto::colorFor($state)) ? $color : null)
                     ->formatStateUsing(fn ($state): string => TipoProducto::labelFor($state))
                     ->sortable(),
-                TextColumn::make('estado')
-                    ->label('Estado')
+                EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->searchable()
-                    ->badge()
-                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
                     ->sortable(),
             ])
             ->filters([
@@ -106,6 +103,7 @@ class ProductosTable
                 ]),
             ])
             ->emptyStateActions([
+
                 //
                 CreateAction::make(),
             ]);

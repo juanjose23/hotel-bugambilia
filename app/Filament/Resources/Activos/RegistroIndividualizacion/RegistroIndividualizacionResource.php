@@ -7,11 +7,13 @@ namespace App\Filament\Resources\Activos\RegistroIndividualizacion;
 use App\Filament\Resources\Activos\RegistroIndividualizacion\Pages\ListRegistroIndividualizaciones;
 use App\Filament\Resources\Activos\RegistroIndividualizacion\Schemas\RegistroIndividualizacionForm;
 use App\Filament\Resources\Activos\RegistroIndividualizacion\Tables\RegistroIndividualizacionTable;
-use App\Models\Activos\RegistroIndividualizacion;
+use App\Repository\Models\Activos\RegistroIndividualizacion;
+use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class RegistroIndividualizacionResource extends Resource
 {
@@ -19,9 +21,9 @@ class RegistroIndividualizacionResource extends Resource
 
     protected static ?string $slug = 'activos/individualizaciones';
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::PuzzlePiece;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::PuzzlePiece;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Activos Fijos';
+    protected static UnitEnum|string|null $navigationGroup = 'Activos Fijos';
 
     protected static ?string $navigationLabel = 'Bandeja de Individualización';
 
@@ -36,7 +38,7 @@ class RegistroIndividualizacionResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return RegistroIndividualizacionTable::configure($table);
+        return app(RegistroIndividualizacionTable::class)->configure($table);
     }
 
     public static function getPages(): array

@@ -3,32 +3,37 @@
 namespace Database\Seeders;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
 use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Enums\Compras\EstadoSolicitud;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\Pais;
-use App\Models\Catalogos\Producto;
-use App\Models\Colaboradores\Colaborador;
-use App\Models\Colaboradores\ColaboradorCargoHistorial;
-use App\Models\Compras\Cotizacion;
-use App\Models\Compras\OrdenCompra;
-use App\Models\Compras\Proveedor;
-use App\Models\Compras\RecepcionCompra;
-use App\Models\Compras\Solicitud;
-use App\Models\Personas\Persona;
-use App\Models\Personas\PersonaNatural;
-use App\Models\User;
-use App\UseCases\Inventario\Recepciones\Mutations\RegistrarEntradaRecepcion;
+use App\Enums\Shared\EstadoGeneral;
+use App\Interactors\Inventario\RegistrarEntradaRecepcion;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Pais;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Colaboradores\Colaborador;
+use App\Repository\Models\Colaboradores\ColaboradorCargoHistorial;
+use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Models\Compras\OrdenCompra;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Compras\RecepcionCompra;
+use App\Repository\Models\Compras\RecepcionItem;
+use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Personas\PersonaNatural;
+use App\Repository\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class ProcurementFlowSeeder extends Seeder
 {
+    /**
+     * @throws \Throwable
+     */
     public function run(): void
     {
         $admin = User::where('email', 'admin@hotel.com')->first();
@@ -59,7 +64,7 @@ class ProcurementFlowSeeder extends Seeder
                 'persona_id' => $persona->id,
                 'codigo' => 'COLAB-001',
                 'fecha_ingreso' => now(),
-                'estado' => EstadoCatalogo::Activo->value,
+                'estado' => EstadoGeneral::Activo->value,
             ]);
 
             // Asignar cargo y departamento por defecto
@@ -72,7 +77,7 @@ class ProcurementFlowSeeder extends Seeder
                     'cargo_id' => $cargo->id,
                     'departamento_id' => $depto->id,
                     'fecha_inicio' => now(),
-                    'estado' => EstadoCatalogo::Activo->value,
+                    'estado' => EstadoGeneral::Activo->value,
                 ]);
             }
 
@@ -92,13 +97,13 @@ class ProcurementFlowSeeder extends Seeder
                 ]);
                 $admin->assignRole($superAdminRole);
             } catch (\Throwable $e) {
-                // Silenciar si las tablas no existen
+                Log::error($e);
             }
         }
 
         Auth::login($admin);
 
-        DB::transaction(function () use ($admin) {
+        DB::transaction(callback: function () use ($admin) {
             $colaborador = Colaborador::first();
             if (! $colaborador) {
                 return;
@@ -406,25 +411,26 @@ class ProcurementFlowSeeder extends Seeder
                 'fecha_vencimiento' => now()->addMonths(12)->format('Y-m-d'),
             ])->toArray();
 
+            /** @var list<RecepcionItem> $createdItems */
             $createdItems = [];
             foreach ($itemsData as $item) {
                 if (is_array($item)) {
-                    /** @var array<string, mixed> $item */
-                    $createdItems[] = $recepcion->items()->create($item);
+                    /** @var array<string, mixed> $itemAttributes */
+                    $itemAttributes = $item;
+
+                    $createdItems[] = $recepcion->items()->create($itemAttributes);
                 }
             }
-
             $itemsForUseCase = collect($createdItems)->map(fn ($i) => [
                 'id' => $i->id,
-                'producto_id' => $i->producto_id,
-                'producto_variante_id' => $i->producto_variante_id,
+                'producto_id' => (int) $i->producto_id,
+                'producto_variante_id' => $i->producto_variante_id !== null ? (int) $i->producto_variante_id : null,
                 'cantidad_recibida' => (float) $i->cantidad_recibida,
-                'cantidad_rechazada' => (float) $i->cantidad_rechazada,
                 'lote_proveedor' => $i->lote_proveedor,
                 'fecha_vencimiento' => $i->fecha_vencimiento?->format('Y-m-d'),
             ])->all();
 
-            app(RegistrarEntradaRecepcion::class)->execute(
+            app(RegistrarEntradaRecepcion::class)->ejecutar(
                 nuevoEstado: 'Completa',
                 items: $itemsForUseCase,
                 proveedorId: $orden->proveedor_id,

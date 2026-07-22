@@ -3,8 +3,9 @@
 namespace App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;
@@ -14,7 +15,18 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ColaboradorCargoHistorialForm
 {
+    use InyectaDesdeContenedor;
+
+    public function __construct(
+        private readonly ObtenerNombreCompleto $obtenerNombreCompleto,
+    ) {}
+
     public static function configure(Schema $schema): Schema
+    {
+        return static::make()->doConfigure($schema);
+    }
+
+    private function doConfigure(Schema $schema): Schema
     {
         return $schema->components([
             Section::make('Información del Cargo')
@@ -24,7 +36,7 @@ class ColaboradorCargoHistorialForm
                     Select::make('colaborador_id')
                         ->relationship('colaborador', 'id')
                         ->getOptionLabelFromRecordUsing(
-                            fn ($record) => app(ObtenerNombreCompleto::class)
+                            fn ($record) => $this->obtenerNombreCompleto
                                 ->nombreCompletoConCodigo($record)
                         )
                         ->searchable()
@@ -80,13 +92,13 @@ class ColaboradorCargoHistorialForm
 
                     Select::make('estado')
                         ->label('Estado')
-                        ->options(EstadoCatalogo::options())
-                        ->default(EstadoCatalogo::Activo->value)
+                        ->options(EstadoGeneral::options())
+                        ->default(EstadoGeneral::Activo->value)
                         ->required()
                         ->selectablePlaceholder(false)
                         ->prefixIcon(Heroicon::CheckCircle)
                         ->helperText('Indica si esta asignación está vigente.'),
-                ])->columns(2),
+                ])->columns(),
         ]);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Catalogos\Productos;
 
-use App\Actions\Catalogos\GenerarReporteProductosAction;
 use App\Filament\Resources\Catalogos\Productos\Pages\CreateProducto;
 use App\Filament\Resources\Catalogos\Productos\Pages\EditProducto;
 use App\Filament\Resources\Catalogos\Productos\Pages\ListProductos;
@@ -10,8 +9,9 @@ use App\Filament\Resources\Catalogos\Productos\Pages\ViewProducto;
 use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoForm;
 use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoInfolist;
 use App\Filament\Resources\Catalogos\Productos\Tables\ProductosTable;
-use App\Models\Catalogos\Producto;
-use App\UseCases\Catalogos\Queries\ExportProductosUseCase;
+use App\Interactors\Catalogos\ExportarProductosInteractor;
+use App\Interactors\Catalogos\Reportes\Productos\GenerarReporteProductosInteractor;
+use App\Repository\Models\Catalogos\Producto;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -58,14 +58,14 @@ class ProductoResource extends Resource
     /** @return array<int, Action> */
     public static function getActions(): array
     {
+
         return [
             Action::make('exportar_excel')
                 ->label('Exportar Excel')
                 ->icon(Heroicon::TableCells)
                 ->color('success')
                 ->action(function () {
-                    $useCase = new ExportProductosUseCase;
-                    $path = $useCase->exportarCsv();
+                    $path = app(ExportarProductosInteractor::class)->ejecutar();
 
                     return response()->download($path);
                 }),
@@ -74,9 +74,8 @@ class ProductoResource extends Resource
                 ->label('Reporte PDF (CP-001/002)')
                 ->icon(Heroicon::Document)
                 ->color('danger')
-                ->action(function () {
-                    $action = new GenerarReporteProductosAction;
-                    $pdf = $action->ejecutar();
+                ->action(function (array $data) {
+                    $pdf = app(GenerarReporteProductosInteractor::class)->detallado($data);
 
                     return response()->streamDownload(fn () => print ($pdf->output()), 'HTB-CP-Reporte-'.now()->format('Ymd_His').'.pdf');
                 }),

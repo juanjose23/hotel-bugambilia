@@ -4,39 +4,25 @@ declare(strict_types=1);
 
 namespace App\Enums\Compras;
 
-use BackedEnum;
+use App\Enums\Concerns\TieneAyudantesEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
-use Filament\Support\Icons\Heroicon;
 
 enum EstadoOrdenCompra: int implements HasColor, HasIcon, HasLabel
 {
+    use TieneAyudantesEnum;
+
     case Borrador = 1;
     case Emitida = 2;
     case EnTransito = 3;
     case Recibida = 4;
     case Cancelada = 5;
-    case DevueltaParcialmente = 6;
-    case DevueltaTotalmente = 7;
-    case Parcial = 8;
+    case Parcial = 6;
+    case Vencida = 7;
+    case Rechazada = 8;
 
     public function getLabel(): string
-    {
-        return $this->label();
-    }
-
-    public function getColor(): string
-    {
-        return $this->color();
-    }
-
-    public function getIcon(): BackedEnum
-    {
-        return $this->icon();
-    }
-
-    public function label(): string
     {
         return match ($this) {
             self::Borrador => 'Borrador',
@@ -44,13 +30,13 @@ enum EstadoOrdenCompra: int implements HasColor, HasIcon, HasLabel
             self::EnTransito => 'En Tránsito',
             self::Recibida => 'Recibida',
             self::Cancelada => 'Cancelada',
-            self::DevueltaParcialmente => 'Devuelta Parcialmente',
-            self::DevueltaTotalmente => 'Devuelta Totalmente',
-            self::Parcial => 'Parcialmente Recibida',
+            self::Parcial => 'Recibida Parcial',
+            self::Vencida => 'Vencida',
+            self::Rechazada => 'Rechazada',
         };
     }
 
-    public function color(): string
+    public function getColor(): string
     {
         return match ($this) {
             self::Borrador => 'gray',
@@ -58,23 +44,23 @@ enum EstadoOrdenCompra: int implements HasColor, HasIcon, HasLabel
             self::EnTransito => 'warning',
             self::Recibida => 'success',
             self::Cancelada => 'danger',
-            self::DevueltaParcialmente => 'warning',
-            self::DevueltaTotalmente => 'danger',
             self::Parcial => 'warning',
+            self::Vencida => 'danger',
+            self::Rechazada => 'danger',
         };
     }
 
-    public function icon(): Heroicon
+    public function getIcon(): string
     {
         return match ($this) {
-            self::Borrador => Heroicon::DocumentPlus,
-            self::Emitida => Heroicon::PaperAirplane,
-            self::EnTransito => Heroicon::Truck,
-            self::Recibida => Heroicon::CheckBadge,
-            self::Cancelada => Heroicon::XMark,
-            self::DevueltaParcialmente => Heroicon::ArrowUturnLeft,
-            self::DevueltaTotalmente => Heroicon::ArrowUturnLeft,
-            self::Parcial => Heroicon::ArrowPath,
+            self::Borrador => 'heroicon-o-document-text',
+            self::Emitida => 'heroicon-o-paper-airplane',
+            self::EnTransito => 'heroicon-o-truck',
+            self::Recibida => 'heroicon-o-check-circle',
+            self::Cancelada => 'heroicon-o-trash',
+            self::Parcial => 'heroicon-o-clipboard-document-check',
+            self::Vencida => 'heroicon-o-calendar-days',
+            self::Rechazada => 'heroicon-o-x-circle',
         };
     }
 }

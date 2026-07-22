@@ -5,28 +5,27 @@ declare(strict_types=1);
 namespace Tests\Feature\Limpieza;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
-use App\Enums\HabitacionesEspacios\EstadoHabitacion;
-use App\Enums\HabitacionesEspacios\EstadoLimpieza;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+
+uses(LazilyRefreshDatabase::class);
+use App\BusinessLogic\Limpieza\ValidarCambioColaboradorEjecucion;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Colaboradores\Colaborador;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Limpieza\LimpiezaEjecucion;
-use App\Models\Limpieza\LimpiezaHorario;
-use App\Models\Limpieza\Turno;
-use App\Models\User;
-use App\Notifications\Limpieza\RecordatorioLimpiezaPendiente;
+use App\Enums\Limpieza\EstadoLimpieza;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Colaboradores\Colaborador;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Models\Limpieza\LimpiezaHorario;
+use App\Repository\Models\Limpieza\Turno;
+use App\Repository\Models\User;
 use Carbon\Carbon;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
 use Database\Seeders\UbicacionSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Notification;
-
-uses(RefreshDatabase::class);
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function (): void {
     // Ejecutar seeders necesarios
@@ -73,7 +72,7 @@ beforeEach(function (): void {
         'nombre' => 'Habitación 1001 Deluxe',
         'categoria_id' => $this->categoria->id,
         'ubicacion_id' => $this->ubicacionPadre->id,
-        'estado' => EstadoHabitacion::Sucia,
+        'estado' => EstadoEspacio::SUCIA,
     ]);
 
     $this->espacio = Espacio::create([
@@ -91,17 +90,18 @@ describe('Módulo de Turnos de Limpieza (limp_horario_turnos)', function () {
             'nombre' => 'Turno Matutino A',
             'lider_id' => $this->lider->id,
             'apoyo_id' => $this->apoyo->id,
-            'carritos_ids' => [$this->carritoBodega->id],
             'hora_inicio' => '07:00:00',
             'hora_fin' => '15:00:00',
             'estado' => true,
         ]);
 
+        $turno->carritos()->attach($this->carritoBodega->id);
+        $turno->load('carritos');
+
         expect($turno->nombre)->toBe('Turno Matutino A')
             ->and($turno->lider->id)->toBe($this->lider->id)
             ->and($turno->apoyo->id)->toBe($this->apoyo->id)
-            ->and($turno->carritos_ids)->toBeArray()
-            ->and($turno->carritos_ids)->toContain($this->carritoBodega->id)
+            ->and($turno->carritos)->toHaveCount(1)
             ->and($turno->carritos->first()->nombre)->toBe('Carrito Limpieza #1');
     });
 });
@@ -182,7 +182,7 @@ describe('Comando de Materialización Diaria (limpieza:materializar-ejecuciones)
             'limpiable_id' => $this->habitacion->id,
         ]);
 
-        // Semanal los lunes (2026-06-22 es Lunes)
+        // Semanal los lunes
         $h2 = LimpiezaHorario::create([
             'turno_id' => $turno->id,
             'hora_estimada' => '10:00:00',
@@ -206,8 +206,8 @@ describe('Comando de Materialización Diaria (limpieza:materializar-ejecuciones)
             'limpiable_id' => $this->espacio->id,
         ]);
 
-        // Forzar fecha a un Lunes (ej: 2026-06-22 es Lunes)
-        $lunes = '2026-06-22';
+        // Forzar fecha a un Lunes
+        $lunes = Carbon::parse('next monday')->toDateString();
         Artisan::call('limpieza:materializar-ejecuciones', ['fecha' => $lunes]);
 
         // Deberían materializarse: la diaria y la semanal del lunes (2 ejecuciones)
@@ -245,9 +245,9 @@ describe('Comando de Materialización Diaria (limpieza:materializar-ejecuciones)
             'limpiable_id' => $this->habitacion->id,
         ]);
 
-        Artisan::call('limpieza:materializar-ejecuciones', ['fecha' => '2026-06-22']);
+        Artisan::call('limpieza:materializar-ejecuciones', ['fecha' => Carbon::parse('next monday')->toDateString()]);
 
-        $ejecucion = LimpiezaEjecucion::whereDate('fecha', '2026-06-22')->first();
+        $ejecucion = LimpiezaEjecucion::whereDate('fecha', Carbon::parse('next monday')->toDateString())->first();
         expect($ejecucion)->not->toBeNull()
             ->and($ejecucion->colaborador_id)->toBeNull();
     });
@@ -267,7 +267,7 @@ describe('Transiciones y Registro de Ejecución (limp_ejecuciones)', function ()
             'limpiable_id' => $this->habitacion->id,
             'turno_id' => $turno->id,
             'colaborador_id' => $this->lider->id,
-            'fecha' => '2026-06-22',
+            'fecha' => Carbon::parse('next monday')->toDateString(),
             'estado' => EstadoLimpieza::Pendiente,
         ]);
 
@@ -298,6 +298,55 @@ describe('Transiciones y Registro de Ejecución (limp_ejecuciones)', function ()
             ->and($fresh->detalles_checklist)->toBeArray()
             ->and($fresh->detalles_checklist['aspirado'])->toBeTrue()
             ->and($fresh->observaciones)->toBe('Sin novedades');
+    });
+
+    it('valida reasignacion de colaborador con carrito asignado', function () {
+        $turno = Turno::create([
+            'nombre' => 'Turno Reasignaciones',
+            'lider_id' => $this->lider->id,
+            'hora_inicio' => '07:00:00',
+            'hora_fin' => '15:00:00',
+        ]);
+
+        $colaborador1 = $this->lider;
+        $colaborador2 = Colaborador::factory()->create();
+
+        $carrito = Ubicacion::create([
+            'nombre' => 'Carrito X',
+            'tipo' => 'carrito',
+            'estado' => 1,
+        ]);
+
+        $ejecucion = LimpiezaEjecucion::create([
+            'limpiable_type' => Habitacion::class,
+            'limpiable_id' => $this->habitacion->id,
+            'turno_id' => $turno->id,
+            'colaborador_id' => $colaborador1->id,
+            'carrito_id' => $carrito->id,
+            'fecha' => Carbon::parse('next monday')->toDateString(),
+            'estado' => EstadoLimpieza::EnProgreso,
+        ]);
+
+        $validador = app(ValidarCambioColaboradorEjecucion::class);
+
+        $this->actingAs(User::factory()->create());
+        $ejecucion->colaborador_id = $colaborador2->id;
+        expect(fn () => $validador->validar($ejecucion))
+            ->toThrow(\Exception::class, 'No tiene permisos para cambiar el colaborador de esta limpieza.');
+
+        $userColab1 = User::factory()->create(['persona_id' => $colaborador1->persona_id]);
+        $this->actingAs($userColab1);
+
+        expect(fn () => $validador->validar($ejecucion))
+            ->toThrow(\Exception::class, 'Debe liberar el carrito (quitar el carrito seleccionado) antes de poder asignar a otro colaborador.');
+
+        $ejecucion->carrito_id = null;
+        $validador->validar($ejecucion);
+
+        $ejecucion->save();
+
+        expect($ejecucion->fresh()->colaborador_id)->toBe($colaborador2->id)
+            ->and($ejecucion->fresh()->carrito_id)->toBeNull();
     });
 });
 
@@ -347,10 +396,10 @@ describe('Nuevas características del Módulo de Limpieza (Equipos, Horarios Nul
             'limpiable_id' => $this->espacio->id,
         ]);
 
-        Artisan::call('limpieza:materializar-ejecuciones', ['fecha' => '2026-06-22']);
+        Artisan::call('limpieza:materializar-ejecuciones', ['fecha' => Carbon::parse('next monday')->toDateString()]);
 
         // Sólo debe existir 1 ejecución de limpieza (la de la habitación con turno)
-        $ejecuciones = LimpiezaEjecucion::whereDate('fecha', '2026-06-22')->get();
+        $ejecuciones = LimpiezaEjecucion::whereDate('fecha', Carbon::parse('next monday')->toDateString())->get();
         expect($ejecuciones)->toHaveCount(1)
             ->and($ejecuciones->first()->limpiable_type)->toBe(Habitacion::class);
     });
@@ -390,17 +439,15 @@ describe('Nuevas características del Módulo de Limpieza (Equipos, Horarios Nul
         // Cambiar la hora actual a las 09:00 para simular que ya venció la hora estimada (08:00)
         Carbon::setTestNow(now()->startOfDay()->addHours(9));
 
-        Notification::fake();
-
         Artisan::call('limpieza:enviar-recordatorios');
 
-        // Verificar que se haya enviado la notificación al usuario del líder
-        Notification::assertSentTo(
-            $userLider,
-            RecordatorioLimpiezaPendiente::class
-        );
+        $notificaciones = DB::table('notifications')
+            ->where('notifiable_id', $userLider->id)
+            ->where('type', 'Filament\Notifications\DatabaseNotification')
+            ->get();
 
-        // Verificar trazabilidad
+        expect($notificaciones)->not->toBeEmpty();
+
         expect($ejecucion->fresh()->recordatorio_enviado_at)->not->toBeNull();
 
         Carbon::setTestNow(); // reset

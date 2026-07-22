@@ -6,13 +6,20 @@ namespace App\Filament\Resources\Activos\ActivoBaja\Pages;
 
 use App\Enums\Activos\TipoBaja;
 use App\Filament\Resources\Activos\ActivoBaja\ActivoBajaResource;
-use App\Models\Activos\ActivoBaja;
-use App\UseCases\Activos\Mutations\Gestion\DarDeBajaActivo;
+use App\Interactors\Activos\DarDeBajaActivo;
+use App\Repository\Models\Activos\ActivoBaja;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateActivoBaja extends CreateRecord
 {
+    protected DarDeBajaActivo $darDeBajaActivo;
+
+    public function boot(DarDeBajaActivo $darDeBajaActivo): void
+    {
+        $this->darDeBajaActivo = $darDeBajaActivo;
+    }
+
     protected static string $resource = ActivoBajaResource::class;
 
     protected function handleRecordCreation(array $data): Model
@@ -37,7 +44,7 @@ class CreateActivoBaja extends CreateRecord
         $docSoporteVal = $data['documento_soporte'] ?? null;
         $documentoSoporte = is_string($docSoporteVal) && $docSoporteVal !== '' ? $docSoporteVal : null;
 
-        app(DarDeBajaActivo::class)->execute(
+        $this->darDeBajaActivo->execute(
             activoId: $activoId,
             motivoTipo: $motivoTipo,
             motivoDetalle: $motivoDetalle,

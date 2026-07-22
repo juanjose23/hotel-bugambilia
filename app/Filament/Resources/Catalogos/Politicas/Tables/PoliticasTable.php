@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\Catalogos\Politicas\Tables;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -35,11 +36,7 @@ class PoliticasTable
                     ->wrap()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
+                EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->sortable(),
 
                 TextColumn::make('created_at')
@@ -62,7 +59,7 @@ class PoliticasTable
             ])
             ->defaultSort('titulo')
             ->filters([
-                FiltroEstado::make(EstadoCatalogo::class),
+                FiltroEstado::make(EstadoGeneral::class),
 
                 FiltroEliminados::make(),
             ])

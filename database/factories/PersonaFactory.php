@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Personas\Persona;
+use App\Repository\Models\Personas\Persona;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

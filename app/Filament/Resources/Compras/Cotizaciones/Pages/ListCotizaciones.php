@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Compras\Cotizaciones\Pages;
 
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
-use App\UseCases\Compras\Solicitudes\Queries\ObtenerSolicitudesParaComparar;
+use App\Repository\Queries\Compras\Solicitudes\ObtenerSolicitudesParaComparar;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -13,6 +13,13 @@ use Filament\Support\Icons\Heroicon;
 
 class ListCotizaciones extends ListRecords
 {
+    protected ObtenerSolicitudesParaComparar $solicitudesParaComparar;
+
+    public function boot(ObtenerSolicitudesParaComparar $solicitudesParaComparar): void
+    {
+        $this->solicitudesParaComparar = $solicitudesParaComparar;
+    }
+
     protected static string $resource = CotizacionResource::class;
 
     public function getTabs(): array
@@ -34,7 +41,7 @@ class ListCotizaciones extends ListRecords
                 $this->getTabsContentComponent(),
                 View::make('filament.resources.compras.cotizaciones.tabs.solicitudes-resumen')
                     ->viewData([
-                        'solicitudes' => app(ObtenerSolicitudesParaComparar::class)->execute(),
+                        'solicitudes' => $this->solicitudesParaComparar->execute(),
                     ]),
             ]);
         }

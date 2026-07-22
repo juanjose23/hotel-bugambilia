@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\CatalogoTipo;
+use App\Enums\Shared\EstadoGeneral;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\CatalogoTipo;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -58,12 +57,18 @@ class CatalogoForm
                             ->maxLength(50)
                             ->live()
                             ->prefixIcon(Heroicon::Hashtag)
-                            ->helperText('Código único dentro del tipo; usado en integraciones y seeds.')
+                            ->helperText('Código único dentro del tipo; usado en integraciones.')
                             ->rules(fn (callable $get) => [
                                 Rule::unique('catalogos', 'codigo')
                                     ->where(fn ($query) => $query->where('catalogo_tipo_id', $get('catalogo_tipo_id')))
                                     ->ignore($get('id') ?? null),
                             ]),
+
+                        TextInput::make('prefijo')
+                            ->label('Prefijo')
+                            ->maxLength(10)
+                            ->prefixIcon(Heroicon::Ticket)
+                            ->helperText('Prefijo opcional para el código.'),
 
                         TextInput::make('nombre')
                             ->label('Nombre')
@@ -78,24 +83,20 @@ class CatalogoForm
                             ->columnSpanFull()
                             ->helperText('Descripción opcional para documentación interna.'),
 
-                        Grid::make()
-                            ->schema([
+                        TextInput::make('orden')
+                            ->label('Orden')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->prefixIcon(Heroicon::ArrowDownCircle),
 
-                                TextInput::make('orden')
-                                    ->label('Orden')
-                                    ->required()
-                                    ->numeric()
-                                    ->default(0)
-                                    ->prefixIcon(Heroicon::ArrowDownCircle),
-
-                                Select::make('estado')
-                                    ->label('Estado')
-                                    ->options(EstadoCatalogo::options())
-                                    ->default(EstadoCatalogo::Activo->value)
-                                    ->required()
-                                    ->prefixIcon(Heroicon::CheckCircle)
-                                    ->helperText('Controla si el elemento está activo y visible.'),
-                            ]),
+                        Select::make('estado')
+                            ->label('Estado')
+                            ->options(EstadoGeneral::options())
+                            ->default(EstadoGeneral::Activo->value)
+                            ->required()
+                            ->prefixIcon(Heroicon::CheckCircle)
+                            ->helperText('Controla si el elemento está activo y visible.'),
                     ]),
             ]);
     }

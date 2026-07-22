@@ -1,14 +1,11 @@
 <?php
 
 use App\Enums\Inventario\EstadoLote;
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Inventario\Lote;
-use App\Models\User;
 use App\Notifications\Inventario\CaducidadProxima;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Inventario\Lote;
+use App\Repository\Models\User;
 
 it('construye el mensaje de correo correctamente', function () {
     $user = User::factory()->create();

@@ -6,8 +6,9 @@ namespace App\Filament\Resources\Inventario\InventarioFisico\Pages;
 
 use App\Enums\Inventario\EstadoInventarioFisico;
 use App\Filament\Resources\Inventario\InventarioFisico\InventarioFisicoResource;
-use App\Models\Inventario\InventarioFisico;
-use App\UseCases\Inventario\InventarioFisico\Mutations\ProcesarInventarioFisico;
+use App\Interactors\Inventario\InventarioFisico\ProcesarInventarioFisico\ProcesarInventarioFisico;
+use App\Repository\Models\Inventario\InventarioFisico;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
@@ -19,6 +20,13 @@ use Filament\Support\Icons\Heroicon;
  */
 class ViewInventarioFisico extends ViewRecord
 {
+    protected ProcesarInventarioFisico $procesarInventarioFisico;
+
+    public function boot(ProcesarInventarioFisico $procesarInventarioFisico): void
+    {
+        $this->procesarInventarioFisico = $procesarInventarioFisico;
+    }
+
     protected static string $resource = InventarioFisicoResource::class;
 
     protected function getHeaderActions(): array
@@ -36,7 +44,7 @@ class ViewInventarioFisico extends ViewRecord
                 ->modalDescription('Esta acción comparará la cantidad física registrada en la hoja de cálculo con el stock actual del sistema, generará los movimientos de ajuste (MOV_AJUSTE) en los lotes con discrepancia, y cerrará esta sesión como PROCESADO. Esta acción no se puede deshacer.')
                 ->action(function () {
                     try {
-                        app(ProcesarInventarioFisico::class)->execute($this->record, (int) auth()->id());
+                        $this->procesarInventarioFisico->execute($this->record, (int) auth()->id());
 
                         Notification::make()
                             ->title('Conciliación Procesada')
@@ -45,7 +53,7 @@ class ViewInventarioFisico extends ViewRecord
                             ->send();
 
                         $this->refreshFormData(['estado']);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Notification::make()
                             ->title('Error al procesar conciliación')
                             ->body($e->getMessage())

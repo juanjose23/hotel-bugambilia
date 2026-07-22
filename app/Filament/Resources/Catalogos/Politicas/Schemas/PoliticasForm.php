@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Catalogos\Politicas\Schemas;
 
-use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Shared\EstadoGeneral;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -29,8 +29,8 @@ class PoliticasForm
 
                         Select::make('estado')
                             ->label('Estado')
-                            ->options(EstadoCatalogo::options())
-                            ->default(EstadoCatalogo::Activo->value)
+                            ->options(EstadoGeneral::options())
+                            ->default(EstadoGeneral::Activo->value)
                             ->required(),
 
                         Textarea::make('descripcion')

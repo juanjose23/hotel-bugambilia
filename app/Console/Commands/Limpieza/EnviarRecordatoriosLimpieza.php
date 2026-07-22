@@ -4,33 +4,26 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Limpieza;
 
-use App\Enums\HabitacionesEspacios\EstadoLimpieza;
-use App\Models\Limpieza\LimpiezaEjecucion;
-use App\Models\User;
-use App\Notifications\Limpieza\RecordatorioLimpiezaPendiente;
+use App\Enums\Limpieza\EstadoLimpieza;
+use App\Notifications\Limpieza\NotificadorLimpieza;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class EnviarRecordatoriosLimpieza extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'limpieza:enviar-recordatorios';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Envía recordatorios para las ejecuciones de limpieza pendientes de hoy cuya hora estimada ya ha pasado.';
 
-    /**
-     * Execute the console command.
-     */
+    public function __construct(
+        private readonly NotificadorLimpieza $notificador,
+    ) {
+        parent::__construct();
+    }
+
     public function handle(): int
     {
         $ahora = Carbon::now();
@@ -38,8 +31,6 @@ class EnviarRecordatoriosLimpieza extends Command
 
         $this->info("Buscando ejecuciones pendientes al día de hoy para la hora actual: {$horaActual}");
 
-        // Obtener las ejecuciones de hoy que estén pendientes, no tengan recordatorio enviado
-        // y cuya hora estimada ya haya pasado
         $ejecuciones = LimpiezaEjecucion::query()
             ->whereDate('fecha', $ahora->toDateString())
             ->where('estado', EstadoLimpieza::Pendiente)
@@ -68,18 +59,21 @@ class EnviarRecordatoriosLimpieza extends Command
                 $destinatarios->push($userColaborador);
             }
 
-            $userLider = $ejecucion->turno->lider?->persona
-                ? User::where('persona_id', $ejecucion->turno->lider->persona->id)->first()
-                : null;
-            if ($userLider) {
-                $destinatarios->push($userLider);
-            }
+            $turno = $ejecucion->turno;
+            if ($turno) {
+                $userLider = $turno->lider?->persona
+                    ? User::where('persona_id', $turno->lider->persona->id)->first()
+                    : null;
+                if ($userLider) {
+                    $destinatarios->push($userLider);
+                }
 
-            $userApoyo = $ejecucion->turno->apoyo?->persona
-                ? User::where('persona_id', $ejecucion->turno->apoyo->persona->id)->first()
-                : null;
-            if ($userApoyo) {
-                $destinatarios->push($userApoyo);
+                $userApoyo = $turno->apoyo?->persona
+                    ? User::where('persona_id', $turno->apoyo->persona->id)->first()
+                    : null;
+                if ($userApoyo) {
+                    $destinatarios->push($userApoyo);
+                }
             }
 
             $destinatarios = $destinatarios->filter()->unique('id');
@@ -94,11 +88,8 @@ class EnviarRecordatoriosLimpieza extends Command
                 continue;
             }
 
-            foreach ($destinatarios as $usuario) {
-                $usuario->notify(new RecordatorioLimpiezaPendiente($ejecucion));
-            }
+            $this->notificador->recordatorioPendiente($ejecucion, $destinatarios);
 
-            // Marcar como enviado y guardar la fecha/hora actual
             $ejecucion->update([
                 'recordatorio_enviado_at' => $ahora,
             ]);

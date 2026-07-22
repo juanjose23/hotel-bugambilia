@@ -9,7 +9,7 @@ use App\Filament\Resources\Compras\OrdenesCompra\Pages\ViewOrdenCompra;
 use App\Filament\Resources\Compras\OrdenesCompra\Schemas\OrdenCompraForm;
 use App\Filament\Resources\Compras\OrdenesCompra\Schemas\OrdenCompraInfolist;
 use App\Filament\Resources\Compras\OrdenesCompra\Tables\OrdenCompraTable;
-use App\Models\Compras\OrdenCompra;
+use App\Repository\Models\Compras\OrdenCompra;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

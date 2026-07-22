@@ -7,11 +7,11 @@ namespace App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Filament\Resources\Habitaciones\EspacioResource\Schemas\EspacioForm;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
-use App\Models\Espacios\Espacio;
-use App\UseCases\Espacios\Mutations\GenerarCodigoSubEspacio;
-use App\UseCases\Espacios\Mutations\ValidarCapacidadMesas;
-use App\UseCases\Espacios\Queries\ConsultarCapacidadMesas;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Interactors\Espacios\GenerarCodigoSubEspacio;
+use App\Interactors\Espacios\ValidarCapacidadMesas;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Queries\Espacios\ConsultarCapacidadMesas;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -162,7 +162,7 @@ class SubEspaciosRelationManager extends RelationManager
                         return $data;
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('view_details')
                     ->label('Ver detalles')
                     ->icon(Heroicon::Eye)
@@ -227,6 +227,7 @@ class SubEspaciosRelationManager extends RelationManager
                             Tab::make('Configuración del Tipo')
                                 ->icon(Heroicon::WrenchScrewdriver)
                                 ->schema([
+
                                     // ─── Mesa ──────────────────────────
                                     Select::make('meta_datos.tipo_mesa')
                                         ->label('Forma / Tipo de la Mesa')

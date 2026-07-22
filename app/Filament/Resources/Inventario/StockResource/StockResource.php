@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Inventario\StockResource;
 
 use App\Filament\Resources\Inventario\StockResource\Pages\ListStocks;
 use App\Filament\Resources\Inventario\StockResource\Tables\StockTable;
-use App\Models\Inventario\Stock;
+use App\Repository\Models\Inventario\Stock;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;

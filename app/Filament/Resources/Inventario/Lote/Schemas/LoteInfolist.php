@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Inventario\Lote\Schemas;
 
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
+use App\Repository\Models\Inventario\Lote;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -36,6 +38,10 @@ class LoteInfolist
                             ->numeric(decimalPlaces: 2),
                         TextEntry::make('ubicacion.nombre')
                             ->label('Ubicación'),
+                        TextEntry::make('ubicacionDetalle.nombre')
+                            ->label('Sub-Ubicación')
+                            ->placeholder('Sin asignar')
+                            ->hint(fn (Lote $record) => $record->ubicacionDetalle?->tipo),
                         TextEntry::make('fecha_vencimiento')
                             ->label('Fecha de Vencimiento')
                             ->date('d/m/Y'),
@@ -44,11 +50,9 @@ class LoteInfolist
                         TextEntry::make('fecha_recepcion')
                             ->label('Fecha de Recepción')
                             ->date('d/m/Y'),
-                        TextEntry::make('created_at')
-                            ->label('Creado')
-                            ->dateTime('d/m/Y H:i'),
+                        ...TimestampsInfolistEntry::make(),
                     ])
-                    ->columns(2),
+                    ->columns(),
 
                 Section::make('Historial de Movimientos')
                     ->icon(Heroicon::Clock)

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Schemas;
 
 use App\Enums\Activos\EstadoActivo;
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\ProductoVariante;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Monedas\Moneda;
-use App\UseCases\Activos\Queries\AutocompletarActivoDesdeRecepcion;
-use App\UseCases\Activos\Queries\ObtenerOpcionesRecepcionItems;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Queries\Activos\AutocompletarActivoDesdeRecepcion;
+use App\Repository\Queries\Activos\ObtenerOpcionesRecepcionItems;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -60,7 +60,7 @@ class ActivoForm
                             return;
                         }
 
-                        $campos = AutocompletarActivoDesdeRecepcion::ejecutar($state);
+                        $campos = app(AutocompletarActivoDesdeRecepcion::class)->ejecutar($state);
 
                         foreach ($campos as $campo => $valor) {
                             $set($campo, $valor);
@@ -75,7 +75,7 @@ class ActivoForm
     {
         return Tab::make('Información General')
             ->icon(Heroicon::InformationCircle)
-            ->columns(2)
+            ->columns()
             ->schema([
                 TextInput::make('codigo_inventario')
                     ->label('Código de Inventario')
@@ -147,7 +147,7 @@ class ActivoForm
     {
         return Tab::make('Comercial y Financiera')
             ->icon(Heroicon::CurrencyDollar)
-            ->columns(2)
+            ->columns()
             ->schema([
                 TextInput::make('costo_adquisicion')
                     ->label('Costo de Adquisición')
@@ -203,7 +203,7 @@ class ActivoForm
     {
         return Tab::make('Ubicación y Asignación')
             ->icon(Heroicon::MapPin)
-            ->columns(2)
+            ->columns()
             ->schema([
                 Select::make('asignacion_tipo')
                     ->label('Tipo de Destino')

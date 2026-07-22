@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\Activos;
 
-use App\UseCases\Activos\Mutations\Gestion\VerificarGarantiasActivos;
+use App\Interactors\Activos\VerificarGarantiasActivos;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -22,6 +22,6 @@ class VerificarGarantiasJob implements ShouldQueue
 
     public function handle(VerificarGarantiasActivos $useCase): void
     {
-        $useCase->execute();
+        $useCase->ejecutar();
     }
 }

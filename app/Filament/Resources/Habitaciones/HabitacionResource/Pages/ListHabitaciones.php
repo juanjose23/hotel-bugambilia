@@ -18,7 +18,8 @@ class ListHabitaciones extends ListRecords
         return [
             CreateAction::make()
                 ->label('Registrar Habitación')
-                ->icon(Heroicon::Plus),
+                ->icon(Heroicon::Plus)
+                ->url(fn (): string => HabitacionResource::getUrl('create')),
         ];
     }
 }

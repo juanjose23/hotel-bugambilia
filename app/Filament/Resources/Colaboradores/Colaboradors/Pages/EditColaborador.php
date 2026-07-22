@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
-use App\Models\Personas\Persona;
+use App\Repository\Models\Personas\Persona;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\EditRecord;

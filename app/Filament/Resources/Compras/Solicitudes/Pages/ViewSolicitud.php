@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Compras\Solicitudes\Pages;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
 use App\Filament\Resources\Compras\Solicitudes\SolicitudResource;
-use App\Models\Compras\Solicitud;
+use App\Repository\Models\Compras\Solicitud;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
@@ -27,6 +27,15 @@ class ViewSolicitud extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+
+            Action::make('imprimir')
+                ->label('Imprimir')
+                ->icon(Heroicon::Printer)
+                ->color('gray')
+                ->url(fn (Solicitud $record) => route('reporte.solicitud', $record))
+                ->openUrlInNewTab()
+                ->visible(fn () => auth()->user()?->can('Compras:ImprimirSolicitud') ?? false),
+
             Action::make('crearCotizacion')
                 ->label('Crear Cotización')
                 ->icon(Heroicon::ClipboardDocumentCheck)
@@ -36,13 +45,6 @@ class ViewSolicitud extends ViewRecord
                 ]))
                 ->visible(fn (Solicitud $record) => $record->estado === EstadoSolicitud::Aprobada),
 
-            Action::make('imprimir')
-                ->label('Imprimir')
-                ->icon(Heroicon::Printer)
-                ->color('info')
-                ->url(fn (Solicitud $record) => route('reporte.solicitud', $record))
-                ->openUrlInNewTab()
-                ->visible(fn () => auth()->user()?->can('Compras:ImprimirSolicitud') ?? false),
             EditAction::make()
                 ->visible(function (): bool {
                     /** @var Solicitud $record */

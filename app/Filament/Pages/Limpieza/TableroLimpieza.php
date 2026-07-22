@@ -4,22 +4,28 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Limpieza;
 
-use App\Enums\HabitacionesEspacios\EstadoLimpieza;
+use App\BusinessLogic\Limpieza\Data\IniciarLimpiezaData;
+use App\BusinessLogic\Limpieza\Data\TerminarLimpiezaData;
+use App\Enums\Limpieza\EstadoLimpieza;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\LimpiezaEjecucionResource;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Inventario\Stock as InventarioStock;
-use App\Models\Limpieza\LimpiezaEjecucion;
-use App\Models\Shared\Stock;
-use App\UseCases\Limpieza\Mutations\IniciarLimpieza;
-use App\UseCases\Limpieza\Mutations\TerminarLimpieza;
+use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
+use App\Interactors\Limpieza\Ejecucion\IniciarLimpieza;
+use App\Interactors\Limpieza\Ejecucion\TerminarLimpieza;
+use App\Repository\Models\Inventario\Stock as InventarioStock;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
+use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritosDisponibles;
+use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionesConFiltros;
+use App\Repository\Queries\Limpieza\Stock\ObtenerAbastecimientoSugerido;
+use App\Repository\Queries\Limpieza\Ubicacion\ObtenerChecklistDefecto;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
@@ -27,12 +33,20 @@ use Livewire\Attributes\Computed;
 use UnitEnum;
 
 /**
+ * @property Schema $startForm
  * @property Schema $form
- * @property array<string, int> $ubicaciones
  */
 class TableroLimpieza extends Page implements HasForms
 {
+    use HasPageShield;
     use InteractsWithForms;
+
+    protected ObtenerNombreCompleto $nombreColaborador;
+
+    public function boot(ObtenerNombreCompleto $nombreColaborador): void
+    {
+        $this->nombreColaborador = $nombreColaborador;
+    }
 
     protected string $view = 'filament.pages.limpieza.tablero-limpieza';
 
@@ -51,11 +65,18 @@ class TableroLimpieza extends Page implements HasForms
     /** @var array<string, mixed>|null */
     public ?array $data = [];
 
+    /** @var array<string, mixed>|null */
+    public ?array $startData = [];
+
     public ?int $startingExecutionId = null;
 
-    public ?int $selectedCarritoId = null;
-
     public ?int $completingExecutionId = null;
+
+    public int $pendientesLimit = 5;
+
+    public int $enProgresoLimit = 5;
+
+    public int $completadasLimit = 5;
 
     /** @var array<int, array{task: string, completed: bool}> */
     public array $checklist = [];
@@ -74,45 +95,50 @@ class TableroLimpieza extends Page implements HasForms
     {
         return $form
             ->schema([
-                Select::make('selectedUbicacionId')
-                    ->label('Ubicación')
-                    ->placeholder('Todas las ubicaciones')
-                    ->options(fn () => $this->ubicaciones)
-                    ->searchable()
-                    ->native(false)
-                    ->live(),
+                Grid::make([
+                    'default' => 1,
+                    'sm' => 3,
+                ])
+                    ->schema([
+                        UbicacionLimpiableSelects::makeTipo('tipo_ubicacion', [
+                            'habitacion' => 'Habitación',
+                            'espacio' => 'Espacio / Área Común',
+                            'ubicacion' => 'Ubicación Física / Bodega',
+                        ])
+                            ->label('Tipo de Ubicación')
+                            ->placeholder('Todos los tipos')
+                            ->afterStateUpdated(function (callable $set): void {
+                                $set('selectedUbicacionId', null);
+                                $set('selectedSubUbicacionId', null);
+                            }),
+
+                        UbicacionLimpiableSelects::makeUbicacion('selectedUbicacionId', 'tipo_ubicacion', true)
+                            ->label('Ubicación')
+                            ->placeholder('Todas las ubicaciones')
+                            ->afterStateUpdated(fn (callable $set) => $set('selectedSubUbicacionId', null))
+                            ->live(),
+
+                        UbicacionLimpiableSelects::makeSubUbicacion('selectedSubUbicacionId', 'selectedUbicacionId', 'tipo_ubicacion')
+                            ->label('Sub-ubicación')
+                            ->placeholder('Todas las sub-ubicaciones')
+                            ->live(),
+                    ]),
             ])
             ->statePath('data');
     }
 
-    /**
-     * @return array<int, string>
-     */
-    #[Computed]
-    public function ubicaciones(): array
+    public function startForm(Schema $form): Schema
     {
-        $all = Ubicacion::all();
-        $map = $all->keyBy('id');
-
-        $buildPath = function (Ubicacion $u) use (&$buildPath, $map): string {
-            if ($u->padre_id && $map->has($u->padre_id)) {
-                /** @var Ubicacion $padre */
-                $padre = $map->get($u->padre_id);
-
-                return $buildPath($padre).' ➔ '.$u->nombre;
-            }
-
-            return $u->nombre;
-        };
-
-        $result = [];
-        foreach ($all as $u) {
-            $result[$u->id] = $buildPath($u);
-        }
-
-        asort($result);
-
-        return $result;
+        return $form
+            ->schema([
+                Select::make('carrito_id')
+                    ->label('Carrito de Limpieza')
+                    ->placeholder('Sin carrito asignado')
+                    ->options(fn (): array => $this->getAvailableCarritos())
+                    ->searchable()
+                    ->native(false),
+            ])
+            ->statePath('startData');
     }
 
     /**
@@ -121,37 +147,121 @@ class TableroLimpieza extends Page implements HasForms
     #[Computed]
     public function executions(): Collection
     {
-        $query = LimpiezaEjecucion::whereDate('fecha', now()->toDateString())
-            ->with(['limpiable', 'colaborador.persona.personaNatural', 'colaborador.persona.personaJuridica', 'horario']);
-
         $selectedUbicacionId = $this->data['selectedUbicacionId'] ?? null;
+        $selectedSubUbicacionId = $this->data['selectedSubUbicacionId'] ?? null;
+        $tipoUbicacion = $this->data['tipo_ubicacion'] ?? null;
 
-        if ($selectedUbicacionId) {
-            $ubicacionIdInt = is_scalar($selectedUbicacionId) ? (int) $selectedUbicacionId : 0;
-            $ubicacionIds = Ubicacion::obtenerDescendientesIds($ubicacionIdInt);
-            $query->where(function ($q) use ($ubicacionIds) {
-                $q->where(function ($sub) use ($ubicacionIds) {
-                    $sub->where('limpiable_type', Ubicacion::class)
-                        ->whereIn('limpiable_id', $ubicacionIds);
-                })->orWhere(function ($sub) use ($ubicacionIds) {
-                    $sub->where('limpiable_type', Habitacion::class)
-                        ->whereIn('limpiable_id', function ($subQuery) use ($ubicacionIds) {
-                            $subQuery->select('id')
-                                ->from('habitaciones')
-                                ->whereIn('ubicacion_id', $ubicacionIds);
-                        });
-                })->orWhere(function ($sub) use ($ubicacionIds) {
-                    $sub->where('limpiable_type', Espacio::class)
-                        ->whereIn('limpiable_id', function ($subQuery) use ($ubicacionIds) {
-                            $subQuery->select('id')
-                                ->from('espacios')
-                                ->whereIn('ubicacion_id', $ubicacionIds);
-                        });
-                });
-            });
+        $filtros = [];
+        if (is_string($tipoUbicacion) && $tipoUbicacion !== '') {
+            $filtros['tipo_ubicacion'] = $tipoUbicacion;
+            if (is_numeric($selectedUbicacionId)) {
+                $filtros['limpiable_id'] = (int) $selectedUbicacionId;
+            }
+            if (is_numeric($selectedSubUbicacionId)) {
+                $filtros['sub_ubicacion_id'] = (int) $selectedSubUbicacionId;
+            }
         }
 
-        return $query->get();
+        return app(ObtenerEjecucionesConFiltros::class)->execute($filtros);
+    }
+
+    /**
+     * @return Collection<int, LimpiezaEjecucion>
+     */
+    #[Computed]
+    public function pendientes(): Collection
+    {
+        return $this->executions()
+            ->where('estado', EstadoLimpieza::Pendiente)
+            ->sortBy('horario.hora_estimada')
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, LimpiezaEjecucion>
+     */
+    #[Computed]
+    public function enProgreso(): Collection
+    {
+        return $this->executions()
+            ->where('estado', EstadoLimpieza::EnProgreso)
+            ->sortBy('hora_inicio')
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, LimpiezaEjecucion>
+     */
+    #[Computed]
+    public function completadas(): Collection
+    {
+        return $this->executions()
+            ->filter(fn (LimpiezaEjecucion $e): bool => $e->estado->estaFinalizada())
+            ->sortByDesc('hora_fin')
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, LimpiezaEjecucion>
+     */
+    #[Computed]
+    public function pendientesPaged(): Collection
+    {
+        return $this->pendientes()->take($this->pendientesLimit)->values();
+    }
+
+    /**
+     * @return Collection<int, LimpiezaEjecucion>
+     */
+    #[Computed]
+    public function enProgresoPaged(): Collection
+    {
+        return $this->enProgreso()->take($this->enProgresoLimit)->values();
+    }
+
+    /**
+     * @return Collection<int, LimpiezaEjecucion>
+     */
+    #[Computed]
+    public function completadasPaged(): Collection
+    {
+        return $this->completadas()->take($this->completadasLimit)->values();
+    }
+
+    #[Computed]
+    public function currentColaboradorId(): ?int
+    {
+        $colaborador = auth()->user()?->persona?->colaborador;
+
+        return $colaborador ? (int) $colaborador->id : null;
+    }
+
+    public function obtenerNombreColaborador(LimpiezaEjecucion $ejecucion): string
+    {
+        $colaborador = $ejecucion->colaborador;
+
+        if (! $colaborador) {
+            return 'Sin asignar';
+        }
+
+        $nombre = $this->nombreColaborador->obtenerNombreCompleto($colaborador);
+
+        return $nombre !== '' ? $nombre : 'Desconocido';
+    }
+
+    public function loadMorePendientes(): void
+    {
+        $this->pendientesLimit += 5;
+    }
+
+    public function loadMoreEnProgreso(): void
+    {
+        $this->enProgresoLimit += 5;
+    }
+
+    public function loadMoreCompletadas(): void
+    {
+        $this->completadasLimit += 5;
     }
 
     public function claimAndStart(int $executionId): void
@@ -179,13 +289,17 @@ class TableroLimpieza extends Page implements HasForms
         }
 
         $this->startingExecutionId = $executionId;
-        $this->selectedCarritoId = null;
+        $this->startForm->fill();
+
+        $this->dispatch('open-modal', id: 'iniciar-limpieza-modal');
     }
 
     public function closeStartModal(): void
     {
+        $this->dispatch('close-modal', id: 'iniciar-limpieza-modal');
+
         $this->startingExecutionId = null;
-        $this->selectedCarritoId = null;
+        $this->startData = [];
     }
 
     public function confirmStart(IniciarLimpieza $iniciarLimpieza): void
@@ -203,12 +317,22 @@ class TableroLimpieza extends Page implements HasForms
             return;
         }
 
-        try {
-            $iniciarLimpieza->execute($execution, $colaborador->id, $this->selectedCarritoId ? (int) $this->selectedCarritoId : null);
+        $startData = $this->startForm->getState();
+        $carritoId = isset($startData['carrito_id']) && is_numeric($startData['carrito_id'])
+            ? (int) $startData['carrito_id']
+            : null;
 
-            /** @var mixed $limpiable */
-            $limpiable = $execution->limpiable;
-            $nombreLimpiable = is_object($limpiable) ? ($limpiable->nombre ?? 'Área sin nombre') : 'Área sin nombre';
+        try {
+            $iniciarLimpieza->execute(new IniciarLimpiezaData(
+                record: $execution,
+                colaboradorOrPersonalId: (int) $colaborador->id,
+                carritoId: $carritoId,
+            ));
+
+            $nombreLimpiable = match (true) {
+                is_object($execution->limpiable) && property_exists($execution->limpiable, 'nombre') && $execution->limpiable->nombre => $execution->limpiable->nombre,
+                default => 'Área sin nombre',
+            };
 
             Notification::make()
                 ->title('Limpieza Iniciada')
@@ -234,28 +358,8 @@ class TableroLimpieza extends Page implements HasForms
         if (! $this->startingExecutionId) {
             return [];
         }
-        $execution = LimpiezaEjecucion::with('turno')->find($this->startingExecutionId);
-        if (! $execution) {
-            return [];
-        }
-        $carritosIds = $execution->turno->carritos_ids ?? [];
-        if (empty($carritosIds)) {
-            return [];
-        }
 
-        // Get carritos that are NOT in use in active executions
-        $busyCarritos = LimpiezaEjecucion::where('estado', EstadoLimpieza::EnProgreso)
-            ->whereNotNull('carrito_id')
-            ->pluck('carrito_id')
-            ->toArray();
-
-        /** @var array<int, string> $result */
-        $result = Ubicacion::whereIn('id', $carritosIds)
-            ->whereNotIn('id', $busyCarritos)
-            ->pluck('nombre', 'id')
-            ->toArray();
-
-        return $result;
+        return app(ObtenerCarritosDisponibles::class)->execute($this->startingExecutionId);
     }
 
     /** @return array<int, array{nombre: string, cantidad: float, detalles: array<int, string>}> */
@@ -266,47 +370,7 @@ class TableroLimpieza extends Page implements HasForms
             return [];
         }
 
-        $executions = LimpiezaEjecucion::whereDate('fecha', now()->toDateString())
-            ->where('colaborador_id', $colaborador->id)
-            ->whereIn('estado', [EstadoLimpieza::Pendiente, EstadoLimpieza::EnProgreso])
-            ->get();
-
-        $sugerencias = [];
-
-        foreach ($executions as $e) {
-            if ($e->limpiable_type === Habitacion::class) {
-                /** @var Habitacion|null $habitacion */
-                $habitacion = $e->limpiable;
-                if ($habitacion) {
-                    $roomStocks = Stock::with(['variante.producto'])
-                        ->where('stockable_type', Habitacion::class)
-                        ->where('stockable_id', $habitacion->id)
-                        ->get();
-
-                    foreach ($roomStocks as $rs) {
-                        $ideal = (float) $rs->cantidad_ideal;
-                        $actual = (float) $rs->cantidad_actual;
-                        if ($actual < $ideal && $rs->variante) {
-                            $faltante = $ideal - $actual;
-                            $varianteId = $rs->variante->id;
-                            $nombre = ($rs->variante->producto->nombre ?? '').($rs->variante->nombre_variante ? " ({$rs->variante->nombre_variante})" : '');
-
-                            if (! isset($sugerencias[$varianteId])) {
-                                $sugerencias[$varianteId] = [
-                                    'nombre' => $nombre,
-                                    'cantidad' => 0.0,
-                                    'detalles' => [],
-                                ];
-                            }
-                            $sugerencias[$varianteId]['cantidad'] += $faltante;
-                            $sugerencias[$varianteId]['detalles'][] = "Hab. {$habitacion->numero}: {$faltante}";
-                        }
-                    }
-                }
-            }
-        }
-
-        return $sugerencias;
+        return app(ObtenerAbastecimientoSugerido::class)->execute((int) $colaborador->id);
     }
 
     public function openCompleteModal(int $executionId): void
@@ -319,18 +383,9 @@ class TableroLimpieza extends Page implements HasForms
         $this->completingExecutionId = $executionId;
         $this->observaciones = $execution->observaciones ?? '';
 
-        // Define default checklist tasks if empty
         $existingChecklist = $execution->detalles_checklist;
         if (empty($existingChecklist)) {
-            $this->checklist = [
-                ['task' => 'Tender camas y cambiar sábanas', 'completed' => false],
-                ['task' => 'Sacudir polvo de superficies y mobiliario', 'completed' => false],
-                ['task' => 'Limpiar y desinfectar el cuarto de baño', 'completed' => false],
-                ['task' => 'Barrer y trapear los pisos', 'completed' => false],
-                ['task' => 'Reponer toallas limpias', 'completed' => false],
-                ['task' => 'Reponer amenidades (jabón, shampoo, café)', 'completed' => false],
-                ['task' => 'Vaciar papeleras y colocar bolsas nuevas', 'completed' => false],
-            ];
+            $this->checklist = app(ObtenerChecklistDefecto::class)->execute();
         } else {
             $this->checklist = [];
             foreach ($existingChecklist as $task => $status) {
@@ -341,7 +396,6 @@ class TableroLimpieza extends Page implements HasForms
             }
         }
 
-        // Load stock from cart for consumption inputs
         $this->consumos = [];
         if ($execution->carrito_id) {
             $cartStocks = InventarioStock::with(['variante.producto'])
@@ -381,17 +435,11 @@ class TableroLimpieza extends Page implements HasForms
             return;
         }
 
-        // Convert array checklist back to key-value
         $formattedChecklist = [];
-        $hasDiscrepancy = false;
         foreach ($this->checklist as $item) {
             $formattedChecklist[$item['task']] = $item['completed'];
-            if (! $item['completed']) {
-                $hasDiscrepancy = true;
-            }
         }
 
-        // Get non-zero consumptions
         $formattedConsumos = [];
         foreach ($this->consumos as $varianteId => $info) {
             if ((float) $info['cantidad'] > 0) {
@@ -399,14 +447,19 @@ class TableroLimpieza extends Page implements HasForms
             }
         }
 
-        // Complete cleaning using Use Case
-        $terminarLimpieza->execute($execution, $formattedChecklist, $this->observaciones, $formattedConsumos);
+        $terminarLimpieza->execute(new TerminarLimpiezaData(
+            record: $execution,
+            checklist: $formattedChecklist,
+            observaciones: $this->observaciones,
+            consumos: $formattedConsumos,
+        ));
         $fresh = $execution->fresh();
         $estado = $fresh?->estado;
 
-        /** @var mixed $limpiable */
-        $limpiable = $execution->limpiable;
-        $nombreLimpiable = is_object($limpiable) ? ($limpiable->nombre ?? 'Área sin nombre') : 'Área sin nombre';
+        $nombreLimpiable = match (true) {
+            is_object($execution->limpiable) && property_exists($execution->limpiable, 'nombre') && $execution->limpiable->nombre => $execution->limpiable->nombre,
+            default => 'Área sin nombre',
+        };
 
         Notification::make()
             ->title($estado === EstadoLimpieza::Completada ? 'Limpieza Completada' : 'Completada con Discrepancias')

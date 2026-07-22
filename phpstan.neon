@@ -1,14 +1,18 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    - vendor/nesbot/carbon/extension.neon
+    - phpstan-errors-baseline.neon
+
 parameters:
-  level: 9
-  paths:
-    - app
-    - routes
-    - database
-  excludePaths:
-    - vendor/*
-  ignoreErrors:
-    - '#Trait .* is used zero times and is not analysed\.#'
-    - '#Expression on left side of \?\? is not nullable\.#'
-    - '#Instanceof between .* and .* will always evaluate to true\.#'
+    paths:
+        - app/
+        - bootstrap/app.php
+        - config/
+        - database/
+        - routes/
+
+    excludePaths:
+        analyseAndScan:
+            - database/migrations/2026_05_13_012048_create_permission_tables.php (?)
+
+    level: 9

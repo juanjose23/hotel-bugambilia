@@ -10,7 +10,7 @@ use App\Filament\Resources\Colaboradores\Colaboradors\Pages\ViewColaborador;
 use App\Filament\Resources\Colaboradores\Colaboradors\Schemas\ColaboradorForm;
 use App\Filament\Resources\Colaboradores\Colaboradors\Schemas\ColaboradorInfolist;
 use App\Filament\Resources\Colaboradores\Colaboradors\Tables\ColaboradorsTable;
-use App\Models\Personas\Persona;
+use App\Repository\Models\Personas\Persona;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -22,6 +22,8 @@ use UnitEnum;
 class ColaboradorResource extends Resource
 {
     protected static ?string $model = Persona::class;
+
+    protected static ?string $slug = 'colaboradores/lista';
 
     protected static ?string $modelLabel = 'Colaboradores';
 
@@ -61,6 +63,7 @@ class ColaboradorResource extends Resource
                 'personaNatural',
                 'pais',
                 'colaborador.imagen',
+                'colaborador.contactosEmergencia',
             ]);
     }
 

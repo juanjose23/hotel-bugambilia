@@ -6,11 +6,10 @@
             <div class="flex items-center gap-6">
                 <div
                     class="flex h-20 w-20 items-center justify-center rounded-4xl bg-rose-50 p-3 dark:bg-rose-500/10 shadow-inner">
-                    <img src="{{ asset('img/hotel-icon.png') }}" alt="Logo" class="h-14 w-auto object-contain">
+                    <img src="{{ asset(config('hotel.icon')) }}" alt="Logo" class="h-14 w-auto object-contain">
                 </div>
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-[0.4em] text-[#711C37] dark:text-rose-400">Hotel
-                        Bugambilias</p>
+                    <p class="text-xs font-bold uppercase tracking-[0.4em] text-[#711C37] dark:text-rose-400">{{ config('hotel.name') }}</p>
                     <h1 class="text-3xl font-black tracking-tight text-gray-900 dark:text-white leading-none mt-1">
                         Identidad Corporativa</h1>
                 </div>
@@ -32,8 +31,8 @@
                     </div>
 
                     <div class="relative flex h-full flex-col items-center pt-10 px-8 text-center">
-                        <img src="{{ asset('img/logo-horizontal.png') }}" alt="Logo"
-                            class="h-14 w-auto brightness-0 invert drop-shadow-lg">
+                        <img src="{{ asset(config('hotel.logo')) }}" alt="{{ config('hotel.name') }}"
+                             class="h-14 w-auto brightness-0 invert drop-shadow-lg">
                         <div
                             class="mt-4 inline-flex rounded-full border border-white/30 bg-white/10 px-5 py-1.5 backdrop-blur-xl shadow-lg">
                             <span class="text-[9px] font-black uppercase tracking-[0.5em] text-white">Colaborador</span>
@@ -59,7 +58,7 @@
                         </div>
                         <div
                             class="absolute -bottom-2 -right-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400 border-4 border-white shadow-xl transform rotate-12 group-hover:rotate-0 transition-transform duration-300">
-                            <img src="{{ asset('img/hotel-icon.png') }}" class="h-8 w-8">
+                            <img src="{{ asset(config('hotel.icon')) }}" class="h-8 w-8">
                         </div>
                     </div>
 
@@ -99,13 +98,13 @@
             <div id="carnet-reverso"
                 class="relative h-[539.8px] w-85 shrink-0 overflow-hidden rounded-[2.8rem] bg-[#0f0f0f] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] print:m-4 print:shadow-none print:ring-1 print:ring-gray-800">
                 <div class="absolute inset-0 flex items-center justify-center opacity-[0.04]">
-                    <img src="{{ asset('img/hotel-icon.png') }}" class="w-80 grayscale scale-150">
+                    <img src="{{ asset(config('hotel.icon')) }}" class="w-80 grayscale scale-150">
                 </div>
 
                 <div class="relative z-10 flex h-full flex-col p-10 text-white">
                     <div class="flex justify-center py-2">
-                        <img src="{{ asset('img/logo-horizontal.png') }}" alt="Logo"
-                            class="h-10 w-auto brightness-0 invert opacity-30">
+                        <img src="{{ asset(config('hotel.logo')) }}" alt="{{ config('hotel.name') }}"
+                             class="h-10 w-auto brightness-0 invert opacity-30">
                     </div>
 
                     <div class="mt-6 space-y-6">
@@ -157,7 +156,7 @@
 
                     <div class="pt-6 text-center">
                         <p class="text-[9px] leading-relaxed text-gray-600 font-medium px-4">
-                            Propiedad exclusiva de <span class="text-gray-400 font-bold">Hotel Bugambilias</span>.
+                            Propiedad exclusiva de <span class="text-gray-400 font-bold">{{ config('hotel.name') }}</span>.
                             Documento intransferible. En caso de hallazgo, devolver a RRHH.
                         </p>
                     </div>

@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Catalogos\Pais\Tables;
 
-use App\Enums\Catalogos\EstadoCatalogo;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -37,12 +38,7 @@ class PaisTable
                 TextColumn::make('codigo_telefono')
                     ->label('Código de Telefono')
                     ->searchable(),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->searchable()
-                    ->badge()
-                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null)
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
+                EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->sortable()
@@ -57,6 +53,7 @@ class PaisTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+
                 //
 
             ])

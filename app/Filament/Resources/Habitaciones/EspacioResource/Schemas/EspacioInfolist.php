@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\EspacioResource\Schemas;
 
-use App\Filament\Resources\Shared\InfolistTimestamps;
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -126,7 +126,7 @@ class EspacioInfolist
                 ->description('Información de trazabilidad y control.')
                 ->columns(2)
                 ->schema([
-                    ...InfolistTimestamps::make(format: 'd/m/Y H:i', since: true, withIcons: true, size: TextSize::Small),
+                    ...TimestampsInfolistEntry::make(format: 'd/m/Y H:i', since: true, withIcons: true, size: TextSize::Small),
                 ]),
         ]);
     }

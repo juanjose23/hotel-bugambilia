@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums\Catalogos;
 
-use App\Enums\Concerns\HasEnumHelpers;
+use App\Enums\Concerns\TieneAyudantesEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
@@ -12,7 +12,7 @@ use Filament\Support\Icons\Heroicon;
 
 enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
 {
-    use HasEnumHelpers;
+    use TieneAyudantesEnum;
 
     case EDIFICIO = 'edificio';
     case PISO = 'piso';
@@ -29,6 +29,7 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
     case BLANCOS_SUCIOS = 'blancos_sucios';
     case BLANCOS_LIMPIOS = 'blancos_limpios';
     case MERMA = 'merma';
+    case CARRITO = 'carrito';
 
     public function getLabel(): string
     {
@@ -48,6 +49,7 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::BLANCOS_SUCIOS => 'Blancos Sucios',
             self::BLANCOS_LIMPIOS => 'Blancos Limpios',
             self::MERMA => 'Merma Operativa',
+            self::CARRITO => 'Carrito de Limpieza',
         };
     }
 
@@ -69,6 +71,7 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::BLANCOS_SUCIOS => Heroicon::Trash,
             self::BLANCOS_LIMPIOS => Heroicon::Sparkles,
             self::MERMA => Heroicon::ArchiveBoxXMark,
+            self::CARRITO => Heroicon::ShoppingCart,
         };
     }
 
@@ -90,6 +93,7 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::BLANCOS_SUCIOS => 'warning',
             self::BLANCOS_LIMPIOS => 'success',
             self::MERMA => 'danger',
+            self::CARRITO => 'warning',
         };
     }
 }

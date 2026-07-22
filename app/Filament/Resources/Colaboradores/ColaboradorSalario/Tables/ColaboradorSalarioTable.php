@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Tables;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
-use App\Models\Colaboradores\ColaboradorSalario;
-use App\UseCases\Colaboradores\Queries\ObtenerNombreCompleto;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\ColaboradorNombreColumn;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Repository\Models\Colaboradores\ColaboradorSalario;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -14,6 +16,7 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -24,14 +27,7 @@ class ColaboradorSalarioTable
         return $table
             ->recordTitle(fn (ColaboradorSalario $record): string => $record->colaborador->codigo ?? 'Salario')
             ->columns([
-                TextColumn::make('colaborador')
-                    ->label('Colaborador')
-                    ->formatStateUsing(
-                        fn ($record) => app(ObtenerNombreCompleto::class)
-                            ->obtenerNombreCompleto($record->colaborador)
-                    )
-                    ->searchable()
-                    ->sortable(),
+                ColaboradorNombreColumn::make('colaborador.persona.nombre_completo'),
                 TextColumn::make('salario')
                     ->label('Salario')
                     ->money('NIO')
@@ -44,22 +40,22 @@ class ColaboradorSalarioTable
                     ->label('Fin')
                     ->date('d/m/Y')
                     ->placeholder('Activo'),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn ($state): string => EstadoCatalogo::labelFor($state))
-                    ->color(fn ($state): ?string => is_string($color = EstadoCatalogo::colorFor($state)) ? $color : null),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
             ])
             ->filters([
                 FiltroEliminados::make(),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->modalHeading('Editar salario')
-                    ->modalWidth('2xl'),
-                DeleteAction::make(),
-                RestoreAction::make(),
-                ForceDeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->modalHeading('Editar salario')
+                        ->modalWidth('2xl'),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

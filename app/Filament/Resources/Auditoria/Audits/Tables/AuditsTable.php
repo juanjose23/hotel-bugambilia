@@ -12,7 +12,8 @@ class AuditsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->columns(components: [
+            ->modifyQueryUsing(fn ($query) => $query->with(['user.persona']))
+            ->columns([
                 TextColumn::make('event')
                     ->label('Evento')
                     ->badge()
@@ -25,13 +26,13 @@ class AuditsTable
                     }),
                 TextColumn::make('user.name')
                     ->label('Modificado por')
-                    ->formatStateUsing(callback: function ($state, $record) {
+                    ->formatStateUsing(function ($state, $record) {
                         $user = $record->user;
                         if (! $user) {
                             return 'Sistema';
                         }
-                        if ($user->persona?->primer_nombre) {
-                            return $user->persona->primer_nombre.' '.$user->persona->segundo_nombre;
+                        if ($user->persona) {
+                            return $user->persona->nombre_completo ?? $user->name;
                         }
 
                         return $user->name;

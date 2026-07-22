@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Pages;
 
 use App\Filament\Resources\Habitaciones\HabitacionResource\HabitacionResource;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Inventario\ProductoKit;
+use App\Interactors\Habitaciones\AsignarPackAHabitacion;
+use App\Interactors\Habitaciones\ClonarHabitacion;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Inventario\ProductoKit;
+use App\Repository\Queries\Shared\ObtenerOpcionesColaborador;
 use App\Support\CachedOptions;
-use App\UseCases\Habitaciones\Mutations\AsignarPackAHabitacion;
-use App\UseCases\Habitaciones\Mutations\ClonarHabitacion;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;
@@ -22,6 +23,19 @@ use Filament\Support\Icons\Heroicon;
 
 class ViewHabitacion extends ViewRecord
 {
+    protected ClonarHabitacion $clonarHabitacion;
+
+    protected ObtenerOpcionesColaborador $obtenerOpcionesColaborador;
+
+    protected AsignarPackAHabitacion $asignarPackAHabitacion;
+
+    public function boot(ClonarHabitacion $clonarHabitacion, ObtenerOpcionesColaborador $obtenerOpcionesColaborador, AsignarPackAHabitacion $asignarPackAHabitacion): void
+    {
+        $this->clonarHabitacion = $clonarHabitacion;
+        $this->obtenerOpcionesColaborador = $obtenerOpcionesColaborador;
+        $this->asignarPackAHabitacion = $asignarPackAHabitacion;
+    }
+
     protected static string $resource = HabitacionResource::class;
 
     protected function getHeaderActions(): array
@@ -56,7 +70,7 @@ class ViewHabitacion extends ViewRecord
                 ])
                 ->action(function (array $data, Habitacion $record) {
                     try {
-                        $nueva = app(ClonarHabitacion::class)->execute(
+                        $nueva = $this->clonarHabitacion->execute(
                             origen: $record,
                             nuevoNumero: (int) $data['nuevo_numero'],
                             nuevoNombre: filled($data['nuevo_nombre']) ? $data['nuevo_nombre'] : null,
@@ -130,6 +144,12 @@ class ViewHabitacion extends ViewRecord
                         ->minValue(1)
                         ->default(1),
 
+                    Select::make('colaborador_id')
+                        ->label('Colaborador que llevó el pack')
+                        ->options($this->obtenerOpcionesColaborador->ejecutar())
+                        ->searchable()
+                        ->preload(),
+
                     Repeater::make('items_preview')
                         ->label('Items incluidos en el pack')
                         ->schema([
@@ -145,12 +165,15 @@ class ViewHabitacion extends ViewRecord
                 ])
                 ->action(function (array $data, Habitacion $record, Action $action): void {
                     try {
-                        app(AsignarPackAHabitacion::class)->execute(
-                            habitacionId: $record->id,
+                        $this->asignarPackAHabitacion->execute(
+                            destinoId: $record->id,
                             productoPackId: (int) $data['producto_pack_id'],
                             bodegaOrigenId: (int) $data['bodega_origen_id'],
                             cantidadPacks: (float) $data['cantidad_packs'],
                             creadoPorId: (int) auth()->id(),
+                            referencia: null,
+                            destinoTipo: 'habitacion',
+                            colaboradorId: $data['colaborador_id'] ? (int) $data['colaborador_id'] : null,
                         );
 
                         Notification::make()

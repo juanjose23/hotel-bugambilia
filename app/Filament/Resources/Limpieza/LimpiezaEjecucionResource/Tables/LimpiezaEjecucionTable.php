@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Tables;
 
-use App\Enums\HabitacionesEspacios\EstadoLimpieza;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Habitaciones\Habitacion;
-use App\Models\Limpieza\LimpiezaEjecucion;
-use App\UseCases\Shared\Queries\ObtenerNombrePersona;
+use App\Enums\Limpieza\EstadoLimpieza;
+use App\Filament\Shared\Filters\FiltroEstado;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Queries\Limpieza\Ubicacion\ObtenerPathUbicacion;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -83,31 +87,10 @@ class LimpiezaEjecucionTable
                     ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->options(EstadoLimpieza::class),
+                FiltroEstado::make(EstadoLimpieza::class),
                 SelectFilter::make('ubicacion_id')
                     ->label('Ubicación')
-                    ->options(function () {
-                        $all = Ubicacion::all();
-                        $map = $all->keyBy('id');
-                        $buildPath = function (Ubicacion $u) use (&$buildPath, $map): string {
-                            if ($u->padre_id && $map->has($u->padre_id)) {
-                                /** @var Ubicacion $padre */
-                                $padre = $map->get($u->padre_id);
-
-                                return $buildPath($padre).' ➔ '.$u->nombre;
-                            }
-
-                            return $u->nombre;
-                        };
-                        $result = [];
-                        foreach ($all as $u) {
-                            $result[$u->id] = $buildPath($u);
-                        }
-                        asort($result);
-
-                        return $result;
-                    })
+                    ->options(fn () => app(ObtenerPathUbicacion::class)->ejecutar())
                     ->query(function (Builder $query, array $data) {
                         if (empty($data['value'])) {
                             return;
@@ -137,9 +120,13 @@ class LimpiezaEjecucionTable
                         });
                     }),
             ])
-            ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+            ->recordActions([
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Acciones'),
             ]);
     }
 }

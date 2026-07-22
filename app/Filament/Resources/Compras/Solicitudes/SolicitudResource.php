@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Compras\Solicitudes;
 
 use App\Filament\Resources\Compras\Solicitudes\Pages\AprobarSolicitud;
+use App\Filament\Resources\Compras\Solicitudes\Pages\ComparativaSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\Pages\CreateSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\Pages\EditSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\Pages\ListSolicitudes;
@@ -10,7 +11,7 @@ use App\Filament\Resources\Compras\Solicitudes\Pages\ViewSolicitud;
 use App\Filament\Resources\Compras\Solicitudes\Schemas\SolicitudForm;
 use App\Filament\Resources\Compras\Solicitudes\Schemas\SolicitudInfolist;
 use App\Filament\Resources\Compras\Solicitudes\Tables\SolicitudTable;
-use App\Models\Compras\Solicitud;
+use App\Repository\Models\Compras\Solicitud;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -55,7 +56,7 @@ class SolicitudResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return SolicitudTable::configure($table);
+        return app(SolicitudTable::class)->configure($table);
     }
 
     public static function getEloquentQuery(): Builder
@@ -81,6 +82,7 @@ class SolicitudResource extends Resource
             'view' => ViewSolicitud::route('/{record}'),
             'edit' => EditSolicitud::route('/{record}/edit'),
             'aprobar' => AprobarSolicitud::route('/{record}/aprobar'),
+            'comparativa' => ComparativaSolicitud::route('/{record}/comparativa'),
         ];
     }
 

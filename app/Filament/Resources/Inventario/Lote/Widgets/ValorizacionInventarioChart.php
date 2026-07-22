@@ -1,25 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Inventario\Lote\Widgets;
 
-use App\Models\Monedas\Moneda;
-use App\UseCases\Inventario\Queries\Stock\ObtenerValorizacionInventario;
+use App\BusinessLogic\Inventario\Data\Stock\ValorizacionCategoriaData;
+use App\Repository\Queries\Inventario\Stock\ObtenerValorizacionInventario;
+use App\Repository\Queries\Shared\ObtenerMonedaBase;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Collection;
-use stdClass;
 
 class ValorizacionInventarioChart extends ChartWidget
 {
+    use HasWidgetShield;
+
+    public static function canView(): bool
+    {
+        $permission = static::getWidgetPermission();
+        $user = auth()->user();
+
+        return $permission && $user
+            ? $user->can($permission)
+            : parent::canView();
+    }
+
     protected static ?int $sort = 2;
 
     protected ?string $maxHeight = '250px';
 
     public function getHeading(): ?string
     {
-        $monedaBase = Moneda::where('es_predeterminada', true)->first();
-        $simbolo = $monedaBase ? $monedaBase->simbolo : 'C$';
+        $simbolo = app(ObtenerMonedaBase::class)->ejecutar()->simbolo ?? 'C$';
 
-        return "Valorización por Categoría ({$simbolo})";
+        return "Valorización por Categoría ($simbolo)";
     }
 
     public static function shouldRegister(): bool
@@ -29,12 +42,11 @@ class ValorizacionInventarioChart extends ChartWidget
 
     protected function getData(): array
     {
-        /** @var Collection<int, stdClass> $filas */
-        $filas = app(ObtenerValorizacionInventario::class)->ejecutar();
+        $obtenerValorizacion = app(ObtenerValorizacionInventario::class);
+        $filas = $obtenerValorizacion->ejecutar();
 
-        /** @var Collection<string, float> $agrupado */
-        $agrupado = $filas->groupBy(fn (stdClass $f): string => (string) ($f->categoria ?? 'Sin Categoría'))
-            ->map(fn ($grupo) => $grupo->sum('valor_total'))
+        $agrupado = $filas->groupBy(fn (ValorizacionCategoriaData $f): string => $f->categoria ?? 'Sin Categoría')
+            ->map(fn ($grupo) => $grupo->sum('valorTotal'))
             ->sortDesc();
 
         return [

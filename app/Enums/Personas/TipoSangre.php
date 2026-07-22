@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Enums\Personas;
 
-enum TipoSangre: string
+use App\Enums\Concerns\TieneAyudantesEnum;
+use Filament\Support\Contracts\HasLabel;
+
+enum TipoSangre: string implements HasLabel
 {
+    use TieneAyudantesEnum;
+
     case O_POSITIVO = 'O+';
     case O_NEGATIVO = 'O-';
     case A_POSITIVO = 'A+';
@@ -15,13 +20,8 @@ enum TipoSangre: string
     case AB_POSITIVO = 'AB+';
     case AB_NEGATIVO = 'AB-';
 
-    /**
-     * @return array<string, string>
-     */
-    public static function options(): array
+    public function getLabel(): string
     {
-        return collect(self::cases())
-            ->mapWithKeys(fn ($case) => [$case->value => $case->value])
-            ->all();
+        return $this->value;
     }
 }

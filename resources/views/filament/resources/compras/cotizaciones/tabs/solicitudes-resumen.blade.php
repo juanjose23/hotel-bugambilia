@@ -1,7 +1,4 @@
-@php
-    use App\Filament\Resources\Compras\Cotizaciones\CotizacionResource;
-    $solicitudes = $solicitudes ?? collect();
-@endphp
+@php $solicitudes = $solicitudes ?? collect(); @endphp
 
 <div class="p-6 space-y-4">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -31,9 +28,9 @@
 
                 <div class="mt-auto">
                     @if($solicitud->cotizaciones_count >= 1)
-                        @if(auth()->user()->can('Compras:ViewComparativaCotizaciones'))
+                        @if(auth()->user()->hasRole('super_admin') || auth()->user()->can('Compras:ViewComparativaCotizaciones'))
                             <a 
-                                href="{{ CotizacionResource::getUrl('comparativa', ['solicitud_id' => $solicitud->id]) }}"
+                                href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('comparativa', ['solicitud_id' => $solicitud->id]) }}"
                                 class="flex items-center justify-center w-full px-4 py-2 text-xs font-bold text-white transition-all bg-primary-600 rounded-lg hover:bg-primary-700"
                             >
                                 <x-heroicon-o-arrows-right-left class="w-4 h-4 mr-2" />
@@ -42,7 +39,7 @@
                         @endif
                     @else
                         <a 
-                            href="{{ CotizacionResource::getUrl('create', ['solicitud_id' => $solicitud->id]) }}"
+                            href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('create', ['solicitud_id' => $solicitud->id]) }}"
                             class="flex items-center justify-center w-full px-4 py-2 text-xs font-bold text-gray-700 transition-all bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                         >
                             <x-heroicon-o-plus class="w-4 h-4 mr-2" />

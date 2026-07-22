@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums\Catalogos;
 
+namespace App\Enums\Catalogos;
+
 enum CatalogoTipo: string
 {
     case CARGO = 'CARGO';

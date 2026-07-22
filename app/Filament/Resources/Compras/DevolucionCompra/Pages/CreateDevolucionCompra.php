@@ -3,19 +3,26 @@
 namespace App\Filament\Resources\Compras\DevolucionCompra\Pages;
 
 use App\Enums\Compras\EstadoDevolucion;
+use App\Events\Compras\DevolucionCreada;
 use App\Filament\Resources\Compras\DevolucionCompra\DevolucionCompraResource;
-use App\Models\Compras\DevolucionCompra;
-use App\Services\Compras\NotificadorCompras;
-use App\UseCases\Compras\Devoluciones\Mutations\GenerarCodigoDevolucion;
+use App\Interactors\Compras\Devoluciones\GenerarCodigoDevolucion;
+use App\Repository\Models\Compras\DevolucionCompra;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateDevolucionCompra extends CreateRecord
 {
+    protected GenerarCodigoDevolucion $generarCodigoDevolucion;
+
+    public function boot(GenerarCodigoDevolucion $generarCodigoDevolucion): void
+    {
+        $this->generarCodigoDevolucion = $generarCodigoDevolucion;
+    }
+
     protected static string $resource = DevolucionCompraResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['codigo'] = app(GenerarCodigoDevolucion::class)->execute();
+        $data['codigo'] = $this->generarCodigoDevolucion->ejecutar();
         $data['estado'] = EstadoDevolucion::Borrador;
 
         return $data;
@@ -25,7 +32,7 @@ class CreateDevolucionCompra extends CreateRecord
     {
         /** @var DevolucionCompra $record */
         $record = $this->record;
-        app(NotificadorCompras::class)->devolucionCreada($record);
+        DevolucionCreada::dispatch($record);
     }
 
     protected function getRedirectUrl(): string

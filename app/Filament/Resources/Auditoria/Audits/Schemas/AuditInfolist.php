@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Auditoria\Audits\Schemas;
 
+use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -26,19 +27,13 @@ class AuditInfolist
                         TextEntry::make('user.name')
                             ->label('Modificado por')
                             ->icon('heroicon-s-user')
-                            ->formatStateUsing(callback: fn ($state, $record) => $record->user?->persona->primer_nombre
+                            ->formatStateUsing(fn ($state, $record) => $record->user?->persona->nombre_completo
                                 ?? $record->user->name
                                 ?? 'Sistema'
                             )
                             ->hint('Usuario que realizó el cambio'),
 
-                        TextEntry::make('created_at')
-                            ->label('Fecha')
-                            ->dateTime()
-                            ->icon('heroicon-s-calendar')
-                            ->color('secondary')
-                            ->columnSpanFull()
-                            ->hint('Fecha y hora del evento'),
+                        ...TimestampsInfolistEntry::make(withIcons: true),
                     ]),
 
                 RepeatableEntry::make('timeline')

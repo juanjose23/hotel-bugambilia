@@ -60,7 +60,18 @@ class DatabaseSeeder extends Seeder
         // Módulo de Limpieza
         $this->call(LimpiezaSeeder::class);
 
+        // Módulo de Promociones
+        $this->call(PromocionSeeder::class);
+
         // Seeder específico para validar todos los casos de uso de los Jobs de mantenimiento
         $this->call(MantenimientoCasosUsoSeeder::class);
+
+        // Clientes
+        $this->call(ClientesDemoSeeder::class);
+
+        // LOGICA DE RESTARUANTE
+        $this->call(MenuRestauranteSeeder::class);
+        $this->call(RestauranteSeeder::class);
+        $this->call(PedidoRestauranteSeeder::class);
     }
 }

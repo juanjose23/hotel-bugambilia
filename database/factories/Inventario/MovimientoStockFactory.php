@@ -2,9 +2,9 @@
 
 namespace Database\Factories\Inventario;
 
-use App\Models\Catalogos\Producto;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Inventario\MovimientoStock;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Inventario\MovimientoStock;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

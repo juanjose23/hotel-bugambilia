@@ -4,31 +4,99 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Inventario;
 
-use App\Models\Catalogos\Producto;
-use App\Models\Inventario\Lote;
-use App\Models\Monedas\Moneda;
-use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesCuarentena;
-use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesProximosVencer;
-use App\UseCases\Inventario\Queries\Alertas\ObtenerLotesVencidos;
-use App\UseCases\Inventario\Queries\Gestion\ObtenerRotacionInventario;
-use App\UseCases\Inventario\Queries\Mermas\ObtenerLotesMerma;
-use App\UseCases\Inventario\Queries\Mermas\ObtenerMermasTotales;
-use App\UseCases\Inventario\Queries\Stock\ObtenerStockPorProducto;
-use App\UseCases\Inventario\Queries\Stock\ObtenerValorizacionInventario;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Filament\Shared\Forms\ProductoSelect;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Queries\Inventario\Alertas\ObtenerLotesCuarentena;
+use App\Repository\Queries\Inventario\Alertas\ObtenerLotesProximosVencer;
+use App\Repository\Queries\Inventario\Alertas\ObtenerLotesVencidos;
+use App\Repository\Queries\Inventario\Gestion\ObtenerRotacionInventario;
+use App\Repository\Queries\Inventario\Mermas\ObtenerLotesMerma;
+use App\Repository\Queries\Inventario\Mermas\ObtenerMermasTotales;
+use App\Repository\Queries\Inventario\Stock\ObtenerStockPorProducto;
+use App\Repository\Queries\Inventario\Stock\ObtenerValorizacionInventario;
+use App\Repository\Queries\Shared\ObtenerMonedaBase;
+use App\Support\ReporteConfig;
 use BackedEnum;
-use Filament\Actions\Action;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
 use UnitEnum;
 
-class ReportesInventario extends Page
+/**
+ * @property Schema $reportForm
+ */
+class ReportesInventario extends Page implements HasForms
 {
+    use HasPageShield;
+    use InteractsWithForms;
+
     protected string $view = 'filament.pages.inventario.reportes-inventario';
+
+    protected ObtenerMonedaBase $monedaBase;
+
+    protected ObtenerStockPorProducto $stockPorProductoUc;
+
+    protected ObtenerLotesCuarentena $lotesCuarentenaUc;
+
+    protected ObtenerLotesProximosVencer $lotesProximosVencerUc;
+
+    protected ObtenerLotesVencidos $lotesVencidosUc;
+
+    protected ObtenerLotesMerma $lotesMermaUc;
+
+    protected ObtenerValorizacionInventario $valorizacionInventarioUc;
+
+    protected ObtenerRotacionInventario $rotacionInventarioUc;
+
+    protected ObtenerMermasTotales $mermasTotalesUc;
+
+    /** @var array<string, mixed> */
+    public ?array $reportData = [];
+
+    public function boot(
+        ObtenerMonedaBase $monedaBase,
+        ObtenerStockPorProducto $stockPorProductoUc,
+        ObtenerLotesCuarentena $lotesCuarentenaUc,
+        ObtenerLotesProximosVencer $lotesProximosVencerUc,
+        ObtenerLotesVencidos $lotesVencidosUc,
+        ObtenerLotesMerma $lotesMermaUc,
+        ObtenerValorizacionInventario $valorizacionInventarioUc,
+        ObtenerRotacionInventario $rotacionInventarioUc,
+        ObtenerMermasTotales $mermasTotalesUc
+    ): void {
+        $this->monedaBase = $monedaBase;
+        $this->stockPorProductoUc = $stockPorProductoUc;
+        $this->lotesCuarentenaUc = $lotesCuarentenaUc;
+        $this->lotesProximosVencerUc = $lotesProximosVencerUc;
+        $this->lotesVencidosUc = $lotesVencidosUc;
+        $this->lotesMermaUc = $lotesMermaUc;
+        $this->valorizacionInventarioUc = $valorizacionInventarioUc;
+        $this->rotacionInventarioUc = $rotacionInventarioUc;
+        $this->mermasTotalesUc = $mermasTotalesUc;
+    }
+
+    public function mount(): void
+    {
+        $this->reportData = [
+            'reporte' => null,
+            'producto_id' => null,
+            'categoria_id' => null,
+            'dias' => 30,
+            'meses' => 3,
+            'fecha_desde' => now()->startOfMonth()->format('Y-m-d'),
+            'fecha_hasta' => now()->format('Y-m-d'),
+        ];
+    }
 
     protected static ?string $slug = 'reportes-inventario';
 
@@ -42,61 +110,187 @@ class ReportesInventario extends Page
 
     protected static ?int $navigationSort = 99;
 
-    // ─── Datos de cada sección ────────────────────────────────────────────
-    /** @var Collection<int, \stdClass>|null */
-    public ?Collection $stockPorProducto = null;
-
-    /** @var Collection<int, Lote>|null */
-    public ?Collection $lotesCuarentena = null;
-
-    /** @var Collection<int, Lote>|null */
-    public ?Collection $lotesProximosVencer = null;
-
-    /** @var Collection<int, Lote>|null */
-    public ?Collection $lotesVencidos = null;
-
-    /** @var Collection<int, Lote>|null */
-    public ?Collection $lotesMerma = null;
-
-    /** @var Collection<int, \stdClass>|null */
-    public ?Collection $valorizacion = null;
-
-    /** @var Collection<int, \stdClass>|null */
-    public ?Collection $rotacion = null;
-
-    /** @var Collection<int, \stdClass>|null */
-    public ?Collection $mermasTotales = null;
-
-    public ?float $valorTotalInventario = null;
-
-    public ?float $totalPerdidas = null;
-
-    public string $monedaSimbolo = 'C$';
-
-    public function mount(): void
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed>  $params
+     */
+    public function extracted(mixed $reporte, array $data, array $params, string $routes): null
     {
-        $simbolo = Moneda::where('es_predeterminada', true)->value('simbolo');
-        $this->monedaSimbolo = is_string($simbolo) ? $simbolo : 'C$';
+        $params['fecha_desde'] = $data['fecha_desde'] ?? null;
+        $params['fecha_hasta'] = $data['fecha_hasta'] ?? null;
 
-        $this->stockPorProducto = app(ObtenerStockPorProducto::class)->ejecutar();
-        $this->lotesCuarentena = app(ObtenerLotesCuarentena::class)->ejecutar();
-        $this->lotesProximosVencer = app(ObtenerLotesProximosVencer::class)->ejecutar(['dias' => 30]);
-        $this->lotesVencidos = app(ObtenerLotesVencidos::class)->ejecutar();
-        $this->lotesMerma = app(ObtenerLotesMerma::class)->ejecutar([
-            'periodo_desde' => now()->startOfMonth(),
-            'periodo_hasta' => now(),
-        ]);
-        $this->valorizacion = app(ObtenerValorizacionInventario::class)->ejecutar();
-        $this->valorTotalInventario = app(ObtenerValorizacionInventario::class)->totalGeneral();
-        $this->rotacion = app(ObtenerRotacionInventario::class)->ejecutar(['meses' => 3]);
-        $this->mermasTotales = app(ObtenerMermasTotales::class)->ejecutar([
-            'periodo_desde' => now()->startOfMonth(),
-            'periodo_hasta' => now(),
-        ]);
-        $this->totalPerdidas = app(ObtenerMermasTotales::class)->totalPerdidas([
-            'periodo_desde' => now()->startOfMonth(),
-            'periodo_hasta' => now(),
-        ]);
+        if ($reporte === 'mermas') {
+            $params['periodo_desde'] = $data['fecha_desde'] ?? null;
+            $params['periodo_hasta'] = $data['fecha_hasta'] ?? null;
+        }
+
+        $url = route($routes, $params);
+        $this->dispatch('open-new-tab', url: $url);
+
+        return null;
+    }
+
+    /** @return array<string, mixed> */
+    protected function getForms(): array
+    {
+        return [
+            'reportForm' => $this->makeSchema()
+                ->schema([
+                    Select::make('reporte')
+                        ->label('Seleccionar Reporte')
+                        ->options(ReporteConfig::getSelectOptions('inventario'))
+                        ->required()
+                        ->live()
+                        ->native(false)
+                        ->searchable()
+                        ->placeholder('Selecciona un reporte de la lista...'),
+
+                    TextEntry::make('reporte_descripcion')
+                        ->hiddenLabel()
+                        ->tooltip(fn ($get) => ReporteConfig::getDescripcion('inventario', $get('reporte')) ?? 'Seleccione un reporte de la lista para ver su descripción...')
+                        ->extraAttributes(['class' => 'text-sm text-gray-500 italic mt-1 dark:text-gray-400']),
+
+                    ProductoSelect::make()
+                        ->label('Filtrar por Producto (Opcional)')
+                        ->placeholder('Todos los productos')
+                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])),
+
+                    Select::make('categoria_id')
+                        ->label('Categoría (Opcional)')
+                        ->options(fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value))->pluck('nombre', 'id'))
+                        ->placeholder('Todas las categorías')
+                        ->searchable()
+                        ->native(false)
+                        ->visible(fn ($get) => $get('reporte') === 'stock_minimo'),
+
+                    TextInput::make('dias')
+                        ->label('Días de anticipación')
+                        ->numeric()
+                        ->default(30)
+                        ->minValue(1)
+                        ->required()
+                        ->visible(fn ($get) => $get('reporte') === 'proximos_vencer'),
+
+                    TextInput::make('meses')
+                        ->label('Período de análisis (meses)')
+                        ->numeric()
+                        ->default(3)
+                        ->minValue(1)
+                        ->required()
+                        ->visible(fn ($get) => $get('reporte') === 'rotacion'),
+
+                    DatePicker::make('fecha_desde')
+                        ->label('Desde')
+                        ->default(now()->startOfMonth())
+                        ->required()
+                        ->native(false),
+
+                    DatePicker::make('fecha_hasta')
+                        ->label('Hasta')
+                        ->default(now())
+                        ->required()
+                        ->native(false),
+                ])
+                ->statePath('reportData'),
+        ];
+    }
+
+    public function descargarReporte(): null
+    {
+        $data = $this->reportForm->getState();
+        $rawReporte = $data['reporte'] ?? null;
+        $reporte = is_string($rawReporte) ? $rawReporte : '';
+        if (! $reporte) {
+            return null;
+        }
+
+        $params = [];
+        if (in_array($reporte, ['stock', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])) {
+            $params['producto_id'] = $data['producto_id'] ?? null;
+        }
+        if ($reporte === 'stock_minimo') {
+            $params['categoria_id'] = $data['categoria_id'] ?? null;
+        }
+        if ($reporte === 'proximos_vencer') {
+            $params['dias'] = $data['dias'] ?? 30;
+        }
+        if ($reporte === 'rotacion') {
+            $params['meses'] = $data['meses'] ?? 3;
+        }
+
+        try {
+            $route = ReporteConfig::getRuta('inventario', $reporte);
+
+            return $this->extracted($reporte, $data, $params, $route);
+        } catch (\InvalidArgumentException) {
+            Notification::make()
+                ->title('Reporte no disponible')
+                ->body('Este reporte no está disponible en formato PDF.')
+                ->warning()
+                ->send();
+
+            return null;
+        }
+    }
+
+    public function descargarExcel(): null
+    {
+        $data = $this->reportForm->getState();
+        $rawReporte = $data['reporte'] ?? null;
+        $reporte = is_string($rawReporte) ? $rawReporte : '';
+        if (! $reporte) {
+            return null;
+        }
+
+        $params = [];
+        if (in_array($reporte, ['stock', 'ajustes'])) {
+            $params['producto_id'] = $data['producto_id'] ?? null;
+        }
+        if ($reporte === 'stock_minimo') {
+            $params['categoria_id'] = $data['categoria_id'] ?? null;
+        }
+
+        try {
+            $route = ReporteConfig::getRuta('inventario', $reporte, 'excel');
+
+            return $this->extracted($reporte, $data, $params, $route);
+        } catch (\InvalidArgumentException) {
+            Notification::make()
+                ->title('Reporte no disponible')
+                ->body('Este reporte no está disponible en formato Excel.')
+                ->warning()
+                ->send();
+
+            return null;
+        }
+    }
+
+    protected function getViewData(): array
+    {
+        $simbolo = $this->monedaBase->ejecutar()?->simbolo;
+
+        return [
+            'stockPorProducto' => $this->stockPorProductoUc->ejecutar(),
+            'lotesCuarentena' => $this->lotesCuarentenaUc->ejecutar(),
+            'lotesProximosVencer' => $this->lotesProximosVencerUc->ejecutar(['dias' => 30]),
+            'lotesVencidos' => $this->lotesVencidosUc->ejecutar(),
+            'lotesMerma' => $this->lotesMermaUc->ejecutar([
+                'periodo_desde' => now()->startOfMonth()->toDateString(),
+                'periodo_hasta' => now()->toDateString(),
+            ]),
+            'valorizacion' => $this->valorizacionInventarioUc->ejecutar(),
+            'valorTotalInventario' => $this->valorizacionInventarioUc->totalGeneral(),
+            'rotacion' => $this->rotacionInventarioUc->ejecutar(['meses' => 3]),
+            'mermasTotales' => $this->mermasTotalesUc->ejecutar([
+                'periodo_desde' => now()->startOfMonth()->toDateString(),
+                'periodo_hasta' => now()->toDateString(),
+            ]),
+            'totalPerdidas' => $this->mermasTotalesUc->totalPerdidas([
+                'periodo_desde' => now()->startOfMonth()->toDateString(),
+                'periodo_hasta' => now()->toDateString(),
+            ]),
+            'monedaSimbolo' => is_string($simbolo) ? $simbolo : 'C$',
+        ];
     }
 
     public function getHeader(): ?View
@@ -106,215 +300,7 @@ class ReportesInventario extends Page
 
     public function getHeaderActions(): array
     {
-        return [
-            // 1. Inventario de Productos
-            Action::make('descargar_stock')
-                ->label('Generar Reporte de Inventario')
-                ->modalHeading('Reporte de Inventario de Productos')
-                ->modalDescription('Filtra y descarga el stock disponible actual de tus almacenes.')
-                ->schema([
-                    Select::make('formato')
-                        ->label('Formato de descarga')
-                        ->options([
-                            'pdf' => 'Documento PDF (Listo para imprimir)',
-                            'excel' => 'Hoja de Cálculo Excel (.xlsx)',
-                        ])
-                        ->default('pdf')
-                        ->required(),
-                    Select::make('producto_id')
-                        ->label('Filtrar por Producto (Opcional)')
-                        ->options(fn () => Producto::query()->pluck('nombre', 'id')->toArray())
-                        ->searchable()
-                        ->placeholder('Todos los productos'),
-                ])
-                ->action(function (array $data) {
-                    $route = $data['formato'] === 'pdf'
-                        ? 'reporte.inventario.stock-producto.pdf'
-                        : 'reporte.inventario.stock-producto.excel';
-
-                    return redirect()->route($route, [
-                        'producto_id' => $data['producto_id'] ?? null,
-                    ]);
-                }),
-
-            // 2. Lotes Vencidos
-            Action::make('descargar_vencidos')
-                ->label('Generar Reporte de Productos Vencidos')
-                ->modalHeading('Reporte de Lotes Vencidos (Expirados)')
-                ->modalDescription('Descarga la lista de lotes cuya fecha de vencimiento ya expiró.')
-                ->schema([
-                    Select::make('formato')
-                        ->label('Formato de descarga')
-                        ->options([
-                            'pdf' => 'Documento PDF (Listo para imprimir)',
-                            'excel' => 'Hoja de Cálculo Excel (.xlsx)',
-                        ])
-                        ->default('pdf')
-                        ->required(),
-                    Select::make('producto_id')
-                        ->label('Filtrar por Producto (Opcional)')
-                        ->options(fn () => Producto::query()->pluck('nombre', 'id')->toArray())
-                        ->searchable()
-                        ->placeholder('Todos los productos'),
-                ])
-                ->action(function (array $data) {
-                    $route = $data['formato'] === 'pdf'
-                        ? 'reporte.inventario.vencidos.pdf'
-                        : 'reporte.inventario.vencidos.excel';
-
-                    return redirect()->route($route, [
-                        'producto_id' => $data['producto_id'] ?? null,
-                    ]);
-                }),
-
-            // 3. Próximos Vencimientos
-            Action::make('descargar_proximos_vencer')
-                ->label('Generar Reporte de Próximos Vencimientos')
-                ->modalHeading('Reporte de Próximos Vencimientos')
-                ->modalDescription('Filtra los productos que expiran en los siguientes días.')
-                ->schema([
-                    Select::make('formato')
-                        ->label('Formato de descarga')
-                        ->options([
-                            'pdf' => 'Documento PDF (Listo para imprimir)',
-                            'excel' => 'Hoja de Cálculo Excel (.xlsx)',
-                        ])
-                        ->default('pdf')
-                        ->required(),
-                    TextInput::make('dias')
-                        ->label('Días de anticipación')
-                        ->numeric()
-                        ->default(30)
-                        ->minValue(1)
-                        ->required(),
-                    Select::make('producto_id')
-                        ->label('Filtrar por Producto (Opcional)')
-                        ->options(fn () => Producto::query()->pluck('nombre', 'id')->toArray())
-                        ->searchable()
-                        ->placeholder('Todos los productos'),
-                ])
-                ->action(function (array $data) {
-                    $route = $data['formato'] === 'pdf'
-                        ? 'reporte.inventario.proximos-vencer.pdf'
-                        : 'reporte.inventario.proximos-vencer.excel';
-
-                    return redirect()->route($route, [
-                        'dias' => $data['dias'],
-                        'producto_id' => $data['producto_id'] ?? null,
-                    ]);
-                }),
-
-            // 4. Cuarentena
-            Action::make('descargar_cuarentena')
-                ->label('Generar Reporte de Cuarentena')
-                ->modalHeading('Reporte de Productos en Cuarentena')
-                ->modalDescription('Descarga la lista de lotes retenidos por calidad en bodega.')
-                ->schema([
-                    Select::make('formato')
-                        ->label('Formato de descarga')
-                        ->options([
-                            'pdf' => 'Documento PDF (Listo para imprimir)',
-                            'excel' => 'Hoja de Cálculo Excel (.xlsx)',
-                        ])
-                        ->default('pdf')
-                        ->required(),
-                    Select::make('producto_id')
-                        ->label('Filtrar por Producto (Opcional)')
-                        ->options(fn () => Producto::query()->pluck('nombre', 'id')->toArray())
-                        ->searchable()
-                        ->placeholder('Todos los productos'),
-                ])
-                ->action(function (array $data) {
-                    $route = $data['formato'] === 'pdf'
-                        ? 'reporte.inventario.cuarentena.pdf'
-                        : 'reporte.inventario.cuarentena.excel';
-
-                    return redirect()->route($route, [
-                        'producto_id' => $data['producto_id'] ?? null,
-                    ]);
-                }),
-
-            // 5. Valorización
-            Action::make('descargar_valorizacion')
-                ->label('Generar Reporte de Valorización')
-                ->modalHeading('Reporte de Valorización Financiera de Almacén')
-                ->modalDescription('Genera el costo acumulado de todo el stock activo en Córdobas.')
-                ->schema([
-                    Select::make('formato')
-                        ->label('Formato de descarga')
-                        ->options([
-                            'pdf' => 'Documento PDF (Listo para imprimir)',
-                            'excel' => 'Hoja de Cálculo Excel (.xlsx)',
-                        ])
-                        ->default('pdf')
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $route = $data['formato'] === 'pdf'
-                        ? 'reporte.inventario.valorizacion.pdf'
-                        : 'reporte.inventario.valorizacion.excel';
-
-                    return redirect()->route($route);
-                }),
-
-            // 6. Rotación
-            Action::make('descargar_rotacion')
-                ->label('Generar Reporte de Rotación')
-                ->modalHeading('Reporte de Rotación de Inventario')
-                ->modalDescription('Analiza el movimiento promedio mensual de tus artículos.')
-                ->schema([
-                    TextInput::make('meses')
-                        ->label('Período de análisis (meses)')
-                        ->numeric()
-                        ->default(3)
-                        ->minValue(1)
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    return redirect()->route('reporte.inventario.rotacion.excel', [
-                        'meses' => $data['meses'],
-                    ]);
-                }),
-
-            // 7. Mermas y Pérdidas
-            Action::make('descargar_mermas')
-                ->label('Generar Reporte de Mermas')
-                ->modalHeading('Reporte de Mermas y Pérdidas')
-                ->modalDescription('Filtra los productos desechados o perdidos en un rango de fechas.')
-                ->schema([
-                    Select::make('formato')
-                        ->label('Formato de descarga')
-                        ->options([
-                            'pdf' => 'Documento PDF (Listo para imprimir)',
-                            'excel' => 'Hoja de Cálculo Excel (Detalle)',
-                            'totales' => 'Hoja de Cálculo Excel (Resumen de Totales)',
-                        ])
-                        ->default('pdf')
-                        ->required(),
-                    DatePicker::make('periodo_desde')
-                        ->label('Desde')
-                        ->default(now()->startOfMonth())
-                        ->required(),
-                    DatePicker::make('periodo_hasta')
-                        ->label('Hasta')
-                        ->default(now())
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $params = [
-                        'periodo_desde' => $data['periodo_desde'],
-                        'periodo_hasta' => $data['periodo_hasta'],
-                    ];
-
-                    if ($data['formato'] === 'pdf') {
-                        return redirect()->route('reporte.inventario.mermas.pdf', $params);
-                    } elseif ($data['formato'] === 'excel') {
-                        return redirect()->route('reporte.inventario.mermas.excel', $params);
-                    } else {
-                        return redirect()->route('reporte.inventario.mermas-totales.excel', $params);
-                    }
-                }),
-        ];
+        return [];
     }
 
     public static function canAccess(): bool
@@ -336,6 +322,9 @@ class ReportesInventario extends Page
             'Inventario:ReporteMermasTotales',
             'Inventario:ReporteTrazabilidad',
             'Inventario:ReporteVencidos',
+            'Inventario:ReporteStockMinimo',
+            'Inventario:ReporteAjustes',
+            'Inventario:ReporteCostoVentas',
         ];
 
         foreach ($reportPermissions as $perm) {

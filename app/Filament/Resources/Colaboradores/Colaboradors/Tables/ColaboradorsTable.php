@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Tables;
 
-use App\Enums\Catalogos\EstadoCatalogo;
-use App\Filament\Resources\Shared\Filters\FiltroEliminados;
-use App\Filament\Resources\Shared\Filters\FiltroEstado;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -16,7 +17,6 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -66,16 +66,11 @@ class ColaboradorsTable
                     ->date('d/m/Y')
                     ->sortable(),
 
-                IconColumn::make('colaborador.estado')
-                    ->label('Estado')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('danger'),
+                EstadoBadgeColumn::make(EstadoGeneral::class, 'colaborador.estado'),
+
             ])
             ->filters([
-                FiltroEstado::make(EstadoCatalogo::class)
+                FiltroEstado::make(EstadoGeneral::class)
                     ->query(function (Builder $query, array $data): Builder {
                         if (! filled($data['value'] ?? null)) {
                             return $query;
