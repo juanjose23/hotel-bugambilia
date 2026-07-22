@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 set -e
+# shellcheck disable=SC2034
+HERD_PHP="/c/Users/jrios/.config/herd/bin/php84"
 
 echo "[pre-push] Ejecutando analisis estatico PHPStan Nivel 9..."
 vendor/bin/phpstan analyse --level=9 --memory-limit=1G
