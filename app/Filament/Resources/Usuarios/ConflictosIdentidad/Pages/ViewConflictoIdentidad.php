@@ -31,7 +31,7 @@ class ViewConflictoIdentidad extends ViewRecord
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->visible(fn () => $record->estado === EstadoConflictoIdentidad::Pendiente)
-                ->form([
+                ->schema([
                     Select::make('catalogo_id')
                         ->label('Tipo de Cliente')
                         ->options(
@@ -87,7 +87,7 @@ class ViewConflictoIdentidad extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading('Rechazar Conflicto')
                 ->modalDescription('¿Está seguro de rechazar este conflicto de identidad?')
-                ->form([
+                ->schema([
                     Textarea::make('notas')
                         ->label('Motivo del Rechazo')
                         ->required()

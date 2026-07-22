@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 set -e
 
-HERD_PHP="/c/Users/jrios/.config/herd/bin/php84"
-if [ -d "$HERD_PHP" ]; then
-    export PATH="$HERD_PHP:$PATH"
+HERD_PHP_DIR="/c/Users/jrios/.config/herd/bin/php84"
+if [ -d "$HERD_PHP_DIR" ]; then
+    export PATH="$HERD_PHP_DIR:$PATH"
 fi
 
 echo "[pre-commit] Verificando formato frontend..."

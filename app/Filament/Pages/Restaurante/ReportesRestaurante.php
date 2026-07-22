@@ -7,6 +7,7 @@ namespace App\Filament\Pages\Restaurante;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
+use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
@@ -14,14 +15,15 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\BaseFilter;
 use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
 
 class ReportesRestaurante extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Restaurante';
+    protected static UnitEnum|string|null $navigationGroup = 'Restaurante';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
     protected static ?string $navigationLabel = 'Reportes';
 
@@ -120,7 +122,7 @@ class ReportesRestaurante extends Page implements HasTable
     /**
      * @return Builder<Pedido>
      */
-    protected function getTableQuery(): Builder
+    protected function query(): Builder
     {
         return Pedido::with(['mesa', 'mesero.persona'])->latest();
     }
