@@ -28,6 +28,7 @@ class EditServicio extends EditRecord
     {
         /** @var Servicio $record */
         $record = $this->getRecord();
+        $record->loadMissing('imagenes');
         $imagenes = $this->data['imagenes'] ?? null;
 
         if (is_array($imagenes)) {

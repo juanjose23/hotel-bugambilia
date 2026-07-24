@@ -31,6 +31,7 @@ class CreateColaborador extends CreateRecord
 
     protected function afterSave(): void
     {
+        $this->record->loadMissing('colaborador');
         $colaborador = $this->record->colaborador;
 
         if ($this->fotoUpload && $colaborador) {

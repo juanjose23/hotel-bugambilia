@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Colaboradores\ColaboradorDocumento\Schemas;
 
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
-use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,10 +14,6 @@ use Filament\Support\Icons\Heroicon;
 class ColaboradorDocumentoForm
 {
     use InyectaDesdeContenedor;
-
-    public function __construct(
-        private readonly ObtenerNombreCompleto $obtenerNombreCompleto,
-    ) {}
 
     public static function configure(Schema $schema): Schema
     {
@@ -32,10 +28,9 @@ class ColaboradorDocumentoForm
                 ->columnSpanFull()
                 ->schema([
                     Select::make('colaborador_id')
-                        ->relationship('colaborador', 'id')
+                        ->relationship('colaborador')
                         ->getOptionLabelFromRecordUsing(
-                            fn ($record) => $this->obtenerNombreCompleto
-                                ->nombreCompletoConCodigo($record)
+                            fn ($record) => $record->codigo.' - '.ObtenerNombrePersona::desde($record->persona)
                         )
                         ->searchable()
                         ->preload()

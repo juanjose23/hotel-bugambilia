@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PlatoResource;
 
+use App\Filament\Resources\Restaurante\PlatoResource\RelationManagers\RecetaRelationManager;
 use App\Filament\Resources\Restaurante\PlatoResource\Schemas\PlatoForm;
 use App\Filament\Resources\Restaurante\PlatoResource\Schemas\PlatoInfolist;
 use App\Filament\Resources\Restaurante\PlatoResource\Tables\PlatoTable;
@@ -55,6 +56,7 @@ class PlatoResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RecetaRelationManager::class,
             PreciosRelationManager::class,
             PoliticasRelationManager::class,
         ];

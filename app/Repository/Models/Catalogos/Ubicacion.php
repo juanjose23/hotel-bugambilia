@@ -7,6 +7,8 @@ use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\LimpiezaHorarioDetalle;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Shared\Stock;
+use Database\Factories\Catalogos\UbicacionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,9 +17,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
+/**
+ * @use HasFactory<UbicacionFactory>
+ */
 class Ubicacion extends Model implements AuditableContract
 {
-    use Auditable, SoftDeletes;
+    /** @phpstan-ignore missingType.generics */
+    use Auditable, HasFactory, SoftDeletes;
+
+    protected static function newFactory(): UbicacionFactory
+    {
+        return UbicacionFactory::new();
+    }
 
     protected $table = 'ubicaciones';
 

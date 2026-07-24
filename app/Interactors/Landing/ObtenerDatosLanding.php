@@ -28,7 +28,7 @@ final class ObtenerDatosLanding
         $habitacionesList = Habitacion::with(['categoria', 'detalle', 'imagenes', 'precios.moneda'])
             ->activas()
             ->orderBy('id', 'asc')
-            ->take(6)
+            ->take(3)
             ->get();
 
         $habitaciones = [];

@@ -10,6 +10,7 @@ use App\Filament\Shared\Forms\ProductoSelect;
 use App\Filament\Shared\Forms\ProductoVarianteSelect;
 use App\Repository\Queries\Compras\Shared\ObtenerColaboradorDeSesion;
 use App\Repository\Queries\Compras\Shared\ObtenerDepartamentosColaboradorQuery;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -157,7 +158,7 @@ class SolicitudForm
             return '—';
         }
 
-        $nombre = $colaborador->persona->primer_nombre ?? '';
+        $nombre = $colaborador->persona ? ObtenerNombrePersona::desde($colaborador->persona) : '';
 
         return $colaborador->codigo.' - '.$nombre;
     }

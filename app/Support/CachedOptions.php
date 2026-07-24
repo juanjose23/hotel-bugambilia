@@ -8,7 +8,10 @@ use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Queries\Limpieza\Ubicacion\ObtenerPathUbicacion;
 use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Illuminate\Support\Collection;
@@ -123,6 +126,73 @@ final readonly class CachedOptions
         return collect($data);
     }
 
+    /**
+     * @param  list<string>  $codigos
+     * @return Collection<int, string>
+     */
+    public static function catalogosPorVarios(array $codigos): Collection
+    {
+        sort($codigos);
+        $cacheKey = 'cached_options:catalogos:'.implode('_', $codigos);
+
+        /** @var array<int, string> $data */
+        $data = Cache::remember($cacheKey, 3600, fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->whereIn('codigo', $codigos))
+            ->orderBy('nombre')
+            ->pluck('nombre', 'id')
+            ->toArray()
+        );
+
+        return collect($data);
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public static function servicios(): Collection
+    {
+        /** @var array<int, string> $data */
+        $data = Cache::remember('cached_options:servicios', 3600, fn () => Servicio::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+        );
+
+        return collect($data);
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public static function serviciosActivos(): Collection
+    {
+        /** @var array<int, string> $data */
+        $data = Cache::remember('cached_options:servicios_activos', 3600, fn () => Servicio::activos()->orderBy('nombre')->pluck('nombre', 'id')->toArray()
+        );
+
+        return collect($data);
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public static function habitaciones(): Collection
+    {
+        /** @var array<int, string> $data */
+        $data = Cache::remember('cached_options:habitaciones', 3600, fn () => Habitacion::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+        );
+
+        return collect($data);
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public static function espacios(): Collection
+    {
+        /** @var array<int, string> $data */
+        $data = Cache::remember('cached_options:espacios', 3600, fn () => Espacio::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+        );
+
+        return collect($data);
+    }
+
     public static function clear(): void
     {
         Cache::forget('cached_options:productos');
@@ -131,6 +201,10 @@ final readonly class CachedOptions
         Cache::forget('cached_options:ubicaciones_almacen');
         Cache::forget('cached_options:monedas');
         Cache::forget('cached_options:ubicaciones_activas');
+        Cache::forget('cached_options:servicios');
+        Cache::forget('cached_options:servicios_activos');
+        Cache::forget('cached_options:habitaciones');
+        Cache::forget('cached_options:espacios');
         Cache::forget('lote_table:sub_ubicaciones_all');
     }
 }

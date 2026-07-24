@@ -49,30 +49,45 @@ class EnviarRecordatoriosLimpieza extends Command
 
         $enviados = 0;
 
+        $personaIds = $ejecuciones->pluck('colaborador.persona.id')
+            ->merge($ejecuciones->pluck('turno.lider.persona.id'))
+            ->merge($ejecuciones->pluck('turno.apoyo.persona.id'))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $usersByPersonaId = User::whereIn('persona_id', $personaIds)
+            ->get()
+            ->keyBy('persona_id');
+
         foreach ($ejecuciones as $ejecucion) {
             $destinatarios = collect();
 
-            $userColaborador = $ejecucion->colaborador?->persona
-                ? User::where('persona_id', $ejecucion->colaborador->persona->id)->first()
-                : null;
-            if ($userColaborador) {
-                $destinatarios->push($userColaborador);
+            $personaIdColaborador = $ejecucion->colaborador?->persona?->id;
+            if ($personaIdColaborador) {
+                $userColaborador = $usersByPersonaId->get($personaIdColaborador);
+                if ($userColaborador) {
+                    $destinatarios->push($userColaborador);
+                }
             }
 
             $turno = $ejecucion->turno;
             if ($turno) {
-                $userLider = $turno->lider?->persona
-                    ? User::where('persona_id', $turno->lider->persona->id)->first()
-                    : null;
-                if ($userLider) {
-                    $destinatarios->push($userLider);
+                $personaIdLider = $turno->lider?->persona?->id;
+                if ($personaIdLider) {
+                    $userLider = $usersByPersonaId->get($personaIdLider);
+                    if ($userLider) {
+                        $destinatarios->push($userLider);
+                    }
                 }
 
-                $userApoyo = $turno->apoyo?->persona
-                    ? User::where('persona_id', $turno->apoyo->persona->id)->first()
-                    : null;
-                if ($userApoyo) {
-                    $destinatarios->push($userApoyo);
+                $personaIdApoyo = $turno->apoyo?->persona?->id;
+                if ($personaIdApoyo) {
+                    $userApoyo = $usersByPersonaId->get($personaIdApoyo);
+                    if ($userApoyo) {
+                        $destinatarios->push($userApoyo);
+                    }
                 }
             }
 

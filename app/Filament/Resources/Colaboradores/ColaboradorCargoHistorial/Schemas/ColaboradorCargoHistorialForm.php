@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorCargoHistorial\Schemas
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
-use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;
@@ -16,10 +16,6 @@ use Illuminate\Database\Eloquent\Builder;
 class ColaboradorCargoHistorialForm
 {
     use InyectaDesdeContenedor;
-
-    public function __construct(
-        private readonly ObtenerNombreCompleto $obtenerNombreCompleto,
-    ) {}
 
     public static function configure(Schema $schema): Schema
     {
@@ -34,10 +30,9 @@ class ColaboradorCargoHistorialForm
                 ->columnSpanFull()
                 ->schema([
                     Select::make('colaborador_id')
-                        ->relationship('colaborador', 'id')
+                        ->relationship('colaborador')
                         ->getOptionLabelFromRecordUsing(
-                            fn ($record) => $this->obtenerNombreCompleto
-                                ->nombreCompletoConCodigo($record)
+                            fn ($record) => $record->codigo.' - '.ObtenerNombrePersona::desde($record->persona)
                         )
                         ->searchable()
                         ->preload()

@@ -6,13 +6,14 @@ namespace App\Interactors\Landing;
 
 use App\Repository\Models\Habitaciones\Habitacion;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 final class ObtenerHabitacionesLanding
 {
     /**
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
-    public function ejecutar(int $perPage = 6, ?string $categoria = null, ?string $busqueda = null): LengthAwarePaginator
+    public function ejecutar(int $perPage = 6, ?string $categoria = null, ?string $busqueda = null, ?int $huespedes = null): LengthAwarePaginator
     {
         $query = Habitacion::with(['categoria', 'detalle', 'imagenes', 'precios.moneda'])
             ->activas();
@@ -29,6 +30,12 @@ final class ObtenerHabitacionesLanding
                 $q->where('nombre', 'like', $term)
                     ->orWhere('descripcion', 'like', $term)
                     ->orWhereHas('categoria', fn ($catQ) => $catQ->where('nombre', 'like', $term));
+            });
+        }
+
+        if ($huespedes !== null && $huespedes > 0) {
+            $query->whereHas('detalle', function ($q) use ($huespedes) {
+                $q->whereRaw('(capacidad_adultos + capacidad_ninos) >= ?', [$huespedes]);
             });
         }
 
@@ -79,9 +86,15 @@ final class ObtenerHabitacionesLanding
 
         $resultados = [];
 
+        $categoriaIds = array_keys($grupos);
+        $totalesPorCategoria = Habitacion::whereIn('categoria_id', $categoriaIds)
+            ->selectRaw('categoria_id, count(*) as total')
+            ->groupBy('categoria_id')
+            ->pluck('total', 'categoria_id');
+
         foreach ($grupos as $g) {
             $disponibles = count($g['ids']);
-            $total = Habitacion::where('categoria_id', $g['categoria_id'])->count();
+            $total = $totalesPorCategoria->get($g['categoria_id'], 0);
             $precioMin = $g['precios'] !== [] ? min($g['precios']) : null;
             $simboloMoneda = $g['monedas'] !== [] ? $g['monedas'][0] : '$';
 
@@ -109,6 +122,7 @@ final class ObtenerHabitacionesLanding
             $resultados[] = [
                 'id' => $g['categoria_id'],
                 'codigo' => $g['codigo_categoria'],
+                'slug' => Str::slug($g['categoria']).'-'.$g['ids'][0],
                 'nombre' => $g['categoria'],
                 'descripcion' => $g['descripcion'],
                 'categoria' => $g['categoria'],

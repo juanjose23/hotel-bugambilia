@@ -25,6 +25,7 @@ final class ObtenerDevolucionReporteQuery
             'items.producto',
             'items.variante',
             'items.unidadMedida',
+            'items.lote.recepcionItem',
         ])->find($id);
 
         if ($devolucion === null) {
