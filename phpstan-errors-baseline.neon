@@ -1,2 +1,13 @@
 parameters:
-	ignoreErrors: []
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Schema\\ForeignKeyDefinition\:\:after\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: database/migrations/Reservas/2026_07_24_000001_add_polimorfica_to_cuentas_estancia_table.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Schema\\ForeignKeyDefinition\:\:after\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: database/migrations/Restaurante/2026_07_24_000002_add_cuenta_estancia_to_pedidos_table.php

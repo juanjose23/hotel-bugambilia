@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Servicios;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Monedas\Moneda;
-use App\Models\Servicios\Servicio;
+use App\Filament\Shared\Forms\ServicioSelect;
+use App\Support\CachedOptions;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\Action;
@@ -39,20 +38,14 @@ class ReporteHistoricoPrecios extends Page
         $sharedFilters = [
             Select::make('categoria_id')
                 ->label('Filtrar por Categoría (Opcional)')
-                ->options(fn () => Catalogo::whereHas(
-                    'catalogoTipo',
-                    fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_SERVICIO->value)
-                )->pluck('nombre', 'id')->toArray())
+                ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CATEGORIA_SERVICIO->value))
                 ->searchable()
                 ->placeholder('Todas las categorías'),
-            Select::make('servicio_id')
-                ->label('Filtrar por Servicio (Opcional)')
-                ->options(fn () => Servicio::pluck('nombre', 'id')->toArray())
-                ->searchable()
+            ServicioSelect::make('servicio_id')
                 ->placeholder('Todos los servicios'),
             Select::make('moneda_id')
                 ->label('Filtrar por Moneda (Opcional)')
-                ->options(fn () => Moneda::pluck('nombre', 'id')->toArray())
+                ->options(fn () => CachedOptions::monedas())
                 ->searchable()
                 ->placeholder('Todas las monedas'),
             Select::make('estado')

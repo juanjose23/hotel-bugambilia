@@ -65,8 +65,8 @@ class ReportesRestaurante extends Page implements HasTable
 
         $this->totalPedidos = $pedidos->count();
         $totalFacturado = $pedidos->sum('total');
-        $pedidosPagados = $pedidos->where('estado', EstadoPedido::Pagado->value)->count();
-        $pedidosPendientes = $pedidos->whereIn('estado', ['abierto', 'preparacion'])->count();
+        $pedidosPagados = $pedidos->where('estado', EstadoPedido::PAGADO)->count();
+        $pedidosPendientes = $pedidos->whereIn('estado', [EstadoPedido::ABIERTO, EstadoPedido::EN_PREPARACION])->count();
 
         $this->resumen = [
             'total_pedidos' => $this->totalPedidos,
@@ -137,8 +137,8 @@ class ReportesRestaurante extends Page implements HasTable
             TextColumn::make('mesa.nombre')->label('Mesa'),
             TextColumn::make('mesero.persona.nombre_completo')->label('Mesero'),
             TextColumn::make('estado')->label('Estado')->badge()
-                ->formatStateUsing(fn (string $state): string => EstadoPedido::from($state)->label())
-                ->color(fn (string $state): string => EstadoPedido::from($state)->color()),
+                ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getLabel() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getLabel() ?? $state : ''))
+                ->color(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getColor() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getColor() ?? 'gray' : 'gray')),
             TextColumn::make('total')->label('Total')->money('NIO')->sortable(),
             TextColumn::make('created_at')->label('Fecha')->dateTime()->sortable(),
         ];

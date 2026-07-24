@@ -6,23 +6,43 @@ namespace App\Interactors\Landing;
 
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Shared\ServicioAsignacion;
+use Illuminate\Support\Str;
 
 final class ObtenerEspacioDetalleLanding
 {
     /**
      * @return array{space: array<string, mixed>, similarSpaces: array<int, array<string, mixed>>}
      */
-    public function ejecutar(int $id): array
+    public function ejecutar(string|int $identificador): array
     {
         $espacio = Espacio::with([
             'ubicacion', 'imagenes', 'precios.moneda', 'politicas', 'servicioAsignaciones.servicio',
-        ])->activosWeb()->find($id);
+        ])->activosWeb()
+            ->where(function ($q) use ($identificador): void {
+                $q->where('slug', (string) $identificador);
+                if (is_numeric($identificador)) {
+                    $q->orWhere('id', (int) $identificador);
+                }
+            })
+            ->first();
 
         if (! $espacio instanceof Espacio) {
             abort(404, 'Espacio no encontrado.');
         }
 
-        $precioObj = $espacio->precios->first();
+        $preciosOrdenados = $espacio->precios->sortByDesc('es_oferta');
+
+        $precioHoraObj = $preciosOrdenados->first(fn ($p) => $p->tipo_precio->value === 'por_hora');
+        $precioBaseObj = $preciosOrdenados->first(fn ($p) => $p->tipo_precio->value === 'base');
+        $precioObj = $precioHoraObj ?? $precioBaseObj ?? $preciosOrdenados->first();
+
+        $precioPorHora = $precioHoraObj ? (float) $precioHoraObj->precio : 0.0;
+        $precioBase = $precioBaseObj ? (float) $precioBaseObj->precio : 0.0;
+
+        $esOferta = $precioObj !== null ? (bool) $precioObj->es_oferta : false;
+        $precioPrincipal = $precioPorHora > 0 ? $precioPorHora : $precioBase;
+        $tipoTarifaLabel = $precioPorHora > 0 ? '/ hora' : ($precioBase > 0 ? '/ evento' : '');
+
         $imagenesUrls = $this->resolverImagenes($espacio);
         $serviciosIncluidos = $this->resolverServicios($espacio);
         $politicasData = $this->formatearPoliticas($espacio);
@@ -34,12 +54,17 @@ final class ObtenerEspacioDetalleLanding
             'space' => [
                 'id' => $espacio->id,
                 'codigo' => $espacio->codigo,
+                'slug' => $espacio->slug ?? Str::slug($espacio->nombre),
                 'nombre' => $espacio->nombre,
                 'tipo' => $tipoStr,
                 'tipo_label' => $tipoLabel,
                 'descripcion' => ! empty($espacio->descripcion) ? $espacio->descripcion : 'Sin descripción detallada disponible en este momento.',
                 'ubicacion' => $espacio->ubicacion->nombre ?? 'Instalaciones Principales',
-                'precio' => $precioObj ? (float) $precioObj->precio : 0.0,
+                'precio' => $precioPrincipal,
+                'precio_por_hora' => $precioPorHora,
+                'precio_base' => $precioBase,
+                'es_oferta' => $esOferta,
+                'tipo_tarifa_label' => $tipoTarifaLabel,
                 'moneda' => $precioObj->moneda->simbolo ?? 'C$',
                 'capacidad' => $espacio->capacidad_personas ?? 1,
                 'web' => (bool) $espacio->web,
@@ -82,45 +107,23 @@ final class ObtenerEspacioDetalleLanding
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, array<string, mixed>>
      */
     private function resolverServicios(Espacio $espacio): array
     {
-        /** @var array<int, string> $servicios */
+        /** @var array<int, array<string, mixed>> $servicios */
         $servicios = $espacio->servicioAsignaciones
-            ->map(fn (ServicioAsignacion $sa) => $sa->servicio?->nombre)
-            ->filter()
+            ->map(fn (ServicioAsignacion $sa): array => [
+                'nombre' => (string) ($sa->servicio !== null ? $sa->servicio->nombre : ''),
+                'descripcion' => (string) ($sa->servicio !== null ? ($sa->servicio->descripcion ?? '') : ''),
+                'icono' => (string) ($sa->servicio !== null ? ($sa->servicio->icono ?? '') : ''),
+                'incluido' => (bool) $sa->incluido,
+            ])
+            ->filter(fn (array $s): bool => $s['nombre'] !== '')
             ->values()
             ->toArray();
 
-        if ($servicios !== []) {
-            return $servicios;
-        }
-
-        // Fallbacks por tipo
-        return match ($espacio->tipo->value) {
-            'salon' => [
-                'Sistema de audio profesional integrado',
-                'Proyector de alta definición y telón',
-                'Mobiliario configurable (mesas, sillas)',
-                'Servicio de catering disponible a solicitud',
-                'Conexión Wi-Fi de alta velocidad dedicada',
-                'Aire acondicionado regulable central',
-            ],
-            'piscina' => [
-                'Uso de camastros y toallas limpias',
-                'Servicio de bar junto a la alberca',
-                'Vestidores, regaderas y lockers privados',
-                'Área techada para descanso',
-                'Acceso al bar lounge contiguo',
-            ],
-            default => [
-                'Conexión Wi-Fi de cortesía',
-                'Atención y asistencia personalizada',
-                'Ubicación privilegiada en las instalaciones',
-                'Servicio de alimentos y bebidas bajo pedido',
-            ],
-        };
+        return $servicios;
     }
 
     /**
@@ -136,15 +139,7 @@ final class ObtenerEspacioDetalleLanding
             'tipo' => 'Politica',
         ])->values()->toArray();
 
-        if ($politicas !== []) {
-            return $politicas;
-        }
-
-        return [
-            ['nombre' => 'Reserva Anticipada', 'descripcion' => 'Recomendamos realizar su reserva con al menos 24 horas de anticipación para asegurar disponibilidad.'],
-            ['nombre' => 'Política de Cancelación', 'descripcion' => 'Cancelación gratuita realizando la solicitud con al menos 24 horas de antelación.'],
-            ['nombre' => 'Normativa de Convivencia', 'descripcion' => 'Se solicita mantener niveles moderados de ruido para asegurar la paz de todos los huéspedes.'],
-        ];
+        return $politicas;
     }
 
     /**
@@ -170,6 +165,7 @@ final class ObtenerEspacioDetalleLanding
 
                 return [
                     'id' => $e->id,
+                    'slug' => $e->slug ?? Str::slug($e->nombre),
                     'nombre' => $e->nombre,
                     'tipo' => $tipoStr,
                     'precio' => $p ? (float) $p->precio : 0.0,

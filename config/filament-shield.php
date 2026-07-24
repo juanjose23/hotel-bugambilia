@@ -24,7 +24,7 @@ return [
         'show_model_path' => true,
         'cluster' => null,
         'tabs' => [
-            'pages' => true,
+            'auth' => true,
             'widgets' => true,
             'resources' => true,
             'custom_permissions' => true,
@@ -187,13 +187,13 @@ return [
     | Pages
     |--------------------------------------------------------------------------
     |
-    | Most Filament pages only require view permissions. Pages listed in the
+    | Most Filament auth only require view permissions. Pages listed in the
     | exclude array will be skipped during permission generation and won't
     | appear in your role management interface.
     |
     */
 
-    'pages' => [
+    'auth' => [
         'subject' => 'class',
         'prefix' => 'view',
         'exclude' => [
@@ -206,7 +206,7 @@ return [
     | Widgets
     |--------------------------------------------------------------------------
     |
-    | Like pages, widgets typically only need view permissions. Add widgets
+    | Like auth, widgets typically only need view permissions. Add widgets
     | to the exclude array if you don't want them to appear in your role
     | management interface.
     |
@@ -226,7 +226,7 @@ return [
     | Custom Permissions
     |--------------------------------------------------------------------------
     |
-    | Sometimes you need permissions that don't map to resources, pages, or
+    | Sometimes you need permissions that don't map to resources, auth, or
     | widgets. Define any custom permissions here and they'll be available
     | when editing roles in your application.
     |

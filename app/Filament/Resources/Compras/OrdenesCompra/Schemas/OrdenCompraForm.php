@@ -9,8 +9,8 @@ use App\Enums\Compras\EstadoSolicitud;
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
 use App\Filament\Shared\Forms\ProductoSelect;
 use App\Filament\Shared\Forms\ProductoVarianteSelect;
+use App\Filament\Shared\Forms\ProveedorSelect;
 use App\Repository\Models\Compras\CotizacionItem;
-use App\Repository\Models\Compras\Proveedor;
 use App\Repository\Models\Compras\ProveedorContacto;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionConItemsProveedor;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionesPorSolicitud;
@@ -169,16 +169,7 @@ class OrdenCompraForm
                             ->prefixIcon(Heroicon::DocumentCheck)
                             ->helperText('Vincula esta OC a la cotización aprobada (trazabilidad P2P).'),
 
-                        Select::make('proveedor_id')
-                            ->label('Proveedor')
-                            ->relationship('proveedor', 'codigo')
-                            ->getOptionLabelFromRecordUsing(fn (Proveedor $record) => "$record->codigo - ".(
-                                ($record->persona && $record->persona->personaJuridica)
-                                    ? $record->persona->personaJuridica->razon_social
-                                    : (($record->persona ? $record->persona->primer_nombre : '').' '.($record->persona && $record->persona->personaNatural ? $record->persona->personaNatural->primer_apellido : ''))
-                            ))
-                            ->searchable()
-                            ->preload()
+                        ProveedorSelect::make()
                             ->required()
                             ->live()
                             ->afterStateUpdated(fn ($set) => $set('proveedor_contacto_id', null))

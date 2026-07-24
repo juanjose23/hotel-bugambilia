@@ -6,6 +6,7 @@ namespace App\Repository\Models\Servicios;
 
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Politicas\Politica;
+use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Shared\Imagen;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\Shared\Stock;
@@ -20,7 +21,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 class Servicio extends Model implements AuditableContract
 {
-    use Auditable, SoftDeletes;
     use Auditable, SoftDeletes;
 
     protected $guarded = ['id'];
@@ -39,6 +39,12 @@ class Servicio extends Model implements AuditableContract
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(Catalogo::class, 'categoria_id');
+    }
+
+    /** @return BelongsTo<RecursoReservable, $this> */
+    public function reservable(): BelongsTo
+    {
+        return $this->belongsTo(RecursoReservable::class, 'reservable_id');
     }
 
     /** @return MorphMany<Precio, $this> */

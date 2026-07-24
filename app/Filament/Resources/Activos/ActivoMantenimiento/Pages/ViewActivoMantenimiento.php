@@ -23,7 +23,7 @@ class ViewActivoMantenimiento extends ViewRecord
                 ->label('Imprimir Ficha')
                 ->icon(Heroicon::Printer)
                 ->color('info')
-                ->url(fn (ActivoMantenimiento $record) => route('reporte.activos.mantenimiento.pdf', $record))
+                ->url(fn (ActivoMantenimiento $record) => route('admin.activos.reportes.mantenimiento.pdf', $record))
                 ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->can('Activos:ReporteMantenimiento') ?? false),
 

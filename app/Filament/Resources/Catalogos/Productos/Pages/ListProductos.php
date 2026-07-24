@@ -9,8 +9,8 @@ use App\Interactors\Catalogos\ExportarProductosInteractor;
 use App\Interactors\Catalogos\ImportarProductos;
 use App\Interactors\Catalogos\Reportes\Productos\GenerarReporteProductosInteractor;
 use App\Jobs\GenerarReporteJob;
-use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Producto;
+use App\Support\CachedOptions;
 use App\Support\Pdf\FormatoPagina;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -33,11 +33,11 @@ class ListProductos extends ListRecords
         $sharedFilters = fn (): array => [
             Select::make('categoria_id')
                 ->label('Categoría')
-                ->options(Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value))->pluck('nombre', 'id'))
+                ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CATEGORIA_PRODUCTO->value))
                 ->searchable(),
             Select::make('marca_id')
                 ->label('Marca')
-                ->options(Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::MARCA->value))->pluck('nombre', 'id'))
+                ->options(fn () => CachedOptions::catalogos(CatalogoTipo::MARCA->value))
                 ->searchable(),
             Select::make('tipo')
                 ->label('Tipo de Producto')

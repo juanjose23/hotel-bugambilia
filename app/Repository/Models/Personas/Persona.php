@@ -7,6 +7,7 @@ use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Compras\Proveedor;
 use App\Repository\Models\User;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Database\Factories\PersonaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -40,18 +41,11 @@ class Persona extends Model implements AuditableContract
 
     public function getNombreCompletoAttribute(): ?string
     {
-        $nombre = trim(
-            ($this->primer_nombre ?? '').' '.
-            ($this->segundo_nombre ?? '')
-        );
-        $apellido = trim(
-            ($this->personaNatural->primer_apellido ?? '').' '.
-            ($this->personaNatural->segundo_apellido ?? '')
-        );
+        $resultado = ObtenerNombrePersona::desde($this);
 
-        $resultado = trim($nombre.' '.$apellido);
-
-        return $resultado !== '' ? $resultado : null;
+        return filled($resultado) && ! str_starts_with($resultado, 'Persona #')
+            ? $resultado
+            : null;
     }
 
     protected $guarded = ['id'];

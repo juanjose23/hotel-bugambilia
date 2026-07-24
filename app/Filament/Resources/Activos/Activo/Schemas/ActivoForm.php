@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Schemas;
 
 use App\Enums\Activos\EstadoActivo;
+use App\Filament\Shared\Forms\MonedaSelect;
+use App\Filament\Shared\Forms\ProveedorSelect;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
@@ -13,6 +15,7 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Queries\Activos\AutocompletarActivoDesdeRecepcion;
 use App\Repository\Queries\Activos\ObtenerOpcionesRecepcionItems;
+use App\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -157,30 +160,11 @@ class ActivoForm
                     ->placeholder('0.00')
                     ->helperText('Costo unitario del activo en la moneda seleccionada.'),
 
-                Select::make('moneda_id')
-                    ->label('Moneda')
-                    ->placeholder('Seleccione moneda')
-                    ->relationship('moneda', 'nombre')
-                    ->options(Moneda::pluck('nombre', 'id'))
+                MonedaSelect::make()
                     ->default(fn () => Moneda::where('codigo', 'NIO')->value('id')
-                        ?? Moneda::where('es_predeterminada', true)->value('id'))
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->prefixIcon(Heroicon::Banknotes),
+                        ?? Moneda::where('es_predeterminada', true)->value('id')),
 
-                Select::make('proveedor_id')
-                    ->label('Proveedor')
-                    ->placeholder('Seleccione un proveedor')
-                    ->relationship('proveedor', 'codigo')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->codigo.' — '.(
-                        ($record->persona && $record->persona->personaJuridica ? $record->persona->personaJuridica->razon_social : null)
-                        ?? ($record->persona ? $record->persona->primer_nombre.' '.($record->persona->personaNatural ? $record->persona->personaNatural->primer_apellido : '') : '')
-                    ))
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->prefixIcon(Heroicon::BuildingOffice2)
+                ProveedorSelect::make()
                     ->helperText('Proveedor o fabricante del activo.'),
 
                 TextInput::make('vida_util_meses')
@@ -224,9 +208,9 @@ class ActivoForm
                     ->placeholder('Primero seleccione un tipo de destino')
                     ->options(function (Get $get) {
                         return match ($get('asignacion_tipo')) {
-                            Habitacion::class => Habitacion::pluck('nombre', 'id'),
-                            Ubicacion::class => Ubicacion::pluck('nombre', 'id'),
-                            Espacio::class => Espacio::pluck('nombre', 'id'),
+                            Habitacion::class => CachedOptions::habitaciones(),
+                            Ubicacion::class => CachedOptions::ubicacionesAlmacen(),
+                            Espacio::class => CachedOptions::espacios(),
                             default => [],
                         };
                     })

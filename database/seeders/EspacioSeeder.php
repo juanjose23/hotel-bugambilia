@@ -6,13 +6,13 @@ namespace Database\Seeders;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Models\Monedas\Moneda;
-use App\Models\Politicas\Politica;
-use App\Models\Servicios\Servicio;
-use App\Models\Shared\Precio;
-use App\Models\Shared\ServicioAsignacion;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Politicas\Politica;
+use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Models\Shared\Precio;
+use App\Repository\Models\Shared\ServicioAsignacion;
 use Illuminate\Database\Seeder;
 
 class EspacioSeeder extends Seeder

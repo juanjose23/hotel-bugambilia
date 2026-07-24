@@ -6,6 +6,7 @@ namespace App\Repository\Models\Restaurante;
 
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Politicas\Politica;
 use App\Repository\Models\Shared\Imagen;
 use App\Repository\Models\Shared\Precio;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -42,6 +44,12 @@ class Plato extends Model implements AuditableContract
     public function receta(): BelongsTo
     {
         return $this->belongsTo(Producto::class, 'producto_receta_id');
+    }
+
+    /** @return HasManyThrough<ProductoKit, Producto, $this> */
+    public function ingredientes(): HasManyThrough
+    {
+        return $this->hasManyThrough(ProductoKit::class, Producto::class, 'id', 'producto_padre_id', 'producto_receta_id', 'id');
     }
 
     /** @return MorphMany<Precio, $this> */

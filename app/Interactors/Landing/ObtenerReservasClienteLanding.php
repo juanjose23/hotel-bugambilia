@@ -16,7 +16,16 @@ final class ObtenerReservasClienteLanding
     {
         $user = Auth::user();
 
-        $query = Reserva::with(['habitacion.categoria', 'espacio', 'servicio', 'serviciosAdicionales'])
+        $query = Reserva::with([
+            'habitacion.categoria',
+            'espacio',
+            'servicio',
+            'serviciosAdicionales',
+            'detalles.reservable.habitacion.categoria',
+            'detalles.reservable.espacio',
+            'detalles.reservable.servicio',
+            'detalles.huespedes',
+        ])
             ->orderBy('id', 'desc');
 
         if ($user) {
@@ -67,6 +76,35 @@ final class ObtenerReservasClienteLanding
                     'cantidad' => $s->pivot->cantidad ?? 1,
                     'precio' => (float) ($s->pivot->precio ?? 0),
                 ])->toArray(),
+                'items' => $r->detalles->map(function ($detalle): ?array {
+                    $recurso = $detalle->reservable;
+                    if ($recurso === null) {
+                        return null;
+                    }
+
+                    return [
+                        'id' => $detalle->id,
+                        'reservable_id' => $detalle->reservable_id,
+                        'tipo' => $recurso->tipo->value,
+                        'tipo_label' => $recurso->tipo->getLabel(),
+                        'nombre' => $recurso->nombre,
+                        'estado' => $detalle->estado->value,
+                        'estado_label' => $detalle->estado->getLabel(),
+                        'fecha_inicio' => $detalle->fecha_inicio->format('Y-m-d H:i:s'),
+                        'fecha_fin' => $detalle->fecha_fin?->format('Y-m-d H:i:s'),
+                        'cantidad' => $detalle->cantidad,
+                        'adultos' => $detalle->adultos,
+                        'ninos' => $detalle->ninos,
+                        'subtotal' => (float) $detalle->subtotal,
+                        'huespedes' => $detalle->huespedes->map(fn ($huesped): array => [
+                            'id' => $huesped->id,
+                            'nombre' => $huesped->nombre,
+                            'identificacion' => $huesped->identificacion,
+                            'tipo_huesped' => $huesped->tipo_huesped->value,
+                            'es_titular' => $huesped->es_titular,
+                        ])->all(),
+                    ];
+                })->filter()->values()->all(),
             ];
         })->values()->all();
 

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoMantenimiento\Schemas;
 
 use App\Enums\Activos\EstadoMantenimiento;
+use App\Filament\Shared\Forms\ActivoSelect;
 use App\Filament\Shared\Forms\MonedaSelect;
-use App\Repository\Models\Activos\Activo;
+use App\Filament\Shared\Forms\ProveedorSelect;
+use App\Filament\Shared\Forms\UserSelect;
 use App\Repository\Models\Monedas\Moneda;
-use App\Repository\Models\User;
 use App\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -94,13 +95,8 @@ class ActivoMantenimientoForm
 
                             Fieldset::make('Presupuesto y Proveedor')
                                 ->schema([
-                                    Select::make('proveedor_id')
-                                        ->label('Proveedor Externo')
+                                    ProveedorSelect::make()
                                         ->placeholder('Seleccione un proveedor (opcional)')
-                                        ->options(fn () => (self::$cachedOptions ??= app(CachedOptions::class))->proveedores())
-                                        ->searchable()
-                                        ->native(false)
-                                        ->prefixIcon(Heroicon::BuildingOffice)
                                         ->columnSpan(2),
 
                                     TextInput::make('costo_estimado')
@@ -123,16 +119,9 @@ class ActivoMantenimientoForm
                         ->createOptionModalHeading('Crear Nuevo Plan de Mantenimiento')
                         ->columns(1),
 
-                    Select::make('activo_id')
-                        ->label('Activo Fijo')
+                    ActivoSelect::make()
                         ->placeholder('Seleccione un activo')
-                        ->relationship('activo', 'nombre_descriptivo')
-                        ->options(Activo::pluck('nombre_descriptivo', 'id'))
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->native(false)
-                        ->prefixIcon(Heroicon::CpuChip),
+                        ->required(),
 
                     DatePicker::make('fecha_programada')
                         ->label('Fecha Programada')
@@ -160,15 +149,9 @@ class ActivoMantenimientoForm
                         ->placeholder('0.00')
                         ->helperText('Costo final del servicio ejecutado.'),
 
-                    Select::make('realizado_por_id')
-                        ->label('Técnico Responsable')
+                    UserSelect::make('realizado_por_id', 'Técnico Responsable')
                         ->placeholder('Seleccione un técnico')
-                        ->relationship('realizadoPor', 'name')
-                        ->options(User::pluck('name', 'id'))
-                        ->required()
-                        ->searchable()
-                        ->native(false)
-                        ->prefixIcon(Heroicon::User),
+                        ->required(),
                 ]),
 
             Section::make('Estado y Notas Adicionales')

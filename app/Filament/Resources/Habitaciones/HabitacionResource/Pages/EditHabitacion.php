@@ -29,6 +29,7 @@ class EditHabitacion extends EditRecord
     {
         /** @var Habitacion $record */
         $record = $this->getRecord();
+        $record->loadMissing('imagenes');
         $imagenes = $this->data['imagenes'] ?? null;
 
         if (is_array($imagenes)) {

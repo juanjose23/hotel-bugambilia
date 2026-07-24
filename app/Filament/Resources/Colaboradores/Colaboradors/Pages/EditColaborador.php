@@ -33,6 +33,7 @@ class EditColaborador extends EditRecord
 
     protected function afterSave(): void
     {
+        $this->record->loadMissing('colaborador.imagen');
         $colaborador = $this->record->colaborador;
 
         if ($this->fotoUpload && $colaborador) {
@@ -55,6 +56,7 @@ class EditColaborador extends EditRecord
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        $this->record->loadMissing('colaborador.imagen');
         $data['foto_url'] = $this->record->colaborador?->imagen?->url;
 
         return $data;

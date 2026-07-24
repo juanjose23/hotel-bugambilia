@@ -6,15 +6,15 @@ namespace App\Filament\Resources\Reservas\ReservaResource\Schemas;
 
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
-use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Habitaciones\Habitacion;
-use App\Repository\Models\Servicios\Servicio;
-use App\Repository\Models\User;
-use Filament\Forms\Components\DatePicker;
+use App\Filament\Resources\Reservas\Schemas\Reserva\CamposPeriodoReserva;
+use App\Filament\Resources\Reservas\Schemas\Reserva\SelectorHabitacionDisponible;
+use App\Filament\Resources\Reservas\Schemas\Reserva\SelectorServiciosAdicionales;
+use App\Filament\Shared\Forms\SelectorCliente;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -43,6 +43,7 @@ class ReservaForm
                             ->options(TipoReserva::options())
                             ->default(TipoReserva::HABITACION->value)
                             ->required()
+                            ->disabledOn('edit')
                             ->live()
                             ->native(false)
                             ->columnSpan(1),
@@ -52,67 +53,40 @@ class ReservaForm
                             ->options(EstadoReserva::options())
                             ->default(EstadoReserva::PENDIENTE->value)
                             ->required()
+                            ->disabled()
+                            ->dehydrated()
                             ->native(false)
-                            ->columnSpan(1),
-
-                        Select::make('cliente_id')
-                            ->label('Cliente Registrar')
-                            ->placeholder('Seleccione cliente o llene datos')
-                            ->options(fn () => User::query()->pluck('name', 'id')->mapWithKeys(fn ($v, $k) => [(int) $k => $v])->all())
-                            ->searchable()
-                            ->preload()
-                            ->nullable()
-                            ->native(false)
-                            ->columnSpan(1),
-
-                        TextInput::make('nombre_cliente')
-                            ->label('Nombre del Huésped')
-                            ->placeholder('Nombre completo')
-                            ->required()
-                            ->maxLength(150)
-                            ->columnSpan(1),
-
-                        TextInput::make('telefono_cliente')
-                            ->label('Teléfono de Contacto')
-                            ->placeholder('Ej. +505 8888 8888')
-                            ->columnSpan(1),
-
-                        TextInput::make('email_cliente')
-                            ->label('Correo Electrónico')
-                            ->email()
-                            ->placeholder('cliente@ejemplo.com')
-                            ->columnSpan(1),
-
-                        DatePicker::make('fecha_check_in')
-                            ->label('Fecha Check-In / Reservación')
-                            ->required()
-                            ->default(now())
-                            ->columnSpan(1),
-
-                        DatePicker::make('fecha_check_out')
-                            ->label('Fecha Check-Out (Salida)')
-                            ->nullable()
-                            ->columnSpan(1),
-
-                        TextInput::make('hora_reserva')
-                            ->label('Hora de Reservación')
-                            ->placeholder('Ej. 19:00')
-                            ->columnSpan(1),
-
-                        TextInput::make('adultos')
-                            ->label('Adultos')
-                            ->numeric()
-                            ->default(1)
-                            ->minValue(1)
-                            ->columnSpan(1),
-
-                        TextInput::make('ninos')
-                            ->label('Niños')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(0)
                             ->columnSpan(1),
                     ]),
+
+                Section::make('Datos del Cliente')
+                    ->columnSpanFull()
+                    ->icon(Heroicon::User)
+                    ->columns(3)
+                    ->schema(SelectorCliente::make(columnSpan: 1)),
+
+                Section::make('Periodo y Capacidad')
+                    ->columnSpanFull()
+                    ->icon(Heroicon::CalendarDays)
+                    ->columns(3)
+                    ->schema(array_merge(
+                        CamposPeriodoReserva::make(columnSpan: 1),
+                        [
+                            Toggle::make('solicita_cuenta')
+                                ->label('Solicita cuenta de consumo')
+                                ->helperText('La cuenta será validada y abierta por recepción durante el check-in.')
+                                ->live()
+                                ->columnSpan(1),
+
+                            TextInput::make('limite_cuenta_solicitado')
+                                ->label('Límite solicitado')
+                                ->numeric()
+                                ->prefix('C$')
+                                ->minValue(0)
+                                ->visible(fn ($get): bool => (bool) $get('solicita_cuenta'))
+                                ->columnSpan(1),
+                        ],
+                    )),
 
                 Section::make('Registro de Acompañantes / Huéspedes')
                     ->columnSpanFull()
@@ -121,6 +95,7 @@ class ReservaForm
                     ->schema([
                         Repeater::make('acompanantes')
                             ->hiddenLabel()
+                            ->disabledOn('edit')
                             ->columns(3)
                             ->itemLabel(fn (array $state): string => (string) ($state['nombre'] ?? 'Acompañante'))
                             ->schema([
@@ -152,58 +127,9 @@ class ReservaForm
                     ->columnSpanFull()
                     ->icon(Heroicon::Home)
                     ->columns(3)
-                    ->schema([
-                        Select::make('habitacion_id')
-                            ->label('Habitación Asignada')
-                            ->placeholder('Seleccione habitación')
-                            ->options(function () {
-                                return Habitacion::with('categoria')->get()->mapWithKeys(function ($h) {
-                                    $cat = $h->categoria->nombre ?? 'Sin Categ.';
+                    ->schema(SelectorHabitacionDisponible::make(columnSpan: 1)),
 
-                                    return [$h->id => "{$h->nombre} ({$cat})"];
-                                });
-                            })
-                            ->searchable()
-                            ->preload()
-                            ->nullable()
-                            ->native(false)
-                            ->visible(fn ($get) => $get('tipo_reserva') === TipoReserva::HABITACION->value)
-                            ->columnSpan(1),
-
-                        Select::make('espacio_id')
-                            ->label('Ambiente / Espacio / Mesa')
-                            ->placeholder('Seleccione ambiente, espacio o mesa')
-                            ->options(function () {
-                                return Espacio::all()->mapWithKeys(function ($e) {
-                                    return [$e->id => $e->getNombreCompleto()];
-                                });
-                            })
-                            ->searchable()
-                            ->preload()
-                            ->nullable()
-                            ->native(false)
-                            ->visible(fn ($get) => in_array($get('tipo_reserva'), [TipoReserva::RESTAURANTE->value, TipoReserva::SERVICIO->value], true))
-                            ->columnSpan(1),
-
-                        Select::make('servicio_id')
-                            ->label('Servicio Especial')
-                            ->placeholder('Seleccione servicio')
-                            ->options(fn () => Servicio::query()->pluck('nombre', 'id')->mapWithKeys(fn ($v, $k) => [(int) $k => $v])->all())
-                            ->searchable()
-                            ->preload()
-                            ->nullable()
-                            ->native(false)
-                            ->visible(fn ($get) => $get('tipo_reserva') === TipoReserva::SERVICIO->value)
-                            ->columnSpan(1),
-
-                        TextInput::make('total')
-                            ->label('Monto Total')
-                            ->numeric()
-                            ->prefix('C$')
-                            ->default(0.00)
-                            ->required()
-                            ->columnSpan(1),
-                    ]),
+                SelectorServiciosAdicionales::make(),
 
                 Section::make('Notas & Especificaciones')
                     ->columnSpanFull()

@@ -9,7 +9,7 @@ use Filament\Tables\Columns\TextColumn;
 
 class ColaboradorNombreColumn
 {
-    public static function make(string $column = 'colaborador.nombre_completo'): TextColumn
+    public static function make(string $column = 'colaborador.persona.nombre_completo'): TextColumn
     {
         return TextColumn::make($column)
             ->label('Colaborador')

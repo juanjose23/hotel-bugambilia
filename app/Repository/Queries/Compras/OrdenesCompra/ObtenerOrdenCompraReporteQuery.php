@@ -23,6 +23,7 @@ final class ObtenerOrdenCompraReporteQuery
     {
         $orden = OrdenCompra::with([
             'proveedor.persona',
+            'proveedor.contactoPrincipal',
             'items.producto',
             'items.variante',
             'items.unidadMedida',
