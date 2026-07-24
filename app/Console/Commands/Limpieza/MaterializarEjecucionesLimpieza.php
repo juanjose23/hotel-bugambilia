@@ -93,26 +93,47 @@ class MaterializarEjecucionesLimpieza extends Command
         }
 
         // Enviar notificaciones de tareas sin asignar
+        $personaIdsTurnos = collect($creadosPorTurno)->keys()
+            ->map(fn ($turnoId) => $turnoId)
+            ->all();
+
+        $turnos = Turno::with(['lider.persona', 'apoyo.persona'])
+            ->whereIn('id', $personaIdsTurnos)
+            ->get();
+
+        $personaIdsUsers = $turnos->pluck('lider.persona.id')
+            ->merge($turnos->pluck('apoyo.persona.id'))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $usersByPersonaId = User::whereIn('persona_id', $personaIdsUsers)
+            ->get()
+            ->keyBy('persona_id');
+
         foreach ($creadosPorTurno as $turnoId => $cantidad) {
-            $turno = Turno::with(['lider.persona', 'apoyo.persona'])->find($turnoId);
+            $turno = $turnos->firstWhere('id', $turnoId);
             if (! $turno) {
                 continue;
             }
 
             $destinatarios = collect();
 
-            $userLider = $turno->lider?->persona
-                ? User::where('persona_id', $turno->lider->persona->id)->first()
-                : null;
-            if ($userLider) {
-                $destinatarios->push($userLider);
+            $personaIdLider = $turno->lider?->persona?->id;
+            if ($personaIdLider) {
+                $userLider = $usersByPersonaId->get($personaIdLider);
+                if ($userLider) {
+                    $destinatarios->push($userLider);
+                }
             }
 
-            $userApoyo = $turno->apoyo?->persona
-                ? User::where('persona_id', $turno->apoyo->persona->id)->first()
-                : null;
-            if ($userApoyo) {
-                $destinatarios->push($userApoyo);
+            $personaIdApoyo = $turno->apoyo?->persona?->id;
+            if ($personaIdApoyo) {
+                $userApoyo = $usersByPersonaId->get($personaIdApoyo);
+                if ($userApoyo) {
+                    $destinatarios->push($userApoyo);
+                }
             }
 
             $destinatarios = $destinatarios->filter()->unique('id');

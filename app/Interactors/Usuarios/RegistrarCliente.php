@@ -16,13 +16,16 @@ use App\Repository\Models\User;
 use App\Repository\Models\Usuarios\ConflictoIdentidad;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+use RuntimeException;
+use Throwable;
 
-final class RegistrarCliente
+final readonly class RegistrarCliente
 {
     public function __construct(
-        private readonly ResolverIdentidadPersona $resolver,
-        private readonly RegistrarClienteNuevo $registrarNuevo,
-        private readonly VincularPersonaExistenteAUser $vincularExistente,
+        private ResolverIdentidadPersona $resolver,
+        private RegistrarClienteNuevo $registrarNuevo,
+        private VincularPersonaExistenteAUser $vincularExistente,
     ) {}
 
     /**
@@ -31,7 +34,7 @@ final class RegistrarCliente
      * @param  array<string, mixed>  $datos
      * @return array{cliente: Cliente, persona: Persona, user: User, es_nuevo: bool}
      *
-     * @throws YaTieneCuentaException
+     * @throws YaTieneCuentaException|Throwable
      */
     public function ejecutar(array $datos): array
     {
@@ -42,14 +45,14 @@ final class RegistrarCliente
             'vincular_directo' => $this->vincularDirecto($this->assertPersona($resultado['persona']), $datos),
             'actualizar_contacto' => $this->actualizarYVincular($this->assertPersona($resultado['persona']), $datos),
             'conflicto_identidad' => $this->crearConflicto($this->assertPersona($resultado['persona']), $datos, $resultado['tipo_conflicto']),
-            default => throw new \InvalidArgumentException("Tipo de resolución desconocido: {$resultado['tipo']}"),
+            default => throw new InvalidArgumentException("Tipo de resolución desconocido: {$resultado['tipo']}"),
         };
     }
 
     private function assertPersona(?Persona $persona): Persona
     {
         if (! $persona instanceof Persona) {
-            throw new \RuntimeException('Se esperaba una persona existente.');
+            throw new RuntimeException('Se esperaba una persona existente.');
         }
 
         return $persona;
@@ -64,7 +67,7 @@ final class RegistrarCliente
         $resultado = $this->registrarNuevo->ejecutar($datos);
 
         if (! $resultado['user'] instanceof User) {
-            throw new \RuntimeException('No se pudo crear el usuario para el nuevo cliente.');
+            throw new RuntimeException('No se pudo crear el usuario para el nuevo cliente.');
         }
 
         ClienteRegistrado::dispatch($resultado['cliente'], $resultado['persona'], true);
@@ -80,6 +83,8 @@ final class RegistrarCliente
     /**
      * @param  array<string, mixed>  $datos
      * @return array{cliente: Cliente, persona: Persona, user: User, es_nuevo: bool}
+     *
+     * @throws Throwable
      */
     private function vincularDirecto(Persona $persona, array $datos): array
     {
@@ -97,7 +102,7 @@ final class RegistrarCliente
             $refrescada = $persona->fresh();
 
             if (! $refrescada instanceof Persona) {
-                throw new \RuntimeException('No se pudo refrescar la persona.');
+                throw new RuntimeException('No se pudo refrescar la persona.');
             }
 
             return [
@@ -112,6 +117,8 @@ final class RegistrarCliente
     /**
      * @param  array<string, mixed>  $datos
      * @return array{cliente: Cliente, persona: Persona, user: User, es_nuevo: bool}
+     *
+     * @throws Throwable
      */
     private function actualizarYVincular(Persona $persona, array $datos): array
     {
@@ -132,7 +139,7 @@ final class RegistrarCliente
             $refrescada = $persona->fresh();
 
             if (! $refrescada instanceof Persona) {
-                throw new \RuntimeException('No se pudo refrescar la persona.');
+                throw new RuntimeException('No se pudo refrescar la persona.');
             }
 
             return [
@@ -148,7 +155,7 @@ final class RegistrarCliente
      * @param  array<string, mixed>  $datos
      * @return array{cliente: Cliente, persona: Persona, user: User, es_nuevo: bool}
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     private function crearConflicto(
         Persona $persona,
@@ -180,7 +187,7 @@ final class RegistrarCliente
             ]
         );
 
-        throw new \RuntimeException(
+        throw new RuntimeException(
             'Se detectó un conflicto de identidad. Un administrador deberá revisarlo antes de continuar.'
         );
     }

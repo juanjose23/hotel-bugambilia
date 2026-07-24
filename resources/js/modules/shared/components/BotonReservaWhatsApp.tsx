@@ -1,21 +1,18 @@
-import { usePage } from '@inertiajs/react';
 import { MessageCircle, Phone } from 'lucide-react';
-
-interface BotonReservaWhatsAppProps {
+import { usePropiedadesPagina } from '@/modules/shared/hooks/usePropiedadesPagina';
+interface PropiedadesBotonWhatsApp {
     nombreItem: string;
     codigoItem?: string;
-    tipo?: 'habitación' | 'servicio';
+    tipo?: 'habitación' | 'servicio' | 'espacio' | 'habitacion';
 }
-
-export default function BotonReservaWhatsApp({
+export const BotonReservaWhatsApp = ({
     nombreItem,
     codigoItem = '',
     tipo = 'habitación',
-}: BotonReservaWhatsAppProps) {
-    const pageProps = usePage().props as any;
-    const telefono = pageProps.hotel?.telefono || '+505 8713 6805';
+}: PropiedadesBotonWhatsApp) => {
+    const { hotel } = usePropiedadesPagina();
+    const telefono = hotel?.telefono || '+505 8713 6805';
     const whatsappNum = telefono.replace(/[^0-9]/g, '');
-
     const mensaje = encodeURIComponent(
         `Hola, me interesa solicitar la ${tipo}: ${nombreItem}${codigoItem ? ` (Código: ${codigoItem})` : ''}. ¿Tienen disponibilidad?`,
     );
@@ -50,4 +47,4 @@ export default function BotonReservaWhatsApp({
             </a>
         </div>
     );
-}
+};

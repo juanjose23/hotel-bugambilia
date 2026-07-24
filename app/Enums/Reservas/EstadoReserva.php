@@ -9,15 +9,15 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
-enum EstadoReserva: string implements HasColor, HasIcon, HasLabel
+enum EstadoReserva: int implements HasColor, HasIcon, HasLabel
 {
     use TieneAyudantesEnum;
 
-    case PENDIENTE = 'pendiente';
-    case CONFIRMADA = 'confirmada';
-    case CHECKED_IN = 'checked_in';
-    case CHECKED_OUT = 'checked_out';
-    case CANCELADA = 'cancelada';
+    case PENDIENTE = 1;
+    case CONFIRMADA = 2;
+    case CHECKED_IN = 3;
+    case CHECKED_OUT = 4;
+    case CANCELADA = 5;
 
     public function getLabel(): string
     {
@@ -47,7 +47,7 @@ enum EstadoReserva: string implements HasColor, HasIcon, HasLabel
             self::PENDIENTE => 'heroicon-o-clock',
             self::CONFIRMADA => 'heroicon-o-check-circle',
             self::CHECKED_IN => 'heroicon-o-key',
-            self::CHECKED_OUT => 'heroicon-o-arrow-right-on-rectangle',
+            self::CHECKED_OUT => 'heroicon-o-arrow-right-end-on-rectangle',
             self::CANCELADA => 'heroicon-o-x-circle',
         };
     }

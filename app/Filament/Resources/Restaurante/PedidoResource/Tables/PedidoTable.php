@@ -24,8 +24,8 @@ class PedidoTable
                 TextColumn::make('mesa.nombre')->label('Mesa')->searchable()->sortable(),
                 TextColumn::make('mesero.persona.nombre_completo')->label('Mesero')->placeholder('—'),
                 TextColumn::make('estado')->label('Estado')->badge()
-                    ->formatStateUsing(fn (string $state): string => EstadoPedido::from($state)->label())
-                    ->color(fn (string $state): string => EstadoPedido::from($state)->color()),
+                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getLabel() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getLabel() ?? $state : ''))
+                    ->color(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getColor() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getColor() ?? 'gray' : 'gray')),
                 TextColumn::make('total')->label('Total')->money('NIO')->sortable(),
                 TextColumn::make('created_at')->label('Creado')->dateTime()->sortable(),
             ])

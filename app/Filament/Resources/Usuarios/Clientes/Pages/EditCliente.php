@@ -65,6 +65,7 @@ class EditCliente extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $persona = $this->getRecord();
+        $persona->loadMissing('cliente', 'user');
         if ($persona instanceof Persona) {
             if ($persona->personaNatural) {
                 $data['primer_apellido'] = $persona->personaNatural->primer_apellido;
@@ -87,6 +88,7 @@ class EditCliente extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         /** @var Persona $record */
+        $record->loadMissing('cliente');
         $cliente = $record->cliente;
 
         if (! $cliente instanceof Cliente) {

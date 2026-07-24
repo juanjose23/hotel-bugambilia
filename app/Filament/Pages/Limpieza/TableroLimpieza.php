@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Limpieza;
 
-use App\BusinessLogic\Limpieza\Data\IniciarLimpiezaData;
-use App\BusinessLogic\Limpieza\Data\TerminarLimpiezaData;
+use App\BusinessLogic\Limpieza\Exceptions\OperacionLimpiezaNoPermitida;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\LimpiezaEjecucionResource;
 use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
-use App\Interactors\Limpieza\Ejecucion\IniciarLimpieza;
-use App\Interactors\Limpieza\Ejecucion\TerminarLimpieza;
+use App\Interactors\Limpieza\Ejecucion\CompletarEjecucionAsignada;
+use App\Interactors\Limpieza\Ejecucion\ReclamarEIniciarLimpieza;
 use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritosDisponibles;
 use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionesConFiltros;
+use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionLimpieza;
 use App\Repository\Queries\Limpieza\Stock\ObtenerAbastecimientoSugerido;
 use App\Repository\Queries\Limpieza\Ubicacion\ObtenerChecklistDefecto;
 use BackedEnum;
@@ -30,6 +30,8 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use UnitEnum;
 
@@ -44,9 +46,30 @@ class TableroLimpieza extends Page implements HasForms
 
     protected ObtenerNombreCompleto $nombreColaborador;
 
-    public function boot(ObtenerNombreCompleto $nombreColaborador): void
-    {
+    protected ObtenerEjecucionLimpieza $obtenerEjecucion;
+
+    protected ObtenerEjecucionesConFiltros $obtenerEjecuciones;
+
+    protected ObtenerCarritosDisponibles $obtenerCarritos;
+
+    protected ObtenerAbastecimientoSugerido $obtenerAbastecimiento;
+
+    protected ObtenerChecklistDefecto $obtenerChecklist;
+
+    public function boot(
+        ObtenerNombreCompleto $nombreColaborador,
+        ObtenerEjecucionLimpieza $obtenerEjecucion,
+        ObtenerEjecucionesConFiltros $obtenerEjecuciones,
+        ObtenerCarritosDisponibles $obtenerCarritos,
+        ObtenerAbastecimientoSugerido $obtenerAbastecimiento,
+        ObtenerChecklistDefecto $obtenerChecklist,
+    ): void {
         $this->nombreColaborador = $nombreColaborador;
+        $this->obtenerEjecucion = $obtenerEjecucion;
+        $this->obtenerEjecuciones = $obtenerEjecuciones;
+        $this->obtenerCarritos = $obtenerCarritos;
+        $this->obtenerAbastecimiento = $obtenerAbastecimiento;
+        $this->obtenerChecklist = $obtenerChecklist;
     }
 
     protected string $view = 'filament.pages.limpieza.tablero-limpieza';
@@ -92,9 +115,9 @@ class TableroLimpieza extends Page implements HasForms
         $this->form->fill();
     }
 
-    public function form(Schema $form): Schema
+    public function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                 Grid::make([
                     'default' => 1,
@@ -163,7 +186,7 @@ class TableroLimpieza extends Page implements HasForms
             }
         }
 
-        return app(ObtenerEjecucionesConFiltros::class)->execute($filtros);
+        return $this->obtenerEjecuciones->execute($filtros);
     }
 
     /**
@@ -278,8 +301,9 @@ class TableroLimpieza extends Page implements HasForms
             return;
         }
 
-        $execution = LimpiezaEjecucion::find($executionId);
-        if (! $execution) {
+        try {
+            $execution = $this->obtenerEjecucion->execute($executionId);
+        } catch (ModelNotFoundException) {
             Notification::make()
                 ->title('Error')
                 ->body('La ejecución de limpieza especificada no existe.')
@@ -288,6 +312,8 @@ class TableroLimpieza extends Page implements HasForms
 
             return;
         }
+
+        Gate::authorize('iniciar', $execution);
 
         $this->startingExecutionId = $executionId;
         $this->startForm->fill();
@@ -303,20 +329,22 @@ class TableroLimpieza extends Page implements HasForms
         $this->startData = [];
     }
 
-    public function confirmStart(IniciarLimpieza $iniciarLimpieza): void
+    public function confirmStart(ReclamarEIniciarLimpieza $iniciarLimpieza): void
     {
         if (! $this->startingExecutionId) {
             return;
         }
 
-        $execution = LimpiezaEjecucion::find($this->startingExecutionId);
         $colaborador = auth()->user()?->persona?->colaborador;
 
-        if (! $execution || ! $colaborador) {
+        if (! $colaborador) {
             $this->closeStartModal();
 
             return;
         }
+
+        $execution = $this->obtenerEjecucion->execute($this->startingExecutionId);
+        Gate::authorize('iniciar', $execution);
 
         $startData = $this->startForm->getState();
         $carritoId = isset($startData['carrito_id']) && is_numeric($startData['carrito_id'])
@@ -324,11 +352,11 @@ class TableroLimpieza extends Page implements HasForms
             : null;
 
         try {
-            $iniciarLimpieza->execute(new IniciarLimpiezaData(
-                record: $execution,
-                colaboradorOrPersonalId: (int) $colaborador->id,
-                carritoId: $carritoId,
-            ));
+            $execution = $iniciarLimpieza->execute(
+                $this->startingExecutionId,
+                (int) $colaborador->id,
+                $carritoId,
+            );
 
             $nombreLimpiable = match (true) {
                 is_object($execution->limpiable) && property_exists($execution->limpiable, 'nombre') && $execution->limpiable->nombre => $execution->limpiable->nombre,
@@ -360,7 +388,7 @@ class TableroLimpieza extends Page implements HasForms
             return [];
         }
 
-        return app(ObtenerCarritosDisponibles::class)->execute($this->startingExecutionId);
+        return $this->obtenerCarritos->execute($this->startingExecutionId);
     }
 
     /** @return array<int, array{nombre: string, cantidad: float, detalles: array<int, string>}> */
@@ -371,22 +399,25 @@ class TableroLimpieza extends Page implements HasForms
             return [];
         }
 
-        return app(ObtenerAbastecimientoSugerido::class)->execute((int) $colaborador->id);
+        return $this->obtenerAbastecimiento->execute((int) $colaborador->id);
     }
 
     public function openCompleteModal(int $executionId): void
     {
-        $execution = LimpiezaEjecucion::find($executionId);
-        if (! $execution) {
+        try {
+            $execution = $this->obtenerEjecucion->execute($executionId);
+        } catch (ModelNotFoundException) {
             return;
         }
+
+        Gate::authorize('completar', $execution);
 
         $this->completingExecutionId = $executionId;
         $this->observaciones = $execution->observaciones ?? '';
 
         $existingChecklist = $execution->detalles_checklist;
         if (empty($existingChecklist)) {
-            $this->checklist = app(ObtenerChecklistDefecto::class)->execute();
+            $this->checklist = $this->obtenerChecklist->execute();
         } else {
             $this->checklist = [];
             foreach ($existingChecklist as $task => $status) {
@@ -423,18 +454,21 @@ class TableroLimpieza extends Page implements HasForms
         $this->consumos = [];
     }
 
-    public function completeExecution(TerminarLimpieza $terminarLimpieza): void
+    public function completeExecution(CompletarEjecucionAsignada $terminarLimpieza): void
     {
         if (! $this->completingExecutionId) {
             return;
         }
 
-        $execution = LimpiezaEjecucion::find($this->completingExecutionId);
-        if (! $execution) {
+        $colaborador = auth()->user()?->persona?->colaborador;
+        if (! $colaborador) {
             $this->closeCompleteModal();
 
             return;
         }
+
+        $executionAutorizada = $this->obtenerEjecucion->execute($this->completingExecutionId);
+        Gate::authorize('completar', $executionAutorizada);
 
         $formattedChecklist = [];
         foreach ($this->checklist as $item) {
@@ -448,14 +482,26 @@ class TableroLimpieza extends Page implements HasForms
             }
         }
 
-        $terminarLimpieza->execute(new TerminarLimpiezaData(
-            record: $execution,
-            checklist: $formattedChecklist,
-            observaciones: $this->observaciones,
-            consumos: $formattedConsumos,
-        ));
-        $fresh = $execution->fresh();
-        $estado = $fresh?->estado;
+        try {
+            $execution = $terminarLimpieza->execute(
+                $this->completingExecutionId,
+                (int) $colaborador->id,
+                checklist: $formattedChecklist,
+                observaciones: $this->observaciones,
+                consumos: $formattedConsumos,
+            );
+        } catch (OperacionLimpiezaNoPermitida $exception) {
+            Notification::make()
+                ->title('No se pudo completar la limpieza')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+
+            $this->closeCompleteModal();
+
+            return;
+        }
+        $estado = $execution->estado;
 
         $nombreLimpiable = match (true) {
             is_object($execution->limpiable) && property_exists($execution->limpiable, 'nombre') && $execution->limpiable->nombre => $execution->limpiable->nombre,

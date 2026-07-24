@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Restaurante;
 
-use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Restaurante\ConsumirIngredientesPedido;
+use App\Interactors\Restaurante\MarcarItemPedidoListo;
 use App\Repository\Models\Restaurante\Pedido;
-use App\Repository\Models\Restaurante\PedidoItem;
+use App\Repository\Models\User;
+use App\Repository\Queries\Restaurante\ObtenerPedidosCocinaQuery;
 use BackedEnum;
 use Carbon\CarbonInterface;
+use DomainException;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
 use UnitEnum;
 
-class CocinaPedidos extends Page
+final class CocinaPedidos extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-fire';
 
@@ -34,6 +35,16 @@ class CocinaPedidos extends Page
     /** @var Collection<int, Pedido> */
     public Collection $pedidos;
 
+    private ObtenerPedidosCocinaQuery $pedidosQuery;
+
+    private MarcarItemPedidoListo $marcarItemListo;
+
+    public function boot(ObtenerPedidosCocinaQuery $pedidosQuery, MarcarItemPedidoListo $marcarItemListo): void
+    {
+        $this->pedidosQuery = $pedidosQuery;
+        $this->marcarItemListo = $marcarItemListo;
+    }
+
     public function mount(): void
     {
         $this->cargarPedidos();
@@ -41,37 +52,22 @@ class CocinaPedidos extends Page
 
     public function cargarPedidos(): void
     {
-        $this->pedidos = Pedido::with(['items.plato', 'mesa'])
-            ->whereIn('estado', ['abierto', 'preparacion'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $this->pedidos = $this->pedidosQuery->ejecutar();
     }
 
     public function marcarItemListo(int $itemId): void
     {
-        $item = PedidoItem::find($itemId);
-        if (! $item instanceof PedidoItem) {
+        try {
+            $item = $this->marcarItemListo->ejecutar($itemId);
+        } catch (DomainException $exception) {
+            Notification::make()->title('No se pudo completar el plato')->body($exception->getMessage())->danger()->send();
+
             return;
         }
 
-        $item->update(['estado' => 'listo']);
-
-        app(ConsumirIngredientesPedido::class)->ejecutar($item);
-
-        $pedido = $item->pedido;
-        if ($pedido instanceof Pedido) {
-            $pendientes = $pedido->items()->where('estado', '!=', 'listo')->count();
-            if ($pendientes === 0) {
-                $pedido->update(['estado' => EstadoPedido::Listo->value]);
-            } elseif ($pedido->estado === 'abierto') {
-                $pedido->update(['estado' => EstadoPedido::Preparacion->value]);
-            }
+        if ($item !== null) {
+            Notification::make()->title("Item listo: {$item->plato?->nombre}")->success()->send();
         }
-
-        Notification::make()
-            ->title("Item listo: {$item->plato?->nombre}")
-            ->success()
-            ->send();
 
         $this->cargarPedidos();
     }
@@ -81,8 +77,16 @@ class CocinaPedidos extends Page
         return $pedido->created_at?->diffForHumans(null, CarbonInterface::DIFF_ABSOLUTE) ?? '';
     }
 
-    protected function getPollingInterval(): ?string
+    protected function getPollingInterval(): string
     {
         return '10s';
+    }
+
+    public static function canAccess(): bool
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        return $user?->can('page_CocinaPedidos') ?? false;
     }
 }

@@ -6,15 +6,11 @@ namespace App\Filament\Resources\Reservas\ReservaResource\Tables;
 
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
-use App\Interactors\Reservas\RegistrarCheckIn;
-use App\Interactors\Reservas\RegistrarCheckOut;
-use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
+use App\Filament\Resources\Reservas\Schemas\Reserva\AccionesReserva;
+use App\Filament\Resources\Reservas\Schemas\Reserva\InsigniaEstadoReserva;
+use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\EditAction;
-use Filament\Notifications\Notification;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ReservaTable
@@ -63,54 +59,32 @@ class ReservaTable
                     ->placeholder('-')
                     ->sortable(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state) => $state?->getColor() ?? 'gray')
-                    ->icon(fn ($state) => $state?->getIcon())
-                    ->sortable(),
+                InsigniaEstadoReserva::make(),
 
                 TextColumn::make('total')
                     ->label('Total')
                     ->money('NIO')
                     ->sortable(),
+
+                TextColumn::make('detalles_count')
+                    ->label('Ítems')
+                    ->counts('detalles')
+                    ->numeric(),
+
+                TextColumn::make('detalles.reservable.nombre')
+                    ->label('Recursos')
+                    ->badge()
+                    ->separator(',')
+                    ->limitList(3),
             ])
             ->defaultSort('id', 'desc')
             ->filters([
-                SelectFilter::make('tipo_reserva')
-                    ->options(TipoReserva::options()),
-                SelectFilter::make('estado')
-                    ->options(EstadoReserva::options()),
+                FiltroEstado::make(TipoReserva::class, 'tipo_reserva'),
+                FiltroEstado::make(EstadoReserva::class),
             ])
             ->recordActions([
-                Action::make('check_in')
-                    ->label('Check-In')
-                    ->icon(Heroicon::Key)
-                    ->color('success')
-                    ->visible(fn ($record) => in_array($record->estado, [EstadoReserva::PENDIENTE, EstadoReserva::CONFIRMADA]))
-                    ->action(function ($record, RegistrarCheckIn $interactor) {
-                        $interactor->ejecutar($record);
-                        Notification::make()
-                            ->title('Check-In registrado')
-                            ->success()
-                            ->send();
-                    }),
-
-                Action::make('check_out')
-                    ->label('Check-Out')
-                    ->icon(Heroicon::ArrowRightOnRectangle)
-                    ->color('warning')
-                    ->visible(fn ($record) => $record->estado === EstadoReserva::CHECKED_IN)
-                    ->action(function ($record, RegistrarCheckOut $interactor) {
-                        $interactor->ejecutar($record);
-                        Notification::make()
-                            ->title('Check-Out registrado')
-                            ->success()
-                            ->send();
-                    }),
-
+                ...AccionesReserva::make(),
                 EditAction::make()->iconButton(),
-                DeleteAction::make()->iconButton(),
             ]);
     }
 }

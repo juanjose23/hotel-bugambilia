@@ -195,7 +195,7 @@ class ViewHabitacion extends ViewRecord
                 ->label('Imprimir Hoja de Habitación')
                 ->icon(Heroicon::Printer)
                 ->color('info')
-                ->url(fn (Habitacion $record) => route('reporte.activos.hoja-habitacion.pdf', ['tipo' => 'habitacion', 'id' => $record->id]))
+                ->url(fn (Habitacion $record) => route('admin.activos.reportes.hoja-habitacion.pdf', ['tipo' => 'habitacion', 'id' => $record->id]))
                 ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->can('Activos:ReporteHojaHabitacion') ?? false),
             EditAction::make(),

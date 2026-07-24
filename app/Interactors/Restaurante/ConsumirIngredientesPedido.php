@@ -4,57 +4,62 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante;
 
-use App\Repository\Models\Catalogos\Producto;
-use App\Repository\Models\Catalogos\Ubicacion;
-use App\Repository\Models\Inventario\MovimientoStock;
-use App\Repository\Models\Inventario\ProductoKit;
+use App\BusinessLogic\Restaurante\ValidarDisponibilidadIngredientes;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Shared\Stock;
-use Illuminate\Support\Facades\DB;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Repository\Queries\Restaurante\ObtenerIngredientesPedidoQuery;
 
 final class ConsumirIngredientesPedido
 {
-    /**
-     * Al marcar un item del pedido como "Listo", consume los ingredientes del stock de cocina.
-     */
-    public function ejecutar(PedidoItem $pedidoItem): void
+    public function __construct(
+        private readonly ObtenerIngredientesPedidoQuery $ingredientesQuery,
+        private readonly ValidarDisponibilidadIngredientes $validarDisponibilidad,
+        private readonly RestauranteRepositorioInterface $repositorio,
+    ) {}
+
+    public function ejecutar(PedidoItem $item): void
     {
-        $plato = $pedidoItem->plato;
-        if (! $plato) {
+        $consumo = $this->ingredientesQuery->ejecutar($item);
+
+        if ($consumo === null) {
             return;
         }
 
-        $productoPadre = $plato->receta;
-        if (! $productoPadre instanceof Producto) {
-            return;
+        foreach ($consumo['ingredientes'] as $ingrediente) {
+            $varianteId = $ingrediente->producto_variante_id;
+            $stock = $consumo['stocks']->get($varianteId);
+            $requerido = (float) $ingrediente->cantidad * (float) $item->cantidad;
+            $nombre = $ingrediente->variante->nombre_variante ?? "variante {$varianteId}";
+            $disponible = $stock instanceof Stock ? (float) $stock->cantidad_actual : 0.0;
+
+            $this->validarDisponibilidad->validar($requerido, $disponible, $nombre);
         }
 
-        $ingredientes = ProductoKit::with('variante')
-            ->where('producto_padre_id', $productoPadre->id)
-            ->get();
+        foreach ($consumo['ingredientes'] as $ingrediente) {
+            $stock = $consumo['stocks']->get($ingrediente->producto_variante_id);
 
-        $cocinaId = Ubicacion::where('nombre', 'Cocina Restaurante')->first()?->id;
-        if (! $cocinaId) {
-            return;
-        }
-
-        DB::transaction(function () use ($ingredientes, $pedidoItem, $cocinaId, $productoPadre) {
-            foreach ($ingredientes as $ing) {
-                $cantidadConsumir = (float) $ing->cantidad * (float) $pedidoItem->cantidad;
-
-                Stock::where('stockable_type', Ubicacion::class)
-                    ->where('stockable_id', $cocinaId)
-                    ->where('producto_variante_id', $ing->producto_variante_id)
-                    ->decrement('cantidad_actual', $cantidadConsumir);
-
-                MovimientoStock::create([
-                    'producto_id' => $productoPadre->id,
-                    'producto_variante_id' => $ing->producto_variante_id,
-                    'tipo' => 'CONSUMO',
-                    'cantidad' => $cantidadConsumir,
-                    'fecha' => now(),
-                ]);
+            if (! $stock instanceof Stock) {
+                continue;
             }
-        });
+
+            $cantidad = (float) $ingrediente->cantidad * (float) $item->cantidad;
+            $stock->cantidad_actual -= $cantidad;
+            $this->repositorio->guardarStock($stock);
+            $costoUnitario = $stock->lote?->costo_unitario;
+
+            $this->repositorio->registrarMovimiento([
+                'tipo' => 'CONSUMO',
+                'lote_id' => $stock->lote_id,
+                'producto_id' => $ingrediente->variante?->producto_id,
+                'cantidad' => -$cantidad,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario !== null ? (float) $costoUnitario * $cantidad : null,
+                'ubicacion_origen_id' => $consumo['ubicacion_id'],
+                'documento_tipo' => 'pedido_item',
+                'documento_id' => $item->id,
+                'referencia' => "Consumo de ingrediente para pedido #{$item->pedido_id}",
+            ]);
+        }
     }
 }

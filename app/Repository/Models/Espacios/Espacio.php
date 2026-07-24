@@ -6,12 +6,15 @@ namespace App\Repository\Models\Espacios;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Enums\Restaurante\EstadoPedido;
 use App\Repository\Models\Activos\ActivoAsignacion;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\LimpiezaHorarioDetalle;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Politicas\Politica;
+use App\Repository\Models\Reservas\RecursoReservable;
+use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Shared\Imagen;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\Shared\ServicioAsignacion;
@@ -25,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
@@ -34,6 +38,8 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property int|null $pedido_abierto_id
  * @property string|null $pedido_abierto_codigo
  * @property float|string|null $pedido_abierto_total
+ * @property int|null $cuentas_activas_count
+ * @property float|null $total_mesa
  */
 class Espacio extends Model implements AuditableContract
 {
@@ -53,6 +59,22 @@ class Espacio extends Model implements AuditableContract
         'reservable' => 'boolean',
         'meta_datos' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Espacio $espacio): void {
+            if (empty($espacio->slug) && ! empty($espacio->nombre)) {
+                $baseSlug = Str::slug($espacio->nombre);
+                $slug = $baseSlug;
+                $counter = 1;
+                while (static::query()->where('slug', $slug)->where('id', '!=', $espacio->id)->exists()) {
+                    $slug = $baseSlug.'-'.$counter;
+                    $counter++;
+                }
+                $espacio->slug = $slug;
+            }
+        });
+    }
 
     /**
      * @param  Builder<Espacio>  $query
@@ -76,6 +98,12 @@ class Espacio extends Model implements AuditableContract
         'orden',
     ];
 
+    /** @return BelongsTo<RecursoReservable, $this> */
+    public function reservable(): BelongsTo
+    {
+        return $this->belongsTo(RecursoReservable::class, 'reservable_id');
+    }
+
     /**
      * Relación con el Espacio Padre (ej. Restaurante es el padre de las mesas)
      *
@@ -94,6 +122,17 @@ class Espacio extends Model implements AuditableContract
     public function hijos(): HasMany
     {
         return $this->hasMany(self::class, 'padre_id')->orderBy('orden');
+    }
+
+    /** @return HasMany<Pedido, $this> */
+    public function pedidosActivos(): HasMany
+    {
+        return $this->hasMany(Pedido::class, 'mesa_id')
+            ->whereIn('estado', [
+                EstadoPedido::ABIERTO,
+                EstadoPedido::EN_PREPARACION,
+                EstadoPedido::SERVIDO,
+            ]);
     }
 
     /**

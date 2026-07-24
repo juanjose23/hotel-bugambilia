@@ -27,7 +27,7 @@ class GenerarCodigosBarrasCommand extends Command
             $query->where('id', $productoId);
         }
 
-        $productos = $query->get();
+        $productos = $query->with(['variantes'])->get();
 
         if ($productos->isEmpty()) {
             $this->error('No se encontraron productos.');

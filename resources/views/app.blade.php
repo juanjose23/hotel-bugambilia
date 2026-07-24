@@ -4,26 +4,30 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="icon" href="/images/hotel-icon.webp" type="image/webp">
+        <link rel="icon" href="/images/hotel-icon.png" type="image/png">
+        <link rel="apple-touch-icon" href="/images/hotel-icon.png">
 
+        {{-- Preload LCP hero image --}}
+        <link rel="preload" as="image" type="image/webp" href="/images/hero-main.webp" fetchpriority="high">
+
+        {{-- Bunny Fonts (non-blocking via @fonts directive) --}}
         @fonts
+
+        {{-- Google Fonts — loaded async to avoid render-blocking --}}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+        <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
         @unless (app()->environment('testing'))
             @viteReactRefresh
-            @php
-                $componentPath = str_contains($page['component'] ?? '', '/')
-                    ? "resources/js/modules/" . implode('/pages/', explode('/', (string) $page['component'], 2)) . ".tsx"
-                    : "resources/js/pages/" . ($page['component'] ?? 'Home') . ".tsx";
-            @endphp
-            @vite(['resources/css/app.css', 'resources/js/app.tsx', $componentPath])
+            @vite(['resources/css/app.css', 'resources/js/app.tsx'])
         @endunless
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>
+            <meta name="description" content="Hotel Bugambilias Estelí — Reserva habitaciones, suites y servicios exclusivos en el corazón de Nicaragua. WiFi, estacionamiento y desayuno incluido.">
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

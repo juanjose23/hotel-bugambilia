@@ -26,6 +26,8 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property Carbon|null $resuelto_en
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * @method static self create(array<string, mixed> $attributes)
  */
 final class ConflictoIdentidad extends Model implements AuditableContract
 {

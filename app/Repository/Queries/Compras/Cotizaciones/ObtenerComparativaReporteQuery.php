@@ -29,6 +29,7 @@ final class ObtenerComparativaReporteQuery
             'items.variante',
             'cotizaciones.proveedor.persona.personaJuridica',
             'cotizaciones.proveedor.persona.personaNatural',
+            'cotizaciones.proveedor.contactoPrincipal',
             'cotizaciones.items.producto',
             'cotizaciones.items.variante',
             'cotizaciones.moneda',

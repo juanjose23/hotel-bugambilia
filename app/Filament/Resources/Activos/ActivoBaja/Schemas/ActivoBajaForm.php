@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoBaja\Schemas;
 
 use App\Enums\Activos\TipoBaja;
-use App\Repository\Models\Activos\Activo;
-use App\Repository\Models\User;
+use App\Filament\Shared\Forms\ActivoSelect;
+use App\Filament\Shared\Forms\UserSelect;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -28,10 +28,7 @@ class ActivoBajaForm
                         ->disabled()
                         ->placeholder('Se genera automáticamente al procesar'),
 
-                    Select::make('activo_id')
-                        ->label('Activo Fijo a Retirar')
-                        ->relationship('activo', 'nombre_descriptivo')
-                        ->options(Activo::where('estado', '!=', 3)->pluck('nombre_descriptivo', 'id'))
+                    ActivoSelect::make('activo_id', soloActivos: true)
                         ->required()
                         ->searchable(),
 
@@ -61,16 +58,9 @@ class ActivoBajaForm
                         ->prefixIcon(Heroicon::CurrencyDollar)
                         ->placeholder('0.00'),
 
-                    Select::make('aprobado_por_id')
-                        ->label('Aprobado Por (Administrador)')
-                        ->relationship('aprobadoPor', 'name')
-                        ->options(User::pluck('name', 'id'))
-                        ->searchable(),
+                    UserSelect::make('aprobado_por_id', 'Aprobado Por (Administrador)'),
 
-                    Select::make('creado_por_id')
-                        ->label('Registrado Por')
-                        ->relationship('creadoPor', 'name')
-                        ->options(User::pluck('name', 'id'))
+                    UserSelect::make('creado_por_id', 'Registrado Por')
                         ->default(fn () => auth()->id())
                         ->required()
                         ->disabled(),

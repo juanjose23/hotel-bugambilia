@@ -32,6 +32,7 @@ class CreateDevolucionCompra extends CreateRecord
     {
         /** @var DevolucionCompra $record */
         $record = $this->record;
+        $record->loadMissing('ordenCompra', 'recepcionCompra', 'items', 'creador');
         DevolucionCreada::dispatch($record);
     }
 

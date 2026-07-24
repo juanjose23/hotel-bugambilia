@@ -35,6 +35,7 @@ class EditActivo extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        $this->getRecord()->loadMissing('asignacionActiva.asignable');
         $asignacion = $this->getRecord()->asignacionActiva;
 
         if ($asignacion && $asignacion->asignable) {
@@ -61,6 +62,7 @@ class EditActivo extends EditRecord
         $destinoId = isset($data['asignacion_destino_id']) ? (int) $data['asignacion_destino_id'] : null;
 
         if ($tipo && $destinoId) {
+            $this->getRecord()->loadMissing('asignacionActiva');
             $asignacionActual = $this->getRecord()->asignacionActiva;
 
             $cambio = ! $asignacionActual

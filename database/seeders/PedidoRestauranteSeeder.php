@@ -33,7 +33,7 @@ class PedidoRestauranteSeeder extends Seeder
         for ($i = 1; $i <= 20; $i++) {
             $fecha = Carbon::now()->subDays(rand(0, 15))->subHours(rand(1, 12));
             $codigo = 'PED-'.$fecha->format('Ymd').'-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT);
-            $estado = $i <= 3 ? EstadoPedido::Abierto->value : ($i <= 5 ? EstadoPedido::Preparacion->value : EstadoPedido::Pagado->value);
+            $estado = $i <= 3 ? EstadoPedido::ABIERTO : ($i <= 5 ? EstadoPedido::EN_PREPARACION : EstadoPedido::PAGADO);
 
             $mesa = $mesas->random();
 
@@ -45,7 +45,7 @@ class PedidoRestauranteSeeder extends Seeder
                 'estado' => $estado,
                 'total' => 0.00,
                 'abierto_en' => $fecha,
-                'cerrado_en' => $estado === EstadoPedido::Pagado->value ? $fecha->addMinutes(rand(30, 90)) : null,
+                'cerrado_en' => $estado === EstadoPedido::PAGADO ? $fecha->addMinutes(rand(30, 90)) : null,
                 'created_at' => $fecha,
                 'updated_at' => $fecha,
             ]);

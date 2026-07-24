@@ -65,8 +65,15 @@ final class ObtenerHabitacionDetalleLanding
             'politicas', 'servicioAsignaciones.servicio', 'inventarioFijo.activo',
         ])->activas();
 
+        if (ctype_digit($slug)) {
+            return $query->find((int) $slug);
+        }
+
         if (preg_match('/-(\d+)$/', $slug, $matches)) {
-            return $query->find((int) $matches[1]);
+            $habitacion = (clone $query)->find((int) $matches[1]);
+            if ($habitacion !== null) {
+                return $habitacion;
+            }
         }
 
         return $query->where('slug', $slug)->orWhere('codigo', $slug)->first();
@@ -111,31 +118,23 @@ final class ObtenerHabitacionDetalleLanding
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, array<string, mixed>>
      */
     private function resolverServicios(Habitacion $habitacion): array
     {
-        /** @var array<int, string> $servicios */
+        /** @var array<int, array<string, mixed>> $servicios */
         $servicios = $habitacion->servicioAsignaciones
-            ->map(fn (ServicioAsignacion $sa) => $sa->servicio?->nombre)
-            ->filter()
+            ->map(fn (ServicioAsignacion $sa): array => [
+                'nombre' => (string) ($sa->servicio !== null ? $sa->servicio->nombre : ''),
+                'descripcion' => (string) ($sa->servicio !== null ? ($sa->servicio->descripcion ?? '') : ''),
+                'icono' => (string) ($sa->servicio !== null ? ($sa->servicio->icono ?? '') : ''),
+                'incluido' => (bool) $sa->incluido,
+            ])
+            ->filter(fn (array $s): bool => $s['nombre'] !== '')
             ->values()
             ->toArray();
 
-        if ($servicios !== []) {
-            return $servicios;
-        }
-
-        return [
-            'WiFi de Alta Velocidad (Fibra Óptica)',
-            'Aire Acondicionado Inverter',
-            'Televisión Smart HD 50"',
-            'Baño Privado con Agua Caliente',
-            'Cafetera Eléctrica con Selección de Café',
-            'Caja de Seguridad Electrónica',
-            'Acceso Ilimitado a la Piscina',
-            'Desayuno Típico de Cortesía',
-        ];
+        return $servicios;
     }
 
     /**
@@ -151,15 +150,7 @@ final class ObtenerHabitacionDetalleLanding
             'tipo' => 'Politica',
         ])->values()->toArray();
 
-        if ($politicas !== []) {
-            return $politicas;
-        }
-
-        return [
-            ['nombre' => 'Horarios de Registro', 'descripcion' => 'Check-in a partir de las 14:00 horas. Check-out hasta las 12:00 horas del día siguiente.'],
-            ['nombre' => 'Política de Cancelación', 'descripcion' => 'Cancelación gratuita realizando la solicitud al menos 48 horas antes de la fecha de ingreso.'],
-            ['nombre' => 'Normativa de Humo & Mascotas', 'descripcion' => 'Habitación 100% libre de humo. No se admiten mascotas en las habitaciones.'],
-        ];
+        return $politicas;
     }
 
     /**
