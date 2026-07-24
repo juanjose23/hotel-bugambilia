@@ -7,6 +7,11 @@ namespace App\Filament\Resources\Reservas;
 use App\Filament\Resources\Reservas\ReservaResource\Pages\CreateReserva;
 use App\Filament\Resources\Reservas\ReservaResource\Pages\EditReserva;
 use App\Filament\Resources\Reservas\ReservaResource\Pages\ListReservas;
+use App\Filament\Resources\Reservas\ReservaResource\Pages\ViewReserva;
+use App\Filament\Resources\Reservas\ReservaResource\RelationManagers\DetallesRelationManager;
+use App\Filament\Resources\Reservas\ReservaResource\RelationManagers\EstanciaRelationManager;
+use App\Filament\Resources\Reservas\ReservaResource\RelationManagers\HistorialEstadosRelationManager;
+use App\Filament\Resources\Reservas\ReservaResource\RelationManagers\HuespedesRelationManager;
 use App\Filament\Resources\Reservas\ReservaResource\Schemas\ReservaForm;
 use App\Filament\Resources\Reservas\ReservaResource\Tables\ReservaTable;
 use App\Repository\Models\Reservas\Reserva;
@@ -23,22 +28,22 @@ class ReservaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CalendarDays;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Habitaciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Reservaciones';
 
-    protected static ?string $modelLabel = 'Reserva';
+    protected static ?string $modelLabel = 'Reservación';
 
-    protected static ?string $pluralModelLabel = 'Reservas';
+    protected static ?string $pluralModelLabel = 'Gestión de Reservaciones';
 
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
-        return app(ReservaForm::class)->configure($schema);
+        return (new ReservaForm)->configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return app(ReservaTable::class)->configure($table);
+        return (new ReservaTable)->configure($table);
     }
 
     public static function getPages(): array
@@ -46,7 +51,18 @@ class ReservaResource extends Resource
         return [
             'index' => ListReservas::route('/'),
             'create' => CreateReserva::route('/create'),
-            'edit' => EditReserva::route('/{record}/edit'),
+            'view' => ViewReserva::route('/{record}'),
+            '{record}/edit' => EditReserva::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            DetallesRelationManager::class,
+            HuespedesRelationManager::class,
+            EstanciaRelationManager::class,
+            HistorialEstadosRelationManager::class,
         ];
     }
 }

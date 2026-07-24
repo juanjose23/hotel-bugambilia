@@ -7,8 +7,8 @@ namespace App\Filament\Resources\Usuarios\ConflictosIdentidad\Pages;
 use App\Enums\Usuarios\EstadoConflictoIdentidad;
 use App\Filament\Resources\Usuarios\ConflictosIdentidad\ConflictoIdentidadResource;
 use App\Interactors\Usuarios\ResolverConflictoIdentidad;
-use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Usuarios\ConflictoIdentidad;
+use App\Support\CachedOptions;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -34,11 +34,7 @@ class ViewConflictoIdentidad extends ViewRecord
                 ->schema([
                     Select::make('catalogo_id')
                         ->label('Tipo de Cliente')
-                        ->options(
-                            fn (): array => Catalogo::whereHas('catalogoTipo', function ($query) {
-                                $query->whereIn('codigo', ['TIPO_CLIENTE', 'tipo_cliente']);
-                            })->pluck('nombre', 'id')->toArray()
-                        )
+                        ->options(fn () => CachedOptions::catalogosPorVarios(['TIPO_CLIENTE', 'tipo_cliente']))
                         ->required()
                         ->native(false)
                         ->searchable(),

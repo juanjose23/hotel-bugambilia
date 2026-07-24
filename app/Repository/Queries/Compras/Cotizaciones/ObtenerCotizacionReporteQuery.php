@@ -21,6 +21,7 @@ final class ObtenerCotizacionReporteQuery
         $cotizacion = Cotizacion::with([
             'proveedor.persona.personaJuridica',
             'proveedor.persona.personaNatural',
+            'proveedor.contactoPrincipal',
             'items.producto',
             'items.variante',
             'moneda',

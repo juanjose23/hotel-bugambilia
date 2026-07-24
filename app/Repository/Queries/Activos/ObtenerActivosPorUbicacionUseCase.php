@@ -20,6 +20,7 @@ class ObtenerActivosPorUbicacionUseCase
             'activo.producto',
             'activo.moneda',
             'asignable',
+            'asignadoPor',
         ])
             ->whereNull('fecha_fin')
             ->when($tipoFiltro, fn ($q) => $q->where('asignable_type', $tipoFiltro))

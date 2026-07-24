@@ -13,7 +13,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
-final class Cliente extends Model implements AuditableContract
+/**
+ * @method static self create(array<string, mixed> $attributes)
+ * @method static self|null find($id)
+ */
+class Cliente extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
 

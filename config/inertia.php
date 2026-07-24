@@ -8,10 +8,10 @@ return [
 
     ],
 
-    'pages' => [
+    'auth' => [
 
         'paths' => [
-            resource_path('js/pages'),
+            resource_path('js/auth'),
         ],
 
         'extensions' => [

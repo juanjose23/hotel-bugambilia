@@ -34,7 +34,7 @@ return new class extends Migration
                 ->comment('Ubicación física general en el hotel (opcional si la heredan de su padre)')
                 ->constrained('ubicaciones');
 
-            $table->tinyInteger('estado')->default(1)->comment('0=Inactivo, 1=Disponible, 2=Mantenimiento, 3=Limpieza, 4=Reservado, 5=Ocupado');
+            $table->tinyInteger('estado')->default(1)->comment('0=Inactivo, 1=Disponible, 2=Mantenimiento, 3=Limpieza, 4=Reservado, 5=Ocupado, 6=Sucio');
             $table->integer('orden')->default(0)->comment('Orden de visualización');
             $table->json('meta_datos')->nullable()->comment('Atributos dinámicos configurables por tipo de espacio');
 
@@ -48,7 +48,7 @@ return new class extends Migration
         });
 
         if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_estado CHECK (estado IN (0, 1, 2, 3, 4, 5))');
+            DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_estado CHECK (estado IN (0, 1, 2, 3, 4, 5, 6))');
             DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_capacidad CHECK (capacidad_personas >= 1)');
         }
     }

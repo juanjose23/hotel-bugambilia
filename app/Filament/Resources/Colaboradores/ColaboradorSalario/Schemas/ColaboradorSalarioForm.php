@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Schemas;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
 use App\Repository\Models\Colaboradores\ColaboradorSalario;
-use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -18,10 +18,6 @@ use Filament\Support\Icons\Heroicon;
 class ColaboradorSalarioForm
 {
     use InyectaDesdeContenedor;
-
-    public function __construct(
-        private readonly ObtenerNombreCompleto $obtenerNombreCompleto,
-    ) {}
 
     public static function configure(Schema $schema): Schema
     {
@@ -36,10 +32,9 @@ class ColaboradorSalarioForm
                 ->columnSpanFull()
                 ->schema([
                     Select::make('colaborador_id')
-                        ->relationship('colaborador', 'id')
+                        ->relationship('colaborador')
                         ->getOptionLabelFromRecordUsing(
-                            fn ($record) => $this->obtenerNombreCompleto
-                                ->nombreCompletoConCodigo($record)
+                            fn ($record) => $record->codigo.' - '.ObtenerNombrePersona::desde($record->persona)
                         )
                         ->searchable()
                         ->preload()

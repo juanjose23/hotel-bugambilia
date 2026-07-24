@@ -15,6 +15,7 @@ class CreateCotizacion extends CreateRecord
     {
         /** @var Cotizacion $record */
         $record = $this->getRecord();
+        $record->loadMissing('proveedor', 'items', 'moneda');
         CotizacionCreada::dispatch($record);
     }
 

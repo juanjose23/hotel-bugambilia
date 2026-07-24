@@ -15,6 +15,7 @@ final class ComandaController extends Controller
      */
     public function imprimir(Pedido $pedido): View
     {
+        $this->authorize('viewComanda', $pedido);
         $pedido->loadMissing(['items.plato', 'mesa']);
 
         return view('restaurante.comanda', compact('pedido'));

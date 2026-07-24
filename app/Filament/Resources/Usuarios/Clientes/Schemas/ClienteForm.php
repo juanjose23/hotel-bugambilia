@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Usuarios\Clientes\Schemas;
 
 use App\Enums\Personas\TipoIdentificacion;
-use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Pais;
+use App\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -44,11 +44,7 @@ class ClienteForm
                                     ->label('Clasificación / Tipo de Cliente')
                                     ->placeholder('Seleccione clasificación')
                                     ->prefixIcon(Heroicon::Tag)
-                                    ->options(
-                                        fn (): array => Catalogo::whereHas('catalogoTipo', function ($query) {
-                                            $query->whereIn('codigo', ['TIPO_CLIENTE', 'tipo_cliente']);
-                                        })->pluck('nombre', 'id')->toArray()
-                                    )
+                                    ->options(fn () => CachedOptions::catalogosPorVarios(['TIPO_CLIENTE', 'tipo_cliente']))
                                     ->required()
                                     ->native(false)
                                     ->searchable(),

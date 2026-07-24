@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActPlanMantenimiento\Schemas;
 
 use App\Enums\Activos\EstadoMantenimiento;
-use App\Repository\Models\Activos\Activo;
-use App\Repository\Models\Compras\Proveedor;
+use App\Filament\Shared\Forms\ActivoSelect;
+use App\Filament\Shared\Forms\MonedaSelect;
+use App\Filament\Shared\Forms\ProveedorSelect;
+use App\Filament\Shared\Forms\UserSelect;
 use App\Repository\Models\Monedas\Moneda;
-use App\Repository\Models\User;
-use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -23,10 +23,6 @@ use Filament\Support\Icons\Heroicon;
 
 readonly class ActPlanMantenimientoForm
 {
-    public function __construct(
-        private ObtenerNombrePersona $obtenerNombrePersona,
-    ) {}
-
     public function configure(Schema $schema): Schema
     {
         return $schema->components([
@@ -80,16 +76,7 @@ readonly class ActPlanMantenimientoForm
 
                     Fieldset::make('Presupuesto y Proveedor')
                         ->schema([
-                            Select::make('proveedor_id')
-                                ->label('Proveedor Externo')
-                                ->options(fn () => Proveedor::with(['persona.personaNatural', 'persona.personaJuridica'])->get()->mapWithKeys(function ($prov) {
-                                    $persona = $prov->persona;
-
-                                    return [$prov->id => $persona !== null ? $this->obtenerNombrePersona->ejecutar($persona) : ''];
-                                }))
-                                ->searchable()
-                                ->native(false)
-                                ->prefixIcon(Heroicon::BuildingOffice)
+                            ProveedorSelect::make()
                                 ->columnSpan(2),
 
                             TextInput::make('costo_estimado')
@@ -98,12 +85,8 @@ readonly class ActPlanMantenimientoForm
                                 ->step(0.01)
                                 ->prefixIcon(Heroicon::CurrencyDollar),
 
-                            Select::make('moneda_id')
-                                ->label('Moneda')
-                                ->options(fn () => Moneda::pluck('nombre', 'id'))
-                                ->native(false)
-                                ->default(fn () => Moneda::where('es_predeterminada', true)->value('id') ?? Moneda::first()?->id)
-                                ->prefixIcon(Heroicon::Banknotes),
+                            MonedaSelect::make()
+                                ->default(fn () => Moneda::where('es_predeterminada', true)->value('id') ?? Moneda::first()?->id),
                         ])->columns(),
 
                     Textarea::make('descripcion')
@@ -121,14 +104,8 @@ readonly class ActPlanMantenimientoForm
                         ->hiddenLabel()
                         ->relationship('mantenimientos')
                         ->schema([
-                            Select::make('activo_id')
-                                ->label('Activo')
-                                ->options(Activo::pluck('nombre_descriptivo', 'id'))
+                            ActivoSelect::make('activo_id')
                                 ->required()
-                                ->searchable()
-                                ->preload()
-                                ->native(false)
-                                ->prefixIcon(Heroicon::CpuChip)
                                 ->columnSpan(8),
 
                             DatePicker::make('fecha_programada')
@@ -146,13 +123,8 @@ readonly class ActPlanMantenimientoForm
                                 ->columnSpan(4)
                                 ->prefixIcon(Heroicon::CurrencyDollar),
 
-                            Select::make('realizado_por_id')
-                                ->label('Responsable')
-                                ->options(User::pluck('name', 'id'))
-                                ->searchable()
-                                ->native(false)
-                                ->columnSpan(4)
-                                ->prefixIcon(Heroicon::User),
+                            UserSelect::make('realizado_por_id')
+                                ->columnSpan(4),
 
                             Select::make('estado')
                                 ->label('Estado')

@@ -1,42 +1,43 @@
 import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import type { ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ThemeProvider } from '@/modules/shared/hooks/useTheme';
-
+import { LayoutPublico } from '@/modules/shared/components/layouts/LayoutPublico';
+import { LimitadorErrores } from '@/modules/shared/components/LimitadorErrores';
+import { ProveedorTema } from '@/modules/shared/hooks/useTema';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-
-createInertiaApp({
+void createInertiaApp({
+    strictMode: true,
+    layout: () => LayoutPublico,
     title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) => {
-        const pages = import.meta.glob('./pages/**/*.tsx');
-        const modules = import.meta.glob('./modules/**/pages/**/*.tsx');
+    resolve: async (name) => {
+        const paginas = import.meta.glob<{
+            default: ComponentType;
+        }>('./pages/**/*.tsx');
+        const pagina = paginas[`./pages/${name}.tsx`];
 
-        if (name.includes('/')) {
-            const [module, page] = name.split('/');
-
-            return resolvePageComponent(
-                `./modules/${module}/pages/${page}.tsx`,
-                modules,
-            ) as any;
+        if (!pagina) {
+            throw new Error(`Página Inertia no registrada: ${name}`);
         }
 
-        return resolvePageComponent(`./pages/${name}.tsx`, pages) as any;
+        const modulo = await pagina();
+
+        return modulo.default;
     },
     setup({ el, App, props }) {
-        if (!el) {
-            return (
-                <ThemeProvider>
+        const content = (
+            <ProveedorTema>
+                <LimitadorErrores>
                     <App {...props} />
-                </ThemeProvider>
-            );
+                </LimitadorErrores>
+            </ProveedorTema>
+        );
+
+        if (!el) {
+            return content;
         }
 
         const root = createRoot(el);
-        root.render(
-            <ThemeProvider>
-                <App {...props} />
-            </ThemeProvider>,
-        );
+        root.render(content);
     },
     progress: {
         color: '#d459ab',

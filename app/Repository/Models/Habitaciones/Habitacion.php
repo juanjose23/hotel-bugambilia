@@ -12,6 +12,7 @@ use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\LimpiezaHorarioDetalle;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Politicas\Politica;
+use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Shared\Imagen;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\Shared\ServicioAsignacion;
@@ -75,6 +76,12 @@ class Habitacion extends Model implements AuditableContract
     public function ubicacion(): BelongsTo
     {
         return $this->belongsTo(Ubicacion::class, 'ubicacion_id');
+    }
+
+    /** @return BelongsTo<RecursoReservable, $this> */
+    public function reservable(): BelongsTo
+    {
+        return $this->belongsTo(RecursoReservable::class, 'reservable_id');
     }
 
     /**

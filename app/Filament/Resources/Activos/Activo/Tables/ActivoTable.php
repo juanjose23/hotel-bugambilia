@@ -11,6 +11,8 @@ use App\Enums\Activos\TipoMantenimiento;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Filament\Shared\Forms\MonedaSelect;
+use App\Filament\Shared\Forms\ProveedorSelect;
+use App\Filament\Shared\Forms\UserSelect;
 use App\Interactors\Activos\AsignarActivo;
 use App\Interactors\Activos\DarDeBajaActivo;
 use App\Interactors\Activos\EnviarAMantenimiento;
@@ -18,7 +20,6 @@ use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
-use App\Repository\Models\User;
 use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorioInterface;
 use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
 use App\Repository\Queries\Catalogos\ObtenerUbicacionAlmacen;
@@ -177,13 +178,13 @@ readonly class ActivoTable
                                 ->options(function (Get $get) {
                                     $type = $get('asignable_type');
                                     if ($type === Habitacion::class) {
-                                        return Habitacion::pluck('nombre', 'id');
+                                        return CachedOptions::habitaciones();
                                     }
                                     if ($type === Ubicacion::class) {
-                                        return Ubicacion::pluck('nombre', 'id');
+                                        return CachedOptions::ubicacionesAlmacen();
                                     }
                                     if ($type === Espacio::class) {
-                                        return Espacio::pluck('nombre', 'id');
+                                        return CachedOptions::espacios();
                                     }
 
                                     return [];
@@ -246,10 +247,7 @@ readonly class ActivoTable
 
                             MonedaSelect::make(),
 
-                            Select::make('proveedor_id')
-                                ->label('Proveedor / Taller Externo')
-                                ->options(fn () => app(CachedOptions::class)->proveedores())
-                                ->searchable()
+                            ProveedorSelect::make()
                                 ->placeholder('Seleccionar proveedor (opcional)'),
 
                             Textarea::make('notas')
@@ -294,10 +292,7 @@ readonly class ActivoTable
                                 ->numeric()
                                 ->placeholder('0.00'),
 
-                            Select::make('aprobado_por_id')
-                                ->label('Aprobado Por')
-                                ->options(User::pluck('name', 'id'))
-                                ->searchable(),
+                            UserSelect::make('aprobado_por_id', 'Aprobado Por'),
                         ])
                         ->action(function (array $data, Activo $record) {
                             try {
@@ -368,7 +363,7 @@ readonly class ActivoTable
                         ->label('Imprimir Ficha')
                         ->icon(Heroicon::Printer)
                         ->color('info')
-                        ->url(fn (Activo $record) => route('reporte.activos.ficha.pdf', $record))
+                        ->url(fn (Activo $record) => route('admin.activos.reportes.ficha.pdf', $record))
                         ->openUrlInNewTab()
                         ->visible(fn (Activo $record) => ! $record->trashed() && auth()->user()?->can('Activos:ReporteFicha')),
                 ])
@@ -381,14 +376,14 @@ readonly class ActivoTable
                     ->label('Exportar Inventario (Excel)')
                     ->icon(Heroicon::DocumentArrowDown)
                     ->color('success')
-                    ->url(fn () => route('reporte.activos.inventario-general.excel', request()->query()))
+                    ->url(fn () => route('admin.activos.reportes.inventario-general.excel', request()->query()))
                     ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->can('Activos:ReporteInventario') ?? false),
                 Action::make('imprimir_etiquetas')
                     ->label('Imprimir Códigos de Barras')
                     ->icon(Heroicon::QrCode)
                     ->color('warning')
-                    ->url(fn () => route('reporte.activos.etiquetas.pdf', request()->query()))
+                    ->url(fn () => route('admin.activos.reportes.etiquetas.pdf', request()->query()))
                     ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->can('Activos:ReporteEtiquetas') ?? false),
             ])
@@ -417,13 +412,13 @@ readonly class ActivoTable
                                 ->options(function (Get $get) {
                                     $type = $get('asignable_type');
                                     if ($type === Habitacion::class) {
-                                        return Habitacion::pluck('nombre', 'id');
+                                        return CachedOptions::habitaciones();
                                     }
                                     if ($type === Espacio::class) {
-                                        return Espacio::pluck('nombre', 'id');
+                                        return CachedOptions::espacios();
                                     }
                                     if ($type === Ubicacion::class) {
-                                        return Ubicacion::pluck('nombre', 'id');
+                                        return CachedOptions::ubicacionesAlmacen();
                                     }
 
                                     return [];

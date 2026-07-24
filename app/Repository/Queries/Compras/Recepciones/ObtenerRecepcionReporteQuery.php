@@ -23,6 +23,7 @@ final class ObtenerRecepcionReporteQuery
         $recepcion = RecepcionCompra::with([
             'ordenCompra.proveedor.persona.personaJuridica',
             'ordenCompra.proveedor.persona.personaNatural',
+            'ordenCompra.proveedor.contactoPrincipal',
             'ordenCompra.cotizacion.moneda',
             'receptor.persona',
             'items.producto',

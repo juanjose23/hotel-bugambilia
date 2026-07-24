@@ -7,6 +7,8 @@ namespace App\Filament\Pages\Limpieza;
 use App\BusinessLogic\Limpieza\Data\CarritoEstadisticasData;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Interactors\Inventario\TrasladarEntreBodegas\TrasladarEntreBodegas;
+use App\Interactors\Limpieza\Carrito\AsignarCarritoAEjecucion;
+use App\Interactors\Limpieza\Carrito\LiberarCarritoDeEjecucion;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\MovimientoStock;
 use App\Repository\Models\Inventario\Stock;
@@ -64,12 +66,20 @@ class GestionarCarrito extends Page implements HasForms, HasTable
 
     protected ObtenerEstadisticasCarrito $estadisticasQuery;
 
+    protected AsignarCarritoAEjecucion $asignarCarrito;
+
+    protected LiberarCarritoDeEjecucion $liberarCarrito;
+
     public function boot(
         ObtenerStockPorUbicacion $stockPorUbicacion,
-        ObtenerEstadisticasCarrito $estadisticasQuery
+        ObtenerEstadisticasCarrito $estadisticasQuery,
+        AsignarCarritoAEjecucion $asignarCarrito,
+        LiberarCarritoDeEjecucion $liberarCarrito,
     ): void {
         $this->stockPorUbicacion = $stockPorUbicacion;
         $this->estadisticasQuery = $estadisticasQuery;
+        $this->asignarCarrito = $asignarCarrito;
+        $this->liberarCarrito = $liberarCarrito;
     }
 
     #[Url(as: 'carrito')]
@@ -609,17 +619,7 @@ class GestionarCarrito extends Page implements HasForms, HasTable
     {
         $ejecucion = $this->ejecucionActiva;
         if ($ejecucion) {
-            if ($ejecucion->estado === EstadoLimpieza::EnProgreso) {
-                $ejecucion->update([
-                    'estado' => EstadoLimpieza::Pendiente,
-                    'carrito_id' => null,
-                    'hora_inicio' => null,
-                ]);
-            } else {
-                $ejecucion->update([
-                    'carrito_id' => null,
-                ]);
-            }
+            $this->liberarCarrito->execute($ejecucion);
         }
 
         $this->dispatch('close-modal', id: 'confirm-liberar-modal');
@@ -648,12 +648,8 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         $data = $this->assignForm->getState();
         $rawId = $data['limpieza_ejecucion_id'] ?? null;
         $ejecucionId = is_numeric($rawId) ? (int) $rawId : 0;
-        $ejecucion = LimpiezaEjecucion::find($ejecucionId);
-
-        if ($ejecucion && $this->carritoId) {
-            $ejecucion->update([
-                'carrito_id' => $this->carritoId,
-            ]);
+        if ($ejecucionId > 0 && $this->carritoId) {
+            $ejecucion = $this->asignarCarrito->execute($ejecucionId, $this->carritoId);
 
             Notification::make()
                 ->title('Carrito Asignado')

@@ -6,7 +6,6 @@ namespace App\Filament\Pages\Inventario;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Filament\Shared\Forms\ProductoSelect;
-use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Queries\Inventario\Alertas\ObtenerLotesCuarentena;
 use App\Repository\Queries\Inventario\Alertas\ObtenerLotesProximosVencer;
 use App\Repository\Queries\Inventario\Alertas\ObtenerLotesVencidos;
@@ -16,6 +15,7 @@ use App\Repository\Queries\Inventario\Mermas\ObtenerMermasTotales;
 use App\Repository\Queries\Inventario\Stock\ObtenerStockPorProducto;
 use App\Repository\Queries\Inventario\Stock\ObtenerValorizacionInventario;
 use App\Repository\Queries\Shared\ObtenerMonedaBase;
+use App\Support\CachedOptions;
 use App\Support\ReporteConfig;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -157,7 +157,7 @@ class ReportesInventario extends Page implements HasForms
 
                     Select::make('categoria_id')
                         ->label('Categoría (Opcional)')
-                        ->options(fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value))->pluck('nombre', 'id'))
+                        ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CATEGORIA_PRODUCTO->value))
                         ->placeholder('Todas las categorías')
                         ->searchable()
                         ->native(false)

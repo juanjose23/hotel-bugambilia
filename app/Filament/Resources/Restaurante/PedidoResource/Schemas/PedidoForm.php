@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Restaurante\PedidoResource\Schemas;
 
 use App\Enums\Restaurante\EstadoPedido;
+use App\Filament\Shared\Forms\SelectorCuenta;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Plato;
@@ -37,6 +38,8 @@ class PedidoForm
                             ->searchable()
                             ->required()
                             ->prefixIcon(Heroicon::TableCells),
+
+                        SelectorCuenta::make(columnSpan: 1),
 
                         Select::make('estado')
                             ->label('Estado')

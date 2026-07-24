@@ -27,6 +27,7 @@ class EditProveedor extends EditRecord
     {
         /** @var Proveedor $record */
         $record = $this->getRecord();
+        $record->loadMissing('persona.personaNatural', 'persona.personaJuridica');
         $persona = $record->persona;
 
         if ($persona) {

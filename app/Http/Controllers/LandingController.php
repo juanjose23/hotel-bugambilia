@@ -14,6 +14,6 @@ final class LandingController extends Controller
     {
         $datos = $interactor->ejecutar();
 
-        return Inertia::render('Home', $datos);
+        return Inertia::render('inicio/Inicio', $datos);
     }
 }

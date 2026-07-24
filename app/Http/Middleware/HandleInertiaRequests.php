@@ -22,6 +22,12 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'flash' => [
+                'exito' => fn () => $request->session()->get('exito'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'info' => fn () => $request->session()->get('info'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
             'hotel' => [
                 'name' => config('hotel.name'),
                 'slogan' => config('hotel.slogan'),

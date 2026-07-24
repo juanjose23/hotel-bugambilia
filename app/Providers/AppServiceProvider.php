@@ -54,14 +54,21 @@ use App\Repository\Persistencia\Inventario\MovimientoStockRepositorio;
 use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
 use App\Repository\Persistencia\Inventario\StockRepositorio;
 use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
+use App\Repository\Persistencia\Reservas\ReservaRepositorio;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorio;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Persistencia\Servicios\ServicioRepositorio;
 use App\Repository\Persistencia\Servicios\ServicioRepositorioInterface;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -162,6 +169,16 @@ class AppServiceProvider extends ServiceProvider
             SolicitudRepositorioInterface::class,
             SolicitudRepositorio::class
         );
+
+        $this->app->bind(
+            ReservaRepositorioInterface::class,
+            ReservaRepositorio::class
+        );
+
+        $this->app->bind(
+            RestauranteRepositorioInterface::class,
+            RestauranteRepositorio::class
+        );
     }
 
     /**
@@ -223,6 +240,13 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return 'App\\Policies\\'.class_basename($modelClass).'Policy';
+        });
+
+        RateLimiter::for('auth', function (Request $request): Limit {
+            $rawEmail = $request->input('email');
+            $email = is_string($rawEmail) ? $rawEmail : '';
+
+            return Limit::perMinute(5)->by(strtolower($email).'|'.$request->ip());
         });
     }
 

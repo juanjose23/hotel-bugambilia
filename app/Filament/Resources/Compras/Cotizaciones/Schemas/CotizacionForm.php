@@ -10,6 +10,7 @@ use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
 use App\Filament\Shared\Forms\MonedaConTasaCampos;
 use App\Filament\Shared\Forms\ProductoSelect;
 use App\Filament\Shared\Forms\ProductoVarianteSelect;
+use App\Filament\Shared\Forms\ProveedorSelect;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Queries\Compras\Solicitudes\ObtenerSolicitudConItems;
 use App\Support\CachedOptions;
@@ -75,15 +76,7 @@ class CotizacionForm
                             ->required()
                             ->prefixIcon(Heroicon::InformationCircle),
 
-                        Select::make('proveedor_id')
-                            ->label('Proveedor')
-                            ->relationship('proveedor', 'codigo')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "$record->codigo - ".(
-                                ($record->persona && $record->persona->personaJuridica ? $record->persona->personaJuridica->razon_social : null)
-                                ?? ($record->persona ? $record->persona->primer_nombre.' '.($record->persona->personaNatural ? $record->persona->personaNatural->primer_apellido : '') : '')
-                            ))
-                            ->searchable()
-                            ->preload()
+                        ProveedorSelect::make()
                             ->required()
                             ->prefixIcon(Heroicon::Identification),
 

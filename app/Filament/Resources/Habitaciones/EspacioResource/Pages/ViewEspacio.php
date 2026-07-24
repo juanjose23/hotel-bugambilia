@@ -22,7 +22,7 @@ class ViewEspacio extends ViewRecord
                 ->label('Imprimir Hoja de Espacio')
                 ->icon(Heroicon::Printer)
                 ->color('info')
-                ->url(fn (Espacio $record) => route('reporte.activos.hoja-habitacion.pdf', ['tipo' => 'espacio', 'id' => $record->id]))
+                ->url(fn (Espacio $record) => route('admin.activos.reportes.hoja-habitacion.pdf', ['tipo' => 'espacio', 'id' => $record->id]))
                 ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->can('Activos:ReporteHojaHabitacion') ?? false),
             EditAction::make(),

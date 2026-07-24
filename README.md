@@ -2,11 +2,84 @@
 
 Sistema de gestion integral para Hotel Bugambilias: inventario, activos, limpieza, compras, restaurante, habitaciones y mas.
 
+## Requisitos
+
+- PHP 8.4.1 o superior
+- Composer 2
+- Node.js 22 o superior
+- npm
+- Base de datos compatible con Laravel 13
+
+## Instalacion
+
+1. Clona el repositorio.
+2. Instala dependencias de PHP:
+
+    ```bash
+    composer install --no-interaction --prefer-dist --optimize-autoloader
+    ```
+
+3. Instala dependencias de frontend:
+
+    ```bash
+    npm install
+    ```
+
+4. Crea el archivo de entorno y genera la clave de la aplicacion:
+
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+
+5. Configura la base de datos en `.env` y ejecuta migraciones:
+
+    ```bash
+    php artisan migrate --force
+    ```
+
+6. Compila los assets:
+
+    ```bash
+    npm run build
+    ```
+
+## Comandos Utiles
+
+- `composer install --no-interaction --prefer-dist --optimize-autoloader`
+- `composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts` cuando quieras evitar los scripts de Composer
+- `php artisan test`
+- `vendor/bin/phpstan analyse --level=9 --memory-limit=1G`
+- `vendor/bin/pint --test`
+- `npm run dev`
+- `npm run build`
+
+## Variables de Entorno
+
+Las variables principales se definen en `.env`.
+
+- `APP_NAME`
+- `APP_ENV`
+- `APP_KEY`
+- `APP_URL`
+- `DB_CONNECTION`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_DATABASE`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+
+## Notas de CI y Entorno Local
+
+- El proyecto ya exige PHP 8.4.1 en `composer.json`.
+- Los workflows de GitHub Actions ejecutan las validaciones sobre PHP 8.4.
+- Si en Windows `composer install` falla al publicar assets de Filament, usa `composer install --no-scripts` y luego ejecuta los scripts necesarios por separado.
+
 ## Stack Tecnologico
 
 | Capa            | Tecnologia                          | Version |
 | --------------- | ----------------------------------- | ------- |
-| Backend         | PHP                                 | 8.3+    |
+| Backend         | PHP                                 | 8.4.1+  |
 | Framework       | Laravel                             | 13.17   |
 | Admin Panel     | Filament                            | 5.6     |
 | Frontend        | React + TypeScript                  | 19.2    |
@@ -156,6 +229,24 @@ Model        --- Entidades Eloquent (app/Repository/Models)
 
 **Framework: Pest 4 | Base de datos: SQLite :memory:**
 
+## Desarrollo Local
+
+Para levantar la aplicacion en local:
+
+```bash
+php artisan serve
+npm run dev
+```
+
+En otra terminal, ejecuta las validaciones principales cuando cambies codigo:
+
+```bash
+composer install --no-interaction --prefer-dist --optimize-autoloader
+php artisan test
+vendor/bin/phpstan analyse --level=9 --memory-limit=1G
+vendor/bin/pint --test
+```
+
 ---
 
 ## Modulos del Sistema
@@ -232,156 +323,20 @@ Gestion de empleados, cargos, salarios, documentos y historial laborales.
 
 Registro de auditoria del sistema con trazabilidad de cambios.
 
----
+---x....x...........
 
-## Cambios Recientes
+✗ deprecated-reactive (Deprecated Code)
+app\Filament\Resources\Restaurante\PlatoResource\RelationManagers\RecetaRelationManager.php
+Line 48: The `reactive()` method is deprecated.
+→ Use `live()` instead of `reactive()`. See: https://filamentphp.com/docs/5.x/forms/overview#the-basics-of-reactivity
 
-### Reorganizacion de Migraciones
+✗ deprecated-mutate-form-data-using (Deprecated Code)
+app\Filament\Resources\Restaurante\PlatoResource\RelationManagers\RecetaRelationManager.php
+Line 103: The `mutateFormDataUsing()` method is deprecated in Filament v4.
+→ Use `mutateDataUsing()` instead.
 
-Se consolidaron todas las migraciones en **12 subdirectorios** eliminando archivos sueltos en la raiz de `database/migrations/`:
-
-| Cambio                               | Detalle                                                    |
-| ------------------------------------ | ---------------------------------------------------------- |
-| Migraciones movidas a subdirectorios | 14 archivos (2026_07_20_*) a Promociones/, Restaurante/    |
-| Migraciones ALTER consolidadas       | 6 migraciones separadas fusionadas en su CREATE original   |
-| Imports inline eliminados            | foreignIdFor(Model) a foreignId() con nombres de tabla raw |
-| declare(strict_types=1)              | Agregado a users y productos migrations                    |
-
-**Migraciones eliminadas (consolidadas):**
-
-| Eliminada                             | Consolidada en            |
-| ------------------------------------- | ------------------------- |
-| add_web_to_servicios                  | create_servicios_table    |
-| add_precio_paquete_to_promociones     | create_promociones_table  |
-| add_password_change_required_to_users | create_users_table        |
-| add_es_transformable_to_productos     | productos_table           |
-| add_plato_id_to_pedido_items          | create_pedido_items_table |
-| drop_servicio_id_from_pedido_items    | create_pedido_items_table |
-
-**Nuevos subdirectorios creados:**
-
-| Directorio   | Contenido                                                                           |
-| ------------ | ----------------------------------------------------------------------------------- |
-| Promociones/ | 2 migraciones (create_promociones, create_promociones_condiciones)                  |
-| Restaurante/ | 7 migraciones (platos, pedidos, pedido_items, procesos_cocina, proceso_items, etc.) |
-
-### Eliminacion de Imports Inline en Migraciones
-
-Las migraciones anteriormente usaban `foreignIdFor(Model::class)` que generaba imports directos. Se reemplazaron por `foreignId('column_name')` con nombres de tabla raw para evitar dependencias entre archivos:
-
-```php
-// Antes (incorrecto)
-use App\Repository\Models\Catalogos\Producto;
-foreignIdFor(Producto::class)
-
-// Despues (correcto)
-foreignId('producto_padre_id')
-```
-
-### Correccion de Bug en Validacion Unica (ClienteForm)
-
-Se corrigio el error `SQLSTATE[42P01]: Undefined table: personas` en la validacion unica del formulario de clientes:
-
-```php
-// Antes (incorrecto)
-->unique(ignoreRecord: true)
-
-// Despues (correcto)
-->unique(ignorable: fn () => $this->getRecord()?->user)
-```
-
-El problema era que `ignoreRecord: true` intentaba resolver el modelo `User` en lugar de `Persona` para la validacion unica.
-
-### Modulo Restaurante - Proceso de Cocina Basado en Recetas
-
-Se reescribio el flujo del modulo Restaurante para que los costos de cocina se calculen automaticamente desde el inventario:
-
-**Antes:** Costos manuales hardcoded, sin conexion con inventario.
-
-**Ahora:**
-
-- Los platos tienen recetas (ProductoKit) con ingredientes
-- Los costos se obtienen de Stock -> Lote -> costo_unitario
-- El registro de procesos de cocina genera automaticamente el desglose de ingredientes
-- El consumo de stock se registra como movimiento CONSUMO
-- Los reportes muestran el estado de stock de cada ingrediente
-
-**Archivos modificados:**
-
-- `app/Interactors/Restaurante/RegistrarProcesoCocina.php` - Reescrito completamente
-- `app/Interactors/Restaurante/CalcularCostoPlato.php` - Cadena Stock->Lote para costos
-- `app/Filament/Resources/Restaurante/ProcesoCocinaResource/Schemas/ProcesoCocinaForm.php` - Selector de plato
-- `app/Repository/Models/Restaurante/ProcesoCocina.php` - Relacion plato()
-- `database/migrations/Restaurante/2026_07_21_220000_add_plato_and_cantidad_platos_to_procesos_cocina_table.php` - Nueva migracion
-
-### Documentacion del Modulo Restaurante
-
-Se creo `doc/restaurante/flujos.md` con 11 flujos documentados:
-
-1. Gestion de Platos
-2. Crear / Editar Plato
-3. Calculo de Costo de Plato
-4. Registro de Proceso de Cocina
-5. Listado de Procesos de Cocina
-6. Crear / Editar Pedido
-7. Consumo de Ingredientes (KDS)
-8. Reportes del Restaurante
-9. Impresion de Comanda
-10. Portal Web del Restaurante
-11. Observer de Pedido
-
----
-
-## Instalacion
-
-### Requisitos
-
-- PHP 8.3+
-- Composer
-- Node.js 18+
-- SQLite (desarrollo) o PostgreSQL (produccion)
-
-### Configuracion
-
-```bash
-# Clonar repositorio
-git clone <repository-url>
-cd hotel-bugambilias-reload
-
-# Instalar dependencias
-composer setup
-
-# Iniciar servidor de desarrollo
-composer dev
-```
-
-### Comandos de Calidad
-
-```bash
-# Analisis estatico (PHPStan Level 9)
-composer phpstan
-
-# Formateo de codigo PHP
-composer lint
-
-# Verificar formateo sin modificar
-composer lint:check
-
-# Ejecutar pruebas
-composer test
-```
-
-### Scripts de Desarrollo
-
-| Comando            | Descripcion                                               |
-| ------------------ | --------------------------------------------------------- |
-| `composer setup`   | Instala todo: dependencias, key, migraciones, npm build   |
-| `composer dev`     | Inicia servidor + queue + vite en paralelo                |
-| `composer lint`    | Ejecuta Laravel Pint para formatear codigo                |
-| `composer phpstan` | Analisis estatico nivel 9                                 |
-| `composer test`    | Limpia config, verifica formateo, tipos y ejecuta pruebas |
-
----
+Rules: 15 passed, 2 failed
+Issues: 2 warning(s)
 
 ## CI/CD
 
