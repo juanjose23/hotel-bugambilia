@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\ProcesoCocinaResource\Schemas;
 
-use App\Repository\Models\Catalogos\Producto;
-use App\Repository\Models\Restaurante\Plato;
+use App\Repository\Queries\Restaurante\Cocina\ObtenerDatosProcesoCocinaQuery;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -14,10 +13,12 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
-class ProcesoCocinaForm
+final class ProcesoCocinaForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $cocinaQuery = app(ObtenerDatosProcesoCocinaQuery::class);
+
         return $schema
             ->components([
                 Section::make('Receta del Plato')
@@ -25,9 +26,7 @@ class ProcesoCocinaForm
                     ->schema([
                         Select::make('plato_id')
                             ->label('Plato')
-                            ->options(fn () => Plato::activos()
-                                ->whereNotNull('producto_receta_id')
-                                ->pluck('nombre', 'id'))
+                            ->options(fn () => $cocinaQuery->platosConReceta())
                             ->searchable()
                             ->required(),
                         TextInput::make('cantidad_platos')
@@ -46,7 +45,7 @@ class ProcesoCocinaForm
                         ->schema([
                             Select::make('producto_destino_id')
                                 ->label('Ingrediente')
-                                ->options(fn () => Producto::pluck('nombre', 'id')->toArray())
+                                ->options(fn () => $cocinaQuery->productosDisponibles())
                                 ->searchable()
                                 ->required()
                                 ->columnSpan(4),

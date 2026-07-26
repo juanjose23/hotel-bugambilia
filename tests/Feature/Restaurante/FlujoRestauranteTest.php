@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Restaurante\ValidarDisponibilidadIngredientes;
-use App\Enums\Estancias\EstadoCuentaEstancia;
+use App\Enums\Cuentas\EstadoCuenta;
+use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Limpieza\EstadoLimpieza;
@@ -11,19 +11,16 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Restaurante\AbrirPedidoMesa;
-use App\Interactors\Restaurante\CerrarPedidoMesa;
-use App\Interactors\Restaurante\ConsumirIngredientesPedido;
-use App\Interactors\Restaurante\EnviarPedidoACocina;
+use App\Interactors\Restaurante\Pedidos\AbrirPedidoMesa;
+use App\Interactors\Restaurante\Pedidos\CerrarPedidoMesa;
+use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Estancias\CuentaEstancia;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\Plato;
-use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
-use App\Repository\Queries\Restaurante\ObtenerIngredientesPedidoQuery;
 
 test('flujo completo de restaurante: abrir mesa ocupada, enviar a cocina y cerrar cargando a estancia con solicitud de limpieza', function (): void {
     // 1. Crear Mesa Disponible
@@ -36,7 +33,7 @@ test('flujo completo de restaurante: abrir mesa ocupada, enviar a cocina y cerra
     ]);
 
     // 2. Abrir Pedido en la Mesa
-    $abrirInteractor = new AbrirPedidoMesa;
+    $abrirInteractor = app(AbrirPedidoMesa::class);
     $pedido = $abrirInteractor->ejecutar($mesa);
 
     expect($pedido->estado)->toBe(EstadoPedido::ABIERTO)
@@ -58,20 +55,8 @@ test('flujo completo de restaurante: abrir mesa ocupada, enviar a cocina y cerra
         'estado' => EstadoItemPedido::PENDIENTE,
     ]);
 
-    // 4. Enviar a Cocina (Mock de insumos para aislamiento)
-    $ingredientesQuery = Mockery::mock(ObtenerIngredientesPedidoQuery::class);
-    $ingredientesQuery->shouldReceive('ejecutar')->andReturn(null);
-
-    $validarDisponibilidad = new ValidarDisponibilidadIngredientes;
-    $repositorio = Mockery::mock(RestauranteRepositorioInterface::class);
-
-    $consumirIngredientes = new ConsumirIngredientesPedido(
-        $ingredientesQuery,
-        $validarDisponibilidad,
-        $repositorio
-    );
-
-    $enviarCocina = new EnviarPedidoACocina($consumirIngredientes);
+    // 4. Enviar a Cocina (plato sin receta => ingredinull => flujo completo sin descuento de stock)
+    $enviarCocina = app(EnviarPedidoACocina::class);
     $pedidoEnviado = $enviarCocina->ejecutar($pedido);
 
     expect($pedidoEnviado->estado)->toBe(EstadoPedido::EN_PREPARACION)
@@ -93,19 +78,21 @@ test('flujo completo de restaurante: abrir mesa ocupada, enviar a cocina y cerra
         'check_in_at' => now(),
     ]);
 
-    $cuenta = CuentaEstancia::query()->create([
+    $cuenta = Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-REST-001',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
         'estancia_id' => $estancia->id,
-        'numero_folio' => 'CTA-REST-001',
-        'estado' => EstadoCuentaEstancia::ABIERTA,
+        'reserva_id' => $reserva->id,
+        'estado' => EstadoCuenta::ABIERTA,
         'abierta_at' => now(),
     ]);
 
     // 6. Cerrar Pedido cargando a la Cuenta de Estancia
-    $cerrarInteractor = new CerrarPedidoMesa;
+    $cerrarInteractor = app(CerrarPedidoMesa::class);
     $pedidoCerrado = $cerrarInteractor->ejecutar(
         pedido: $pedido,
         cargarAHabitacion: true,
-        cuentaEstancia: $cuenta
+        cuentaEstancia: $cuenta,
     );
 
     expect($pedidoCerrado->estado)->toBe(EstadoPedido::CARGADO_A_HABITACION)
@@ -132,6 +119,6 @@ test('rechaza abrir un pedido si la mesa no esta disponible', function (): void 
         'activo' => true,
     ]);
 
-    $interactor = new AbrirPedidoMesa;
+    $interactor = app(AbrirPedidoMesa::class);
     $interactor->ejecutar($mesaOcupada);
 })->throws(DomainException::class, 'no está disponible');

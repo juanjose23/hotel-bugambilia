@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PlatoResource;
 
+use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Filament\Resources\Restaurante\PlatoResource\RelationManagers\RecetaRelationManager;
 use App\Filament\Resources\Restaurante\PlatoResource\Schemas\PlatoForm;
 use App\Filament\Resources\Restaurante\PlatoResource\Schemas\PlatoInfolist;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 
-class PlatoResource extends Resource
+final class PlatoResource extends Resource
 {
     protected static ?string $model = Plato::class;
 
@@ -76,5 +77,17 @@ class PlatoResource extends Resource
             'edit' => Pages\EditPlato::route('/{record}/edit'),
             'view' => Pages\ViewPlato::route('/{record}'),
         ];
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return app(VerificarRestauranteActivo::class)->estaActivo()
+            && parent::shouldRegisterNavigation();
+    }
+
+    public static function canViewAny(): bool
+    {
+        return app(VerificarRestauranteActivo::class)->estaActivo()
+            && parent::canViewAny();
     }
 }

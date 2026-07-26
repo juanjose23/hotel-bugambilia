@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PlatoResource\RelationManagers;
 
-use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Restaurante\Plato;
+use App\Repository\Queries\Restaurante\Platos\ObtenerVariantesRecetaQuery;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -13,12 +13,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class RecetaRelationManager extends RelationManager
+final class RecetaRelationManager extends RelationManager
 {
     protected static string $relationship = 'ingredientes';
 
@@ -30,18 +31,13 @@ class RecetaRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
+        $variantesQuery = app(ObtenerVariantesRecetaQuery::class);
+
         return $schema
             ->components([
                 Select::make('producto_variante_id')
                     ->label('Ingrediente (Variante)')
-                    ->options(fn (): array => ProductoVariante::query()
-                        ->with('producto.unidadMedida')
-                        ->whereHas('producto', fn ($q) => $q->whereNull('deleted_at'))
-                        ->get()
-                        ->mapWithKeys(fn (ProductoVariante $v) => [
-                            $v->id => '['.($v->producto->nombre ?? '?').'] '.$v->nombre_variante.' ('.$v->codigo.')',
-                        ])
-                        ->all())
+                    ->options(fn () => $variantesQuery->variantesDisponibles())
                     ->searchable()
                     ->preload()
                     ->required()
@@ -53,7 +49,13 @@ class RecetaRelationManager extends RelationManager
                     ->required()
                     ->minValue(0.0001)
                     ->default(1)
-                    ->suffix(fn (callable $get): string => $this->obtenerUnidadMedida($get('producto_variante_id'))),
+                    ->suffix(function (Get $get) use ($variantesQuery): string {
+                        $varianteId = $get('producto_variante_id');
+
+                        return is_numeric($varianteId)
+                            ? $variantesQuery->unidadMedidaDeVariante((int) $varianteId)
+                            : '';
+                    }),
             ]);
     }
 
@@ -114,17 +116,5 @@ class RecetaRelationManager extends RelationManager
                 DeleteAction::make()
                     ->iconButton(),
             ]);
-    }
-
-    private function obtenerUnidadMedida(?int $varianteId): string
-    {
-        if ($varianteId === null) {
-            return 'uds';
-        }
-
-        /** @var ProductoVariante|null $variante */
-        $variante = ProductoVariante::with('unidadMedida')->find($varianteId);
-
-        return $variante->unidadMedida->nombre ?? 'uds';
     }
 }

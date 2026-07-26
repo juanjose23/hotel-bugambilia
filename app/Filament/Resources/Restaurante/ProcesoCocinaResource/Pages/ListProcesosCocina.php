@@ -8,7 +8,7 @@ use App\Filament\Resources\Restaurante\ProcesoCocinaResource\ProcesoCocinaResour
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
-class ListProcesosCocina extends ListRecords
+final class ListProcesosCocina extends ListRecords
 {
     protected static string $resource = ProcesoCocinaResource::class;
 

@@ -6,8 +6,8 @@ namespace App\Repository\Models\Restaurante;
 
 use App\Enums\Restaurante\EstadoPedido;
 use App\Repository\Models\Colaboradores\Colaborador;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Estancias\CuentaEstancia;
 use App\Repository\Models\Personas\Persona;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -20,10 +20,10 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 /**
  * @property int $id
  * @property string $codigo
- * @property int $mesa_id
+ * @property int|null $mesa_id
  * @property int|null $mesero_id
  * @property int|null $cliente_id
- * @property int|null $cuenta_estancia_id
+ * @property int|null $cuenta_id
  * @property EstadoPedido $estado
  * @property float $total
  * @property CarbonInterface|null $abierto_en
@@ -43,6 +43,13 @@ class Pedido extends Model implements AuditableContract
         return [
             'estado' => EstadoPedido::class,
             'total' => 'decimal:2',
+            'propina_monto' => 'decimal:2',
+            'propina_porcentaje' => 'decimal:2',
+            'impuesto_monto' => 'decimal:2',
+            'impuesto_porcentaje' => 'decimal:2',
+            'descuento_monto' => 'decimal:2',
+            'descuento_porcentaje' => 'decimal:2',
+            'consecutivo_comanda' => 'integer',
             'abierto_en' => 'datetime',
             'cerrado_en' => 'datetime',
         ];
@@ -66,10 +73,22 @@ class Pedido extends Model implements AuditableContract
         return $this->belongsTo(Persona::class, 'cliente_id');
     }
 
-    /** @return BelongsTo<CuentaEstancia, $this> */
+    /** @return BelongsTo<Cuenta, $this> */
     public function cuenta(): BelongsTo
     {
-        return $this->belongsTo(CuentaEstancia::class, 'cuenta_estancia_id');
+        return $this->belongsTo(Cuenta::class, 'cuenta_id');
+    }
+
+    /** @return BelongsTo<self, $this> */
+    public function pedidoPadre(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'padre_pedido_id');
+    }
+
+    /** @return HasMany<self, $this> */
+    public function subCuentas(): HasMany
+    {
+        return $this->hasMany(self::class, 'padre_pedido_id');
     }
 
     /** @return HasMany<PedidoItem, $this> */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Models\Restaurante;
 
+use App\Enums\Restaurante\AreaCocina;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Inventario\ProductoKit;
@@ -30,6 +31,7 @@ class Plato extends Model implements AuditableContract
     protected $casts = [
         'estado' => 'integer',
         'web' => 'boolean',
+        'area_cocina' => AreaCocina::class,
     ];
 
     protected $table = 'platos';

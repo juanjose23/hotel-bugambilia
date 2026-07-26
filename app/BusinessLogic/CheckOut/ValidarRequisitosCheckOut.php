@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\CheckOut;
 
-use App\Enums\Estancias\EstadoCuentaEstancia;
+use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
-use App\Repository\Models\Estancias\CuentaEstancia;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use DomainException;
 
@@ -31,9 +31,9 @@ final class ValidarRequisitosCheckOut
 
     private function validarSaldoCuenta(Estancia $estancia, bool $creditoAutorizado): void
     {
-        $saldoPendiente = (float) CuentaEstancia::query()
+        $saldoPendiente = (float) Cuenta::query()
             ->where('reserva_id', $estancia->reserva_id)
-            ->where('estado', EstadoCuentaEstancia::ABIERTA)
+            ->where('estado', EstadoCuenta::ABIERTA)
             ->sum('saldo');
 
         if ($saldoPendiente > 0 && ! $creditoAutorizado) {
