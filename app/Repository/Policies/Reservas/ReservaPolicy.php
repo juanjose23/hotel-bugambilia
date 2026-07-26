@@ -37,6 +37,11 @@ class ReservaPolicy
         return $authUser->can('Delete:Reserva');
     }
 
+    public function cancel(AuthUser $authUser, Reserva $reserva): bool
+    {
+        return $reserva->cliente_id !== null && $reserva->cliente_id === $authUser->id;
+    }
+
     public function deleteAny(AuthUser $authUser): bool
     {
         return $authUser->can('DeleteAny:Reserva');
@@ -70,23 +75,5 @@ class ReservaPolicy
     public function reorder(AuthUser $authUser): bool
     {
         return $authUser->can('Reorder:Reserva');
-    }
-
-    public function cancel(AuthUser $authUser, Reserva $reserva): bool
-    {
-        if ($authUser->is_admin) {
-            return true;
-        }
-
-        return (int) $authUser->id === (int) $reserva->cliente_id;
-    }
-
-    public function viewVoucher(AuthUser $authUser, Reserva $reserva): bool
-    {
-        if ($authUser->is_admin) {
-            return true;
-        }
-
-        return (int) $authUser->id === (int) $reserva->cliente_id;
     }
 }

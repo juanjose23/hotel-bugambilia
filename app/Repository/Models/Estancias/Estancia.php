@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository\Models\Estancias;
 
 use App\Enums\Estancias\EstadoEstancia;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\User;
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property EstadoEstancia $estado
  * @property string|null $observaciones_entrada
  * @property string|null $observaciones_salida
- * @property CuentaEstancia|null $cuenta
+ * @property Cuenta|null $cuenta
  * @property Reserva|null $reserva
  * @property Habitacion|null $habitacion
  */
@@ -74,15 +75,15 @@ final class Estancia extends Model
         return $this->belongsTo(User::class, 'usuario_check_out_id');
     }
 
-    /** @return HasOne<CuentaEstancia, $this> */
+    /** @return HasOne<Cuenta, $this> */
     public function cuenta(): HasOne
     {
-        return $this->hasOne(CuentaEstancia::class);
+        return $this->hasOne(Cuenta::class, 'estancia_id');
     }
 
-    /** @return HasMany<CuentaEstancia, $this> */
+    /** @return HasMany<Cuenta, $this> */
     public function cuentas(): HasMany
     {
-        return $this->hasMany(CuentaEstancia::class);
+        return $this->hasMany(Cuenta::class, 'estancia_id');
     }
 }

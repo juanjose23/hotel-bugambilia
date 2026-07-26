@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PlatoResource\Schemas;
 
-use App\Enums\Restaurante\CategoriaPlato;
+use App\Actions\Restaurante\Platos\GenerarCodigoPlato;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Restaurante\GenerarCodigoPlato;
-use App\Interactors\Restaurante\SincronizarGaleriaPlatoImagenes;
-use App\Repository\Models\Catalogos\Catalogo;
-use App\Repository\Models\Catalogos\Producto;
+use App\Interactors\Restaurante\Platos\SincronizarGaleriaPlatoImagenes;
+use App\Repository\Queries\Restaurante\Platos\ObtenerCatalogoPlatoQuery;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -18,10 +16,12 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
-class PlatoForm
+final class PlatoForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $catalogoQuery = app(ObtenerCatalogoPlatoQuery::class);
+
         return $schema
             ->components([
                 Section::make('Datos del Plato')
@@ -42,17 +42,14 @@ class PlatoForm
 
                         Select::make('categoria_id')
                             ->label('Categoria')
-                            ->options(fn () => Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'CATEGORIA_SERVICIO'))
-                                ->whereIn('codigo', CategoriaPlato::codigos())
-                                ->pluck('nombre', 'id')
-                                ->toArray())
+                            ->options(fn () => $catalogoQuery->categoriasDisponibles())
                             ->searchable()
                             ->preload()
                             ->required(),
 
                         Select::make('producto_receta_id')
                             ->label('Receta (Producto)')
-                            ->options(fn () => Producto::whereNull('deleted_at')->pluck('nombre', 'id')->toArray())
+                            ->options(fn () => $catalogoQuery->productosDisponibles())
                             ->searchable()
                             ->preload()
                             ->nullable(),
@@ -87,19 +84,12 @@ class PlatoForm
                             ->reorderable()
                             ->maxFiles(3)
                             ->maxSize(4096)
-                            ->afterStateHydrated(function ($state, $set, $record): void {
+                            ->afterStateHydrated(function ($state, $set, $record) use ($catalogoQuery): void {
                                 if (! $record) {
                                     return;
                                 }
 
-                                $urls = $record->imagenes()
-                                    ->orderBy('orden')
-                                    ->pluck('url')
-                                    ->filter()
-                                    ->values()
-                                    ->all();
-
-                                $set('imagenes', $urls);
+                                $set('imagenes', $catalogoQuery->imagenesDePlato($record)->all());
                             })
                             ->dehydrated(false)
                             ->saveRelationshipsUsing(function ($state, $record): void {
@@ -108,7 +98,7 @@ class PlatoForm
                                 }
 
                                 app(SincronizarGaleriaPlatoImagenes::class)
-                                    ->execute($record, $state ?? []);
+                                    ->ejecutar($record, $state ?? []);
                             }),
                     ]),
             ]);

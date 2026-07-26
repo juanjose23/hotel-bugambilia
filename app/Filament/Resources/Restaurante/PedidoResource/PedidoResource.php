@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PedidoResource;
 
+use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Filament\Resources\Restaurante\PedidoResource\Pages\CreatePedido;
 use App\Filament\Resources\Restaurante\PedidoResource\Pages\EditPedido;
 use App\Filament\Resources\Restaurante\PedidoResource\Pages\ListPedidos;
@@ -17,7 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
-class PedidoResource extends Resource
+final class PedidoResource extends Resource
 {
     protected static ?string $model = Pedido::class;
 
@@ -55,5 +56,17 @@ class PedidoResource extends Resource
             'create' => CreatePedido::route('/create'),
             'edit' => EditPedido::route('/{record}/edit'),
         ];
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return app(VerificarRestauranteActivo::class)->estaActivo()
+            && parent::shouldRegisterNavigation();
+    }
+
+    public static function canViewAny(): bool
+    {
+        return app(VerificarRestauranteActivo::class)->estaActivo()
+            && parent::canViewAny();
     }
 }

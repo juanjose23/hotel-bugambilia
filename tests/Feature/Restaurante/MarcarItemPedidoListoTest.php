@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Restaurante\MarcarItemPedidoListo;
+use App\Interactors\Restaurante\Cocina\MarcarItemPedidoListo;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
@@ -29,7 +29,7 @@ it('marca el item listo y resuelve el estado del pedido de forma idempotente', f
         'cantidad' => 1,
         'precio_unitario' => 10,
         'subtotal' => 10,
-        'estado' => EstadoItemPedido::PENDIENTE,
+        'estado' => EstadoItemPedido::EN_PREPARACION,
     ]);
 
     $interactor = app(MarcarItemPedidoListo::class);

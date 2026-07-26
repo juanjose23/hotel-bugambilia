@@ -15,6 +15,7 @@ use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\Reservas\MisReservasController;
 use App\Http\Controllers\Restaurante\ComandaController;
 use App\Http\Controllers\Restaurante\RestauranteController;
+use App\Http\Controllers\Restaurante\VoucherRestauranteController;
 use App\Http\Controllers\Servicios\ServicioController;
 use App\Http\Controllers\Servicios\ServicioReportController;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +35,7 @@ Route::get('/contacto', ContactoController::class)->name('contacto');
 Route::get('/pago', PagoController::class)->name('pago');
 Route::get('/favoritos', FavoritosController::class)->name('favoritos');
 Route::get('/restaurante', RestauranteController::class)->name('restaurante');
+Route::get('/pantalla-turnos', [ComandaController::class, 'pantallaTurnosPublica'])->name('pantalla-turnos');
 Route::get('/habitaciones', [HabitacionController::class, 'index'])->name('habitaciones');
 Route::get('/habitaciones/{slug}', [HabitacionController::class, 'show'])->name('habitacion-detalle');
 Route::get('/habitaciones/{slug}/reservar', [HabitacionController::class, 'mostrarReserva'])->name('habitaciones.reservar');
@@ -83,6 +85,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Restaurante
     Route::get('/restaurante/pedidos/{pedido}/comanda', [ComandaController::class, 'imprimir'])
         ->name('restaurante.comanda');
+
+    Route::get('/restaurante/pedidos/{pedido}/voucher', [VoucherRestauranteController::class, 'generar'])
+        ->name('restaurante.voucher');
 
     // Compras
     Route::prefix('compras/reportes')->name('compras.reportes.')->group(function () {

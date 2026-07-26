@@ -4,16 +4,44 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PedidoResource\Pages;
 
+use App\Enums\Restaurante\EstadoPedido;
 use App\Filament\Resources\Restaurante\PedidoResource\PedidoResource;
+use App\Repository\Queries\Restaurante\Pedidos\ContarPedidosPorEstadoQuery;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Database\Eloquent\Builder;
 
-class ListPedidos extends ListRecords
+final class ListPedidos extends ListRecords
 {
     protected static string $resource = PedidoResource::class;
 
     protected function getHeaderActions(): array
     {
         return [CreateAction::make()];
+    }
+
+    public function getTabs(): array
+    {
+        $counts = app(ContarPedidosPorEstadoQuery::class)->ejecutar();
+
+        return [
+            'todos' => Tab::make('Todos los Pedidos'),
+            'abiertos' => Tab::make('Abiertos')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::ABIERTO))
+                ->badge(fn () => $counts['abiertos']),
+            'en_preparacion' => Tab::make('En Preparación')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::EN_PREPARACION))
+                ->badge(fn () => $counts['en_preparacion']),
+            'listos' => Tab::make('Listos')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::LISTO))
+                ->badge(fn () => $counts['listos']),
+            'cargados' => Tab::make('Cargados a Habitación')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::CARGADO_A_HABITACION)),
+            'pagados' => Tab::make('Pagados')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::PAGADO)),
+            'cancelados' => Tab::make('Cancelados')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::CANCELADO)),
+        ];
     }
 }

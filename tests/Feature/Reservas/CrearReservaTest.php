@@ -194,7 +194,7 @@ test('abre la estancia y la cuenta solicitada durante el check in', function ():
         ->and($estancia->cantidad_llaves)->toBe(2)
         ->and($estancia->cuenta)->not->toBeNull()
         ->and((float) $estancia->cuenta?->limite_autorizado)->toBe(2500.0)
-        ->and($estancia->cuenta?->numero_folio)->toStartWith('CTA-');
+        ->and($estancia->cuenta?->numero_cuenta)->toStartWith('CTA-');
 });
 
 test('impide el check out cuando la cuenta tiene saldo pendiente', function (): void {

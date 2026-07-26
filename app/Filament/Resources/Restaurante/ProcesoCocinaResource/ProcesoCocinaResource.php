@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\ProcesoCocinaResource;
 
+use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Filament\Resources\Restaurante\ProcesoCocinaResource\Pages\CreateProcesoCocina;
 use App\Filament\Resources\Restaurante\ProcesoCocinaResource\Pages\EditProcesoCocina;
 use App\Filament\Resources\Restaurante\ProcesoCocinaResource\Pages\ListProcesosCocina;
@@ -17,7 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
-class ProcesoCocinaResource extends Resource
+final class ProcesoCocinaResource extends Resource
 {
     protected static ?string $model = ProcesoCocina::class;
 
@@ -55,5 +56,17 @@ class ProcesoCocinaResource extends Resource
             'create' => CreateProcesoCocina::route('/create'),
             'edit' => EditProcesoCocina::route('/{record}/edit'),
         ];
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return app(VerificarRestauranteActivo::class)->estaActivo()
+            && parent::shouldRegisterNavigation();
+    }
+
+    public static function canViewAny(): bool
+    {
+        return app(VerificarRestauranteActivo::class)->estaActivo()
+            && parent::canViewAny();
     }
 }

@@ -11,7 +11,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
-class EditPlato extends EditRecord
+final class EditPlato extends EditRecord
 {
     protected static string $resource = PlatoResource::class;
 
