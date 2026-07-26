@@ -1,0 +1,77 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\BusinessLogic\Restaurante\Platos;
+
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+
+final class CalcularCostoPlato
+{
+    public function __construct(
+        private readonly RestauranteRepositorioInterface $repositorio,
+    ) {}
+
+    /**
+     * Calcula el costo total de un plato sumando los costos de sus ingredientes.
+     * El costo de cada ingrediente se obtiene del Stock en Cocina Restaurante → Lote → costo_unitario.
+     *
+     * @return array{costo_ingredientes: float, margen_sugerido_pct: int, precio_sugerido: float, items: array<int, array{nombre: string, cantidad: float, costo_unitario: float, costo_total: float, con_stock: bool}>}
+     */
+    public function ejecutar(int $productoRecetaId): array
+    {
+        $ingredientes = $this->repositorio->obtenerIngredientesReceta($productoRecetaId);
+        $cocina = $this->repositorio->obtenerUbicacionPorNombre('Cocina Restaurante');
+        $cocinaId = $cocina?->id;
+
+        $costoTotal = 0.0;
+        $detalle = [];
+
+        foreach ($ingredientes as $ingrediente) {
+            $variante = $ingrediente->variante;
+            $nombre = $variante !== null
+                ? $variante->nombre_variante
+                : ($ingrediente->productoPadre->nombre ?? 'Ingrediente');
+
+            $cantidad = (float) $ingrediente->cantidad;
+            $costoUnitario = 0.0;
+            $conStock = false;
+
+            if ($cocinaId && $variante) {
+                $stock = $this->repositorio->obtenerStockConLote($cocinaId, $variante->id);
+
+                if ($stock && $stock->lote?->costo_unitario) {
+                    $costoUnitario = (float) $stock->lote->costo_unitario;
+                    $conStock = true;
+                }
+            }
+
+            $costoIngrediente = round($costoUnitario * $cantidad, 2);
+            $costoTotal += $costoIngrediente;
+
+            $detalle[] = [
+                'nombre' => $nombre,
+                'cantidad' => $cantidad,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoIngrediente,
+                'con_stock' => $conStock,
+            ];
+        }
+
+        $margenSugerido = match (true) {
+            $costoTotal < 50 => 70,
+            $costoTotal < 100 => 65,
+            $costoTotal < 200 => 60,
+            default => 55,
+        };
+
+        $precioSugerido = round($costoTotal / (1 - $margenSugerido / 100), 2);
+
+        return [
+            'costo_ingredientes' => $costoTotal,
+            'margen_sugerido_pct' => $margenSugerido,
+            'precio_sugerido' => $precioSugerido,
+            'items' => $detalle,
+        ];
+    }
+}

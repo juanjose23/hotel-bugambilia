@@ -10,7 +10,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
-class PlatoInfolist
+final class PlatoInfolist
 {
     public static function configure(Schema $schema): Schema
     {
@@ -32,11 +32,7 @@ class PlatoInfolist
                             ->label('Estado')
                             ->badge()
                             ->formatStateUsing(fn (int $state): string => EstadoGeneral::tryFrom($state)?->label() ?? 'Desconocido')
-                            ->color(fn (int $state): string => match ($state) {
-                                1 => 'success',
-                                0 => 'danger',
-                                default => 'warning',
-                            }),
+                            ->color(fn (int $state): string => EstadoGeneral::tryFrom($state)?->getColor() ?? 'gray'),
 
                         TextEntry::make('web')
                             ->label('Visible en Web')

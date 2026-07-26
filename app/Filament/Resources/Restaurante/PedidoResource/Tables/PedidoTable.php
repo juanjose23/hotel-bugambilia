@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Restaurante\PedidoResource\Tables;
 
 use App\Enums\Restaurante\EstadoPedido;
+use App\Repository\Models\Restaurante\Pedido;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -14,7 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-class PedidoTable
+final class PedidoTable
 {
     public static function configure(Table $table): Table
     {
@@ -33,7 +35,15 @@ class PedidoTable
                 SelectFilter::make('estado')->options(EstadoPedido::class),
             ])
             ->recordActions([
-                ActionGroup::make([EditAction::make()])->icon(Heroicon::EllipsisVertical),
+                ActionGroup::make([
+                    EditAction::make(),
+                    Action::make('imprimirComanda')
+                        ->label('Imprimir Comanda')
+                        ->icon('heroicon-o-printer')
+                        ->color('primary')
+                        ->url(fn (Pedido $record): string => route('admin.restaurante.comanda', $record))
+                        ->openUrlInNewTab(),
+                ])->icon(Heroicon::EllipsisVertical),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([DeleteBulkAction::make()]),

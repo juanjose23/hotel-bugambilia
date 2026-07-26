@@ -7,10 +7,12 @@ namespace Database\Seeders;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\Shared\Precio;
+use App\Repository\Models\Shared\Stock;
 use Illuminate\Database\Seeder;
 
 class MenuRestauranteSeeder extends Seeder
@@ -26,29 +28,35 @@ class MenuRestauranteSeeder extends Seeder
 
         $defaultCatId = (int) Catalogo::first()?->id ?: 2;
 
-        // Ingredientes como ProductoVariante
-        $fileteRes = $this->variante('Filete de res', '300g', $defaultCatId);
-        $pechuga = $this->variante('Pechuga de pollo', '200g', $defaultCatId);
-        $lomoCerdo = $this->variante('Medallon lomo cerdo', '250g', $defaultCatId);
-        $camarones = $this->variante('Camarones', '200g', $defaultCatId);
-        $pescado = $this->variante('Filete de pescado', '250g', $defaultCatId);
-        $arroz = $this->variante('Arroz blanco porcion', '1 porcion', $defaultCatId);
-        $frijoles = $this->variante('Frijoles molidos porcion', '1 porcion', $defaultCatId);
-        $papa = $this->variante('Papas fritas porcion', '1 porcion', $defaultCatId);
-        $maduro = $this->variante('Tajadas de maduro', '1 porcion', $defaultCatId);
-        $ensalada = $this->variante('Ensalada fresca porcion', '1 porcion', $defaultCatId);
-        $mantequilla = $this->variante('Mantequilla', '15g', $defaultCatId);
-        $aceite = $this->variante('Aceite vegetal', '30ml', $defaultCatId);
-        $salPimienta = $this->variante('Sal y pimienta mix', '5g', $defaultCatId);
-        $tomate = $this->variante('Tomate', '150g', $defaultCatId);
-        $cebolla = $this->variante('Cebolla', '100g', $defaultCatId);
-        $chile = $this->variante('Chile', '50g', $defaultCatId);
-        $tortilla = $this->variante('Tortilla de maiz', '2 unid', $defaultCatId);
-        $queso = $this->variante('Queso', '50g', $defaultCatId);
-        $crema = $this->variante('Crema', '30ml', $defaultCatId);
-        $aguacate = $this->variante('Aguacate', '1/2 unid', $defaultCatId);
-        $leche = $this->variante('Leche', '200ml', $defaultCatId);
-        $huevo = $this->variante('Huevo', '2 unid', $defaultCatId);
+        // Ubicación Cocina Restaurante para Stock de Insumos
+        $cocina = Ubicacion::firstOrCreate(
+            ['nombre' => 'Cocina Restaurante'],
+            ['tipo' => 'interna', 'estado' => 1]
+        );
+
+        // Ingredientes como ProductoVariante con Stock Inicial en Cocina
+        $fileteRes = $this->variante('Filete de res', '300g', $defaultCatId, $cocina);
+        $pechuga = $this->variante('Pechuga de pollo', '200g', $defaultCatId, $cocina);
+        $lomoCerdo = $this->variante('Medallon lomo cerdo', '250g', $defaultCatId, $cocina);
+        $camarones = $this->variante('Camarones', '200g', $defaultCatId, $cocina);
+        $pescado = $this->variante('Filete de pescado', '250g', $defaultCatId, $cocina);
+        $arroz = $this->variante('Arroz blanco porcion', '1 porcion', $defaultCatId, $cocina);
+        $frijoles = $this->variante('Frijoles molidos porcion', '1 porcion', $defaultCatId, $cocina);
+        $papa = $this->variante('Papas fritas porcion', '1 porcion', $defaultCatId, $cocina);
+        $maduro = $this->variante('Tajadas de maduro', '1 porcion', $defaultCatId, $cocina);
+        $ensalada = $this->variante('Ensalada fresca porcion', '1 porcion', $defaultCatId, $cocina);
+        $mantequilla = $this->variante('Mantequilla', '15g', $defaultCatId, $cocina);
+        $aceite = $this->variante('Aceite vegetal', '30ml', $defaultCatId, $cocina);
+        $salPimienta = $this->variante('Sal y pimienta mix', '5g', $defaultCatId, $cocina);
+        $tomate = $this->variante('Tomate', '150g', $defaultCatId, $cocina);
+        $cebolla = $this->variante('Cebolla', '100g', $defaultCatId, $cocina);
+        $chile = $this->variante('Chile', '50g', $defaultCatId, $cocina);
+        $tortilla = $this->variante('Tortilla de maiz', '2 unid', $defaultCatId, $cocina);
+        $queso = $this->variante('Queso', '50g', $defaultCatId, $cocina);
+        $crema = $this->variante('Crema', '30ml', $defaultCatId, $cocina);
+        $aguacate = $this->variante('Aguacate', '1/2 unid', $defaultCatId, $cocina);
+        $leche = $this->variante('Leche', '200ml', $defaultCatId, $cocina);
+        $huevo = $this->variante('Huevo', '2 unid', $defaultCatId, $cocina);
 
         $platos = [
             [
@@ -126,7 +134,7 @@ class MenuRestauranteSeeder extends Seeder
             }
         }
 
-        $this->command->info('Menu restaurante: 8 platos con recetas, precios y costos creados en tabla platos.');
+        $this->command->info('Menu restaurante: Platos, recetas, precios y stock inicial en Cocina Restaurante creados.');
     }
 
     private function tipoId(string $codigo): int
@@ -134,16 +142,31 @@ class MenuRestauranteSeeder extends Seeder
         return (int) (Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', $codigo))->first()?->catalogo_tipo_id ?: 8);
     }
 
-    private function variante(string $nombreProducto, string $nombreVariante, int $categoriaId): ProductoVariante
+    private function variante(string $nombreProducto, string $nombreVariante, int $categoriaId, Ubicacion $cocina): ProductoVariante
     {
         $producto = Producto::firstOrCreate(
             ['nombre' => $nombreProducto],
             ['categoria_id' => $categoriaId, 'unidad_medida_id' => 1, 'estado' => 1]
         );
 
-        return ProductoVariante::firstOrCreate(
+        $variante = ProductoVariante::firstOrCreate(
             ['producto_id' => $producto->id, 'nombre_variante' => $nombreVariante],
             ['codigo' => 'VAR-'.strtoupper(substr(md5($nombreProducto.$nombreVariante), 0, 6))]
         );
+
+        // Generar Stock inicial para la cocina restaurante
+        Stock::firstOrCreate(
+            [
+                'stockable_type' => Ubicacion::class,
+                'stockable_id' => $cocina->id,
+                'producto_variante_id' => $variante->id,
+            ],
+            [
+                'cantidad_actual' => 500.0,
+                'cantidad_ideal' => 500.0,
+            ]
+        );
+
+        return $variante;
     }
 }

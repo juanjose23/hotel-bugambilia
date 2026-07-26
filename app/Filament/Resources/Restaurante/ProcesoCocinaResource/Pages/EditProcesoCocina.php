@@ -10,7 +10,7 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
-class EditProcesoCocina extends EditRecord
+final class EditProcesoCocina extends EditRecord
 {
     protected static string $resource = ProcesoCocinaResource::class;
 

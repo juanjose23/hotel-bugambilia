@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Restaurante\ValidarDisponibilidadIngredientes;
+use App\BusinessLogic\Restaurante\Cocina\ValidarDisponibilidadIngredientes;
 
 it('permite consumir cuando existe stock suficiente', function (): void {
     app(ValidarDisponibilidadIngredientes::class)->validar(2.5, 3.0, 'Arroz');

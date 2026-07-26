@@ -6,9 +6,14 @@ namespace App\Interactors\Landing;
 
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Plato;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 
 final class ObtenerRestauranteLanding
 {
+    public function __construct(
+        private readonly RestauranteRepositorioInterface $repositorio,
+    ) {}
+
     /**
      * @return array{
      *     restaurante: array<string, mixed>|null,
@@ -19,10 +24,7 @@ final class ObtenerRestauranteLanding
      */
     public function ejecutar(): array
     {
-        $restaurante = Espacio::where('tipo', 'restaurante')
-            ->where('estado', 1)
-            ->with(['imagenes'])
-            ->first();
+        $restaurante = $this->repositorio->obtenerRestauranteParaLanding();
 
         if (! $restaurante instanceof Espacio) {
             return [
@@ -44,11 +46,7 @@ final class ObtenerRestauranteLanding
             ];
         }
 
-        /** @var array<int, array<string, mixed>> $mesas */
-        $mesas = Espacio::where('padre_id', $restaurante->id)
-            ->where('tipo', 'mesa')
-            ->orderBy('nombre')
-            ->get()
+        $mesasMapped = $this->repositorio->obtenerMesasDeRestaurante($restaurante->id)
             ->map(function (Espacio $mesa): array {
                 $metaMesa = $this->decodificarMeta($mesa->meta_datos);
 
@@ -59,15 +57,12 @@ final class ObtenerRestauranteLanding
                     'tipo_mesa' => $metaMesa['tipo_mesa'] ?? 'cuadrada',
                     'zona' => $metaMesa['zona_restaurante'] ?? 'interior',
                 ];
-            })->toArray();
+            });
 
-        $ambientesBD = Espacio::where('padre_id', $restaurante->id)
-            ->where('tipo', '!=', 'mesa')
-            ->where('estado', 1)
-            ->with(['imagenes'])
-            ->orderBy('orden')
-            ->orderBy('nombre')
-            ->get();
+        /** @var array<int, array{id: int, nombre: string, capacidad: int, tipo_mesa: string, zona: string}> $mesas */
+        $mesas = $mesasMapped->toArray();
+
+        $ambientesBD = $this->repositorio->obtenerAmbientesDeRestaurante($restaurante->id);
 
         $fallbackFotosAmbientes = [
             'interior' => ['/images/service-kitchen.png', '/images/terrace.jpg'],
@@ -89,7 +84,7 @@ final class ObtenerRestauranteLanding
                 $imagenes = $fallbackFotosAmbientes[$zona] ?? ['/images/terrace.jpg'];
             }
 
-            $mesasDeZona = array_filter($mesas, fn ($m) => ($m['zona'] ?? '') === $zona);
+            $mesasDeZona = array_filter($mesas, fn (array $m): bool => $m['zona'] === $zona);
 
             return [
                 'id' => $amb->id,
@@ -121,8 +116,8 @@ final class ObtenerRestauranteLanding
                     'zona' => 'interior',
                     'caracteristicas' => ['Aire Acondicionado', 'Musica de Fondo', 'Iluminacion Calida', 'Vista a la Galeria'],
                     'imagenes' => ['/images/service-kitchen.png', '/images/terrace.jpg'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m) => $m['zona'] === 'interior')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m) => $m['zona'] === 'interior')),
+                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'interior')),
+                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'interior')),
                 ],
                 [
                     'id' => 2,
@@ -134,8 +129,8 @@ final class ObtenerRestauranteLanding
                     'zona' => 'terraza',
                     'caracteristicas' => ['Vista al Jardin', 'Pergola Iluminada', 'Brisa Natural', 'Mesas al Aire Libre'],
                     'imagenes' => ['/images/terrace.jpg', '/images/service-kitchen.png'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m) => $m['zona'] === 'terraza')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m) => $m['zona'] === 'terraza')),
+                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'terraza')),
+                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'terraza')),
                 ],
                 [
                     'id' => 3,
@@ -147,8 +142,8 @@ final class ObtenerRestauranteLanding
                     'zona' => 'barra',
                     'caracteristicas' => ['Barra de Cocteles', 'Pantalla HD', 'Musica Lounge', 'Seleccion de Vinos'],
                     'imagenes' => ['/images/service-bartender.png', '/images/terrace.jpg'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m) => $m['zona'] === 'barra')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m) => $m['zona'] === 'barra')),
+                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'barra')),
+                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'barra')),
                 ],
                 [
                     'id' => 4,
@@ -160,16 +155,13 @@ final class ObtenerRestauranteLanding
                     'zona' => 'vip',
                     'caracteristicas' => ['Servicio Exclusivo', 'Garzon Dedicado', 'Ambiente Privado', 'Decoracion Especial'],
                     'imagenes' => ['/images/terrace.jpg', '/images/service-bartender.png'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m) => $m['zona'] === 'vip')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m) => $m['zona'] === 'vip')),
+                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'vip')),
+                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'vip')),
                 ],
             ];
         }
 
-        $menu = Plato::activos()->where('web', true)
-            ->with(['precios.moneda', 'imagenes', 'categoria'])
-            ->orderBy('categoria_id')->orderBy('nombre')
-            ->get()
+        $menu = $this->repositorio->obtenerMenuParaLanding()
             ->map(function (Plato $p): array {
                 $precio = $p->precios->first();
                 $img = $p->imagenes->first();
