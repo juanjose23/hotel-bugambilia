@@ -42,8 +42,8 @@ class ProcurementFlowSeeder extends Seeder
             $pais = Pais::first() ?? Pais::create(['nombre' => 'Nicaragua', 'codigo' => 'NI']);
 
             $persona = Persona::create([
-                'primer_nombre' => 'Admin',
-                'segundo_nombre' => 'Compras',
+                'primer_nombre' => 'Juan',
+                'segundo_nombre' => 'Jose',
                 'pais_id' => $pais->id,
                 'tipo_persona' => 'natural',
                 'telefono' => '12345678',
@@ -52,17 +52,17 @@ class ProcurementFlowSeeder extends Seeder
 
             PersonaNatural::create([
                 'persona_id' => $persona->id,
-                'primer_apellido' => 'Sistema',
-                'segundo_apellido' => 'Hotel',
+                'primer_apellido' => 'Rios',
+                'segundo_apellido' => 'Huete',
                 'tipo_identificacion' => 'cedula',
-                'numero_identificacion' => 'ADMIN-001',
+                'numero_identificacion' => '001-010190-1039w',
                 'sexo' => 'M',
                 'fecha_nacimiento' => '1990-01-01',
             ]);
 
             $colaborador = Colaborador::create([
                 'persona_id' => $persona->id,
-                'codigo' => 'COLAB-001',
+                'codigo' => 'COL-000',
                 'fecha_ingreso' => now(),
                 'estado' => EstadoGeneral::Activo->value,
             ]);
@@ -87,6 +87,7 @@ class ProcurementFlowSeeder extends Seeder
                 'password' => bcrypt('123456'),
                 'email_verified_at' => now(),
                 'persona_id' => $persona->id,
+                'is_admin' => true,
             ]);
 
             // Asignar rol super_admin para notificaciones y permisos

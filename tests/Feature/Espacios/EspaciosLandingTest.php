@@ -9,6 +9,7 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
+use Database\Seeders\EspacioSeeder;
 use Database\Seeders\HabitacionSeeder;
 use Database\Seeders\PaisSeeder;
 use Database\Seeders\RestauranteSeeder;
@@ -20,6 +21,9 @@ test('la ruta publica /espacios carga correctamente y lista solo espacios activo
         PaisSeeder::class,
         CatalogoTipoSeeder::class,
         CatalogoSeeder::class,
+        TasaCambioSeeder::class,
+        UbicacionSeeder::class,
+        EspacioSeeder::class,
         RestauranteSeeder::class,
     ]);
 

@@ -8,7 +8,7 @@ use App\Filament\Resources\Restaurante\PlatoResource\PlatoResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
-class ListPlatos extends ListRecords
+final class ListPlatos extends ListRecords
 {
     protected static string $resource = PlatoResource::class;
 

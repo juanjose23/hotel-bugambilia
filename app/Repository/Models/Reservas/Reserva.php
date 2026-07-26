@@ -6,8 +6,8 @@ namespace App\Repository\Models\Reservas;
 
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Estancias\CuentaEstancia;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Promociones\Promocion;
@@ -135,10 +135,10 @@ class Reserva extends Model implements AuditableContract
         return $this->hasOne(Estancia::class);
     }
 
-    /** @return HasMany<CuentaEstancia, $this> */
+    /** @return HasMany<Cuenta, $this> */
     public function cuentas(): HasMany
     {
-        return $this->hasMany(CuentaEstancia::class);
+        return $this->hasMany(Cuenta::class);
     }
 
     /** @return HasManyThrough<ReservaHuesped, ReservaDetalle, $this> */

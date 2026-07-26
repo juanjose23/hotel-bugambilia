@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Restaurante;
 
+use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\Restaurante\EstadoPedido;
-use App\Repository\Models\Restaurante\Pedido;
-use App\Repository\Models\Restaurante\PedidoItem;
+use App\Repository\Models\User;
+use App\Repository\Queries\Restaurante\Reportes\ObtenerReportesRestauranteQuery;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Pages\Page;
-use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Filters\BaseFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 use UnitEnum;
 
-class ReportesRestaurante extends Page implements HasTable
+final class ReportesRestaurante extends Page implements HasTable
 {
-    use InteractsWithTable;
+    use HasPageShield,InteractsWithTable;
 
     protected static UnitEnum|string|null $navigationGroup = 'Restaurante';
 
@@ -33,7 +33,7 @@ class ReportesRestaurante extends Page implements HasTable
 
     protected static ?int $navigationSort = 10;
 
-    protected string $view = 'filament.pages.reportes-restaurante';
+    protected string $view = 'filament.pages.restaurante.reportes-restaurante';
 
     /** @var array<string, mixed> */
     public array $resumen = [];
@@ -50,6 +50,13 @@ class ReportesRestaurante extends Page implements HasTable
 
     public string $fechaFin;
 
+    private ObtenerReportesRestauranteQuery $reportesQuery;
+
+    public function boot(ObtenerReportesRestauranteQuery $reportesQuery): void
+    {
+        $this->reportesQuery = $reportesQuery;
+    }
+
     public function mount(): void
     {
         $this->fechaInicio = now()->startOfMonth()->toDateString();
@@ -59,101 +66,42 @@ class ReportesRestaurante extends Page implements HasTable
 
     public function cargarReportes(): void
     {
-        $pedidos = Pedido::with(['items.plato', 'mesa'])
-            ->whereBetween('created_at', [$this->fechaInicio.' 00:00:00', $this->fechaFin.' 23:59:59'])
-            ->get();
+        $datos = $this->reportesQuery->ejecutar($this->fechaInicio, $this->fechaFin);
 
-        $this->totalPedidos = $pedidos->count();
-        $totalFacturado = $pedidos->sum('total');
-        $pedidosPagados = $pedidos->where('estado', EstadoPedido::PAGADO)->count();
-        $pedidosPendientes = $pedidos->whereIn('estado', [EstadoPedido::ABIERTO, EstadoPedido::EN_PREPARACION])->count();
+        $this->resumen = $datos['resumen'];
+        $this->topPlatos = $datos['topPlatos'];
+        $this->porCategoria = $datos['porCategoria'];
+        $this->totalPedidos = $datos['totalPedidos'];
+    }
 
-        $this->resumen = [
-            'total_pedidos' => $this->totalPedidos,
-            'total_facturado' => $totalFacturado,
-            'pedidos_pagados' => $pedidosPagados,
-            'pedidos_pendientes' => $pedidosPendientes,
-        ];
-
-        $items = PedidoItem::whereHas('pedido', fn ($q) => $q->whereBetween('created_at', [$this->fechaInicio.' 00:00:00', $this->fechaFin.' 23:59:59']))
-            ->with('plato')
-            ->get()
-            ->groupBy('plato_id')
-            ->map(function ($grupo) {
-                $first = $grupo->first();
-                $nombre = 'Desconocido';
-                if ($first instanceof PedidoItem && $first->plato) {
-                    $nombre = $first->plato->nombre;
-                }
-
-                return [
-                    'plato' => $nombre,
-                    // @phpstan-ignore cast.double (Collection::sum returns mixed)
-                    'cantidad' => (float) $grupo->sum('cantidad'),
-                    // @phpstan-ignore cast.double (Collection::sum returns mixed)
-                    'total' => (float) $grupo->sum('subtotal'),
-                ];
-            })
-            ->sortByDesc('cantidad')
-            ->take(10)
-            ->values()
-            ->toArray();
-
-        $this->topPlatos = $items;
-
-        $this->porCategoria = PedidoItem::whereHas('pedido', fn ($q) => $q->whereBetween('created_at', [$this->fechaInicio.' 00:00:00', $this->fechaFin.' 23:59:59']))
-            ->with('plato.categoria')
-            ->get()
-            ->groupBy(function (PedidoItem $item) {
-                return $item->plato?->categoria->nombre ?? 'Sin categoria';
-            })
-            ->map(fn ($grupo, $cat) => [
-                'categoria' => (string) $cat,
-                // @phpstan-ignore cast.double (Collection::sum returns mixed)
-                'cantidad' => (float) $grupo->sum('cantidad'),
-                // @phpstan-ignore cast.double (Collection::sum returns mixed)
-                'total' => (float) $grupo->sum('subtotal'),
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(
+                $this->reportesQuery->pedidosParaTabla($this->fechaInicio, $this->fechaFin)
+            )
+            ->columns([
+                TextColumn::make('codigo')->label('Pedido')->searchable()->sortable(),
+                TextColumn::make('mesa.nombre')->label('Mesa'),
+                TextColumn::make('mesero.persona.nombre_completo')->label('Mesero'),
+                TextColumn::make('estado')->label('Estado')->badge()
+                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getLabel() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getLabel() ?? $state : ''))
+                    ->color(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getColor() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getColor() ?? 'gray' : 'gray')),
+                TextColumn::make('total')->label('Total')->money('NIO')->sortable(),
+                TextColumn::make('created_at')->label('Fecha')->dateTime()->sortable(),
             ])
-            ->sortByDesc('total')
-            ->values()
-            ->toArray();
+            ->poll('30s');
     }
 
-    /**
-     * @return Builder<Pedido>
-     */
-    protected function query(): Builder
+    public static function canAccess(): bool
     {
-        return Pedido::with(['mesa', 'mesero.persona'])->latest();
-    }
+        if (! app(VerificarRestauranteActivo::class)->estaActivo()) {
+            return false;
+        }
 
-    /**
-     * @return array<int, Column>
-     */
-    protected function getTableColumns(): array
-    {
-        return [
-            TextColumn::make('codigo')->label('Pedido')->searchable()->sortable(),
-            TextColumn::make('mesa.nombre')->label('Mesa'),
-            TextColumn::make('mesero.persona.nombre_completo')->label('Mesero'),
-            TextColumn::make('estado')->label('Estado')->badge()
-                ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getLabel() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getLabel() ?? $state : ''))
-                ->color(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getColor() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getColor() ?? 'gray' : 'gray')),
-            TextColumn::make('total')->label('Total')->money('NIO')->sortable(),
-            TextColumn::make('created_at')->label('Fecha')->dateTime()->sortable(),
-        ];
-    }
+        /** @var User|null $user */
+        $user = auth()->user();
 
-    protected function getTablePollingInterval(): ?string
-    {
-        return '30s';
-    }
-
-    /**
-     * @return array<int, BaseFilter>
-     */
-    protected function getTableFilters(): array
-    {
-        return [];
+        return $user?->can('page_ReportesRestaurante') ?? true;
     }
 }

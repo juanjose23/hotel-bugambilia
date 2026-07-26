@@ -6,9 +6,9 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Restaurante\AbrirPedidoMesa;
-use App\Interactors\Restaurante\SepararMesas;
-use App\Interactors\Restaurante\UnirMesas;
+use App\Interactors\Restaurante\Mesas\SepararMesas;
+use App\Interactors\Restaurante\Mesas\UnirMesas;
+use App\Interactors\Restaurante\Pedidos\AbrirPedidoMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Reservas\Reserva;
 
@@ -21,7 +21,7 @@ test('permite abrir multiples cuentas independientes en la misma mesa', function
         'activo' => true,
     ]);
 
-    $abrirInteractor = new AbrirPedidoMesa;
+    $abrirInteractor = app(AbrirPedidoMesa::class);
     $cuenta1 = $abrirInteractor->ejecutar($mesa, null, null, 'Cuenta Juan');
 
     $mesa->update(['estado' => EstadoEspacio::Disponible]);
@@ -47,7 +47,7 @@ test('permite unir mesas secundarias a una mesa principal para uso inmediato en 
         'estado' => EstadoEspacio::Disponible,
     ]);
 
-    $unirInteractor = new UnirMesas;
+    $unirInteractor = app(UnirMesas::class);
     $unirInteractor->ejecutar($mesaPrincipal->id, [$mesaSecundaria->id], null, 'uso_inmediato');
 
     expect($mesaSecundaria->refresh()->estado)->toBe(EstadoEspacio::Ocupado)
@@ -79,7 +79,7 @@ test('permite unir mesas asociadas a una reservacion previa de grupo', function 
         'estado' => EstadoEspacio::Disponible,
     ]);
 
-    $unirInteractor = new UnirMesas;
+    $unirInteractor = app(UnirMesas::class);
     $unirInteractor->ejecutar($mesaPrincipal->id, [$mesaSecundaria->id], $reserva->id, 'reservacion');
 
     expect($mesaSecundaria->refresh()->estado)->toBe(EstadoEspacio::Reservado)
@@ -103,10 +103,10 @@ test('permite separar mesas previamente unidas y las vuelve disponibles', functi
         'estado' => EstadoEspacio::Disponible,
     ]);
 
-    $unirInteractor = new UnirMesas;
+    $unirInteractor = app(UnirMesas::class);
     $unirInteractor->ejecutar($mesaPrincipal->id, [$mesaSecundaria->id]);
 
-    $separarInteractor = new SepararMesas;
+    $separarInteractor = app(SepararMesas::class);
     $separarInteractor->ejecutar($mesaPrincipal->id);
 
     expect($mesaSecundaria->refresh()->estado)->toBe(EstadoEspacio::Disponible)
@@ -121,6 +121,6 @@ test('rechaza unir una mesa a si misma', function (): void {
         'estado' => EstadoEspacio::Disponible,
     ]);
 
-    $unirInteractor = new UnirMesas;
+    $unirInteractor = app(UnirMesas::class);
     $unirInteractor->ejecutar($mesa->id, [$mesa->id]);
 })->throws(DomainException::class, 'no puede unirse a sí misma');

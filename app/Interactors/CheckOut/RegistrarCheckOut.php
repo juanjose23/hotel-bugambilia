@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Interactors\CheckOut;
 
 use App\BusinessLogic\CheckOut\ValidarRequisitosCheckOut;
-use App\Enums\Estancias\EstadoCuentaEstancia;
+use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Events\Reservas\CheckOutRegistrado;
 use App\Interactors\Reservas\CambiarEstadoReserva;
-use App\Repository\Models\Estancias\CuentaEstancia;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
 use Illuminate\Support\Facades\DB;
@@ -45,14 +45,14 @@ final class RegistrarCheckOut
                 $reserva->espacio->update(['estado' => EstadoEspacio::Disponible]);
             }
 
-            $cuentasAbiertas = CuentaEstancia::query()
+            $cuentasAbiertas = Cuenta::query()
                 ->where('reserva_id', $reserva->id)
-                ->where('estado', EstadoCuentaEstancia::ABIERTA)
+                ->where('estado', EstadoCuenta::ABIERTA)
                 ->get();
 
             foreach ($cuentasAbiertas as $cuenta) {
                 $cuenta->update([
-                    'estado' => EstadoCuentaEstancia::CERRADA,
+                    'estado' => EstadoCuenta::CERRADA,
                     'cerrada_at' => now(),
                     'cerrada_por' => $usuarioId,
                 ]);

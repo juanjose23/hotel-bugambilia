@@ -20,7 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
-class PlatoTable
+final class PlatoTable
 {
     public static function configure(Table $table): Table
     {
@@ -52,11 +52,7 @@ class PlatoTable
                     ->label('Estado')
                     ->badge()
                     ->formatStateUsing(fn (int $state): string => EstadoGeneral::tryFrom($state)?->label() ?? 'Desconocido')
-                    ->color(fn (int $state): string => match ($state) {
-                        1 => 'success',
-                        0 => 'danger',
-                        default => 'warning',
-                    }),
+                    ->color(fn (int $state): string => EstadoGeneral::tryFrom($state)?->getColor() ?? 'gray'),
 
                 IconColumn::make('web')
                     ->label('Web')

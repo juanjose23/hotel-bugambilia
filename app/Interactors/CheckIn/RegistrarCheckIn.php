@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Interactors\CheckIn;
 
 use App\BusinessLogic\CheckIn\ValidarRequisitosCheckIn;
+use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Events\Reservas\CheckInRegistrado;
-use App\Interactors\CuentasEstancia\AbrirCuentaEstancia;
+use App\Interactors\Cuentas\AbrirCuenta;
 use App\Interactors\Reservas\CambiarEstadoReserva;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
@@ -22,7 +23,7 @@ final class RegistrarCheckIn
     public function __construct(
         private readonly CambiarEstadoReserva $cambiarEstado,
         private readonly ValidarRequisitosCheckIn $validarRequisitos,
-        private readonly AbrirCuentaEstancia $abrirCuenta,
+        private readonly AbrirCuenta $abrirCuenta,
         private readonly ReservaRepositorioInterface $reservas,
     ) {}
 
@@ -61,7 +62,13 @@ final class RegistrarCheckIn
                 $limite = is_numeric($datos['limite_cuenta'] ?? null)
                     ? (float) $datos['limite_cuenta']
                     : (is_numeric($reserva->limite_cuenta_solicitado) ? (float) $reserva->limite_cuenta_solicitado : null);
-                $this->abrirCuenta->ejecutar($estancia, $usuarioId, $limite);
+                $this->abrirCuenta->ejecutar(
+                    tipo: TipoCuenta::ESTANCIA,
+                    estancia: $estancia,
+                    reserva: $reserva,
+                    limite: $limite,
+                    usuarioId: $usuarioId,
+                );
             }
 
             CheckInRegistrado::dispatch($estancia);

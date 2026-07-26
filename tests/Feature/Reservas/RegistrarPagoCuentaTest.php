@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Enums\Estancias\EstadoCuentaEstancia;
+use App\Enums\Cuentas\EstadoCuenta;
+use App\Enums\Cuentas\EstadoPago;
+use App\Enums\Cuentas\MetodoPago;
+use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
-use App\Enums\Estancias\EstadoPago;
-use App\Enums\Estancias\MetodoPago;
-use App\Enums\Estancias\TipoMovimientoCuenta;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
-use App\Interactors\CuentasEstancia\RegistrarPagoCuenta;
-use App\Repository\Models\Estancias\CuentaEstancia;
+use App\Interactors\Cuentas\RegistrarDetalleCuenta;
+use App\Interactors\Cuentas\RegistrarPagoCuenta;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
 
@@ -30,31 +31,33 @@ test('registra un pago correctamente y actualiza el saldo de la cuenta', functio
         'check_in_at' => now(),
     ]);
 
-    $cuenta = CuentaEstancia::query()->create([
+    $cuenta = Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-2026-000777',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
         'estancia_id' => $estancia->id,
-        'numero_folio' => 'CTA-2026-000777',
-        'estado' => EstadoCuentaEstancia::ABIERTA,
+        'reserva_id' => $reserva->id,
+        'estado' => EstadoCuenta::ABIERTA,
         'abierta_at' => now(),
     ]);
 
-    $cuenta->movimientos()->create([
-        'tipo' => TipoMovimientoCuenta::CARGO,
-        'concepto' => 'Hospedaje Noches',
-        'monto' => 1000.00,
-    ]);
+    $detalle = app(RegistrarDetalleCuenta::class);
+    $detalle->ejecutar(
+        cuenta: $cuenta,
+        concepto: 'Hospedaje Noches',
+        precioUnitario: 1000.00,
+    );
 
-    $interactor = new RegistrarPagoCuenta;
-    $movimiento = $interactor->ejecutar(
+    $interactor = app(RegistrarPagoCuenta::class);
+    $pago = $interactor->ejecutar(
         cuenta: $cuenta,
         metodoPago: MetodoPago::TARJETA_CREDITO,
         monto: 600.00,
-        concepto: 'Abono con Tarjeta Visa',
-        referencia: 'TXN-998822',
-        estado: EstadoPago::APLICADO
+        referenciaTransaccion: 'TXN-998822',
+        estado: EstadoPago::APLICADO,
     );
 
-    expect((float) $movimiento->monto)->toBe(600.0)
-        ->and((float) $cuenta->refresh()->total_pagos)->toBe(600.0)
+    expect((float) $pago->monto)->toBe(600.0)
+        ->and((float) $cuenta->refresh()->total_pagado)->toBe(600.0)
         ->and((float) $cuenta->saldo)->toBe(400.0);
 });
 
@@ -74,17 +77,19 @@ test('rechaza registrar pagos menores o iguales a cero', function (): void {
         'check_in_at' => now(),
     ]);
 
-    $cuenta = CuentaEstancia::query()->create([
+    $cuenta = Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-2026-000778',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
         'estancia_id' => $estancia->id,
-        'numero_folio' => 'CTA-2026-000778',
-        'estado' => EstadoCuentaEstancia::ABIERTA,
+        'reserva_id' => $reserva->id,
+        'estado' => EstadoCuenta::ABIERTA,
         'abierta_at' => now(),
     ]);
 
-    $interactor = new RegistrarPagoCuenta;
+    $interactor = app(RegistrarPagoCuenta::class);
     $interactor->ejecutar(
         cuenta: $cuenta,
         metodoPago: MetodoPago::EFECTIVO,
-        monto: 0.00
+        monto: 0.00,
     );
 })->throws(DomainException::class, 'mayor a cero');

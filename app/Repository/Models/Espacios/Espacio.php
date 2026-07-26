@@ -85,6 +85,17 @@ class Espacio extends Model implements AuditableContract
         return $query->where('estado', '!=', 0)->where('web', true);
     }
 
+    /**
+     * Comprueba si existe al menos un Espacio de tipo Restaurante registrado y activo en el sistema.
+     */
+    public static function tieneRestauranteActivo(): bool
+    {
+        return static::query()
+            ->where('tipo', TipoEspacio::RESTAURANTE)
+            ->where('estado', '!=', EstadoEspacio::Inactivo)
+            ->exists();
+    }
+
     /** @var array<int, string> */
     protected array $auditInclude = [
         'padre_id',

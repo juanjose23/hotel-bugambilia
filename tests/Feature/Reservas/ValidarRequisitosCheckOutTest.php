@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\BusinessLogic\CheckOut\ValidarRequisitosCheckOut;
+use App\Enums\Cuentas\EstadoCuenta;
+use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
-use App\Repository\Models\Estancias\CuentaEstancia;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
 
@@ -26,7 +28,7 @@ test('rechaza el check-out si la estancia no esta activa ni extendida', function
         'check_in_at' => now(),
     ]);
 
-    $validator = new ValidarRequisitosCheckOut;
+    $validator = app(ValidarRequisitosCheckOut::class);
     $validator->validar($estancia);
 })->throws(DomainException::class, 'estancias activas o extendidas');
 
@@ -47,14 +49,17 @@ test('permite el check-out con saldo cero en la cuenta de estancia', function ()
         'check_in_at' => now(),
     ]);
 
-    CuentaEstancia::query()->create([
+    Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-2026-000002',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
+        'reserva_id' => $reserva->id,
         'estancia_id' => $estancia->id,
-        'numero_folio' => 'CTA-2026-000002',
+        'estado' => EstadoCuenta::ABIERTA,
         'abierta_at' => now(),
         'saldo' => 0,
     ]);
 
-    $validator = new ValidarRequisitosCheckOut;
+    $validator = app(ValidarRequisitosCheckOut::class);
     expect(fn () => $validator->validar($estancia, ['llaves_devueltas' => 2]))->not->toThrow(Exception::class);
 });
 
@@ -75,14 +80,17 @@ test('permite el check-out con saldo pendiente si cuenta con credito corporativo
         'check_in_at' => now(),
     ]);
 
-    CuentaEstancia::query()->create([
+    Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-2026-000003',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
+        'reserva_id' => $reserva->id,
         'estancia_id' => $estancia->id,
-        'numero_folio' => 'CTA-2026-000003',
+        'estado' => EstadoCuenta::ABIERTA,
         'abierta_at' => now(),
         'saldo' => 1500,
     ]);
 
-    $validator = new ValidarRequisitosCheckOut;
+    $validator = app(ValidarRequisitosCheckOut::class);
     expect(fn () => $validator->validar($estancia, [
         'llaves_devueltas' => 1,
         'credito_autorizado' => true,

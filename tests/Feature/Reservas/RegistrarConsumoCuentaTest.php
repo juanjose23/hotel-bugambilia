@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\Estancias\CategoriaConsumo;
-use App\Enums\Estancias\EstadoCuentaEstancia;
+use App\Enums\Cuentas\EstadoCuenta;
+use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
-use App\Interactors\CuentasEstancia\RegistrarConsumoCuenta;
-use App\Repository\Models\Estancias\CuentaEstancia;
+use App\Interactors\Cuentas\RegistrarDetalleCuenta;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
 
@@ -28,30 +28,30 @@ test('registra un consumo correctamente en una cuenta abierta', function (): voi
         'check_in_at' => now(),
     ]);
 
-    $cuenta = CuentaEstancia::query()->create([
+    $cuenta = Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-2026-000088',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
         'estancia_id' => $estancia->id,
-        'numero_folio' => 'CTA-2026-000088',
-        'estado' => EstadoCuentaEstancia::ABIERTA,
+        'reserva_id' => $reserva->id,
+        'estado' => EstadoCuenta::ABIERTA,
         'limite_autorizado' => 1000,
         'abierta_at' => now(),
     ]);
 
-    $interactor = new RegistrarConsumoCuenta;
-    $movimiento = $interactor->ejecutar(
+    $interactor = app(RegistrarDetalleCuenta::class);
+    $detalle = $interactor->ejecutar(
         cuenta: $cuenta,
-        categoria: CategoriaConsumo::RESTAURANTE,
         concepto: 'Cena Buffet Internacional',
         precioUnitario: 250.00,
         cantidad: 2,
-        moduloOrigen: 'restaurante'
     );
 
-    expect((float) $movimiento->monto)->toBe(500.0)
-        ->and((float) $cuenta->refresh()->total_cargos)->toBe(500.0)
+    expect((float) $detalle->total)->toBe(500.0)
+        ->and((float) $cuenta->refresh()->total)->toBe(500.0)
         ->and((float) $cuenta->saldo)->toBe(500.0);
 });
 
-test('rechaza registrar un consumo si la cuenta esta en estado solicitada o no abierta', function (): void {
+test('rechaza registrar un consumo si la cuenta esta en estado solicitada', function (): void {
     $reserva = Reserva::query()->create([
         'codigo_reserva' => 'RES-CONSUMO-02',
         'nombre_cliente' => 'Cliente Solicitado',
@@ -67,18 +67,19 @@ test('rechaza registrar un consumo si la cuenta esta en estado solicitada o no a
         'check_in_at' => now(),
     ]);
 
-    $cuenta = CuentaEstancia::query()->create([
+    $cuenta = Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-2026-000089',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
         'estancia_id' => $estancia->id,
-        'numero_folio' => 'CTA-2026-000089',
-        'estado' => EstadoCuentaEstancia::SOLICITADA,
+        'reserva_id' => $reserva->id,
+        'estado' => EstadoCuenta::SOLICITADA,
         'abierta_at' => now(),
     ]);
 
-    $interactor = new RegistrarConsumoCuenta;
+    $interactor = app(RegistrarDetalleCuenta::class);
     $interactor->ejecutar(
         cuenta: $cuenta,
-        categoria: CategoriaConsumo::MINIBAR,
         concepto: 'Bebidas Minibar',
-        precioUnitario: 150.00
+        precioUnitario: 150.00,
     );
-})->throws(DomainException::class, 'cuentas abiertas');
+})->throws(DomainException::class);
