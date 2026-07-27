@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Interactors\Compras\Cotizaciones;
 
 use App\BusinessLogic\Compras\ResolverEstrategiaCompra;
-use App\Repository\Models\Compras\Cotizacion;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionesParaComparativa;
+use App\Repository\Queries\Shared\ObtenerNombrePersona;
 
-final class ObtenerDatosComparativa
+final readonly class ObtenerDatosComparativa
 {
     public function __construct(
-        private readonly ObtenerCotizacionesParaComparativa $query,
-        private readonly ResolverEstrategiaCompra $resolverEstrategia,
+        private ObtenerCotizacionesParaComparativa $query,
+        private ResolverEstrategiaCompra $resolverEstrategia,
+        private ObtenerNombrePersona $obtenerNombrePersona,
     ) {}
 
     /** @return array<string, mixed> */
@@ -32,7 +33,7 @@ final class ObtenerDatosComparativa
         $comparacion = $this->buildComparisonData($solicitud);
         $recomendacion = $this->resolverEstrategia->ejecutar(
             $solicitud,
-            $solicitud->cotizaciones,
+            $solicitud->getAttribute('cotizaciones'),
         );
 
         return [
@@ -45,16 +46,23 @@ final class ObtenerDatosComparativa
     /** @return array<string, mixed> */
     public function buildComparisonData(Solicitud $solicitud): array
     {
-        $items = $solicitud->items;
-        $cotizaciones = $solicitud->cotizaciones;
+        $items = $solicitud->getAttribute('items');
+        $cotizaciones = $solicitud->getAttribute('cotizaciones');
 
         $rows = [];
         foreach ($items as $sItem) {
+            $cantidadAprobada = (float) $sItem->getAttribute('cantidad_aprobada');
+            $cantidadSolicitada = (float) $sItem->getAttribute('cantidad_solicitada');
+            $producto = $sItem->relationLoaded('producto') ? $sItem->getRelation('producto') : null;
+            $variante = $sItem->relationLoaded('variante') ? $sItem->getRelation('variante') : null;
+
             $itemData = [
-                'producto_id' => $sItem->producto_id,
-                'producto' => $sItem->producto->nombre ?? '',
-                'variante_solicitada' => $sItem->variante->nombre_variante ?? 'Estándar',
-                'cantidad' => $sItem->cantidad_aprobada > 0 ? $sItem->cantidad_aprobada : $sItem->cantidad_solicitada,
+                'producto_id' => $sItem->getAttribute('producto_id'),
+                'producto' => $producto?->getAttribute('nombre') ?? '',
+                'variante_solicitada' => $variante?->getAttribute('nombre_variante') ?? 'Estándar',
+                'cantidad' => $cantidadAprobada > 0 ? $cantidadAprobada : $cantidadSolicitada,
+                'cantidad_solicitada' => $cantidadSolicitada,
+                'cantidad_aprobada' => $cantidadAprobada,
                 'precios' => [],
                 'variantes_ofrecidas' => [],
                 'mejor_cotizacion_id' => null,
@@ -63,21 +71,25 @@ final class ObtenerDatosComparativa
             ];
 
             foreach ($cotizaciones as $cot) {
-                $cItem = $cot->items->where('producto_id', $sItem->producto_id)->first();
-                $precio = $cItem?->precio_unitario;
+                $cotItems = $cot->relationLoaded('items') ? $cot->getRelation('items') : collect();
+                $cItem = $cotItems->where('producto_id', $sItem->getAttribute('producto_id'))->first();
+                $precio = $cItem?->getAttribute('precio_unitario');
 
-                $itemData['precios'][$cot->id] = $precio;
-                $itemData['variantes_ofrecidas'][$cot->id] = $cItem?->variante->nombre_variante ?? ($cItem ? 'Estándar' : null);
+                $cItemVariante = $cItem && $cItem->relationLoaded('variante') ? $cItem->getRelation('variante') : null;
+
+                $cotId = $cot->getAttribute('id');
+                $itemData['precios'][$cotId] = $precio;
+                $itemData['variantes_ofrecidas'][$cotId] = $cItemVariante?->getAttribute('nombre_variante') ?? ($cItem ? 'Estándar' : null);
 
                 if ($precio !== null && ($itemData['mejor_precio'] === null || $precio < $itemData['mejor_precio'])) {
                     $itemData['mejor_precio'] = $precio;
-                    $itemData['mejor_cotizacion_id'] = $cot->id;
+                    $itemData['mejor_cotizacion_id'] = $cotId;
                 }
 
-                if ($cItem?->es_elegido) {
+                if ($cItem?->getAttribute('es_elegido')) {
                     $itemData['ganador'] = [
-                        'cotizacion_id' => $cot->id,
-                        'proveedor' => $this->getProveedorNombre($cot),
+                        'cotizacion_id' => $cotId,
+                        'proveedor' => $this->obtenerNombrePersona->ejecutar($cot->proveedor->persona),
                         'precio' => $precio,
                     ];
                 }
@@ -89,24 +101,5 @@ final class ObtenerDatosComparativa
             'cotizaciones' => $cotizaciones,
             'rows' => $rows,
         ];
-    }
-
-    public function getProveedorNombre(Cotizacion $cot): string
-    {
-        $proveedor = $cot->proveedor;
-        if ($proveedor === null) {
-            return "Proveedor #{$cot->proveedor_id}";
-        }
-
-        $persona = $proveedor->persona;
-        if ($persona === null) {
-            return "Proveedor #{$cot->proveedor_id}";
-        }
-
-        if ($persona->personaJuridica) {
-            return $persona->personaJuridica->razon_social;
-        }
-
-        return $persona->primer_nombre ?? "Proveedor #{$cot->proveedor_id}";
     }
 }

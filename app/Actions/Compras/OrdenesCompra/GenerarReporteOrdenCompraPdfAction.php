@@ -23,11 +23,12 @@ final class GenerarReporteOrdenCompraPdfAction
 
     public function ejecutar(OrdenCompra $ordenCompra): \Barryvdh\DomPDF\PDF
     {
-        $ordenCompraConRelaciones = $this->query->ejecutar($ordenCompra->id) ?? $ordenCompra;
+        $ordenId = (int) $ordenCompra->getKey();
+        $ordenCompraConRelaciones = $this->query->ejecutar($ordenId) ?? $ordenCompra;
 
         $datosHotel = HotelInfo::getBaseData();
         $barcodeBase64 = $this->barcodeGenerator->base64(
-            code: (string) $ordenCompra->id,
+            code: (string) $ordenId,
             height: 100,
             widthFactor: 4,
         );

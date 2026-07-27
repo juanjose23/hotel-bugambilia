@@ -131,7 +131,7 @@ class ViewRecepcion extends ViewRecord
                     /** @var RecepcionCompra $record */
                     $record = $this->getRecord();
 
-                    return route('reporte.recepcion', $record);
+                    return route('admin.compras.reportes.recepcion', $record);
                 })
                 ->openUrlInNewTab()
                 ->visible(function () {

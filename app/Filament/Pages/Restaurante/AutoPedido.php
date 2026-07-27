@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Restaurante\CategoriaPlato;
 use App\Interactors\Restaurante\Pedidos\ConfirmarPedidoKiosko;
+use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\User;
@@ -31,7 +34,7 @@ final class AutoPedido extends Page
 
     protected static ?int $navigationSort = 2;
 
-    protected string $view = 'filament.pages.restaurante.auto-pedido';
+    protected string $view = 'filament.resources.restaurante.auto-pedido';
 
     public ?int $categoriaSeleccionadaId = null;
 
@@ -51,37 +54,25 @@ final class AutoPedido extends Page
      */
     public array $carrito = [];
 
-    private RestauranteRepositorioInterface $repositorio;
-
-    private ConfirmarPedidoKiosko $confirmarPedido;
-
-    public function boot(
-        RestauranteRepositorioInterface $repositorio,
-        ConfirmarPedidoKiosko $confirmarPedido,
-    ): void {
-        $this->repositorio = $repositorio;
-        $this->confirmarPedido = $confirmarPedido;
-    }
-
     /**
      * @return Collection<int, Plato>
      */
-    public function getPlatosProperty(): Collection
+    public function getPlatosProperty(RestauranteRepositorioInterface $repositorio): Collection
     {
-        return $this->repositorio->obtenerPlatosActivos($this->categoriaSeleccionadaId);
+        return $repositorio->obtenerPlatosActivos($this->categoriaSeleccionadaId);
     }
 
     /**
      * @return Collection<int, Espacio>
      */
-    public function getMesasProperty(): Collection
+    public function getMesasProperty(RestauranteRepositorioInterface $repositorio): Collection
     {
-        return $this->repositorio->obtenerMesasDisponibles();
+        return $repositorio->obtenerMesasDisponibles();
     }
 
-    public function agregarAlCarrito(int $platoId): void
+    public function agregarAlCarrito(int $platoId, RestauranteRepositorioInterface $repositorio): void
     {
-        $plato = $this->repositorio->obtenerPlatoConPrecios($platoId);
+        $plato = $repositorio->obtenerPlatoConPrecios($platoId);
 
         if (! $plato instanceof Plato) {
             return;
@@ -105,7 +96,7 @@ final class AutoPedido extends Page
         }
 
         Notification::make()
-            ->title("Añadido: {$plato->nombre}")
+            ->title("Añadido: $plato->nombre")
             ->success()
             ->send();
     }
@@ -145,18 +136,20 @@ final class AutoPedido extends Page
         return round($subtotal, 2);
     }
 
-    public function confirmarYEnviarPedido(): void
-    {
+    public function confirmarYEnviarPedido(
+        RestauranteRepositorioInterface $repositorio,
+        ConfirmarPedidoKiosko $confirmarPedido
+    ): void {
         if (empty($this->carrito)) {
             Notification::make()->title('El carrito está vacío')->warning()->send();
 
             return;
         }
 
-        $mesa = is_int($this->mesaId) ? $this->repositorio->obtenerMesaPorId($this->mesaId) : null;
+        $mesa = is_int($this->mesaId) ? $repositorio->obtenerMesaPorId($this->mesaId) : null;
 
         try {
-            $this->confirmarPedido->ejecutar(
+            $confirmarPedido->ejecutar(
                 items: array_values($this->carrito),
                 mesa: $mesa,
                 meseroId: auth()->id() !== null ? (int) auth()->id() : null,
@@ -177,6 +170,17 @@ final class AutoPedido extends Page
         } catch (DomainException $e) {
             Notification::make()->title('Error al procesar auto-pedido')->body($e->getMessage())->danger()->send();
         }
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function getCategoriasProperty(): Collection
+    {
+        return Catalogo::query()
+            ->whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_SERVICIO))
+            ->whereIn('codigo', CategoriaPlato::codigos())
+            ->pluck('nombre', 'id');
     }
 
     public static function canAccess(): bool

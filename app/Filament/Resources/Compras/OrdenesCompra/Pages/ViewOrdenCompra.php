@@ -22,7 +22,7 @@ class ViewOrdenCompra extends ViewRecord
                 ->label('Imprimir')
                 ->icon(Heroicon::Printer)
                 ->color('gray')
-                ->url(fn ($record) => route('reporte.orden-compra', $record))
+                ->url(fn ($record) => route('admin.compras.reportes.orden-compra', $record))
                 ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->can('Compras:ImprimirOrdenCompra') ?? false),
 

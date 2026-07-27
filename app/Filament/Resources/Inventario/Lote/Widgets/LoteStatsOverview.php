@@ -23,18 +23,12 @@ class LoteStatsOverview extends BaseWidget
             : parent::canView();
     }
 
-    protected ObtenerEstadisticasLotes $obtenerEstadisticasLotes;
-
-    public function booted(): void
-    {
-        $this->obtenerEstadisticasLotes = app(ObtenerEstadisticasLotes::class);
-    }
-
     protected static ?int $sort = 1;
 
     protected function getStats(): array
     {
-        $stats = $this->obtenerEstadisticasLotes->execute();
+        $obtenerEstadisticasLotes = app(ObtenerEstadisticasLotes::class);
+        $stats = $obtenerEstadisticasLotes->execute();
 
         return [
             Stat::make('Lotes en Stock', (string) $stats['lotes_en_stock'])

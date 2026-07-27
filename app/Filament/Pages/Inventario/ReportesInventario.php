@@ -30,6 +30,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\View\View;
+use InvalidArgumentException;
 use UnitEnum;
 
 /**
@@ -40,7 +41,7 @@ class ReportesInventario extends Page implements HasForms
     use HasPageShield;
     use InteractsWithForms;
 
-    protected string $view = 'filament.pages.inventario.reportes-inventario';
+    protected string $view = 'filament.resources.inventario.reportes-inventario';
 
     protected ObtenerMonedaBase $monedaBase;
 
@@ -222,7 +223,7 @@ class ReportesInventario extends Page implements HasForms
             $route = ReporteConfig::getRuta('inventario', $reporte);
 
             return $this->extracted($reporte, $data, $params, $route);
-        } catch (\InvalidArgumentException) {
+        } catch (InvalidArgumentException) {
             Notification::make()
                 ->title('Reporte no disponible')
                 ->body('Este reporte no está disponible en formato PDF.')
@@ -254,7 +255,7 @@ class ReportesInventario extends Page implements HasForms
             $route = ReporteConfig::getRuta('inventario', $reporte, 'excel');
 
             return $this->extracted($reporte, $data, $params, $route);
-        } catch (\InvalidArgumentException) {
+        } catch (InvalidArgumentException) {
             Notification::make()
                 ->title('Reporte no disponible')
                 ->body('Este reporte no está disponible en formato Excel.')
@@ -295,7 +296,7 @@ class ReportesInventario extends Page implements HasForms
 
     public function getHeader(): ?View
     {
-        return view('filament.pages.inventario.reportes-header');
+        return view('filament.resources.inventario.reportes-header');
     }
 
     public function getHeaderActions(): array
@@ -327,12 +328,7 @@ class ReportesInventario extends Page implements HasForms
             'Inventario:ReporteCostoVentas',
         ];
 
-        foreach ($reportPermissions as $perm) {
-            if ($user->can($perm)) {
-                return true;
-            }
-        }
+        return array_any($reportPermissions, fn ($perm) => $user->can($perm));
 
-        return false;
     }
 }

@@ -14,14 +14,14 @@
     </div>
 
     <div class="flex flex-wrap gap-2 text-xs">
-        <button 
+        <button
             wire:click="$set('areaSeleccionada', null)"
             class="px-3.5 py-1.5 rounded-xl font-bold uppercase transition-all text-xs border cursor-pointer {{ $areaSeleccionada === null ? 'bg-[#6b003e] text-white border-[#8a004e] shadow-sm' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' }}"
         >
             Todas las Áreas
         </button>
-        @foreach(\App\Enums\Restaurante\AreaCocina::cases() as $area)
-            <button 
+        @foreach(AreaCocina::cases() as $area)
+            <button
                 wire:click="$set('areaSeleccionada', '{{ $area->value }}')"
                 class="px-3.5 py-1.5 rounded-xl font-bold uppercase transition-all text-xs flex items-center gap-1.5 border cursor-pointer {{ $areaSeleccionada === $area->value ? 'bg-[#6b003e] text-white border-[#8a004e] shadow-sm' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' }}"
             >

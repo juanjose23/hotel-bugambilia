@@ -199,7 +199,7 @@ class ServicioSeeder extends Seeder
         foreach ($serviciosPorCategoria as $categoriaCodigo => $servicios) {
             $categoria = Catalogo::where('codigo', $categoriaCodigo)->first();
             if (! $categoria) {
-                $this->command->warn("No se encontró la categoría de servicio '{$categoriaCodigo}'. Se saltarán estos servicios.");
+                $this->command->warn("No se encontró la categoría de servicio '$categoriaCodigo'. Se saltarán estos servicios.");
 
                 continue;
             }

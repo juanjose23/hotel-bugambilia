@@ -72,7 +72,7 @@ class TableroLimpieza extends Page implements HasForms
         $this->obtenerChecklist = $obtenerChecklist;
     }
 
-    protected string $view = 'filament.pages.limpieza.tablero-limpieza';
+    protected string $view = 'filament.resources.limpieza.tablero-limpieza';
 
     protected static ?string $slug = 'tablero-limpieza';
 
@@ -142,7 +142,7 @@ class TableroLimpieza extends Page implements HasForms
                             ->afterStateUpdated(fn (callable $set) => $set('selectedSubUbicacionId', null))
                             ->live(),
 
-                        UbicacionLimpiableSelects::makeSubUbicacion('selectedSubUbicacionId', 'selectedUbicacionId', 'tipo_ubicacion')
+                        UbicacionLimpiableSelects::makeSubUbicacion('selectedSubUbicacionId')
                             ->label('Sub-ubicación')
                             ->placeholder('Todas las sub-ubicaciones')
                             ->live(),
@@ -189,11 +189,8 @@ class TableroLimpieza extends Page implements HasForms
         return $this->obtenerEjecuciones->execute($filtros);
     }
 
-    /**
-     * @return Collection<int, LimpiezaEjecucion>
-     */
     #[Computed]
-    public function pendientes(): Collection
+    public function pendientes(): \Illuminate\Support\Collection
     {
         return $this->executions()
             ->where('estado', EstadoLimpieza::Pendiente)
@@ -201,11 +198,7 @@ class TableroLimpieza extends Page implements HasForms
             ->values();
     }
 
-    /**
-     * @return Collection<int, LimpiezaEjecucion>
-     */
-    #[Computed]
-    public function enProgreso(): Collection
+    public function enProgreso(): \Illuminate\Support\Collection
     {
         return $this->executions()
             ->where('estado', EstadoLimpieza::EnProgreso)
@@ -213,11 +206,7 @@ class TableroLimpieza extends Page implements HasForms
             ->values();
     }
 
-    /**
-     * @return Collection<int, LimpiezaEjecucion>
-     */
-    #[Computed]
-    public function completadas(): Collection
+    public function completadas(): \Illuminate\Support\Collection
     {
         return $this->executions()
             ->filter(fn (LimpiezaEjecucion $e): bool => $e->estado->estaFinalizada())
@@ -228,7 +217,6 @@ class TableroLimpieza extends Page implements HasForms
     /**
      * @return Collection<int, LimpiezaEjecucion>
      */
-    #[Computed]
     public function pendientesPaged(): Collection
     {
         return $this->pendientes()->take($this->pendientesLimit)->values();
@@ -237,7 +225,6 @@ class TableroLimpieza extends Page implements HasForms
     /**
      * @return Collection<int, LimpiezaEjecucion>
      */
-    #[Computed]
     public function enProgresoPaged(): Collection
     {
         return $this->enProgreso()->take($this->enProgresoLimit)->values();
