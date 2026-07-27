@@ -48,6 +48,7 @@ enum MetodoPago: int implements HasColor, HasIcon, HasLabel
             self::CREDITO_CORPORATIVO => 'Crédito Corporativo',
             self::PUNTOS_LEALTAD => 'Puntos / Lealtad',
         };
+
     }
 
     public function getColor(): string

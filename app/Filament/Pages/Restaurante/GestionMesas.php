@@ -59,7 +59,7 @@ final class GestionMesas extends Page
 
     protected static ?int $navigationSort = 5;
 
-    protected string $view = 'filament.pages.restaurante.gestion-mesas';
+    protected string $view = 'filament.resources.restaurante.gestion-mesas';
 
     // ── Mapa de mesas ──
     /** @var Collection<int, Espacio> */
