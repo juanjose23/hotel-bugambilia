@@ -34,7 +34,7 @@ class ReportesActivos extends Page implements HasForms
     use HasPageShield;
     use InteractsWithForms;
 
-    protected string $view = 'filament.pages.activos.reportes-activos';
+    protected string $view = 'filament.resources.activos.reportes-activos';
 
     protected static ?string $slug = 'reportes-activos';
 

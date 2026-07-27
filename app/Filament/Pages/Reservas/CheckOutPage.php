@@ -27,6 +27,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Livewire\Attributes\Url;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -48,7 +49,7 @@ final class CheckOutPage extends Page implements HasForms, HasTable
 
     protected static ?int $navigationSort = 3;
 
-    protected string $view = 'filament.pages.reservas.check-out-page';
+    protected string $view = 'filament.resources.reservas.check-out-page';
 
     #[Url]
     public ?int $record = null;
@@ -139,8 +140,8 @@ final class CheckOutPage extends Page implements HasForms, HasTable
                     ->money('NIO')
                     ->placeholder('C$ 0.00'),
             ])
-            ->defaultSort('fecha_check_in', 'asc')
-            ->actions([
+            ->defaultSort('fecha_check_in')
+            ->recordActions([
                 Action::make('iniciar_check_out')
                     ->label('Completar Check-Out')
                     ->icon('heroicon-o-arrow-right-on-rectangle')
@@ -196,10 +197,10 @@ final class CheckOutPage extends Page implements HasForms, HasTable
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Notification::make()
                 ->title('Error inesperado')
-                ->body('Ocurrió un error al registrar el check-out.')
+                ->body('Ocurrió un error al registrar el check-out.'.$e->getMessage())
                 ->danger()
                 ->send();
         }

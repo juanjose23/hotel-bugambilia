@@ -67,7 +67,7 @@ class ReporteHistoricoPrecios extends Page
                 ->modalDescription('Filtra opcionalmente y descarga el reporte en PDF listo para imprimir.')
                 ->schema($sharedFilters)
                 ->action(function (array $data) {
-                    return redirect()->route('reporte.servicios.historico-precios.pdf', [
+                    return redirect()->route('admin.servicios.reportes.historico-precios.pdf', [
                         'categoria_id' => $data['categoria_id'] ?? null,
                         'servicio_id' => $data['servicio_id'] ?? null,
                         'moneda_id' => $data['moneda_id'] ?? null,
@@ -83,7 +83,7 @@ class ReporteHistoricoPrecios extends Page
                 ->modalDescription('Filtra opcionalmente y descarga el reporte en formato .xlsx.')
                 ->schema($sharedFilters)
                 ->action(function (array $data) {
-                    return redirect()->route('reporte.servicios.historico-precios.excel', [
+                    return redirect()->route('admin.servicios.reportes.historico-precios.excel', [
                         'categoria_id' => $data['categoria_id'] ?? null,
                         'servicio_id' => $data['servicio_id'] ?? null,
                         'moneda_id' => $data['moneda_id'] ?? null,

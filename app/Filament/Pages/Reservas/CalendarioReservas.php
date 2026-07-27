@@ -39,7 +39,7 @@ final class CalendarioReservas extends Page implements HasForms
 
     protected static ?int $navigationSort = 2;
 
-    protected string $view = 'filament.pages.calendario-reservas';
+    protected string $view = 'filament.resources.calendario-reservas';
 
     public int $month;
 

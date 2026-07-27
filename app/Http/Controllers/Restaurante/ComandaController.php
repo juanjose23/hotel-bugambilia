@@ -59,7 +59,7 @@ final class ComandaController extends Controller
             ipAddress: $request->ip(),
         );
 
-        return view('restaurante.comanda', [
+        return view('reports.restaurante.comanda', [
             'pedido' => $pedido,
             'items' => $items,
             'area' => $area,
