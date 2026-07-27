@@ -23,7 +23,8 @@ final class GenerarReporteOrdenCompraPdfAction
 
     public function ejecutar(OrdenCompra $ordenCompra): \Barryvdh\DomPDF\PDF
     {
-        $ordenId = (int) $ordenCompra->getKey();
+        /** @var int $ordenId */
+        $ordenId = $ordenCompra->getKey();
         $ordenCompraConRelaciones = $this->query->ejecutar($ordenId) ?? $ordenCompra;
 
         $datosHotel = HotelInfo::getBaseData();

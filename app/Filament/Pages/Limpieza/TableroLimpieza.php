@@ -189,6 +189,9 @@ class TableroLimpieza extends Page implements HasForms
         return $this->obtenerEjecuciones->execute($filtros);
     }
 
+    /**
+     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     */
     #[Computed]
     public function pendientes(): \Illuminate\Support\Collection
     {
@@ -198,6 +201,9 @@ class TableroLimpieza extends Page implements HasForms
             ->values();
     }
 
+    /**
+     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     */
     public function enProgreso(): \Illuminate\Support\Collection
     {
         return $this->executions()
@@ -206,6 +212,9 @@ class TableroLimpieza extends Page implements HasForms
             ->values();
     }
 
+    /**
+     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     */
     public function completadas(): \Illuminate\Support\Collection
     {
         return $this->executions()
@@ -215,26 +224,26 @@ class TableroLimpieza extends Page implements HasForms
     }
 
     /**
-     * @return Collection<int, LimpiezaEjecucion>
+     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
      */
-    public function pendientesPaged(): Collection
+    public function pendientesPaged(): \Illuminate\Support\Collection
     {
         return $this->pendientes()->take($this->pendientesLimit)->values();
     }
 
     /**
-     * @return Collection<int, LimpiezaEjecucion>
+     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
      */
-    public function enProgresoPaged(): Collection
+    public function enProgresoPaged(): \Illuminate\Support\Collection
     {
         return $this->enProgreso()->take($this->enProgresoLimit)->values();
     }
 
     /**
-     * @return Collection<int, LimpiezaEjecucion>
+     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
      */
     #[Computed]
-    public function completadasPaged(): Collection
+    public function completadasPaged(): \Illuminate\Support\Collection
     {
         return $this->completadas()->take($this->completadasLimit)->values();
     }
