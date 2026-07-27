@@ -72,6 +72,6 @@ final class ComandaController extends Controller
      */
     public function pantallaTurnosPublica(): View
     {
-        return view('restaurante.pantalla-turnos-publica');
+        return view('filament.resources.restaurante.pantalla-turnos-publica');
     }
 }

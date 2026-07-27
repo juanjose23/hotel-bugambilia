@@ -177,10 +177,13 @@ final class AutoPedido extends Page
      */
     public function getCategoriasProperty(): Collection
     {
-        return Catalogo::query()
+        /** @var Collection<int, string> $resultado */
+        $resultado = Catalogo::query()
             ->whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_SERVICIO))
             ->whereIn('codigo', CategoriaPlato::codigos())
             ->pluck('nombre', 'id');
+
+        return $resultado;
     }
 
     public static function canAccess(): bool

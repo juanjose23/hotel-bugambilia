@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Interactors\Compras\Cotizaciones;
 
 use App\BusinessLogic\Compras\ResolverEstrategiaCompra;
+use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Models\Compras\CotizacionItem;
+use App\Repository\Models\Compras\Proveedor;
 use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Models\Compras\SolicitudItem;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionesParaComparativa;
 use App\Repository\Queries\Shared\ObtenerNombrePersona;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 final readonly class ObtenerDatosComparativa
 {
@@ -31,9 +37,12 @@ final readonly class ObtenerDatosComparativa
         }
 
         $comparacion = $this->buildComparisonData($solicitud);
+
+        /** @var Collection<int, Cotizacion> $cotizacionesSolicitud */
+        $cotizacionesSolicitud = $solicitud->getAttribute('cotizaciones');
         $recomendacion = $this->resolverEstrategia->ejecutar(
             $solicitud,
-            $solicitud->getAttribute('cotizaciones'),
+            $cotizacionesSolicitud,
         );
 
         return [
@@ -46,14 +55,20 @@ final readonly class ObtenerDatosComparativa
     /** @return array<string, mixed> */
     public function buildComparisonData(Solicitud $solicitud): array
     {
+        /** @var Collection<int, SolicitudItem> $items */
         $items = $solicitud->getAttribute('items');
+        /** @var Collection<int, Cotizacion> $cotizaciones */
         $cotizaciones = $solicitud->getAttribute('cotizaciones');
 
         $rows = [];
         foreach ($items as $sItem) {
-            $cantidadAprobada = (float) $sItem->getAttribute('cantidad_aprobada');
-            $cantidadSolicitada = (float) $sItem->getAttribute('cantidad_solicitada');
+            /** @var float $cantidadAprobada */
+            $cantidadAprobada = $sItem->getAttribute('cantidad_aprobada');
+            /** @var float $cantidadSolicitada */
+            $cantidadSolicitada = $sItem->getAttribute('cantidad_solicitada');
+            /** @var Model|null $producto */
             $producto = $sItem->relationLoaded('producto') ? $sItem->getRelation('producto') : null;
+            /** @var Model|null $variante */
             $variante = $sItem->relationLoaded('variante') ? $sItem->getRelation('variante') : null;
 
             $itemData = [
@@ -71,12 +86,16 @@ final readonly class ObtenerDatosComparativa
             ];
 
             foreach ($cotizaciones as $cot) {
+                /** @var Collection<int, CotizacionItem> $cotItems */
                 $cotItems = $cot->relationLoaded('items') ? $cot->getRelation('items') : collect();
+                /** @var SolicitudItem|null $cItem */
                 $cItem = $cotItems->where('producto_id', $sItem->getAttribute('producto_id'))->first();
                 $precio = $cItem?->getAttribute('precio_unitario');
 
+                /** @var Model|null $cItemVariante */
                 $cItemVariante = $cItem && $cItem->relationLoaded('variante') ? $cItem->getRelation('variante') : null;
 
+                /** @var int $cotId */
                 $cotId = $cot->getAttribute('id');
                 $itemData['precios'][$cotId] = $precio;
                 $itemData['variantes_ofrecidas'][$cotId] = $cItemVariante?->getAttribute('nombre_variante') ?? ($cItem ? 'Estándar' : null);
@@ -87,9 +106,12 @@ final readonly class ObtenerDatosComparativa
                 }
 
                 if ($cItem?->getAttribute('es_elegido')) {
+                    /** @var Proveedor $proveedor */
+                    $proveedor = $cot->proveedor;
+                    $persona = $proveedor->persona;
                     $itemData['ganador'] = [
                         'cotizacion_id' => $cotId,
-                        'proveedor' => $this->obtenerNombrePersona->ejecutar($cot->proveedor->persona),
+                        'proveedor' => $persona !== null ? $this->obtenerNombrePersona->ejecutar($persona) : '',
                         'precio' => $precio,
                     ];
                 }
