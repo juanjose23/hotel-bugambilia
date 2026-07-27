@@ -39,6 +39,9 @@ final class PantallaPedidos extends Page
     /** @var Collection<int, Pedido> */
     public Collection $pedidosListos;
 
+    /** @var Collection<int, Pedido> */
+    public Collection $pedidos;
+
     public int $ultimoTotalListos = 0;
 
     private ObtenerPedidosPantallaQuery $pantallaQuery;
@@ -59,6 +62,7 @@ final class PantallaPedidos extends Page
 
         $this->pedidosEnPreparacion = $datos['enPreparacion'];
         $this->pedidosListos = $datos['listos'];
+        $this->pedidos = $this->pedidosEnPreparacion->merge($this->pedidosListos);
 
         $nuevoTotalListos = $this->pedidosListos->count();
 

@@ -33,7 +33,7 @@ final class ReportesRestaurante extends Page implements HasTable
 
     protected static ?int $navigationSort = 10;
 
-    protected string $view = 'filament.pages.restaurante.reportes-restaurante';
+    protected string $view = 'filament.resources.restaurante.reportes-restaurante';
 
     /** @var array<string, mixed> */
     public array $resumen = [];

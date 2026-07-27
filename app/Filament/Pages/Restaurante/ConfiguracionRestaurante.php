@@ -32,7 +32,7 @@ final class ConfiguracionRestaurante extends Page
 
     protected static ?int $navigationSort = 15;
 
-    protected string $view = 'filament.pages.restaurante.configuracion-restaurante';
+    protected string $view = 'filament.resources.restaurante.configuracion-restaurante';
 
     public float $propinaSugerida = 10.0;
 

@@ -19,7 +19,7 @@ class ReporteHistoricoPrecios extends Page
 {
     use HasPageShield;
 
-    protected string $view = 'filament.pages.servicios.reporte-historico-precios';
+    protected string $view = 'filament.resources.servicios.reporte-historico-precios';
 
     protected static ?string $slug = 'reporte-historico-precios-servicios';
 
