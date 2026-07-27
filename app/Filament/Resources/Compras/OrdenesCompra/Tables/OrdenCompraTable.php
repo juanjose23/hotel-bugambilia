@@ -33,7 +33,6 @@ class OrdenCompraTable
 {
     use InyectaDesdeContenedor;
     use TieneAccionesImprimirExportar;
-    use TieneAccionesImprimirExportar;
 
     private readonly EmitirOrdenCompra $emitirOrdenCompra;
 
@@ -199,7 +198,7 @@ class OrdenCompraTable
                         ->action(fn (OrdenCompra $record) => $this->finalizarOrdenCompra->ejecutar($record))
                         ->visible(fn (OrdenCompra $record) => $record->estado === EstadoOrdenCompra::Parcial),
 
-                    self::makeImprimirAction('reporte.orden-compra', 'Compras:ImprimirOrdenCompra'),
+                    self::makeImprimirAction('admin.compras.reportes.orden-compra', 'Compras:ImprimirOrdenCompra'),
 
                     Action::make('cancelar')
                         ->label('Cancelar')

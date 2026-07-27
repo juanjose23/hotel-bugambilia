@@ -16,7 +16,7 @@ class CalendarioMantenimientos extends Page
 {
     use HasPageShield;
 
-    protected string $view = 'filament.pages.activos.calendario-mantenimientos';
+    protected string $view = 'filament.resources.activos.calendario-mantenimientos';
 
     protected static ?string $slug = 'calendario-mantenimientos';
 

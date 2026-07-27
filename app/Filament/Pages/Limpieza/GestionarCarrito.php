@@ -102,7 +102,7 @@ class GestionarCarrito extends Page implements HasForms, HasTable
 
     public string $activeTab = 'abastecer';
 
-    protected string $view = 'filament.pages.limpieza.gestionar-carrito';
+    protected string $view = 'filament.resources.limpieza.gestionar-carrito';
 
     protected static ?string $slug = 'limpieza/gestionar-carrito';
 

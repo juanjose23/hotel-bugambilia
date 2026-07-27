@@ -70,12 +70,11 @@ final class ObtenerComparativaReporteQuery
         foreach ($solicitud->items as $item) {
             $producto = $item->producto ? new ProductoReporteData(nombre: $item->producto->nombre) : null;
             $variante = $item->variante ? new VarianteReporteData(codigo: $item->variante->codigo, nombre_variante: $item->variante->nombre_variante) : null;
-            $prodVariante = $item->productoVariante ? new VarianteReporteData(codigo: $item->productoVariante->codigo, nombre_variante: $item->productoVariante->nombre_variante) : null;
             $items->push(new SolicitudItemReporteData(
                 id: $item->id,
                 producto_id: (int) $item->producto_id,
                 producto: $producto,
-                productoVariante: $prodVariante,
+                productoVariante: $variante,
                 variante: $variante,
                 cantidad_solicitada: (float) $item->cantidad_solicitada,
                 cantidad_aprobada: (float) $item->cantidad_aprobada

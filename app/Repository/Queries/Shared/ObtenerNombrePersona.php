@@ -29,7 +29,7 @@ class ObtenerNombrePersona
         $persona = Persona::with(['personaNatural', 'personaJuridica'])->find($personaId);
 
         if ($persona === null) {
-            return "Persona #{$personaId}";
+            return "Persona #$personaId";
         }
 
         return self::resolverNombre($persona);
@@ -93,6 +93,6 @@ class ObtenerNombrePersona
 
         $fallback = trim(implode(' ', $partes));
 
-        return filled($fallback) ? $fallback : "Persona #{$persona->id}";
+        return filled($fallback) ? $fallback : "Persona #$persona->id";
     }
 }

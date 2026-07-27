@@ -74,7 +74,7 @@ class RecepcionTable
                     ->button(),
                 ActionGroup::make([
                     ViewAction::make(),
-                    self::makeImprimirAction('reporte.recepcion', 'Compras:ImprimirRecepcion'),
+                    self::makeImprimirAction('admin.compras.reportes.recepcion', 'Compras:ImprimirRecepcion'),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])

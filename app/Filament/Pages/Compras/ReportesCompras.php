@@ -35,7 +35,7 @@ class ReportesCompras extends Page implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
-    protected string $view = 'filament.pages.compras.reportes-compras';
+    protected string $view = 'filament.resources.compras.reportes-compras';
 
     protected static ?string $slug = 'reportes-compras';
 
@@ -191,20 +191,20 @@ class ReportesCompras extends Page implements HasForms, HasTable
                     ->label('PDF Solicitud')
                     ->icon(Heroicon::DocumentArrowDown)
                     ->color('gray')
-                    ->url(fn (Solicitud $record) => route('reporte.solicitud', ['solicitud' => $record->id]))
+                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.solicitud', ['solicitud' => $record->id]))
                     ->openUrlInNewTab(),
                 Action::make('descargar_comparativa')
                     ->label('PDF Comparativa')
                     ->icon(Heroicon::TableCells)
                     ->color('gray')
-                    ->url(fn (Solicitud $record) => route('reporte.comparativa', ['solicitud' => $record->id]))
+                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.comparativa', ['solicitud' => $record->id]))
                     ->openUrlInNewTab()
                     ->visible(fn (Solicitud $record) => $record->cotizaciones()->count() > 0),
                 Action::make('imprimir_trazabilidad')
                     ->label('Imprimir Trazabilidad')
                     ->icon(Heroicon::Printer)
                     ->color('primary')
-                    ->url(fn (Solicitud $record) => route('reporte.compras.trazabilidad-completa', ['solicitud' => $record->id]))
+                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.trazabilidad-completa', ['solicitud' => $record->id]))
                     ->openUrlInNewTab()
                     ->tooltip('Genera el PDF HTB-COM-009 con el proceso completo de esta compra'),
             ]);

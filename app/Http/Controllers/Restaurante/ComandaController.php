@@ -59,7 +59,7 @@ final class ComandaController extends Controller
             ipAddress: $request->ip(),
         );
 
-        return view('restaurante.comanda', [
+        return view('reports.restaurante.comanda', [
             'pedido' => $pedido,
             'items' => $items,
             'area' => $area,
@@ -72,6 +72,6 @@ final class ComandaController extends Controller
      */
     public function pantallaTurnosPublica(): View
     {
-        return view('restaurante.pantalla-turnos-publica');
+        return view('filament.resources.restaurante.pantalla-turnos-publica');
     }
 }

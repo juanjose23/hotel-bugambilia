@@ -68,7 +68,7 @@
                                 </div>
                                 <div class="flex justify-between text-xs">
                                     <span class="text-gray-500">Cantidad y Precio:</span>
-                                    <span class="text-gray-700 dark:text-gray-300">{{ number_format($w['cantidad'], 0) }} x ${{ number_format($w['precio_unitario'], 2) }}</span>
+                                    <span class="text-gray-700 dark:text-gray-300">{{ number_format($w['cantidad_solicitada']) }} x ${{ number_format($w['precio_unitario'], 2) }}</span>
                                 </div>
                             </div>
 
@@ -84,7 +84,7 @@
                                         Pendiente de OC
                                     </div>
                                 @endif
-                                
+
                                 <span class="text-[9px] text-gray-400 font-mono">COT #{{ $w['cotizacion_id'] }}</span>
                             </div>
                         </div>
@@ -103,7 +103,7 @@
                                 <th class="p-4 text-sm font-bold text-center border-b border-gray-200 dark:border-gray-700">
                                      <div class="flex flex-col items-center gap-2">
                                          <span class="text-gray-900 dark:text-white leading-tight">
-                                             {{ $cot->proveedor->persona->personaJuridica->razon_social ?? $cot->proveedor->contacto_nombre }}
+                                             {{ $cot->proveedor->persona->nombre_completo ?? "Proveedor #{$cot->proveedor_id}" }}
                                          </span>
                                          <span class="px-2 py-0.5 text-[9px] font-bold text-gray-500 bg-gray-100 rounded dark:bg-gray-800 uppercase tracking-tighter">
                                              {{ $cot->proveedor->tipoProveedor->nombre ?? 'Proveedor' }}
@@ -113,7 +113,7 @@
                                                 {{ strtoupper($cot->proveedor->persona->personaJuridica->tipo_identificacion ?? 'ID') }}: {{ $cot->proveedor->persona->personaJuridica->numero_identificacion }}
                                             </span>
                                          @endif
-                                        <button 
+                                        <button
                                             wire:click="seleccionarTodoProveedor({{ $cot->id }})"
                                             class="px-2 py-1 text-[10px] text-white bg-primary-600 rounded hover:bg-primary-700 transition-colors"
                                         >
@@ -130,7 +130,7 @@
                                 <td class="p-4">
                                     <div class="font-medium text-gray-900 dark:text-white">{{ $row['producto'] }}</div>
                                     <div class="text-[10px] text-primary-600 font-bold uppercase">{{ $row['variante_solicitada'] }}</div>
-                                    <div class="text-xs text-gray-500">Cantidad: {{ number_format($row['cantidad'], 0) }}</div>
+                                    <div class="text-xs text-gray-500">Cantidad: {{ number_format($row['cantidad']) }}</div>
                                 </td>
                                 @foreach($data['cotizaciones'] as $cot)
                                     <td @class([
@@ -146,17 +146,17 @@
                                                 ])>
                                                     ${{ number_format($row['precios'][$cot->id], 2) }}
                                                 </span>
-                                                
+
                                                 <span class="text-[9px] text-gray-400 font-medium uppercase tracking-tighter line-clamp-1" title="Variante ofrecida">
                                                     {{ $row['variantes_ofrecidas'][$cot->id] }}
                                                 </span>
-                                                
-                                                @php 
+
+                                                @php
                                                     $thisItem = $cot->items->where('producto_id', $row['producto_id'])->first();
                                                     $isElected = $thisItem?->es_elegido ?? false;
                                                 @endphp
 
-                                                <button 
+                                                <button
                                                     wire:click="seleccionarGanadorPorItem({{ $row['producto_id'] }}, {{ $cot->id }})"
                                                     @class([
                                                         'p-1 rounded-full transition-all',

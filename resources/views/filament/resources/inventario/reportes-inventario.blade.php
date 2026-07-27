@@ -1,38 +1,48 @@
+@php
+    use App\Filament\Resources\Inventario\Lote\Widgets\LotesEnRiesgoChart;
+    use App\Filament\Resources\Inventario\Lote\Widgets\StockPorCategoriaChart;
+    use App\Filament\Resources\Inventario\Lote\Widgets\ValorizacionInventarioChart;
+    use App\Filament\Resources\Inventario\MovimientoStock\Widgets\MermasPorCategoriaChart;
+    use App\Filament\Resources\Inventario\MovimientoStock\Widgets\RotacionInventarioChart;
+    use Carbon\Carbon;
+@endphp
 <x-filament-panels::page>
-    <div x-data="{ activeTab: 'dashboard' }" x-on:open-new-tab.window="window.open($event.detail.url, '_blank')" class="space-y-6">
+    <div x-data="{ activeTab: 'dashboard' }" x-on:open-new-tab.window="window.open($event.detail.url, '_blank')"
+         class="space-y-6">
 
-        {{-- ─── Navegación de Pestañas (Modern Tabs) ─────────────────────────── --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-3 gap-4 dark:border-gray-700">
+        <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-3 gap-4 dark:border-gray-700">
             <div>
-                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Panel de Inteligencia de Inventario</h1>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Panel de Inventario</h1>
                 <p class="text-xs text-gray-500 mt-0.5">Control visual, alertas operativas y descarga de reportes para
                     administración.</p>
             </div>
 
             <div class="flex flex-wrap gap-1.5 bg-gray-100 p-1 rounded-xl dark:bg-gray-900 shadow-inner">
                 <button
-                        @click="activeTab = 'dashboard'"
-                        :class="activeTab === 'dashboard' ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-800 dark:text-primary-400 font-semibold' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/30'"
-                        class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200">
+                    @click="activeTab = 'dashboard'"
+                    :class="activeTab === 'dashboard' ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-800 dark:text-primary-400 font-semibold' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/30'"
+                    class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200">
                     <x-heroicon-s-chart-bar class="h-4 w-4" />
                     <span>Panel Visual</span>
                 </button>
                 <button
-                        @click="activeTab = 'control'"
-                        :class="activeTab === 'control' ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-800 dark:text-primary-400 font-semibold' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/30'"
-                        class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative">
+                    @click="activeTab = 'control'"
+                    :class="activeTab === 'control' ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-800 dark:text-primary-400 font-semibold' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/30'"
+                    class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative">
                     <x-heroicon-s-exclamation-triangle class="h-4 w-4" />
                     <span>Control de Alertas</span>
                     @if(($lotesVencidos?->count() ?? 0) > 0 || ($lotesCuarentena?->count() ?? 0) > 0)
-                        <span class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                        <span
+                            class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
                             {{ ($lotesVencidos?->count() ?? 0) + ($lotesCuarentena?->count() ?? 0) }}
                         </span>
                     @endif
                 </button>
                 <button
-                        @click="activeTab = 'reports'"
-                        :class="activeTab === 'reports' ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-800 dark:text-primary-400 font-semibold' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/30'"
-                        class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200">
+                    @click="activeTab = 'reports'"
+                    :class="activeTab === 'reports' ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-800 dark:text-primary-400 font-semibold' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/30'"
+                    class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200">
                     <x-heroicon-s-arrow-down-tray class="h-4 w-4" />
                     <span>Descargar Reportes</span>
                 </button>
@@ -42,7 +52,8 @@
         {{-- ─── KPIs Clave (Siempre Visibles en la Cabecera) ─────────────────── --}}
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {{-- Total lotes disponibles --}}
-            <div class="rounded-2xl border border-gray-150 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800 transition hover:shadow-md">
+            <div
+                class="rounded-2xl border border-gray-150 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800 transition hover:shadow-md">
                 <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Productos
                     Activos</p>
                 <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
@@ -52,7 +63,8 @@
             </div>
 
             {{-- Lotes en cuarentena --}}
-            <div class="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 shadow-sm dark:border-amber-900/30 dark:bg-amber-950/20 transition hover:shadow-md">
+            <div
+                class="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 shadow-sm dark:border-amber-900/30 dark:bg-amber-950/20 transition hover:shadow-md">
                 <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider">En
                     Cuarentena</p>
                 <p class="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">
@@ -62,7 +74,8 @@
             </div>
 
             {{-- Próximos a vencer --}}
-            <div class="rounded-2xl border border-orange-100 bg-orange-50/50 p-4 shadow-sm dark:border-orange-900/30 dark:bg-orange-950/20 transition hover:shadow-md">
+            <div
+                class="rounded-2xl border border-orange-100 bg-orange-50/50 p-4 shadow-sm dark:border-orange-900/30 dark:bg-orange-950/20 transition hover:shadow-md">
                 <p class="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wider">Próximos
                     a Vencer</p>
                 <p class="mt-1 text-2xl font-bold text-orange-600 dark:text-orange-400">
@@ -72,7 +85,8 @@
             </div>
 
             {{-- Lotes Vencidos --}}
-            <div class="rounded-2xl border border-red-100 bg-red-50/50 p-4 shadow-sm dark:border-red-900/30 dark:bg-red-950/20 transition hover:shadow-md">
+            <div
+                class="rounded-2xl border border-red-100 bg-red-50/50 p-4 shadow-sm dark:border-red-900/30 dark:bg-red-950/20 transition hover:shadow-md">
                 <p class="text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">Lotes
                     Vencidos</p>
                 <p class="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
@@ -82,7 +96,8 @@
             </div>
 
             {{-- Valor total del inventario --}}
-            <div class="col-span-2 sm:col-span-1 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-sm dark:border-emerald-900/30 dark:bg-emerald-950/20 transition hover:shadow-md">
+            <div
+                class="col-span-2 sm:col-span-1 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-sm dark:border-emerald-900/30 dark:bg-emerald-950/20 transition hover:shadow-md">
                 <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Valor
                     Monetario</p>
                 <p class="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -94,7 +109,8 @@
 
         {{-- ─── PESTAÑA 1: PANEL VISUAL (DASHBOARD) ─────────────────────────── --}}
         <div x-show="activeTab === 'dashboard'" x-transition class="space-y-6">
-            <div class="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+            <div
+                class="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800">
                 <div class="flex items-center gap-2 mb-4 border-b border-gray-100 pb-3 dark:border-gray-700">
                     <x-heroicon-o-presentation-chart-line class="h-5 w-5 text-primary-600 dark:text-primary-400" />
                     <div>
@@ -105,12 +121,12 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\StockPorCategoriaChart::class)
-                    @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\ValorizacionInventarioChart::class)
-                    @livewire(\App\Filament\Resources\Inventario\MovimientoStock\Widgets\RotacionInventarioChart::class)
-                    @livewire(\App\Filament\Resources\Inventario\MovimientoStock\Widgets\MermasPorCategoriaChart::class)
+                    @livewire(StockPorCategoriaChart::class)
+                    @livewire(ValorizacionInventarioChart::class)
+                    @livewire(RotacionInventarioChart::class)
+                    @livewire(MermasPorCategoriaChart::class)
                     <div class="lg:col-span-2">
-                        @livewire(\App\Filament\Resources\Inventario\Lote\Widgets\LotesEnRiesgoChart::class)
+                        @livewire(LotesEnRiesgoChart::class)
                     </div>
                 </div>
             </div>
@@ -120,13 +136,15 @@
         <div x-show="activeTab === 'control'" x-transition class="space-y-6" style="display: none;">
 
             {{-- 1. Lotes Vencidos --}}
-            <div class="rounded-2xl border border-red-200 bg-white shadow-sm dark:border-red-950 dark:bg-gray-800 overflow-hidden">
+            <div
+                class="rounded-2xl border border-red-200 bg-white shadow-sm dark:border-red-950 dark:bg-gray-800 overflow-hidden">
                 <div class="border-b border-red-100 bg-red-50/50 px-6 py-4 dark:border-red-950 dark:bg-red-950/10">
                     <div class="flex items-center gap-2">
                         <span class="flex h-2.5 w-2.5 rounded-full bg-red-600 animate-ping"></span>
                         <x-heroicon-o-clock class="h-5 w-5 text-red-600 dark:text-red-400" />
                         <h2 class="text-base font-bold text-gray-900 dark:text-white">Lotes Vencidos (Expirados)</h2>
-                        <span class="ml-2 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                        <span
+                            class="ml-2 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">
                             {{ $lotesVencidos?->count() ?? 0 }} alertas
                         </span>
                     </div>
@@ -136,7 +154,8 @@
                 <div class="p-6">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-                            <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
+                            <thead
+                                class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-3">Código de Lote</th>
                                 <th class="px-4 py-3">Producto</th>
@@ -155,8 +174,9 @@
                                     <td class="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">{{ number_format($lote->cantidad_disponible, 2) }}</td>
                                     <td class="px-4 py-3 text-center text-red-600 dark:text-red-400 font-medium">{{ $lote->fecha_vencimiento?->format('d/m/Y') }}</td>
                                     <td class="px-4 py-3 text-center">
-                                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">
-                                            Hace {{ (int) abs(now()->diffInDays(\Carbon\Carbon::parse($lote->fecha_vencimiento))) }} días
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                                            Hace {{ (int) abs(now()->diffInDays(Carbon::parse($lote->fecha_vencimiento))) }} días
                                         </span>
                                     </td>
                                 </tr>
@@ -177,13 +197,16 @@
             </div>
 
             {{-- 2. Lotes en Cuarentena --}}
-            <div class="rounded-2xl border border-amber-200 bg-white shadow-sm dark:border-amber-950 dark:bg-gray-800 overflow-hidden">
-                <div class="border-b border-amber-100 bg-amber-50/50 px-6 py-4 dark:border-amber-950 dark:bg-amber-950/10">
+            <div
+                class="rounded-2xl border border-amber-200 bg-white shadow-sm dark:border-amber-950 dark:bg-gray-800 overflow-hidden">
+                <div
+                    class="border-b border-amber-100 bg-amber-50/50 px-6 py-4 dark:border-amber-950 dark:bg-amber-950/10">
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-shield-check class="h-5 w-5 text-amber-600 dark:text-amber-400" />
                         <h2 class="text-base font-bold text-gray-900 dark:text-white">Lotes en Cuarentena
                             (Retenidos)</h2>
-                        <span class="ml-2 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                        <span
+                            class="ml-2 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                             {{ $lotesCuarentena?->count() ?? 0 }} retenidos
                         </span>
                     </div>
@@ -193,7 +216,8 @@
                 <div class="p-6">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-                            <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
+                            <thead
+                                class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-3">Código de Lote</th>
                                 <th class="px-4 py-3">Producto</th>
@@ -228,13 +252,16 @@
             </div>
 
             {{-- 3. Lotes Próximos a Vencer --}}
-            <div class="rounded-2xl border border-orange-200 bg-white shadow-sm dark:border-orange-950 dark:bg-gray-800 overflow-hidden">
-                <div class="border-b border-orange-100 bg-orange-50/50 px-6 py-4 dark:border-orange-950 dark:bg-orange-950/10">
+            <div
+                class="rounded-2xl border border-orange-200 bg-white shadow-sm dark:border-orange-950 dark:bg-gray-800 overflow-hidden">
+                <div
+                    class="border-b border-orange-100 bg-orange-50/50 px-6 py-4 dark:border-orange-950 dark:bg-orange-950/10">
                     <div class="flex items-center gap-2">
                         <x-heroicon-o-bell-alert class="h-5 w-5 text-orange-600 dark:text-orange-400" />
                         <h2 class="text-base font-bold text-gray-900 dark:text-white">Lotes Próximos a Vencer (Consumo
                             Prioritario)</h2>
-                        <span class="ml-2 rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-800 dark:bg-orange-900/40 dark:text-amber-300">
+                        <span
+                            class="ml-2 rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-800 dark:bg-orange-900/40 dark:text-amber-300">
                             {{ $lotesProximosVencer?->count() ?? 0 }} en alerta
                         </span>
                     </div>
@@ -244,7 +271,8 @@
                 <div class="p-6">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-                            <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
+                            <thead
+                                class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-3">Código de Lote</th>
                                 <th class="px-4 py-3">Producto</th>
@@ -263,8 +291,9 @@
                                     <td class="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">{{ number_format($lote->cantidad_disponible, 2) }}</td>
                                     <td class="px-4 py-3 text-center text-orange-600 dark:text-orange-400 font-medium">{{ $lote->fecha_vencimiento?->format('d/m/Y') }}</td>
                                     <td class="px-4 py-3 text-center">
-                                        <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">
-                                            Quedan {{ (int) abs(now()->diffInDays(\Carbon\Carbon::parse($lote->fecha_vencimiento))) }} días
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">
+                                            Quedan {{ (int) abs(now()->diffInDays(Carbon::parse($lote->fecha_vencimiento))) }} días
                                         </span>
                                     </td>
                                 </tr>
@@ -289,29 +318,36 @@
         {{-- ─── PESTAÑA 3: DESCARGAR REPORTES (CENTRO DE REPORTES) ────────────── --}}
         <div x-show="activeTab === 'reports'" x-transition class="space-y-6" style="display: none;">
 
-            <div class="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800 max-w-3xl mx-auto">
+            <div
+                class="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800 max-w-3xl mx-auto">
                 <div class="flex items-center gap-4 mb-6 border-b border-gray-50 dark:border-gray-850 pb-4">
-                    <div class="p-3 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 rounded-xl shadow-sm ring-1 ring-primary-100/10">
+                    <div
+                        class="p-3 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 rounded-xl shadow-sm ring-1 ring-primary-100/10">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-gray-950 dark:text-white">Centro de Reportes y Análisis</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Genera y descarga informes analíticos de inventario en formato PDF.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Genera y descarga informes analíticos de
+                            inventario en formato PDF.</p>
                     </div>
                 </div>
 
-                <form wire:submit.prevent="descargarReporte" class="space-y-5 flex-grow flex flex-col justify-between">
+                <form wire:submit.prevent="descargarReporte" class="space-y-5 grow flex flex-col justify-between">
                     <div class="space-y-4">
                         {{ $this->reportForm }}
                     </div>
 
                     <div class="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-6">
-                        <x-filament::button type="button" color="success" icon="heroicon-o-table-cells" wire:click="descargarExcel" class="hover:scale-[1.02] transition-transform duration-200">
+                        <x-filament::button type="button" color="success" icon="heroicon-o-table-cells"
+                                            wire:click="descargarExcel"
+                                            class="hover:scale-[1.02] transition-transform duration-200">
                             Descargar Excel
                         </x-filament::button>
-                        <x-filament::button type="submit" color="primary" icon="heroicon-o-document-arrow-down" class="hover:scale-[1.02] transition-transform duration-200">
+                        <x-filament::button type="submit" color="primary" icon="heroicon-o-document-arrow-down"
+                                            class="hover:scale-[1.02] transition-transform duration-200">
                             Generar y Descargar PDF
                         </x-filament::button>
                     </div>
