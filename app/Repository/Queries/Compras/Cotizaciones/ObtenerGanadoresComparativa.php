@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 final class ObtenerGanadoresComparativa
 {
     /**
-     * @return Collection<int, array{producto: string, variante: string, proveedor: string, precio_unitario: float, subtotal: float, cotizacion_id: int, orden_generada: bool}>
+     * @return Collection<int, array{producto: string, variante: string, proveedor: string, cantidad_solicitada: float, precio_unitario: float, subtotal: float, cotizacion_id: int, orden_generada: bool}>
      */
     public function ejecutar(Solicitud $solicitud): Collection
     {
@@ -36,10 +36,14 @@ final class ObtenerGanadoresComparativa
                         ->where('estado', '!=', EstadoOrdenCompra::Cancelada)
                         ->exists();
 
+                    $cantidadAprobada = (float) $sItem->cantidad_aprobada;
+                    $cantidadSolicitada = (float) $sItem->cantidad_solicitada;
+
                     $winners->push([
                         'producto' => $sItem->producto->nombre ?? '',
                         'variante' => $sItem->variante->nombre_variante ?? 'Estándar',
                         'proveedor' => $this->getProveedorNombre($cot),
+                        'cantidad_solicitada' => $cantidadAprobada > 0 ? $cantidadAprobada : $cantidadSolicitada,
                         'precio_unitario' => $cItem->precio_unitario,
                         'subtotal' => $cItem->subtotal,
                         'cotizacion_id' => $cot->id,

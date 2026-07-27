@@ -110,7 +110,7 @@ class ViewCotizacion extends ViewRecord
                 ->label('Imprimir')
                 ->icon(Heroicon::Printer)
                 ->color('gray')
-                ->url(fn (Cotizacion $record) => route('reporte.cotizacion', $record))
+                ->url(fn (Cotizacion $record) => route('admin.compras.reportes.cotizacion', $record))
                 ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->can('Compras:ImprimirCotizacion') ?? false),
         ];

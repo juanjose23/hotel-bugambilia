@@ -48,19 +48,18 @@ enum MetodoPago: int implements HasColor, HasIcon, HasLabel
             self::CREDITO_CORPORATIVO => 'Crédito Corporativo',
             self::PUNTOS_LEALTAD => 'Puntos / Lealtad',
         };
+
     }
 
     public function getColor(): string
     {
         return match ($this) {
             self::EFECTIVO => 'success',
-            self::TARJETA_CREDITO, self::TARJETA_DEBITO => 'info',
+            self::TARJETA_CREDITO, self::TARJETA_DEBITO, self::CREDITO_CORPORATIVO => 'info',
             self::TRANSFERENCIA, self::DEPOSITO => 'primary',
-            self::PAGO_QR => 'warning',
+            self::PAGO_QR, self::PUNTOS_LEALTAD => 'warning',
             self::CARGO_HABITACION => 'purple',
             self::CORTESIA => 'gray',
-            self::CREDITO_CORPORATIVO => 'info',
-            self::PUNTOS_LEALTAD => 'warning',
         };
     }
 

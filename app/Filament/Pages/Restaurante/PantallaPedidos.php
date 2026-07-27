@@ -31,13 +31,16 @@ final class PantallaPedidos extends Page
 
     protected static ?int $navigationSort = 4;
 
-    protected string $view = 'filament.pages.restaurante.pantalla-pedidos';
+    protected string $view = 'filament.resources.restaurante.pantalla-pedidos';
 
     /** @var Collection<int, Pedido> */
     public Collection $pedidosEnPreparacion;
 
     /** @var Collection<int, Pedido> */
     public Collection $pedidosListos;
+
+    /** @var Collection<int, Pedido> */
+    public Collection $pedidos;
 
     public int $ultimoTotalListos = 0;
 
@@ -59,6 +62,7 @@ final class PantallaPedidos extends Page
 
         $this->pedidosEnPreparacion = $datos['enPreparacion'];
         $this->pedidosListos = $datos['listos'];
+        $this->pedidos = $this->pedidosEnPreparacion->merge($this->pedidosListos);
 
         $nuevoTotalListos = $this->pedidosListos->count();
 

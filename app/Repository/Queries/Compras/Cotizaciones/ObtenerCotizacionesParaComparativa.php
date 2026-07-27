@@ -13,8 +13,7 @@ final class ObtenerCotizacionesParaComparativa
         return Solicitud::with([
             'items.producto',
             'items.variante',
-            'cotizaciones.proveedor.persona.personaJuridica',
-            'cotizaciones.proveedor.persona.personaNatural',
+            'cotizaciones.proveedor',
             'cotizaciones.proveedor.tipoProveedor',
             'cotizaciones.items.producto',
             'cotizaciones.items.variante',

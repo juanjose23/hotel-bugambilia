@@ -45,7 +45,7 @@ class ControlLavanderia extends Page implements HasForms, HasTable
     use InteractsWithTable;
     use InteractsWithTable;
 
-    protected string $view = 'filament.pages.limpieza.control-lavanderia';
+    protected string $view = 'filament.resources.limpieza.control-lavanderia';
 
     protected static ?string $slug = 'limpieza/control-lavanderia';
 

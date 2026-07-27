@@ -35,7 +35,7 @@ class AbastecerCarrito extends Page implements HasTable
     use InteractsWithTable;
     use InteractsWithTable;
 
-    protected string $view = 'filament.pages.limpieza.abastecer-carrito';
+    protected string $view = 'filament.resources.limpieza.abastecer-carrito';
 
     protected static ?string $slug = 'limpieza/abastecer-carrito';
 

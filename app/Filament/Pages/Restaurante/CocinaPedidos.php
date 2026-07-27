@@ -36,7 +36,7 @@ final class CocinaPedidos extends Page
 
     protected static ?int $navigationSort = 3;
 
-    protected string $view = 'filament.pages.restaurante.cocina-pedidos';
+    protected string $view = 'filament.resources.restaurante.cocina-pedidos';
 
     /** @var Collection<int, Pedido> */
     public Collection $pedidos;
