@@ -23,7 +23,7 @@ class ObtenerRotacionInventario
         $meses = isset($filtros['meses']) && $filtros['meses'] > 0 ? (int) $filtros['meses'] : 3;
         $fechaDesde = now()->subMonths($meses)->startOfDay();
 
-        $tiposSalida = ['MOV_SALIDA', 'MOV_AJUSTE'];
+        $tiposSalida = ['MOV_SALIDA', 'MOV_AJUSTE', 'CONSUMO'];
 
         $salidas = DB::table('inv_movimientos as m')
             ->join('productos as p', 'm.producto_id', '=', 'p.id')

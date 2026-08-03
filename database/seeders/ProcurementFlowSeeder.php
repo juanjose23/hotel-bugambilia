@@ -19,6 +19,7 @@ use App\Repository\Models\Compras\Proveedor;
 use App\Repository\Models\Compras\RecepcionCompra;
 use App\Repository\Models\Compras\RecepcionItem;
 use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Personas\PersonaNatural;
 use App\Repository\Models\User;
@@ -37,6 +38,7 @@ class ProcurementFlowSeeder extends Seeder
     public function run(): void
     {
         $admin = User::where('email', 'admin@hotel.com')->first();
+        $usdId = Moneda::where('codigo', 'USD')->value('id') ?? 1;
 
         if (! $admin) {
             $pais = Pais::first() ?? Pais::create(['nombre' => 'Nicaragua', 'codigo' => 'NI']);
@@ -104,7 +106,7 @@ class ProcurementFlowSeeder extends Seeder
 
         Auth::login($admin);
 
-        DB::transaction(callback: function () use ($admin) {
+        DB::transaction(callback: function () use ($admin, $usdId) {
             $colaborador = Colaborador::first();
             if (! $colaborador) {
                 return;
@@ -204,7 +206,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Precio más bajo garantizado, pero tiempo de entrega extendido.',
                 'creada_por' => $admin->id,
-                'moneda_id' => 2,
+                'moneda_id' => $usdId,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub1 = 0;
@@ -230,7 +232,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Balance ideal entre costo y tiempo de respuesta.',
                 'creada_por' => $admin->id,
-                'moneda_id' => 2,
+                'moneda_id' => $usdId,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub2 = 0;
@@ -256,7 +258,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Entrega inmediata. Stock garantizado.',
                 'creada_por' => $admin->id,
-                'moneda_id' => 2,
+                'moneda_id' => $usdId,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub3 = 0;
@@ -282,7 +284,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Proveedor local con soporte técnico incluido.',
                 'creada_por' => $admin->id,
-                'moneda_id' => 2,
+                'moneda_id' => $usdId,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub4 = 0;
@@ -308,7 +310,7 @@ class ProcurementFlowSeeder extends Seeder
                 'condicion_pago_id' => $condicionPago?->id,
                 'observaciones' => 'Precio especial por apertura de cuenta corporativa.',
                 'creada_por' => $admin->id,
-                'moneda_id' => 2,
+                'moneda_id' => $usdId,
                 'subtotal' => 0, 'total' => 0,
             ]);
             $sub5 = 0;
@@ -468,7 +470,7 @@ class ProcurementFlowSeeder extends Seeder
                     'condicion_pago_id' => $condicionPago?->id,
                     'observaciones' => 'Propuesta técnica '.($i + 1),
                     'creada_por' => $admin->id,
-                    'moneda_id' => 2,
+                    'moneda_id' => $usdId,
                     'subtotal' => 0, 'total' => 0,
                 ]);
                 $subTotal = 0;

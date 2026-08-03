@@ -1,83 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\Monedas\Moneda;
-use App\Models\Monedas\TasaCambio;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Monedas\TasaCambio;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 
 class TasaCambioSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Sembrar monedas básicas
-        $monedas = [
-            [
-                'codigo' => 'NIO',
-                'nombre' => 'Córdoba Nicaragüense',
-                'simbolo' => 'C$',
-                'es_predeterminada' => true,
-            ],
-            [
-                'codigo' => 'USD',
-                'nombre' => 'Dólar Estadounidense',
-                'simbolo' => '$',
-                'es_predeterminada' => false,
-            ],
-        ];
+        $usd = Moneda::where('codigo', 'USD')->first();
+        $nio = Moneda::where('codigo', 'NIO')->first();
 
-        $monedasCreadas = [];
-        foreach ($monedas as $m) {
-            $monedasCreadas[$m['codigo']] = Moneda::updateOrCreate(
-                ['codigo' => $m['codigo']],
-                [
-                    'nombre' => $m['nombre'],
-                    'simbolo' => $m['simbolo'],
-                    'es_predeterminada' => $m['es_predeterminada'],
-                ]
-            );
+        if (! $usd || ! $nio) {
+            if ($this->command !== null) {
+                $this->command->warn('Monedas USD y/o NIO no encontradas. Ejecute MonedaSeeder primero.');
+            }
+
+            return;
         }
 
-        // 2. Sembrar tasas de cambio de USD a NIO para los últimos días
-        $usdId = $monedasCreadas['USD']->id;
-        $nioId = $monedasCreadas['NIO']->id;
-
-        $tasas = [
+        // Tasa fija USD → NIO
+        TasaCambio::firstOrCreate(
             [
-                'fecha' => now()->toDateString(),
-                'moneda_origen_id' => $usdId,
-                'moneda_destino_id' => $nioId,
+                'fecha' => Carbon::now()->toDateString(),
+                'moneda_origen_id' => $usd->id,
+                'moneda_destino_id' => $nio->id,
+            ],
+            [
                 'tasa' => 36.5200,
                 'es_fija' => true,
-            ],
-            [
-                'fecha' => now()->subDay()->toDateString(),
-                'moneda_origen_id' => $usdId,
-                'moneda_destino_id' => $nioId,
-                'tasa' => 36.5150,
-                'es_fija' => false,
-            ],
-            [
-                'fecha' => now()->subDays(2)->toDateString(),
-                'moneda_origen_id' => $usdId,
-                'moneda_destino_id' => $nioId,
-                'tasa' => 36.5000,
-                'es_fija' => false,
-            ],
-        ];
+            ]
+        );
 
-        foreach ($tasas as $t) {
-            TasaCambio::updateOrCreate(
-                [
-                    'fecha' => $t['fecha'],
-                    'moneda_origen_id' => $t['moneda_origen_id'],
-                    'moneda_destino_id' => $t['moneda_destino_id'],
-                ],
-                [
-                    'tasa' => $t['tasa'],
-                    'es_fija' => $t['es_fija'],
-                ]
-            );
+        if ($this->command !== null) {
+            $this->command->info('Tasa de cambio USD → NIO: 36.5200 creada.');
         }
     }
 }

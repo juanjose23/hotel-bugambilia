@@ -14,6 +14,7 @@
 | Inventario          | [doc/inventario/flujos.md](inventario/flujos.md)     | Completo |
 | Activos Fijos       | [doc/activos/flujos.md](activos/flujos.md)           | Completo |
 | Restaurante         | [doc/restaurante/flujos.md](restaurante/flujos.md)   | Completo |
+| Background Jobs     | [jobs/README.md](jobs/README.md)                     | Completo |
 
 ## Convenciones
 

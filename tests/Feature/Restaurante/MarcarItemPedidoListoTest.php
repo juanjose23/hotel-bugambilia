@@ -37,5 +37,5 @@ it('marca el item listo y resuelve el estado del pedido de forma idempotente', f
     $interactor->ejecutar($item->id);
 
     expect($item->fresh()?->estado)->toBe(EstadoItemPedido::LISTO)
-        ->and($pedido->fresh()?->estado)->toBe(EstadoPedido::SERVIDO);
+        ->and($pedido->fresh()?->estado)->toBe(EstadoPedido::LISTO);
 });

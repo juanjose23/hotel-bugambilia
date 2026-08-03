@@ -42,6 +42,15 @@ final class ValidarHuespedes
         $this->validarCantidadesNoNegativas($datos);
     }
 
+    public function validarEliminacion(Reserva $reserva, ReservaHuesped $huesped): void
+    {
+        $this->validarEstadoReserva($reserva);
+
+        if ($huesped->es_titular) {
+            throw new DomainException('No se puede eliminar el huésped titular. Asigne otro titular primero.');
+        }
+    }
+
     private function validarEstadoReserva(Reserva $reserva): void
     {
         if ($reserva->estado->value > EstadoReserva::CONFIRMADA->value) {

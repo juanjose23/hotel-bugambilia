@@ -87,48 +87,66 @@ class ProveedorSeeder extends Seeder
         ];
 
         foreach ($proveedores as $item) {
-            $persona = Persona::create([
-                'primer_nombre' => $item['nombre_corto'],
-                'segundo_nombre' => null,
-                'pais_id' => $paisNicaragua,
-                'tipo_persona' => 'juridica',
-                'telefono' => $item['contacto_principal'][2],
-                'direccion' => $item['direccion_fiscal'],
-            ]);
+            $persona = Persona::firstOrCreate(
+                [
+                    'primer_nombre' => $item['nombre_corto'],
+                    'tipo_persona' => 'juridica',
+                ],
+                [
+                    'segundo_nombre' => null,
+                    'pais_id' => $paisNicaragua,
+                    'telefono' => $item['contacto_principal'][2],
+                    'direccion' => $item['direccion_fiscal'],
+                ]
+            );
 
-            PersonaJuridica::create([
-                'persona_id' => $persona->id,
-                'razon_social' => $item['razon_social'],
-                'tipo_identificacion' => $item['tipo_identificacion'],
-                'numero_identificacion' => $item['numero_identificacion'],
-            ]);
+            PersonaJuridica::firstOrCreate(
+                [
+                    'numero_identificacion' => $item['numero_identificacion'],
+                ],
+                [
+                    'persona_id' => $persona->id,
+                    'razon_social' => $item['razon_social'],
+                    'tipo_identificacion' => $item['tipo_identificacion'],
+                ]
+            );
 
             $codigo = app(GenerarCodigoProveedor::class)->ejecutar();
-            $proveedor = Proveedor::create([
-                'codigo' => $codigo,
-                'persona_id' => $persona->id,
-                'tipo_proveedor_id' => $item['tipo_proveedor_id'],
-                'direccion_fiscal' => $item['direccion_fiscal'],
-                'estado' => 1,
-            ]);
+            $proveedor = Proveedor::firstOrCreate(
+                ['persona_id' => $persona->id],
+                [
+                    'codigo' => $codigo,
+                    'tipo_proveedor_id' => $item['tipo_proveedor_id'],
+                    'direccion_fiscal' => $item['direccion_fiscal'],
+                    'estado' => 1,
+                ]
+            );
 
-            ProveedorContacto::create([
-                'proveedor_id' => $proveedor->id,
-                'nombre' => $item['contacto_principal'][0],
-                'cargo' => $item['contacto_principal'][1],
-                'telefono' => $item['contacto_principal'][2],
-                'email' => $item['contacto_principal'][3],
-                'principal' => true,
-            ]);
+            ProveedorContacto::firstOrCreate(
+                [
+                    'proveedor_id' => $proveedor->id,
+                    'principal' => true,
+                ],
+                [
+                    'nombre' => $item['contacto_principal'][0],
+                    'cargo' => $item['contacto_principal'][1],
+                    'telefono' => $item['contacto_principal'][2],
+                    'email' => $item['contacto_principal'][3],
+                ]
+            );
 
-            ProveedorContacto::create([
-                'proveedor_id' => $proveedor->id,
-                'nombre' => $item['contacto_secundario'][0],
-                'cargo' => $item['contacto_secundario'][1],
-                'telefono' => $item['contacto_secundario'][2],
-                'email' => $item['contacto_secundario'][3],
-                'principal' => false,
-            ]);
+            ProveedorContacto::firstOrCreate(
+                [
+                    'proveedor_id' => $proveedor->id,
+                    'principal' => false,
+                ],
+                [
+                    'nombre' => $item['contacto_secundario'][0],
+                    'cargo' => $item['contacto_secundario'][1],
+                    'telefono' => $item['contacto_secundario'][2],
+                    'email' => $item['contacto_secundario'][3],
+                ]
+            );
         }
     }
 }

@@ -7,9 +7,8 @@
     };
     $iconName = !empty($item['habitacion_id']) ? 'heroicon-o-home' : 'heroicon-o-building-office-2';
 @endphp
-<a
-    href="/admin/reservas/{{ $item['id'] }}/edit"
-    class="block text-[10px] leading-tight font-semibold p-1.5 rounded-lg border {{ $colorClass }} hover:scale-[1.02] transition-all duration-150 shadow-2xs truncate cursor-pointer"
+<div
+    class="block text-[10px] leading-tight font-semibold p-1.5 rounded-lg border {{ $colorClass }} transition-colors duration-150 shadow-2xs"
     title="{{ $item['codigo'] }} - {{ $item['cliente'] }} ({{ $item['recurso_nombre'] }}) · {{ $item['estado'] }}"
 >
     <div class="flex items-center justify-between gap-1 mb-0.5">
@@ -19,7 +18,13 @@
         </span>
         <span class="font-bold text-[9px] shrink-0">C$ {{ number_format($item['total'], 0) }}</span>
     </div>
-    <div class="text-[9px] opacity-85 truncate">
-        {{ $item['recurso_nombre'] }} ({{ $item['estado'] }})
+    <div class="flex items-center gap-1 text-[9px] opacity-85">
+        <span class="truncate">{{ $item['recurso_nombre'] }} · {{ $item['estado'] }}</span>
+        @if ($item['es_llegada'] ?? false)<span class="shrink-0 rounded bg-white/60 px-1">Entrada</span>@endif
+        @if ($item['es_salida'] ?? false)<span class="shrink-0 rounded bg-white/60 px-1">Salida</span>@endif
     </div>
-</a>
+    <div class="mt-1 flex items-center gap-2 border-t border-current/15 pt-1">
+        <a href="{{ \App\Filament\Resources\Reservas\ReservaResource::getUrl('view', ['record' => $item['id']]) }}" class="underline underline-offset-2 hover:no-underline">Detalles</a>
+        <a href="{{ route('reservas.voucher', ['reserva' => $item['id']]) }}" target="_blank" rel="noopener" class="underline underline-offset-2 hover:no-underline">Imprimir PDF</a>
+    </div>
+</div>

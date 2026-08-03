@@ -19,8 +19,10 @@
     "require": {
         "php": "^8.4.1",
         "ext-pdo": "*",
+        "afatmustafa/blade-hugeicons": "^2.0",
         "barryvdh/laravel-dompdf": "^3.1",
         "bezhansalleh/filament-shield": "^4.2",
+        "codeat3/blade-google-material-design-icons": "^1.21",
         "filament/filament": "^5.6",
         "inertiajs/inertia-laravel": "^3.1",
         "laravel/framework": "^13.17",

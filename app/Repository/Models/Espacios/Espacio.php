@@ -41,7 +41,7 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property int|null $cuentas_activas_count
  * @property float|null $total_mesa
  */
-class Espacio extends Model implements AuditableContract
+final class Espacio extends Model implements AuditableContract
 {
     /** @phpstan-ignore missingType.generics */
     use Auditable, HasFactory, SoftDeletes;
@@ -62,7 +62,7 @@ class Espacio extends Model implements AuditableContract
 
     protected static function booted(): void
     {
-        static::saving(function (Espacio $espacio): void {
+        self::saving(function (Espacio $espacio): void {
             if (empty($espacio->slug) && ! empty($espacio->nombre)) {
                 $baseSlug = Str::slug($espacio->nombre);
                 $slug = $baseSlug;
@@ -90,7 +90,7 @@ class Espacio extends Model implements AuditableContract
      */
     public static function tieneRestauranteActivo(): bool
     {
-        return static::query()
+        return self::query()
             ->where('tipo', TipoEspacio::RESTAURANTE)
             ->where('estado', '!=', EstadoEspacio::Inactivo)
             ->exists();

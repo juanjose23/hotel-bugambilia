@@ -11,9 +11,16 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Events\Reservas\CheckOutRegistrado;
 use App\Interactors\Reservas\CambiarEstadoReserva;
-use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorio;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorio;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use App\Repository\Persistencia\Reservas\ReservaRepositorio;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorio;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
 final class RegistrarCheckOut
@@ -21,44 +28,41 @@ final class RegistrarCheckOut
     public function __construct(
         private readonly CambiarEstadoReserva $cambiarEstado,
         private readonly ValidarRequisitosCheckOut $validarCheckOut = new ValidarRequisitosCheckOut,
+        private readonly ReservaRepositorioInterface $reservas = new ReservaRepositorio,
+        private readonly CuentaRepositorioInterface $cuentas = new CuentaRepositorio,
+        private readonly HabitacionRepositorioInterface $habitaciones = new HabitacionRepositorio,
+        private readonly RestauranteRepositorioInterface $restaurante = new RestauranteRepositorio,
     ) {}
 
     /** @param array<string, mixed> $datos */
     public function ejecutar(Reserva $reserva, ?int $usuarioId = null, array $datos = []): Estancia
     {
         return DB::transaction(function () use ($reserva, $usuarioId, $datos): Estancia {
-            $estancia = Estancia::query()
-                ->with('cuenta')
-                ->whereBelongsTo($reserva)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $estancia = $this->reservas->estanciaActivaDeReserva($reserva);
 
             $this->validarCheckOut->validar($estancia, $datos);
 
             $this->cambiarEstado->ejecutar($reserva, EstadoReserva::CHECKED_OUT, $usuarioId, 'Check-out registrado');
 
             if ($reserva->habitacion !== null) {
-                $reserva->habitacion->update(['estado' => EstadoEspacio::Sucio]);
+                $this->habitaciones->actualizarEstado($reserva->habitacion, EstadoEspacio::Sucio);
             }
 
             if ($reserva->espacio !== null) {
-                $reserva->espacio->update(['estado' => EstadoEspacio::Disponible]);
+                $this->restaurante->actualizarEspacio($reserva->espacio, ['estado' => EstadoEspacio::Disponible]);
             }
 
-            $cuentasAbiertas = Cuenta::query()
-                ->where('reserva_id', $reserva->id)
-                ->where('estado', EstadoCuenta::ABIERTA)
-                ->get();
+            $cuentasAbiertas = $this->cuentas->cuentasAbiertasDeReserva($reserva->id);
 
             foreach ($cuentasAbiertas as $cuenta) {
-                $cuenta->update([
+                $this->cuentas->actualizar($cuenta, [
                     'estado' => EstadoCuenta::CERRADA,
                     'cerrada_at' => now(),
                     'cerrada_por' => $usuarioId,
                 ]);
             }
 
-            $estancia->update([
+            $this->reservas->actualizarEstancia($estancia, [
                 'estado' => EstadoEstancia::FINALIZADA,
                 'check_out_at' => now(),
                 'usuario_check_out_id' => $usuarioId,

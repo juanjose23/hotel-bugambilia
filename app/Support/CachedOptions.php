@@ -193,6 +193,21 @@ final readonly class CachedOptions
         return collect($data);
     }
 
+    /**
+     * @return Collection<int, array{codigo: string, simbolo: string}>
+     */
+    public static function monedasSimbolos(): Collection
+    {
+        /** @var array<int, array{codigo: string, simbolo: string}> $data */
+        $data = Cache::remember('cached_options:monedas_simbolos', 7200, fn () => Moneda::orderBy('codigo')
+            ->get()
+            ->mapWithKeys(fn (Moneda $m) => [$m->id => ['codigo' => $m->codigo, 'simbolo' => $m->simbolo]])
+            ->toArray()
+        );
+
+        return collect($data);
+    }
+
     public static function clear(): void
     {
         Cache::forget('cached_options:productos');
@@ -200,6 +215,7 @@ final readonly class CachedOptions
         Cache::forget('cached_options:proveedores');
         Cache::forget('cached_options:ubicaciones_almacen');
         Cache::forget('cached_options:monedas');
+        Cache::forget('cached_options:monedas_simbolos');
         Cache::forget('cached_options:ubicaciones_activas');
         Cache::forget('cached_options:servicios');
         Cache::forget('cached_options:servicios_activos');

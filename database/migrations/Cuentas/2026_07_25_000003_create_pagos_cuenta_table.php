@@ -12,7 +12,8 @@ return new class extends Migration
     {
         Schema::create('pagos_cuenta', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('cuenta_id')->constrained('cuentas')->cascadeOnDelete();
+            $table->foreignId('cuenta_id')->constrained('cuentas')->restrictOnDelete();
+            $table->unsignedBigInteger('venta_id')->nullable()->comment('FK lógica a venta (sin constraint por orden de migración)');
 
             /**
              * Forma de pago — respaldado por App\Enums\Cuentas\MetodoPago (int):
@@ -21,6 +22,8 @@ return new class extends Migration
              * 9: Crédito Corporativo | 10: Puntos Lealtad
              */
             $table->unsignedTinyInteger('forma_pago');
+
+            $table->foreignId('moneda_id')->nullable()->constrained('monedas')->nullOnDelete();
 
             $table->decimal('monto', 12, 2);
             $table->decimal('propina', 12, 2)->default(0);
@@ -37,6 +40,7 @@ return new class extends Migration
             $table->string('observaciones', 255)->nullable();
             $table->foreignId('usuario_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('cuenta_id');
             $table->index('forma_pago');

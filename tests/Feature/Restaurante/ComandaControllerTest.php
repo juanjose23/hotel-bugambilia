@@ -6,7 +6,7 @@ use App\Enums\Restaurante\EstadoPedido;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\User;
-use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\Models\Permission;
 
 function pedidoParaComanda(): Pedido
 {
@@ -26,26 +26,32 @@ function pedidoParaComanda(): Pedido
     ]));
 }
 
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
+
 it('requiere autenticación para imprimir una comanda', function (): void {
     $pedido = pedidoParaComanda();
 
-    $this->get(route('admin.restaurante.comanda', $pedido))
+    get(route('admin.restaurante.comanda', $pedido))
         ->assertRedirect(route('login'));
 });
 
 it('rechaza usuarios sin permiso para imprimir comandas', function (): void {
     $pedido = pedidoParaComanda();
 
-    $this->actingAs(User::factory()->create())
+    actingAs(User::factory()->create())
         ->get(route('admin.restaurante.comanda', $pedido))
         ->assertForbidden();
 });
 
 it('permite imprimir la comanda con autorización', function (): void {
     $pedido = pedidoParaComanda();
-    Gate::define('viewComanda', fn (): bool => true);
+    $usuario = User::factory()->create();
+    $usuario->givePermissionTo(
+        Permission::findOrCreate('Restaurante:ImprimirComanda', 'web')
+    );
 
-    $this->actingAs(User::factory()->create())
+    actingAs($usuario)
         ->get(route('admin.restaurante.comanda', $pedido))
         ->assertSuccessful();
 });

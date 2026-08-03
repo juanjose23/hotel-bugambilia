@@ -7,6 +7,9 @@ namespace App\Notifications\Reservas;
 use App\Notifications\NotificadorBase;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Models\User;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 
 final class NotificadorReservas extends NotificadorBase
 {
@@ -31,6 +34,12 @@ final class NotificadorReservas extends NotificadorBase
     {
         $usuarios = $this->destinatarios->obtener($reserva->cliente);
         $this->enviar($usuarios, $this->mensajes->reservaCancelada($reserva));
+    }
+
+    /** @param Collection<int, User> $usuarios */
+    public function recordatorio(Reserva $reserva, CarbonInterface $inicio, Collection $usuarios): void
+    {
+        $this->enviar($usuarios, $this->mensajes->recordatorio($reserva, $inicio));
     }
 
     public function checkInRegistrado(Estancia $estancia): void

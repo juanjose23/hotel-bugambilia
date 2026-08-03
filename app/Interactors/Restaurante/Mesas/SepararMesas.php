@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Mesas;
 
+use App\Actions\Restaurante\NormalizarMetaDatosAction;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
@@ -13,6 +14,7 @@ final class SepararMesas
 {
     public function __construct(
         private readonly RestauranteRepositorioInterface $repositorio,
+        private readonly NormalizarMetaDatosAction $normalizarMetaDatosAction,
     ) {}
 
     /**
@@ -27,7 +29,7 @@ final class SepararMesas
                 return;
             }
 
-            $meta = $this->normalizarMetaDatos($mesa->meta_datos);
+            $meta = $this->normalizarMetaDatosAction->ejecutar($mesa->meta_datos);
 
             if (! empty($meta['mesas_unidas']) && is_array($meta['mesas_unidas'])) {
                 foreach ($meta['mesas_unidas'] as $secundariaId) {
@@ -37,7 +39,7 @@ final class SepararMesas
                     $secundaria = $this->repositorio->obtenerEspacioPorId((int) $secundariaId);
 
                     if ($secundaria instanceof Espacio) {
-                        $metaSec = $this->normalizarMetaDatos($secundaria->meta_datos);
+                        $metaSec = $this->normalizarMetaDatosAction->ejecutar($secundaria->meta_datos);
                         unset($metaSec['mesa_principal_id'], $metaSec['mesa_principal_nombre']);
 
                         $this->repositorio->actualizarEspacio($secundaria, [
@@ -58,7 +60,7 @@ final class SepararMesas
                 $principal = $this->repositorio->obtenerEspacioPorId($principalId);
 
                 if ($principal instanceof Espacio) {
-                    $metaPrinc = $this->normalizarMetaDatos($principal->meta_datos);
+                    $metaPrinc = $this->normalizarMetaDatosAction->ejecutar($principal->meta_datos);
                     if (isset($metaPrinc['mesas_unidas']) && is_array($metaPrinc['mesas_unidas'])) {
                         $metaPrinc['mesas_unidas'] = array_values(array_filter(
                             $metaPrinc['mesas_unidas'],
@@ -75,23 +77,5 @@ final class SepararMesas
                 ]);
             }
         });
-    }
-
-    /**
-     * @return array<array-key, mixed>
-     */
-    private function normalizarMetaDatos(mixed $metaDatos): array
-    {
-        if (is_array($metaDatos)) {
-            return $metaDatos;
-        }
-
-        if (is_string($metaDatos) && $metaDatos !== '') {
-            $decoded = json_decode($metaDatos, true);
-
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return [];
     }
 }

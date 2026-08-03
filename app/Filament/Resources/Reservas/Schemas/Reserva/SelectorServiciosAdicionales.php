@@ -43,6 +43,10 @@ class SelectorServiciosAdicionales
                             ->preload()
                             ->native(false)
                             ->required()
+                            ->validationMessages([
+                                'required' => 'Seleccione el servicio que desea agregar.',
+                            ])
+                            ->live()
                             ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
 
                         TextInput::make('cantidad')
@@ -50,7 +54,13 @@ class SelectorServiciosAdicionales
                             ->integer()
                             ->minValue(1)
                             ->default(1)
-                            ->required(),
+                            ->required()
+                            ->validationMessages([
+                                'required' => 'Indique la cantidad del servicio.',
+                                'integer' => 'La cantidad debe ser un número entero.',
+                                'min' => 'La cantidad mínima es 1.',
+                            ])
+                            ->live(onBlur: true),
                     ]),
 
                 Repeater::make('espacios_adicionales')
@@ -75,6 +85,10 @@ class SelectorServiciosAdicionales
                             ->preload()
                             ->native(false)
                             ->required()
+                            ->validationMessages([
+                                'required' => 'Seleccione la mesa o espacio adicional que se unirá a la reserva.',
+                            ])
+                            ->live()
                             ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
 
                         Hidden::make('cantidad')->default(1),

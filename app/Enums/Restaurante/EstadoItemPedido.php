@@ -9,15 +9,15 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
-enum EstadoItemPedido: string implements HasColor, HasIcon, HasLabel
+enum EstadoItemPedido: int implements HasColor, HasIcon, HasLabel
 {
     use TieneAyudantesEnum;
 
-    case PENDIENTE = 'pendiente';
-    case EN_PREPARACION = 'en_preparacion';
-    case LISTO = 'listo';
-    case SERVIDO = 'servido';
-    case ANULADO = 'anulado';
+    case PENDIENTE = 1;
+    case EN_PREPARACION = 2;
+    case LISTO = 3;
+    case SERVIDO = 4;
+    case ANULADO = 5;
 
     public function getLabel(): string
     {

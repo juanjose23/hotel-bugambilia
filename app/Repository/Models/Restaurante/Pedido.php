@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Models\Restaurante;
 
+use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -25,12 +26,15 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property int|null $cliente_id
  * @property int|null $cuenta_id
  * @property EstadoPedido $estado
- * @property float $total
+ * @property float $subtotal
+ * @property int $consecutivo_comanda
+ * @property int|null $padre_pedido_id
  * @property CarbonInterface|null $abierto_en
  * @property CarbonInterface|null $cerrado_en
+ * @property CarbonInterface|null $cargado_en
  * @property string|null $notas
  */
-class Pedido extends Model implements AuditableContract
+final class Pedido extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
 
@@ -42,16 +46,11 @@ class Pedido extends Model implements AuditableContract
     {
         return [
             'estado' => EstadoPedido::class,
-            'total' => 'decimal:2',
-            'propina_monto' => 'decimal:2',
-            'propina_porcentaje' => 'decimal:2',
-            'impuesto_monto' => 'decimal:2',
-            'impuesto_porcentaje' => 'decimal:2',
-            'descuento_monto' => 'decimal:2',
-            'descuento_porcentaje' => 'decimal:2',
+            'subtotal' => 'decimal:2',
             'consecutivo_comanda' => 'integer',
             'abierto_en' => 'datetime',
             'cerrado_en' => 'datetime',
+            'cargado_en' => 'datetime',
         ];
     }
 
@@ -95,5 +94,15 @@ class Pedido extends Model implements AuditableContract
     public function items(): HasMany
     {
         return $this->hasMany(PedidoItem::class, 'pedido_id');
+    }
+
+    /**
+     * Calcula el subtotal operativo del pedido sumando los ítems no anulados.
+     */
+    public function calcularSubtotal(): float
+    {
+        return (float) $this->items()
+            ->whereNot('estado', EstadoItemPedido::ANULADO->value)
+            ->sum('subtotal');
     }
 }

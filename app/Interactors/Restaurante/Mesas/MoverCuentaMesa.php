@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Mesas;
 
-use App\BusinessLogic\Restaurante\Auditoria\RegistrarAuditoriaRestaurante;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
-use App\Enums\Restaurante\AccionAuditoriaRestaurante;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
@@ -16,7 +14,6 @@ use Throwable;
 final readonly class MoverCuentaMesa
 {
     public function __construct(
-        private RegistrarAuditoriaRestaurante $auditoria,
         private RestauranteRepositorioInterface $repositorio,
     ) {}
 
@@ -58,18 +55,6 @@ final readonly class MoverCuentaMesa
                 $origen->estado = EstadoEspacio::Disponible;
                 $this->repositorio->guardarMesa($origen);
             }
-
-            $primerPedido = $pedidos->first();
-            $this->auditoria->registrar(
-                accion: AccionAuditoriaRestaurante::MoverCuentaMesa,
-                mesaId: $mesaDestinoId,
-                pedidoId: $primerPedido->id,
-                detalles: [
-                    'mesa_origen' => $origen->nombre,
-                    'mesa_destino' => $destino->nombre,
-                    'pedidos_movidos' => $pedidos->pluck('codigo')->toArray(),
-                ]
-            );
         });
     }
 }

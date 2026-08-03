@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\CheckOut;
 
-use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
-use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
+use App\Repository\Queries\Cuentas\ObtenerSaldoPendienteReservaQuery;
 use DomainException;
 
 final class ValidarRequisitosCheckOut
 {
+    public function __construct(
+        private readonly ObtenerSaldoPendienteReservaQuery $saldoPendiente = new ObtenerSaldoPendienteReservaQuery,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $datosCheckOut
      */
@@ -31,10 +34,7 @@ final class ValidarRequisitosCheckOut
 
     private function validarSaldoCuenta(Estancia $estancia, bool $creditoAutorizado): void
     {
-        $saldoPendiente = (float) Cuenta::query()
-            ->where('reserva_id', $estancia->reserva_id)
-            ->where('estado', EstadoCuenta::ABIERTA)
-            ->sum('saldo');
+        $saldoPendiente = $this->saldoPendiente->ejecutar((int) $estancia->reserva_id);
 
         if ($saldoPendiente > 0 && ! $creditoAutorizado) {
             throw new DomainException(

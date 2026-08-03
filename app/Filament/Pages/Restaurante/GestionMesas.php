@@ -4,56 +4,50 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Restaurante;
 
-use App\BusinessLogic\Restaurante\Auditoria\RegistrarAuditoriaRestaurante;
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
-use App\Enums\Cuentas\EstadoPago;
-use App\Enums\Cuentas\MetodoPago;
-use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
-use App\Enums\Restaurante\AccionAuditoriaRestaurante;
-use App\Enums\Restaurante\EstadoItemPedido;
-use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Cuentas\AbrirCuenta;
-use App\Interactors\Cuentas\CerrarCuenta;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
-use App\Interactors\Cuentas\RegistrarPagoCuenta;
+use App\Enums\Reservas\TipoReserva;
+use App\Filament\Resources\Reservas\ReservaResource;
+use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
 use App\Interactors\Restaurante\Cocina\ReimprimirComanda;
+use App\Interactors\Restaurante\Cuentas\AbrirCuentaYConsumoRestaurante;
 use App\Interactors\Restaurante\Cuentas\AplicarDescuentoCuenta;
 use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
+use App\Interactors\Restaurante\Mesas\CancelarReservaMesa;
+use App\Interactors\Restaurante\Mesas\ConfirmarLlegadaReservaMesa;
 use App\Interactors\Restaurante\Mesas\MoverCuentaMesa;
 use App\Interactors\Restaurante\Mesas\SepararMesas;
 use App\Interactors\Restaurante\Mesas\UnirMesas;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Monedas\Moneda;
-use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\User;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Restaurante\Landing\ObtenerReservasRestauranteQuery;
 use App\Repository\Queries\Restaurante\Mesas\ObtenerMapaMesasQuery;
-use App\Repository\Queries\Restaurante\Pedidos\BuscarClientesRapidoQuery;
-use App\Repository\Queries\Restaurante\Pedidos\ObtenerPedidoConDetalleQuery;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerComandasMesaConDetalleQuery;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Exception;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
+use Throwable;
 use UnitEnum;
 
 final class GestionMesas extends Page
 {
     use HasPageShield;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-table-cells';
+    protected static string|BackedEnum|null $navigationIcon = 'hugeicons-restaurant-table';
 
     protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
 
     protected static ?string $navigationLabel = 'Gestión de Mesas';
 
-    protected static ?string $title = 'Mapa de Mesas e Interfaz de Servicio POS';
+    protected static ?string $title = 'Mapa de Mesas';
 
     protected static ?string $slug = 'restaurante/mesas';
 
@@ -61,12 +55,42 @@ final class GestionMesas extends Page
 
     protected string $view = 'filament.resources.restaurante.gestion-mesas';
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('crearReserva')
+                ->label('Reservar Mesa')
+                ->icon('heroicon-o-calendar-days')
+                ->color('warning')
+                ->url(fn (): string => ReservaResource::getUrl('create', ['tipo_reserva' => TipoReserva::RESTAURANTE->value])),
+
+            Action::make('pantallaTurnos')
+                ->label('Pantalla Turnos')
+                ->icon('heroicon-o-tv')
+                ->color('info')
+                ->url(fn (): string => PantallaPedidos::getUrl())
+                ->openUrlInNewTab(),
+        ];
+    }
+
     // ── Mapa de mesas ──
     /** @var Collection<int, Espacio> */
     public Collection $ambientes;
 
     /** @var Collection<int, Espacio> */
     public Collection $mesas;
+
+    /** @var Collection<int, Espacio> */
+    public Collection $mesasFiltradas;
+
+    /** @var array<int, EstadoEspacio> */
+    public array $estadosMesa = [];
+
+    public string $filtroMesa = '';
+
+    public ?string $filtroEstado = null;
+
+    public string $ordenarPor = 'nombre';
 
     // ── Unión de mesas ──
     public ?int $mesaSeleccionadaId = null;
@@ -95,33 +119,10 @@ final class GestionMesas extends Page
     // ── Detalle del pedido ──
     public ?Pedido $pedidoDetalle = null;
 
-    // ── Cobro / Pago ──
-    /** @var int[] IDs de los pedidos a cobrar */
-    public array $pedidosCobroIds = [];
-
-    public float $totalCobro = 0.0;
-
-    public int $metodoPago = 1;
-
-    public float $montoRecibido = 0.0;
-
-    public ?string $referenciaPago = null;
-
-    public bool $imprimirVoucherTrasPago = false;
-
-    public string $modoCobro = 'total';
+    /** @var Collection<int, Pedido> */
+    public Collection $comandasDetalle;
 
     public string $simboloMoneda = 'C$';
-
-    // ── Cliente ──
-    public ?int $clienteSeleccionadoId = null;
-
-    public ?string $clienteSeleccionadoNombre = null;
-
-    public ?string $busquedaCliente = '';
-
-    /** @var Collection<int, Persona> */
-    public Collection $resultadosClientes;
 
     // ── DI ──
     private ObtenerMapaMesasQuery $mapaMesas;
@@ -138,21 +139,9 @@ final class GestionMesas extends Page
 
     private ReimprimirComanda $reimprimirComandaInteractor;
 
-    private RegistrarAuditoriaRestaurante $auditoria;
-
     private ObtenerReservasRestauranteQuery $reservasQuery;
 
-    private ObtenerPedidoConDetalleQuery $pedidoDetalleQuery;
-
-    private BuscarClientesRapidoQuery $buscarClientesQuery;
-
-    private AbrirCuenta $abrirCuenta;
-
-    private RegistrarDetalleCuenta $registrarDetalle;
-
-    private RegistrarPagoCuenta $registrarPago;
-
-    private CerrarCuenta $cerrarCuenta;
+    private ObtenerComandasMesaConDetalleQuery $comandasMesaDetalleQuery;
 
     private RestauranteRepositorioInterface $repositorio;
 
@@ -164,14 +153,8 @@ final class GestionMesas extends Page
         MoverCuentaMesa $moverCuentaInteractor,
         AplicarDescuentoCuenta $aplicarDescuentoInteractor,
         ReimprimirComanda $reimprimirComandaInteractor,
-        RegistrarAuditoriaRestaurante $auditoria,
         ObtenerReservasRestauranteQuery $reservasQuery,
-        ObtenerPedidoConDetalleQuery $pedidoDetalleQuery,
-        BuscarClientesRapidoQuery $buscarClientesQuery,
-        AbrirCuenta $abrirCuenta,
-        RegistrarDetalleCuenta $registrarDetalle,
-        RegistrarPagoCuenta $registrarPago,
-        CerrarCuenta $cerrarCuenta,
+        ObtenerComandasMesaConDetalleQuery $comandasMesaDetalleQuery,
         RestauranteRepositorioInterface $repositorio,
     ): void {
         $this->mapaMesas = $mapaMesas;
@@ -181,22 +164,18 @@ final class GestionMesas extends Page
         $this->moverCuentaInteractor = $moverCuentaInteractor;
         $this->aplicarDescuentoInteractor = $aplicarDescuentoInteractor;
         $this->reimprimirComandaInteractor = $reimprimirComandaInteractor;
-        $this->auditoria = $auditoria;
         $this->reservasQuery = $reservasQuery;
-        $this->pedidoDetalleQuery = $pedidoDetalleQuery;
-        $this->buscarClientesQuery = $buscarClientesQuery;
-        $this->abrirCuenta = $abrirCuenta;
-        $this->registrarDetalle = $registrarDetalle;
-        $this->registrarPago = $registrarPago;
-        $this->cerrarCuenta = $cerrarCuenta;
+        $this->comandasMesaDetalleQuery = $comandasMesaDetalleQuery;
         $this->repositorio = $repositorio;
     }
 
     public function mount(): void
     {
+        $this->comandasDetalle = collect();
         $this->recargarMesas();
         $this->reservasRestaurante = $this->reservasQuery->ejecutar();
-        $this->resultadosClientes = collect();
+        $this->estadosMesa = EstadoEspacio::cases();
+        $this->mesasFiltradas = $this->mesas;
     }
 
     public function hydrate(): void
@@ -206,8 +185,6 @@ final class GestionMesas extends Page
 
     protected function getViewData(): array
     {
-        $this->recargarMesas();
-
         return [
             'ambientes' => $this->ambientes,
             'mesas' => $this->mesas,
@@ -219,15 +196,66 @@ final class GestionMesas extends Page
         $mapa = $this->mapaMesas->ejecutar();
         $this->ambientes = $mapa['ambientes'];
         $this->mesas = $mapa['mesas'];
+        $this->aplicarFiltroMesa();
+    }
+
+    public function updatedFiltroMesa(): void
+    {
+        $this->aplicarFiltroMesa();
+    }
+
+    public function updatedFiltroEstado(): void
+    {
+        $this->aplicarFiltroMesa();
+    }
+
+    public function updatedOrdenarPor(): void
+    {
+        $this->aplicarFiltroMesa();
+    }
+
+    private function aplicarFiltroMesa(): void
+    {
+        $this->mesasFiltradas = $this->mesas;
+
+        if ($this->filtroMesa !== '') {
+            $filtro = mb_strtolower(trim($this->filtroMesa));
+            $this->mesasFiltradas = $this->mesasFiltradas->filter(
+                static fn (Espacio $mesa): bool => str_contains(mb_strtolower((string) $mesa->nombre), $filtro)
+                    || str_contains((string) $mesa->id, $filtro)
+            );
+        }
+
+        if ($this->filtroEstado !== null && $this->filtroEstado !== '') {
+            $estadoFilter = EstadoEspacio::tryFrom((int) $this->filtroEstado);
+
+            if ($estadoFilter !== null) {
+                $this->mesasFiltradas = $this->mesasFiltradas->filter(
+                    static fn (Espacio $mesa): bool => $mesa->estado === $estadoFilter
+                );
+            }
+        }
+
+        $this->mesasFiltradas = match ($this->ordenarPor) {
+            'estado' => $this->mesasFiltradas->sortBy(
+                static fn (Espacio $mesa): int => $mesa->estado->value
+            ),
+            'capacidad' => $this->mesasFiltradas->sortBy(
+                static fn (Espacio $mesa): int => (int) ($mesa->meta_datos['capacidad_personas'] ?? 0)
+            ),
+            default => $this->mesasFiltradas->sortBy('nombre'),
+        };
     }
 
     // ────────────────────────────────────────────
     // Cambio de estado
     // ────────────────────────────────────────────
 
-    public function cambiarEstadoMesa(int $mesaId, string $nuevoEstado): void
+    public function cambiarEstadoMesa(int $mesaId, EstadoEspacio|int|string $nuevoEstado): void
     {
-        $estado = EstadoEspacio::tryFrom((int) $nuevoEstado);
+        $estado = $nuevoEstado instanceof EstadoEspacio
+            ? $nuevoEstado
+            : EstadoEspacio::tryFrom(is_numeric($nuevoEstado) ? (int) $nuevoEstado : 0);
 
         if ($estado === null) {
             Notification::make()->title('Estado de mesa inválido')->danger()->send();
@@ -235,22 +263,82 @@ final class GestionMesas extends Page
             return;
         }
 
-        $mesa = $this->cambiarEstado->ejecutar($mesaId, $estado);
+        try {
+            $mesa = $this->cambiarEstado->ejecutar($mesaId, $estado);
+        } catch (Exception $e) {
+            Notification::make()->title('No se pudo cambiar el estado')->body($e->getMessage())->danger()->send();
+
+            return;
+        }
+
         $this->recargarMesas();
 
-        $this->auditoria->registrar(
-            accion: AccionAuditoriaRestaurante::CambioEstadoMesa,
-            mesaId: $mesaId,
-            detalles: ['nuevo_estado' => $estado->getLabel()],
-            userId: auth()->id() !== null ? (int) auth()->id() : null,
-            ipAddress: request()->ip(),
-        );
-
         Notification::make()
-            ->title("Mesa {$mesa->nombre} cambiada a {$estado->getLabel()}")
+            ->title("Estado cambiado a {$mesa->estado->getLabel()}")
             ->success()
             ->send();
     }
+
+    public function confirmarLlegadaReserva(int $mesaId): void
+    {
+        try {
+            $authId = auth()->id();
+            $meseroId = is_numeric($authId) ? (int) $authId : null;
+            $pedido = app(ConfirmarLlegadaReservaMesa::class)->ejecutar($mesaId, $meseroId);
+            $this->recargarMesas();
+
+            Notification::make()
+                ->title('Cliente atendido - Mesa Ocupada')
+                ->body("Comanda #$pedido->codigo abierta y pre-orden enviada a cocina.")
+                ->success()
+                ->send();
+        } catch (Exception $e) {
+            Notification::make()
+                ->title('Error al confirmar llegada')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function cancelarReservaMesa(int $mesaId): void
+    {
+        try {
+            app(CancelarReservaMesa::class)->ejecutar($mesaId);
+            $this->recargarMesas();
+
+            Notification::make()
+                ->title('Reservación cancelada')
+                ->body('La mesa ha sido desvinculada y liberada.')
+                ->success()
+                ->send();
+        } catch (Exception $e) {
+            Notification::make()
+                ->title('Error al cancelar reservación')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function solicitarLimpiezaMesa(int $mesaId): void
+    {
+        $this->cambiarEstadoMesa($mesaId, EstadoEspacio::Sucio);
+    }
+
+    public function marcarMesaLimpia(int $mesaId): void
+    {
+        $this->cambiarEstadoMesa($mesaId, EstadoEspacio::Disponible);
+    }
+
+    public function reservarMesa(int $mesaId): void
+    {
+        $this->cambiarEstadoMesa($mesaId, EstadoEspacio::Reservado);
+    }
+
+    // ────────────────────────────────────────────
+    // Unión y Separación de Mesas
+    // ────────────────────────────────────────────
 
     // ────────────────────────────────────────────
     // Mover cuenta
@@ -278,11 +366,19 @@ final class GestionMesas extends Page
             $this->mesaDestinoId = null;
             $this->recargarMesas();
 
+            $this->dispatch('close-modal', id: 'modal-mover-cuenta');
+
             Notification::make()
                 ->title('Cuenta trasladada exitosamente')
                 ->success()
                 ->send();
         } catch (Exception $e) {
+            Notification::make()
+                ->title('Error al mover cuenta')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        } catch (Throwable $e) {
             Notification::make()
                 ->title('Error al mover cuenta')
                 ->body($e->getMessage())
@@ -317,6 +413,8 @@ final class GestionMesas extends Page
             $this->motivoDescuento = null;
             $this->recargarMesas();
 
+            $this->dispatch('close-modal', id: 'modal-descuento');
+
             Notification::make()
                 ->title('Descuento aplicado correctamente')
                 ->success()
@@ -337,12 +435,7 @@ final class GestionMesas extends Page
     public function reimprimir(int $pedidoId, ?string $area = null): void
     {
         try {
-            $pedido = $this->reimprimirComandaInteractor->ejecutar(
-                $pedidoId,
-                $area,
-                auth()->id() !== null ? (int) auth()->id() : null,
-                request()->ip(),
-            );
+            $pedido = $this->reimprimirComandaInteractor->ejecutar($pedidoId);
 
             $url = route('admin.restaurante.comanda', [
                 'pedido' => $pedido->id,
@@ -353,7 +446,7 @@ final class GestionMesas extends Page
             $this->dispatch('open-window', url: $url);
 
             Notification::make()
-                ->title("Comanda #{$pedido->codigo} enviada a reimpresión")
+                ->title("Comanda #$pedido->codigo enviada a reimpresión")
                 ->success()
                 ->send();
         } catch (Exception $e) {
@@ -394,6 +487,8 @@ final class GestionMesas extends Page
             $this->reservaIdParaUnion = null;
             $this->recargarMesas();
 
+            $this->dispatch('close-modal', id: 'modal-unir-mesas');
+
             Notification::make()
                 ->title('Mesas unidas exitosamente')
                 ->success()
@@ -430,12 +525,13 @@ final class GestionMesas extends Page
     // Detalle del pedido
     // ────────────────────────────────────────────
 
-    public function verDetallePedido(int $pedidoId): void
+    public function verComandasMesa(int $mesaId): void
     {
-        $this->pedidoDetalle = $this->pedidoDetalleQuery->ejecutar($pedidoId);
+        $this->comandasDetalle = $this->comandasMesaDetalleQuery->ejecutar($mesaId);
+        $this->pedidoDetalle = $this->comandasDetalle->first();
 
-        if ($this->pedidoDetalle === null) {
-            Notification::make()->title('Pedido no encontrado')->danger()->send();
+        if ($this->comandasDetalle->isEmpty()) {
+            Notification::make()->title('No hay comandas activas en esta mesa')->warning()->send();
 
             return;
         }
@@ -446,8 +542,11 @@ final class GestionMesas extends Page
     public function cerrarDetallePedido(): void
     {
         $this->pedidoDetalle = null;
+        $this->comandasDetalle = collect();
         $this->dispatch('close-modal', id: 'modal-detalle-pedido');
     }
+
+    public ?int $pedidoCobroId = null;
 
     public function irACobrarDesdeDetalle(): void
     {
@@ -455,245 +554,70 @@ final class GestionMesas extends Page
             return;
         }
 
-        $pedidoId = $this->pedidoDetalle->id;
+        $this->pedidoCobroId = $this->pedidoDetalle->id;
         $this->cerrarDetallePedido();
-        $this->iniciarCobro([$pedidoId]);
+        $this->mountAction('cobrarCuenta');
     }
 
     // ────────────────────────────────────────────
-    // Cobro / Pago
+    // Cobro / Pago — Acción Unificada CobrarCuentaAction
     // ────────────────────────────────────────────
 
-    /**
-     * @param  int[]  $pedidoIds
-     */
-    public function iniciarCobro(array $pedidoIds): void
+    public function cobrarCuentaAction(): Action
     {
-        $this->pedidosCobroIds = $pedidoIds;
-        $this->totalCobro = 0.0;
-
-        $pedidos = Pedido::query()
-            ->whereIn('id', $pedidoIds)
-            ->with(['items.plato', 'mesa'])
-            ->get();
-
-        foreach ($pedidos as $pedido) {
-            $subtotal = 0.0;
-            foreach ($pedido->items as $item) {
-                if ($item->estado !== EstadoItemPedido::ANULADO) {
-                    $subtotal += (float) $item->subtotal;
+        return CobrarCuentaAction::makeFromResolver(
+            resolverCuenta: function (): ?Cuenta {
+                if (! is_numeric($this->pedidoCobroId)) {
+                    return null;
                 }
+
+                $pedido = Pedido::find((int) $this->pedidoCobroId);
+
+                if ($pedido === null) {
+                    return null;
+                }
+
+                if ($pedido->cuenta_id !== null && $pedido->cuenta !== null && $pedido->cuenta->estaAbierta()) {
+                    return $pedido->cuenta;
+                }
+
+                $userId = auth()->id() !== null ? (int) auth()->id() : null;
+                $resultado = app(AbrirCuentaYConsumoRestaurante::class)->ejecutar($pedido, $userId);
+
+                return $resultado['cuenta'];
+            },
+            onSuccess: function (): void {
+                $this->recargarMesas();
             }
-            $this->totalCobro += $subtotal;
-        }
-
-        $this->totalCobro = round($this->totalCobro, 2);
-        $this->montoRecibido = $this->totalCobro;
-        $this->metodoPago = MetodoPago::EFECTIVO->value;
-        $this->referenciaPago = null;
-        $this->imprimirVoucherTrasPago = false;
-        $this->modoCobro = count($pedidoIds) > 1 ? 'total' : 'pedido';
-        $this->clienteSeleccionadoId = null;
-        $this->clienteSeleccionadoNombre = null;
-        $this->busquedaCliente = '';
-        $this->resultadosClientes = collect();
-
-        /** @var Moneda|null $monedaPredeterminada */
-        $monedaPredeterminada = Moneda::query()->where('es_predeterminada', true)->first()
-            ?? Moneda::query()->first();
-        $this->simboloMoneda = $monedaPredeterminada->simbolo ?? 'C$';
-
-        $this->dispatch('open-modal', id: 'modal-cobro');
+        )->name('cobrarCuenta');
     }
 
-    public function cerrarCobro(): void
+    public function iniciarCobroMesa(int $mesaId): void
     {
-        $this->pedidosCobroIds = [];
-        $this->totalCobro = 0.0;
-        $this->montoRecibido = 0.0;
-        $this->referenciaPago = null;
-        $this->clienteSeleccionadoId = null;
-        $this->clienteSeleccionadoNombre = null;
-        $this->dispatch('close-modal', id: 'modal-cobro');
-    }
+        $mesa = $this->repositorio->obtenerEspacioPorId($mesaId);
 
-    public function buscarClientesAction(): void
-    {
-        $this->resultadosClientes = $this->buscarClientesQuery->ejecutar($this->busquedaCliente ?? '');
-    }
-
-    public function seleccionarCliente(int $personaId): void
-    {
-        $persona = Persona::query()->find($personaId);
-
-        if ($persona instanceof Persona) {
-            $this->clienteSeleccionadoId = $persona->id;
-            $this->clienteSeleccionadoNombre = $persona->nombre_completo ?? $persona->primer_nombre;
-            $this->busquedaCliente = '';
-            $this->resultadosClientes = collect();
-        }
-    }
-
-    public function limpiarClienteSeleccionado(): void
-    {
-        $this->clienteSeleccionadoId = null;
-        $this->clienteSeleccionadoNombre = null;
-    }
-
-    public function confirmarPago(): void
-    {
-        if ($this->pedidosCobroIds === []) {
-            Notification::make()->title('No hay pedidos para cobrar')->danger()->send();
+        if ($mesa === null) {
+            Notification::make()->title('Mesa no encontrada')->danger()->send();
 
             return;
         }
 
-        $metodoEnum = MetodoPago::tryFrom($this->metodoPago);
+        $pedidosActivos = $mesa->pedidosActivos;
+        $primerPedido = $pedidosActivos->first();
 
-        if ($metodoEnum === null) {
-            Notification::make()->title('Método de pago inválido')->danger()->send();
+        if ($primerPedido === null) {
+            Notification::make()->title('No hay pedidos activos en esta mesa')->warning()->send();
 
             return;
         }
 
-        try {
-            $pedidos = Pedido::query()
-                ->whereIn('id', $this->pedidosCobroIds)
-                ->with(['items.plato', 'mesa'])
-                ->get();
-
-            $mesaId = $pedidos->first()?->mesa_id;
-            $userId = auth()->id() !== null ? (int) auth()->id() : null;
-            /** @var int|null $monedaId */
-            $monedaId = Moneda::query()->where('es_predeterminada', true)->value('id')
-                ?? Moneda::query()->value('id');
-
-            // 1. Abrir cuenta unificada tipo RESTAURANTE_DIRECTO
-            $cuenta = $this->abrirCuenta->ejecutar(
-                tipo: TipoCuenta::RESTAURANTE_DIRECTO,
-                cliente: $this->clienteSeleccionadoId !== null
-                    ? Persona::find($this->clienteSeleccionadoId)
-                    : null,
-                monedaId: $monedaId,
-                usuarioId: $userId,
-            );
-
-            // 2. Registrar cada pedido como detalle de la cuenta
-            foreach ($pedidos as $pedido) {
-                foreach ($pedido->items as $item) {
-                    if ($item->estado === EstadoItemPedido::ANULADO) {
-                        continue;
-                    }
-
-                    $this->registrarDetalle->ejecutar(
-                        cuenta: $cuenta,
-                        concepto: ($item->plato->nombre ?? 'Platillo').($item->observaciones ? " ({$item->observaciones})" : ''),
-                        precioUnitario: (float) $item->precio_unitario,
-                        cantidad: (float) $item->cantidad,
-                        impuesto: 0.0,
-                        descuento: 0.0,
-                        origen: $item,
-                        espacioId: $mesaId,
-                        creadorId: $userId,
-                    );
-                }
-
-                // Marcar pedido como pagado
-                $pedido->estado = EstadoPedido::PAGADO;
-                $pedido->cerrado_en = now();
-                $pedido->cuenta_id = $cuenta->id;
-                if ($this->clienteSeleccionadoId !== null) {
-                    $pedido->cliente_id = $this->clienteSeleccionadoId;
-                }
-                $this->repositorio->guardarPedido($pedido);
-            }
-
-            // 3. Registrar pago
-            $propina = max(0.0, $this->montoRecibido - $this->totalCobro);
-
-            $this->registrarPago->ejecutar(
-                cuenta: $cuenta,
-                metodoPago: $metodoEnum,
-                monto: $this->totalCobro,
-                propina: $propina,
-                estado: EstadoPago::APLICADO,
-                referenciaTransaccion: $this->referenciaPago,
-                monedaId: $monedaId,
-                usuarioId: $userId,
-            );
-
-            // 4. Cerrar cuenta si saldada
-            $cuenta->refresh();
-            if ((float) $cuenta->saldo <= 0.0) {
-                $this->cerrarCuenta->ejecutar($cuenta, $userId);
-            }
-
-            // 5. Auditar
-            $this->auditoria->registrar(
-                accion: AccionAuditoriaRestaurante::PagoRegistrado,
-                mesaId: $mesaId,
-                detalles: [
-                    'cuenta_numero' => $cuenta->numero_cuenta,
-                    'total' => $cuenta->total,
-                    'metodo_pago' => $metodoEnum->getLabel(),
-                ],
-                userId: $userId,
-                ipAddress: request()->ip(),
-            );
-
-            $pedidoId = $this->pedidosCobroIds[0];
-
-            // 6. Marcar mesa sucia si no quedan pedidos activos
-            if ($mesaId !== null) {
-                $pedidosRestantes = Pedido::query()
-                    ->where('mesa_id', $mesaId)
-                    ->whereIn('estado', [EstadoPedido::ABIERTO, EstadoPedido::EN_PREPARACION, EstadoPedido::SERVIDO])
-                    ->count();
-
-                if ($pedidosRestantes === 0) {
-                    $mesa = Espacio::find($mesaId);
-                    if ($mesa instanceof Espacio) {
-                        $this->repositorio->actualizarEspacio($mesa, [
-                            'estado' => EstadoEspacio::Sucio,
-                        ]);
-                    }
-                }
-            }
-
-            $this->cerrarCobro();
-            $this->recargarMesas();
-
-            Notification::make()
-                ->title('Pago registrado exitosamente')
-                ->success()
-                ->send();
-
-            if ($this->imprimirVoucherTrasPago) {
-                $url = route('admin.restaurante.voucher', [
-                    'pedido' => $pedidoId,
-                    'tipo' => 'pago',
-                    'formato' => 'html',
-                    'cuenta_id' => $cuenta->id,
-                ]);
-                $this->dispatch('open-window', url: $url);
-            }
-        } catch (Exception $e) {
-            Notification::make()
-                ->title('Error al procesar pago')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
+        $this->pedidoCobroId = $primerPedido->id;
+        $this->mountAction('cobrarCuenta');
     }
 
     // ────────────────────────────────────────────
     // Helpers
     // ────────────────────────────────────────────
-
-    public function getVuelto(): float
-    {
-        return max(0.0, round($this->montoRecibido - $this->totalCobro, 2));
-    }
 
     /**
      * @return array{colorBadge: string, bgDot: string, borderCircle: string, borderCard: string, badgeLabel: string}
@@ -705,42 +629,42 @@ final class GestionMesas extends Page
                 'colorBadge' => 'success',
                 'bgDot' => 'bg-emerald-500',
                 'borderCircle' => 'border-emerald-500 dark:border-emerald-400',
-                'borderCard' => 'border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-950/20',
+                'borderCard' => 'border-emerald-300 dark:border-emerald-800/60 bg-emerald-50/40 dark:bg-emerald-950/20',
                 'badgeLabel' => 'Disponible',
             ],
             EstadoEspacio::Mantenimiento => [
                 'colorBadge' => 'gray',
                 'bgDot' => 'bg-slate-500',
                 'borderCircle' => 'border-slate-500 dark:border-slate-400',
-                'borderCard' => 'border-slate-500/40 dark:border-slate-500/30 bg-slate-500/5 dark:bg-slate-950/20',
+                'borderCard' => 'border-slate-300 dark:border-slate-800/60 bg-slate-50/40 dark:bg-slate-950/20',
                 'badgeLabel' => 'Fuera de Servicio',
             ],
             EstadoEspacio::Limpieza, EstadoEspacio::Sucio => [
                 'colorBadge' => 'warning',
                 'bgDot' => 'bg-amber-500',
                 'borderCircle' => 'border-amber-500 dark:border-amber-400',
-                'borderCard' => 'border-amber-500/40 dark:border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/20',
+                'borderCard' => 'border-amber-300 dark:border-amber-800/60 bg-amber-50/40 dark:bg-amber-950/20',
                 'badgeLabel' => 'Pendiente Limpieza',
             ],
             EstadoEspacio::Reservado => [
                 'colorBadge' => 'info',
                 'bgDot' => 'bg-sky-500',
                 'borderCircle' => 'border-sky-500 dark:border-sky-400',
-                'borderCard' => 'border-sky-500/40 dark:border-sky-500/30 bg-sky-500/5 dark:bg-sky-950/20',
+                'borderCard' => 'border-sky-300 dark:border-sky-800/60 bg-sky-50/40 dark:bg-sky-950/20',
                 'badgeLabel' => 'Reservada',
             ],
             EstadoEspacio::Ocupado => [
                 'colorBadge' => 'danger',
                 'bgDot' => 'bg-rose-500',
                 'borderCircle' => 'border-rose-500 dark:border-rose-400',
-                'borderCard' => 'border-rose-500/40 dark:border-rose-500/30 bg-rose-500/5 dark:bg-rose-950/20',
+                'borderCard' => 'border-rose-300 dark:border-rose-800/60 bg-rose-50/40 dark:bg-rose-950/20',
                 'badgeLabel' => 'Ocupada',
             ],
             EstadoEspacio::Inactivo => [
                 'colorBadge' => 'gray',
                 'bgDot' => 'bg-slate-500',
                 'borderCircle' => 'border-slate-500 dark:border-slate-400',
-                'borderCard' => 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50',
+                'borderCard' => 'border-stone-200 dark:border-stone-800 bg-stone-50/40 dark:bg-stone-900/50',
                 'badgeLabel' => 'Inactiva',
             ],
         };

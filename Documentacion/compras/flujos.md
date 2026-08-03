@@ -98,8 +98,7 @@ app/
 │   ├── ResolverEstrategiaCompra.php         ← Estrategia de compra
 │   ├── ValidarTransicionRecepcion.php       ← Máquina de estados
 │   ├── ValidarCancelacionOrden.php          ← Regla de cancelación
-│   ├── CalcularTotalesOrden.php             ← Cálculos financieros
-│   └── GeneradorReportesCompra.php          ← Ensamblador de reportes
+│   └── CalcularTotalesOrden.php             ← Cálculos financieros
 ├── Events/Compras/                          ← Eventos del dominio
 ├── Listeners/Compras/                       ← Notificaciones
 └── Filament/Resources/Compras/

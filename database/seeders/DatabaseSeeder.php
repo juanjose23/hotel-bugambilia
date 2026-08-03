@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         // Base del sistema
         $this->call(PaisSeeder::class);
+        $this->call(MonedaSeeder::class);
         $this->call(CatalogoTipoSeeder::class);
         $this->call(CatalogoSeeder::class);
         $this->call(UbicacionSeeder::class);
@@ -69,9 +70,10 @@ class DatabaseSeeder extends Seeder
         // Clientes
         $this->call(ClientesDemoSeeder::class);
 
-        // LOGICA DE RESTARUANTE
-        $this->call(MenuRestauranteSeeder::class);
+        // Permisos del módulo de restaurante (acceso directo por usuario, sin roles)
+        $this->call(PermisosRestauranteSeeder::class);
+
+        // LOGICA DE RESTAURANTE UNIFICADA (Mesas, Menú, Pedidos y Reservas)
         $this->call(RestauranteSeeder::class);
-        $this->call(PedidoRestauranteSeeder::class);
     }
 }

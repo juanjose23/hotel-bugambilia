@@ -14,7 +14,9 @@ use App\Interactors\Cuentas\AbrirCuenta;
 use App\Interactors\Reservas\CambiarEstadoReserva;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +27,8 @@ final class RegistrarCheckIn
         private readonly ValidarRequisitosCheckIn $validarRequisitos,
         private readonly AbrirCuenta $abrirCuenta,
         private readonly ReservaRepositorioInterface $reservas,
+        private readonly HabitacionRepositorioInterface $habitaciones,
+        private readonly RestauranteRepositorioInterface $restaurante,
     ) {}
 
     /** @param array<string, mixed> $datos */
@@ -35,7 +39,7 @@ final class RegistrarCheckIn
 
             $huespedes = $datos['huespedes_nuevos'] ?? [];
             if (is_array($huespedes) && $huespedes !== []) {
-                $detallePrincipal = $reserva->detalles()->whereNull('parent_id')->firstOrFail();
+                $detallePrincipal = $this->reservas->detallePrincipalDe($reserva);
                 $this->reservas->crearHuespedes($detallePrincipal, array_values($huespedes));
                 $reserva->unsetRelation('detalles');
             }
@@ -47,7 +51,7 @@ final class RegistrarCheckIn
 
             $this->actualizarEstadoHabitacion($reserva);
 
-            $estancia = Estancia::query()->create([
+            $estancia = $this->reservas->crearEstancia([
                 'reserva_id' => $reserva->id,
                 'habitacion_id' => $reserva->habitacion_id,
                 'usuario_check_in_id' => $usuarioId,
@@ -98,7 +102,7 @@ final class RegistrarCheckIn
         }
 
         if ($actualizaciones !== []) {
-            $reserva->update($actualizaciones);
+            $this->reservas->actualizarDatosGenerales($reserva, $actualizaciones);
         }
     }
 
@@ -117,11 +121,11 @@ final class RegistrarCheckIn
                     ->send();
             }
 
-            $habitacion->update(['estado' => EstadoEspacio::Ocupado]);
+            $this->habitaciones->actualizarEstado($reserva->habitacion, EstadoEspacio::Ocupado);
         }
 
         if ($reserva->espacio !== null) {
-            $reserva->espacio->update(['estado' => EstadoEspacio::Ocupado]);
+            $this->restaurante->actualizarEspacio($reserva->espacio, ['estado' => EstadoEspacio::Ocupado]);
         }
     }
 

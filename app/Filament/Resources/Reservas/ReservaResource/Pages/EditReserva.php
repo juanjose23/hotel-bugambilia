@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\ReservaResource\Pages;
 
+use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Interactors\Reservas\ActualizarReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Queries\Cuentas\ObtenerCuentaReservaQuery;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
@@ -66,6 +69,15 @@ class EditReserva extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
+        $cuenta = app(ObtenerCuentaReservaQuery::class)->ejecutar((int) $this->record->id);
+
+        return [
+            Action::make('gestionarPagos')
+                ->label((float) $this->record->saldo > 0 ? 'Registrar abono o pago' : 'Ver pagos')
+                ->icon('heroicon-o-banknotes')
+                ->color((float) $this->record->saldo > 0 ? 'warning' : 'success')
+                ->visible($cuenta !== null)
+                ->url($cuenta !== null ? CuentaResource::getUrl('view', ['record' => $cuenta]) : null),
+        ];
     }
 }

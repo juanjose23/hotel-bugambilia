@@ -96,8 +96,8 @@ test('flujo completo de restaurante: abrir mesa ocupada, enviar a cocina y cerra
     );
 
     expect($pedidoCerrado->estado)->toBe(EstadoPedido::CARGADO_A_HABITACION)
-        ->and((float) $pedidoCerrado->total)->toBe(360.00)
-        ->and((float) $cuenta->refresh()->saldo)->toBe(360.00)
+        ->and((float) $pedidoCerrado->total)->toBe(414.00)
+        ->and((float) $cuenta->refresh()->saldo)->toBe(414.00)
         ->and($mesa->refresh()->estado)->toBe(EstadoEspacio::Sucio);
 
     // 7. Verificar que se haya generado automáticamente la Solicitud de Limpieza para la mesa
@@ -107,7 +107,7 @@ test('flujo completo de restaurante: abrir mesa ocupada, enviar a cocina y cerra
         ->first();
 
     expect($solicitudLimpieza)->not->toBeNull()
-        ->and($solicitudLimpieza->estado)->toBe(EstadoLimpieza::Pendiente);
+        ->and($solicitudLimpieza?->estado)->toBe(EstadoLimpieza::Pendiente);
 });
 
 test('rechaza abrir un pedido si la mesa no esta disponible', function (): void {

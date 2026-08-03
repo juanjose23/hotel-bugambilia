@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Repository\Models\Reservas;
 
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Promociones\Promocion;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\User;
@@ -20,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
@@ -30,19 +33,29 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property EstadoReserva $estado
  * @property int|null $habitacion_id
  * @property int|null $espacio_id
+ * @property bool $solicita_cuenta
+ * @property float|null $limite_cuenta_solicitado
+ * @property Carbon|null $fecha_check_in
+ * @property Carbon|null $fecha_check_out
+ * @property array<string, mixed>|null $meta_datos
  */
-class Reserva extends Model implements AuditableContract
+final class Reserva extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
 
     protected $table = 'reservas';
+
+    protected $attributes = [
+        'solicita_cuenta' => false,
+    ];
 
     protected $fillable = [
         'codigo_reserva', 'cliente_id', 'nombre_cliente', 'telefono_cliente',
         'email_cliente', 'tipo_reserva', 'habitacion_id', 'espacio_id',
         'servicio_id', 'promocion_id', 'fecha_check_in', 'fecha_check_out', 'hora_reserva',
         'adultos', 'ninos', 'solicita_cuenta', 'limite_cuenta_solicitado', 'estado',
-        'subtotal', 'descuento', 'total', 'notas', 'acompanantes',
+        'subtotal', 'descuento', 'total', 'moneda_id', 'tipo_pago', 'total_pagado', 'saldo',
+        'notas', 'acompanantes', 'meta_datos',
     ];
 
     protected $casts = [
@@ -58,7 +71,11 @@ class Reserva extends Model implements AuditableContract
         'subtotal' => 'decimal:2',
         'descuento' => 'decimal:2',
         'total' => 'decimal:2',
+        'tipo_pago' => TipoPagoReserva::class,
+        'total_pagado' => 'decimal:2',
+        'saldo' => 'decimal:2',
         'acompanantes' => 'array',
+        'meta_datos' => 'array',
     ];
 
     /**
@@ -97,6 +114,12 @@ class Reserva extends Model implements AuditableContract
     public function promocion(): BelongsTo
     {
         return $this->belongsTo(Promocion::class, 'promocion_id');
+    }
+
+    /** @return BelongsTo<Moneda, $this> */
+    public function moneda(): BelongsTo
+    {
+        return $this->belongsTo(Moneda::class);
     }
 
     /**

@@ -12,6 +12,9 @@ use App\Interactors\Limpieza\Ejecucion\CompletarEjecucionAsignada;
 use App\Interactors\Limpieza\Ejecucion\ReclamarEIniciarLimpieza;
 use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Models\Limpieza\SolicitudLimpieza;
+use App\Repository\Models\Limpieza\Turno;
+use App\Repository\Models\User;
 use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritosDisponibles;
 use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionesConFiltros;
@@ -30,6 +33,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
@@ -204,6 +208,7 @@ class TableroLimpieza extends Page implements HasForms
     /**
      * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
      */
+    #[Computed]
     public function enProgreso(): \Illuminate\Support\Collection
     {
         return $this->executions()
@@ -215,6 +220,7 @@ class TableroLimpieza extends Page implements HasForms
     /**
      * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
      */
+    #[Computed]
     public function completadas(): \Illuminate\Support\Collection
     {
         return $this->executions()
@@ -224,8 +230,25 @@ class TableroLimpieza extends Page implements HasForms
     }
 
     /**
+     * Solicitudes de limpieza pendientes sin ejecución asociada.
+     *
+     * @return Collection<int, SolicitudLimpieza>
+     */
+    #[Computed]
+    public function solicitudes(): Collection
+    {
+        return SolicitudLimpieza::query()
+            ->with(['limpiable', 'personal', 'creador', 'ejecuciones'])
+            ->where('estado', EstadoLimpieza::Pendiente)
+            ->orderByRaw("CASE WHEN prioridad = 'alta' THEN 0 WHEN prioridad = 'normal' THEN 1 ELSE 2 END")
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
      * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
      */
+    #[Computed]
     public function pendientesPaged(): \Illuminate\Support\Collection
     {
         return $this->pendientes()->take($this->pendientesLimit)->values();
@@ -234,6 +257,7 @@ class TableroLimpieza extends Page implements HasForms
     /**
      * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
      */
+    #[Computed]
     public function enProgresoPaged(): \Illuminate\Support\Collection
     {
         return $this->enProgreso()->take($this->enProgresoLimit)->values();
@@ -511,5 +535,103 @@ class TableroLimpieza extends Page implements HasForms
             ->send();
 
         $this->closeCompleteModal();
+    }
+
+    public function asignarSolicitud(int $solicitudId): void
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        if (! $user) {
+            Notification::make()
+                ->title('Acceso denegado')
+                ->body('Debe iniciar sesión para asignar solicitudes.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        if (! $user->can('page_GestionMesas') && ! $user->can('page_TableroLimpieza') && ! $user->hasRole('super_admin')) {
+            Notification::make()
+                ->title('Sin permisos')
+                ->body('Solo personal autorizado puede asignar solicitudes de limpieza.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $solicitud = SolicitudLimpieza::query()->with(['limpiable.ubicacion', 'ejecuciones'])->find($solicitudId);
+
+        if (! $solicitud) {
+            Notification::make()
+                ->title('No encontrada')
+                ->body('La solicitud de limpieza ya no existe.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $colaborador = $user->persona?->colaborador;
+
+        // Actualizar solicitud
+        $solicitud->update([
+            'personal_id' => $user->id,
+            'estado' => EstadoLimpieza::EnProgreso,
+        ]);
+
+        // Crear ejecución vinculada para que fluya por el Kanban completo
+        $ejecucionExistente = $solicitud->ejecuciones()->first();
+        if (! $ejecucionExistente) {
+            $limpiable = $solicitud->limpiable;
+            $ubicacion = null;
+            if ($limpiable instanceof Model && method_exists($limpiable, 'ubicacion')) {
+                $limpiable->loadMissing('ubicacion');
+                /** @phpstan-ignore property.notFound */
+                $ubicacion = $limpiable->ubicacion;
+            }
+
+            $turno = null;
+            $currentUbicacion = $ubicacion;
+            while ($currentUbicacion) {
+                $turno = Turno::where('estado', true)
+                    ->whereHas('carritos', fn ($q) => $q->where('ubicacion_id', $currentUbicacion->id))
+                    ->first();
+                if ($turno) {
+                    break;
+                }
+                $currentUbicacion->loadMissing('padre');
+                $currentUbicacion = $currentUbicacion->padre;
+            }
+            if (! $turno) {
+                $turno = Turno::where('estado', true)->first() ?: Turno::first();
+            }
+
+            LimpiezaEjecucion::create([
+                'solicitud_id' => $solicitud->id,
+                'limpiable_type' => $solicitud->limpiable_type,
+                'limpiable_id' => $solicitud->limpiable_id,
+                'turno_id' => $turno instanceof Turno ? $turno->id : null,
+                'colaborador_id' => $colaborador?->id,
+                'fecha' => now()->toDateString(),
+                'estado' => EstadoLimpieza::Pendiente,
+            ]);
+        }
+
+        $nombre = $solicitud->limpiable instanceof Model && property_exists($solicitud->limpiable, 'nombre')
+            ? ($solicitud->limpiable->nombre ?? 'Sin nombre')
+            : 'Sin nombre';
+
+        Notification::make()
+            ->title('Solicitud asignada y ejecución creada')
+            ->body("{$user->name} ha tomado la limpieza de {$nombre}. Ya aparece en el Kanban para iniciar y completar.")
+            ->success()
+            ->send();
+
+        unset($this->solicitudes);
+        unset($this->executions);
+        unset($this->pendientes);
     }
 }
