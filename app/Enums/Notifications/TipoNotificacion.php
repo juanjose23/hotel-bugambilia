@@ -27,6 +27,7 @@ enum TipoNotificacion: int implements HasColor, HasIcon, HasLabel
     case ReservationConfirmed = 12;
     case CheckInCompleted = 13;
     case CheckOutCompleted = 14;
+    case ReservationReminder = 15;
 
     case MaintenanceDue = 20;
     case MaintenanceOverdue = 21;
@@ -70,6 +71,7 @@ enum TipoNotificacion: int implements HasColor, HasIcon, HasLabel
             self::ReservationConfirmed => 'Reserva Confirmada',
             self::CheckInCompleted => 'Check-In Completado',
             self::CheckOutCompleted => 'Check-Out Completado',
+            self::ReservationReminder => 'Reserva Próxima',
             self::MaintenanceDue => 'Mantenimiento Próximo',
             self::MaintenanceOverdue => 'Mantenimiento Vencido',
             self::MaintenanceCompleted => 'Mantenimiento Completado',
@@ -108,6 +110,7 @@ enum TipoNotificacion: int implements HasColor, HasIcon, HasLabel
             self::ReservationConfirmed => 'success',
             self::CheckInCompleted => 'success',
             self::CheckOutCompleted => 'info',
+            self::ReservationReminder => 'warning',
             self::MaintenanceDue => 'warning',
             self::MaintenanceOverdue => 'danger',
             self::MaintenanceCompleted => 'success',
@@ -146,6 +149,7 @@ enum TipoNotificacion: int implements HasColor, HasIcon, HasLabel
             self::ReservationConfirmed => Heroicon::CalendarDays,
             self::CheckInCompleted => Heroicon::Key,
             self::CheckOutCompleted => Heroicon::ArrowRightEndOnRectangle,
+            self::ReservationReminder => Heroicon::Clock,
             self::MaintenanceDue => Heroicon::Clock,
             self::MaintenanceOverdue => Heroicon::ExclamationCircle,
             self::MaintenanceCompleted => Heroicon::CheckBadge,

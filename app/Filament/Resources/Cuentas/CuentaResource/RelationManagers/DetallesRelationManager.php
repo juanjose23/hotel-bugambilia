@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Cuentas\CuentaResource\RelationManagers;
 
+use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Cuentas\RegistrarDetalleCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use BackedEnum;
@@ -16,12 +17,13 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 final class DetallesRelationManager extends RelationManager
 {
     protected static string $relationship = 'detalles';
 
-    protected static ?string $title = 'Detalles de consumo';
+    protected static ?string $title = 'Detalles de Consumo';
 
     protected static BackedEnum|string|null $icon = 'heroicon-m-document-text';
 
@@ -35,7 +37,6 @@ final class DetallesRelationManager extends RelationManager
             TextInput::make('precio_unitario')
                 ->label('Precio Unitario')
                 ->numeric()
-                ->prefix('C$')
                 ->minValue(0.01)
                 ->required(),
             TextInput::make('cantidad')
@@ -44,23 +45,14 @@ final class DetallesRelationManager extends RelationManager
                 ->default(1)
                 ->minValue(0.01)
                 ->required(),
-            TextInput::make('impuesto')
-                ->label('Impuesto')
-                ->numeric()
-                ->prefix('C$')
-                ->default(0),
-            TextInput::make('descuento')
-                ->label('Descuento')
-                ->numeric()
-                ->prefix('C$')
-                ->default(0),
         ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->columns([
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('moneda'))
+            ->columns(components: [
                 TextColumn::make('created_at')
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
@@ -68,23 +60,61 @@ final class DetallesRelationManager extends RelationManager
                 TextColumn::make('concepto')
                     ->label('Concepto')
                     ->searchable(),
+                TextColumn::make('productos_comanda')
+                    ->label('Productos solicitados')
+                    ->state(state: function ($record): array {
+                        $items = $record->metadatos['items'] ?? [];
+
+                        if (! is_array($items)) {
+                            return [];
+                        }
+
+                        return collect($items)
+                            ->filter(static fn (mixed $item): bool => is_array($item))
+                            ->map(static function (array $item) use ($record): string {
+                                $nombre = isset($item['nombre']) && is_string($item['nombre'])
+                                    ? $item['nombre']
+                                    : 'Producto';
+
+                                $cantidad = isset($item['cantidad']) && is_numeric($item['cantidad'])
+                                    ? $item['cantidad']
+                                    : 1;
+
+                                $subtotal = isset($item['subtotal']) && is_numeric($item['subtotal'])
+                                    ? (float) $item['subtotal']
+                                    : 0.0;
+
+                                return sprintf(
+                                    '%s × %s — %s %s',
+                                    $nombre,
+                                    $cantidad,
+                                    $record->moneda->simbolo ?? 'C$',
+                                    number_format($subtotal, 2),
+                                );
+                            })
+                            ->values()
+                            ->all();
+                    })
+                    ->bulleted()
+                    ->listWithLineBreaks()
+                    ->wrap()
+                    ->placeholder('Detalle general'),
                 TextColumn::make('cantidad')
                     ->label('Cant.')
                     ->numeric(decimalPlaces: 2),
                 TextColumn::make('precio_unitario')
                     ->label('P. Unitario')
-                    ->money('NIO'),
-                TextColumn::make('descuento')
-                    ->label('Descuento')
-                    ->money('NIO'),
-                TextColumn::make('impuesto')
-                    ->label('Impuesto')
-                    ->money('NIO'),
-                TextColumn::make('total')
-                    ->label('Total')
-                    ->money('NIO')
+                    ->money(fn ($record): string => $record->moneda->codigo ?? 'NIO'),
+                TextColumn::make('subtotal')
+                    ->label('Subtotal')
+                    ->money(fn ($record): string => $record->moneda->codigo ?? 'NIO')
                     ->sortable()
                     ->weight(FontWeight::Bold),
+                TextColumn::make('estado')
+                    ->label('Estado')
+                    ->badge()
+                    ->formatStateUsing(fn (int $state): string => $state === EstadoGeneral::Activo->value ? 'Activo' : 'Anulado')
+                    ->color(fn (int $state): string => $state === EstadoGeneral::Activo->value ? 'success' : 'danger'),
                 TextColumn::make('creador.name')
                     ->label('Registrado por')
                     ->placeholder('Sistema'),
@@ -107,8 +137,6 @@ final class DetallesRelationManager extends RelationManager
                                 concepto: $data['concepto'],
                                 precioUnitario: (float) $data['precio_unitario'],
                                 cantidad: (float) ($data['cantidad'] ?? 1),
-                                impuesto: (float) ($data['impuesto'] ?? 0),
-                                descuento: (float) ($data['descuento'] ?? 0),
                                 creadorId: $userId,
                             );
 
@@ -125,6 +153,6 @@ final class DetallesRelationManager extends RelationManager
                         }
                     }),
             ])
-            ->actions([]);
+            ->recordActions([]);
     }
 }

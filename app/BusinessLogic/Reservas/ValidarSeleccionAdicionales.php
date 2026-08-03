@@ -7,10 +7,10 @@ namespace App\BusinessLogic\Reservas;
 use App\Repository\Queries\Reservas\ObtenerTarifasReservaQuery;
 use InvalidArgumentException;
 
-final class ValidarSeleccionAdicionales
+final readonly class ValidarSeleccionAdicionales
 {
     public function __construct(
-        private readonly ObtenerTarifasReservaQuery $tarifas,
+        private ObtenerTarifasReservaQuery $tarifas,
     ) {}
 
     /**
@@ -98,6 +98,6 @@ final class ValidarSeleccionAdicionales
             return (int) $valor;
         }
 
-        throw new InvalidArgumentException("El campo {$campo} no es válido.");
+        throw new InvalidArgumentException("El campo $campo no es válido.");
     }
 }

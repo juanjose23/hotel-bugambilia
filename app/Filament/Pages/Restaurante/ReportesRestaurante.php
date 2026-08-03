@@ -85,8 +85,8 @@ final class ReportesRestaurante extends Page implements HasTable
                 TextColumn::make('mesa.nombre')->label('Mesa'),
                 TextColumn::make('mesero.persona.nombre_completo')->label('Mesero'),
                 TextColumn::make('estado')->label('Estado')->badge()
-                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getLabel() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getLabel() ?? $state : ''))
-                    ->color(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getColor() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getColor() ?? 'gray' : 'gray')),
+                    ->formatStateUsing(fn (mixed $state): string => EstadoPedido::resolveLabel($state))
+                    ->color(fn (mixed $state): string => EstadoPedido::resolveColor($state)),
                 TextColumn::make('total')->label('Total')->money('NIO')->sortable(),
                 TextColumn::make('created_at')->label('Fecha')->dateTime()->sortable(),
             ])
@@ -102,6 +102,6 @@ final class ReportesRestaurante extends Page implements HasTable
         /** @var User|null $user */
         $user = auth()->user();
 
-        return $user?->can('page_ReportesRestaurante') ?? true;
+        return $user !== null && $user->can('page_ReportesRestaurante');
     }
 }

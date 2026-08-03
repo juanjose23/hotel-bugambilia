@@ -39,16 +39,18 @@ class PaisSeeder extends Seeder
             $nameVal = $pais['name'] ?? '';
             $name = is_string($nameVal) ? $nameVal : '';
 
-            DB::table('paises')->insert([
-                'id' => $id,
-                'codigo_iso2' => strtoupper($alpha2),
-                'codigo_iso3' => strtoupper($alpha3),
-                'nombre' => $name,
-                'codigo_telefono' => null,
-                'estado' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            DB::table('paises')->updateOrInsert(
+                ['id' => $id],
+                [
+                    'codigo_iso2' => strtoupper($alpha2),
+                    'codigo_iso3' => strtoupper($alpha3),
+                    'nombre' => $name,
+                    'codigo_telefono' => null,
+                    'estado' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
         }
 
         $this->command->info('¡Tabla de países cargada con éxito!');

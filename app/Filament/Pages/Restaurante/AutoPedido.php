@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Restaurante;
 
+use App\BusinessLogic\Restaurante\Cobro\CalcularSubtotalCarrito;
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
-use App\Enums\Catalogos\CatalogoTipo;
-use App\Enums\Restaurante\CategoriaPlato;
 use App\Interactors\Restaurante\Pedidos\ConfirmarPedidoKiosko;
-use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\User;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Repository\Queries\Restaurante\Platos\ObtenerCategoriasMenuQuery;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use DomainException;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -22,6 +22,8 @@ use UnitEnum;
 
 final class AutoPedido extends Page
 {
+    use HasPageShield;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
@@ -78,9 +80,9 @@ final class AutoPedido extends Page
             return;
         }
 
-        $precioObj = $plato->precios()->latest()->first();
+        $precioObj = $plato->precios->sortByDesc('created_at')->first();
         $precioUnitario = $precioObj !== null ? (float) $precioObj->precio : 0.0;
-        $imagenUrl = $plato->imagenes()->first()?->url;
+        $imagenUrl = $plato->imagenes->first()?->url;
 
         if (isset($this->carrito[$platoId])) {
             $this->carrito[$platoId]['cantidad']++;
@@ -128,12 +130,7 @@ final class AutoPedido extends Page
 
     public function calcularSubtotal(): float
     {
-        $subtotal = 0.0;
-        foreach ($this->carrito as $item) {
-            $subtotal += $item['precio'] * $item['cantidad'];
-        }
-
-        return round($subtotal, 2);
+        return app(CalcularSubtotalCarrito::class)->calcular($this->carrito);
     }
 
     public function confirmarYEnviarPedido(
@@ -175,15 +172,9 @@ final class AutoPedido extends Page
     /**
      * @return Collection<int, string>
      */
-    public function getCategoriasProperty(): Collection
+    public function getCategoriasProperty(ObtenerCategoriasMenuQuery $categoriasQuery): Collection
     {
-        /** @var Collection<int, string> $resultado */
-        $resultado = Catalogo::query()
-            ->whereHas('catalogoTipo', fn ($q) => $q->where('codigo', CatalogoTipo::CATEGORIA_SERVICIO))
-            ->whereIn('codigo', CategoriaPlato::codigos())
-            ->pluck('nombre', 'id');
-
-        return $resultado;
+        return $categoriasQuery->ejecutar();
     }
 
     public static function canAccess(): bool
@@ -195,6 +186,6 @@ final class AutoPedido extends Page
         /** @var User|null $user */
         $user = auth()->user();
 
-        return $user?->can('page_CocinaPedidos') || $user?->can('page_GestionMesas') || ($user?->hasRole('super_admin') ?? false);
+        return $user?->can('page_AutoPedido') || $user?->can('page_CocinaPedidos') || $user?->can('page_GestionMesas') || ($user?->hasRole('super_admin') ?? false);
     }
 }

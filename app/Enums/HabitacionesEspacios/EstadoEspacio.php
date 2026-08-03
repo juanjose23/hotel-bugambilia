@@ -67,7 +67,7 @@ enum EstadoEspacio: int implements HasColor, HasIcon, HasLabel
             self::Inactivo => 'heroicon-o-x-circle',
             self::Disponible => 'heroicon-o-check-circle',
             self::Mantenimiento => 'heroicon-o-wrench',
-            self::Limpieza => 'heroicon-o-broom',
+            self::Limpieza => 'heroicon-o-sparkles',
             self::Reservado => 'heroicon-o-calendar',
             self::Ocupado => 'heroicon-o-user',
             self::Sucio => 'heroicon-o-exclamation-triangle',

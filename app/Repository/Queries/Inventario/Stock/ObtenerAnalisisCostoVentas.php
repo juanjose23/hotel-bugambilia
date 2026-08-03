@@ -48,20 +48,17 @@ class ObtenerAnalisisCostoVentas
             ->get()
             ->keyBy(fn ($item) => $item->producto_id.'-'.($item->producto_variante_id ?? '0'));
 
-        $consumos = DB::table('stocks as s')
-            ->join('producto_variantes as pv', 's.producto_variante_id', '=', 'pv.id')
-            ->leftJoin('inv_lotes as l', 's.lote_id', '=', 'l.id')
-            ->whereNull('s.deleted_at')
-            ->whereBetween('s.ultima_verificacion', [$fechaDesde, $fechaHasta])
+        $consumos = DB::table('inv_movimientos as m')
+            ->where('m.tipo', 'CONSUMO')
+            ->whereBetween('m.created_at', [$fechaDesde, $fechaHasta])
             ->select([
-                'pv.producto_id',
-                's.producto_variante_id',
-                DB::raw('SUM(s.cantidad_ideal - s.cantidad_actual) as cant_consumida'),
-                DB::raw('SUM((s.cantidad_ideal - s.cantidad_actual) * COALESCE(l.costo_unitario, 0)) as costo_consumo'),
+                'm.producto_id',
+                DB::raw('SUM(ABS(m.cantidad)) as cant_consumida'),
+                DB::raw('SUM(COALESCE(m.costo_total, 0)) as costo_consumo'),
             ])
-            ->groupBy('pv.producto_id', 's.producto_variante_id')
+            ->groupBy('m.producto_id')
             ->get()
-            ->keyBy(fn ($item) => $item->producto_id.'-'.($item->producto_variante_id ?? '0'));
+            ->keyBy(fn ($item) => (string) $item->producto_id);
 
         return DB::table('producto_variantes as pv')
             ->join('productos as p', 'pv.producto_id', '=', 'p.id')
@@ -81,7 +78,7 @@ class ObtenerAnalisisCostoVentas
                 $key = $row->producto_id.'-'.$row->variante_id;
 
                 $compra = $compras->get($key);
-                $consumo = $consumos->get($key);
+                $consumo = $consumos->get((string) $row->producto_id);
 
                 $cantComprada = (float) ($compra->cant_comprada ?? 0.0);
                 $costoCompra = (float) ($compra->costo_compra ?? 0.0);

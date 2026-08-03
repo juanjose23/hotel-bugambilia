@@ -16,6 +16,7 @@ final readonly class ConfirmarPedidoKiosko
         private AbrirPedidoMesa $abrirPedido,
         private EnviarPedidoACocina $enviarCocina,
         private RestauranteRepositorioInterface $repositorio,
+        private RecalcularTotalesPedido $recalcular,
     ) {}
 
     /**
@@ -48,9 +49,10 @@ final readonly class ConfirmarPedidoKiosko
 
             $pedido->loadMissing('items');
             $subtotal = $pedido->items->sum('subtotal');
-            $pedido->total = is_numeric($subtotal) ? (float) $subtotal : 0.0;
+            $pedido->subtotal = is_numeric($subtotal) ? (float) $subtotal : 0.0;
             $this->repositorio->guardarPedido($pedido);
 
+            $this->recalcular->ejecutar($pedido);
             $this->enviarCocina->ejecutar($pedido);
 
             return $pedido;

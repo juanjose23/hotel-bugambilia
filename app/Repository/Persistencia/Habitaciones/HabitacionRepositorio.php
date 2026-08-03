@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repository\Persistencia\Habitaciones;
 
+use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 
-class HabitacionRepositorio implements HabitacionRepositorioInterface
+final class HabitacionRepositorio implements HabitacionRepositorioInterface
 {
     public function existePorSlug(string $slug, ?int $idAIgnorar = null): bool
     {
@@ -28,5 +29,10 @@ class HabitacionRepositorio implements HabitacionRepositorioInterface
     public function buscarPorId(int $id): ?Habitacion
     {
         return Habitacion::find($id);
+    }
+
+    public function actualizarEstado(Habitacion $habitacion, EstadoEspacio $estado): void
+    {
+        $habitacion->update(['estado' => $estado]);
     }
 }

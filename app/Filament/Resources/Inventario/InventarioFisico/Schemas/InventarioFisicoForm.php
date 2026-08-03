@@ -70,7 +70,7 @@ class InventarioFisicoForm
                                 ->showContextMenu(fn ($record) => $record?->estado !== 'procesado')
                             : Textarea::make('datos_hoja')
                                 ->label('Hoja de Conciliación (Formato JSON)')
-                                ->helperText('⚠️ Instale el paquete "qalainau/filament-univer-sheet" y ejecute "php artisan filament:assets" para habilitar la hoja de cálculo interactiva de Univer Sheet.')
+                                ->helperText('Nota: Instale el paquete "qalainau/filament-univer-sheet" y ejecute "php artisan filament:assets" para habilitar la hoja de cálculo interactiva de Univer Sheet.')
                                 ->rows(15)
                                 ->columnSpanFull()
                                 ->disabled(fn ($record) => $record?->estado === 'procesado')

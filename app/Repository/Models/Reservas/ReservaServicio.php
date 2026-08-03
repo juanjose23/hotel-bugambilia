@@ -8,7 +8,7 @@ use App\Repository\Models\Servicios\Servicio;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ReservaServicio extends Model
+final class ReservaServicio extends Model
 {
     protected $table = 'reserva_servicios';
 

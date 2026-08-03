@@ -10,7 +10,7 @@ use App\Repository\Models\Catalogos\Ubicacion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ProcesoItem extends Model
+final class ProcesoItem extends Model
 {
     protected $table = 'proceso_items';
 

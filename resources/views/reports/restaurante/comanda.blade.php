@@ -410,29 +410,6 @@
 </head>
 
 <body>
-<div class="no-print print-actions">
-    <button
-        type="button"
-        class="btn-print"
-    >
-        <svg
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2m2 4h6a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2Zm8-12V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4h10Z"
-            />
-        </svg>
-
-        Imprimir comanda
-    </button>
-</div>
-
 <main class="ticket">
     <header class="ticket-header">
         <h1 class="hotel-name">
@@ -515,10 +492,8 @@
 
                 <td class="meta-value">
                     {{ $pedido->cliente?->nombre_completo
-                        ?? (
-                            'Cliente '
-                            . ($pedido->mesa?->nombre ?? 'Mostrador')
-                        )
+                        ?? ($pedido->nombre_cliente
+                            ?? ($pedido->mesa?->nombre ? "Mesa {$pedido->mesa->nombre}" : 'Cliente Mostrador'))
                     }}
                 </td>
             </tr>
@@ -575,7 +550,7 @@
 
             <tbody>
             @forelse($items as $item)
-                @continue($item->estado?->value === 'cancelado')
+                @continue($item->estado === \App\Enums\Restaurante\EstadoItemPedido::ANULADO)
 
                 <tr>
                     <td class="item-quantity">
@@ -631,7 +606,7 @@
 
         <span class="total-value">
                 C$ {{ number_format(
-                    (float) $pedido->total,
+                    (float) $pedido->subtotal,
                     2,
                     '.',
                     ','

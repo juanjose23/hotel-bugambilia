@@ -9,8 +9,10 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
+use Database\Seeders\ColaboradorBaseSeeder;
 use Database\Seeders\EspacioSeeder;
 use Database\Seeders\HabitacionSeeder;
+use Database\Seeders\MonedaSeeder;
 use Database\Seeders\PaisSeeder;
 use Database\Seeders\RestauranteSeeder;
 use Database\Seeders\TasaCambioSeeder;
@@ -19,9 +21,11 @@ use Database\Seeders\UbicacionSeeder;
 test('la ruta publica /espacios carga correctamente y lista solo espacios activos con web igual a true', function () {
     $this->seed([
         PaisSeeder::class,
+        MonedaSeeder::class,
         CatalogoTipoSeeder::class,
         CatalogoSeeder::class,
         TasaCambioSeeder::class,
+        ColaboradorBaseSeeder::class,
         UbicacionSeeder::class,
         EspacioSeeder::class,
         RestauranteSeeder::class,
@@ -55,6 +59,7 @@ test('la ruta publica /espacios carga correctamente y lista solo espacios activo
 test('se puede guardar acompañantes en una reserva de habitacion', function () {
     $this->seed([
         PaisSeeder::class,
+        MonedaSeeder::class,
         CatalogoTipoSeeder::class,
         CatalogoSeeder::class,
         UbicacionSeeder::class,
@@ -70,8 +75,8 @@ test('se puede guardar acompañantes en una reserva de habitacion', function () 
         'email_cliente' => 'carlos@ejemplo.com',
         'tipo_reserva' => 'habitacion',
         'habitacion_id' => $habitacion->id,
-        'fecha_check_in' => '2026-10-01',
-        'fecha_check_out' => '2026-10-05',
+        'fecha_check_in' => now()->addDays(5)->format('Y-m-d'),
+        'fecha_check_out' => now()->addDays(9)->format('Y-m-d'),
         'adultos' => 2,
         'acompanantes' => [
             ['nombre' => 'Ana Mendoza', 'identificacion' => '001-020295-0002B', 'tipo' => 'adulto'],

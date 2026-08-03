@@ -23,7 +23,7 @@ return new class extends Migration
     {
         if (DB::connection()->getDriverName() === 'pgsql') {
             DB::statement('ALTER TABLE espacios DROP CONSTRAINT IF EXISTS chk_espacios_estado');
-            DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_estado CHECK (estado IN (0, 1, 2, 3, 4, 5))');
+            DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_estado CHECK (estado IN (0, 1, 2, 3, 4, 5, 6))');
         }
     }
 };

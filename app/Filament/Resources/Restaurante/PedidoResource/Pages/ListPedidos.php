@@ -26,7 +26,13 @@ final class ListPedidos extends ListRecords
         $counts = app(ContarPedidosPorEstadoQuery::class)->ejecutar();
 
         return [
-            'todos' => Tab::make('Todos los Pedidos'),
+            'activos' => Tab::make('Activos')
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('estado', [
+                    EstadoPedido::ABIERTO,
+                    EstadoPedido::EN_PREPARACION,
+                    EstadoPedido::LISTO,
+                    EstadoPedido::SERVIDO,
+                ])),
             'abiertos' => Tab::make('Abiertos')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::ABIERTO))
                 ->badge(fn () => $counts['abiertos']),
@@ -36,11 +42,11 @@ final class ListPedidos extends ListRecords
             'listos' => Tab::make('Listos')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::LISTO))
                 ->badge(fn () => $counts['listos']),
-            'cargados' => Tab::make('Cargados a Habitación')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::CARGADO_A_HABITACION)),
-            'pagados' => Tab::make('Pagados')
+            'pagados' => Tab::make('Historial: Pagados')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::PAGADO)),
-            'cancelados' => Tab::make('Cancelados')
+            'cargados' => Tab::make('Historial: Cargados a Hab.')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::CARGADO_A_HABITACION)),
+            'cancelados' => Tab::make('Historial: Cancelados')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado', EstadoPedido::CANCELADO)),
         ];
     }

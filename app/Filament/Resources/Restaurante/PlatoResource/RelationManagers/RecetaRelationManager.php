@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PlatoResource\RelationManagers;
 
+use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Queries\Restaurante\Platos\ObtenerVariantesRecetaQuery;
 use Filament\Actions\CreateAction;
@@ -18,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 final class RecetaRelationManager extends RelationManager
 {
@@ -62,6 +64,7 @@ final class RecetaRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['variante.unidadMedida', 'variante.producto.unidadMedida']))
             ->columns([
                 TextColumn::make('variante.producto.nombre')
                     ->label('Producto')
@@ -81,9 +84,31 @@ final class RecetaRelationManager extends RelationManager
                     ->label('Cantidad')
                     ->sortable(),
 
-                TextColumn::make('variante.unidadMedida.nombre')
+                TextColumn::make('unidad_medida')
                     ->label('Unidad')
-                    ->sortable(),
+                    ->state(function (mixed $record): string {
+                        if (! $record instanceof ProductoKit) {
+                            return '—';
+                        }
+
+                        $v = $record->variante;
+                        if ($v === null) {
+                            return '—';
+                        }
+
+                        $um = $v->unidadMedida;
+                        $pm = $v->producto?->unidadMedida;
+
+                        if ($um !== null) {
+                            return $um->nombre;
+                        }
+
+                        if ($pm !== null) {
+                            return $pm->nombre;
+                        }
+
+                        return $v->nombre_variante ?? 'uds';
+                    }),
             ])
             ->headerActions([
                 CreateAction::make()

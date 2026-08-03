@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Mesas;
 
+use App\Actions\Restaurante\NormalizarMetaDatosAction;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Repository\Models\Espacios\Espacio;
@@ -15,6 +16,7 @@ final class UnirMesas
 {
     public function __construct(
         private readonly RestauranteRepositorioInterface $repositorio,
+        private readonly NormalizarMetaDatosAction $normalizarMetaDatosAction,
     ) {}
 
     /**
@@ -37,7 +39,7 @@ final class UnirMesas
         }
 
         DB::transaction(function () use ($mesaPrincipalId, $mesasSecundariasIds, $reservaId, $motivo): void {
-            $mesaPrincipal = $this->repositorio->obtenerEspacioPorId($mesaPrincipalId);
+            $mesaPrincipal = $this->repositorio->obtenerEspacioPorId((int) $mesaPrincipalId);
 
             if (! $mesaPrincipal instanceof Espacio) {
                 throw new DomainException("La mesa principal [{$mesaPrincipalId}] no existe.");
@@ -49,7 +51,7 @@ final class UnirMesas
                 ? EstadoEspacio::Reservado
                 : EstadoEspacio::Ocupado;
 
-            $metaPrincipal = $this->normalizarMetaDatos($mesaPrincipal->meta_datos);
+            $metaPrincipal = $this->normalizarMetaDatosAction->ejecutar($mesaPrincipal->meta_datos);
             /** @var int[] $unidasExistentes */
             $unidasExistentes = isset($metaPrincipal['mesas_unidas']) && is_array($metaPrincipal['mesas_unidas'])
                 ? $metaPrincipal['mesas_unidas']
@@ -70,13 +72,13 @@ final class UnirMesas
             ]);
 
             foreach ($mesasSecundariasIds as $secundariaId) {
-                $secundaria = $this->repositorio->obtenerEspacioPorId($secundariaId);
+                $secundaria = $this->repositorio->obtenerEspacioPorId((int) $secundariaId);
 
                 if (! $secundaria instanceof Espacio) {
                     continue;
                 }
 
-                $metaSecundaria = $this->normalizarMetaDatos($secundaria->meta_datos);
+                $metaSecundaria = $this->normalizarMetaDatosAction->ejecutar($secundaria->meta_datos);
                 $metaSecundaria['mesa_principal_id'] = $mesaPrincipalId;
                 $metaSecundaria['mesa_principal_nombre'] = $mesaPrincipal->nombre;
                 $metaSecundaria['motivo_union'] = $motivo;
@@ -91,23 +93,5 @@ final class UnirMesas
                 ]);
             }
         });
-    }
-
-    /**
-     * @return array<array-key, mixed>
-     */
-    private function normalizarMetaDatos(mixed $metaDatos): array
-    {
-        if (is_array($metaDatos)) {
-            return $metaDatos;
-        }
-
-        if (is_string($metaDatos) && $metaDatos !== '') {
-            $decoded = json_decode($metaDatos, true);
-
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return [];
     }
 }

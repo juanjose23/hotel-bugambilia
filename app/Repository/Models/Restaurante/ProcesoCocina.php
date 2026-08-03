@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
-class ProcesoCocina extends Model implements AuditableContract
+final class ProcesoCocina extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
 
@@ -56,5 +56,15 @@ class ProcesoCocina extends Model implements AuditableContract
     public function items(): HasMany
     {
         return $this->hasMany(ProcesoItem::class, 'proceso_id');
+    }
+
+    public function getCostoPorPlatoAttribute(): float
+    {
+        $cant = (int) $this->cantidad_platos;
+        if ($cant <= 0) {
+            return 0.0;
+        }
+
+        return round(((float) $this->costo_total) / $cant, 2);
     }
 }

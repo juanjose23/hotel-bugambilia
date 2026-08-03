@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Restaurante\Platos;
 
+use App\Enums\Restaurante\UbicacionCocina;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 
 final class CalcularCostoPlato
@@ -21,7 +22,7 @@ final class CalcularCostoPlato
     public function ejecutar(int $productoRecetaId): array
     {
         $ingredientes = $this->repositorio->obtenerIngredientesReceta($productoRecetaId);
-        $cocina = $this->repositorio->obtenerUbicacionPorNombre('Cocina Restaurante');
+        $cocina = $this->repositorio->obtenerUbicacionPorNombre(UbicacionCocina::RESTAURANTE->value);
         $cocinaId = $cocina?->id;
 
         $costoTotal = 0.0;

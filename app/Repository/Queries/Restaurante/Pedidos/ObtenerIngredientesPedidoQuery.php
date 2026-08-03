@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Restaurante\Pedidos;
 
+use App\Enums\Restaurante\UbicacionCocina;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Restaurante\PedidoItem;
@@ -20,7 +21,11 @@ final class ObtenerIngredientesPedidoQuery
         $item->loadMissing(['plato.receta']);
 
         $productoId = $item->plato?->receta?->id;
-        $cocinaId = Ubicacion::query()->where('nombre', 'Cocina Restaurante')->value('id');
+        $cocinaId = Ubicacion::query()
+            ->where('nombre', UbicacionCocina::RESTAURANTE->value)
+            ->orWhere('nombre', 'Cocina')
+            ->orWhere('nombre', 'like', '%Cocina%')
+            ->value('id');
 
         if (! is_int($productoId) || ! is_numeric($cocinaId)) {
             return null;

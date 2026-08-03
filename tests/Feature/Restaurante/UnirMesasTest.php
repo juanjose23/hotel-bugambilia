@@ -50,9 +50,14 @@ test('permite unir mesas secundarias a una mesa principal para uso inmediato en 
     $unirInteractor = app(UnirMesas::class);
     $unirInteractor->ejecutar($mesaPrincipal->id, [$mesaSecundaria->id], null, 'uso_inmediato');
 
-    expect($mesaSecundaria->refresh()->estado)->toBe(EstadoEspacio::Ocupado)
-        ->and($mesaSecundaria->meta_datos['mesa_principal_id'])->toBe($mesaPrincipal->id)
-        ->and($mesaPrincipal->refresh()->meta_datos['mesas_unidas'])->toContain($mesaSecundaria->id);
+    $mesaSecundaria->refresh();
+    $mesaPrincipal->refresh();
+    $metaSec = is_array($mesaSecundaria->meta_datos) ? $mesaSecundaria->meta_datos : [];
+    $metaPri = is_array($mesaPrincipal->meta_datos) ? $mesaPrincipal->meta_datos : [];
+
+    expect($mesaSecundaria->estado)->toBe(EstadoEspacio::Ocupado)
+        ->and($metaSec['mesa_principal_id'] ?? null)->toBe($mesaPrincipal->id)
+        ->and($metaPri['mesas_unidas'] ?? [])->toContain($mesaSecundaria->id);
 });
 
 test('permite unir mesas asociadas a una reservacion previa de grupo', function (): void {
@@ -82,10 +87,15 @@ test('permite unir mesas asociadas a una reservacion previa de grupo', function 
     $unirInteractor = app(UnirMesas::class);
     $unirInteractor->ejecutar($mesaPrincipal->id, [$mesaSecundaria->id], $reserva->id, 'reservacion');
 
-    expect($mesaSecundaria->refresh()->estado)->toBe(EstadoEspacio::Reservado)
-        ->and($mesaSecundaria->meta_datos['reserva_id'])->toBe($reserva->id)
-        ->and($mesaPrincipal->refresh()->estado)->toBe(EstadoEspacio::Reservado)
-        ->and($mesaPrincipal->meta_datos['codigo_reserva'])->toBe('RES-GRUPO-01');
+    $mesaSecundaria->refresh();
+    $mesaPrincipal->refresh();
+    $metaSecRes = is_array($mesaSecundaria->meta_datos) ? $mesaSecundaria->meta_datos : [];
+    $metaPriRes = is_array($mesaPrincipal->meta_datos) ? $mesaPrincipal->meta_datos : [];
+
+    expect($mesaSecundaria->estado)->toBe(EstadoEspacio::Reservado)
+        ->and($metaSecRes['reserva_id'] ?? null)->toBe($reserva->id)
+        ->and($mesaPrincipal->estado)->toBe(EstadoEspacio::Reservado)
+        ->and($metaPriRes['codigo_reserva'] ?? null)->toBe('RES-GRUPO-01');
 });
 
 test('permite separar mesas previamente unidas y las vuelve disponibles', function (): void {

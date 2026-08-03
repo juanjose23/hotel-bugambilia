@@ -90,3 +90,60 @@
     --bugambilia-800: oklch(0.3 0.12 358);
     --bugambilia-900: oklch(0.25 0.1 358);
 }
+
+/* ============================================
+    ESTILO DE DATEPICKER & TIMEPICKER
+   ============================================ */
+.fi-fo-date-time-picker,
+.fi-fo-date-picker {
+    border-radius: 0.75rem !important;
+}
+
+/* Modal desplegable del calendario */
+.fi-fo-date-time-picker-panel,
+.flatpickr-calendar {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    padding: 0.75rem !important;
+}
+
+/* Selects internos de Mes y Año en el DatePicker */
+.fi-fo-date-time-picker-header select,
+.flatpickr-monthSelect-month,
+.flatpickr-current-month select,
+.flatpickr-monthDropdown-months {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0.5rem !important;
+    padding: 0.35rem 0.65rem !important;
+    font-weight: 700 !important;
+    font-size: 0.875rem !important;
+    cursor: pointer !important;
+    outline: none !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.fi-fo-date-time-picker-header select:hover,
+.flatpickr-current-month select:hover,
+.flatpickr-monthDropdown-months:hover {
+    border-color: var(--primary) !important;
+    background-color: var(--accent) !important;
+}
+
+/* Día seleccionado */
+.fi-fo-date-time-picker-day.fi-selected,
+.flatpickr-day.selected {
+    background: linear-gradient(135deg, oklch(0.3 0.19 358), oklch(0.45 0.18 358)) !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    border-radius: 0.5rem !important;
+}
+
+.fi-fo-date-time-picker-day:hover,
+.flatpickr-day:hover {
+    background-color: var(--accent) !important;
+    border-radius: 0.5rem !important;
+}

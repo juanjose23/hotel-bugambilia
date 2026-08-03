@@ -12,12 +12,14 @@ use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ReservaTable
 {
     public function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('moneda'))
             ->columns([
                 TextColumn::make('codigo_reserva')
                     ->label('Código')
@@ -63,7 +65,28 @@ class ReservaTable
 
                 TextColumn::make('total')
                     ->label('Total')
-                    ->money('NIO')
+                    ->money(fn ($record): string => $record->moneda->codigo ?? 'NIO')
+                    ->sortable(),
+
+                TextColumn::make('tipo_pago')
+                    ->label('Pago')
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => $state?->getLabel() ?? 'Sin pago')
+                    ->color(fn ($state): string => match ($state?->value) {
+                        'pago_completo' => 'success',
+                        'abono_50' => 'warning',
+                        default => 'gray',
+                    }),
+
+                TextColumn::make('total_pagado')
+                    ->label('Pagado')
+                    ->money(fn ($record): string => $record->moneda->codigo ?? 'NIO')
+                    ->toggleable(),
+
+                TextColumn::make('saldo')
+                    ->label('Saldo')
+                    ->money(fn ($record): string => $record->moneda->codigo ?? 'NIO')
+                    ->color(fn ($state): string => (float) $state > 0 ? 'danger' : 'success')
                     ->sortable(),
 
                 TextColumn::make('detalles_count')

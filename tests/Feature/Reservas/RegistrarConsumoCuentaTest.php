@@ -47,8 +47,9 @@ test('registra un consumo correctamente en una cuenta abierta', function (): voi
     );
 
     expect((float) $detalle->total)->toBe(500.0)
-        ->and((float) $cuenta->refresh()->total)->toBe(500.0)
-        ->and((float) $cuenta->saldo)->toBe(500.0);
+        ->and((float) $cuenta->refresh()->subtotal)->toBe(500.0)
+        ->and((float) $cuenta->total)->toBe(575.0)
+        ->and((float) $cuenta->saldo)->toBe(575.0);
 });
 
 test('rechaza registrar un consumo si la cuenta esta en estado solicitada', function (): void {

@@ -8,6 +8,8 @@ use App\Enums\Limpieza\EstadoLimpieza;
 use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Colaboradores\Colaborador;
+use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\Turno;
 use App\Repository\Models\Shared\Stock;
@@ -94,6 +96,23 @@ class LimpiezaEjecucionForm
                                             })
                                             ->toArray();
                                     })
+                                    ->getOptionLabelUsing(function ($value): string {
+                                        if (! is_numeric($value)) {
+                                            return (string) $value;
+                                        }
+
+                                        $colaborador = Colaborador::query()
+                                            ->with(['persona.personaNatural', 'persona.personaJuridica'])
+                                            ->find((int) $value);
+
+                                        if (! $colaborador) {
+                                            return "Colaborador #{$value}";
+                                        }
+
+                                        return $colaborador->persona
+                                            ? ObtenerNombrePersona::desde($colaborador->persona)
+                                            : "Colaborador #{$colaborador->id}";
+                                    })
                                     ->searchable()
                                     ->native(false)
                                     ->prefixIcon(Heroicon::User),
@@ -132,34 +151,122 @@ class LimpiezaEjecucionForm
                             ->icon(Heroicon::LightBulb)
                             ->schema([
                                 TextEntry::make('abastecimiento_sugerido')
-                                    ->label('Insumos Faltantes en la Habitación (Cargar antes de empezar)')
-                                    ->state(function ($record) {
-                                        if (! $record || $record->limpiable_type !== Habitacion::class) {
-                                            return 'No hay sugerencias de abastecimiento para esta ubicación (solo disponible para habitaciones).';
+                                    ->label(function ($record) {
+                                        if (! $record || ! $record->limpiable) {
+                                            return 'Insumos Recomendados';
                                         }
-                                        $habitacion = $record->limpiable;
-                                        if (! $habitacion) {
-                                            return 'Ubicación no encontrada.';
+
+                                        $nombre = $record->limpiable->nombre ?? 'esta ubicación';
+
+                                        return "Insumos Recomendados — {$nombre}";
+                                    })
+                                    ->state(function ($record) {
+                                        if (! $record || ! $record->limpiable) {
+                                            return new HtmlString(
+                                                '<div class="text-gray-500 dark:text-gray-400 text-sm">'
+                                                .'Seleccione el tipo de ubicación y el objeto para ver las recomendaciones de abastecimiento.'
+                                                .'</div>'
+                                            );
+                                        }
+
+                                        $limpiable = $record->limpiable;
+                                        $modelClass = $record->limpiable_type;
+                                        $nombre = $limpiable->nombre ?? 'Sin nombre';
+
+                                        // Determinar el stockable_type según el tipo de limpiable
+                                        $isHabitacion = $modelClass === Habitacion::class;
+                                        $isEspacio = $modelClass === Espacio::class;
+
+                                        $stockClass = match (true) {
+                                            $isHabitacion => Habitacion::class,
+                                            $isEspacio => Espacio::class,
+                                            default => null,
+                                        };
+
+                                        if (! $stockClass) {
+                                            $svg = self::svgIcon('heroicon-o-exclamation-triangle', 'text-gray-400');
+
+                                            return new HtmlString(
+                                                '<div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">'
+                                                .'<div class="flex items-center gap-2 mb-2">'
+                                                .$svg
+                                                .'<span class="font-semibold text-gray-700 dark:text-gray-300">Sin plantilla de stock</span>'
+                                                .'</div>'
+                                                .'<span class="text-sm text-gray-500 dark:text-gray-400">'
+                                                .'El tipo <strong>'.class_basename($modelClass).'</strong> no tiene stock configurado.'
+                                                .'</span></div>'
+                                            );
                                         }
 
                                         $roomStocks = Stock::with(['variante.producto'])
-                                            ->where('stockable_type', Habitacion::class)
-                                            ->where('stockable_id', $habitacion->id)
+                                            ->where('stockable_type', $stockClass)
+                                            ->where('stockable_id', $limpiable->getKey())
                                             ->get();
 
+                                        if ($roomStocks->isEmpty()) {
+                                            $svg = self::svgIcon('heroicon-o-clipboard-document-list', 'text-amber-500');
+
+                                            return new HtmlString(
+                                                '<div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">'
+                                                .'<div class="flex items-center gap-2 mb-1">'
+                                                .$svg
+                                                .'<span class="font-semibold text-amber-700 dark:text-amber-300">Sin stock configurado</span>'
+                                                .'</div>'
+                                                .'<span class="text-sm text-amber-600 dark:text-amber-400">'
+                                                ."<strong>{$nombre}</strong> no tiene productos con stock ideal definido."
+                                                .'</span></div>'
+                                            );
+                                        }
+
                                         $items = [];
+                                        $completo = true;
                                         foreach ($roomStocks as $rs) {
                                             $ideal = (float) $rs->cantidad_ideal;
                                             $actual = (float) $rs->cantidad_actual;
-                                            if ($actual < $ideal && $rs->variante && $rs->variante->producto) {
-                                                $nombre = $rs->variante->producto->nombre.($rs->variante->nombre_variante ? " ({$rs->variante->nombre_variante})" : '');
-                                                $items[] = "- **{$nombre}**: Faltan **".($ideal - $actual)."** unidades (Ideal: {$ideal}, Actual: {$actual})";
+                                            if ($rs->variante && $rs->variante->producto) {
+                                                $productoNombre = $rs->variante->producto->nombre;
+                                                $varianteNombre = $rs->variante->nombre_variante ? " ({$rs->variante->nombre_variante})" : '';
+                                                $nombreItem = "{$productoNombre}{$varianteNombre}";
+
+                                                if ($actual < $ideal) {
+                                                    $completo = false;
+                                                    $faltante = $ideal - $actual;
+                                                    $items[] = "<li class='flex justify-between items-center py-1 px-2 rounded-lg bg-red-50 dark:bg-red-950/20'>"
+                                                        ."<span class='font-medium text-gray-900 dark:text-gray-100 text-sm'>{$nombreItem}</span>"
+                                                        ."<span class='text-xs font-bold text-red-600 dark:text-red-400'>"
+                                                        ."Falta {$faltante} de {$ideal}"
+                                                        .'</span></li>';
+                                                } else {
+                                                    $items[] = "<li class='flex justify-between items-center py-1 px-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/20'>"
+                                                        ."<span class='text-sm text-gray-600 dark:text-gray-400'>{$nombreItem}</span>"
+                                                        ."<span class='text-xs font-bold text-emerald-600 dark:text-emerald-400'>"
+                                                        ."{$actual} / {$ideal} Completo"
+                                                        .'</span></li>';
+                                                }
                                             }
                                         }
 
-                                        return empty($items)
-                                            ? ' Esta habitación cuenta con el stock ideal completo. No requiere abastecimiento inicial.'
-                                            : new HtmlString(implode('<br>', $items));
+                                        $headerColor = $completo ? 'emerald' : 'red';
+                                        $iconName = $completo ? 'heroicon-o-check-circle' : 'heroicon-o-exclamation-circle';
+                                        $iconColorClass = 'text-'.$headerColor.'-500';
+                                        $svg = self::svgIcon($iconName, $iconColorClass);
+                                        $headerText = $completo
+                                            ? 'Stock completo - no requiere abastecimiento'
+                                            : 'Requiere abastecimiento antes de iniciar';
+
+                                        $html = "<div class='p-4 rounded-xl bg-{$headerColor}-50 dark:bg-{$headerColor}-950/20 border border-{$headerColor}-200 dark:border-{$headerColor}-800'>"
+                                            ."<div class='flex items-center gap-2 mb-3'>"
+                                            .$svg
+                                            ."<span class='font-semibold text-{$headerColor}-700 dark:text-{$headerColor}-300 text-sm'>{$headerText}</span>"
+                                            .'</div>'
+                                            ."<p class='text-xs text-gray-500 dark:text-gray-400 mb-2'>"
+                                            ."<strong>{$nombre}</strong> &middot; ".($isHabitacion ? 'Habitacion' : 'Espacio')
+                                            .'</p>'
+                                            ."<ul class='space-y-1'>"
+                                            .implode('', $items)
+                                            .'</ul></div>';
+
+                                        return new HtmlString($html);
                                     }),
                             ]),
 
@@ -205,5 +312,16 @@ class LimpiezaEjecucionForm
                             ]),
                     ]),
             ]);
+    }
+
+    private static function svgIcon(string $name, string $class = ''): string
+    {
+        try {
+            $svg = svg($name, 'w-5 h-5 '.$class)->toHtml();
+        } catch (\Throwable) {
+            $svg = '';
+        }
+
+        return $svg;
     }
 }
