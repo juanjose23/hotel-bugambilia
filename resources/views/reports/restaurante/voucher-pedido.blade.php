@@ -77,7 +77,7 @@
             @endif
 
             <div style="border-top: 2px solid #000; padding-top: 6px; margin-top: 8px; text-align: right;">
-                <span style="font-size: 14px; font-weight: bold;">TOTAL PEDIDO: {{ $simboloMoneda }} {{ number_format((float) $pedido->total, 2) }}</span>
+                <span style="font-size: 14px; font-weight: bold;">TOTAL PEDIDO: {{ $simboloMoneda }} {{ number_format((float) $pedido->subtotal, 2) }}</span>
             </div>
         </div>
 

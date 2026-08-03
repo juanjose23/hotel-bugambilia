@@ -17,6 +17,11 @@ class ViewReserva extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('voucher')
+                ->label('Imprimir emisión de reserva')
+                ->icon('heroicon-o-printer')
+                ->url(fn (): string => route('reservas.voucher', ['reserva' => $this->getRecord()->getKey()]))
+                ->openUrlInNewTab(),
             Actions\EditAction::make(),
         ];
     }

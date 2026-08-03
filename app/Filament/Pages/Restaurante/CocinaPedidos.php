@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
-use App\Enums\Restaurante\EstadoPedido;
+use App\Filament\Shared\Actions\Restaurante\MermaGlobalDiariaAction;
+use App\Filament\Shared\Actions\Restaurante\SolicitudAbastecimientoCocinaAction;
+use App\Interactors\Restaurante\Cocina\AnularItemPedido;
 use App\Interactors\Restaurante\Cocina\MarcarItemPedidoListo;
+use App\Interactors\Restaurante\Cocina\MarcarItemServido;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\User;
@@ -15,6 +18,7 @@ use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Carbon\CarbonInterface;
 use DomainException;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
@@ -49,15 +53,23 @@ final class CocinaPedidos extends Page
 
     private MarcarItemPedidoListo $marcarItemListo;
 
+    private MarcarItemServido $marcarItemServido;
+
+    private AnularItemPedido $anularItemPedido;
+
     private EnviarPedidoACocina $enviarACocina;
 
     public function boot(
         ObtenerPedidosCocinaQuery $pedidosQuery,
         MarcarItemPedidoListo $marcarItemListo,
+        MarcarItemServido $marcarItemServido,
+        AnularItemPedido $anularItemPedido,
         EnviarPedidoACocina $enviarACocina,
     ): void {
         $this->pedidosQuery = $pedidosQuery;
         $this->marcarItemListo = $marcarItemListo;
+        $this->marcarItemServido = $marcarItemServido;
+        $this->anularItemPedido = $anularItemPedido;
         $this->enviarACocina = $enviarACocina;
     }
 
@@ -82,23 +94,7 @@ final class CocinaPedidos extends Page
 
     public function cargarPedidos(): void
     {
-        $todos = $this->pedidosQuery->ejecutar();
-
-        if ($this->areaSeleccionada !== null && $this->areaSeleccionada !== '') {
-            $this->pedidos = $todos->map(function (Pedido $pedido) {
-                $cloned = clone $pedido;
-                $cloned->setRelation('items', $pedido->items->filter(function ($item) {
-                    $itemArea = $item->area_cocina?->value;
-                    $platoArea = $item->plato?->area_cocina?->value;
-
-                    return $itemArea === $this->areaSeleccionada || $platoArea === $this->areaSeleccionada;
-                }));
-
-                return $cloned;
-            })->filter(fn (Pedido $pedido) => $pedido->items->isNotEmpty())->values();
-        } else {
-            $this->pedidos = $todos;
-        }
+        $this->pedidos = $this->pedidosQuery->ejecutar($this->areaSeleccionada);
 
         $nuevoTotal = $this->pedidos->count();
         if ($nuevoTotal > $this->ultimoTotalPedidos && $this->ultimoTotalPedidos > 0) {
@@ -124,19 +120,44 @@ final class CocinaPedidos extends Page
         $this->cargarPedidos();
     }
 
-    public function prepararAlimento(int $pedidoId): void
+    public function marcarItemServido(int $itemId): void
     {
-        /** @var Pedido|null $pedido */
-        $pedido = Pedido::query()->find($pedidoId);
-
-        if ($pedido === null || $pedido->estado !== EstadoPedido::ABIERTO) {
-            Notification::make()->title('Pedido no disponible')->body('Este pedido ya fue enviado a preparación.')->warning()->send();
+        try {
+            $item = $this->marcarItemServido->ejecutar($itemId);
+        } catch (DomainException $exception) {
+            Notification::make()->title('No se pudo marcar como servido')->body($exception->getMessage())->danger()->send();
 
             return;
         }
 
+        if ($item !== null) {
+            Notification::make()->title("Platillo servido: {$item->plato?->nombre}")->success()->send();
+        }
+
+        $this->cargarPedidos();
+    }
+
+    public function anularItemPedido(int $itemId): void
+    {
         try {
-            $this->enviarACocina->ejecutar($pedido);
+            $item = $this->anularItemPedido->ejecutar($itemId);
+        } catch (DomainException $exception) {
+            Notification::make()->title('No se pudo anular el plato')->body($exception->getMessage())->danger()->send();
+
+            return;
+        }
+
+        if ($item !== null) {
+            Notification::make()->title("Platillo anulado: {$item->plato?->nombre}")->warning()->send();
+        }
+
+        $this->cargarPedidos();
+    }
+
+    public function prepararAlimento(int $pedidoId): void
+    {
+        try {
+            $pedido = $this->enviarACocina->ejecutarPorId($pedidoId);
         } catch (DomainException $exception) {
             Notification::make()->title('No se pudo iniciar preparación')->body($exception->getMessage())->danger()->send();
 
@@ -156,6 +177,15 @@ final class CocinaPedidos extends Page
     protected function getPollingInterval(): string
     {
         return '6s';
+    }
+
+    /** @return list<Action> */
+    protected function getHeaderActions(): array
+    {
+        return [
+            MermaGlobalDiariaAction::make(),
+            SolicitudAbastecimientoCocinaAction::make(),
+        ];
     }
 
     public static function canAccess(): bool

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\Schemas\Reserva;
 
+use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
@@ -37,14 +38,34 @@ class SelectorHabitacionDisponible
                 ->columnSpan($columnSpan),
 
             Select::make('espacio_id')
-                ->label('Ambiente / Espacio / Mesa')
-                ->placeholder('Seleccione ambiente, espacio o mesa')
-                ->options(function () {
-                    return Espacio::all()->mapWithKeys(fn ($e) => [$e->id => $e->getNombreCompleto()]);
+                ->label(fn ($get): string => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value ? 'Mesa / Espacio del Restaurante' : 'Ambiente / Espacio del Hotel')
+                ->placeholder('Seleccione mesa o espacio')
+                ->options(function (): array {
+                    $opcionesAgrupadas = [
+                        'Mesas del Restaurante' => [],
+                        'Espacios y Áreas del Hotel' => [],
+                    ];
+
+                    foreach (Espacio::with('padre')->get() as $espacio) {
+                        $label = $espacio->getNombreCompleto();
+                        if ($espacio->capacidad_personas > 0) {
+                            $label .= " (Cap: {$espacio->capacidad_personas} pers.)";
+                        }
+
+                        if ($espacio->tipo === TipoEspacio::MESA || $espacio->tipo === TipoEspacio::RESTAURANTE) {
+                            $opcionesAgrupadas['Mesas del Restaurante'][$espacio->id] = $label;
+                        } else {
+                            $opcionesAgrupadas['Espacios y Áreas del Hotel'][$espacio->id] = $label;
+                        }
+                    }
+
+                    return array_filter($opcionesAgrupadas, fn (array $grupo): bool => $grupo !== []);
                 })
                 ->searchable()
                 ->preload()
                 ->nullable()
+                ->required(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
+                ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value || $get('tipo_reserva') === TipoReserva::PAQUETE->value)
                 ->disabledOn('edit')
                 ->native(false)
                 ->columnSpan($columnSpan),
@@ -56,6 +77,7 @@ class SelectorHabitacionDisponible
                 ->searchable()
                 ->preload()
                 ->nullable()
+                ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::SERVICIO->value || $get('tipo_reserva') === TipoReserva::PAQUETE->value)
                 ->disabledOn('edit')
                 ->native(false)
                 ->columnSpan($columnSpan),
@@ -77,6 +99,7 @@ class SelectorHabitacionDisponible
                 ->preload()
                 ->nullable()
                 ->native(false)
+                ->live()
                 ->columnSpan($columnSpan),
         ];
     }

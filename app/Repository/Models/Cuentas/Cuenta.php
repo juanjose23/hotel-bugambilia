@@ -35,7 +35,9 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property float $subtotal
  * @property float $descuento_total
  * @property float $impuesto_total
+ * @property float $cargo_servicio_total
  * @property float $propina_total
+ * @property float $recargo_total
  * @property float $total
  * @property float $total_pagado
  * @property float $saldo
@@ -57,9 +59,9 @@ final class Cuenta extends Model implements AuditableContract
         'numero_cuenta', 'tipo_cuenta', 'estado',
         'cliente_id', 'estancia_id', 'reserva_id', 'moneda_id',
         'limite_autorizado',
-        'subtotal', 'descuento_total', 'impuesto_total', 'propina_total',
+        'subtotal', 'descuento_total', 'impuesto_total', 'cargo_servicio_total', 'propina_total', 'recargo_total',
         'total', 'total_pagado', 'saldo',
-        'abierta_at', 'cerrada_at', 'abierta_por', 'cerrada_por',
+        'abierta_at', 'cerrada_at', 'abierta_por', 'cerrada_por', 'actualizado_por',
     ];
 
     protected function casts(): array
@@ -71,7 +73,9 @@ final class Cuenta extends Model implements AuditableContract
             'subtotal' => 'decimal:2',
             'descuento_total' => 'decimal:2',
             'impuesto_total' => 'decimal:2',
+            'cargo_servicio_total' => 'decimal:2',
             'propina_total' => 'decimal:2',
+            'recargo_total' => 'decimal:2',
             'total' => 'decimal:2',
             'total_pagado' => 'decimal:2',
             'saldo' => 'decimal:2',
@@ -128,6 +132,18 @@ final class Cuenta extends Model implements AuditableContract
     public function pagos(): HasMany
     {
         return $this->hasMany(PagoCuenta::class);
+    }
+
+    /** @return HasMany<CuentaCargo, $this> */
+    public function cargos(): HasMany
+    {
+        return $this->hasMany(CuentaCargo::class);
+    }
+
+    /** @return HasMany<Venta, $this> */
+    public function ventas(): HasMany
+    {
+        return $this->hasMany(Venta::class);
     }
 
     // ─── Métodos de Dominio ───────────────────────────────────────

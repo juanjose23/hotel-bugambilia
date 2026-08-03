@@ -34,6 +34,15 @@ final class SelectorCuenta
             ->label('Cuenta')
             ->placeholder('Seleccionar cuenta...')
             ->options(fn (): array => self::obtenerOpciones($reservaId, $estanciaId, $tipo, $extraWhere))
+            ->getOptionLabelUsing(function ($value): ?string {
+                if (! is_numeric($value)) {
+                    return null;
+                }
+
+                $cuenta = Cuenta::with(['cliente', 'estancia.habitacion', 'reserva'])->find((int) $value);
+
+                return $cuenta instanceof Cuenta ? self::etiqueta($cuenta) : null;
+            })
             ->searchable()
             ->nullable(! $required)
             ->required($required)

@@ -4,6 +4,7 @@ namespace Database\Factories\Compras;
 
 use App\Enums\Compras\EstadoDevolucion;
 use App\Repository\Models\Compras\DevolucionCompra;
+use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -23,7 +24,7 @@ class DevolucionCompraFactory extends Factory
             'estado' => EstadoDevolucion::Borrador,
             'motivo' => fake()->sentence(),
             'documento_externo' => fake()->optional()->bothify('GUIA-DEV-####'),
-            'creado_por_id' => 1,
+            'creado_por_id' => User::factory(),
         ];
     }
 }

@@ -10,7 +10,7 @@
         <x-shared.calendar-grid
             :nombre-mes="$calendarioData['nombreMes'] ?? ''"
             :year="$calendarioData['year'] ?? ''"
-            description="Visualización mensual de reservaciones ocupadas por día de ingreso."
+            description="Calendario mensual de ocupación, organizado horizontalmente de lunes a domingo."
             :days="$calendarioData['days'] ?? []"
             :month="$calendarioData['month'] ?? now()->month"
             :current-year="$calendarioData['year'] ?? now()->year"

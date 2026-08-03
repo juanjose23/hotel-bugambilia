@@ -10,6 +10,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
@@ -33,12 +34,12 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  */
 final class PagoCuenta extends Model implements AuditableContract
 {
-    use Auditable;
+    use Auditable, SoftDeletes;
 
     protected $table = 'pagos_cuenta';
 
     protected $fillable = [
-        'cuenta_id', 'forma_pago', 'moneda_id', 'estado',
+        'cuenta_id', 'venta_id', 'forma_pago', 'moneda_id', 'estado',
         'monto', 'propina',
         'referencia_transaccion', 'observaciones',
         'usuario_id',
@@ -72,6 +73,12 @@ final class PagoCuenta extends Model implements AuditableContract
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** @return BelongsTo<Venta, $this> */
+    public function venta(): BelongsTo
+    {
+        return $this->belongsTo(Venta::class);
     }
 
     // ─── Métodos de Dominio ───────────────────────────────────────

@@ -77,8 +77,14 @@ class ObtenerNombrePersona
             : $persona->personaNatural()->first());
 
         if ($natural !== null) {
-            // Usa el accessor getFullNameAttribute() ya definido en PersonaNatural
-            $fullName = $natural->full_name;
+            $partes = array_filter([
+                $persona->primer_nombre ?? '',
+                $persona->segundo_nombre ?? '',
+                $natural->primer_apellido ?? '',
+                $natural->segundo_apellido ?? '',
+            ]);
+
+            $fullName = trim(implode(' ', $partes));
 
             if (filled($fullName)) {
                 return $fullName;

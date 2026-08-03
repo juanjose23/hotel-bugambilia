@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Interactors\Reservas;
 
 use App\BusinessLogic\Huespedes\ValidarHuespedes;
-use App\Enums\Reservas\EstadoReserva;
 use App\Events\Reservas\HuespedModificado;
-use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\Reservas\ReservaDetalle;
 use App\Repository\Models\Reservas\ReservaHuesped;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
 final class RegistrarHuespedes
 {
     public function __construct(
         private readonly ValidarHuespedes $validar,
+        private readonly ReservaRepositorioInterface $reservas,
     ) {}
 
     /**
@@ -27,9 +26,9 @@ final class RegistrarHuespedes
         $this->validar->validarCreacion($reserva, $datos);
 
         return DB::transaction(function () use ($reserva, $datos): ReservaHuesped {
-            $detalle = $this->obtenerDetallePrincipal($reserva);
+            $detalle = $this->reservas->detallePrincipalDe($reserva);
 
-            $huesped = $detalle->huespedes()->create([
+            $huesped = $this->reservas->crearHuesped($detalle, [
                 'nombre' => $datos['nombre'],
                 'tipo_identificacion' => $datos['tipo_identificacion'] ?? null,
                 'identificacion' => $datos['identificacion'] ?? null,
@@ -56,7 +55,7 @@ final class RegistrarHuespedes
         return DB::transaction(function () use ($huesped, $datos): ReservaHuesped {
             $datosAnteriores = $huesped->toArray();
 
-            $huesped->update([
+            $huespedActualizado = $this->reservas->actualizarHuesped($huesped, [
                 'nombre' => $datos['nombre'] ?? $huesped->nombre,
                 'tipo_identificacion' => $datos['tipo_identificacion'] ?? $huesped->tipo_identificacion,
                 'identificacion' => $datos['identificacion'] ?? $huesped->identificacion,
@@ -67,51 +66,19 @@ final class RegistrarHuespedes
                 'email' => $datos['email'] ?? $huesped->email,
             ]);
 
-            /** @var ReservaHuesped $huespedActualizado */
-            $huespedActualizado = $huesped->fresh();
             HuespedModificado::dispatch($huespedActualizado, 'actualizado', $datosAnteriores);
 
-            return $huesped;
+            return $huespedActualizado;
         });
     }
 
     public function eliminar(Reserva $reserva, ReservaHuesped $huesped): void
     {
-        if ($reserva->estado->value > EstadoReserva::CONFIRMADA->value) {
-            throw new \DomainException('No se pueden eliminar huéspedes de una reserva que ya pasó el check-in.');
-        }
-
-        if ($huesped->es_titular) {
-            throw new \DomainException('No se puede eliminar el huésped titular. Asigne otro titular primero.');
-        }
+        $this->validar->validarEliminacion($reserva, $huesped);
 
         DB::transaction(function () use ($huesped): void {
             HuespedModificado::dispatch($huesped, 'eliminado');
-            $huesped->delete();
+            $this->reservas->eliminarHuesped($huesped);
         });
-    }
-
-    private function obtenerDetallePrincipal(Reserva $reserva): ReservaDetalle
-    {
-        $detalle = $reserva->detalles()->whereNull('parent_id')->first();
-
-        if ($detalle === null) {
-            $recurso = $reserva->habitacion->reservable
-                ?? $reserva->espacio?->reservable;
-
-            $reservableId = $recurso instanceof RecursoReservable
-                ? $recurso->id
-                : 0;
-
-            $detalle = $reserva->detalles()->create([
-                'reservable_id' => $reservableId,
-                'fecha_inicio' => $reserva->fecha_check_in,
-                'fecha_fin' => $reserva->fecha_check_out,
-                'precio_unitario' => 0,
-                'subtotal' => 0,
-            ]);
-        }
-
-        return $detalle;
     }
 }

@@ -25,4 +25,22 @@ final class ReservaDisponibilidadQuery
             ->where('fecha_check_out', '>', $entrada->format('Y-m-d'))
             ->exists();
     }
+
+    public function existeConflictoEspacio(int $espacioId, DateTimeInterface $fecha, ?string $horaReserva = null, ?int $reservaIgnoradaId = null): bool
+    {
+        $query = Reserva::query()
+            ->where('espacio_id', $espacioId)
+            ->whereNotIn('estado', [EstadoReserva::CANCELADA, EstadoReserva::CHECKED_OUT])
+            ->whereDate('fecha_check_in', $fecha->format('Y-m-d'));
+
+        if ($reservaIgnoradaId !== null) {
+            $query->where('id', '!=', $reservaIgnoradaId);
+        }
+
+        if (is_string($horaReserva) && trim($horaReserva) !== '') {
+            $query->where('hora_reserva', trim($horaReserva));
+        }
+
+        return $query->exists();
+    }
 }

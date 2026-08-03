@@ -162,7 +162,7 @@ class ClienteForm
                                     ->prefixIcon(Heroicon::Envelope)
                                     ->email()
                                     ->nullable()
-                                    ->unique(table: 'users', column: 'email', ignoreRecord: true),
+                                    ->unique(table: 'users', column: 'email', ignorable: fn ($record) => $record?->user),
 
                                 TextInput::make('direccion')
                                     ->label('Dirección de Domicilio / Fiscal')

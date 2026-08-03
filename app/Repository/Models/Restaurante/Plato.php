@@ -22,7 +22,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
-class Plato extends Model implements AuditableContract
+/**
+ * @property int $id
+ * @property string $codigo
+ * @property string $nombre
+ * @property int|null $categoria_id
+ * @property int|null $producto_receta_id
+ * @property AreaCocina|null $area_cocina
+ * @property string|null $descripcion
+ * @property bool $web
+ * @property int $estado
+ * @property string|null $tiempo_preparacion
+ */
+final class Plato extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
 

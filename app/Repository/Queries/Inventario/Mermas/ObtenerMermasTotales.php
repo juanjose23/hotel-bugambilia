@@ -23,6 +23,7 @@ class ObtenerMermasTotales
     {
         $tiposBaja = [
             'MOV_AJUSTE' => 'Ajuste de Inventario',
+            'CONSUMO' => 'Consumo de Cocina',
         ];
 
         return DB::table('inv_movimientos as m')

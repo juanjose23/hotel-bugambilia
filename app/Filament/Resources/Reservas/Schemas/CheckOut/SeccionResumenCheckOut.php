@@ -42,7 +42,7 @@ class SeccionResumenCheckOut
                         /** @var Reserva|null $reserva */
                         $reserva = $record instanceof Reserva ? $record : ($livewire->reserva ?? null);
 
-                        return $reserva !== null ? $reserva->fecha_check_in->format('d/m/Y H:i') : '-';
+                        return $reserva !== null && $reserva->fecha_check_in !== null ? $reserva->fecha_check_in->format('d/m/Y H:i') : '-';
                     }),
 
                 TextEntry::make('fecha_check_out_esperado')

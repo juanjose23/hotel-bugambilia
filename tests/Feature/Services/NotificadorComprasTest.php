@@ -10,9 +10,11 @@ use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Models\Compras\Proveedor;
 use App\Repository\Models\Compras\RecepcionCompra;
 use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\User;
 use Database\Factories\CatalogoFactory;
+use Database\Seeders\MonedaSeeder;
 use Database\Seeders\TasaCambioSeeder;
 use Spatie\Permission\Models\Role;
 
@@ -25,8 +27,10 @@ beforeEach(function () {
     $this->actingAs($this->user);
 
     // Seed currencies to avoid foreign key constraints (moneda_id = 2 default)
-    $seeder = new TasaCambioSeeder;
-    $seeder->run();
+    $this->seed([
+        MonedaSeeder::class,
+        TasaCambioSeeder::class,
+    ]);
 
     // Assign a compras role so the user is found by DestinatariosCompra
     Role::firstOrCreate(['name' => 'compras_encargado', 'guard_name' => 'web']);
@@ -102,6 +106,7 @@ it('despacha notificacion para cotizacionCreada', function () {
         'subtotal' => 100.0,
         'total' => 100.0,
         'estado' => EstadoCotizacion::Activa,
+        'moneda_id' => Moneda::where('codigo', 'NIO')->value('id'),
     ]);
 
     $this->notificador->cotizacionCreada($cotizacion);
@@ -133,6 +138,7 @@ it('despacha notificacion para ganadorSeleccionado', function () {
         'subtotal' => 100.0,
         'total' => 100.0,
         'estado' => EstadoCotizacion::Activa,
+        'moneda_id' => Moneda::where('codigo', 'NIO')->value('id'),
     ]);
 
     $this->notificador->ganadorSeleccionado($cotizacion);

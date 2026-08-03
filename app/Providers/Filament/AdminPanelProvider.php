@@ -36,6 +36,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->plugin(FilamentShieldPlugin::make()->navigationGroup('Seguridad'))
             ->path('admin')
             ->login()
@@ -58,7 +59,6 @@ class AdminPanelProvider extends PanelProvider
             ->breadcrumbs()
             ->maxContentWidth('full')
             ->collapsibleNavigationGroups()
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->databaseNotifications()
             ->databaseNotificationsPolling('15s')

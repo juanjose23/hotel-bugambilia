@@ -22,9 +22,12 @@ final class BuscarClientesReservaQuery
                     ->orWhere('email', 'like', $patron)
                     ->orWhereHas('persona', fn ($persona) => $persona
                         ->where('primer_nombre', 'like', $patron)
+                        ->orWhere('segundo_nombre', 'like', $patron)
                         ->orWhere('telefono', 'like', $patron))
                     ->orWhereHas('persona.personaNatural', fn ($pn) => $pn
-                        ->where('numero_identificacion', 'like', $patron));
+                        ->where('primer_apellido', 'like', $patron)
+                        ->orWhere('segundo_apellido', 'like', $patron)
+                        ->orWhere('numero_identificacion', 'like', $patron));
             })
             ->limit($limite)
             ->get()

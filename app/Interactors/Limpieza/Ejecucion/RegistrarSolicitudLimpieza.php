@@ -46,11 +46,8 @@ class RegistrarSolicitudLimpieza
                 $instance->update([
                     'estado' => EstadoEspacio::SUCIA,
                 ]);
-            } elseif ($instance instanceof Espacio) {
-                $instance->update([
-                    'estado' => EstadoEspacio::Limpieza,
-                ]);
             }
+            // Espacio (mesa) no cambia estado aquí: el caller (CerrarPedidoMesa) ya lo establece vía CambiarEstadoMesa
 
             $solicitud = SolicitudLimpieza::create([
                 'limpiable_type' => $modelClass,

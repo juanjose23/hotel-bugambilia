@@ -26,16 +26,10 @@ use UnitEnum;
 class RoleResource extends Resource
 {
     use Essentials\BelongsToParent;
-    use Essentials\BelongsToParent;
-    use Essentials\BelongsToTenant;
     use Essentials\BelongsToTenant;
     use Essentials\HasGlobalSearch;
-    use Essentials\HasGlobalSearch;
-    use Essentials\HasLabels;
     use Essentials\HasLabels;
     use Essentials\HasNavigation;
-    use Essentials\HasNavigation;
-    use HasShieldFormComponents;
     use HasShieldFormComponents;
 
     protected static ?string $recordTitleAttribute = 'name';

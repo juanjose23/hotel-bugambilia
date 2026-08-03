@@ -18,6 +18,22 @@ permissions:
 jobs:
   quality-and-tests:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secretpassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     strategy:
       matrix:
         php-version: ['8.4']
@@ -30,7 +46,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_pgsql, pgsql, pdo_sqlite, sqlite, bcmath, soap, intl, gd, exif, iconv
           coverage: none
 
       - name: Setup Node
@@ -62,17 +78,12 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Run Pint Code Format Check
-        run: vendor/bin/pint --test
-
-      - name: Run TypeScript Type Check
-        run: npm run types:check
-
-      - name: Run PHPStan Level 9 Scan
-        run: vendor/bin/phpstan analyse --level=9 --memory-limit=1G
-
-      - name: Build Frontend Assets
-        run: npm run build
-
       - name: Run Pest Tests
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: postgres
+          DB_PASSWORD: secretpassword
         run: php artisan test

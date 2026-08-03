@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Notifications\Reservas\Contracts\UrlNotificadorInterface as UrlNotificadorReservasInterface;
+use App\Notifications\Reservas\UrlNotificador as UrlNotificadorReservas;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Models\Compras\RecepcionCompra;
@@ -9,7 +11,6 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
-use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\User;
 use App\Repository\Observers\Activos\ActivoMantenimientoObserver;
 use App\Repository\Observers\Compras\OrdenCompraObserver;
@@ -19,7 +20,6 @@ use App\Repository\Observers\Habitaciones\HabitacionHistorialObserver;
 use App\Repository\Observers\Inventario\RecepcionInventoryObserver;
 use App\Repository\Observers\Limpieza\LimpiezaEjecucionObserver;
 use App\Repository\Observers\Limpieza\SolicitudLimpiezaObserver;
-use App\Repository\Observers\Restaurante\PedidoObserver;
 use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorio;
 use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorioInterface;
 use App\Repository\Persistencia\Activos\ActivoBajaRepositorio;
@@ -44,6 +44,8 @@ use App\Repository\Persistencia\Compras\RecepcionRepositorio;
 use App\Repository\Persistencia\Compras\RecepcionRepositorioInterface;
 use App\Repository\Persistencia\Compras\SolicitudRepositorio;
 use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorio;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorio;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
 use App\Repository\Persistencia\Inventario\InventarioFisicoRepositorio;
@@ -176,8 +178,18 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            CuentaRepositorioInterface::class,
+            CuentaRepositorio::class
+        );
+
+        $this->app->bind(
             RestauranteRepositorioInterface::class,
             RestauranteRepositorio::class
+        );
+
+        $this->app->bind(
+            UrlNotificadorReservasInterface::class,
+            UrlNotificadorReservas::class
         );
     }
 
@@ -220,7 +232,6 @@ class AppServiceProvider extends ServiceProvider
         Habitacion::observe(HabitacionHistorialObserver::class);
         LimpiezaEjecucion::observe(LimpiezaEjecucionObserver::class);
         Espacio::observe(EspacioHistorialObserver::class);
-        Pedido::observe(PedidoObserver::class);
 
         Gate::before(function ($user, $ability) {
             return $user instanceof User && $user->hasRole('super_admin') ? true : null;
@@ -252,6 +263,9 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureDefaults(): void
     {
+        date_default_timezone_set('America/Managua');
+        config(['app.timezone' => 'America/Managua']);
+
         Date::use(CarbonImmutable::class);
 
         Model::preventLazyLoading(

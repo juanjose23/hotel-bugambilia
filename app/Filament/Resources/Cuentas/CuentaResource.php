@@ -9,18 +9,24 @@ use App\Enums\Cuentas\TipoCuenta;
 use App\Filament\Resources\Cuentas\CuentaResource\Pages;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\DetallesRelationManager;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\PagosRelationManager;
+use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Cuentas\Cuenta;
+use App\Repository\Models\Personas\Persona;
 use BackedEnum;
+use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 final class CuentaResource extends Resource
@@ -40,65 +46,155 @@ final class CuentaResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Datos de la Cuenta')
+            // ── Sección 1: Identificación ────────────────────────────────────
+            Section::make('Identificación')
+                ->icon('heroicon-o-identification')
+                ->columns(3)
                 ->schema([
                     TextEntry::make('numero_cuenta')
                         ->label('Número de Cuenta')
-                        ->copyable(),
+                        ->copyable()
+                        ->weight(FontWeight::Bold),
+
                     TextEntry::make('tipo_cuenta')
-                        ->label('Tipo')
+                        ->label('Tipo de Cuenta')
                         ->badge(),
+
                     TextEntry::make('estado')
                         ->label('Estado')
                         ->badge(),
-                    TextEntry::make('cliente.nombre_completo')
-                        ->label('Cliente')
-                        ->placeholder('—'),
-                    TextEntry::make('estancia.habitacion.nombre')
-                        ->label('Habitación')
-                        ->placeholder('—'),
-                    TextEntry::make('reserva.nombre_cliente')
-                        ->label('Reserva / Cliente')
-                        ->placeholder('—'),
+
+                    TextEntry::make('moneda.codigo')
+                        ->label('Moneda')
+                        ->placeholder('Predeterminada'),
+
                     TextEntry::make('limite_autorizado')
-                        ->label('Límite autorizado')
+                        ->label('Límite de Crédito')
                         ->money('NIO')
                         ->placeholder('Sin límite'),
-                    TextEntry::make('subtotal')
-                        ->label('Subtotal')
-                        ->money('NIO'),
-                    TextEntry::make('descuento_total')
-                        ->label('Descuentos')
-                        ->money('NIO'),
-                    TextEntry::make('impuesto_total')
-                        ->label('Impuestos')
-                        ->money('NIO'),
-                    TextEntry::make('total')
-                        ->label('Total')
-                        ->money('NIO')
-                        ->weight(FontWeight::Bold),
-                    TextEntry::make('total_pagado')
-                        ->label('Total pagado')
-                        ->money('NIO'),
-                    TextEntry::make('saldo')
-                        ->label('Saldo Pendiente')
-                        ->money('NIO')
-                        ->color(fn (Cuenta $record): string => (float) $record->saldo > 0 ? 'danger' : 'success'),
+
                     TextEntry::make('abierta_at')
                         ->label('Abierta el')
                         ->dateTime('d/m/Y H:i'),
+
                     TextEntry::make('cerrada_at')
                         ->label('Cerrada el')
                         ->dateTime('d/m/Y H:i')
                         ->placeholder('—'),
+
                     TextEntry::make('usuarioQueAbrio.name')
                         ->label('Abierta por')
                         ->placeholder('—'),
+
                     TextEntry::make('usuarioQueCerro.name')
                         ->label('Cerrada por')
                         ->placeholder('—'),
-                ])
-                ->columns(3),
+                ]),
+
+            // ── Sección 2: Cliente y Origen ──────────────────────────────────
+            Section::make('Cliente y Origen')
+                ->icon('heroicon-o-user-circle')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('cliente.nombre_completo')
+                        ->label('Cliente')
+                        ->placeholder('Cliente de mostrador'),
+
+                    TextEntry::make('estancia.habitacion.nombre')
+                        ->label('Habitación')
+                        ->placeholder('—')
+                        ->visible(fn (Cuenta $record): bool => $record->tipo_cuenta === TipoCuenta::ESTANCIA),
+
+                    TextEntry::make('reserva.nombre_cliente')
+                        ->label('Reserva / Titular')
+                        ->placeholder('—')
+                        ->visible(fn (Cuenta $record): bool => $record->tipo_cuenta === TipoCuenta::ESTANCIA),
+
+                    TextEntry::make('reserva.fecha_check_in')
+                        ->label('Check-In')
+                        ->date('d/m/Y')
+                        ->placeholder('—')
+                        ->visible(fn (Cuenta $record): bool => $record->tipo_cuenta === TipoCuenta::ESTANCIA),
+
+                    TextEntry::make('reserva.fecha_check_out')
+                        ->label('Check-Out')
+                        ->date('d/m/Y')
+                        ->placeholder('—')
+                        ->visible(fn (Cuenta $record): bool => $record->tipo_cuenta === TipoCuenta::ESTANCIA),
+                ]),
+
+            // ── Sección 3: Estado Financiero ────────────────────────────────
+            Section::make('Estado Financiero')
+                ->icon('heroicon-o-banknotes')
+                ->columns(4)
+                ->schema([
+                    TextEntry::make('subtotal')
+                        ->label('Subtotal')
+                        ->money('NIO'),
+
+                    TextEntry::make('descuento_total')
+                        ->label('Descuentos')
+                        ->money('NIO'),
+
+                    TextEntry::make('impuesto_total')
+                        ->label('Impuestos')
+                        ->money('NIO'),
+
+                    TextEntry::make('cargo_servicio_total')
+                        ->label('Cargo Servicio')
+                        ->money('NIO'),
+
+                    TextEntry::make('propina_total')
+                        ->label('Propinas')
+                        ->money('NIO'),
+
+                    TextEntry::make('recargo_total')
+                        ->label('Recargos')
+                        ->money('NIO'),
+
+                    TextEntry::make('total')
+                        ->label('TOTAL')
+                        ->money('NIO')
+                        ->weight(FontWeight::Bold)
+                        ->size(TextSize::Large),
+
+                    TextEntry::make('total_pagado')
+                        ->label('Ya Pagado')
+                        ->money('NIO')
+                        ->color('success'),
+
+                    TextEntry::make('saldo')
+                        ->label('SALDO PENDIENTE')
+                        ->money('NIO')
+                        ->weight(FontWeight::Bold)
+                        ->color(fn (Cuenta $record): string => (float) $record->saldo > 0 ? 'danger' : 'success')
+                        ->columnSpan(2),
+                ]),
+
+            // ── Sección 4: Desglose de Consumos (Ítems) ───────────────────────
+            Section::make('Desglose de Consumos')
+                ->icon('heroicon-o-shopping-bag')
+                ->schema([
+                    RepeatableEntry::make('detalles')
+                        ->hiddenLabel()
+                        ->columns(5)
+                        ->schema([
+                            TextEntry::make('concepto')
+                                ->label('Concepto')
+                                ->weight(FontWeight::Bold),
+                            TextEntry::make('cantidad')
+                                ->label('Cant.'),
+                            TextEntry::make('precio_unitario')
+                                ->label('Precio Unitario')
+                                ->money('NIO'),
+                            TextEntry::make('subtotal')
+                                ->label('Subtotal')
+                                ->money('NIO'),
+                            TextEntry::make('estado')
+                                ->label('Estado')
+                                ->badge(),
+                        ]),
+                ]),
         ]);
     }
 
@@ -125,7 +221,8 @@ final class CuentaResource extends Resource
                 TextColumn::make('cliente.nombre_completo')
                     ->label('Cliente')
                     ->placeholder('—')
-                    ->searchable(),
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query
+                        ->whereHas('cliente', fn (Builder $clienteQuery): Builder => Persona::filtrarPorNombre($clienteQuery, $search))),
 
                 TextColumn::make('estancia.habitacion.nombre')
                     ->label('Habitación')
@@ -159,7 +256,11 @@ final class CuentaResource extends Resource
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
-            ->defaultSort('id', 'desc')
+            ->defaultSort('created_at', 'desc')
+            ->recordActions([
+                ViewAction::make(),
+                CobrarCuentaAction::make()->size('sm'),
+            ])
             ->filters([
                 FiltroEstado::make(EstadoCuenta::class),
                 SelectFilter::make('tipo_cuenta')

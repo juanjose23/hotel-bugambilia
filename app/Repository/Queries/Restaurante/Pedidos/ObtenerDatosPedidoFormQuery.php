@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Restaurante\Pedidos;
 
+use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Restaurante\Plato;
 use Illuminate\Support\Collection;
 
@@ -16,7 +18,7 @@ final class ObtenerDatosPedidoFormQuery
     public function mesasDisponibles(): array
     {
         /** @var array<int|string, string> */
-        return Espacio::where('tipo', 'mesa')
+        return Espacio::where('tipo', TipoEspacio::MESA)
             ->pluck('nombre', 'id')
             ->all();
     }
@@ -28,7 +30,7 @@ final class ObtenerDatosPedidoFormQuery
     {
         /** @var array<string, array<int|string, string>> */
         return Plato::query()
-            ->activos()
+            ->where('estado', 1)
             ->with('categoria')
             ->get()
             ->groupBy(fn (Plato $plato): string => $plato->categoria->nombre ?? 'Menú General / Varios')
@@ -36,6 +38,9 @@ final class ObtenerDatosPedidoFormQuery
             ->all();
     }
 
+    /**
+     * Obtiene el precio actual del plato, prefiriendo la moneda por defecto del sistema.
+     */
     public function precioActualDePlato(int $platoId): ?float
     {
         /** @var Plato|null $plato */
@@ -43,6 +48,19 @@ final class ObtenerDatosPedidoFormQuery
 
         if (! $plato instanceof Plato) {
             return null;
+        }
+
+        $monedaDefault = Moneda::query()->where('es_predeterminada', true)->value('id');
+
+        if (is_numeric($monedaDefault)) {
+            $precioDefault = $plato->precios()
+                ->where('moneda_id', (int) $monedaDefault)
+                ->latest()
+                ->first();
+
+            if ($precioDefault !== null) {
+                return (float) $precioDefault->precio;
+            }
         }
 
         $precio = $plato->precios()->latest()->first();

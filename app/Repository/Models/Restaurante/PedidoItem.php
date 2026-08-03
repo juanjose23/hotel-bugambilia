@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Plato|null $plato
  * @property Pedido|null $pedido
  */
-class PedidoItem extends Model
+final class PedidoItem extends Model
 {
     protected $table = 'pedido_items';
 
@@ -42,7 +42,7 @@ class PedidoItem extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (PedidoItem $item): void {
+        self::creating(function (PedidoItem $item): void {
             if ($item->getAttribute('subtotal') === null || $item->subtotal == 0) {
                 $item->subtotal = round($item->precio_unitario * $item->cantidad, 2);
             }
@@ -52,7 +52,7 @@ class PedidoItem extends Model
             }
         });
 
-        static::updating(function (PedidoItem $item): void {
+        self::updating(function (PedidoItem $item): void {
             $item->subtotal = round($item->precio_unitario * $item->cantidad, 2);
         });
     }

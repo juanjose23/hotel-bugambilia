@@ -22,6 +22,12 @@ class ReservaPolicy
         return $authUser->can('View:Reserva');
     }
 
+    public function viewVoucher(AuthUser $authUser, Reserva $reserva): bool
+    {
+        return $authUser->can('View:Reserva')
+            || ($reserva->cliente_id !== null && $reserva->cliente_id === $authUser->id);
+    }
+
     public function create(AuthUser $authUser): bool
     {
         return $authUser->can('Create:Reserva');

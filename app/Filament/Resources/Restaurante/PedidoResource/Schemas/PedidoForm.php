@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PedidoResource\Schemas;
 
+use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Filament\Shared\Forms\SelectorCuenta;
+use App\Repository\Models\Personas\Persona;
+use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
+use App\Repository\Queries\Restaurante\Pedidos\BuscarClientesRapidoQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -22,19 +26,21 @@ final class PedidoForm
     public static function configure(Schema $schema): Schema
     {
         $pedidoQuery = app(ObtenerDatosPedidoFormQuery::class);
+        $monedaPredeterminada = app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar();
+        $simboloMoneda = $monedaPredeterminada !== null ? ($monedaPredeterminada->simbolo ?? 'C$') : 'C$';
 
         return $schema
             ->columns(1)
             ->components([
                 Section::make('Datos de la Comanda / Pedido')
-                    ->description('Seleccione la mesa asignada y la cuenta de estancia en caso de consumo de huésped.')
+                    ->description('Seleccione la mesa asignada y el cliente en caso de ser necesario.')
                     ->columnSpanFull()
                     ->schema([
                         Grid::make(3)->schema([
                             TextInput::make('codigo')
                                 ->label('Código Comanda')
-                                ->default(fn () => 'PED-'.strtoupper(substr(uniqid(), -6)))
-                                ->required()
+                                ->disabled()
+                                ->dehydrated(false)
                                 ->maxLength(20)
                                 ->prefixIcon(Heroicon::Key),
 
@@ -43,26 +49,52 @@ final class PedidoForm
                                 ->options(fn () => $pedidoQuery->mesasDisponibles())
                                 ->searchable()
                                 ->required()
-                                ->prefixIcon(Heroicon::TableCells),
+                                ->prefixIcon('hugeicons-restaurant-table'),
 
                             Select::make('estado')
                                 ->label('Estado Comanda')
                                 ->options(EstadoPedido::class)
                                 ->default(EstadoPedido::ABIERTO)
-                                ->required()
+                                ->disabled()
+                                ->dehydrated(false)
                                 ->prefixIcon(Heroicon::ArrowPath),
                         ]),
 
                         Grid::make(2)->schema([
                             SelectorCuenta::make(columnSpan: 1),
 
-                            TextInput::make('total')
-                                ->label('Total Acumulado')
+                            TextInput::make('subtotal')
+                                ->label('Subtotal Acumulado')
                                 ->numeric()
-                                ->prefix('C$')
-                                ->default(0.00)
-                                ->disabled(),
+                                ->prefix($simboloMoneda)
+                                ->formatStateUsing(fn ($record, $state) => number_format((float) ($record?->items?->where('estado', '!=', EstadoItemPedido::ANULADO->value)->sum('subtotal') ?? $state ?? 0.00), 2))
+                                ->disabled()
+                                ->dehydrated(false),
                         ]),
+
+                        Select::make('cliente_id')
+                            ->label('Cliente (Opcional)')
+                            ->placeholder('Buscar por nombre o teléfono...')
+                            ->searchable()
+                            ->getSearchResultsUsing(fn (string $search): array => app(BuscarClientesRapidoQuery::class)
+                                ->ejecutar($search)
+                                ->mapWithKeys(fn (Persona $p) => [
+                                    $p->id => trim(($p->nombre_completo ?? $p->primer_nombre).' — '.($p->telefono ?? 'S/T')),
+                                ])
+                                ->toArray())
+                            ->getOptionLabelUsing(function ($value): ?string {
+                                if (! is_numeric($value)) {
+                                    return null;
+                                }
+
+                                $persona = Persona::with(['personaNatural', 'personaJuridica'])->find((int) $value);
+
+                                return $persona instanceof Persona ? ($persona->nombre_completo ?? 'Cliente #'.$value) : 'Cliente #'.$value;
+                            })
+                            ->nullable()
+                            ->native(false)
+                            ->prefixIcon(Heroicon::User)
+                            ->columnSpan(1),
 
                         Textarea::make('notas')
                             ->label('Notas Generales de la Comanda')
@@ -105,10 +137,10 @@ final class PedidoForm
                                     ->columnSpan(2),
 
                                 TextInput::make('precio_unitario')
-                                    ->label('Precio Unit. (C$)')
+                                    ->label('Precio Unit.')
                                     ->numeric()
                                     ->default(0.00)
-                                    ->prefix('C$')
+                                    ->prefix($simboloMoneda)
                                     ->columnSpan(2),
 
                                 TextInput::make('observaciones')

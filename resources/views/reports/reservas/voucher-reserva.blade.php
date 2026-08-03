@@ -3,7 +3,39 @@
     'codigoReporte' => $codigoReporte,
 ])
 
+@section('extra-css')
+    .report-footer { position: fixed; bottom: -3mm; left: 4mm; right: 4mm; }
+    .report-content { padding-bottom: 14mm; }
+    .voucher-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 9px; background: #fff; }
+    .voucher-label { color: #711C37; font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: .3px; }
+    .voucher-value { margin-top: 2px; color: #172033; font-size: 11px; font-weight: bold; }
+    .voucher-muted { color: #64748b; font-size: 8px; }
+    .financial-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .financial-table th { background: #711C37; color: #fff; padding: 7px; border: 1px solid #5a1530; font-size: 8px; text-transform: uppercase; }
+    .financial-table td { padding: 7px; border: 1px solid #e2e8f0; font-size: 9px; }
+    .financial-table tfoot td { background: #f8fafc; font-weight: bold; }
+    .financial-table .grand-total td { background: #711C37; color: #fff; font-size: 11px; }
+@endsection
+
 @section('content')
+    @php
+        $simbolo = $reserva->moneda?->simbolo ?? 'C$';
+        $esRestaurante = $reserva->tipo_reserva === \App\Enums\Reservas\TipoReserva::RESTAURANTE;
+        $resumenRestaurante = is_array($reserva->meta_datos['resumen_restaurante'] ?? null)
+            ? $reserva->meta_datos['resumen_restaurante']
+            : [];
+        $costoMesa = $esRestaurante
+            ? (float) ($resumenRestaurante['costo_mesas'] ?? 0)
+            : (float) $reserva->subtotal;
+        $costoPreorden = $esRestaurante
+            ? (float) ($resumenRestaurante['costo_preorden'] ?? collect($detallePreorden)->sum('subtotal'))
+            : 0.0;
+        $subtotalConceptos = $costoMesa + $costoPreorden;
+        $otrosCargos = max(0, (float) $reserva->total - $subtotalConceptos + (float) $reserva->descuento);
+        $cantidadPreorden = collect($detallePreorden)->sum('cantidad');
+        $pagos = $reserva->cuentas->flatMap->pagos;
+    @endphp
+
     <div class="pagina">
         <div class="report-header">
             @include('reports.layout.partials.header', [
@@ -12,137 +44,144 @@
             ])
         </div>
 
-        <div class="report-content" style="margin-top: 10px;">
+        <div class="report-content" style="margin-top: 9px;">
+            {{-- Identificación superior y código de barras --}}
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: avoid;">
+                <tr>
+                    <td style="width: 48%; vertical-align: middle; padding: 0; border: 0;">
+                        <div class="voucher-label">Comprobante de reserva</div>
+                        <div style="font-size: 17px; font-weight: bold; color: #711C37; margin-top: 2px;">{{ $reserva->codigo_reserva }}</div>
+                        <div class="voucher-muted" style="margin-top: 3px;">Emitido: {{ $fechaEmision }} · {{ $estadoLabel }}</div>
+                    </td>
+                    <td style="width: 52%; vertical-align: middle; text-align: right; padding: 0; border: 0;">
+                        @if (!empty($barcodeBase64))
+                            <img src="{{ $barcodeBase64 }}" style="width: 250px; height: 48px; display: inline-block;" alt="Código de barras de la reserva">
+                            <div style="width: 250px; margin-left: auto; text-align: center; font-family: monospace; font-size: 8px; letter-spacing: 1px;">{{ $reserva->codigo_reserva }}</div>
+                        @endif
+                    </td>
+                </tr>
+            </table>
 
-            {{-- Bloque Información Principal del Huésped y la Reserva --}}
-            <div style="margin-bottom: 15px;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="width: 50%; vertical-align: top;">
-                            <strong style="color: #711C37; font-size: 10px; text-transform: uppercase;">Cliente / Titular</strong><br>
-                            <span style="font-size: 12px; font-weight: bold;">{{ $reserva->nombre_cliente }}</span><br>
-                            <span style="font-size: 10px; color: #4a5568;">Email: {{ $reserva->email_cliente ?? 'N/D' }}</span><br>
-                            <span style="font-size: 10px; color: #4a5568;">Teléfono: {{ $reserva->telefono_cliente ?? 'N/D' }}</span>
-                        </td>
-                        <td style="width: 50%; vertical-align: top; text-align: right;">
-                            <strong style="color: #711C37; font-size: 10px; text-transform: uppercase;">Voucher de Reserva</strong><br>
-                            <span style="font-size: 13px; font-weight: bold; color: #711C37;">{{ $reserva->codigo_reserva }}</span><br>
-                            <span style="font-size: 10px; color: #4a5568;">Emisión: {{ $fechaEmision }}</span><br>
-                            <span style="font-size: 10px; color: #4a5568;">Estado: <strong>{{ $estadoLabel }}</strong></span>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            {{-- Datos esenciales --}}
+            <table style="width: 100%; border-collapse: separate; border-spacing: 5px; margin: 0 -5px 8px; page-break-inside: avoid;">
+                <tr>
+                    <td class="voucher-card" style="width: 38%; vertical-align: top;">
+                        <div class="voucher-label">Cliente / titular</div>
+                        <div class="voucher-value">{{ $reserva->nombre_cliente }}</div>
+                        <div class="voucher-muted">{{ $reserva->telefono_cliente ?? 'Sin teléfono' }}</div>
+                        <div class="voucher-muted">{{ $reserva->email_cliente ?? 'Sin correo' }}</div>
+                    </td>
+                    <td class="voucher-card" style="width: 32%; vertical-align: top;">
+                        <div class="voucher-label">Fecha y horario</div>
+                        <div class="voucher-value">{{ $reserva->fecha_check_in->format('d/m/Y') }}</div>
+                        @if ($esRestaurante)
+                            <div class="voucher-muted">{{ $reserva->hora_reserva ?? 'Hora pendiente' }} · {{ $resumenRestaurante['horas'] ?? 1 }} hora(s)</div>
+                        @else
+                            <div class="voucher-muted">Salida: {{ $reserva->fecha_check_out?->format('d/m/Y') ?? 'N/D' }}</div>
+                        @endif
+                    </td>
+                    <td class="voucher-card" style="width: 30%; vertical-align: top;">
+                        <div class="voucher-label">Recurso reservado</div>
+                        <div class="voucher-value">{{ $reserva->habitacion?->nombre ?? $reserva->espacio?->nombre ?? 'Por asignar' }}</div>
+                        <div class="voucher-muted">{{ $reserva->adultos }} persona(s)</div>
+                    </td>
+                </tr>
+            </table>
 
-            {{-- Resumen de Ocupación y Fechas --}}
-            <div style="background: #f8fafc; border: 1px solid #711C37; padding: 8px; border-radius: 4px; margin-bottom: 15px;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="width: 33%;">
-                            <strong style="color: #711C37; font-size: 9px; text-transform: uppercase;">Check-In Esperado</strong><br>
-                            <span style="font-size: 11px; font-weight: bold;">{{ $reserva->fecha_check_in->format('d/m/Y') }}</span>
-                        </td>
-                        <td style="width: 33%;">
-                            <strong style="color: #711C37; font-size: 9px; text-transform: uppercase;">Check-Out Esperado</strong><br>
-                            <span style="font-size: 11px; font-weight: bold;">{{ $reserva->fecha_check_out?->format('d/m/Y') ?? 'N/D' }}</span>
-                        </td>
-                        <td style="width: 34%; text-align: right;">
-                            <strong style="color: #711C37; font-size: 9px; text-transform: uppercase;">Alojamiento / Recurso</strong><br>
-                            <span style="font-size: 11px; font-weight: bold; color: #711C37;">
-                                {{ $reserva->habitacion->nombre ?? $reserva->espacio->nombre ?? 'Por asignar' }}
-                            </span>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            {{-- Desglose de Ocupantes y Montos --}}
-            <table class="data-table" style="margin-bottom: 15px;">
+            {{-- Única tabla consolidada --}}
+            <table class="financial-table" style="page-break-inside: avoid;">
                 <thead>
                     <tr>
-                        <th>Concepto / Tipo Reserva</th>
-                        <th style="width: 80px; text-align: center;">Adultos</th>
-                        <th style="width: 80px; text-align: center;">Niños</th>
-                        <th style="width: 110px; text-align: center;">Cuenta Abierta</th>
-                        <th style="width: 100px; text-align: right;">Total Reserva</th>
+                        <th style="text-align: left;">Concepto</th>
+                        <th style="width: 65px; text-align: center;">Cantidad</th>
+                        <th style="width: 110px; text-align: right;">Importe</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>
-                            <strong>{{ is_object($reserva->tipo_reserva) && method_exists($reserva->tipo_reserva, 'label') ? $reserva->tipo_reserva->label() : (string)$reserva->tipo_reserva }}</strong>
-                            <br><span style="font-size: 8px; color: #64748b;">{{ $reserva->detalles_count ?? 1 }} recurso(s) contratado(s)</span>
+                            <strong>{{ $esRestaurante ? 'Reserva de mesa' : 'Reserva de recurso' }}</strong>
+                            <div class="voucher-muted">
+                                {{ $reserva->habitacion?->nombre ?? $reserva->espacio?->nombre ?? $reserva->tipo_reserva->getLabel() }}
+                                @if ($esRestaurante) · {{ $resumenRestaurante['horas'] ?? 1 }} hora(s) @endif
+                            </div>
                         </td>
-                        <td style="text-align: center;">{{ $reserva->adultos }}</td>
-                        <td style="text-align: center;">{{ $reserva->ninos }}</td>
-                        <td style="text-align: center;">
-                            <span class="badge {{ $reserva->solicita_cuenta ? 'badge-on' : '' }}">
-                                {{ $reserva->solicita_cuenta ? 'SOLICITADA' : 'NO SOLICITADA' }}
-                            </span>
-                        </td>
-                        <td style="text-align: right; font-weight: bold; font-size: 11px; color: #711C37;">
-                            C$ {{ number_format((float)$reserva->total, 2) }}
-                        </td>
+                        <td style="text-align: center;">{{ $esRestaurante ? ($resumenRestaurante['mesas_seleccionadas'] ?? 1) : 1 }}</td>
+                        <td style="text-align: right; font-weight: bold;">{{ $simbolo }} {{ number_format($costoMesa, 2) }}</td>
                     </tr>
+                    @if (! empty($detallePreorden))
+                        @foreach ($detallePreorden as $itemPre)
+                            <tr>
+                                <td style="padding-left: 12px;">
+                                    <strong>• {{ $itemPre['nombre'] ?? 'Platillo preordenado' }}</strong>
+                                    @if (! empty($itemPre['observaciones']))
+                                        <div class="voucher-muted">Nota: {{ $itemPre['observaciones'] }}</div>
+                                    @endif
+                                </td>
+                                <td style="text-align: center;">{{ $itemPre['cantidad'] ?? 1 }}</td>
+                                <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) ($itemPre['subtotal'] ?? 0), 2) }}</td>
+                            </tr>
+                        @endforeach
+                    @endif
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" style="text-align: right;">Subtotal de conceptos</td>
+                        <td style="text-align: right;">{{ $simbolo }} {{ number_format($subtotalConceptos, 2) }}</td>
+                    </tr>
+                    @if ((float) $reserva->descuento > 0)
+                        <tr>
+                            <td colspan="2" style="text-align: right;">Descuento</td>
+                            <td style="text-align: right;">- {{ $simbolo }} {{ number_format((float) $reserva->descuento, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if ($otrosCargos > 0)
+                        <tr>
+                            <td colspan="2" style="text-align: right;">Impuestos y cargos</td>
+                            <td style="text-align: right;">{{ $simbolo }} {{ number_format($otrosCargos, 2) }}</td>
+                        </tr>
+                    @endif
+                    <tr class="grand-total">
+                        <td colspan="2" style="text-align: right;">Total de la reserva</td>
+                        <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) $reserva->total, 2) }}</td>
+                    </tr>
+                </tfoot>
             </table>
 
-            {{-- Listado de Huéspedes Registrados --}}
-            @if ($reserva->huespedes->isNotEmpty())
-                <div style="margin-bottom: 15px;">
-                    <strong style="color: #711C37; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 4px;">
-                        Huéspedes Acompañantes Registrados
-                    </strong>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 30px; text-align: center;">#</th>
-                                <th>Nombre Completo</th>
-                                <th style="width: 120px; text-align: center;">Identificación</th>
-                                <th style="width: 100px; text-align: center;">Tipo Huésped</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($reserva->huespedes as $index => $huesped)
-                                <tr>
-                                    <td style="text-align: center;">{{ $index + 1 }}</td>
-                                    <td>{{ $huesped->nombre }}</td>
-                                    <td style="text-align: center;">{{ $huesped->identificacion ?? '—' }}</td>
-                                    <td style="text-align: center;">
-                                        {{ is_object($huesped->tipo_huesped) && method_exists($huesped->tipo_huesped, 'label') ? $huesped->tipo_huesped->label() : (string)$huesped->tipo_huesped }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-
-            {{-- BLOQUE CÓDIGO QR DE VERIFICACIÓN CENTRADO EN MEDIO --}}
-            @if(!empty($qrCodeBase64))
-                <div style="text-align: center; margin: 18px 0 15px 0;">
-                    <div style="display: inline-block; border: 1.5px solid #711C37; padding: 8px 18px; border-radius: 8px; background: #ffffff; text-align: center;">
-                        <img src="{{ $qrCodeBase64 }}" style="width: 105px; height: 105px; display: block; margin: 0 auto 4px auto;" alt="Código QR de Verificación">
-                        <div style="font-size: 9px; font-weight: bold; color: #711C37; text-transform: uppercase; letter-spacing: 0.5px;">CÓDIGO QR DE VERIFICACIÓN</div>
-                        <div style="font-size: 8px; font-family: monospace; color: #4a5568; margin-top: 2px;">{{ $reserva->codigo_reserva }}</div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Políticas e Instrucciones de Recepción --}}
-            <div style="border: 1px solid #e2e8f0; padding: 8px; border-radius: 4px; font-size: 8px; color: #4a5568; background: #fafafa;">
-                <strong style="color: #711C37; font-size: 9px; text-transform: uppercase;">Políticas e Instrucciones de Recepción:</strong>
-                <ul style="margin-top: 3px; padding-left: 12px;">
-                    <li>Check-In disponible a partir de las 14:00 hrs. Presentar documento de identidad original al ingresar.</li>
-                    <li>Este voucher sirve como comprobante oficial de su reservación en Hotel Bugambilias. Escanee el código QR en recepción para auto check-in.</li>
-                    <li>Token QR de Validación: <span style="font-family: monospace; font-weight: bold; color: #711C37;">{{ substr($tokenQr, 0, 16) }}</span></li>
-                </ul>
-            </div>
-
+            {{-- Estado de pago y verificación --}}
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px; page-break-inside: avoid;">
+                <tr>
+                    <td style="width: 68%; vertical-align: top; padding-right: 12px; border: 0;">
+                        <div class="voucher-card">
+                            <div class="voucher-label">Estado del pago</div>
+                            <div style="margin-top: 5px; font-size: 10px;">
+                                Pagado: <strong>{{ $simbolo }} {{ number_format((float) $reserva->total_pagado, 2) }}</strong>
+                                &nbsp; · &nbsp;
+                                Saldo: <strong style="color: #711C37;">{{ $simbolo }} {{ number_format((float) $reserva->saldo, 2) }}</strong>
+                            </div>
+                            <div class="voucher-muted" style="margin-top: 4px;">
+                                {{ $pagos->isEmpty() ? 'No hay pagos registrados.' : $pagos->count().' pago(s) o abono(s) registrado(s).' }}
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; border-left: 3px solid #711C37; padding: 6px 8px; background: #f8fafc; color: #475569; font-size: 8px; line-height: 1.45;">
+                            Presente este comprobante al llegar. El código QR y el código de barras identifican la reserva en recepción o restaurante.
+                        </div>
+                    </td>
+                    <td style="width: 32%; text-align: center; vertical-align: top; border: 0;">
+                        @if (!empty($qrCodeBase64))
+                            <img src="{{ $qrCodeBase64 }}" style="width: 88px; height: 88px; display: block; margin: 0 auto 3px;" alt="Código QR de verificación">
+                            <div class="voucher-label">Verificación QR</div>
+                            <div class="voucher-muted" style="font-family: monospace;">{{ substr($tokenQr, 0, 16) }}</div>
+                        @endif
+                    </td>
+                </tr>
+            </table>
         </div>
 
         @include('reports.layout.partials.footer', [
             'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
+            'usuario' => auth()->user()?->name ?? 'Sistema',
+            'generadoEn' => $fechaEmision,
         ])
     </div>
 @endsection

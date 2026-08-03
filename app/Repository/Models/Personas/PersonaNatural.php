@@ -32,9 +32,11 @@ class PersonaNatural extends Model implements AuditableContract
 
     public function getFullNameAttribute(): string
     {
+        $persona = $this->relationLoaded('persona') ? $this->persona : $this->persona()->first();
+
         $parts = [
-            $this->primer_nombre ?? '',
-            $this->segundo_nombre ?? '',
+            $persona->primer_nombre ?? '',
+            $persona->segundo_nombre ?? '',
             $this->primer_apellido ?? '',
             $this->segundo_apellido ?? '',
         ];

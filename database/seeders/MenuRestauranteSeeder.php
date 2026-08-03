@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\Inventario\EstadoLote;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Inventario\Lote;
 use App\Repository\Models\Inventario\ProductoKit;
+use App\Repository\Models\Inventario\Stock;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\Shared\Precio;
-use App\Repository\Models\Shared\Stock;
+use App\Repository\Models\Shared\Stock as SharedStock;
 use Illuminate\Database\Seeder;
 
 class MenuRestauranteSeeder extends Seeder
@@ -101,10 +104,12 @@ class MenuRestauranteSeeder extends Seeder
             ],
         ];
 
+        $unidadMedidaId = $this->unidadMedidaId();
+
         foreach ($platos as $p) {
             $productoPadre = Producto::firstOrCreate(
                 ['nombre' => 'Receta: '.$p['nombre']],
-                ['categoria_id' => $defaultCatId, 'unidad_medida_id' => 1, 'estado' => 1]
+                ['categoria_id' => $defaultCatId, 'unidad_medida_id' => $unidadMedidaId, 'estado' => 1]
             );
 
             foreach ($p['receta'] as [$variante, $cantidad]) {
@@ -142,11 +147,26 @@ class MenuRestauranteSeeder extends Seeder
         return (int) (Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', $codigo))->first()?->catalogo_tipo_id ?: 8);
     }
 
+    private function unidadMedidaId(): int
+    {
+        $id = Catalogo::whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'UNIDAD_MEDIDA'))
+            ->where('codigo', 'UNI_UD')
+            ->value('id');
+
+        if (is_numeric($id)) {
+            return (int) $id;
+        }
+
+        $fallback = Catalogo::query()->value('id');
+
+        return is_numeric($fallback) ? (int) $fallback : 1;
+    }
+
     private function variante(string $nombreProducto, string $nombreVariante, int $categoriaId, Ubicacion $cocina): ProductoVariante
     {
         $producto = Producto::firstOrCreate(
             ['nombre' => $nombreProducto],
-            ['categoria_id' => $categoriaId, 'unidad_medida_id' => 1, 'estado' => 1]
+            ['categoria_id' => $categoriaId, 'unidad_medida_id' => $this->unidadMedidaId(), 'estado' => 1]
         );
 
         $variante = ProductoVariante::firstOrCreate(
@@ -154,8 +174,38 @@ class MenuRestauranteSeeder extends Seeder
             ['codigo' => 'VAR-'.strtoupper(substr(md5($nombreProducto.$nombreVariante), 0, 6))]
         );
 
-        // Generar Stock inicial para la cocina restaurante
-        Stock::firstOrCreate(
+        // Costos basados en precio de mercado por unidad base (kg, L, unidad)
+        // y la cantidad real indicada en la variante (ej: 300g, 30ml, 5g, 2 unid)
+        $preciosMercado = [
+            'Filete de res' => ['precio' => 400, 'base' => 'kg', 'cantidad_variante' => 0.3],
+            'Pechuga de pollo' => ['precio' => 200, 'base' => 'kg', 'cantidad_variante' => 0.2],
+            'Medallon lomo cerdo' => ['precio' => 280, 'base' => 'kg', 'cantidad_variante' => 0.25],
+            'Camarones' => ['precio' => 400, 'base' => 'kg', 'cantidad_variante' => 0.2],
+            'Filete de pescado' => ['precio' => 260, 'base' => 'kg', 'cantidad_variante' => 0.25],
+            'Arroz blanco porcion' => ['precio' => 40, 'base' => 'kg', 'cantidad_variante' => 0.25],
+            'Frijoles molidos porcion' => ['precio' => 35, 'base' => 'kg', 'cantidad_variante' => 0.2],
+            'Papas fritas porcion' => ['precio' => 30, 'base' => 'kg', 'cantidad_variante' => 0.2],
+            'Tajadas de maduro' => ['precio' => 25, 'base' => 'kg', 'cantidad_variante' => 0.15],
+            'Ensalada fresca porcion' => ['precio' => 40, 'base' => 'kg', 'cantidad_variante' => 0.2],
+            'Mantequilla' => ['precio' => 200, 'base' => 'kg', 'cantidad_variante' => 0.015],
+            'Aceite vegetal' => ['precio' => 100, 'base' => 'L', 'cantidad_variante' => 0.03],
+            'Sal y pimienta mix' => ['precio' => 60, 'base' => 'kg', 'cantidad_variante' => 0.005],
+            'Tomate' => ['precio' => 50, 'base' => 'kg', 'cantidad_variante' => 0.15],
+            'Cebolla' => ['precio' => 40, 'base' => 'kg', 'cantidad_variante' => 0.1],
+            'Chile' => ['precio' => 80, 'base' => 'kg', 'cantidad_variante' => 0.05],
+            'Tortilla de maiz' => ['precio' => 3, 'base' => 'unidad', 'cantidad_variante' => 2],
+            'Queso' => ['precio' => 240, 'base' => 'kg', 'cantidad_variante' => 0.05],
+            'Crema' => ['precio' => 160, 'base' => 'L', 'cantidad_variante' => 0.03],
+            'Aguacate' => ['precio' => 20, 'base' => 'unidad', 'cantidad_variante' => 0.5],
+            'Leche' => ['precio' => 45, 'base' => 'L', 'cantidad_variante' => 0.2],
+            'Huevo' => ['precio' => 3, 'base' => 'unidad', 'cantidad_variante' => 2],
+        ];
+
+        $data = $preciosMercado[$nombreProducto] ?? ['precio' => 15, 'base' => 'kg', 'cantidad_variante' => 1];
+        $costoUnitario = round($data['precio'] * $data['cantidad_variante'], 2);
+
+        // Stock legacy (tabla `stocks`) — usado por ConsumirIngredientesPedido
+        SharedStock::firstOrCreate(
             [
                 'stockable_type' => Ubicacion::class,
                 'stockable_id' => $cocina->id,
@@ -164,6 +214,35 @@ class MenuRestauranteSeeder extends Seeder
             [
                 'cantidad_actual' => 500.0,
                 'cantidad_ideal' => 500.0,
+            ]
+        );
+
+        // Stock moderno (inv_lotes + inv_stock) — usado por costoRealUnitario y ObtenerStockParaConsumo
+        $lote = Lote::firstOrCreate(
+            [
+                'producto_id' => $producto->id,
+                'codigo_lote' => 'LOTE-INICIAL-'.strtoupper(substr(md5($nombreProducto), 0, 8)),
+            ],
+            [
+                'ubicacion_id' => $cocina->id,
+                'cantidad_inicial' => 500.0,
+                'cantidad_disponible' => 500.0,
+                'costo_unitario' => $costoUnitario,
+                'costo_total' => $costoUnitario * 500.0,
+                'estado' => EstadoLote::Disponible,
+                'fecha_recepcion' => now()->toDateString(),
+            ]
+        );
+
+        Stock::firstOrCreate(
+            [
+                'producto_id' => $producto->id,
+                'lote_id' => $lote->id,
+                'ubicacion_id' => $cocina->id,
+            ],
+            [
+                'producto_variante_id' => $variante->id,
+                'cantidad' => 500.0,
             ]
         );
 

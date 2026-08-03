@@ -7,6 +7,8 @@ use App\Jobs\Activos\SincronizarEstadoActivoJob;
 use App\Jobs\Activos\VerificarGarantiasJob;
 use App\Jobs\Activos\VerificarMantenimientosPreventivosJob;
 use App\Jobs\Inventario\VerificarCaducidadesJob;
+use App\Jobs\Reservas\EnviarRecordatoriosReservasJob;
+use App\Jobs\Restaurante\ProcesarNoShowsRestauranteJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -19,6 +21,11 @@ Artisan::command('inventario:verificar-caducidades', function (): void {
     VerificarCaducidadesJob::dispatchSync();
     fwrite(STDOUT, "Caducidades verificadas exitosamente.\n");
 })->purpose('Verificar lotes vencidos y notificar próximos a vencer');
+
+Artisan::command('restaurante:procesar-noshows', function (): void {
+    ProcesarNoShowsRestauranteJob::dispatchSync();
+    fwrite(STDOUT, "No-shows de restaurante procesados exitosamente.\n");
+})->purpose('Procesar reservaciones de restaurante que excedieron la tolerancia de 30 minutos');
 
 Artisan::command('mantenimiento:procesar-todos', function (): void {
     VerificarMantenimientosPreventivosJob::dispatchSync();
@@ -94,3 +101,9 @@ $registerScheduledEvent('limpieza:materializar-ejecuciones', 'jobs.limpieza_mate
 
 // 7. Enviar recordatorios de limpieza pendientes/vencidos
 $registerScheduledEvent('limpieza:enviar-recordatorios', 'jobs.limpieza_recordatorio', '12:00', $timezoneStr);
+
+// 8. Alertar al personal autorizado antes del inicio de una reserva
+$registerScheduledEvent(new EnviarRecordatoriosReservasJob, 'jobs.reservas_recordatorio', 'everyfiveminutes', $timezoneStr);
+
+// 9. Procesar reservaciones No-Show de restaurante (tolerancia 30 min)
+$registerScheduledEvent(new ProcesarNoShowsRestauranteJob, 'jobs.restaurante_noshows', 'everyfifteenminutes', $timezoneStr);
