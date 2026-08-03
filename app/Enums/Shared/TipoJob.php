@@ -10,6 +10,7 @@ use App\Jobs\Activos\SincronizarEstadoActivoJob;
 use App\Jobs\Activos\VerificarGarantiasJob;
 use App\Jobs\Activos\VerificarMantenimientosPreventivosJob;
 use App\Jobs\Inventario\VerificarCaducidadesJob;
+use App\Jobs\Reservas\EnviarRecordatoriosReservasJob;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
@@ -24,6 +25,7 @@ enum TipoJob: string implements HasColor, HasLabel
     case VerificarGarantias = 'verificar_garantias';
     case LimpiezaMaterializar = 'limpieza_materializar';
     case LimpiezaRecordatorio = 'limpieza_recordatorio';
+    case ReservasRecordatorio = 'reservas_recordatorio';
 
     public function getLabel(): string
     {
@@ -35,6 +37,7 @@ enum TipoJob: string implements HasColor, HasLabel
             self::VerificarGarantias => 'Verificar Garantías',
             self::LimpiezaMaterializar => 'Materializar Ejecuciones de Limpieza',
             self::LimpiezaRecordatorio => 'Enviar Recordatorios de Limpieza',
+            self::ReservasRecordatorio => 'Enviar Recordatorios de Reservas',
         };
     }
 
@@ -48,6 +51,7 @@ enum TipoJob: string implements HasColor, HasLabel
             self::VerificarGarantias => 'warning',
             self::LimpiezaMaterializar => 'success',
             self::LimpiezaRecordatorio => 'info',
+            self::ReservasRecordatorio => 'warning',
         };
     }
 
@@ -61,6 +65,7 @@ enum TipoJob: string implements HasColor, HasLabel
             self::VerificarGarantias => VerificarGarantiasJob::class,
             self::LimpiezaMaterializar => 'limpieza:materializar-ejecuciones',
             self::LimpiezaRecordatorio => 'limpieza:enviar-recordatorios',
+            self::ReservasRecordatorio => EnviarRecordatoriosReservasJob::class,
         };
     }
 
@@ -82,6 +87,7 @@ enum TipoJob: string implements HasColor, HasLabel
             self::NotificarMantenimientos => 'jobs.mtto_notificar_proximos',
             self::LimpiezaMaterializar => 'jobs.limpieza_materializar',
             self::LimpiezaRecordatorio => 'jobs.limpieza_recordatorio',
+            self::ReservasRecordatorio => 'jobs.reservas_recordatorio',
         };
 
         $valor = config($clave);

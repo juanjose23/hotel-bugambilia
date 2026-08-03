@@ -3,10 +3,14 @@
 declare(strict_types=1);
 
 use App\Services\Shared\TasaCambioService;
+use Database\Seeders\MonedaSeeder;
 use Database\Seeders\TasaCambioSeeder;
 
 beforeEach(function () {
-    $this->seed(TasaCambioSeeder::class);
+    $this->seed([
+        MonedaSeeder::class,
+        TasaCambioSeeder::class,
+    ]);
     $this->service = app(TasaCambioService::class);
 });
 

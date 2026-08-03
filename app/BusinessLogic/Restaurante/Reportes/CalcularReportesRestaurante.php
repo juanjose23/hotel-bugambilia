@@ -24,7 +24,7 @@ final class CalcularReportesRestaurante
     public function calcular(Collection $pedidos, Collection $pedidoItems): array
     {
         $totalPedidos = $pedidos->count();
-        $sumTotal = $pedidos->sum('total');
+        $sumTotal = $pedidos->sum('subtotal');
         $totalFacturado = is_numeric($sumTotal) ? (float) $sumTotal : 0.0;
         $pedidosPagados = $pedidos->where('estado', EstadoPedido::PAGADO)->count();
         $pedidosPendientes = $pedidos->whereIn('estado', [EstadoPedido::ABIERTO, EstadoPedido::EN_PREPARACION])->count();

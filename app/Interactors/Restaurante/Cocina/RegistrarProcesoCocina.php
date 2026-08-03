@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Cocina;
 
+use App\Enums\Restaurante\UbicacionCocina;
 use App\Repository\Models\Restaurante\ProcesoCocina;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,7 @@ final class RegistrarProcesoCocina
 
             $cantidadPlatos = max($data['cantidad_platos'], 1);
             $ingredientes = $this->repositorio->obtenerIngredientesReceta($productoReceta->id);
-            $cocina = $this->repositorio->obtenerUbicacionPorNombre('Cocina Restaurante');
+            $cocina = $this->repositorio->obtenerUbicacionPorNombre(UbicacionCocina::RESTAURANTE->value);
             $cocinaId = $cocina?->id;
 
             $costoTotal = 0.0;
@@ -110,12 +111,15 @@ final class RegistrarProcesoCocina
                     }
 
                     $this->repositorio->registrarMovimiento([
-                        'producto_id' => $productoDestino?->id,
-                        'producto_variante_id' => $variante->id,
                         'tipo' => 'CONSUMO',
-                        'cantidad' => $cantidadIngrediente,
+                        'lote_id' => $stockExistente?->lote_id,
+                        'producto_id' => $productoDestino?->id,
+                        'cantidad' => -$cantidadIngrediente,
                         'costo_unitario' => $item['costoUnitario'],
-                        'fecha' => now(),
+                        'costo_total' => $item['costoUnitario'] * $cantidadIngrediente,
+                        'ubicacion_origen_id' => $cocinaId,
+                        'documento_tipo' => 'proceso_cocina',
+                        'referencia' => "Proceso cocina #{$proceso->id}: {$plato->nombre}",
                     ]);
                 }
             }

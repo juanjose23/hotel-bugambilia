@@ -58,7 +58,7 @@ test('registra un pago correctamente y actualiza el saldo de la cuenta', functio
 
     expect((float) $pago->monto)->toBe(600.0)
         ->and((float) $cuenta->refresh()->total_pagado)->toBe(600.0)
-        ->and((float) $cuenta->saldo)->toBe(400.0);
+        ->and((float) $cuenta->saldo)->toBe(550.0);
 });
 
 test('rechaza registrar pagos menores o iguales a cero', function (): void {

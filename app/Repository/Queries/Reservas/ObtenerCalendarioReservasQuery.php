@@ -19,7 +19,7 @@ final class ObtenerCalendarioReservasQuery
      *     year: int,
      *     month: int,
      *     categorias_habitacion: array<int, string>,
-     *     reservasPorDia: Collection<int, Collection<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float}>>,
+     *     reservasPorDia: Collection<int, Collection<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float, day_check_in: int, es_llegada: bool, es_salida: bool}>>,
      *     totalReservas: int,
      *     totalMonto: float
      * }
@@ -42,6 +42,9 @@ final class ObtenerCalendarioReservasQuery
         }
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $days[] = $day;
+        }
+        while (count($days) % 7 !== 0) {
+            $days[] = null;
         }
 
         $inicioMes = $firstDayOfMonth->copy()->startOfMonth();
@@ -94,7 +97,7 @@ final class ObtenerCalendarioReservasQuery
         $sumTotal = $reservas->sum('total');
 
         $totalMonto = is_numeric($sumTotal) ? (float) $sumTotal : 0.0;
-        /** @var Collection<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float}> $formatted */
+        /** @var Collection<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float, day_check_in: int}> $formatted */
         $formatted = $reservas->map(function (Reserva $r): array {
             $recurso = $r->habitacion !== null
                 ? 'Hab. '.$r->habitacion->numero
@@ -108,7 +111,7 @@ final class ObtenerCalendarioReservasQuery
             };
 
             $inStr = Carbon::parse($r->fecha_check_in)->format('Y-m-d');
-            $outStr = Carbon::parse($r->fecha_check_out)->format('Y-m-d');
+            $outStr = Carbon::parse($r->fecha_check_out ?? $r->fecha_check_in)->format('Y-m-d');
 
             return [
                 'id' => $r->id,
@@ -129,9 +132,22 @@ final class ObtenerCalendarioReservasQuery
             ];
         });
 
-        // Agrupar reservas por día de Check-in dentro del mes
-        /** @var Collection<int, Collection<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float}>> $reservasPorDia */
-        $reservasPorDia = $formatted->groupBy('day_check_in');
+        /** @var array<int, array<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float, day_check_in: int, es_llegada: bool, es_salida: bool}>> $reservasPorDiaItems */
+        $reservasPorDiaItems = [];
+        foreach ($formatted as $reserva) {
+            $inicio = Carbon::parse($reserva['fecha_check_in'])->max($inicioMes);
+            $fin = Carbon::parse($reserva['fecha_check_out'])->min($finMes);
+
+            for ($fecha = $inicio->copy(); $fecha->lte($fin); $fecha->addDay()) {
+                $dia = $fecha->day;
+                $item = $reserva;
+                $item['es_llegada'] = $fecha->isSameDay($reserva['fecha_check_in']);
+                $item['es_salida'] = $fecha->isSameDay($reserva['fecha_check_out']);
+                $reservasPorDiaItems[$dia][] = $item;
+            }
+        }
+        $reservasPorDia = collect($reservasPorDiaItems)
+            ->map(fn (array $items): Collection => collect($items));
 
         $firstDayOfMonth->locale('es');
         $nombreMes = ucfirst((string) $firstDayOfMonth->translatedFormat('F'));

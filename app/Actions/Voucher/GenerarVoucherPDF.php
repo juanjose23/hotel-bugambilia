@@ -6,6 +6,8 @@ namespace App\Actions\Voucher;
 
 use App\Actions\CodigoQR\GenerarTokenQR;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Queries\Reservas\ObtenerDetallePreordenReservaQuery;
+use App\Support\Barcode\BarcodeGenerator;
 use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use App\Support\Pdf\LayoutPdf;
@@ -18,6 +20,8 @@ final class GenerarVoucherPDF
 
     public function __construct(
         private readonly GenerarTokenQR $generarTokenQr,
+        private readonly BarcodeGenerator $barcodeGenerator,
+        private readonly ObtenerDetallePreordenReservaQuery $detallePreorden,
     ) {}
 
     public function ejecutar(Reserva $reserva): StreamedResponse
@@ -25,16 +29,26 @@ final class GenerarVoucherPDF
         $reserva->loadMissing([
             'habitacion',
             'espacio',
-            'detalles.reservable',
+            'detalles.reservable.habitacion',
+            'detalles.reservable.espacio',
+            'detalles.reservable.servicio',
+            'serviciosAdicionalesItems.servicio',
             'huespedes',
             'estancia.cuenta',
+            'cuentas.pagos',
+            'moneda',
         ]);
 
         $datosHotel = HotelInfo::getBaseData();
         $qrResult = $this->generarTokenQr->ejecutar($reserva);
+        $barcodeBase64 = $this->barcodeGenerator->base64(
+            code: (string) $reserva->codigo_reserva,
+            height: 70,
+            widthFactor: 2,
+        );
 
         $codigoReporte = 'HTB-RES-001';
-        $nombreReporte = 'Voucher Oficial de Reserva';
+        $nombreReporte = 'Comprobante de Emisión de Reserva';
 
         $layout = new LayoutPdf(
             margenSuperiorMm: 8,
@@ -48,6 +62,8 @@ final class GenerarVoucherPDF
             'codigoReporte' => $codigoReporte,
             'nombreReporte' => $nombreReporte,
             'qrCodeBase64' => $qrResult['qrBase64'],
+            'barcodeBase64' => $barcodeBase64,
+            'detallePreorden' => $this->detallePreorden->ejecutar($reserva),
             'datosHotel' => $datosHotel,
             'tokenQr' => $qrResult['token'],
             'fechaEmision' => now()->format('d/m/Y H:i'),

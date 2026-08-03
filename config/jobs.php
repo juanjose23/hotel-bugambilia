@@ -27,4 +27,6 @@ return [
     'limpieza_materializar' => env('JOB_LIMPIEZA_MATERIALIZAR_AT', 'hourly'),
 
     'limpieza_recordatorio' => env('JOB_LIMPIEZA_RECORDATORIO_AT', '12:00'),
+
+    'reservas_recordatorio' => env('JOB_RESERVAS_RECORDATORIO_AT', 'everyfiveminutes'),
 ];

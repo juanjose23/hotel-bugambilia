@@ -25,12 +25,37 @@ final class ObtenerTarifasReservaQuery
             return $precioHora;
         }
 
-        return $this->precioVigente(Espacio::class, $id, 'base');
+        $precioBase = $this->precioVigente(Espacio::class, $id, 'base');
+        if ($precioBase > 0) {
+            return $precioBase;
+        }
+
+        // Fallback al Espacio Padre (ej: Restaurante Principal) si la mesa no tiene tarifa directa
+        $padreId = Espacio::query()->where('id', $id)->value('padre_id');
+        if (is_numeric($padreId) && (int) $padreId > 0 && (int) $padreId !== $id) {
+            $precioPadreHora = $this->precioVigente(Espacio::class, (int) $padreId, 'por_hora');
+            if ($precioPadreHora > 0) {
+                return $precioPadreHora;
+            }
+
+            return $this->precioVigente(Espacio::class, (int) $padreId, 'base');
+        }
+
+        return 0.0;
     }
 
     public function espacioEsPorHora(int $id): bool
     {
-        return $this->precioVigente(Espacio::class, $id, 'por_hora') > 0;
+        if ($this->precioVigente(Espacio::class, $id, 'por_hora') > 0) {
+            return true;
+        }
+
+        $padreId = Espacio::query()->where('id', $id)->value('padre_id');
+        if (is_numeric($padreId) && (int) $padreId > 0 && (int) $padreId !== $id) {
+            return $this->precioVigente(Espacio::class, (int) $padreId, 'por_hora') > 0;
+        }
+
+        return false;
     }
 
     public function servicio(int $id): float

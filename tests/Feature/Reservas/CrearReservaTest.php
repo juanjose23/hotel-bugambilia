@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Enums\Cuentas\MetodoPago;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Interactors\CheckIn\RegistrarCheckIn;
 use App\Interactors\CheckOut\RegistrarCheckOut;
@@ -12,13 +14,16 @@ use App\Interactors\Reservas\CrearReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\User;
+use Database\Factories\Habitaciones\HabitacionFactory;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
 use Database\Seeders\EspacioSeeder;
 use Database\Seeders\HabitacionSeeder;
+use Database\Seeders\MonedaSeeder;
 use Database\Seeders\PaisSeeder;
 use Database\Seeders\ServicioSeeder;
 use Database\Seeders\TasaCambioSeeder;
@@ -27,6 +32,7 @@ use Database\Seeders\UbicacionSeeder;
 beforeEach(function (): void {
     $this->seed([
         PaisSeeder::class,
+        MonedaSeeder::class,
         CatalogoTipoSeeder::class,
         CatalogoSeeder::class,
         UbicacionSeeder::class,
@@ -64,7 +70,8 @@ test('agrega servicios y espacios adicionales como detalles hijos', function ():
 
     expect($detalles)->toHaveCount(3)
         ->and($detalles->skip(1)->pluck('parent_id')->unique()->all())->toBe([$principal->id])
-        ->and((float) $reserva->total)->toBe((float) $detalles->sum('subtotal'));
+        ->and((float) $reserva->subtotal)->toBe((float) $detalles->sum('subtotal'))
+        ->and((float) $reserva->total)->toBeGreaterThanOrEqual((float) $reserva->subtotal);
 });
 
 test('calcula el total de la habitación con la tarifa del servidor', function (): void {
@@ -79,11 +86,11 @@ test('calcula el total de la habitación con la tarifa del servidor', function (
         'email_cliente' => 'juan@ejemplo.com',
         'tipo_reserva' => TipoReserva::HABITACION->value,
         'habitacion_id' => $habitacion->id,
-        'fecha_check_in' => '2026-08-01',
-        'fecha_check_out' => '2026-08-03',
+        'fecha_check_in' => now()->addDays(5)->format('Y-m-d'),
+        'fecha_check_out' => now()->addDays(7)->format('Y-m-d'),
         'adultos' => 2,
         'ninos' => 0,
-        'acompanantes' => [
+        'huespedes' => [
             ['nombre' => 'Ana José', 'identificacion' => 'ID-100', 'tipo' => 'adulto'],
         ],
         'total' => 0.01,
@@ -91,7 +98,8 @@ test('calcula el total de la habitación con la tarifa del servidor', function (
 
     expect($reserva)->toBeInstanceOf(Reserva::class)
         ->and($reserva->estado)->toBe(EstadoReserva::PENDIENTE)
-        ->and((float) $reserva->total)->toBe(round($tarifaBase * 2, 2))
+        ->and((float) $reserva->subtotal)->toBe(round($tarifaBase * 2, 2))
+        ->and((float) $reserva->total)->toBe(round($tarifaBase * 2 * 1.15, 2))
         ->and($reserva->codigo_reserva)->toStartWith('RES-2026-');
 
     $detalle = $reserva->detalles()->with('huespedes')->firstOrFail();
@@ -124,7 +132,57 @@ test('ignora el total manipulado enviado al endpoint público', function (): voi
     $response->assertRedirect();
 
     $reserva = Reserva::query()->where('email_cliente', 'maria@ejemplo.com')->firstOrFail();
-    expect((float) $reserva->total)->toBe(round($tarifaBase * 2, 2));
+    expect((float) $reserva->subtotal)->toBe(round($tarifaBase * 2, 2))
+        ->and((float) $reserva->total)->toBe(round($tarifaBase * 2 * 1.15, 2));
+});
+
+test('registra un abono exacto del cincuenta por ciento con cargos de facturación', function (): void {
+    $habitacion = Habitacion::query()->firstOrFail();
+    $moneda = Moneda::query()->where('es_predeterminada', true)->firstOrFail();
+    $reserva = app(CrearReserva::class)->ejecutar([
+        'nombre_cliente' => 'Cliente con abono',
+        'tipo_reserva' => TipoReserva::HABITACION->value,
+        'habitacion_id' => $habitacion->id,
+        'fecha_check_in' => '2026-12-01',
+        'fecha_check_out' => '2026-12-03',
+        'adultos' => 2,
+        'tipo_pago_reserva' => TipoPagoReserva::ABONO_50->value,
+        'metodo_pago_reserva' => MetodoPago::EFECTIVO->value,
+        'moneda_id' => $moneda->id,
+    ]);
+
+    $cuenta = $reserva->cuentas()->with(['pagos', 'cargos'])->firstOrFail();
+
+    expect($reserva->tipo_pago)->toBe(TipoPagoReserva::ABONO_50)
+        ->and($reserva->estado)->toBe(EstadoReserva::CONFIRMADA)
+        ->and($cuenta->cargos)->not->toBeEmpty()
+        ->and((float) $cuenta->total_pagado)->toBe(round((float) $cuenta->total * 0.50, 2))
+        ->and((float) $cuenta->saldo)->toBe(round((float) $cuenta->total - (float) $cuenta->total_pagado, 2))
+        ->and($cuenta->pagos)->toHaveCount(1);
+});
+
+test('el pago completo liquida la reserva y no se registra como abono', function (): void {
+    $habitacion = Habitacion::query()->firstOrFail();
+    $moneda = Moneda::query()->where('es_predeterminada', true)->firstOrFail();
+
+    $reserva = app(CrearReserva::class)->ejecutar([
+        'nombre_cliente' => 'Cliente pago completo',
+        'tipo_reserva' => TipoReserva::HABITACION->value,
+        'habitacion_id' => $habitacion->id,
+        'fecha_check_in' => '2027-01-10',
+        'fecha_check_out' => '2027-01-11',
+        'adultos' => 1,
+        'tipo_pago_reserva' => TipoPagoReserva::PAGO_COMPLETO->value,
+        'metodo_pago_reserva' => MetodoPago::TARJETA_CREDITO->value,
+        'moneda_id' => $moneda->id,
+    ]);
+
+    $cuenta = $reserva->cuentas()->with('pagos')->firstOrFail();
+
+    expect($reserva->tipo_pago)->toBe(TipoPagoReserva::PAGO_COMPLETO)
+        ->and((float) $cuenta->total_pagado)->toBe((float) $cuenta->total)
+        ->and((float) $cuenta->saldo)->toBe(0.0)
+        ->and($cuenta->pagos->first()?->observaciones)->toContain('Pago completo');
 });
 
 test('un visitante no puede cancelar una reserva', function (): void {
@@ -214,11 +272,10 @@ test('impide el check out cuando la cuenta tiene saldo pendiente', function (): 
 function datosReserva(array $cambios = []): array
 {
     /** @var Habitacion $habitacion */
-    $habitacion = Habitacion::query()->first() ?? Habitacion::query()->create([
+    $habitacion = Habitacion::query()->first() ?? HabitacionFactory::new()->create([
         'codigo' => 'HAB-TEST-1',
         'nombre' => 'Habitación Test 101',
         'estado' => EstadoEspacio::Disponible,
-        'activo' => true,
     ]);
 
     return array_merge([

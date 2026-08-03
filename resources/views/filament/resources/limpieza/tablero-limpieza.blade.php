@@ -1,5 +1,6 @@
 @use('App\Enums\Limpieza\EstadoLimpieza')
 @use('App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\LimpiezaEjecucionResource', 'EjecucionResource')
+@use('App\Filament\Resources\Limpieza\SolicitudLimpiezaResource\SolicitudLimpiezaResource', 'SolicitudResource')
 
 <x-filament-panels::page>
     <div class="space-y-6">
@@ -27,7 +28,7 @@
                         <h4 class="font-bold text-gray-800 dark:text-gray-100">Disponibles / Pendientes</h4>
                     </div>
                     <span class="px-2.5 py-0.5 text-xs font-semibold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 rounded-full">
-                        {{ $this->pendientes->count() }}
+                        {{ $this->pendientes->count() + $this->solicitudes->count() }}
                     </span>
                 </div>
 
@@ -61,10 +62,63 @@
                             </x-slot:footer>
                         </x-limpieza.execution-card>
                     @empty
-                        <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-xs">
-                            No hay limpiezas pendientes en este turno.
-                        </div>
+                        @if($this->solicitudes->isEmpty())
+                            <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-xs">
+                                No hay limpiezas pendientes en este turno.
+                            </div>
+                        @endif
                     @endforelse
+
+                    {{-- Solicitudes de Limpieza (mismo diseño de card que ejecuciones) --}}
+                    @foreach($this->solicitudes as $solicitud)
+                        <x-limpieza.execution-card
+                            accentColor="rose"
+                            :titulo="$solicitud->limpiable?->nombre ?? 'Sin nombre'"
+                            :tipo="$solicitud->limpiable_type"
+                            :url="SolicitudResource::getUrl('edit', ['record' => $solicitud->id])"
+                        >
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">SOLICITUD</span>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold
+                                    {{ $solicitud->prioridad === 'alta' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : ($solicitud->prioridad === 'baja' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300') }}">
+                                    {{ ucfirst($solicitud->prioridad) }}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <x-heroicon-o-clock class="w-4 h-4 text-gray-400" />
+                                <span>{{ $solicitud->created_at?->diffForHumans() }} · {{ $solicitud->creador?->name ?? 'Sistema' }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <x-heroicon-o-user class="w-4 h-4 text-gray-400" />
+                                @if($solicitud->personal_id)
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ $solicitud->personal?->name ?? 'Asignado' }}</span>
+                                @else
+                                    <span class="text-red-500 dark:text-red-400 font-semibold">Sin asignar</span>
+                                @endif
+                            </div>
+
+                            @if($solicitud->notas)
+                                <div class="text-[11px] text-gray-500 dark:text-gray-400 italic line-clamp-2 mt-1">
+                                    "{{ $solicitud->notas }}"
+                                </div>
+                            @endif
+
+                            <x-slot:footer>
+                                @if($solicitud->personal_id)
+                                    <div class="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                                        <x-heroicon-o-check-circle class="w-3.5 h-3.5" />
+                                        Asignada · {{ $solicitud->estado->getLabel() }}
+                                    </div>
+                                @else
+                                    <button wire:click="asignarSolicitud({{ $solicitud->id }})" type="button"
+                                        class="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 dark:bg-rose-700 dark:hover:bg-rose-600 rounded-lg shadow-sm transition-colors">
+                                        <x-heroicon-o-hand-raised class="w-3.5 h-3.5" />
+                                        Asignar / Gestionar
+                                    </button>
+                                @endif
+                            </x-slot:footer>
+                        </x-limpieza.execution-card>
+                    @endforeach
 
                     @if ($this->pendientes->count() > $this->pendientesLimit)
                         <div class="pt-2 text-center">

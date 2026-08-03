@@ -4,15 +4,23 @@ declare(strict_types=1);
 
 namespace App\Repository\Persistencia\Restaurante;
 
+use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Enums\Restaurante\EstadoItemPedido;
+use App\Enums\Restaurante\EstadoPedido;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Clientes\Cliente;
+use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Inventario\MovimientoStock;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
+use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Personas\PersonaNatural;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\Restaurante\AuditoriaRestaurante;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\Plato;
@@ -55,7 +63,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     public function obtenerRestaurantePrincipal(): ?Espacio
     {
         /** @var Espacio|null $restaurante */
-        $restaurante = Espacio::query()->where('tipo', 'restaurante')->first();
+        $restaurante = Espacio::query()->where('tipo', TipoEspacio::RESTAURANTE)->first();
 
         return $restaurante;
     }
@@ -77,7 +85,11 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     {
         return Pedido::query()
             ->where('mesa_id', $mesaId)
-            ->whereIn('estado', ['abierto', 'en_preparacion', 'servido'])
+            ->whereIn('estado', [
+                EstadoPedido::ABIERTO->value,
+                EstadoPedido::EN_PREPARACION->value,
+                EstadoPedido::SERVIDO->value,
+            ])
             ->get();
     }
 
@@ -141,7 +153,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     /** @return Collection<int, Espacio> */
     public function obtenerMesasDisponibles(): Collection
     {
-        return Espacio::query()->where('tipo', 'mesa')->get();
+        return Espacio::query()->where('tipo', TipoEspacio::MESA)->get();
     }
 
     /** @param  array<string, mixed>  $datos */
@@ -194,6 +206,56 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
         return $stock;
     }
 
+    public function obtenerProductoPorId(int $id): ?Producto
+    {
+        /** @var Producto|null $producto */
+        $producto = Producto::query()->find($id);
+
+        return $producto;
+    }
+
+    /**
+     * @return Collection<int, ProcesoCocina>
+     */
+    public function obtenerProcesosCocinaFiltrados(?string $fechaInicio = null, ?string $fechaFin = null): Collection
+    {
+        $query = ProcesoCocina::query()
+            ->with(['plato', 'items.productoDestino', 'realizadoPor']);
+
+        if (! empty($fechaInicio)) {
+            $query->whereDate('created_at', '>=', $fechaInicio);
+        }
+
+        if (! empty($fechaFin)) {
+            $query->whereDate('created_at', '<=', $fechaFin);
+        }
+
+        /** @var Collection<int, ProcesoCocina> $procesos */
+        $procesos = $query->latest()->get();
+
+        return $procesos;
+    }
+
+    public function obtenerCatalogoClienteRegular(): ?Catalogo
+    {
+        $consulta = Catalogo::whereHas(
+            'catalogoTipo',
+            fn ($q) => $q->where('codigo', 'TIPO_CLIENTE')
+        );
+
+        /** @var Catalogo|null $catalogo */
+        $catalogo = (clone $consulta)->where('codigo', 'CLI_REGULAR')->first();
+
+        if ($catalogo instanceof Catalogo) {
+            return $catalogo;
+        }
+
+        /** @var Catalogo|null $catalogo */
+        $catalogo = (clone $consulta)->orderBy('orden')->first();
+
+        return $catalogo;
+    }
+
     // ============================================================
     // Lectura - Landing
     // ============================================================
@@ -201,7 +263,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     public function obtenerRestauranteParaLanding(): ?Espacio
     {
         /** @var Espacio|null $restaurante */
-        $restaurante = Espacio::where('tipo', 'restaurante')
+        $restaurante = Espacio::where('tipo', TipoEspacio::RESTAURANTE)
             ->where('estado', '!=', 0)
             ->with(['imagenes'])
             ->first();
@@ -213,7 +275,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     public function obtenerMesasDeRestaurante(int $restauranteId): Collection
     {
         return Espacio::where('padre_id', $restauranteId)
-            ->where('tipo', 'mesa')
+            ->where('tipo', TipoEspacio::MESA)
             ->orderBy('nombre')
             ->get();
     }
@@ -259,6 +321,51 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
         $pedido->save();
     }
 
+    /** @param  array<string, mixed>  $datos */
+    public function actualizarPedido(Pedido $pedido, array $datos): void
+    {
+        $pedido->update($datos);
+    }
+
+    public function eliminarItem(PedidoItem $item): void
+    {
+        $item->delete();
+    }
+
+    /**
+     * @param  array<int, int>  $itemIds
+     * @return Collection<int, PedidoItem>
+     */
+    public function obtenerItemsMoviblesDePedido(Pedido $pedido, array $itemIds): Collection
+    {
+        return $pedido->items()
+            ->whereIn('id', $itemIds)
+            ->whereNotIn('estado', [
+                EstadoItemPedido::ANULADO->value,
+                EstadoItemPedido::SERVIDO->value,
+            ])
+            ->get();
+    }
+
+    public function contarItemsNoAnuladosDePedido(Pedido $pedido): int
+    {
+        return $pedido->items()
+            ->where('estado', '!=', EstadoItemPedido::ANULADO->value)
+            ->count();
+    }
+
+    public function contarItemsDePedido(Pedido $pedido): int
+    {
+        return $pedido->items()->count();
+    }
+
+    public function subtotalDeItemsNoAnulados(Pedido $pedido): float
+    {
+        return (float) $pedido->items()
+            ->where('estado', '!=', EstadoItemPedido::ANULADO->value)
+            ->sum('subtotal');
+    }
+
     // ============================================================
     // Escritura - Mesas / Espacios
     // ============================================================
@@ -284,9 +391,69 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     }
 
     /** @param  array<string, mixed>  $datos */
+    public function actualizarProcesoCocina(ProcesoCocina $proceso, array $datos): void
+    {
+        $proceso->update($datos);
+    }
+
+    public function eliminarItemsDeProcesoCocina(ProcesoCocina $proceso): void
+    {
+        $proceso->items()->delete();
+    }
+
+    /** @param  array<string, mixed>  $datos */
     public function guardarProcesoItem(ProcesoCocina $proceso, array $datos): void
     {
         $proceso->items()->create($datos);
+    }
+
+    /** @param  array<string, mixed>  $datos */
+    public function crearProcesoCocina(array $datos): ProcesoCocina
+    {
+        return ProcesoCocina::query()->create($datos);
+    }
+
+    public function recalcularCostoTotalProceso(ProcesoCocina $proceso): ProcesoCocina
+    {
+        $costoTotal = (float) $proceso->items()->sum('costo_asignado');
+
+        $proceso->update([
+            'costo_total' => round($costoTotal, 2),
+        ]);
+
+        return $proceso->fresh() ?? $proceso;
+    }
+
+    // ============================================================
+    // Escritura - Compras / Abastecimiento
+    // ============================================================
+
+    /** @param  array<string, mixed>  $datos */
+    public function crearSolicitudAbastecimiento(array $datos): Solicitud
+    {
+        return Solicitud::query()->create($datos);
+    }
+
+    // ============================================================
+    // Escritura - Clientes
+    // ============================================================
+
+    /** @param  array<string, mixed>  $datos */
+    public function crearPersona(array $datos): Persona
+    {
+        return Persona::query()->create($datos);
+    }
+
+    /** @param  array<string, mixed>  $datos */
+    public function crearPersonaNatural(array $datos): PersonaNatural
+    {
+        return PersonaNatural::query()->create($datos);
+    }
+
+    /** @param  array<string, mixed>  $datos */
+    public function crearCliente(array $datos): Cliente
+    {
+        return Cliente::query()->create($datos);
     }
 
     // ============================================================
@@ -336,15 +503,6 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     }
 
     // ============================================================
-    // Escritura - Auditoría
-    // ============================================================
-
-    public function registrarAuditoria(array $datos): AuditoriaRestaurante
-    {
-        return AuditoriaRestaurante::create($datos);
-    }
-
-    // ============================================================
     // Lectura - Capacidad
     // ============================================================
 
@@ -352,7 +510,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     {
         $query = Espacio::query()
             ->where('padre_id', $restauranteId)
-            ->where('tipo', 'mesa');
+            ->where('tipo', TipoEspacio::MESA);
 
         if ($ignorarId !== null) {
             $query->where('id', '!=', $ignorarId);
@@ -371,6 +529,49 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
         $cuenta = Cuenta::query()->find($id);
 
         return $cuenta;
+    }
+
+    public function obtenerCuentaCobro(int $cuentaId): ?Cuenta
+    {
+        /** @var Cuenta|null $cuenta */
+        $cuenta = Cuenta::query()
+            ->with(['cliente.personaNatural', 'moneda'])
+            ->find($cuentaId);
+
+        return $cuenta;
+    }
+
+    public function obtenerCuentaIdDePedidoActivoEnMesa(int $mesaId): ?int
+    {
+        $cuentaId = Pedido::query()
+            ->where('mesa_id', $mesaId)
+            ->whereNotNull('cuenta_id')
+            ->whereHas('cuenta', fn ($q) => $q->where('estado', 2))
+            ->value('cuenta_id');
+
+        return is_numeric($cuentaId) ? (int) $cuentaId : null;
+    }
+
+    public function existeOtroPedidoActivoEnMesa(int $mesaId, int $exceptoId): bool
+    {
+        return Pedido::query()
+            ->where('mesa_id', $mesaId)
+            ->whereIn('estado', [
+                EstadoPedido::ABIERTO->value,
+                EstadoPedido::EN_PREPARACION->value,
+                EstadoPedido::LISTO->value,
+                EstadoPedido::SERVIDO->value,
+            ])
+            ->where('id', '!=', $exceptoId)
+            ->exists();
+    }
+
+    public function obtenerPersonaPorId(int $id): ?Persona
+    {
+        /** @var Persona|null $persona */
+        $persona = Persona::query()->find($id);
+
+        return $persona;
     }
 
     /** @return Collection<int, Cuenta> */

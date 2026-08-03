@@ -9,8 +9,8 @@ use App\Actions\Restaurante\Voucher\GenerarVoucherPagoPDF;
 use App\Actions\Restaurante\Voucher\GenerarVoucherPedidoHTML;
 use App\Actions\Restaurante\Voucher\GenerarVoucherPedidoPDF;
 use App\Http\Controllers\Controller;
-use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,6 +21,7 @@ final class VoucherRestauranteController extends Controller
         private readonly GenerarVoucherPedidoPDF $voucherPedidoPDF,
         private readonly GenerarVoucherPagoHTML $voucherPagoHTML,
         private readonly GenerarVoucherPagoPDF $voucherPagoPDF,
+        private readonly RestauranteRepositorioInterface $restauranteRepositorio,
     ) {}
 
     public function generar(Request $request, Pedido $pedido): Response
@@ -39,9 +40,9 @@ final class VoucherRestauranteController extends Controller
                 abort(404, 'No se encontró una cuenta de pago para este pedido.');
             }
 
-            $cuenta = Cuenta::query()->find($cuentaId);
+            $cuenta = $this->restauranteRepositorio->obtenerCuentaPorId((int) $cuentaId);
 
-            if (! $cuenta instanceof Cuenta) {
+            if ($cuenta === null) {
                 abort(404, 'Cuenta no encontrada.');
             }
 

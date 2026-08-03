@@ -12,6 +12,7 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,6 +24,7 @@ final class AbrirCuenta
 {
     public function __construct(
         private readonly ValidarCuenta $validarCuenta,
+        private readonly CuentaRepositorioInterface $cuentas,
     ) {}
 
     public function ejecutar(
@@ -40,21 +42,19 @@ final class AbrirCuenta
             if ($cuentaExistente !== null) {
                 $this->validarCuenta->puedeAbrirse($cuentaExistente);
 
-                $cuentaExistente->update([
+                $cuenta = $this->cuentas->abrir($cuentaExistente, [
                     'estado' => EstadoCuenta::ABIERTA,
                     'limite_autorizado' => $limite ?? $cuentaExistente->limite_autorizado,
                     'estancia_id' => $estancia->id ?? $cuentaExistente->estancia_id,
                     'abierta_at' => now(),
                     'abierta_por' => $usuarioId,
                 ]);
-
-                $cuenta = $cuentaExistente->refresh();
             } else {
                 // Crea directamente en estado ABIERTA (venta directa, restaurante POS)
                 $referencia = $reserva->id ?? $estancia->id ?? now()->timestamp;
                 $numeroCuenta = sprintf('CTA-%s-%06d', now()->format('Y'), $referencia);
 
-                $cuenta = Cuenta::query()->create([
+                $cuenta = $this->cuentas->crear([
                     'numero_cuenta' => $numeroCuenta,
                     'tipo_cuenta' => $tipo,
                     'estado' => EstadoCuenta::ABIERTA,

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Interactors\Espacios;
 
+use App\BusinessLogic\Restaurante\Mesas\ValidarCapacidadMesasRestaurante;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Queries\Espacios\ConsultarCapacidadMesas;
+use DomainException;
 use InvalidArgumentException;
 use OverflowException;
 
@@ -24,6 +26,7 @@ class ValidarCapacidadMesas
 {
     public function __construct(
         private readonly ConsultarCapacidadMesas $consultarCapacidad,
+        private readonly ValidarCapacidadMesasRestaurante $validarCapacidadDomain,
     ) {}
 
     /**
@@ -41,6 +44,16 @@ class ValidarCapacidadMesas
         bool $crearSiValida = false,
         array $datosMesa = [],
     ): ?Espacio {
+        // Validar también usando la regla de negocio de dominio
+        $padre = Espacio::find($restauranteId);
+        if ($padre instanceof Espacio) {
+            $meta = is_array($padre->meta_datos) ? $padre->meta_datos : [];
+            try {
+                $this->validarCapacidadDomain->validar($restauranteId, $meta);
+            } catch (DomainException $e) {
+                throw new OverflowException($e->getMessage(), (int) $e->getCode(), $e);
+            }
+        }
 
         // 1. Obtener resumen de capacidad (lanza InvalidArgumentException si no es RESTAURANTE)
         $capacidad = $this->consultarCapacidad->execute($restauranteId);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Persistencia\Habitaciones;
 
+use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 
 interface HabitacionRepositorioInterface
@@ -14,4 +15,6 @@ interface HabitacionRepositorioInterface
     public function crear(array $datos): Habitacion;
 
     public function buscarPorId(int $id): ?Habitacion;
+
+    public function actualizarEstado(Habitacion $habitacion, EstadoEspacio $estado): void;
 }

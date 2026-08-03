@@ -22,6 +22,11 @@ class PedidoPolicy
         return $authUser->can('View:Pedido');
     }
 
+    public function viewComanda(AuthUser $authUser, Pedido $pedido): bool
+    {
+        return $authUser->can('Restaurante:ImprimirComanda');
+    }
+
     public function create(AuthUser $authUser): bool
     {
         return $authUser->can('Create:Pedido');

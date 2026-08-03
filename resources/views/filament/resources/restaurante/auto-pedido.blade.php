@@ -4,8 +4,8 @@
         {{-- Encabezado Limpio Kiosko --}}
         <x-restaurante.page-header
             icon="heroicon-o-shopping-bag"
-            title="Menú de Auto-Pedido Kiosko"
-            subtitle="Seleccione sus platillos preferidos y envíe la orden directo a cocina"
+            titulo="Kiosko"
+            subtitulo="Seleccione sus platillos preferidos y envíe la orden directo a cocina"
         >
             <x-slot name="actions">
                 <x-restaurante.estado-badge estado="disponible" />
@@ -22,6 +22,7 @@
                 <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                     <x-filament::button
                         wire:click="$set('categoriaSeleccionadaId', null)"
+
                         color="{{ $categoriaSeleccionadaId === null ? 'primary' : 'gray' }}"
                         size="sm"
                     >

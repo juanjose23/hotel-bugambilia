@@ -7,14 +7,14 @@ namespace App\Interactors\Restaurante\Cocina;
 use App\Actions\Restaurante\Cocina\ReimprimirComandaAction;
 use App\Repository\Models\Restaurante\Pedido;
 
-final class ReimprimirComanda
+final readonly class ReimprimirComanda
 {
     public function __construct(
-        private readonly ReimprimirComandaAction $action,
+        private ReimprimirComandaAction $action,
     ) {}
 
-    public function ejecutar(int $pedidoId, ?string $area = null, ?int $userId = null, ?string $ipAddress = null): Pedido
+    public function ejecutar(int $pedidoId): Pedido
     {
-        return $this->action->ejecutar($pedidoId, $area, $userId, $ipAddress);
+        return $this->action->ejecutar($pedidoId);
     }
 }

@@ -1,15 +1,17 @@
 <?php
 
-use App\Models\Monedas\Moneda;
-use App\Models\Shared\Precio;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Shared\Precio;
 use App\Repository\Queries\Shared\VerificarPrecioDuplicado;
 
 beforeEach(function () {
-    $this->moneda = Moneda::create([
-        'codigo' => 'NIO',
-        'nombre' => 'Cordoba',
-        'simbolo' => 'C$',
-    ]);
+    $this->moneda = Moneda::firstOrCreate(
+        ['codigo' => 'NIO'],
+        [
+            'nombre' => 'Cordoba',
+            'simbolo' => 'C$',
+        ]
+    );
 });
 
 describe('VerificarPrecioDuplicado', function () {

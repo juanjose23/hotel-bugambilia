@@ -9,17 +9,17 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
-enum EstadoPedido: string implements HasColor, HasIcon, HasLabel
+enum EstadoPedido: int implements HasColor, HasIcon, HasLabel
 {
     use TieneAyudantesEnum;
 
-    case ABIERTO = 'abierto';
-    case EN_PREPARACION = 'en_preparacion';
-    case LISTO = 'listo';
-    case SERVIDO = 'servido';
-    case PAGADO = 'pagado';
-    case CARGADO_A_HABITACION = 'cargado_a_habitacion';
-    case CANCELADO = 'cancelado';
+    case ABIERTO = 1;
+    case EN_PREPARACION = 2;
+    case LISTO = 3;
+    case SERVIDO = 4;
+    case PAGADO = 5;
+    case CARGADO_A_HABITACION = 6;
+    case CANCELADO = 7;
 
     public function getLabel(): string
     {
@@ -39,9 +39,8 @@ enum EstadoPedido: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::ABIERTO => 'warning',
             self::EN_PREPARACION => 'info',
-            self::LISTO => 'success',
+            self::LISTO, self::PAGADO => 'success',
             self::SERVIDO => 'primary',
-            self::PAGADO => 'success',
             self::CARGADO_A_HABITACION => 'purple',
             self::CANCELADO => 'danger',
         };
@@ -58,5 +57,31 @@ enum EstadoPedido: string implements HasColor, HasIcon, HasLabel
             self::CARGADO_A_HABITACION => 'heroicon-o-home',
             self::CANCELADO => 'heroicon-o-x-circle',
         };
+    }
+
+    public static function resolveLabel(mixed $state): string
+    {
+        if ($state instanceof self) {
+            return $state->getLabel();
+        }
+
+        if (is_numeric($state) || is_string($state)) {
+            return self::tryFrom((int) $state)?->getLabel() ?? (string) $state;
+        }
+
+        return '';
+    }
+
+    public static function resolveColor(mixed $state): string
+    {
+        if ($state instanceof self) {
+            return $state->getColor();
+        }
+
+        if (is_numeric($state) || is_string($state)) {
+            return self::tryFrom((int) $state)?->getColor() ?? 'gray';
+        }
+
+        return 'gray';
     }
 }

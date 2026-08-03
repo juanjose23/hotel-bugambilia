@@ -25,6 +25,34 @@ class ClientesDemoSeeder extends Seeder
         $tipoCorporativo = Catalogo::where('codigo', 'CLI_CORPORATIVO')->first();
         $tipoVIP = Catalogo::where('codigo', 'CLI_VIP')->first();
 
+        // ─── 0. Cliente genérico "Público General" (mostrador) ───
+        DB::transaction(function () use ($tipoRegular): void {
+            if (Persona::where('primer_nombre', 'Público')->where('segundo_nombre', 'General')->exists()) {
+                return;
+            }
+
+            if ($tipoRegular === null) {
+                return;
+            }
+
+            $persona = Persona::create([
+                'primer_nombre' => 'Público',
+                'segundo_nombre' => 'General',
+                'tipo_persona' => 'natural',
+                'telefono' => null,
+                'direccion' => null,
+            ]);
+            PersonaNatural::create([
+                'persona_id' => $persona->id,
+                'primer_apellido' => 'General',
+                'segundo_apellido' => null,
+                'tipo_identificacion' => null,
+                'numero_identificacion' => null,
+                'sexo' => null,
+            ]);
+            Cliente::create(['persona_id' => $persona->id, 'catalogo_id' => $tipoRegular->id, 'estado' => 1]);
+        });
+
         // ─── 1. Cliente Natural con usuario ───
         DB::transaction(function () use ($tipoRegular) {
             if (User::where('email', 'ana.lopez@email.com')->exists()) {

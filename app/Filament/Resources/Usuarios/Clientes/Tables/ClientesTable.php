@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Usuarios\Clientes\Tables;
 
+use App\Repository\Models\Personas\Persona;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ClientesTable
 {
@@ -19,8 +21,8 @@ class ClientesTable
             ->columns([
                 TextColumn::make('nombre_completo')
                     ->label('Nombre')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(query: fn (Builder $query, string $search): Builder => Persona::filtrarPorNombre($query, $search))
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderBy('primer_nombre', $direction === 'desc' ? 'desc' : 'asc')),
                 TextColumn::make('personaNatural.numero_identificacion')
                     ->label('Identificación')
                     ->searchable()

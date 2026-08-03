@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Reservas;
 
-use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
 use App\Repository\Queries\Reservas\ObtenerCalendarioReservasQuery;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -91,11 +90,13 @@ final class CalendarioReservas extends Page implements HasForms
                             'md' => 4,
                         ])
                             ->schema([
-                                UbicacionLimpiableSelects::makeTipo('tipo_ubicacion', [
-                                    'habitacion' => 'Habitación',
-                                    'espacio' => 'Espacio / Área Común',
-                                    'ubicacion' => 'Ubicación Física / Bodega',
-                                ])
+                                Select::make('filtroTipo')
+                                    ->label('Tipo de reserva')
+                                    ->options([
+                                        'habitaciones' => 'Habitaciones',
+                                        'espacios' => 'Espacios / áreas comunes',
+                                        'todos' => 'Todos los recursos',
+                                    ])
                                     ->native(false)
                                     ->live()
                                     ->afterStateUpdated(fn ($state) => $this->updatedFiltroTipoState((string) $state)),
