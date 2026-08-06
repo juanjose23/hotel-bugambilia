@@ -41,10 +41,16 @@ jobs:
           extensions: mbstring, dom, fileinfo, pdo_pgsql, pgsql
           coverage: none
 
-      - name: Prepare The Environment
+      - name: Prepare Environment Files
         run: |
           cp .env.dusk .env
           cp .env.dusk .env.dusk.local
+
+      - name: Install Composer Dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Generate Application Key
+        run: |
           php artisan key:generate
           php artisan key:generate --env=dusk
 
