@@ -6,7 +6,7 @@ use App\Enums\Usuarios\EstadoConflictoIdentidad;
 use App\Events\Usuarios\ClienteRegistrado;
 use App\Events\Usuarios\PersonaConflictoIdentidad;
 use App\Exceptions\YaTieneCuentaException;
-use App\Interactors\Usuarios\RegistrarCliente;
+use App\Interactors\Usuarios\Clientes\RegistrarCliente;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Clientes\Cliente;
