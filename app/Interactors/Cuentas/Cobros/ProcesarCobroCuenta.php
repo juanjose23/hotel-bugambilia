@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Cobros;
 
 use App\BusinessLogic\Cuentas\ValidarPagoCobroCuenta;
 use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Enums\Cuentas\MetodoPago;
+use App\Interactors\Cuentas\Gestion\CerrarCuentaYGenerarVenta;
 use App\Interactors\Restaurante\Pedidos\RegistrarClienteRapido;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\Venta;
@@ -57,7 +58,7 @@ final readonly class ProcesarCobroCuenta
                 : 0.0;
             $propinaNIO = $propinaRaw > 0 ? $this->convertirMoneda->aBase($propinaRaw, $monedaId) : 0.0;
 
-            $saldo = $cuenta->saldo;
+            $saldo = (float) $cuenta->saldo;
             $cargosObligatoriosTotal = $this->cuentas->totalCargosObligatorios($cuenta);
 
             $this->validarPago->validar($montoNIO, $saldo, $cargosObligatoriosTotal);
@@ -74,7 +75,7 @@ final readonly class ProcesarCobroCuenta
             );
 
             $cuenta = $this->cuentas->refrescar($cuenta);
-            $saldoRestante = $cuenta->saldo;
+            $saldoRestante = (float) $cuenta->saldo;
 
             $venta = null;
             if ($saldoRestante <= 0) {
@@ -90,6 +91,7 @@ final readonly class ProcesarCobroCuenta
                 ];
 
                 $venta = $this->cerrarCuenta->ejecutar($cuenta, $usuarioId, $datosFiscales);
+                $cuenta = $this->cuentas->refrescar($cuenta);
             }
 
             return [
@@ -107,18 +109,23 @@ final readonly class ProcesarCobroCuenta
     private function asignarCliente(Cuenta $cuenta, array $data): Cuenta
     {
         if (! empty($data['registrar_nuevo_cliente'])) {
+            $tipoPersona = is_string($data['nuevo_cliente_tipo_persona'] ?? null) ? $data['nuevo_cliente_tipo_persona'] : 'natural';
+
             $datosCliente = [
-                'primer_nombre' => is_string($data['nuevo_cliente_nombre'] ?? null) ? $data['nuevo_cliente_nombre'] : '',
+                'tipo_persona' => $tipoPersona,
+                'telefono' => is_string($data['nuevo_cliente_telefono'] ?? null) ? $data['nuevo_cliente_telefono'] : null,
             ];
 
-            if (! empty($data['nuevo_cliente_apellido']) && is_string($data['nuevo_cliente_apellido'])) {
-                $datosCliente['primer_apellido'] = $data['nuevo_cliente_apellido'];
-            }
-            if (! empty($data['nuevo_cliente_identificacion']) && is_string($data['nuevo_cliente_identificacion'])) {
-                $datosCliente['identificacion'] = $data['nuevo_cliente_identificacion'];
-            }
-            if (! empty($data['nuevo_cliente_telefono']) && is_string($data['nuevo_cliente_telefono'])) {
-                $datosCliente['telefono'] = $data['nuevo_cliente_telefono'];
+            if ($tipoPersona === 'juridica') {
+                $razonSocial = is_string($data['nuevo_cliente_razon_social'] ?? null) ? $data['nuevo_cliente_razon_social'] : '';
+                $datosCliente['primer_nombre'] = $razonSocial;
+                $datosCliente['razon_social'] = $razonSocial;
+                $datosCliente['identificacion'] = is_string($data['nuevo_cliente_ruc'] ?? null) ? $data['nuevo_cliente_ruc'] : null;
+            } else {
+                $datosCliente['primer_nombre'] = is_string($data['nuevo_cliente_nombre'] ?? null) ? $data['nuevo_cliente_nombre'] : '';
+                $datosCliente['primer_apellido'] = is_string($data['nuevo_cliente_apellido'] ?? null) ? $data['nuevo_cliente_apellido'] : null;
+                $datosCliente['tipo_identificacion'] = is_string($data['nuevo_cliente_tipo_identificacion'] ?? null) ? $data['nuevo_cliente_tipo_identificacion'] : 'cedula';
+                $datosCliente['identificacion'] = is_string($data['nuevo_cliente_identificacion'] ?? null) ? $data['nuevo_cliente_identificacion'] : null;
             }
 
             $nuevaPersona = $this->registrarCliente->ejecutar($datosCliente);
