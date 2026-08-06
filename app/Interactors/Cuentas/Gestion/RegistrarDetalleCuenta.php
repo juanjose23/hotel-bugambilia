@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Gestion;
 
 use App\BusinessLogic\Cuentas\ValidarCuenta;
 use App\Enums\Shared\EstadoGeneral;
 use App\Events\Cuentas\DetalleCuentaRegistrado;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\CuentaDetalle;
+use App\Repository\Models\User;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +57,8 @@ final class RegistrarDetalleCuenta
             $cantidad, $subtotal, $origen, $espacioId, $creadorId,
             $descripcion, $tipoDetalle, $metadatos
         ): CuentaDetalle {
+            $creadorIdResuelto = ($creadorId !== null && User::query()->where('id', $creadorId)->exists()) ? $creadorId : null;
+
             $detalle = $this->cuentas->crearDetalle($cuenta, [
                 'moneda_id' => $cuenta->moneda_id,
                 'origen_type' => $origen?->getMorphClass(),
@@ -70,10 +73,10 @@ final class RegistrarDetalleCuenta
                 'total' => $subtotal,
                 'estado' => EstadoGeneral::Activo->value,
                 'metadatos' => $metadatos,
-                'creador_id' => $creadorId,
+                'creador_id' => $creadorIdResuelto,
             ]);
 
-            $this->recalcularCuenta->ejecutar($cuenta, $creadorId);
+            $this->recalcularCuenta->ejecutar($cuenta, $creadorIdResuelto);
 
             DetalleCuentaRegistrado::dispatch($detalle);
 

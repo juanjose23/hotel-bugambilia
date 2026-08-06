@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Cobros;
 
 use App\Enums\Cuentas\BaseCalculo;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use DomainException;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
-use App\Interactors\Cuentas\AplicarPropinaCuenta;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
+use App\Interactors\Cuentas\Cobros\AplicarPropinaCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 
 test('aplica y recalcula propina voluntaria del diez por ciento en una cuenta', function (): void {

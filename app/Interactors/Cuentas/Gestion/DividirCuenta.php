@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Gestion;
 
 use App\Enums\Shared\EstadoGeneral;
 use App\Repository\Models\Cuentas\Cuenta;

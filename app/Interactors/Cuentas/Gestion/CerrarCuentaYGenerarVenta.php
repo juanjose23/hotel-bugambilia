@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Gestion;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\EstadoVenta;
