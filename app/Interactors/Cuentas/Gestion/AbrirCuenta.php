@@ -56,7 +56,7 @@ final class AbrirCuenta
                 $referencia = $reserva->id ?? $estancia->id ?? now()->timestamp;
                 $numeroCuenta = sprintf('CTA-%s-%06d', now()->format('Y'), $referencia);
 
-                $monedaIdResuelto = $monedaId ?? Moneda::query()->where('es_principal', true)->value('id') ?? Moneda::query()->value('id');
+                $monedaIdResuelto = $monedaId ?? Moneda::query()->where('es_predeterminada', true)->value('id') ?? Moneda::query()->value('id');
                 $usuarioIdResuelto = ($usuarioId !== null && User::query()->where('id', $usuarioId)->exists()) ? $usuarioId : null;
 
                 $cuenta = $this->cuentas->crear([
