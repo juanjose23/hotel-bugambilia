@@ -9,6 +9,7 @@ use App\BusinessLogic\Restaurante\Pedidos\AsignarClienteTemporal;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
+use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
@@ -41,8 +42,12 @@ final class AbrirPedidoMesa
         array $items = [],
     ): Pedido {
         if ($mesa instanceof Espacio) {
+            if ($mesa->estado !== EstadoEspacio::Disponible) {
+                throw new DomainException('La mesa no está disponible.');
+            }
+
             try {
-                $this->validarTransicion->validar($mesa->estado, EstadoEspacio::Ocupado);
+                $this->validarTransicion->validar($mesa->estado, EstadoEspacio::Ocupado, MotivoTransicionMesa::AperturaPedido);
             } catch (DomainException) {
                 throw new DomainException('La mesa no está disponible.');
             }

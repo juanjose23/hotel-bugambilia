@@ -39,7 +39,6 @@ class EsquemaReservaHabitacion
                         ->minDate(now('America/Managua')->startOfDay())
                         ->required()
                         ->default(fn () => now('America/Managua'))
-                        ->disabledOn('edit')
                         ->live()
                         ->columnSpan(1),
 
@@ -53,7 +52,6 @@ class EsquemaReservaHabitacion
                         ->displayFormat('d/m/Y')
                         ->minDate(now()->startOfDay())
                         ->required()
-                        ->disabledOn('edit')
                         ->live()
                         ->columnSpan(1),
 
@@ -63,7 +61,6 @@ class EsquemaReservaHabitacion
                         ->default(1)
                         ->minValue(1)
                         ->required()
-                        ->disabledOn('edit')
                         ->columnSpan(1),
 
                     TextInput::make('ninos')
@@ -71,7 +68,6 @@ class EsquemaReservaHabitacion
                         ->numeric()
                         ->default(0)
                         ->minValue(0)
-                        ->disabledOn('edit')
                         ->columnSpan(1),
 
                     Toggle::make('solicita_cuenta')
@@ -108,7 +104,6 @@ class EsquemaReservaHabitacion
                         ->searchable()
                         ->preload()
                         ->required(fn ($get): bool => $get('tipo_reserva') === TipoReserva::HABITACION->value)
-                        ->disabledOn('edit')
                         ->native(false)
                         ->live()
                         ->columnSpan(1),
@@ -122,7 +117,6 @@ class EsquemaReservaHabitacion
                 ->schema([
                     Repeater::make('acompanantes')
                         ->hiddenLabel()
-                        ->disabledOn('edit')
                         ->columns(3)
                         ->itemLabel(fn (array $state): string => (string) ($state['nombre'] ?? 'Acompañante'))
                         ->schema([

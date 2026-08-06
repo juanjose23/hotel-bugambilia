@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Inventario\Lote\Tables;
 
 use App\Enums\Inventario\EstadoLote;
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
-use App\Interactors\Inventario\Lotes\RegistrarMerma\RegistrarMerma;
+use App\Interactors\Inventario\Lotes\RegistrarMerma;
 use App\Repository\Models\Inventario\Lote;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;

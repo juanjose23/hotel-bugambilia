@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\TipoReserva;
-use App\Interactors\Reservas\CrearReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Espacios\Espacio;
 
 test('valida y bloquea reservaciones con conflicto de fecha y hora en la misma mesa', function (): void {
@@ -37,7 +37,7 @@ test('valida y bloquea reservaciones con conflicto de fecha y hora en la misma m
         'fecha_check_in' => $fechaFutura,
         'hora_reserva' => '13:00',
         'adultos' => 4,
-    ]))->toThrow(InvalidArgumentException::class, 'no se encuentra disponible');
+    ]))->toThrow(DomainException::class, 'ya cuenta con una reservación activa');
 });
 
 test('permite reservaciones en la misma mesa si es en diferente hora o fecha', function (): void {

@@ -7,6 +7,8 @@ namespace App\Interactors\Restaurante\Pedidos;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
+use App\Enums\Restaurante\MotivoTransicionMesa;
+use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
@@ -19,6 +21,7 @@ final class CancelarPedido
         private readonly RestauranteRepositorioInterface $repositorio,
         private readonly NotificadorRestaurante $notificador,
         private readonly RecalcularTotalesPedido $recalcular,
+        private readonly CambiarEstadoMesa $cambiarEstadoMesa,
     ) {}
 
     public function ejecutar(Pedido $pedido): Pedido
@@ -45,9 +48,7 @@ final class CancelarPedido
 
             $mesa = $pedido->mesa;
             if ($mesa) {
-                $this->repositorio->actualizarEspacio($mesa, [
-                    'estado' => EstadoEspacio::Sucio,
-                ]);
+                $this->cambiarEstadoMesa->ejecutar($mesa->id, EstadoEspacio::Sucio, MotivoTransicionMesa::CierrePedido);
             }
 
             $this->recalcular->ejecutar($pedido);

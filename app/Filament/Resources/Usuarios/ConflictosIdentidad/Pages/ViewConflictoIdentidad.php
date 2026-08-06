@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Usuarios\ConflictosIdentidad\Pages;
 
 use App\Enums\Usuarios\EstadoConflictoIdentidad;
 use App\Filament\Resources\Usuarios\ConflictosIdentidad\ConflictoIdentidadResource;
-use App\Interactors\Usuarios\ResolverConflictoIdentidad;
+use App\Interactors\Usuarios\Identidad\ResolverConflictoIdentidad;
 use App\Repository\Models\Usuarios\ConflictoIdentidad;
 use App\Support\CachedOptions;
 use Filament\Actions\Action;

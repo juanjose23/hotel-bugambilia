@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Compras\Recepciones\Pages;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Filament\Resources\Compras\Recepciones\Actions\RecepcionEstadoActions;
 use App\Filament\Resources\Compras\Recepciones\RecepcionResource;
-use App\Interactors\Inventario\Recepciones\ConvertirItemAUbicaciones\ConvertirItemAUbicaciones;
+use App\Interactors\Inventario\Recepciones\ConvertirItemAUbicaciones;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Compras\RecepcionCompra;
 use App\Repository\Models\Compras\RecepcionItem;

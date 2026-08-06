@@ -6,6 +6,7 @@ namespace App\Repository\Models\Restaurante;
 
 use App\Enums\Restaurante\AreaCocina;
 use App\Enums\Restaurante\EstadoItemPedido;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property float $precio_unitario
  * @property float $subtotal
  * @property EstadoItemPedido $estado
+ * @property array<int, array<string, mixed>>|null $bloqueo_stock_detalle
+ * @property CarbonInterface|null $bloqueado_stock_en
  * @property string|null $notas
  * @property string|null $observaciones
  * @property Plato|null $plato
@@ -37,6 +40,8 @@ final class PedidoItem extends Model
             'cantidad' => 'decimal:2',
             'precio_unitario' => 'decimal:2',
             'subtotal' => 'decimal:2',
+            'bloqueo_stock_detalle' => 'array',
+            'bloqueado_stock_en' => 'datetime',
         ];
     }
 

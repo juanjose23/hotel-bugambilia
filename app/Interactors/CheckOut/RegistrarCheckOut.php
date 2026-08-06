@@ -10,7 +10,7 @@ use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Events\Reservas\CheckOutRegistrado;
-use App\Interactors\Reservas\CambiarEstadoReserva;
+use App\Interactors\Reservas\Gestion\CambiarEstadoReserva;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorio;

@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Pages;
 
 use App\BusinessLogic\Limpieza\ValidarCambioColaboradorEjecucion;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\LimpiezaEjecucionResource;
-use App\Interactors\Limpieza\Procesos\ProcesarOperacionLimpiezaOrquestador;
+use App\Interactors\Limpieza\Procesos\ProcesarOperacionLimpieza;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -14,15 +14,15 @@ use Filament\Support\Exceptions\Halt;
 
 class EditLimpiezaEjecucion extends EditRecord
 {
-    protected ProcesarOperacionLimpiezaOrquestador $orquestadorLimpieza;
+    protected ProcesarOperacionLimpieza $procesarOperacionLimpieza;
 
     protected ValidarCambioColaboradorEjecucion $validadorCambioColaborador;
 
     public function boot(
-        ProcesarOperacionLimpiezaOrquestador $orquestadorLimpieza,
+        ProcesarOperacionLimpieza $procesarOperacionLimpieza,
         ValidarCambioColaboradorEjecucion $validadorCambioColaborador,
     ): void {
-        $this->orquestadorLimpieza = $orquestadorLimpieza;
+        $this->procesarOperacionLimpieza = $procesarOperacionLimpieza;
         $this->validadorCambioColaborador = $validadorCambioColaborador;
     }
 
@@ -42,7 +42,7 @@ class EditLimpiezaEjecucion extends EditRecord
     protected function afterSave(): void
     {
         try {
-            $orquestador = $this->orquestadorLimpieza;
+            $orquestador = $this->procesarOperacionLimpieza;
             $orquestador->ejecutar(
                 ejecucionId: $this->record->id ?? 0,
                 data: $this->data ?? [],

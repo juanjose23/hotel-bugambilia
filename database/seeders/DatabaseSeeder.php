@@ -70,10 +70,10 @@ class DatabaseSeeder extends Seeder
         // Clientes
         $this->call(ClientesDemoSeeder::class);
 
-        // Permisos del módulo de restaurante (acceso directo por usuario, sin roles)
-        $this->call(PermisosRestauranteSeeder::class);
-
         // LOGICA DE RESTAURANTE UNIFICADA (Mesas, Menú, Pedidos y Reservas)
         $this->call(RestauranteSeeder::class);
+
+        // Reparación de reservas legacy/demo creadas sin detalle reservable.
+        $this->call(RepararReservasIncompletasSeeder::class);
     }
 }

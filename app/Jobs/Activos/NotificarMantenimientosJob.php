@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\Activos;
 
-use App\Interactors\Activos\NotificarMantenimientos;
+use App\Interactors\Activos\Mantenimiento\NotificarMantenimientos;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

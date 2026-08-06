@@ -6,7 +6,7 @@ namespace App\Filament\Pages\Limpieza;
 
 use App\BusinessLogic\Limpieza\Data\ReabastecerItemData;
 use App\BusinessLogic\Limpieza\Data\ReabastecerUbicacionData;
-use App\Interactors\Inventario\ConsumirStock\ConsumirStock;
+use App\Interactors\Inventario\ConsumirStock;
 use App\Interactors\Limpieza\Stock\ReabastecerUbicacion;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;

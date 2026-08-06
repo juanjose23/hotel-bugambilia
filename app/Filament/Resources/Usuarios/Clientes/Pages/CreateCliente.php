@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Usuarios\Clientes\Pages;
 
 use App\Exceptions\YaTieneCuentaException;
 use App\Filament\Resources\Usuarios\Clientes\ClienteResource;
-use App\Interactors\Usuarios\RegistrarCliente;
+use App\Interactors\Usuarios\Clientes\RegistrarCliente;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;

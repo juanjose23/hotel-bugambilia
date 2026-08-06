@@ -63,7 +63,7 @@
 
 ## 4. Submódulo / Funcionalidad: Registro de Proceso de Cocina
 
-- **Descripción de la Pantalla / Vista:** Formulario con sección "Receta del Plato" (selector de plato activo con receta, cantidad de platos, observaciones) y sección "Ingredientes" (repeater con items generados desde la receta: ingrediente, cantidad, peso, es_merma, costo asignado).
+- **Descripción de la Pantalla / Vista:** Formulario de trazabilidad de preparación. Registra plato, cantidad producida, observaciones e ingredientes/materia prima usada para costo técnico. No transforma materia prima ni debe sustituir al flujo de inventario.
 - **Disparador (Trigger):** Acceso desde `Restaurante > Procesos Cocina > Crear`.
 - **Flujo Paso a Paso:**
     1. El usuario hace clic en "Crear Proceso".
@@ -71,7 +71,7 @@
     3. El usuario ingresa la cantidad de platos a producir.
     4. El usuario escribe observaciones (opcional).
     5. El usuario hace clic en "Crear".
-    6. El sistema ejecuta `RegistrarProcesoCocina::ejecutar()`:
+    6. El sistema ejecuta `ProcesarProcesoCocina::guardar()`:
        a. Valida que el plato tenga una receta asociada.
        b. Lee los ingredientes de la receta desde `ProductoKit`.
        c. Para cada ingrediente, busca el Stock en "Cocina Restaurante":
@@ -79,10 +79,42 @@
         - Calcula: `cantidad_receta × cantidad_platos × costo_unitario`.
           d. Crea el registro `ProcesoCocina` con costo total calculado.
           e. Crea un `ProcesoItem` por ingrediente con el costo asignado.
-          f. Decrementa el Stock en "Cocina Restaurante" para cada ingrediente.
-          g. Registra un `MovimientoStock` de tipo `CONSUMO` por cada ingrediente.
-    7. El sistema redirige a la página de edición del proceso creado.
-    8. El usuario puede marcar ingredientes como "Es Merma" desde el formulario de edición.
+          f. Registra `ProcesoCocina` y `ProcesoItem` como trazabilidad de preparación.
+    7. El consumo real de inventario del pedido ocurre al enviar/preparar la comanda desde KDS mediante `ConsumirIngredientesPedido`.
+
+---
+
+## 4.1. Submódulo / Funcionalidad: Materia Prima Cocina
+
+- **Descripción de la Pantalla / Vista:** Página `Restaurante > Materia Prima Cocina`. Permite transformar material bruto en materia prima lista y registrar merma final.
+- **Disparador (Trigger):** Acceso directo desde navegación Restaurante o desde el modal de faltantes del KDS.
+- **Flujo Paso a Paso:**
+    1. El usuario selecciona producto, variante y ubicación origen del material bruto.
+    2. Ingresa la cantidad bruta a transformar.
+    3. Registra uno o más resultados:
+        - materia prima obtenida, con variante y ubicación destino;
+        - merma final, marcada como `es_merma`.
+    4. El sistema ejecuta `TransformarMateriaPrimaCocina::ejecutar()`.
+    5. El sistema descuenta stock del bruto.
+    6. El sistema crea o actualiza stock de la materia prima destino.
+    7. El sistema registra movimientos:
+        - `TRANSFORMACION_SALIDA`
+        - `TRANSFORMACION_ENTRADA`
+        - `MERMA_COCINA`
+
+---
+
+## 4.2. Submódulo / Funcionalidad: Conciliación de Recetas
+
+- **Descripción de la Pantalla / Vista:** Página `Restaurante > Conciliación Recetas`. Muestra diagnóstico de platos activos, receta, stock de materia prima y reglas de transformación.
+- **Disparador (Trigger):** Revisión operativa antes de servicio o cuando cocina reporta faltantes.
+- **Flujo Paso a Paso:**
+    1. El sistema lee platos activos y sus ingredientes desde `producto_kit`.
+    2. Busca stock de cada materia prima en Cocina.
+    3. Si falta materia prima, busca una regla en `restaurante_recetas_transformacion_materia_prima`.
+    4. Si hay regla, calcula cuánto material bruto se necesita.
+    5. Clasifica cada ingrediente como `ok`, `puede_transformarse`, `falta_bruto`, `sin_regla_transformacion`, `receta_incompleta` o `variante_invalida`.
+    6. El usuario puede crear nuevas reglas de transformación desde la acción `Nueva regla`.
 
 ---
 
@@ -132,11 +164,14 @@
     3. El sistema ejecuta `ConsumirIngredientesPedido::ejecutar($pedidoItem)`:
        a. Obtiene el Plato del item y su receta (`producto_receta_id`).
        b. Lee los ingredientes desde `ProductoKit`.
-       c. Para cada ingrediente, calcula la cantidad a consumir: `cantidad_ingrediente × cantidad_pedido`.
+       c. Para cada ingrediente, calcula la cantidad a consumir: `(cantidad_ingrediente / rendimiento_porciones_receta) × cantidad_pedido`.
        d. Decrementa el Stock en "Cocina Restaurante" para cada ingrediente.
        e. Registra un `MovimientoStock` de tipo `CONSUMO`.
     4. El sistema actualiza el estado del item a "Listo".
     5. Cuando todos los items del pedido están listos, el pedido pasa a estado "Listo".
+    6. Si falta materia prima al enviar o reenviar la comanda, `BloquearItemsPorFaltaStock` deja los items afectados en estado `Bloqueado por Stock` y registra `bloqueo_stock_detalle`.
+    7. El mesero confirma con el cliente y usa la acción `Resolver Faltantes` en editar pedido para sustituir ingrediente, cambiar platillo, quitar item o cancelar el pedido.
+    8. Si la falta debe resolverse con material bruto, se usa `Conciliación Recetas` y luego `Materia Prima Cocina` para transformar bruto a materia prima antes de reenviar el item.
 
 ---
 
@@ -253,6 +288,8 @@
 | `precio_unitario` | decimal(10,2) | NOT NULL                        | Precio unitario al momento del pedido                           |
 | `subtotal`        | decimal(10,2) | NOT NULL                        | Subtotal (cantidad × precio_unitario)                           |
 | `estado`          | varchar(20)   | DEFAULT 'pendiente'             | Estado del item (pendiente/preparacion/listo/servido/cancelado) |
+| `bloqueo_stock_detalle` | json     | NULLABLE                        | Ingredientes faltantes que bloquean el item                     |
+| `bloqueado_stock_en` | timestamp   | NULLABLE                        | Fecha/hora del bloqueo por stock                                |
 | `notas`           | text          | NULLABLE                        | Notas especiales (ej: "Sin cebolla")                            |
 | `created_at`      | timestamp     |                                 | Fecha de creación                                               |
 | `updated_at`      | timestamp     |                                 | Fecha de actualización                                          |

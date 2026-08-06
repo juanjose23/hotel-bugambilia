@@ -9,8 +9,8 @@ use App\Filament\Resources\Catalogos\Productos\Pages\ViewProducto;
 use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoForm;
 use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoInfolist;
 use App\Filament\Resources\Catalogos\Productos\Tables\ProductosTable;
-use App\Interactors\Catalogos\ExportarProductosInteractor;
-use App\Interactors\Catalogos\Reportes\Productos\GenerarReporteProductosInteractor;
+use App\Interactors\Catalogos\Productos\ExportarProductos;
+use App\Interactors\Catalogos\Productos\GenerarReporteProductos;
 use App\Repository\Models\Catalogos\Producto;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -65,7 +65,7 @@ class ProductoResource extends Resource
                 ->icon(Heroicon::TableCells)
                 ->color('success')
                 ->action(function () {
-                    $path = app(ExportarProductosInteractor::class)->ejecutar();
+                    $path = app(ExportarProductos::class)->ejecutar();
 
                     return response()->download($path);
                 }),
@@ -75,7 +75,7 @@ class ProductoResource extends Resource
                 ->icon(Heroicon::Document)
                 ->color('danger')
                 ->action(function (array $data) {
-                    $pdf = app(GenerarReporteProductosInteractor::class)->detallado($data);
+                    $pdf = app(GenerarReporteProductos::class)->detallado($data);
 
                     return response()->streamDownload(fn () => print ($pdf->output()), 'HTB-CP-Reporte-'.now()->format('Ymd_His').'.pdf');
                 }),

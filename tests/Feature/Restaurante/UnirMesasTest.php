@@ -60,7 +60,7 @@ test('permite unir mesas secundarias a una mesa principal para uso inmediato en 
         ->and($metaPri['mesas_unidas'] ?? [])->toContain($mesaSecundaria->id);
 });
 
-test('permite unir mesas asociadas a una reservacion previa de grupo', function (): void {
+test('no bloquea mesas asociadas a una reservacion futura de grupo', function (): void {
     $reserva = Reserva::query()->create([
         'codigo_reserva' => 'RES-GRUPO-01',
         'nombre_cliente' => 'Grupo Corporativo VIP',
@@ -92,10 +92,10 @@ test('permite unir mesas asociadas a una reservacion previa de grupo', function 
     $metaSecRes = is_array($mesaSecundaria->meta_datos) ? $mesaSecundaria->meta_datos : [];
     $metaPriRes = is_array($mesaPrincipal->meta_datos) ? $mesaPrincipal->meta_datos : [];
 
-    expect($mesaSecundaria->estado)->toBe(EstadoEspacio::Reservado)
-        ->and($metaSecRes['reserva_id'] ?? null)->toBe($reserva->id)
-        ->and($mesaPrincipal->estado)->toBe(EstadoEspacio::Reservado)
-        ->and($metaPriRes['codigo_reserva'] ?? null)->toBe('RES-GRUPO-01');
+    expect($mesaSecundaria->estado)->toBe(EstadoEspacio::Disponible)
+        ->and($metaSecRes['reserva_id'] ?? null)->toBeNull()
+        ->and($mesaPrincipal->estado)->toBe(EstadoEspacio::Disponible)
+        ->and($metaPriRes['codigo_reserva'] ?? null)->toBeNull();
 });
 
 test('permite separar mesas previamente unidas y las vuelve disponibles', function (): void {

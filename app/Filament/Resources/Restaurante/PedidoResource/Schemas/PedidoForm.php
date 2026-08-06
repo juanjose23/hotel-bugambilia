@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\PedidoResource\Schemas;
 
-use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Filament\Shared\Forms\SelectorCuenta;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Restaurante\Pedidos\BuscarClientesRapidoQuery;
@@ -49,6 +49,7 @@ final class PedidoForm
                                 ->options(fn () => $pedidoQuery->mesasDisponibles())
                                 ->searchable()
                                 ->required()
+                                ->extraAttributes(['dusk' => 'pedido-mesa'])
                                 ->prefixIcon('hugeicons-restaurant-table'),
 
                             Select::make('estado')
@@ -61,13 +62,29 @@ final class PedidoForm
                         ]),
 
                         Grid::make(2)->schema([
-                            SelectorCuenta::make(columnSpan: 1),
+                            SelectorCuenta::make(columnSpan: 1)
+                                ->live()
+                                ->afterStateUpdated(function (mixed $state, Set $set): void {
+                                    if (! is_numeric($state)) {
+                                        return;
+                                    }
+
+                                    $clienteId = Cuenta::query()
+                                        ->whereKey((int) $state)
+                                        ->value('cliente_id');
+
+                                    if (is_numeric($clienteId)) {
+                                        $set('cliente_id', (int) $clienteId);
+                                    }
+                                }),
 
                             TextInput::make('subtotal')
                                 ->label('Subtotal Acumulado')
-                                ->numeric()
                                 ->prefix($simboloMoneda)
-                                ->formatStateUsing(fn ($record, $state) => number_format((float) ($record?->items?->where('estado', '!=', EstadoItemPedido::ANULADO->value)->sum('subtotal') ?? $state ?? 0.00), 2))
+                                ->formatStateUsing(fn ($record, $state): string => number_format(
+                                    (float) ($record?->calcularSubtotal() ?? $state ?? 0.00),
+                                    2
+                                ))
                                 ->disabled()
                                 ->dehydrated(false),
                         ]),
@@ -93,6 +110,7 @@ final class PedidoForm
                             })
                             ->nullable()
                             ->native(false)
+                            ->extraAttributes(['dusk' => 'pedido-cliente'])
                             ->prefixIcon(Heroicon::User)
                             ->columnSpan(1),
 
@@ -117,6 +135,7 @@ final class PedidoForm
                                     ->searchable()
                                     ->required()
                                     ->live()
+                                    ->extraAttributes(['dusk' => 'pedido-plato'])
                                     ->afterStateUpdated(function (mixed $state, Set $set) use ($pedidoQuery): void {
                                         if (is_numeric($state)) {
                                             $precio = $pedidoQuery->precioActualDePlato((int) $state);
@@ -134,6 +153,7 @@ final class PedidoForm
                                     ->default(1)
                                     ->minValue(1)
                                     ->required()
+                                    ->extraInputAttributes(['dusk' => 'pedido-cantidad'])
                                     ->columnSpan(2),
 
                                 TextInput::make('precio_unitario')

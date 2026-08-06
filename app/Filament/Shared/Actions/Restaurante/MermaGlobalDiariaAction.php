@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Actions\Restaurante;
 
 use App\Enums\Restaurante\UbicacionCocina;
-use App\Interactors\Inventario\Lotes\RegistrarMerma\RegistrarMermaGlobalDiaria;
+use App\Interactors\Inventario\Lotes\RegistrarMermaGlobalDiaria;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\Ubicacion;
 use Filament\Actions\Action;

@@ -25,6 +25,7 @@
 
                     <input
                         type="text"
+                        dusk="buscar-mesa"
                         wire:model.live.debounce.300ms="filtroMesa"
                         placeholder="Buscar por nombre o ID…"
                         class="w-full rounded-xl border border-gray-300
@@ -53,6 +54,7 @@
                     />
 
                     <select
+                        dusk="filtro-estado"
                         wire:model.live="filtroEstado"
                         class="rounded-xl border border-gray-300
                                bg-white px-3 py-2
@@ -91,6 +93,7 @@
                 />
 
                 <select
+                    dusk="ordenar-por"
                     wire:model.live="ordenarPor"
                     class="rounded-xl border border-gray-300
                            bg-white px-3 py-2
@@ -129,6 +132,7 @@
         {{-- ═══════════════════════════════════════════ --}}
         <div class="flex flex-wrap items-center gap-2">
             <x-filament::button
+                dusk="unir-mesas"
                 wire:click="$dispatch('open-modal', { id: 'modal-unir-mesas' })"
                 icon="heroicon-o-link"
                 color="primary"
@@ -138,6 +142,7 @@
             </x-filament::button>
 
             <x-filament::button
+                dusk="mover-cuenta"
                 wire:click="$dispatch('open-modal', { id: 'modal-mover-cuenta' })"
                 icon="heroicon-o-arrows-right-left"
                 color="warning"
@@ -147,6 +152,7 @@
             </x-filament::button>
 
             <x-filament::button
+                dusk="aplicar-descuento"
                 wire:click="$dispatch('open-modal', { id: 'modal-descuento' })"
                 icon="heroicon-o-currency-dollar"
                 color="danger"
@@ -171,6 +177,7 @@
 
                 <x-restaurante.mesa-card
                     wire:key="mesa-card-{{ $mesa->id }}"
+                    dusk="mesa-{{ $mesa->id }}"
                     :mesa="$mesa"
                     :estilo="$estilo"
                     :estado-val="$estadoVal"
@@ -518,6 +525,7 @@
         <x-slot name="footer">
             <div class="flex items-center justify-end gap-2">
                 <x-filament::button
+                    dusk="detalle-pedido-cerrar"
                     wire:click="cerrarDetallePedido"
                     color="gray"
                     size="sm"
@@ -533,8 +541,10 @@
                         \App\Enums\Restaurante\EstadoPedido::CARGADO_A_HABITACION,
                         \App\Enums\Restaurante\EstadoPedido::CANCELADO,
                     ], true)
+                    && ($pedidoDetalle->cuenta === null || $pedidoDetalle->cuenta->estaAbierta() || $pedidoDetalle->items()->where('estado', \App\Enums\Restaurante\EstadoItemPedido::PENDIENTE)->exists())
                 )
                     <x-filament::button
+                        dusk="detalle-pedido-cobrar"
                         wire:click="irACobrarDesdeDetalle"
                         icon="heroicon-o-banknotes"
                         color="success"
@@ -572,6 +582,7 @@
                     Mesa Principal
                 </label>
                 <select
+                    dusk="unir-mesa-principal"
                     wire:model.live="mesaSeleccionadaId"
                     class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 shadow-sm focus:border-[#6b003e]/50 focus:outline-none focus:ring-2 focus:ring-[#6b003e]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 >
@@ -672,6 +683,7 @@
                 </x-filament::button>
 
                 <x-filament::button
+                    dusk="confirmar-union"
                     wire:click="unirMesas"
                     wire:loading.attr="disabled"
                     color="primary"
@@ -710,6 +722,7 @@
                     Mesa Origen
                 </label>
                 <select
+                    dusk="mover-cuenta-origen"
                     wire:model.live="mesaSeleccionadaId"
                     class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 shadow-sm focus:border-[#6b003e]/50 focus:outline-none focus:ring-2 focus:ring-[#6b003e]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 >
@@ -730,6 +743,7 @@
                     Mesa Destino
                 </label>
                 <select
+                    dusk="mover-cuenta-destino"
                     wire:model.live="mesaDestinoId"
                     class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 shadow-sm focus:border-[#6b003e]/50 focus:outline-none focus:ring-2 focus:ring-[#6b003e]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 >
@@ -754,6 +768,7 @@
                 </x-filament::button>
 
                 <x-filament::button
+                    dusk="confirmar-mover-cuenta"
                     wire:click="moverCuentaMesa"
                     wire:loading.attr="disabled"
                     color="warning"
@@ -792,6 +807,7 @@
                     Pedido / Comanda
                 </label>
                 <select
+                    dusk="descuento-pedido"
                     wire:model.live="pedidoDescuentoId"
                     class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 shadow-sm focus:border-[#6b003e]/50 focus:outline-none focus:ring-2 focus:ring-[#6b003e]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 >
@@ -823,6 +839,7 @@
                         Descuento (%)
                     </label>
                     <input
+                        dusk="descuento-porcentaje"
                         type="number"
                         wire:model.live="descuentoPorcentaje"
                         min="0"
@@ -838,6 +855,7 @@
                         Descuento (Monto {{ $simboloMoneda }})
                     </label>
                     <input
+                        dusk="descuento-monto"
                         type="number"
                         wire:model.live="descuentoMonto"
                         min="0"
@@ -853,6 +871,7 @@
                     Motivo del Descuento
                 </label>
                 <input
+                    dusk="descuento-motivo"
                     type="text"
                     wire:model="motivoDescuento"
                     placeholder="Ej. Promoción / Cortesía / Queja del cliente..."
@@ -872,6 +891,7 @@
                 </x-filament::button>
 
                 <x-filament::button
+                    dusk="aplicar-descuento-confirmar"
                     wire:click="aplicarDescuento"
                     wire:loading.attr="disabled"
                     color="danger"

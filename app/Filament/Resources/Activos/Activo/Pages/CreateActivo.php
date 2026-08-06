@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Pages;
 
 use App\Filament\Resources\Activos\Activo\ActivoResource;
-use App\Interactors\Activos\RegistrarActivoFijo;
+use App\Interactors\Activos\Gestion\RegistrarActivoFijo;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 

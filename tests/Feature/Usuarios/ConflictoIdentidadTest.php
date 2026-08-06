@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\Usuarios\EstadoConflictoIdentidad;
 use App\Enums\Usuarios\TipoConflictoIdentidad;
 use App\Events\Usuarios\ClienteRegistrado;
-use App\Interactors\Usuarios\ResolverConflictoIdentidad;
+use App\Interactors\Usuarios\Identidad\ResolverConflictoIdentidad;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Clientes\Cliente;

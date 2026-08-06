@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Repository\Observers\Inventario;
 
 use App\Enums\Compras\EstadoRecepcion;
-use App\Interactors\Inventario\RegistrarEntradaRecepcion;
+use App\Interactors\Inventario\Recepciones\RegistrarEntradaRecepcion;
 use App\Repository\Models\Compras\RecepcionCompra;
 use Psr\Log\LoggerInterface;
 

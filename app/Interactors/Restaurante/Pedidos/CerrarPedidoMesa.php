@@ -13,10 +13,11 @@ use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Cuentas\AbrirCuenta;
-use App\Interactors\Cuentas\CerrarCuenta;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
-use App\Interactors\Cuentas\RegistrarPagoCuenta;
+use App\Enums\Restaurante\MotivoTransicionMesa;
+use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
+use App\Interactors\Cuentas\Gestion\AbrirCuenta;
+use App\Interactors\Cuentas\Gestion\CerrarCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
 use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -209,8 +210,8 @@ final class CerrarPedidoMesa
 
         $pedidosActivos = $this->repositorio->existeOtroPedidoActivoEnMesa($mesa->id, $pedido->id);
 
-        if (! $pedidosActivos) {
-            $this->cambiarEstadoMesa->ejecutar($mesa->id, EstadoEspacio::Sucio);
+        if (! $pedidosActivos && $mesa->estado === EstadoEspacio::Ocupado) {
+            $this->cambiarEstadoMesa->ejecutar($mesa->id, EstadoEspacio::Sucio, MotivoTransicionMesa::CierrePedido);
 
             $this->registrarLimpieza->execute(
                 limpiable: $mesa,

@@ -128,7 +128,7 @@ class SeccionFormularioCheckIn
                                 return false;
                             }
 
-                            return (bool) $reserva->solicita_cuenta;
+                            return (bool) ($reserva->solicita_cuenta || $reserva->cuentas()->exists());
                         })
                         ->live(),
 

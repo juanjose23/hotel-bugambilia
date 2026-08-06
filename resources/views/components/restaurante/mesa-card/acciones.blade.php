@@ -24,6 +24,7 @@
             <x-filament::dropdown placement="bottom-end" width="xs">
                 <x-slot name="trigger">
                     <x-filament::icon-button
+                        dusk="mesa-{{ $mesa->id }}-mas-opciones"
                         icon="heroicon-m-ellipsis-horizontal"
                         color="gray"
                         size="sm"
@@ -71,6 +72,7 @@
         <x-filament::dropdown placement="bottom-start" width="sm">
             <x-slot name="trigger">
                 <x-filament::button
+                    dusk="mesa-{{ $mesa->id }}-cambiar-estado"
                     id="mesa-state-{{ $mesa->id }}"
                     color="gray"
                     size="sm"
@@ -108,19 +110,32 @@
     {{-- Acciones contextuales según estado usando Filament UI Buttons --}}
     @if ($estadoActual === 6 || $estadoActual === 3)
         {{-- En Limpieza / Pendiente Limpieza --}}
-        <x-filament::button
-            type="button"
-            wire:click="marcarMesaLimpia({{ $mesa->id }})"
-            color="warning"
-            icon="heroicon-o-sparkles"
-            class="w-full"
-        >
-            Marcar Mesa Limpia
-        </x-filament::button>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <x-filament::button
+                tag="a"
+                href="{{ url('/admin/tablero-limpieza') }}"
+                color="warning"
+                icon="heroicon-o-queue-list"
+                size="sm"
+            >
+                Tablero Limpieza
+            </x-filament::button>
+
+            <x-filament::button
+                type="button"
+                wire:click="marcarMesaLimpia({{ $mesa->id }})"
+                color="gray"
+                icon="heroicon-o-sparkles"
+                size="sm"
+            >
+                Finalizar
+            </x-filament::button>
+        </div>
     @elseif ($estadoActual === 4)
         {{-- Reservado --}}
         <div class="grid grid-cols-2 gap-2">
             <x-filament::button
+                dusk="mesa-{{ $mesa->id }}-llegada"
                 type="button"
                 wire:click="confirmarLlegadaReserva({{ $mesa->id }})"
                 color="primary"
@@ -131,6 +146,7 @@
             </x-filament::button>
 
             <x-filament::button
+                dusk="mesa-{{ $mesa->id }}-cancelar-reserva"
                 type="button"
                 wire:click="cancelarReservaMesa({{ $mesa->id }})"
                 wire:confirm="¿Está seguro de cancelar esta reservación y liberar la mesa?"
@@ -145,6 +161,7 @@
         {{-- Disponible --}}
         <div class="grid grid-cols-2 gap-2">
             <x-filament::button
+                dusk="mesa-{{ $mesa->id }}-comanda"
                 tag="a"
                 href="{{ url('/admin/restaurante/pedidos/create?mesa_id=' . $mesa->id) }}"
                 color="primary"
@@ -155,6 +172,7 @@
             </x-filament::button>
 
             <x-filament::button
+                dusk="mesa-{{ $mesa->id }}-reservar"
                 tag="a"
                 href="{{ \App\Filament\Resources\Reservas\ReservaResource::getUrl('create', ['tipo_reserva' => 'restaurante', 'espacio_id' => $mesa->id]) }}"
                 color="gray"
@@ -168,6 +186,7 @@
         {{-- Ocupado con pedidos --}}
         <div class="grid grid-cols-2 gap-2">
             <x-filament::button
+                dusk="mesa-{{ $mesa->id }}-cobrar"
                 type="button"
                 wire:click="iniciarCobroMesa({{ $mesa->id }})"
                 wire:loading.attr="disabled"
@@ -180,6 +199,7 @@
             </x-filament::button>
 
             <x-filament::button
+                dusk="mesa-{{ $mesa->id }}-agregar"
                 tag="a"
                 href="{{ url('/admin/restaurante/pedidos/create?mesa_id=' . $mesa->id) }}"
                 color="gray"
@@ -192,6 +212,7 @@
     @else
         {{-- Otro Estado u Ocupado sin comanda --}}
         <x-filament::button
+            dusk="mesa-{{ $mesa->id }}-nueva-comanda"
             tag="a"
             href="{{ url('/admin/restaurante/pedidos/create?mesa_id=' . $mesa->id) }}"
             color="primary"

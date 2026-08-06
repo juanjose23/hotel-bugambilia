@@ -20,6 +20,7 @@ use App\Repository\Models\Reservas\ReservaDetalle;
 use App\Repository\Models\Reservas\ReservaEstadoHistorial;
 use App\Repository\Models\Reservas\ReservaHuesped;
 use App\Repository\Models\Servicios\Servicio;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -128,6 +129,60 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         }
     }
 
+    /**
+     * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
+     * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
+     */
+    public function reemplazarAdicionales(
+        Reserva $reserva,
+        ReservaDetalle $principal,
+        array $servicios,
+        array $espacios,
+    ): void {
+        $reserva->detalles()
+            ->whereNotNull('parent_id')
+            ->delete();
+
+        $inicio = $principal->fecha_inicio;
+        $fin = $principal->fecha_fin ?? $inicio;
+
+        foreach ($servicios as $servicio) {
+            $recurso = $this->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
+
+            $this->crearDetalle($reserva, $recurso, [
+                'parent_id' => $principal->id,
+                'estado' => EstadoReservaDetalle::PENDIENTE,
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
+                'cantidad' => $servicio['cantidad'],
+                'precio_unitario' => $servicio['precio'],
+                'subtotal' => round($servicio['precio'] * $servicio['cantidad'], 2),
+            ]);
+        }
+
+        foreach ($espacios as $espacio) {
+            $recurso = $this->resolverRecurso(TipoReserva::RESTAURANTE, $espacio['espacio_id']);
+
+            $this->crearDetalle($reserva, $recurso, [
+                'parent_id' => $principal->id,
+                'estado' => EstadoReservaDetalle::CONFIRMADO,
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
+                'cantidad' => $espacio['cantidad'],
+                'precio_unitario' => $espacio['precio'],
+                'subtotal' => round($espacio['precio'] * $espacio['cantidad'], 2),
+            ]);
+        }
+    }
+
+    /** @param array<string, mixed> $datos */
+    public function actualizarDetalle(ReservaDetalle $detalle, array $datos): ReservaDetalle
+    {
+        $detalle->update($datos);
+
+        return $detalle->refresh();
+    }
+
     public function detallePrincipalDe(Reserva $reserva): ReservaDetalle
     {
         /** @var ReservaDetalle|null $detalle */
@@ -137,19 +192,27 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
             return $detalle;
         }
 
-        $recurso = $reserva->habitacion->reservable
-            ?? $reserva->espacio?->reservable;
-        $reservableId = $recurso instanceof RecursoReservable
-            ? $recurso->id
-            : 0;
+        $recurso = $this->resolverRecursoPrincipalDeReserva($reserva);
+        [$inicio, $fin] = $this->periodoPrincipalDeReserva($reserva, $recurso);
 
         /** @var ReservaDetalle $nuevo */
         $nuevo = $reserva->detalles()->create([
-            'reservable_id' => $reservableId,
-            'fecha_inicio' => $reserva->fecha_check_in,
-            'fecha_fin' => $reserva->fecha_check_out,
-            'precio_unitario' => 0,
-            'subtotal' => 0,
+            'reservable_id' => $recurso->id,
+            'estado' => match ($reserva->estado) {
+                EstadoReserva::PENDIENTE => EstadoReservaDetalle::PENDIENTE,
+                EstadoReserva::CONFIRMADA => EstadoReservaDetalle::CONFIRMADO,
+                EstadoReserva::CHECKED_IN => EstadoReservaDetalle::EN_USO,
+                EstadoReserva::CHECKED_OUT => EstadoReservaDetalle::COMPLETADO,
+                EstadoReserva::CANCELADA => EstadoReservaDetalle::CANCELADO,
+            },
+            'fecha_inicio' => $inicio,
+            'fecha_fin' => $fin,
+            'adultos' => (int) $reserva->adultos,
+            'ninos' => (int) $reserva->ninos,
+            'precio_unitario' => (float) ($reserva->subtotal ?? $reserva->total ?? 0),
+            'descuento' => (float) $reserva->descuento,
+            'subtotal' => (float) ($reserva->subtotal ?? $reserva->total ?? 0),
+            'notas' => $reserva->notas,
         ]);
 
         return $nuevo;
@@ -266,5 +329,52 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         $servicio = Servicio::query()->lockForUpdate()->findOrFail($id);
 
         return [$servicio, TipoRecursoReservable::SERVICIO, ControlDisponibilidad::SIN_BLOQUEO, (string) $servicio->nombre, null];
+    }
+
+    private function resolverRecursoPrincipalDeReserva(Reserva $reserva): RecursoReservable
+    {
+        return match ($reserva->tipo_reserva) {
+            TipoReserva::HABITACION => $this->resolverRecursoDesdeId($reserva, TipoReserva::HABITACION, $reserva->habitacion_id, 'habitación'),
+            TipoReserva::RESTAURANTE => $this->resolverRecursoDesdeId($reserva, TipoReserva::RESTAURANTE, $reserva->espacio_id, 'mesa/espacio'),
+            TipoReserva::SERVICIO => $this->resolverRecursoDesdeId($reserva, TipoReserva::SERVICIO, $reserva->servicio_id, 'servicio'),
+            TipoReserva::PAQUETE => throw new InvalidArgumentException('Los paquetes todavía no tienen recursos configurados.'),
+        };
+    }
+
+    private function resolverRecursoDesdeId(Reserva $reserva, TipoReserva $tipo, mixed $id, string $nombreCampo): RecursoReservable
+    {
+        if (! is_numeric($id) || (int) $id <= 0) {
+            throw new InvalidArgumentException("La reserva {$reserva->codigo_reserva} no tiene {$nombreCampo} principal asociado.");
+        }
+
+        return $this->resolverRecurso($tipo, (int) $id);
+    }
+
+    /** @return array{DateTimeImmutable, DateTimeImmutable} */
+    private function periodoPrincipalDeReserva(Reserva $reserva, RecursoReservable $recurso): array
+    {
+        $fechaInicio = $reserva->fecha_check_in?->format('Y-m-d');
+        if ($fechaInicio === null) {
+            throw new InvalidArgumentException("La reserva {$reserva->codigo_reserva} no tiene fecha de inicio.");
+        }
+
+        $hora = trim((string) ($reserva->hora_reserva ?? ''));
+        $inicio = new DateTimeImmutable($fechaInicio.' '.($hora !== '' ? $hora : '00:00'));
+
+        if ($reserva->fecha_check_out !== null) {
+            $fechaFin = $reserva->fecha_check_out->format('Y-m-d');
+            $fin = new DateTimeImmutable($fechaFin.' '.($hora !== '' ? $hora : '23:59:59'));
+        } else {
+            $duracion = $recurso->duracion_minutos !== null && $recurso->duracion_minutos > 0
+                ? $recurso->duracion_minutos
+                : 60;
+            $fin = $inicio->modify("+{$duracion} minutes");
+        }
+
+        if ($fin <= $inicio) {
+            $fin = $inicio->modify('+1 hour');
+        }
+
+        return [$inicio, $fin];
     }
 }

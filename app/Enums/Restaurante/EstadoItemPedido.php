@@ -18,6 +18,7 @@ enum EstadoItemPedido: int implements HasColor, HasIcon, HasLabel
     case LISTO = 3;
     case SERVIDO = 4;
     case ANULADO = 5;
+    case BLOQUEADO_STOCK = 6;
 
     public function getLabel(): string
     {
@@ -27,6 +28,7 @@ enum EstadoItemPedido: int implements HasColor, HasIcon, HasLabel
             self::LISTO => 'Listo para Servir',
             self::SERVIDO => 'Servido',
             self::ANULADO => 'Anulado',
+            self::BLOQUEADO_STOCK => 'Bloqueado por Stock',
         };
     }
 
@@ -38,6 +40,7 @@ enum EstadoItemPedido: int implements HasColor, HasIcon, HasLabel
             self::LISTO => 'success',
             self::SERVIDO => 'primary',
             self::ANULADO => 'danger',
+            self::BLOQUEADO_STOCK => 'danger',
         };
     }
 
@@ -49,6 +52,7 @@ enum EstadoItemPedido: int implements HasColor, HasIcon, HasLabel
             self::LISTO => 'heroicon-o-check',
             self::SERVIDO => 'heroicon-o-hand-thumb-up',
             self::ANULADO => 'heroicon-o-x-mark',
+            self::BLOQUEADO_STOCK => 'heroicon-o-exclamation-triangle',
         };
     }
 }

@@ -2,7 +2,56 @@
 
 ## Descripción General
 
-El módulo Restaurante utiliza Filament 5 para la capa administrativa. Incluye Resources para CRUD de entidades principales y Pages para funcionalidades especiales como gestión de mesas, reportes y configuración.
+El módulo Restaurante utiliza Filament 5 para la capa administrativa. La navegación se mantiene simple porque el negocio principal es hotelero: el restaurante opera como POS/KDS integrado a reservas, cuentas e inventario, no como un sistema de restaurante independiente.
+
+## Navegación Operativa
+
+Pantallas visibles en el menú Restaurante:
+
+- `Gestión de Mesas`: operación de salón, mesas, reservas del día, apertura/cierre de pedidos y cobro.
+- `Pedidos`: administración de comandas y pedidos.
+- `Toma Rápida`: captura ágil de pedidos por meseros desde menú visual.
+- `Platos`: catálogo del menú y receta asociada.
+- `Cocina`: centro operativo KDS. Desde aquí se accede a materia prima, conciliación de recetas, trazabilidad de procesos y pantalla de turnos.
+- `Reportes`: métricas y reportes.
+
+Pantallas de soporte ocultas del menú, pero disponibles por ruta y permisos:
+
+- `MateriaPrimaCocina`: transformación de material bruto a materia prima y registro de merma.
+- `ConciliacionRecetasCocina`: diagnóstico y reglas para completar recetas que requieren materia prima.
+- `ProcesoCocinaResource`: trazabilidad de preparación y consumo de inventario.
+- `PantallaPedidos`: pantalla de turnos para TV/monitor.
+- `AutoPedido`: implementación de la toma rápida de pedidos para meseros.
+
+## Ciclo de Abastecimiento de Cocina
+
+El abastecimiento de cocina se integra con Compras e Inventario:
+
+1. Cocina crea una solicitud desde `Cocina` con el botón `Solicitud de Abastecimiento`.
+2. La acción precarga sugerencias inteligentes usando stock bajo de cocina y pedidos bloqueados por faltantes.
+3. La solicitud queda en Compras como `Pendiente`.
+4. Compras/Bodega autoriza desde `Compras > Solicitudes > Aprobar`.
+5. Con la solicitud `Aprobada`, un usuario con permiso `Inventario:ResolverAbastecimientoCocina` puede resolverla de dos formas:
+   - `Resolver con Inventario`: busca stock disponible en bodegas internas, incluso en varias ubicaciones, y traslada automáticamente hacia cocina.
+   - `Despachar a Cocina`: permite seleccionar manualmente una bodega origen específica.
+6. Si el inventario interno no alcanza, la solicitud debe seguir el flujo normal de compras: cotización, orden de compra y recepción.
+7. El despacho interno descuenta origen, suma cocina y registra movimiento `TRASLADO`.
+8. Si lo despachado es material bruto, Cocina entra a `Materia Prima` desde el Centro de Cocina para transformar, registrar materia prima obtenida y registrar merma.
+9. La preparación de pedidos consume materia prima/ingredientes desde el stock de cocina.
+
+Responsabilidades:
+
+- Cocina solicita y transforma.
+- Compras/Bodega aprueba.
+- Inventario autoriza y ejecuta traslados entre bodegas hacia cocina.
+- Inventario registra stock y movimientos.
+- Filament solo captura y presenta datos; las reglas viven en Interactors, BusinessLogic y Queries.
+
+Notificaciones:
+
+- Al crear abastecimiento de cocina se notifica a compras e inventario para revisión.
+- Al resolver con inventario se notifica que la solicitud quedó cubierta por traslado interno.
+- Si no hay stock interno suficiente se notifica que debe pasar a cotización / orden de compra.
 
 ## Resources
 
@@ -111,7 +160,9 @@ PedidoResource/
 
 **Ubicación**: `app/Filament/Resources/Restaurante/ProcesoCocinaResource/`
 
-**Responsabilidad**: CRUD de procesos de cocina (producción de platos).
+**Responsabilidad**: trazabilidad de procesos de cocina y consumo de inventario.
+
+Esta pantalla no se registra en la navegación principal. Se accede desde el encabezado del Centro de Cocina para evitar duplicar menús operativos.
 
 #### Estructura
 
@@ -295,7 +346,7 @@ AuditoriaRestauranteResource/
 
 **Ubicación**: `app/Filament/Pages/Restaurante/CocinaPedidos.php`
 
-**Responsabilidad**: KDS (Kitchen Display System) para visualización de pedidos en cocina.
+**Responsabilidad**: centro de cocina/KDS para visualización de pedidos, inicio de preparación y accesos a flujos técnicos de inventario.
 
 #### Características
 
@@ -304,6 +355,12 @@ AuditoriaRestauranteResource/
 - **Acciones**:
   - Marcar item como listo
   - Marcar pedido como servido
+  - Solicitar abastecimiento
+  - Registrar merma diaria
+  - Abrir conciliación de recetas
+  - Abrir transformación de materia prima
+  - Abrir trazabilidad de procesos
+  - Abrir pantalla de turnos
 - **Filtros**: Por área de cocina (Cocina, Bar, Postres, Parrilla)
 - **Polling**: Actualización automática cada 10 segundos
 
@@ -314,11 +371,13 @@ AuditoriaRestauranteResource/
 
 ---
 
-### 5. AutoPedido
+### 5. AutoPedido / Toma Rápida
 
 **Ubicación**: `app/Filament/Pages/Restaurante/AutoPedido.php`
 
-**Responsabilidad**: Interfaz para pedidos desde kiosko auto-servicio.
+**Responsabilidad**: interfaz rápida para que el mesero tome pedidos desde un menú visual, seleccione mesa, agregue platos al carrito y envíe la orden a cocina.
+
+Se muestra en el menú como `Toma Rápida`. Aunque la clase conserva el nombre técnico `AutoPedido`, en operación corresponde a la captura rápida del mesero.
 
 #### Características
 
@@ -339,6 +398,8 @@ AuditoriaRestauranteResource/
 **Ubicación**: `app/Filament/Pages/Restaurante/PantallaPedidos.php`
 
 **Responsabilidad**: Pantalla pública para mostrar pedidos en TV/monitor.
+
+No se muestra en el menú administrativo principal. Se abre desde el Centro de Cocina, normalmente en una pestaña/pantalla separada.
 
 #### Características
 
@@ -410,7 +471,7 @@ AuditoriaRestauranteResource/
 - `page_ConfiguracionRestaurante`: Configurar restaurante
 - `page_ReportesRestaurante`: Ver reportes
 - `page_CocinaPedidos`: Acceder a KDS
-- `page_AutoPedido`: Acceder a auto-pedido
+- `page_AutoPedido`: Acceder a toma rápida de pedidos
 
 ## Reglas de Filament en el Módulo
 

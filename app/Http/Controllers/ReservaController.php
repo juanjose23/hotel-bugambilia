@@ -6,8 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Actions\Voucher\GenerarVoucherPDF;
 use App\Http\Requests\Reservas\CrearReservaRequest;
-use App\Interactors\Reservas\CancelarReserva;
-use App\Interactors\Reservas\CrearReserva;
+use App\Interactors\Reservas\Gestion\CancelarReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Reservas\Reserva;
 use DomainException;
 use Illuminate\Http\RedirectResponse;

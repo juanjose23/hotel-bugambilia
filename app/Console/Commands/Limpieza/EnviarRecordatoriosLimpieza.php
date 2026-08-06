@@ -32,7 +32,7 @@ class EnviarRecordatoriosLimpieza extends Command
         $this->info("Buscando ejecuciones pendientes al día de hoy para la hora actual: {$horaActual}");
 
         $ejecuciones = LimpiezaEjecucion::query()
-            ->whereDate('fecha', $ahora->toDateString())
+            ->whereDate('fecha', '<=', $ahora->toDateString())
             ->where('estado', EstadoLimpieza::Pendiente)
             ->whereNull('recordatorio_enviado_at')
             ->whereHas('horario', function ($query) use ($horaActual) {
@@ -66,7 +66,8 @@ class EnviarRecordatoriosLimpieza extends Command
 
             $personaIdColaborador = $ejecucion->colaborador?->persona?->id;
             if ($personaIdColaborador) {
-                $userColaborador = $usersByPersonaId->get($personaIdColaborador);
+                $userColaborador = $usersByPersonaId->get($personaIdColaborador)
+                    ?: $usersByPersonaId->get((string) $personaIdColaborador);
                 if ($userColaborador) {
                     $destinatarios->push($userColaborador);
                 }
@@ -76,7 +77,8 @@ class EnviarRecordatoriosLimpieza extends Command
             if ($turno) {
                 $personaIdLider = $turno->lider?->persona?->id;
                 if ($personaIdLider) {
-                    $userLider = $usersByPersonaId->get($personaIdLider);
+                    $userLider = $usersByPersonaId->get($personaIdLider)
+                        ?: $usersByPersonaId->get((string) $personaIdLider);
                     if ($userLider) {
                         $destinatarios->push($userLider);
                     }
@@ -84,7 +86,8 @@ class EnviarRecordatoriosLimpieza extends Command
 
                 $personaIdApoyo = $turno->apoyo?->persona?->id;
                 if ($personaIdApoyo) {
-                    $userApoyo = $usersByPersonaId->get($personaIdApoyo);
+                    $userApoyo = $usersByPersonaId->get($personaIdApoyo)
+                        ?: $usersByPersonaId->get((string) $personaIdApoyo);
                     if ($userApoyo) {
                         $destinatarios->push($userApoyo);
                     }

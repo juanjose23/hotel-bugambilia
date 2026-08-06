@@ -12,7 +12,7 @@ final readonly class IniciarLimpiezaData
 {
     public function __construct(
         public LimpiezaEjecucion|SolicitudLimpieza|Model $record,
-        public ?int $colaboradorOrPersonalId,
-        public ?int $carritoId,
+        public ?int $colaboradorOrPersonalId = null,
+        public ?int $carritoId = null,
     ) {}
 }

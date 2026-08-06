@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Reservas\ReservaResource\RelationManagers;
 
 use App\Enums\Reservas\TipoHuesped;
 use App\Filament\Resources\Reservas\Schemas\Reserva\FormularioHuesped;
-use App\Interactors\Reservas\RegistrarHuespedes;
+use App\Interactors\Reservas\Gestion\RegistrarHuespedes;
 use App\Repository\Models\Reservas\Reserva;
 use DomainException;
 use Filament\Actions\CreateAction;
