@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Catalogos;
+namespace App\Interactors\Catalogos\Productos;
 
 use App\Repository\Queries\Catalogos\ExportProductos;
 
-final readonly class ExportarProductosInteractor
+final readonly class ExportarProductos
 {
     public function __construct(
         private ExportProductos $query,

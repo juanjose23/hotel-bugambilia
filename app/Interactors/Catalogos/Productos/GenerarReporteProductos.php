@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Catalogos\Reportes\Productos;
+namespace App\Interactors\Catalogos\Productos;
 
 use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
 use App\Actions\Catalogos\GenerarReporteProductosAction;
 use App\BusinessLogic\Catalogos\Data\ProductoFiltrosData;
 use Barryvdh\DomPDF\PDF;
 
-final readonly class GenerarReporteProductosInteractor
+final readonly class GenerarReporteProductos
 {
     public function __construct(
         private GenerarReporteProductosAction $action,
