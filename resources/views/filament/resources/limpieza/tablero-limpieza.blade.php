@@ -46,8 +46,9 @@
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <x-heroicon-o-user class="w-4 h-4 text-gray-400" />
-                                @if ($e->colaborador_id)
-                                    <span>Asignado: <span class="font-medium text-gray-700 dark:text-gray-300">{{ $this->obtenerNombreColaborador($e) }}</span></span>
+                                @php $nombreColab = $this->obtenerNombreColaborador($e); @endphp
+                                @if ($nombreColab !== 'Sin asignar')
+                                    <span>Asignado: <span class="font-medium text-gray-700 dark:text-gray-300">{{ $nombreColab }}</span></span>
                                 @else
                                     <span class="text-red-500 dark:text-red-400 font-semibold">Sin asignar / Libre</span>
                                 @endif
@@ -345,16 +346,20 @@
     @endif
 
     {{-- Modal para Iniciar Limpieza --}}
-    <x-filament::modal id="iniciar-limpieza-modal" width="md">
+    <x-filament::modal id="iniciar-limpieza-modal" width="xl">
         <x-slot name="heading">Iniciar Limpieza</x-slot>
         <x-slot name="description">Asigne el colaborador y seleccione el carrito para iniciar.</x-slot>
 
-        <form wire:submit.prevent="confirmStart" class="space-y-5">
+        <form wire:submit.prevent="confirmStart" class="space-y-4">
             {{ $this->startForm }}
 
-            <div class="flex justify-end gap-3 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <x-filament::button color="gray" wire:click="closeStartModal" type="button">Cancelar</x-filament::button>
-                <x-filament::button type="submit" color="primary">Iniciar Limpieza</x-filament::button>
+            <div class="flex flex-col-reverse gap-2 pt-3 border-t border-gray-200 dark:border-gray-800 sm:flex-row sm:justify-end">
+                <x-filament::button color="gray" wire:click="closeStartModal" type="button" class="w-full sm:w-auto">
+                    Cancelar
+                </x-filament::button>
+                <x-filament::button type="submit" color="primary" icon="heroicon-o-play" class="w-full sm:w-auto">
+                    Iniciar Limpieza
+                </x-filament::button>
             </div>
         </form>
     </x-filament::modal>
