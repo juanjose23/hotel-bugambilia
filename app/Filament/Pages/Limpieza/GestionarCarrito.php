@@ -6,7 +6,7 @@ namespace App\Filament\Pages\Limpieza;
 
 use App\BusinessLogic\Limpieza\Data\CarritoEstadisticasData;
 use App\Enums\Limpieza\EstadoLimpieza;
-use App\Interactors\Inventario\TrasladarEntreBodegas\TrasladarEntreBodegas;
+use App\Interactors\Inventario\TrasladarEntreBodegas;
 use App\Interactors\Limpieza\Carrito\AsignarCarritoAEjecucion;
 use App\Interactors\Limpieza\Carrito\LiberarCarritoDeEjecucion;
 use App\Repository\Models\Catalogos\Ubicacion;
@@ -160,7 +160,10 @@ class GestionarCarrito extends Page implements HasForms, HasTable
             return false;
         }
 
-        return $user->hasRole(['super-admin', 'admin', 'limpieza-supervisor'])
+        $superAdmin = config('filament-shield.super_admin.name', 'super_admin');
+        $superAdmin = is_string($superAdmin) ? $superAdmin : 'super_admin';
+
+        return $user->hasRole([$superAdmin, 'admin', 'limpieza-supervisor'])
             || $user->can('liberar-carrito');
     }
 
@@ -172,7 +175,10 @@ class GestionarCarrito extends Page implements HasForms, HasTable
             return false;
         }
 
-        return $user->hasRole('super-admin')
+        $superAdmin = config('filament-shield.super_admin.name', 'super_admin');
+        $superAdmin = is_string($superAdmin) ? $superAdmin : 'super_admin';
+
+        return $user->hasRole($superAdmin)
             || $user->can('asignar-carrito-limpieza');
     }
 
@@ -617,6 +623,16 @@ class GestionarCarrito extends Page implements HasForms, HasTable
 
     public function liberarCarrito(): void
     {
+        if (! $this->puedeLiberar) {
+            Notification::make()
+                ->title('Sin permisos')
+                ->body('No tiene permisos para liberar este carrito.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $ejecucion = $this->ejecucionActiva;
         if ($ejecucion) {
             $this->liberarCarrito->execute($ejecucion);

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Compras;
 
 use App\Http\Controllers\Controller;
-use App\Interactors\Compras\Reportes\GenerarReporteCompraUseCase;
+use App\Interactors\Compras\Reportes\GenerarReporteCompra;
 use App\Jobs\GenerarReporteJob;
 use App\Repository\Models\Compras\Cotizacion;
 use App\Repository\Models\Compras\DevolucionCompra;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 final class ReporteCompraController extends Controller
 {
     public function __construct(
-        private readonly GenerarReporteCompraUseCase $generarReporteCompra,
+        private readonly GenerarReporteCompra $generarReporteCompra,
     ) {}
 
     public function imprimirCotizacion(Cotizacion $cotizacion): StreamedResponse

@@ -7,7 +7,7 @@ namespace App\BusinessLogic\Shared\Reportes;
 use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
 use App\Actions\Catalogos\GenerarReporteProductosAction;
 use App\BusinessLogic\Catalogos\Data\ProductoFiltrosData;
-use App\Interactors\Compras\Reportes\GenerarReporteCompraUseCase;
+use App\Interactors\Compras\Reportes\GenerarReporteCompra;
 use App\Repository\Queries\Activos\GenerarReporteActivoUseCase;
 use App\Repository\Queries\Inventario\Reportes\GenerarReporteInventario;
 use Barryvdh\DomPDF\PDF;
@@ -93,7 +93,7 @@ final class ReporteDispatcher
             throw new InvalidArgumentException("Reporte Compras '{$codigo}' no soportado.");
         }
 
-        $useCase = app(GenerarReporteCompraUseCase::class);
+        $useCase = app(GenerarReporteCompra::class);
 
         return $useCase->execute($internalName, $params);
     }

@@ -8,7 +8,7 @@ use App\Enums\Activos\EstadoIndividualizacion;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
-use App\Interactors\Activos\IndividualizarActivos;
+use App\Interactors\Activos\Gestion\IndividualizarActivos;
 use App\Repository\Models\Activos\RegistroIndividualizacion;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;

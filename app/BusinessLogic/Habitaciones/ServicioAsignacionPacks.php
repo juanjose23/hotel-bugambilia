@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Habitaciones;
 
-use App\Interactors\Inventario\ConsumirStock\ConsumirStock;
+use App\Interactors\Inventario\ConsumirStock;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Espacios\Espacio;

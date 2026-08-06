@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Inventario\InventarioFisico\Pages;
 
 use App\Enums\Inventario\EstadoInventarioFisico;
 use App\Filament\Resources\Inventario\InventarioFisico\InventarioFisicoResource;
-use App\Interactors\Inventario\InventarioFisico\ProcesarInventarioFisico\ProcesarInventarioFisico;
+use App\Interactors\Inventario\InventarioFisico\ProcesarInventarioFisico;
 use App\Repository\Models\Inventario\InventarioFisico;
 use Exception;
 use Filament\Actions\Action;

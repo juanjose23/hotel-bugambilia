@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Pages;
 
 use App\Filament\Resources\Activos\Activo\ActivoResource;
-use App\Interactors\Activos\AsignarActivo;
+use App\Interactors\Activos\Gestion\AsignarActivo;
 use App\Models\Activos\Activo;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;

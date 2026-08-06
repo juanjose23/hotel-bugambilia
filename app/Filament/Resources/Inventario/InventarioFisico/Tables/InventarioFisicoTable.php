@@ -8,7 +8,7 @@ use App\Enums\Inventario\EstadoInventarioFisico;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
 use App\Filament\Shared\Filters\FiltroEstado;
-use App\Interactors\Inventario\InventarioFisico\ProcesarInventarioFisico\ProcesarInventarioFisico;
+use App\Interactors\Inventario\InventarioFisico\ProcesarInventarioFisico;
 use App\Repository\Models\Inventario\InventarioFisico;
 use Exception;
 use Filament\Actions\Action as TableAction;

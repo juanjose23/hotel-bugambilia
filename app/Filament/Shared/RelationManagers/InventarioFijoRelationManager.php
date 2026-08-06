@@ -6,7 +6,7 @@ namespace App\Filament\Shared\RelationManagers;
 
 use App\Enums\Activos\EstadoActivo;
 use App\Filament\Shared\Concerns\TieneActivoAsignaciones;
-use App\Interactors\Activos\AsignarActivo;
+use App\Interactors\Activos\Gestion\AsignarActivo;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoAsignacion;
 use Filament\Actions\CreateAction;

@@ -7,7 +7,7 @@ namespace App\Filament\Resources\Activos\ActivoMantenimiento\Tables;
 use App\Enums\Activos\EstadoMantenimiento;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
-use App\Interactors\Activos\CompletarMantenimiento;
+use App\Interactors\Activos\Mantenimiento\CompletarMantenimiento;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;

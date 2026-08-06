@@ -54,6 +54,39 @@ final class NotificadorCompras extends NotificadorBase
         $this->enviar($usuarios, $this->mensajes->solicitudCancelada($solicitud));
     }
 
+    public function abastecimientoCocinaCreado(Solicitud $solicitud): void
+    {
+        $usuarios = $this->destinatarios->obtenerComprasEInventario(
+            $solicitud->colaborador?->persona?->user,
+        );
+
+        $this->enviar($usuarios, $this->mensajes->abastecimientoCocinaCreado($solicitud));
+    }
+
+    /**
+     * @param  list<string>  $traslados
+     */
+    public function abastecimientoCocinaResueltoConInventario(Solicitud $solicitud, array $traslados = []): void
+    {
+        $usuarios = $this->destinatarios->obtenerComprasEInventario(
+            $solicitud->colaborador?->persona?->user,
+        );
+
+        $this->enviar($usuarios, $this->mensajes->abastecimientoCocinaResueltoConInventario($solicitud, $traslados));
+    }
+
+    /**
+     * @param  list<string>  $faltantes
+     */
+    public function abastecimientoCocinaRequiereCompra(Solicitud $solicitud, array $faltantes): void
+    {
+        $usuarios = $this->destinatarios->obtenerComprasEInventario(
+            $solicitud->colaborador?->persona?->user,
+        );
+
+        $this->enviar($usuarios, $this->mensajes->abastecimientoCocinaRequiereCompra($solicitud, $faltantes));
+    }
+
     public function cotizacionCreada(Cotizacion $cotizacion): void
     {
         $usuarios = $this->destinatarios->obtener(

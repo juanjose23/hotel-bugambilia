@@ -11,6 +11,40 @@ use Illuminate\Support\HtmlString;
 
 final class ResumenCuentaInfolist
 {
+    public static function makeHeader(?Cuenta $cuenta): TextEntry
+    {
+        return TextEntry::make('resumen_cabecera')
+            ->hiddenLabel()
+            ->state(function () use ($cuenta): HtmlString {
+                if (! $cuenta instanceof Cuenta) {
+                    return new HtmlString('');
+                }
+
+                $resumen = app(ResumenCuentaPresenter::class)->paraModal($cuenta);
+
+                $simbolo = e(is_string($resumen['moneda_simbolo'] ?? null) ? $resumen['moneda_simbolo'] : 'C$');
+                $saldoNum = is_numeric($resumen['saldo'] ?? null) ? (float) $resumen['saldo'] : 0.0;
+                $saldoFmt = "{$simbolo} ".number_format($saldoNum, 2);
+
+                $cliente = e(is_string($resumen['nombre_cliente'] ?? null) ? $resumen['nombre_cliente'] : '—');
+                $origen = e(is_string($resumen['origen_descripcion'] ?? null) ? $resumen['origen_descripcion'] : '—');
+                $nroCuenta = e(is_string($resumen['numero_cuenta'] ?? null) ? $resumen['numero_cuenta'] : '—');
+
+                return new HtmlString("
+                <div class='p-3 bg-gray-900 dark:bg-gray-950 text-white rounded-xl shadow-sm flex flex-row justify-between items-center gap-2 mb-2 border border-gray-800'>
+                    <div class='min-w-0 flex-1'>
+                        <span class='text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate block'>#{$nroCuenta} · {$origen}</span>
+                        <span class='font-black text-sm sm:text-base text-gray-100 truncate block'>{$cliente}</span>
+                    </div>
+                    <div class='text-right bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-lg shrink-0'>
+                        <span class='text-[9px] text-emerald-400 font-extrabold uppercase block tracking-wider'>Saldo a Cobrar</span>
+                        <span class='text-sm sm:text-base font-black text-emerald-400 font-mono'>{$saldoFmt}</span>
+                    </div>
+                </div>
+                ");
+            });
+    }
+
     public static function make(?Cuenta $cuenta): TextEntry
     {
         return TextEntry::make('resumen_visual')

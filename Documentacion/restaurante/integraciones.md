@@ -15,6 +15,8 @@ El módulo Restaurante se integra con varios otros módulos del sistema para fun
 **Uso**:
 - **Procesos de Cocina**: Consume stock al producir platos
 - **Pedidos**: Consume stock al marcar items como listos
+- **Materia Prima Cocina**: Transforma material bruto en materia prima lista, registra entrada, salida y merma
+- **Conciliación de Recetas**: Evalúa stock de materia prima y material bruto antes de servicio
 - **Cálculo de Costos**: Obtiene costo_unitario desde Lotes
 
 **Flujo**:
@@ -100,6 +102,7 @@ precio_sugerido = costo_total / (1 - margen/100)
 **Cuándo se registra**:
 - Al crear un ProcesoCocina (producción)
 - Al marcar un item de pedido como listo (KDS)
+- Al transformar materia prima se registran `TRANSFORMACION_SALIDA`, `TRANSFORMACION_ENTRADA` y `MERMA_COCINA`
 
 **Datos registrados**:
 - `producto_id`: Ingrediente consumido
@@ -348,6 +351,22 @@ Cambiar estado a PAGADA
 ---
 
 ## Integración con Catálogos
+
+## Integración con Compras / Abastecimiento
+
+Cuando falta una materia prima usada por una receta, el sistema debe revisar si existe una regla de transformación:
+
+```
+Materia prima faltante
+    ↓
+¿Tiene regla de transformación?
+    ├── Sí: revisar material bruto
+    │       ├── Hay bruto: transformar en Materia Prima Cocina
+    │       └── Falta bruto: solicitud de abastecimiento por material bruto
+    └── No: crear regla o solicitar la materia prima directamente
+```
+
+La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega puede saber exactamente qué variante se requiere.
 
 ### Categorías de Platos
 

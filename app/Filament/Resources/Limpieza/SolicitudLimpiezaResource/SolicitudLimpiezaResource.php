@@ -46,10 +46,15 @@ final class SolicitudLimpiezaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with(['limpiable', 'personal', 'creador']))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')
+                    ->sortable(),
+                TextColumn::make('limpiable.nombre')
+                    ->label('Ubicación / Área')
+                    ->placeholder('Sin nombre')
                     ->sortable(),
                 TextColumn::make('limpiable_type')
                     ->label('Tipo')
@@ -60,8 +65,6 @@ final class SolicitudLimpiezaResource extends Resource
                     })
                     ->badge()
                     ->color(fn (string $state): string => str_contains($state, 'Habitacion') ? 'info' : 'warning'),
-                TextColumn::make('limpiable_id')
-                    ->label('ID Objeto'),
                 TextColumn::make('prioridad')
                     ->label('Prioridad')
                     ->badge()
@@ -84,7 +87,8 @@ final class SolicitudLimpiezaResource extends Resource
                         ? $state->getColor()
                         : (is_numeric($state) ? (EstadoLimpieza::tryFrom((int) $state)?->getColor() ?? 'gray') : 'gray')),
                 TextColumn::make('creador.name')
-                    ->label('Creada por'),
+                    ->label('Creada por')
+                    ->placeholder('Sistema'),
                 TextColumn::make('created_at')
                     ->label('Creada')
                     ->dateTime()

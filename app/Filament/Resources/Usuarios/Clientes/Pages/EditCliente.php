@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Usuarios\Clientes\Pages;
 
 use App\Filament\Resources\Usuarios\Clientes\ClienteResource;
-use App\Interactors\Usuarios\ActualizarCliente;
-use App\Interactors\Usuarios\VincularPersonaExistenteAUser;
+use App\Interactors\Usuarios\Clientes\ActualizarCliente;
+use App\Interactors\Usuarios\Identidad\VincularPersonaExistenteAUser;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Personas\Persona;
 use Filament\Actions\Action;

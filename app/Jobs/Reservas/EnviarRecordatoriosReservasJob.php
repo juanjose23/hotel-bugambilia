@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\Reservas;
 
-use App\Interactors\Reservas\EnviarRecordatoriosReservas;
+use App\Interactors\Reservas\Operaciones\EnviarRecordatoriosReservas;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

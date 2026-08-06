@@ -7,12 +7,13 @@ namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Schemas;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
 use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\Turno;
 use App\Repository\Models\Shared\Stock;
+use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritosDisponibles;
 use App\Repository\Queries\Shared\ObtenerColaboradoresLimpieza;
 use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Forms\Components\DatePicker;
@@ -118,9 +119,13 @@ class LimpiezaEjecucionForm
                                     ->prefixIcon(Heroicon::User),
 
                                 Select::make('carrito_id')
-                                    ->label('Carrito de Limpieza / Bodega')
-                                    ->placeholder('Seleccione el carrito')
-                                    ->options(fn () => Ubicacion::whereIn('tipo', ['almacen', 'bodega', 'zona'])->pluck('nombre', 'id')->toArray())
+                                    ->label('Carrito de Limpieza')
+                                    ->placeholder('Seleccione el carrito disponible')
+                                    ->options(function (Get $get, ?LimpiezaEjecucion $record) {
+                                        $ejecucionId = $record instanceof LimpiezaEjecucion ? $record->id : 0;
+
+                                        return app(ObtenerCarritosDisponibles::class)->execute($ejecucionId);
+                                    })
                                     ->searchable()
                                     ->native(false)
                                     ->prefixIcon(Heroicon::ShoppingBag),
