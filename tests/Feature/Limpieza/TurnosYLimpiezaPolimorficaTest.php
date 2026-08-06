@@ -440,7 +440,10 @@ describe('Nuevas características del Módulo de Limpieza (Equipos, Horarios Nul
 
         expect($ejecucion->fresh()->recordatorio_enviado_at)->not->toBeNull();
 
-        expect(DB::table('notifications')->count())->toBeGreaterThan(0);
+        expect(DB::table('notifications')
+            ->where('notifiable_id', $userLider->id)
+            ->where('notifiable_type', User::class)
+            ->count())->toBeGreaterThan(0);
 
         Carbon::setTestNow(); // reset
     });

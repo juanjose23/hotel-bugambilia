@@ -27,7 +27,7 @@ No se deben crear soluciones rápidas que mezclen lógica de negocio con compone
 
 ## Backend
 
-- PHP 8.3+
+- PHP 8.4+
 - Laravel 13
 - Filament 5
 - Livewire
