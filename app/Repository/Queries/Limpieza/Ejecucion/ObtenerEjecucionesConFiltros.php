@@ -27,7 +27,7 @@ class ObtenerEjecucionesConFiltros
                 EstadoLimpieza::Completada,
                 EstadoLimpieza::CompletadaConDiscrepancia,
             ])
-            ->with(['limpiable', 'colaborador.persona', 'horario']);
+            ->with(['limpiable', 'colaborador.persona', 'horario', 'solicitud.personal.persona.colaborador.persona']);
 
         $tipoUbicacion = $filtros['tipo_ubicacion'] ?? null;
         $limpiableId = $filtros['limpiable_id'] ?? null;

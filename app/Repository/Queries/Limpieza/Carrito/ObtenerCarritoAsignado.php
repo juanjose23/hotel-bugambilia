@@ -19,9 +19,15 @@ class ObtenerCarritoAsignado
 
         $ejecucion = LimpiezaEjecucion::with('carrito')
             ->where('colaborador_id', $colaboradorId)
-            ->whereDate('fecha', $fecha)
             ->whereNotNull('carrito_id')
-            ->whereIn('estado', [EstadoLimpieza::Pendiente, EstadoLimpieza::EnProgreso])
+            ->where(function ($q) use ($fecha): void {
+                $q->where('estado', EstadoLimpieza::EnProgreso)
+                    ->orWhere(function ($p) use ($fecha): void {
+                        $p->where('estado', EstadoLimpieza::Pendiente)
+                            ->whereDate('fecha', $fecha);
+                    });
+            })
+            ->latest('id')
             ->first();
 
         return $ejecucion?->carrito;
