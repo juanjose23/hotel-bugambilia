@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Pedidos;
 
 use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Cuentas\RecalcularCuenta;
+use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Cuentas;
 
 use App\Enums\Cuentas\TipoCuenta;
-use App\Interactors\Cuentas\AbrirCuenta;
-use App\Interactors\Cuentas\TransferirPedidoACuenta;
+use App\Interactors\Cuentas\Gestion\AbrirCuenta;
+use App\Interactors\Cuentas\Gestion\TransferirPedidoACuenta;
 use App\Interactors\Restaurante\Pedidos\AsignarCuentaAPedido;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\CuentaDetalle;

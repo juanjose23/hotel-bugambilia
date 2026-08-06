@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Pedidos;
 
 use App\Enums\Restaurante\EstadoPedido;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
@@ -30,12 +30,16 @@ final class CargarPedidoACuenta
             throw new DomainException('La cuenta seleccionada no está abierta.');
         }
 
+        if ($pedido->cliente_id !== null && $cuenta->cliente_id !== null && (int) $pedido->cliente_id !== (int) $cuenta->cliente_id) {
+            throw new DomainException('El cliente del pedido no coincide con el cliente de la cuenta seleccionada.');
+        }
+
         if ($pedido->estado === EstadoPedido::CARGADO_A_HABITACION) {
             throw new DomainException("El pedido #{$pedido->codigo} ya fue cargado a una cuenta.");
         }
 
-        if ($pedido->estado === EstadoPedido::CANCELADO) {
-            throw new DomainException("El pedido #{$pedido->codigo} está cancelado.");
+        if (in_array($pedido->estado, [EstadoPedido::LISTO, EstadoPedido::SERVIDO, EstadoPedido::CANCELADO], true)) {
+            throw new DomainException("El pedido #{$pedido->codigo} ya no permite cambios.");
         }
 
         return DB::transaction(function () use ($pedido, $cuenta, $usuarioId): Cuenta {

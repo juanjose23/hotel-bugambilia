@@ -28,9 +28,9 @@ final class AutoPedido extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
 
-    protected static ?string $navigationLabel = 'Kiosko Auto-Pedido';
+    protected static ?string $navigationLabel = 'Toma Rápida';
 
-    protected static ?string $title = 'Menú Interactivo & Auto-Pedido';
+    protected static ?string $title = 'Toma Rápida de Pedido';
 
     protected static ?string $slug = 'restaurante/auto-pedido';
 
@@ -160,12 +160,12 @@ final class AutoPedido extends Page
 
             Notification::make()
                 ->title('¡Pedido creado exitosamente!')
-                ->body('Su orden ha sido registrada en la cocina.')
+                ->body('La orden fue registrada para preparación.')
                 ->success()
                 ->send();
 
         } catch (DomainException $e) {
-            Notification::make()->title('Error al procesar auto-pedido')->body($e->getMessage())->danger()->send();
+            Notification::make()->title('Error al tomar pedido')->body($e->getMessage())->danger()->send();
         }
     }
 

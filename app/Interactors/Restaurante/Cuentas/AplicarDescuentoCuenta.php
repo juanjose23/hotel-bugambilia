@@ -8,7 +8,7 @@ use App\Enums\Cuentas\BaseCalculo;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Cuentas\RecalcularCuenta;
+use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\CuentaCargo;
 use App\Repository\Models\Restaurante\Pedido;

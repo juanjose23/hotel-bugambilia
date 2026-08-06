@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Mesas;
 
 use App\Actions\Restaurante\NormalizarMetaDatosAction;
+use App\BusinessLogic\Restaurante\Mesas\ValidarTransicionMesa;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,7 @@ final class SepararMesas
     public function __construct(
         private readonly RestauranteRepositorioInterface $repositorio,
         private readonly NormalizarMetaDatosAction $normalizarMetaDatosAction,
+        private readonly ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**
@@ -39,6 +42,7 @@ final class SepararMesas
                     $secundaria = $this->repositorio->obtenerEspacioPorId((int) $secundariaId);
 
                     if ($secundaria instanceof Espacio) {
+                        $this->validarTransicion->validar($secundaria->estado, EstadoEspacio::Disponible, MotivoTransicionMesa::SeparacionMesas);
                         $metaSec = $this->normalizarMetaDatosAction->ejecutar($secundaria->meta_datos);
                         unset($metaSec['mesa_principal_id'], $metaSec['mesa_principal_nombre']);
 
@@ -71,6 +75,7 @@ final class SepararMesas
                 }
 
                 unset($meta['mesa_principal_id'], $meta['mesa_principal_nombre']);
+                $this->validarTransicion->validar($mesa->estado, EstadoEspacio::Disponible, MotivoTransicionMesa::SeparacionMesas);
                 $this->repositorio->actualizarEspacio($mesa, [
                     'estado' => EstadoEspacio::Disponible,
                     'meta_datos' => $meta,

@@ -52,6 +52,11 @@ final class PantallaPedidos extends Page
 
     public int $ultimoTotalListos = 0;
 
+    /** @var array<int, int> */
+    public array $pedidoListosNotificados = [];
+
+    public bool $pantallaInicializada = false;
+
     private ObtenerPedidosPantallaQuery $pantallaQuery;
 
     private MarcarItemServido $marcarItemServido;
@@ -59,6 +64,11 @@ final class PantallaPedidos extends Page
     private MarcarItemPedidoListo $marcarItemListo;
 
     private AnularItemPedido $anularItemPedido;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public function boot(
         ObtenerPedidosPantallaQuery $pantallaQuery,
@@ -85,11 +95,27 @@ final class PantallaPedidos extends Page
         $this->pedidosListos = $datos['listos'];
         $this->pedidos = $this->pedidosEnPreparacion->merge($this->pedidosListos);
 
-        $nuevoTotalListos = $this->pedidosListos->count();
-        if ($nuevoTotalListos > $this->ultimoTotalListos && $this->ultimoTotalListos > 0) {
-            $this->dispatch('pedido-listo-audio');
+        $idsListos = $this->pedidosListos
+            ->pluck('id')
+            ->map(fn (mixed $id): int => is_numeric($id) ? (int) $id : 0)
+            ->values()
+            ->all();
+
+        if ($this->pantallaInicializada && $idsListos !== []) {
+            $mesas = $this->pedidosListos
+                ->map(fn (Pedido $pedido): string => is_string($pedido->mesa?->nombre) && trim($pedido->mesa->nombre) !== ''
+                    ? trim($pedido->mesa->nombre)
+                    : 'sin mesa')
+                ->unique()
+                ->values()
+                ->implode(', ');
+
+            $this->dispatch('pedido-listo-audio', mesa: $mesas !== '' ? $mesas : 'sin mesa');
         }
-        $this->ultimoTotalListos = $nuevoTotalListos;
+
+        $this->pedidoListosNotificados = $idsListos;
+        $this->ultimoTotalListos = count($idsListos);
+        $this->pantallaInicializada = true;
     }
 
     public function tiempoTranscurrido(Pedido $pedido): string

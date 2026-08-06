@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Mesas;
 
+use App\BusinessLogic\Restaurante\Mesas\ValidarTransicionMesa;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
@@ -15,6 +17,7 @@ final readonly class MoverCuentaMesa
 {
     public function __construct(
         private RestauranteRepositorioInterface $repositorio,
+        private ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**
@@ -45,6 +48,7 @@ final readonly class MoverCuentaMesa
                 $this->repositorio->guardarPedido($pedido);
             }
 
+            $this->validarTransicion->validar($destino->estado, EstadoEspacio::Ocupado, MotivoTransicionMesa::MovimientoCuenta);
             $destino->estado = EstadoEspacio::Ocupado;
             $this->repositorio->guardarMesa($destino);
 
@@ -52,6 +56,7 @@ final readonly class MoverCuentaMesa
             $quedanOrigen = $this->repositorio->obtenerPedidosActivosDeMesa($mesaOrigenId)->isNotEmpty();
 
             if (! $quedanOrigen) {
+                $this->validarTransicion->validar($origen->estado, EstadoEspacio::Disponible, MotivoTransicionMesa::MovimientoCuenta);
                 $origen->estado = EstadoEspacio::Disponible;
                 $this->repositorio->guardarMesa($origen);
             }

@@ -7,7 +7,6 @@ namespace App\Interactors\Restaurante\Cocina;
 use App\BusinessLogic\Inventario\Estrategias\FEFOStrategy;
 use App\BusinessLogic\Restaurante\Cocina\CalcularCostoProcesoCocina;
 use App\Enums\Restaurante\UbicacionCocina;
-use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\Lote;
 use App\Repository\Models\Restaurante\ProcesoCocina;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
@@ -32,6 +31,9 @@ final class ProcesarProcesoCocina
         return DB::transaction(function () use ($proceso, $data, $usuarioId): ProcesoCocina {
             $platoId = is_numeric($data['plato_id'] ?? null) ? (int) $data['plato_id'] : null;
             $cantPlatos = is_numeric($data['cantidad_platos'] ?? null) ? (int) $data['cantidad_platos'] : 1;
+            $productoOrigenId = is_numeric($data['producto_origen_id'] ?? null) ? (int) $data['producto_origen_id'] : null;
+            $varianteOrigenId = is_numeric($data['variante_origen_id'] ?? null) ? (int) $data['variante_origen_id'] : null;
+            $cantidadProcesada = is_numeric($data['cantidad_procesada'] ?? null) ? (float) $data['cantidad_procesada'] : (float) $cantPlatos;
             $obs = is_string($data['observaciones'] ?? null) ? $data['observaciones'] : null;
 
             $itemsDataRaw = is_array($data['items'] ?? null) ? $data['items'] : [];
@@ -49,7 +51,9 @@ final class ProcesarProcesoCocina
                     'codigo' => $codigo,
                     'plato_id' => $platoId,
                     'cantidad_platos' => $cantPlatos,
-                    'cantidad_procesada' => $cantPlatos,
+                    'producto_origen_id' => $productoOrigenId,
+                    'variante_origen_id' => $varianteOrigenId,
+                    'cantidad_procesada' => $cantidadProcesada,
                     'costo_total' => $resulCostos['costo_total'],
                     'observaciones' => $obs,
                     'realizado_por' => $usuarioId,
@@ -58,16 +62,15 @@ final class ProcesarProcesoCocina
                 $this->repositorio->actualizarProcesoCocina($proceso, [
                     'plato_id' => $platoId,
                     'cantidad_platos' => $cantPlatos,
-                    'cantidad_procesada' => $cantPlatos,
+                    'producto_origen_id' => $productoOrigenId,
+                    'variante_origen_id' => $varianteOrigenId,
+                    'cantidad_procesada' => $cantidadProcesada,
                     'costo_total' => $resulCostos['costo_total'],
                     'observaciones' => $obs,
                 ]);
 
                 $this->repositorio->eliminarItemsDeProcesoCocina($proceso);
             }
-
-            $cocina = $this->repositorio->obtenerUbicacionPorNombre(UbicacionCocina::RESTAURANTE->value);
-            $cocinaId = $cocina instanceof Ubicacion ? (int) $cocina->id : null;
 
             foreach ($itemsData as $itemData) {
                 $rawProductoId = $itemData['producto_destino_id'] ?? null;
@@ -81,9 +84,21 @@ final class ProcesarProcesoCocina
                 $pesoTot = is_numeric($itemData['peso_total'] ?? null) ? (float) $itemData['peso_total'] : null;
                 $esMerma = ! empty($itemData['es_merma']);
                 $costoAsignado = is_numeric($itemData['costo_asignado'] ?? null) ? (float) $itemData['costo_asignado'] : 0.0;
+                $varianteDestinoId = is_numeric($itemData['variante_destino_id'] ?? null) ? (int) $itemData['variante_destino_id'] : null;
+                $ubicacionDestinoId = is_numeric($itemData['ubicacion_destino_id'] ?? null) ? (int) $itemData['ubicacion_destino_id'] : null;
 
-                if ($costoAsignado <= 0.0 && $cocinaId !== null) {
-                    $stocks = $this->stockQuery->ejecutar($productoId, $cocinaId);
+                if ($costoAsignado <= 0.0) {
+                    $cocina = $this->repositorio->obtenerUbicacionPorNombre(UbicacionCocina::RESTAURANTE->value);
+
+                    if ($cocina !== null && $varianteDestinoId !== null) {
+                        $stock = $this->repositorio->obtenerStockConLote((int) $cocina->id, $varianteDestinoId);
+                        $costoUnitario = (float) ($stock?->lote->costo_unitario ?? 0.0);
+                        $costoAsignado = round($cant * $costoUnitario, 2);
+                    }
+                }
+
+                if ($costoAsignado <= 0.0) {
+                    $stocks = $this->stockQuery->ejecutar($productoId, 0);
 
                     if ($stocks->isNotEmpty()) {
                         $lotesRaw = $stocks->pluck('lote')->filter(fn ($l) => $l instanceof Lote);
@@ -104,11 +119,13 @@ final class ProcesarProcesoCocina
 
                 $this->repositorio->guardarProcesoItem($proceso, [
                     'producto_destino_id' => $productoId,
+                    'variante_destino_id' => $varianteDestinoId,
                     'cantidad' => $cant,
                     'peso_unitario' => $pesoUnit,
                     'peso_total' => $pesoTot,
                     'es_merma' => $esMerma,
                     'costo_asignado' => $costoAsignado,
+                    'ubicacion_destino_id' => $ubicacionDestinoId,
                 ]);
             }
 

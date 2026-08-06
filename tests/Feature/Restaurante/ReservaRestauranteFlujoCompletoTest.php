@@ -10,7 +10,7 @@ use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
 use App\Events\Reservas\ReservaCreada;
-use App\Interactors\Reservas\CrearReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Clientes\Cliente;

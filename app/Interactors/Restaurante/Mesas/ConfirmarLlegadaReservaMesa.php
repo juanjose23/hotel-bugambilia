@@ -7,7 +7,8 @@ namespace App\Interactors\Restaurante\Mesas;
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
-use App\Interactors\Cuentas\RegistrarPagoCuenta;
+use App\Enums\Restaurante\MotivoTransicionMesa;
+use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Interactors\Restaurante\Cuentas\AbrirCuentaYConsumoRestaurante;
 use App\Interactors\Restaurante\Pedidos\AbrirPedidoMesa;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
@@ -35,6 +36,7 @@ final readonly class ConfirmarLlegadaReservaMesa
         private AbrirCuentaYConsumoRestaurante $abrirCuentaRestaurante,
         private RegistrarPagoCuenta $registrarPago,
         private CuentaRepositorioInterface $cuentas,
+        private CambiarEstadoMesa $cambiarEstadoMesa,
     ) {}
 
     /**
@@ -113,10 +115,8 @@ final readonly class ConfirmarLlegadaReservaMesa
                 $metaLimpia['platos_preordenados_count']
             );
 
-            $this->repositorio->actualizarEspacio($mesa, [
-                'estado' => EstadoEspacio::Ocupado,
-                'meta_datos' => $metaLimpia,
-            ]);
+            $mesaActualizada = $this->cambiarEstadoMesa->ejecutar($mesa->id, EstadoEspacio::Ocupado, MotivoTransicionMesa::LlegadaReserva);
+            $this->repositorio->actualizarEspacio($mesaActualizada, ['meta_datos' => $metaLimpia]);
 
             return $pedido->refresh();
         });
