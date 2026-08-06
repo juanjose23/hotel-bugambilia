@@ -11,7 +11,7 @@ use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Limpieza\LavanderiaProceso;
 use App\Repository\Models\Shared\Stock as SharedStock;
 
-final class ProcesadorEnvioBlancos
+final class ProcesarEnvioBlancos
 {
     public function __construct(
         private readonly EnviarALavanderia $enviarALavanderia,

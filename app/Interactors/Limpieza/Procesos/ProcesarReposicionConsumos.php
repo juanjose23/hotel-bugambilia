@@ -10,7 +10,7 @@ use App\Interactors\Limpieza\Stock\ReabastecerUbicacion;
 use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Shared\Stock as SharedStock;
 
-final class ProcesadorReposicionConsumos
+final class ProcesarReposicionConsumos
 {
     public function __construct(
         private readonly ReabastecerUbicacion $reabastecerUbicacion,
