@@ -6,6 +6,8 @@ namespace App\Filament\Resources\Reservas\Schemas\Reserva\Restaurante;
 
 use App\Enums\Reservas\TipoReserva;
 use App\Filament\Shared\Forms\MesaSelect;
+use App\Interactors\Reservas\Operaciones\UnirMesasReserva;
+use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Reservas\CalcularResumenRestauranteQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
 use Filament\Actions\Action;
@@ -16,11 +18,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
+use Throwable;
 
 class EsquemaReservaRestaurante
 {
@@ -46,6 +50,7 @@ class EsquemaReservaRestaurante
                         ->closeOnDateSelection()
                         ->firstDayOfWeek(1)
                         ->displayFormat('d/m/Y')
+                        ->extraAttributes(['dusk' => 'reserva-fecha'])
                         ->minDate(now('America/Managua')->startOfDay())
                         ->required()
                         ->validationMessages([
@@ -53,7 +58,6 @@ class EsquemaReservaRestaurante
                             'after_or_equal' => 'La fecha de la reservación no puede estar en el pasado.',
                         ])
                         ->default(fn () => now('America/Managua'))
-                        ->disabledOn('edit')
                         ->columnSpan(1),
 
                     TimePicker::make('hora_reserva')
@@ -63,12 +67,12 @@ class EsquemaReservaRestaurante
                         ->native(false)
                         ->seconds(false)
                         ->displayFormat('H:i')
+                        ->extraAttributes(['dusk' => 'reserva-hora'])
                         ->default(fn (): string => now('America/Managua')->format('H:i'))
                         ->required()
                         ->validationMessages([
                             'required' => 'Seleccione la hora de llegada del cliente.',
                         ])
-                        ->disabledOn('edit')
                         ->columnSpan(1),
 
                     Select::make('duracion_horas')
@@ -87,6 +91,7 @@ class EsquemaReservaRestaurante
                         ])
                         ->live()
                         ->native(false)
+                        ->extraAttributes(['dusk' => 'reserva-duracion'])
                         ->columnSpan(1),
 
                     TextInput::make('adultos')
@@ -101,7 +106,7 @@ class EsquemaReservaRestaurante
                             'min' => 'La reserva debe incluir al menos un comensal.',
                         ])
                         ->live()
-                        ->disabledOn('edit')
+                        ->extraInputAttributes(['dusk' => 'reserva-comensales'])
                         ->columnSpan(1),
                 ]),
 
@@ -111,7 +116,7 @@ class EsquemaReservaRestaurante
                 ->columns(2)
                 ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
                 ->schema([
-                    MesaSelect::make(column: 'espacio_id', soloReservables: true)
+                    MesaSelect::make(column: 'espacio_id', soloReservables: true, incluirRestaurante: false, dusk: 'reserva-mesa')
                         ->required(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
                         ->validationMessages([
                             'required' => 'Seleccione la mesa principal de la reservación.',
@@ -221,23 +226,38 @@ class EsquemaReservaRestaurante
                             $adultosCant = is_numeric($adultosVal) ? (int) $adultosVal : 1;
 
                             if ($resumen['capacidad_total'] >= $adultosCant) {
-                                return implode(' + ', $seleccionadas);
+                                return count($seleccionadas) > 1
+                                    ? implode(' + ', $seleccionadas)
+                                    : 'No requiere unión de mesas';
                             }
 
                             return $sugeridas === []
                                 ? implode(' + ', $seleccionadas).' · No hay mesas suficientes disponibles'
                                 : implode(' + ', [...$seleccionadas, ...$sugeridas]).' (propuesta)';
                         })
-                        ->helperText('Las mesas propuestas deben agregarse en Espacios adicionales para confirmar la unión.'),
+                        ->helperText(fn (Get $get): string => self::resumen($get)['mesas_sugeridas'] === []
+                            ? 'Cuando falte capacidad, el sistema propondrá mesas para agregarlas a Espacios adicionales.'
+                            : 'Las mesas propuestas deben agregarse en Espacios adicionales para confirmar la unión.'),
                     Actions::make([
                         Action::make('agregar_sugerencia_mesas')
-                            ->label('Agregar sugerencia')
+                            ->label('Agregar mesa adicional')
                             ->icon(Heroicon::PlusCircle)
                             ->color('gray')
                             ->button()
                             ->visible(fn (Get $schemaGet): bool => self::resumen($schemaGet)['mesas_sugeridas'] !== [])
                             ->action(function (Get $schemaGet, Set $schemaSet): void {
                                 $resumen = self::resumen($schemaGet);
+
+                                if ($resumen['mesas_sugeridas'] === []) {
+                                    Notification::make()
+                                        ->title('No hay mesas disponibles para sugerir')
+                                        ->body('Agregue manualmente una mesa disponible o revise la capacidad solicitada.')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
                                 $actuales = is_array($schemaGet('espacios_adicionales'))
                                     ? array_values($schemaGet('espacios_adicionales'))
                                     : [];
@@ -258,6 +278,72 @@ class EsquemaReservaRestaurante
                                 }
 
                                 $schemaSet('espacios_adicionales', $actuales);
+
+                                Notification::make()
+                                    ->title('Mesas sugeridas agregadas al formulario')
+                                    ->success()
+                                    ->send();
+                            }),
+
+                        Action::make('unir_mesas_reserva')
+                            ->label('Unir mesas ahora')
+                            ->icon(Heroicon::Link)
+                            ->color('warning')
+                            ->button()
+                            ->visible(fn (Get $schemaGet, string $operation): bool => $operation === 'edit'
+                                && is_numeric($schemaGet('espacio_id'))
+                                && self::idsMesasAdicionales($schemaGet) !== [])
+                            ->requiresConfirmation()
+                            ->modalHeading('Unir mesas de la reserva')
+                            ->modalDescription('Se guardarán las mesas adicionales como recursos de la reserva para su día y hora, sin bloquearlas antes de tiempo.')
+                            ->action(function (Get $schemaGet, ?Reserva $record, UnirMesasReserva $unirMesasReserva): void {
+                                if (! $record instanceof Reserva) {
+                                    Notification::make()
+                                        ->title('Guarde la reserva antes de unir mesas')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                if (! is_numeric($schemaGet('espacio_id'))) {
+                                    Notification::make()
+                                        ->title('Seleccione una mesa principal')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                $mesasSecundarias = self::idsMesasAdicionales($schemaGet);
+                                if ($mesasSecundarias === []) {
+                                    Notification::make()
+                                        ->title('Seleccione mesas adicionales')
+                                        ->body('Agregue primero las mesas que desea unir a la reserva.')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                try {
+                                    $unirMesasReserva->ejecutar(
+                                        reserva: $record,
+                                        mesaPrincipalId: (int) $schemaGet('espacio_id'),
+                                        mesasSecundariasIds: $mesasSecundarias,
+                                    );
+
+                                    Notification::make()
+                                        ->title('Mesas agregadas a la reserva')
+                                        ->success()
+                                        ->send();
+                                } catch (Throwable $exception) {
+                                    Notification::make()
+                                        ->title('No se pudieron unir las mesas')
+                                        ->body($exception->getMessage())
+                                        ->danger()
+                                        ->send();
+                                }
                             }),
                     ])
                         ->columnSpanFull(),
@@ -291,6 +377,38 @@ class EsquemaReservaRestaurante
             horas: is_numeric($get('duracion_horas')) ? (int) $get('duracion_horas') : 1,
             espaciosAdicionales: is_array($get('espacios_adicionales')) ? $get('espacios_adicionales') : [],
             itemsPreorden: is_array($get('items_preorden')) ? $get('items_preorden') : [],
+            cobrarTarifaMesa: (bool) $get('cobrar_tarifa_mesa'),
         );
+    }
+
+    public static function necesitaUnionMesas(Get $get): bool
+    {
+        if (! is_numeric($get('espacio_id'))) {
+            return false;
+        }
+
+        $resumen = self::resumen($get);
+        $adultos = is_numeric($get('adultos')) ? (int) $get('adultos') : 1;
+
+        return $adultos > $resumen['capacidad_total'];
+    }
+
+    /**
+     * @return array<int>
+     */
+    private static function idsMesasAdicionales(Get $get): array
+    {
+        $adicionales = is_array($get('espacios_adicionales')) ? $get('espacios_adicionales') : [];
+        $ids = [];
+
+        foreach ($adicionales as $adicional) {
+            if (! is_array($adicional) || ! is_numeric($adicional['espacio_id'] ?? null)) {
+                continue;
+            }
+
+            $ids[] = (int) $adicional['espacio_id'];
+        }
+
+        return array_values(array_unique($ids));
     }
 }

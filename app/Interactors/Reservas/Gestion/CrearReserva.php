@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Reservas;
+namespace App\Interactors\Reservas\Gestion;
 
 use App\BusinessLogic\Reservas\AplicarPromocionReserva;
 use App\BusinessLogic\Reservas\CalcularPeriodoReserva;
@@ -18,6 +18,7 @@ use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Events\Reservas\ReservaCreada;
+use App\Interactors\Reservas\Operaciones\RegistrarCobroInicialReserva;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
@@ -25,6 +26,7 @@ use App\Repository\Queries\Reservas\DisponibilidadRecursoQuery;
 use App\Repository\Queries\Reservas\ObtenerPromocionReservaQuery;
 use App\Repository\Queries\Reservas\ObtenerTarifasReservaQuery;
 use App\Repository\Queries\Reservas\ReservaDisponibilidadQuery;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
 use DateMalformedStringException;
 use DateTimeImmutable;
 use DomainException;
@@ -49,6 +51,7 @@ final readonly class CrearReserva
         private RegistrarCobroInicialReserva $registrarCobroInicial,
         private ValidarFechasReserva $validarFechas,
         private CalcularResumenRestauranteLogica $calcularResumenRestauranteLogica,
+        private ObtenerDatosPedidoFormQuery $datosPedidoForm,
     ) {}
 
     /**
@@ -85,6 +88,16 @@ final readonly class CrearReserva
                 }
             }
 
+            $itemsPreorden = is_array($datos['items_preorden'] ?? null) ? $datos['items_preorden'] : [];
+            if ($tipo === TipoReserva::RESTAURANTE) {
+                $espaciosAdicionales = $this->calcularResumenRestauranteLogica->completarEspaciosSugeridos(
+                    $entidadPrincipalId,
+                    $datos,
+                    $espaciosAdicionales,
+                    $itemsPreorden,
+                );
+            }
+
             $precioPrincipal = $this->obtenerPrecioPrincipal($tipo, $datos, $checkIn, $checkOut);
             $servicios = $this->validarAdicionales->resolverServicios(
                 $serviciosAdicionales,
@@ -103,7 +116,6 @@ final readonly class CrearReserva
 
             $resumenRestaurante = null;
             if ($tipo === TipoReserva::RESTAURANTE) {
-                $itemsPreorden = is_array($datos['items_preorden'] ?? null) ? $datos['items_preorden'] : [];
                 $resumenRestaurante = $this->calcularResumenRestauranteLogica->ejecutar($entidadPrincipalId, $datos, $espaciosAdicionales, $itemsPreorden);
                 $totalResumen = $resumenRestaurante['total'] ?? $resumenRestaurante['subtotal'] ?? 0.0;
                 $subtotal = is_numeric($totalResumen) ? (float) $totalResumen : 0.0;
@@ -137,7 +149,9 @@ final readonly class CrearReserva
 
                 $platoId = (int) $item['plato_id'];
                 $precioVal = $item['precio_unitario'] ?? null;
-                $precio = is_numeric($precioVal) ? (float) $precioVal : 0.0;
+                $precio = is_numeric($precioVal) && (float) $precioVal > 0
+                    ? (float) $precioVal
+                    : ($this->datosPedidoForm->precioActualDePlato($platoId) ?? 0.0);
                 $cantidad = max(1, is_numeric($item['cantidad'] ?? null) ? (int) $item['cantidad'] : 1);
                 $platoModel = Plato::find($platoId);
                 $nombrePlato = $platoModel !== null ? $platoModel->nombre : "Platillo #{$platoId}";
@@ -172,18 +186,19 @@ final readonly class CrearReserva
                 'espacio_id' => $datos['espacio_id'] ?? null,
                 'servicio_id' => $datos['servicio_id'] ?? null,
                 'promocion_id' => $promocion?->id,
+                'moneda_id' => $datos['moneda_id'] ?? null,
                 'fecha_check_in' => $checkIn->format('Y-m-d'),
                 'fecha_check_out' => $checkOut?->format('Y-m-d'),
-                'duracion_unidades' => $unidades,
-                'moneda_id' => $datos['moneda_id'] ?? null,
+                'hora_reserva' => $horaReservaStr,
+                'adultos' => $this->enteroOpcional($datos, 'adultos', 1),
+                'ninos' => $this->enteroOpcional($datos, 'ninos', 0),
                 'subtotal' => $totales['subtotal'],
-                'descuento_monto' => $totales['descuento'],
-                'impuestos_monto' => 0,
+                'descuento' => $totales['descuento'],
                 'total' => $totales['total'],
-                'monto_pagado' => 0,
-                'saldo_pendiente' => $totales['total'],
+                'total_pagado' => 0,
+                'saldo' => $totales['total'],
                 'estado' => EstadoReserva::CONFIRMADA,
-                'observaciones' => $datos['observaciones'] ?? null,
+                'notas' => $datos['notas'] ?? $datos['observaciones'] ?? null,
                 'acompanantes' => $datos['acompanantes'] ?? null,
                 'meta_datos' => $metaDatos,
             ]);

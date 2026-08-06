@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Reservas;
+namespace App\Interactors\Reservas\Gestion;
 
 use App\Enums\Reservas\EstadoReserva;
 use App\Events\Reservas\ReservaConfirmada;

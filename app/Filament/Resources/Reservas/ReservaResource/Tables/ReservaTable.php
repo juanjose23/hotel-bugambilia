@@ -6,10 +6,15 @@ namespace App\Filament\Resources\Reservas\ReservaResource\Tables;
 
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Filament\Resources\Reservas\ReservaResource;
 use App\Filament\Resources\Reservas\Schemas\Reserva\AccionesReserva;
 use App\Filament\Resources\Reservas\Schemas\Reserva\InsigniaEstadoReserva;
 use App\Filament\Shared\Filters\FiltroEstado;
+use App\Repository\Models\Reservas\Reserva;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -105,9 +110,16 @@ class ReservaTable
                 FiltroEstado::make(TipoReserva::class, 'tipo_reserva'),
                 FiltroEstado::make(EstadoReserva::class),
             ])
+            ->recordUrl(fn (Reserva $record): string => ReservaResource::getUrl('view', ['record' => $record]))
             ->recordActions([
-                ...AccionesReserva::make(),
-                EditAction::make()->iconButton(),
+                ViewAction::make()->iconButton(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    ...AccionesReserva::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->color('gray')
+                    ->tooltip('Acciones'),
             ]);
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Reservas;
+namespace App\Interactors\Reservas\Operaciones;
 
 use App\BusinessLogic\Cuentas\CalcularMontoCargo;
 use App\BusinessLogic\Monedas\ConvertirMoneda;
@@ -15,10 +15,10 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Cuentas\AbrirCuenta;
-use App\Interactors\Cuentas\RecalcularCuenta;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
-use App\Interactors\Cuentas\RegistrarPagoCuenta;
+use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
+use App\Interactors\Cuentas\Gestion\AbrirCuenta;
+use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;

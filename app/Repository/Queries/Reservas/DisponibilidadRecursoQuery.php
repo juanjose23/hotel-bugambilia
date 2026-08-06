@@ -16,9 +16,14 @@ final class DisponibilidadRecursoQuery
         return RecursoReservable::query()->lockForUpdate()->findOrFail($recursoId);
     }
 
-    public function existeConflicto(int $recursoId, DateTimeInterface $inicio, DateTimeInterface $fin): bool
-    {
+    public function existeConflicto(
+        int $recursoId,
+        DateTimeInterface $inicio,
+        DateTimeInterface $fin,
+        ?int $reservaExcluidaId = null,
+    ): bool {
         return ReservaDetalle::query()
+            ->when($reservaExcluidaId !== null, fn ($query) => $query->where('reserva_id', '!=', $reservaExcluidaId))
             ->where('reservable_id', $recursoId)
             ->whereNotIn('estado', [EstadoReservaDetalle::CANCELADO, EstadoReservaDetalle::COMPLETADO])
             ->where('fecha_inicio', '<', $fin)

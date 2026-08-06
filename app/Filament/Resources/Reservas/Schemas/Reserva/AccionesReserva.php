@@ -8,8 +8,8 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Filament\Pages\Reservas\CheckInPage;
 use App\Filament\Pages\Reservas\CheckOutPage;
-use App\Interactors\Reservas\CancelarReserva;
-use App\Interactors\Reservas\ConfirmarReserva;
+use App\Interactors\Reservas\Gestion\CancelarReserva;
+use App\Interactors\Reservas\Gestion\ConfirmarReserva;
 use App\Interactors\Restaurante\Mesas\ConfirmarLlegadaReservaMesa;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -41,7 +41,7 @@ class AccionesReserva
 
             Action::make('confirmar_llegada_restaurante')
                 ->label('Confirmar Llegada (Mesa)')
-                ->icon('heroicon-o-user-check')
+                ->icon(Heroicon::UserPlus)
                 ->color('success')
                 ->visible(fn ($record): bool => in_array($record->estado, [EstadoReserva::CONFIRMADA, EstadoReserva::PENDIENTE], true) && $record->tipo_reserva === TipoReserva::RESTAURANTE)
                 ->action(function ($record): void {
