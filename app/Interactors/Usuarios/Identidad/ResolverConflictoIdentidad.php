@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Usuarios;
+namespace App\Interactors\Usuarios\Identidad;
 
 use App\Enums\Usuarios\EstadoConflictoIdentidad;
 use App\Events\Usuarios\ClienteRegistrado;

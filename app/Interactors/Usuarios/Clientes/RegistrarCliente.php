@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Usuarios;
+namespace App\Interactors\Usuarios\Clientes;
 
 use App\BusinessLogic\Usuarios\ResolverIdentidadPersona;
 use App\Enums\Usuarios\EstadoConflictoIdentidad;
@@ -10,6 +10,8 @@ use App\Enums\Usuarios\TipoConflictoIdentidad;
 use App\Events\Usuarios\ClienteRegistrado;
 use App\Events\Usuarios\PersonaConflictoIdentidad;
 use App\Exceptions\YaTieneCuentaException;
+use App\Interactors\Usuarios\Identidad\ActualizarDatosPersona;
+use App\Interactors\Usuarios\Identidad\VincularPersonaExistenteAUser;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\User;
