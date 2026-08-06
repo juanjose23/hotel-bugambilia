@@ -16,7 +16,7 @@ jobs:
         env:
           POSTGRES_DB: hotel_bugambilias_dusk
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: secretpassword
+          POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
         options: >-
@@ -48,7 +48,7 @@ jobs:
 
       - name: Prepare Environment for Dusk
         run: |
-          cp .env.example .env.dusk.local
+          cp .env.dusk .env.dusk.local
           php artisan key:generate --env=dusk
 
       - name: Upgrade Chrome Driver
@@ -64,7 +64,7 @@ jobs:
           DB_PORT: 5432
           DB_DATABASE: hotel_bugambilias_dusk
           DB_USERNAME: postgres
-          DB_PASSWORD: secretpassword
+          DB_PASSWORD: password
         run: |
           php artisan migrate:fresh --env=dusk --force
           php artisan db:seed --class=Database\\Seeders\\DuskSeeder --env=dusk --force
@@ -76,7 +76,7 @@ jobs:
           DB_PORT: 5432
           DB_DATABASE: hotel_bugambilias_dusk
           DB_USERNAME: postgres
-          DB_PASSWORD: secretpassword
+          DB_PASSWORD: password
         run: php artisan serve --port=8000 --env=dusk &
 
       - name: Run Laravel Dusk Tests
@@ -87,7 +87,7 @@ jobs:
           DB_PORT: 5432
           DB_DATABASE: hotel_bugambilias_dusk
           DB_USERNAME: postgres
-          DB_PASSWORD: secretpassword
+          DB_PASSWORD: password
           DUSK_HEADLESS_DISABLED: false
         run: php artisan dusk
 
