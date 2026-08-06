@@ -9,8 +9,8 @@ use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 class ProcesarBlancosLimpieza
 {
     public function __construct(
-        private readonly ProcesadorEnvioBlancos $procesadorEnvioBlancos,
-        private readonly ProcesadorReposicionBlancos $procesadorReposicionBlancos,
+        private readonly ProcesarEnvioBlancos $procesarEnvioBlancos,
+        private readonly ProcesarReposicionBlancos $procesarReposicionBlancos,
     ) {}
 
     /**
@@ -22,12 +22,12 @@ class ProcesarBlancosLimpieza
 
         /** @var array<int|string, int|float|string> $blancosEnviar */
         $blancosEnviar = $data['blancos_enviar'] ?? [];
-        $this->procesadorEnvioBlancos->procesar($blancosEnviar, $tipoDestino, $usuarioId, (int) $ejecucion->id);
+        $this->procesarEnvioBlancos->procesar($blancosEnviar, $tipoDestino, $usuarioId, (int) $ejecucion->id);
 
         /** @var array<int|string, int|float|string> $blancosReponer */
         $blancosReponer = $data['blancos_reponer'] ?? [];
 
-        return $this->procesadorReposicionBlancos->procesar(
+        return $this->procesarReposicionBlancos->procesar(
             $blancosReponer,
             $carritoId,
             $tipoDestino,

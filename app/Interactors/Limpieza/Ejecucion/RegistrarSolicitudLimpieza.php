@@ -49,6 +49,16 @@ class RegistrarSolicitudLimpieza
             }
             // Espacio (mesa) no cambia estado aquí: el caller (CerrarPedidoMesa) ya lo establece vía CambiarEstadoMesa
 
+            $solicitudExistente = SolicitudLimpieza::query()
+                ->where('limpiable_type', $modelClass)
+                ->where('limpiable_id', $modelId)
+                ->whereIn('estado', [EstadoLimpieza::Pendiente, EstadoLimpieza::EnProgreso])
+                ->first();
+
+            if ($solicitudExistente !== null) {
+                return $solicitudExistente;
+            }
+
             $solicitud = SolicitudLimpieza::create([
                 'limpiable_type' => $modelClass,
                 'limpiable_id' => $modelId,
@@ -66,35 +76,65 @@ class RegistrarSolicitudLimpieza
             }
 
             $turno = null;
-            $currentUbicacion = $ubicacion;
-            while ($currentUbicacion) {
+
+            if ($instance instanceof Espacio || $modelClass === Espacio::class) {
                 $turno = Turno::where('estado', true)
-                    ->whereHas('carritos', fn ($q) => $q->where('ubicacion_id', $currentUbicacion->id))
+                    ->where(function ($q) {
+                        $q->where('nombre', 'like', '%restaurante%')
+                            ->orWhere('nombre', 'like', '%comedor%');
+                    })
                     ->first();
 
-                if ($turno) {
-                    break;
+                if (! $turno) {
+                    $turno = Turno::query()->firstOrCreate(
+                        ['nombre' => 'Turno Restaurante'],
+                        [
+                            'hora_inicio' => '06:00:00',
+                            'hora_fin' => '23:00:00',
+                            'estado' => true,
+                        ]
+                    );
                 }
+            }
 
-                $currentUbicacion->loadMissing('padre');
-                $currentUbicacion = $currentUbicacion->padre;
+            if (! $turno) {
+                $currentUbicacion = $ubicacion;
+                while ($currentUbicacion) {
+                    $turno = Turno::where('estado', true)
+                        ->whereHas('carritos', fn ($q) => $q->where('ubicacion_id', $currentUbicacion->id))
+                        ->first();
+
+                    if ($turno) {
+                        break;
+                    }
+
+                    $currentUbicacion->loadMissing('padre');
+                    $currentUbicacion = $currentUbicacion->padre;
+                }
             }
 
             if (! $turno) {
                 $turno = Turno::where('estado', true)->first() ?: Turno::first();
             }
 
-            if ($turno) {
-                LimpiezaEjecucion::create([
-                    'solicitud_id' => $solicitud->id,
-                    'limpiable_type' => $modelClass,
-                    'limpiable_id' => $modelId,
-                    'turno_id' => $turno->id,
-                    'colaborador_id' => null,
-                    'fecha' => now()->toDateString(),
-                    'estado' => EstadoLimpieza::Pendiente,
+            if (! $turno) {
+                $turno = Turno::query()->create([
+                    'nombre' => 'Turno Mañana',
+                    'hora_inicio' => '07:00:00',
+                    'hora_fin' => '15:00:00',
+                    'estado' => true,
                 ]);
             }
+
+            LimpiezaEjecucion::create([
+                'solicitud_id' => $solicitud->id,
+                'limpiable_type' => $modelClass,
+                'limpiable_id' => $modelId,
+                'turno_id' => $turno->id,
+                'colaborador_id' => null,
+                'fecha' => now()->toDateString(),
+                'estado' => EstadoLimpieza::Pendiente,
+            ]);
 
             return $solicitud;
         });

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Stock;
 
 use App\BusinessLogic\Limpieza\Data\ReabastecerUbicacionData;
-use App\Interactors\Inventario\ConsumirStock\ConsumirStock;
+use App\Interactors\Inventario\ConsumirStock;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
