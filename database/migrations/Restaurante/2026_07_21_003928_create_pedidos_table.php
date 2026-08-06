@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo', 20)->unique()->comment('Folio correlativo único de comanda en restaurante');
+            $table->string('codigo', 50)->unique()->comment('Folio correlativo único de comanda en restaurante');
             $table->foreignId('mesa_id')->nullable()->comment('FK a la mesa (espacio) asignada, nullable para room service')->constrained('espacios')->nullOnDelete();
             $table->foreignId('mesero_id')->nullable()->comment('FK al mesero que atiende la comanda')->constrained('colaboradores')->nullOnDelete();
             $table->foreignId('cliente_id')->nullable()->comment('FK al cliente o huésped asignado')->constrained('personas')->nullOnDelete();
