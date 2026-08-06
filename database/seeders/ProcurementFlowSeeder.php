@@ -7,7 +7,7 @@ use App\Enums\Compras\EstadoOrdenCompra;
 use App\Enums\Compras\EstadoRecepcion;
 use App\Enums\Compras\EstadoSolicitud;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Inventario\RegistrarEntradaRecepcion;
+use App\Interactors\Inventario\Recepciones\RegistrarEntradaRecepcion;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Pais;
 use App\Repository\Models\Catalogos\Producto;
@@ -152,11 +152,13 @@ class ProcurementFlowSeeder extends Seeder
                 ],
             ];
 
+            $deptoId = $catalogoIds['DEP_MANTENIMIENTO'] ?? 1;
+
             foreach ($solicitudesBase as $sBase) {
                 $sol = Solicitud::create([
                     'codigo' => $sBase['codigo'],
                     'colaborador_id' => $colaborador->id,
-                    'departamento_solicitante_id' => 1, // DEP_MANTENIMIENTO usualmente
+                    'departamento_solicitante_id' => $deptoId, // DEP_MANTENIMIENTO usualmente
                     'fecha_solicitud' => now()->subDays(rand(1, 10)),
                     'estado' => $sBase['estado'],
                     'motivo' => $sBase['motivo'],
@@ -179,7 +181,7 @@ class ProcurementFlowSeeder extends Seeder
             $solicitudComp = Solicitud::create([
                 'codigo' => 'SOL-COMP-2026',
                 'colaborador_id' => $colaborador->id,
-                'departamento_solicitante_id' => 1,
+                'departamento_solicitante_id' => $deptoId,
                 'fecha_solicitud' => now()->subDays(15),
                 'estado' => EstadoSolicitud::Aprobada,
                 'motivo' => 'Equipamiento tecnológico y mobiliario para el nuevo centro de negocios.',
@@ -331,7 +333,7 @@ class ProcurementFlowSeeder extends Seeder
             $solicitudFull = Solicitud::create([
                 'codigo' => 'SOL-STOCK-2026',
                 'colaborador_id' => $colaborador->id,
-                'departamento_solicitante_id' => 1,
+                'departamento_solicitante_id' => $deptoId,
                 'fecha_solicitud' => now()->subDays(20),
                 'estado' => EstadoSolicitud::Aprobada,
                 'motivo' => 'Reposición de insumos de limpieza y suministros operativos.',
@@ -444,7 +446,7 @@ class ProcurementFlowSeeder extends Seeder
             $solicitudManto = Solicitud::create([
                 'codigo' => 'SOL-INFRA-2026',
                 'colaborador_id' => $colaborador->id,
-                'departamento_solicitante_id' => 1,
+                'departamento_solicitante_id' => $deptoId,
                 'fecha_solicitud' => now()->subDays(5),
                 'estado' => EstadoSolicitud::Aprobada,
                 'motivo' => 'Materiales para remodelación de fachada y área de alberca.',
