@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Cuentas\DividirCuenta;
+use App\Interactors\Cuentas\Gestion\DividirCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;

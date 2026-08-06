@@ -8,8 +8,8 @@ use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Events\Restaurante\PedidoEnviadoACocina;
-use App\Interactors\Cuentas\AbrirCuenta;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
+use App\Interactors\Cuentas\Gestion\AbrirCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Interactors\Restaurante\Cocina\ConsumirIngredientesPedido;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -27,6 +27,7 @@ final class EnviarPedidoACocina
         private readonly RegistrarDetalleCuenta $registrarDetalle,
         private readonly NotificadorRestaurante $notificador,
         private readonly RecalcularTotalesPedido $recalcular,
+        private readonly BloquearItemsPorFaltaStock $bloquearItemsPorFaltaStock,
     ) {}
 
     /**
@@ -56,6 +57,8 @@ final class EnviarPedidoACocina
         if ($pedido->items->isEmpty()) {
             throw new DomainException('No se puede enviar un pedido a cocina sin platillos seleccionados.');
         }
+
+        $this->bloquearItemsPorFaltaStock->ejecutar($pedido);
 
         return DB::transaction(function () use ($pedido): Pedido {
             $procesados = [];

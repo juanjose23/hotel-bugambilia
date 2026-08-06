@@ -57,7 +57,7 @@
 
         <div class="min-w-0">
             <div class="flex items-center gap-2">
-                <h3 class="truncate text-base font-black tracking-tight text-gray-950 dark:text-white">
+                <h3 dusk="mesa-{{ $mesa->id }}-nombre" class="truncate text-base font-black tracking-tight text-gray-950 dark:text-white">
                     {{ $mesa->nombre }}
                 </h3>
 
@@ -87,6 +87,7 @@
     <div class="flex shrink-0 items-center self-start">
         @if ($estadoActualEnum)
             <x-filament::badge
+                dusk="mesa-{{ $mesa->id }}-estado"
                 :color="$estadoActualEnum->getColor()"
                 :icon="$estadoActualEnum->getIcon()"
                 size="sm"

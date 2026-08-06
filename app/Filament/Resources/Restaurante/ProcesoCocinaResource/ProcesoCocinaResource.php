@@ -60,8 +60,7 @@ final class ProcesoCocinaResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return app(VerificarRestauranteActivo::class)->estaActivo()
-            && parent::shouldRegisterNavigation();
+        return false;
     }
 
     public static function canViewAny(): bool

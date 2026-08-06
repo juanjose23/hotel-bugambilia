@@ -24,7 +24,7 @@ return [
         'show_model_path' => true,
         'cluster' => null,
         'tabs' => [
-            'auth' => true,
+            'pages' => true,
             'widgets' => true,
             'resources' => true,
             'custom_permissions' => true,
@@ -55,7 +55,7 @@ return [
     |
     */
 
-    'auth_provider_model' => 'App\\Models\\User',
+    'auth_provider_model' => 'App\\Repository\\Models\\User',
 
     /*
     |--------------------------------------------------------------------------
@@ -193,9 +193,9 @@ return [
     |
     */
 
-    'auth' => [
+    'pages' => [
         'subject' => 'class',
-        'prefix' => 'view',
+        'prefix' => 'page',
         'exclude' => [
             Dashboard::class,
         ],
@@ -265,6 +265,35 @@ return [
         'Activos:ReporteSinAsignacion',
         'Activos:ReporteMantenimientosVencidos',
         'Activos:ReporteHojaHabitacion',
+
+        // Módulo de Limpieza (Páginas y Acciones)
+        'liberar-carrito',
+        'asignar-carrito-limpieza',
+        'Limpieza:ReporteEjecuciones',
+        'Limpieza:ReporteInsumos',
+        'Limpieza:ReporteTurnos',
+        'page_TableroLimpieza',
+        'page_AbastecerCarrito',
+        'page_ControlLavanderia',
+        'page_GestionarCarrito',
+
+        // Módulo de Restaurante (Páginas y Acciones)
+        'Restaurante:ImprimirComanda',
+        'Inventario:ResolverAbastecimientoCocina',
+        'page_GestionMesas',
+        'page_AutoPedido',
+        'page_CocinaPedidos',
+        'page_ConciliacionRecetasCocina',
+        'page_MateriaPrimaCocina',
+        'page_PantallaPedidos',
+        'page_ReportesRestaurante',
+
+        // Módulo de Clientes / Usuarios
+        'Usuarios:VerClientes',
+        'Usuarios:CrearClientes',
+        'Usuarios:EditarClientes',
+        'Usuarios:VerConflictosIdentidad',
+        'Usuarios:ResolverConflictosIdentidad',
     ],
 
     /*
@@ -279,9 +308,9 @@ return [
     */
 
     'discovery' => [
-        'discover_all_resources' => false,
-        'discover_all_widgets' => false,
-        'discover_all_pages' => false,
+        'discover_all_resources' => true,
+        'discover_all_widgets' => true,
+        'discover_all_pages' => true,
     ],
 
     /*

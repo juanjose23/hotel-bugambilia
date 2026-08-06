@@ -72,7 +72,9 @@ final class BuscarClientesQuery
     }
 
     /**
-     * Retorna array formateado [id => 'Nombre (Tipo) · Identificación'] listo para componentes de Filament Select.
+     * Retorna array formateado [persona_id => 'Nombre (Tipo) · Identificación'] listo para componentes de Filament Select.
+     *
+     * Cuentas y pedidos guardan cliente_id como FK a personas, no a clientes.
      *
      * @return array<int, string>
      */
@@ -96,7 +98,7 @@ final class BuscarClientesQuery
                 $identStr = filled($identificacion) ? " · {$identificacion}" : '';
 
                 return [
-                    $cliente->id => "{$nombre}{$tipoStr}{$identStr}",
+                    $persona instanceof Persona ? $persona->id : $cliente->id => "{$nombre}{$tipoStr}{$identStr}",
                 ];
             })
             ->all();

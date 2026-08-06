@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\Schemas\Reserva;
 
+use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Servicios\Servicio;
 use Filament\Forms\Components\Hidden;
@@ -11,6 +13,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 
 class SelectorServiciosAdicionales
@@ -73,14 +76,7 @@ class SelectorServiciosAdicionales
                         Select::make('espacio_id')
                             ->label('Espacio')
                             ->placeholder('Seleccione un espacio')
-                            ->options(fn () => Espacio::query()
-                                ->with('padre.padre')
-                                ->where('reservable', true)
-                                ->where('estado', '!=', 0)
-                                ->orderBy('nombre')
-                                ->get()
-                                ->mapWithKeys(fn (Espacio $espacio) => [$espacio->id => $espacio->getNombreCompleto()])
-                                ->all())
+                            ->options(fn (Get $get): array => self::opcionesEspaciosReservables($get))
                             ->searchable()
                             ->preload()
                             ->native(false)
@@ -94,5 +90,29 @@ class SelectorServiciosAdicionales
                         Hidden::make('cantidad')->default(1),
                     ]),
             ]);
+    }
+
+    /** @return array<int, string> */
+    private static function opcionesEspaciosReservables(Get $get): array
+    {
+        $query = Espacio::query()
+            ->with('padre.padre')
+            ->where('reservable', true)
+            ->where('estado', '!=', 0);
+
+        if ($get('../../tipo_reserva') === TipoReserva::RESTAURANTE->value) {
+            $query->where('tipo', TipoEspacio::MESA->value);
+        }
+
+        $principalId = $get('../../espacio_id');
+        if (is_numeric($principalId)) {
+            $query->whereKeyNot((int) $principalId);
+        }
+
+        return $query
+            ->orderBy('nombre')
+            ->get()
+            ->mapWithKeys(fn (Espacio $espacio): array => [$espacio->id => $espacio->getNombreCompleto()])
+            ->all();
     }
 }

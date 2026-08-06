@@ -88,6 +88,15 @@ class ProductoForm
                             ->required()
                             ->prefixIcon(Heroicon::ArchiveBox)
                             ->helperText('Indica si el producto es perecedero o de larga duración.'),
+                        TextInput::make('rendimiento_porciones')
+                            ->label('Rendimiento de receta')
+                            ->numeric()
+                            ->default(1)
+                            ->minValue(0.01)
+                            ->step(0.01)
+                            ->suffix('porciones')
+                            ->required()
+                            ->helperText('Cuando este producto sea una receta de cocina, indica cuántas porciones rinde la preparación base.'),
                         Textarea::make('descripcion')
                             ->label('Descripción')
                             ->placeholder('Descripción opcional del producto')

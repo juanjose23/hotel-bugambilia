@@ -6,9 +6,11 @@ namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\Limpieza\EstadoLimpieza;
 use App\Enums\Reservas\TipoReserva;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
+use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
 use App\Interactors\Restaurante\Cocina\ReimprimirComanda;
 use App\Interactors\Restaurante\Cuentas\AbrirCuentaYConsumoRestaurante;
 use App\Interactors\Restaurante\Cuentas\AplicarDescuentoCuenta;
@@ -20,6 +22,7 @@ use App\Interactors\Restaurante\Mesas\SepararMesas;
 use App\Interactors\Restaurante\Mesas\UnirMesas;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\User;
@@ -323,11 +326,41 @@ final class GestionMesas extends Page
 
     public function solicitarLimpiezaMesa(int $mesaId): void
     {
+        $mesa = $this->repositorio->obtenerEspacioPorId($mesaId);
+
         $this->cambiarEstadoMesa($mesaId, EstadoEspacio::Sucio);
+
+        if ($mesa !== null) {
+            app(RegistrarSolicitudLimpieza::class)->execute(
+                limpiable: $mesa,
+                prioridad: 'normal',
+                notas: "Limpieza de la mesa '{$mesa->nombre}' solicitada desde la Gestión de Mesas",
+            );
+        }
     }
 
     public function marcarMesaLimpia(int $mesaId): void
     {
+        $mesa = $this->repositorio->obtenerEspacioPorId($mesaId);
+
+        if ($mesa !== null) {
+            $solicitudActiva = SolicitudLimpieza::query()
+                ->where('limpiable_type', $mesa->getMorphClass())
+                ->where('limpiable_id', $mesa->id)
+                ->whereIn('estado', [EstadoLimpieza::Pendiente, EstadoLimpieza::EnProgreso])
+                ->first();
+
+            if ($solicitudActiva !== null) {
+                Notification::make()
+                    ->title('Solicitud de limpieza activa')
+                    ->body("La mesa '{$mesa->nombre}' tiene una solicitud de limpieza activa. Debe ser completada y cerrada desde el Tablero de Limpieza.")
+                    ->warning()
+                    ->send();
+
+                return;
+            }
+        }
+
         $this->cambiarEstadoMesa($mesaId, EstadoEspacio::Disponible);
     }
 

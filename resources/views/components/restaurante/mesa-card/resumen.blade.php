@@ -29,6 +29,7 @@
 
     @if ($tienePedidos)
         <x-filament::button
+            dusk="mesa-{{ $mesa->id }}-ver-comandas"
             type="button"
             wire:click="verComandasMesa({{ $mesa->id }})"
             color="gray"

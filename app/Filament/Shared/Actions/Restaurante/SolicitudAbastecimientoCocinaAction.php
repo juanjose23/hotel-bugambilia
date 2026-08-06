@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Actions\Restaurante;
 
 use App\Interactors\Restaurante\Cocina\CrearSolicitudAbastecimientoCocina;
-use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Queries\Compras\Shared\ObtenerColaboradorDeSesion;
+use App\Repository\Queries\Restaurante\Cocina\ObtenerAbastecimientoInteligenteCocina;
+use DomainException;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -23,8 +26,9 @@ final class SolicitudAbastecimientoCocinaAction
             ->icon('heroicon-o-archive-box-arrow-down')
             ->color('warning')
             ->modalHeading('Solicitud de Abastecimiento para Cocina')
-            ->modalDescription('Cree una solicitud formal de insumos e ingredientes para enviar a Bodega / Compras.')
+            ->modalDescription('Revise las sugerencias calculadas por stock de cocina y pedidos bloqueados antes de enviar a Bodega / Compras.')
             ->modalWidth('2xl')
+            ->fillForm(fn (): array => app(ObtenerAbastecimientoInteligenteCocina::class)->ejecutar())
             ->schema([
                 Textarea::make('motivo')
                     ->label('Motivo / Justificación de la Solicitud')
@@ -40,10 +44,11 @@ final class SolicitudAbastecimientoCocinaAction
                 Repeater::make('items')
                     ->label('Productos / Insumos Requeridos')
                     ->schema([
-                        Select::make('producto_id')
-                            ->label('Producto')
-                            ->options(fn () => Producto::pluck('nombre', 'id')->toArray())
+                        Select::make('producto_variante_id')
+                            ->label('Producto / Variante')
+                            ->options(fn (): array => self::opcionesVariantes())
                             ->searchable()
+                            ->preload()
                             ->required()
                             ->columnSpan(6),
 
@@ -68,15 +73,19 @@ final class SolicitudAbastecimientoCocinaAction
                 $motivo = (string) ($data['motivo'] ?? 'Solicitud desde módulo de cocina');
                 $fechaNecesita = is_string($data['fecha_necesita'] ?? null) ? $data['fecha_necesita'] : null;
 
-                /** @var array<int, array{producto_id: int, cantidad: float, justificacion?: string|null}> $items */
+                /** @var array<int, array{producto_variante_id?: int|null, cantidad: float, justificacion?: string|null}> $items */
                 $items = is_array($data['items'] ?? null) ? $data['items'] : [];
-                $userId = auth()->id() !== null ? (int) auth()->id() : null;
+                $colaborador = app(ObtenerColaboradorDeSesion::class)->ejecutar();
+
+                if ($colaborador === null) {
+                    throw new DomainException('No hay un colaborador asociado al usuario actual.');
+                }
 
                 $solicitud = app(CrearSolicitudAbastecimientoCocina::class)->ejecutar(
                     motivo: $motivo,
                     items: $items,
                     fechaNecesita: $fechaNecesita,
-                    usuarioId: $userId,
+                    colaboradorId: (int) $colaborador->id,
                 );
 
                 Notification::make()
@@ -85,5 +94,24 @@ final class SolicitudAbastecimientoCocinaAction
                     ->success()
                     ->send();
             });
+    }
+
+    /** @return array<int, string> */
+    private static function opcionesVariantes(): array
+    {
+        return ProductoVariante::query()
+            ->with(['producto', 'unidadMedida'])
+            ->where('estado', 1)
+            ->orderBy('codigo')
+            ->get()
+            ->mapWithKeys(function (ProductoVariante $variante): array {
+                $producto = $variante->producto->nombre ?? 'Producto sin nombre';
+                $nombre = $variante->nombre_variante ?: $variante->codigo;
+                $unidad = $variante->unidadMedida?->nombre;
+                $suffix = $unidad !== null ? " ({$unidad})" : '';
+
+                return [(int) $variante->id => "{$producto} - {$nombre}{$suffix}"];
+            })
+            ->all();
     }
 }

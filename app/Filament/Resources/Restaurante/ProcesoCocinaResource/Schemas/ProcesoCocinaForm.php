@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\ProcesoCocinaResource\Schemas;
 
+use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Restaurante\Cocina\ObtenerDatosProcesoCocinaQuery;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -74,6 +77,21 @@ final class ProcesoCocinaForm
                             ->searchable()
                             ->required()
                             ->live()
+                            ->afterStateUpdated(function (mixed $state, Set $set, Get $get) use ($cocinaQuery): void {
+                                $plato = is_numeric($state)
+                                    ? Plato::query()->find((int) $state)
+                                    : null;
+
+                                $set('producto_origen_id', $plato?->producto_receta_id);
+                                $set('cantidad_procesada', 1);
+
+                                if ($plato instanceof Plato) {
+                                    $cantidadPlatos = is_numeric($get('cantidad_platos')) ? (int) $get('cantidad_platos') : 1;
+                                    $items = $cocinaQuery->ingredientesParaPlato((int) $state, $cantidadPlatos);
+                                    $set('items', $items);
+                                    $set('costo_total', round(array_sum(array_column($items, 'costo_asignado')), 2));
+                                }
+                            })
                             ->columnSpan(1),
 
                         TextInput::make('cantidad_platos')
@@ -83,7 +101,27 @@ final class ProcesoCocinaForm
                             ->minValue(1)
                             ->required()
                             ->live()
+                            ->afterStateUpdated(function (mixed $state, Set $set, Get $get) use ($cocinaQuery): void {
+                                $platoId = $get('plato_id');
+
+                                if (! is_numeric($platoId)) {
+                                    return;
+                                }
+
+                                $cantidadPlatos = is_numeric($state) ? (int) $state : 1;
+                                $items = $cocinaQuery->ingredientesParaPlato((int) $platoId, $cantidadPlatos);
+                                $set('items', $items);
+                                $set('costo_total', round(array_sum(array_column($items, 'costo_asignado')), 2));
+                            })
                             ->columnSpan(1),
+
+                        Hidden::make('producto_origen_id')
+                            ->required(),
+
+                        Hidden::make('variante_origen_id'),
+
+                        Hidden::make('cantidad_procesada')
+                            ->default(1),
 
                         Textarea::make('observaciones')
                             ->label('Observaciones Técnicas de Cocina')
@@ -93,19 +131,21 @@ final class ProcesoCocinaForm
                     ]),
 
                 Section::make('Insumos & Ingredientes Utilizados')
-                    ->description('Seleccione los insumos descontados de cocina y especifique mermas técnicas.')
+                    ->description('Registre los insumos o materia prima usados para trazabilidad y costo de preparación.')
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('items')
                             ->relationship('items')
                             ->schema([
                                 Select::make('producto_destino_id')
-                                    ->label('Ingrediente / Insumo')
+                                    ->label('Ingrediente / Materia prima usada')
                                     ->options(fn () => $cocinaQuery->productosDisponibles())
                                     ->searchable()
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function (mixed $state, Set $set, Get $get) use ($cocinaQuery): void {
+                                        $set('variante_destino_id', null);
+
                                         if (is_numeric($state)) {
                                             $precio = $cocinaQuery->costoRealUnitario((int) $state) ?? 0.0;
                                             $rawCant = $get('cantidad');
@@ -115,11 +155,18 @@ final class ProcesoCocinaForm
                                     })
                                     ->columnSpan(4),
 
+                                Select::make('variante_destino_id')
+                                    ->label('Variante')
+                                    ->options(fn (Get $get): array => self::opcionesVariantes($get('producto_destino_id')))
+                                    ->searchable()
+                                    ->preload()
+                                    ->columnSpan(3),
+
                                 TextInput::make('cantidad')
                                     ->label('Cantidad')
                                     ->numeric()
                                     ->default(1)
-                                    ->minValue(0.01)
+                                    ->minValue(0.001)
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function (mixed $state, Set $set, Get $get) use ($cocinaQuery): void {
@@ -143,6 +190,7 @@ final class ProcesoCocinaForm
 
                                 Toggle::make('es_merma')
                                     ->label('Es Merma')
+                                    ->live()
                                     ->columnSpan(1),
 
                                 TextInput::make('costo_asignado')
@@ -154,8 +202,28 @@ final class ProcesoCocinaForm
                             ])
                             ->columns(13)
                             ->defaultItems(0)
-                            ->addActionLabel('Agregar Ingrediente / Insumo'),
+                            ->addActionLabel('Agregar ingrediente / materia prima usada'),
                     ]),
             ]);
+    }
+
+    /** @return array<int, string> */
+    private static function opcionesVariantes(mixed $productoId): array
+    {
+        if (! is_numeric($productoId)) {
+            return [];
+        }
+
+        return ProductoVariante::query()
+            ->where('producto_id', (int) $productoId)
+            ->where('estado', 1)
+            ->orderBy('codigo')
+            ->get()
+            ->mapWithKeys(function (ProductoVariante $variante): array {
+                $nombre = $variante->nombre_variante ?: $variante->codigo;
+
+                return [(int) $variante->id => "{$variante->codigo} - {$nombre}"];
+            })
+            ->all();
     }
 }

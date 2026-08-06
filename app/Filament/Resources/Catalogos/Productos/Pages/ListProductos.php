@@ -5,9 +5,9 @@ namespace App\Filament\Resources\Catalogos\Productos\Pages;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
-use App\Interactors\Catalogos\ExportarProductosInteractor;
-use App\Interactors\Catalogos\ImportarProductos;
-use App\Interactors\Catalogos\Reportes\Productos\GenerarReporteProductosInteractor;
+use App\Interactors\Catalogos\Productos\ExportarProductos;
+use App\Interactors\Catalogos\Productos\GenerarReporteProductos;
+use App\Interactors\Catalogos\Productos\ImportarProductos;
 use App\Jobs\GenerarReporteJob;
 use App\Repository\Models\Catalogos\Producto;
 use App\Support\CachedOptions;
@@ -111,7 +111,7 @@ class ListProductos extends ListRecords
                 ->color('success')
                 ->schema($sharedFilters())
                 ->action(function (array $data) {
-                    $path = app(ExportarProductosInteractor::class)->ejecutar($data);
+                    $path = app(ExportarProductos::class)->ejecutar($data);
 
                     return response()->download($path);
                 }),
@@ -141,7 +141,7 @@ class ListProductos extends ListRecords
 
                             return;
                         }
-                        $pdf = app(GenerarReporteProductosInteractor::class)->simple($data);
+                        $pdf = app(GenerarReporteProductos::class)->simple($data);
 
                         return response()->stream(fn () => print ($pdf->output()), 200, [
                             'Content-Type' => 'application/pdf',
@@ -173,7 +173,7 @@ class ListProductos extends ListRecords
 
                             return;
                         }
-                        $pdf = app(GenerarReporteProductosInteractor::class)->detallado($data);
+                        $pdf = app(GenerarReporteProductos::class)->detallado($data);
 
                         return response()->stream(fn () => print ($pdf->output()), 200, [
                             'Content-Type' => 'application/pdf',
@@ -215,7 +215,7 @@ class ListProductos extends ListRecords
 
                             return;
                         }
-                        $pdf = app(GenerarReporteProductosInteractor::class)->etiquetas($data);
+                        $pdf = app(GenerarReporteProductos::class)->etiquetas($data);
 
                         return response()->stream(fn () => print ($pdf->output()), 200, [
                             'Content-Type' => 'application/pdf',

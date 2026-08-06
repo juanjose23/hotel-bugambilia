@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\Cuentas\MetodoPago;
+use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Interactors\Reservas\Gestion\CambiarEstadoReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
@@ -13,14 +18,22 @@ use App\Repository\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Throwable;
 
 final class ReservasRestoMesSeeder extends Seeder
 {
+    public function __construct(
+        private readonly CrearReserva $crearReserva,
+        private readonly CambiarEstadoReserva $cambiarEstadoReserva,
+    ) {}
+
     public function run(): void
     {
         $habitaciones = Habitacion::activas()->get();
-        $espacios = Espacio::activosWeb()->get();
-        $cliente = User::first();
+        $espacios = Espacio::activosWeb()
+            ->where('tipo', TipoEspacio::MESA)
+            ->get();
+        $cliente = User::query()->first();
 
         $nombresDemo = [
             'Ana María Rodríguez',
@@ -44,24 +57,38 @@ final class ReservasRestoMesSeeder extends Seeder
                 $checkOut = $checkIn->copy()->addDays(rand(1, 3));
                 $nombre = $nombresDemo[$idx % count($nombresDemo)];
 
-                Reserva::create([
-                    'codigo_reserva' => 'RES-HAB-'.strtoupper(Str::random(5)),
-                    'cliente_id' => $cliente?->id,
-                    'nombre_cliente' => $nombre,
-                    'telefono_cliente' => '+505 88'.rand(10, 99).' '.rand(1000, 9999),
-                    'email_cliente' => Str::slug($nombre).'@ejemplo.com',
-                    'tipo_reserva' => TipoReserva::HABITACION,
-                    'habitacion_id' => $habitacion->id,
-                    'fecha_check_in' => $checkIn->format('Y-m-d'),
-                    'fecha_check_out' => $checkOut->format('Y-m-d'),
-                    'adultos' => rand(1, 3),
-                    'ninos' => rand(0, 2),
-                    'estado' => $idx % 2 === 0 ? EstadoReserva::CONFIRMADA : EstadoReserva::PENDIENTE,
-                    'subtotal' => 2800.00,
-                    'descuento' => 0.00,
-                    'total' => 2800.00,
-                    'notas' => 'Reserva demo para estadía en Hotel Bugambilias.',
-                ]);
+                if (Reserva::query()
+                    ->where('tipo_reserva', TipoReserva::HABITACION)
+                    ->where('habitacion_id', $habitacion->id)
+                    ->whereDate('fecha_check_in', $checkIn->format('Y-m-d'))
+                    ->exists()) {
+                    continue;
+                }
+
+                try {
+                    $reserva = $this->crearReserva->ejecutar([
+                        'cliente_id' => $cliente?->id,
+                        'nombre_cliente' => $nombre,
+                        'telefono_cliente' => '+505 88'.rand(10, 99).' '.rand(1000, 9999),
+                        'email_cliente' => Str::slug($nombre).'@ejemplo.com',
+                        'tipo_reserva' => TipoReserva::HABITACION->value,
+                        'habitacion_id' => $habitacion->id,
+                        'fecha_check_in' => $checkIn->format('Y-m-d'),
+                        'fecha_check_out' => $checkOut->format('Y-m-d'),
+                        'adultos' => rand(1, 3),
+                        'ninos' => rand(0, 2),
+                        'tipo_pago_reserva' => TipoPagoReserva::SIN_PAGO->value,
+                        'notas' => 'Reserva demo para estadía en Hotel Bugambilias.',
+                    ]);
+                } catch (Throwable $e) {
+                    $this->command->warn("Reserva demo de habitación omitida: {$e->getMessage()}");
+
+                    continue;
+                }
+
+                if ($idx % 2 === 0) {
+                    $this->cambiarEstadoReserva->ejecutar($reserva, EstadoReserva::CONFIRMADA, null, 'Reserva demo confirmada');
+                }
             }
         }
 
@@ -74,25 +101,57 @@ final class ReservasRestoMesSeeder extends Seeder
                 }
                 $nombre = $nombresDemo[($idx + 2) % count($nombresDemo)];
 
-                Reserva::create([
-                    'codigo_reserva' => 'RES-ESP-'.strtoupper(Str::random(5)),
-                    'cliente_id' => $cliente?->id,
-                    'nombre_cliente' => $nombre,
-                    'telefono_cliente' => '+505 87'.rand(10, 99).' '.rand(1000, 9999),
-                    'email_cliente' => Str::slug($nombre).'@ejemplo.com',
-                    'tipo_reserva' => TipoReserva::RESTAURANTE,
-                    'espacio_id' => $espacio->id,
-                    'fecha_check_in' => $fechaReserva->format('Y-m-d'),
-                    'fecha_check_out' => $fechaReserva->format('Y-m-d'),
-                    'hora_reserva' => '13:00',
-                    'adultos' => rand(2, 6),
-                    'ninos' => rand(0, 2),
-                    'estado' => EstadoReserva::CONFIRMADA,
-                    'subtotal' => 1500.00,
-                    'descuento' => 0.00,
-                    'total' => 1500.00,
-                    'notas' => 'Reserva demo de espacio / ambiente en Hotel Bugambilias.',
-                ]);
+                if (Reserva::query()
+                    ->where('tipo_reserva', TipoReserva::RESTAURANTE)
+                    ->where('espacio_id', $espacio->id)
+                    ->whereDate('fecha_check_in', $fechaReserva->format('Y-m-d'))
+                    ->where('hora_reserva', '13:00')
+                    ->exists()) {
+                    continue;
+                }
+
+                $tipoPago = match ($idx) {
+                    0 => TipoPagoReserva::ABONO_50,
+                    1 => TipoPagoReserva::SIN_PAGO,
+                    default => TipoPagoReserva::SIN_PAGO,
+                };
+                $adultos = match ($idx) {
+                    0 => 2,
+                    1 => 5,
+                    2 => 6,
+                    default => 3,
+                };
+
+                try {
+                    $reserva = $this->crearReserva->ejecutar([
+                        'cliente_id' => $cliente?->id,
+                        'nombre_cliente' => $nombre,
+                        'telefono_cliente' => '+505 87'.rand(10, 99).' '.rand(1000, 9999),
+                        'email_cliente' => Str::slug($nombre).'@ejemplo.com',
+                        'tipo_reserva' => TipoReserva::RESTAURANTE->value,
+                        'espacio_id' => $espacio->id,
+                        'fecha_check_in' => $fechaReserva->format('Y-m-d'),
+                        'fecha_check_out' => $fechaReserva->format('Y-m-d'),
+                        'hora_reserva' => '13:00',
+                        'duracion_horas' => 1,
+                        'adultos' => $adultos,
+                        'ninos' => $idx === 2 ? 1 : 0,
+                        'tipo_pago_reserva' => $tipoPago->value,
+                        'metodo_pago_reserva' => $tipoPago === TipoPagoReserva::SIN_PAGO ? null : MetodoPago::EFECTIVO->value,
+                        'referencia_pago_reserva' => $tipoPago === TipoPagoReserva::SIN_PAGO ? null : 'ABONO-DEMO-REST-'.$idx,
+                        'notas' => $idx === 0
+                            ? 'Reserva demo de restaurante con cobro inicial del 50%.'
+                            : 'Reserva demo de restaurante con validación de mesas por horario.',
+                    ]);
+                } catch (Throwable $e) {
+                    $this->command->warn("Reserva demo de restaurante omitida: {$e->getMessage()}");
+
+                    continue;
+                }
+
+                if ($reserva->refresh()->estado !== EstadoReserva::CONFIRMADA) {
+                    $this->cambiarEstadoReserva->ejecutar($reserva, EstadoReserva::CONFIRMADA, null, 'Reserva demo confirmada');
+                }
             }
         }
     }

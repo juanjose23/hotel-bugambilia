@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use Illuminate\Database\Seeder;
 
@@ -12,13 +14,15 @@ final class RestauranteSeeder extends Seeder
     public function run(): void
     {
         // 1. Crear / Verificar Espacio Principal del Restaurante
-        $espacio = Espacio::firstOrCreate(
+        $espacio = Espacio::updateOrCreate(
             ['codigo' => 'REST-001'],
             [
                 'nombre' => 'Restaurante Bugambilias',
-                'tipo' => 'restaurante',
-                'estado' => 1,
+                'tipo' => TipoEspacio::RESTAURANTE,
+                'estado' => EstadoEspacio::Disponible,
                 'capacidad_personas' => 50,
+                'web' => true,
+                'reservable' => true,
             ]
         );
 
@@ -36,19 +40,23 @@ final class RestauranteSeeder extends Seeder
             ['codigo' => 'BAR-02', 'nombre' => 'Barra 02', 'capacidad' => 1, 'zona' => 'bar', 'tipo_mesa' => 'barra'],
         ];
 
-        foreach ($mesas as $data) {
-            Espacio::firstOrCreate(
+        foreach ($mesas as $index => $data) {
+            Espacio::updateOrCreate(
                 ['codigo' => $data['codigo']],
                 [
                     'nombre' => $data['nombre'],
                     'padre_id' => $espacio->id,
-                    'tipo' => 'mesa',
+                    'tipo' => TipoEspacio::MESA,
                     'capacidad_personas' => $data['capacidad'],
-                    'estado' => 1,
-                    'meta_datos' => json_encode([
+                    'estado' => EstadoEspacio::Disponible,
+                    'web' => true,
+                    'reservable' => true,
+                    'orden' => $index + 1,
+                    'meta_datos' => [
+                        'capacidad_personas' => $data['capacidad'],
                         'tipo_mesa' => $data['tipo_mesa'],
                         'zona_restaurante' => $data['zona'],
-                    ]),
+                    ],
                 ]
             );
         }
@@ -56,11 +64,12 @@ final class RestauranteSeeder extends Seeder
         // 3. Cargar Menú (Categorías, Platillos, Recetas e Insumos)
         $this->call(MenuRestauranteSeeder::class);
 
-        // 4. Cargar Pedidos Demo Activos en Mesas
-        $this->call(PedidoRestauranteSeeder::class);
-
-        // 5. Cargar Reservaciones de Mesas y Espacios
+        // 4. Cargar Reservaciones futuras de Mesas y Espacios.
+        // Las reservas bloquean por fecha/hora en reserva_detalles, no dejan la mesa ocupada permanentemente.
         $this->call(ReservasRestoMesSeeder::class);
+
+        // 5. Cargar Pedidos Demo Activos e Históricos usando el flujo operativo de restaurante.
+        $this->call(PedidoRestauranteSeeder::class);
 
         $this->command->info('Restaurante Bugambilias: Espacio, Mesas, Menú, Pedidos y Reservas creados exitosamente en un solo Seeder unificado.');
     }

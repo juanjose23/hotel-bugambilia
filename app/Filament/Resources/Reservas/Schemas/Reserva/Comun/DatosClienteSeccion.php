@@ -16,6 +16,6 @@ class DatosClienteSeccion
             ->columnSpanFull()
             ->icon(Heroicon::User)
             ->columns(3)
-            ->schema(SelectorCliente::make(columnSpan: 1));
+            ->schema(SelectorCliente::make(columnSpan: 1, dusk: 'reserva-cliente'));
     }
 }

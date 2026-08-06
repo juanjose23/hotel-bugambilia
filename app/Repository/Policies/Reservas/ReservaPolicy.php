@@ -22,12 +22,6 @@ class ReservaPolicy
         return $authUser->can('View:Reserva');
     }
 
-    public function viewVoucher(AuthUser $authUser, Reserva $reserva): bool
-    {
-        return $authUser->can('View:Reserva')
-            || ($reserva->cliente_id !== null && $reserva->cliente_id === $authUser->id);
-    }
-
     public function create(AuthUser $authUser): bool
     {
         return $authUser->can('Create:Reserva');
@@ -41,11 +35,6 @@ class ReservaPolicy
     public function delete(AuthUser $authUser, Reserva $reserva): bool
     {
         return $authUser->can('Delete:Reserva');
-    }
-
-    public function cancel(AuthUser $authUser, Reserva $reserva): bool
-    {
-        return $reserva->cliente_id !== null && $reserva->cliente_id === $authUser->id;
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -76,6 +65,11 @@ class ReservaPolicy
     public function replicate(AuthUser $authUser, Reserva $reserva): bool
     {
         return $authUser->can('Replicate:Reserva');
+    }
+
+    public function cancel(AuthUser $authUser, Reserva $reserva): bool
+    {
+        return $authUser->id === $reserva->cliente_id || $authUser->can('Update:Reserva');
     }
 
     public function reorder(AuthUser $authUser): bool

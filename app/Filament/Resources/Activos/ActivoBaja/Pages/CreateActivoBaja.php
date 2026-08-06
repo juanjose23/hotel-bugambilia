@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Activos\ActivoBaja\Pages;
 
 use App\Enums\Activos\TipoBaja;
 use App\Filament\Resources\Activos\ActivoBaja\ActivoBajaResource;
-use App\Interactors\Activos\DarDeBajaActivo;
+use App\Interactors\Activos\Gestion\DarDeBajaActivo;
 use App\Repository\Models\Activos\ActivoBaja;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;

@@ -110,6 +110,18 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
         return $cuentaCargo;
     }
 
+    public function cuentaCargoPorCodigo(Cuenta $cuenta, string $codigo): ?CuentaCargo
+    {
+        /** @var CuentaCargo|null $cuentaCargo */
+        $cuentaCargo = $cuenta->cargos()
+            ->where('codigo', $codigo)
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->latest('id')
+            ->first();
+
+        return $cuentaCargo;
+    }
+
     public function actualizarCuentaCargo(CuentaCargo $cuentaCargo, array $datos): void
     {
         $cuentaCargo->update($datos);
@@ -133,6 +145,26 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
         $detalle = $cuenta->detalles()->create($datos);
 
         return $detalle;
+    }
+
+    public function detalleActivoConOrigen(Cuenta $cuenta, string $origenType, int $origenId): ?CuentaDetalle
+    {
+        /** @var CuentaDetalle|null $detalle */
+        $detalle = $cuenta->detalles()
+            ->where('origen_type', $origenType)
+            ->where('origen_id', $origenId)
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->latest('id')
+            ->first();
+
+        return $detalle;
+    }
+
+    public function actualizarDetalle(CuentaDetalle $detalle, array $datos): CuentaDetalle
+    {
+        $detalle->update($datos);
+
+        return $detalle->refresh();
     }
 
     public function crearPago(Cuenta $cuenta, array $datos): PagoCuenta

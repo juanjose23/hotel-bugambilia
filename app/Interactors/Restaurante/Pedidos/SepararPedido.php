@@ -6,6 +6,7 @@ namespace App\Interactors\Restaurante\Pedidos;
 
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
@@ -32,12 +33,18 @@ final readonly class SepararPedido
     ): Pedido {
         $estadosTerminales = [
             EstadoPedido::PAGADO,
-            EstadoPedido::CARGADO_A_HABITACION,
+            EstadoPedido::LISTO,
+            EstadoPedido::SERVIDO,
             EstadoPedido::CANCELADO,
         ];
 
         if (in_array($pedidoOriginal->estado, $estadosTerminales, true)) {
             throw new DomainException('No se puede dividir un pedido en estado terminal.');
+        }
+
+        $pedidoOriginal->loadMissing('cuenta');
+        if ($pedidoOriginal->cuenta instanceof Cuenta && ! $pedidoOriginal->cuenta->estaAbierta()) {
+            throw new DomainException('No se puede dividir un pedido con cuenta cerrada.');
         }
 
         if ($itemIds === []) {

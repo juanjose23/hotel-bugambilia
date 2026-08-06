@@ -25,6 +25,7 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property int|null $marca_id
  * @property int $unidad_medida_id
  * @property int $tipo
+ * @property float $rendimiento_porciones
  * @property string|null $tipo_nombre
  * @property string|null $img_base64
  * @property EstadoGeneral $estado
@@ -45,6 +46,7 @@ class Producto extends Model implements AuditableContract
     protected $casts = [
         'tipo' => 'integer',
         'estado' => EstadoGeneral::class,
+        'rendimiento_porciones' => 'decimal:2',
     ];
 
     /** @return BelongsTo<Catalogo, $this> */

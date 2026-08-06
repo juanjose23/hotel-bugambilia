@@ -6,6 +6,7 @@ namespace App\Notifications;
 
 use App\Enums\Notifications\CanalNotificacion;
 use App\Repository\Models\User;
+use Filament\Notifications\DatabaseNotification;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
 
@@ -32,7 +33,7 @@ abstract class NotificadorBase
 
         foreach ($data->channels as $channel) {
             match ($channel) {
-                CanalNotificacion::BaseDeDatos => $notification->sendToDatabase($user),
+                CanalNotificacion::BaseDeDatos => $user->notifyNow(new DatabaseNotification($notification->getDatabaseMessage())),
                 CanalNotificacion::Correo => $this->enviarCorreo($user, $data),
                 CanalNotificacion::TiempoReal => $this->enviarBroadcast($user, $data),
             };

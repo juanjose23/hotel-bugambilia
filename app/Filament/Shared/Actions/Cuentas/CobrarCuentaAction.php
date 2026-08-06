@@ -6,11 +6,15 @@ namespace App\Filament\Shared\Actions\Cuentas;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\MetodoPago;
+use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Filament\Shared\Schemas\Cuentas\CamposCobroPagoForm;
 use App\Filament\Shared\Schemas\Cuentas\ResumenCuentaInfolist;
 use App\Filament\Shared\Schemas\Cuentas\SeccionClienteFacturacionForm;
-use App\Interactors\Cuentas\ProcesarCobroCuenta;
+use App\Interactors\Cuentas\Cobros\ProcesarCobroCuenta;
+use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
+use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
 use App\Repository\Models\Cuentas\Cuenta;
+use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
@@ -18,12 +22,14 @@ use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 
 /**
- * Acción reutilizable de "Cobrar Cuenta" para el panel administrativo.
+ * Acción reutilizable de "Cobrar Cuenta" para el panel administrativo y móvil.
  *
  * Elimina totalmente reactividades circulares en Livewire y renderiza
- * un resumen visual limpio con procesamiento multi-moneda.
+ * un formulario modal optimizado por pestañas para meseros y recepción.
  */
 final class CobrarCuentaAction
 {
@@ -60,7 +66,7 @@ final class CobrarCuentaAction
             ->label('Cobrar Cuenta')
             ->icon('heroicon-o-banknotes')
             ->color('success')
-            ->modalWidth('md')
+            ->modalWidth('2xl')
             ->visible(function (mixed $record = null) use ($resolverCuenta): bool {
                 $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
 
@@ -107,9 +113,27 @@ final class CobrarCuentaAction
                 $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
 
                 return [
-                    ResumenCuentaInfolist::make($cuenta),
-                    CamposCobroPagoForm::make(),
-                    SeccionClienteFacturacionForm::make(),
+                    Tabs::make('modal_cobro_tabs')
+                        ->tabs([
+                            Tab::make('Cobro')
+                                ->icon('heroicon-o-banknotes')
+                                ->schema([
+                                    ResumenCuentaInfolist::makeHeader($cuenta),
+                                    CamposCobroPagoForm::make(),
+                                ]),
+
+                            Tab::make('Consumos')
+                                ->icon('heroicon-o-document-text')
+                                ->schema([
+                                    ResumenCuentaInfolist::make($cuenta),
+                                ]),
+
+                            Tab::make('Facturación')
+                                ->icon('heroicon-o-user')
+                                ->schema([
+                                    SeccionClienteFacturacionForm::make(),
+                                ]),
+                        ]),
                 ];
             })
             ->action(function (array $data, mixed $record = null) use ($resolverCuenta, $onSuccess): void {
@@ -127,8 +151,12 @@ final class CobrarCuentaAction
                 $simboloVuelto = $monedaVuelto->simbolo ?? ($codVuelto === 'USD' ? '$' : 'C$');
 
                 $vueltoTexto = '';
-                if ($montoRecibido > $montoCobrar) {
-                    $diff = $montoRecibido - $montoCobrar;
+                $saldoCuenta = (float) $cuenta->saldo;
+                $pagaCon = $montoRecibido > 0 ? $montoRecibido : $montoCobrar;
+                $montoBaseCobro = $saldoCuenta > 0 ? min($montoCobrar, $saldoCuenta) : $montoCobrar;
+
+                if ($pagaCon > $montoBaseCobro) {
+                    $diff = $pagaCon - $montoBaseCobro;
                     $tasa = TasaCambio::obtenerTasa(now(), 'USD', 'NIO');
                     $monedaPagoId = (int) ($data['moneda_pago_id'] ?? 0);
                     $monedaPago = Moneda::find($monedaPagoId);
@@ -159,6 +187,18 @@ final class CobrarCuentaAction
                             $bodyMsg .= " {$vueltoTexto}.";
                         }
 
+                        $mesa = self::resolverMesaDeCuenta($resultado['cuenta']);
+
+                        if ($mesa instanceof Espacio && $mesa->estado === EstadoEspacio::Ocupado) {
+                            app(CambiarEstadoMesa::class)->ejecutar($mesa->id, EstadoEspacio::Sucio);
+                            app(RegistrarSolicitudLimpieza::class)->execute(
+                                limpiable: $mesa,
+                                prioridad: 'alta',
+                                notas: 'Limpieza solicitada automáticamente tras cobro de comanda.'
+                            );
+                            $bodyMsg .= " La mesa {$mesa->nombre} pasó a estado Pendiente de Limpieza.";
+                        }
+
                         Notification::make()
                             ->title('Cuenta saldada y cerrada')
                             ->body($bodyMsg)
@@ -184,5 +224,19 @@ final class CobrarCuentaAction
                         ->send();
                 }
             });
+    }
+
+    private static function resolverMesaDeCuenta(Cuenta $cuenta): ?Espacio
+    {
+        $pedido = app(CuentaRepositorioInterface::class)->pedidoClienteDeCuenta($cuenta->id);
+
+        if ($pedido !== null) {
+            $pedido->loadMissing('mesa');
+            if ($pedido->mesa instanceof Espacio) {
+                return $pedido->mesa;
+            }
+        }
+
+        return null;
     }
 }

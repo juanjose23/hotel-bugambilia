@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Reservas\ReservaResource\Pages;
 
 use App\Filament\Resources\Reservas\ReservaResource;
-use App\Interactors\Reservas\CrearReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;

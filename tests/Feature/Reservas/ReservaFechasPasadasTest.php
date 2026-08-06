@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Reservas\TipoReserva;
-use App\Interactors\Reservas\CrearReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Catalogos\Ubicacion;

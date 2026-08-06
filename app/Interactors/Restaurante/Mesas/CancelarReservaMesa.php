@@ -6,6 +6,7 @@ namespace App\Interactors\Restaurante\Mesas;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
@@ -21,6 +22,7 @@ final readonly class CancelarReservaMesa
         private RestauranteRepositorioInterface $repositorio,
         private ReservaRepositorioInterface $reservas,
         private ObtenerReservasVigentesMesaQuery $reservasVigentes,
+        private CambiarEstadoMesa $cambiarEstadoMesa,
     ) {}
 
     public function ejecutar(int $mesaId, ?string $motivo = null): void
@@ -47,6 +49,13 @@ final readonly class CancelarReservaMesa
                 }
             }
 
+            if (
+                $mesa->estado === EstadoEspacio::Ocupado
+                && $this->repositorio->obtenerPedidosActivosDeMesa($mesa->id)->isNotEmpty()
+            ) {
+                throw new DomainException("No se puede cancelar/liberar la reserva de la mesa '{$mesa->nombre}' porque tiene pedidos activos.");
+            }
+
             // Si la mesa tenía mesas unidas, separarlas y liberarlas
             $metaUnidas = $meta['mesas_unidas'] ?? null;
             if (is_array($metaUnidas) && $metaUnidas !== []) {
@@ -65,10 +74,8 @@ final readonly class CancelarReservaMesa
                 $metaLimpia['platos_preordenados_count']
             );
 
-            $this->repositorio->actualizarEspacio($mesa, [
-                'estado' => EstadoEspacio::Disponible,
-                'meta_datos' => $metaLimpia,
-            ]);
+            $mesaActualizada = $this->cambiarEstadoMesa->ejecutar($mesa->id, EstadoEspacio::Disponible, MotivoTransicionMesa::CancelacionReserva);
+            $this->repositorio->actualizarEspacio($mesaActualizada, ['meta_datos' => $metaLimpia]);
         });
     }
 }

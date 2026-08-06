@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\BusinessLogic\Inventario\Servicios;
 
 use App\Enums\Inventario\EstadoLote;
-use App\Interactors\Inventario\TrasladarEntreBodegas\TrasladarEntreBodegas;
+use App\Interactors\Inventario\TrasladarEntreBodegas;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Inventario\Stock;
 use Illuminate\Support\Facades\DB;

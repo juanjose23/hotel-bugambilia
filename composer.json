@@ -36,6 +36,7 @@
         "laramint/laravel-brain": "^2.3",
         "larastan/larastan": "^3.9",
         "laravel/boost": "^2.2",
+        "laravel/dusk": "^8.6",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
@@ -93,6 +94,16 @@
             "@lint:check",
             "npm run types:check",
             "@php artisan test"
+        ],
+        "dusk:setup": [
+            "@php artisan migrate:fresh --env=dusk --ansi",
+            "@php artisan db:seed --class=Database\\Seeders\\DuskSeeder --env=dusk --ansi"
+        ],
+        "dusk": [
+            "@php artisan dusk"
+        ],
+        "dusk:fails": [
+            "@php artisan dusk --without-tty"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

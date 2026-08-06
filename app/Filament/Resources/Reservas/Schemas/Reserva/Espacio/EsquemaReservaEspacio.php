@@ -37,7 +37,6 @@ class EsquemaReservaEspacio
                         ->minDate(now('America/Managua')->startOfDay())
                         ->required()
                         ->default(fn () => now('America/Managua'))
-                        ->disabledOn('edit')
                         ->columnSpan(1),
 
                     TimePicker::make('hora_reserva')
@@ -49,7 +48,6 @@ class EsquemaReservaEspacio
                         ->displayFormat('H:i')
                         ->default(fn (): string => now('America/Managua')->format('H:i'))
                         ->required()
-                        ->disabledOn('edit')
                         ->columnSpan(1),
 
                     TextInput::make('adultos')
@@ -58,7 +56,6 @@ class EsquemaReservaEspacio
                         ->default(10)
                         ->minValue(1)
                         ->required()
-                        ->disabledOn('edit')
                         ->columnSpan(1),
                 ]),
 

@@ -21,8 +21,9 @@ final class SelectorCliente
         string $name = 'cliente_id',
         string $label = 'Asignar Cliente',
         string $placeholder = 'Cliente General / Consumidor Final',
+        ?string $dusk = null,
     ): Select {
-        return Select::make($name)
+        $select = Select::make($name)
             ->label($label)
             ->placeholder($placeholder)
             ->selectablePlaceholder(true)
@@ -34,31 +35,40 @@ final class SelectorCliente
                     return $placeholder;
                 }
 
-                $cliente = Cliente::with(['persona.personaNatural', 'persona.personaJuridica', 'tipoCliente'])->find((int) $value);
+                $persona = Persona::query()
+                    ->with(['personaNatural', 'personaJuridica', 'cliente.tipoCliente'])
+                    ->find((int) $value);
 
-                if ($cliente === null) {
+                if (! $persona instanceof Persona) {
+                    $cliente = Cliente::with(['persona.personaNatural', 'persona.personaJuridica', 'tipoCliente'])->find((int) $value);
+                    $persona = $cliente?->persona;
+                }
+
+                if (! $persona instanceof Persona) {
                     return null;
                 }
 
-                $persona = $cliente->persona;
-                $nombre = $persona instanceof Persona ? app(ObtenerNombrePersona::class)->ejecutar($persona) : "Cliente #{$cliente->id}";
-                $tipo = $cliente->tipoCliente?->nombre;
+                $nombre = app(ObtenerNombrePersona::class)->ejecutar($persona);
+                $tipo = $persona->cliente?->tipoCliente?->nombre;
                 $tipoStr = filled($tipo) ? " ({$tipo})" : '';
 
-                $identificacion = null;
-                if ($persona instanceof Persona) {
-                    $natural = $persona->personaNatural;
-                    $juridica = $persona->personaJuridica;
-                    $identificacion = $natural !== null
-                        ? $natural->numero_identificacion
-                        : ($juridica !== null ? $juridica->numero_identificacion : null);
-                }
+                $natural = $persona->personaNatural;
+                $juridica = $persona->personaJuridica;
+                $identificacion = $natural !== null
+                    ? $natural->numero_identificacion
+                    : ($juridica !== null ? $juridica->numero_identificacion : null);
                 $identStr = filled($identificacion) ? " · {$identificacion}" : '';
 
                 return "{$nombre}{$tipoStr}{$identStr}";
             })
             ->preload()
             ->native(false);
+
+        if ($dusk !== null) {
+            $select->extraAttributes(['dusk' => $dusk]);
+        }
+
+        return $select;
     }
 
     /**
@@ -72,20 +82,28 @@ final class SelectorCliente
         string $columnTelefono = 'telefono_cliente',
         string $columnEmail = 'email_cliente',
         int $columnSpan = 1,
+        ?string $dusk = null,
     ): array {
         return [
-            self::single($columnClienteId, 'Cliente registrado', 'Buscar por nombre, RUC, cédula, razón social o código')
+            self::single($columnClienteId, 'Cliente registrado', 'Buscar por nombre, RUC, cédula, razón social o código', $dusk)
                 ->afterStateUpdated(function ($state, Set $set) use ($columnNombre, $columnTelefono, $columnEmail): void {
                     if (! is_numeric($state)) {
                         return;
                     }
 
-                    $cliente = Cliente::with(['persona.personaNatural', 'persona.personaJuridica', 'persona.user'])->find((int) $state);
-                    if ($cliente === null || ! ($cliente->persona instanceof Persona)) {
+                    $persona = Persona::query()
+                        ->with(['personaNatural', 'personaJuridica', 'user'])
+                        ->find((int) $state);
+
+                    if (! $persona instanceof Persona) {
+                        $cliente = Cliente::with('persona')->find((int) $state);
+                        $persona = $cliente?->persona;
+                    }
+
+                    if (! $persona instanceof Persona) {
                         return;
                     }
 
-                    $persona = $cliente->persona;
                     $nombre = app(ObtenerNombrePersona::class)->ejecutar($persona);
                     $telefono = $persona->telefono;
                     $email = $persona->email ?? $persona->user?->email;

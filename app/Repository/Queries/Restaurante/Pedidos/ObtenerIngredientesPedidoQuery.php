@@ -32,7 +32,7 @@ final class ObtenerIngredientesPedidoQuery
         }
 
         $ingredientes = ProductoKit::query()
-            ->with('variante')
+            ->with('variante.producto')
             ->where('producto_padre_id', $productoId)
             ->get();
 
