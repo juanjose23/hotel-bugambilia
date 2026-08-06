@@ -15,7 +15,7 @@
 
 ## Stack Tecnológico
 
-- **Backend**: PHP 8.3+, Laravel 13, Filament 5
+- **Backend**: PHP 8.4+, Laravel 13, Filament 5
 - **Frontend**: Inertia.js v3, React 19, TypeScript, TailwindCSS v4
 - **Base de Datos**: PostgreSQL (producción), SQLite (pruebas)
 

@@ -6,7 +6,7 @@
 
 ## Tech Stack
 
-- **Backend:** PHP ^8.3 · Laravel ^13.17
+- **Backend:** PHP ^8.4 · Laravel ^13.17
 - **Frontend:** React · Vite · TypeScript · Tailwind CSS
 
 ## Architecture
