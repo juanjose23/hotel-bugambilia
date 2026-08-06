@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Usuarios;
+namespace App\Interactors\Usuarios\Identidad;
 
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\User;

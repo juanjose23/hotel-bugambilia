@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Usuarios;
+namespace App\Interactors\Usuarios\Credenciales;
 
 use App\Repository\Models\User;
 use Illuminate\Support\Facades\Hash;
