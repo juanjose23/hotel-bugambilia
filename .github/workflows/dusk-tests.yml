@@ -1,0 +1,102 @@
+name: Laravel Dusk E2E Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  dusk-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: hotel_bugambilias_dusk
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secretpassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_pgsql, bcmath, gd
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Setup Node.js & Compile Assets
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+
+      - name: Prepare Environment for Dusk
+        run: |
+          cp .env.example .env.dusk.local
+          php artisan key:generate --env=dusk
+
+      - name: Upgrade Chrome Driver
+        run: php artisan dusk:chrome-driver 150
+
+      - name: Start Chrome Driver in Background
+        run: ./vendor/laravel/dusk/bin/chromedriver-linux --port=9515 &
+
+      - name: Run Dusk Database Migrations & Seeds
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: hotel_bugambilias_dusk
+          DB_USERNAME: postgres
+          DB_PASSWORD: secretpassword
+        run: |
+          php artisan migrate:fresh --env=dusk --force
+          php artisan db:seed --class=Database\\Seeders\\DuskSeeder --env=dusk --force
+
+      - name: Start Laravel Web Server
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: hotel_bugambilias_dusk
+          DB_USERNAME: postgres
+          DB_PASSWORD: secretpassword
+        run: php artisan serve --port=8000 --env=dusk &
+
+      - name: Run Laravel Dusk Tests
+        env:
+          APP_URL: http://127.0.0.1:8000
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: hotel_bugambilias_dusk
+          DB_USERNAME: postgres
+          DB_PASSWORD: secretpassword
+          DUSK_HEADLESS_DISABLED: false
+        run: php artisan dusk
+
+      - name: Upload Artifacts on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dusk-failure-evidence
+          path: |
+            tests/Browser/screenshots/
+            tests/Browser/console/
+            storage/logs/

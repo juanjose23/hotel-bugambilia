@@ -11,7 +11,7 @@ class ProcesarConsumosLimpieza
 {
     public function __construct(
         private readonly ProcesadorConsumoAmenities $procesadorConsumoAmenities,
-        private readonly ProcesadorReposicionConsumos $procesadorReposicionConsumos,
+        private readonly ProcesarReposicionConsumos $procesarReposicionConsumos,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -23,7 +23,7 @@ class ProcesarConsumosLimpieza
 
         /** @var array<int|string, int|float|string> $consumosReponer */
         $consumosReponer = $data['consumos_reponer'] ?? [];
-        $this->procesadorReposicionConsumos->procesar(
+        $this->procesarReposicionConsumos->procesar(
             $consumosReponer,
             $carritoId,
             $tipoDestino,

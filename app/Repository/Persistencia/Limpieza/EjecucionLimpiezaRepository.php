@@ -16,13 +16,23 @@ final class EjecucionLimpiezaRepository
 
     public function liberarCarrito(LimpiezaEjecucion $ejecucion): void
     {
-        $atributos = ['carrito_id' => null];
+        $atributos = [
+            'carrito_id' => null,
+        ];
 
         if ($ejecucion->estado === EstadoLimpieza::EnProgreso) {
             $atributos['estado'] = EstadoLimpieza::Pendiente;
+            $atributos['colaborador_id'] = null;
             $atributos['hora_inicio'] = null;
         }
 
         $ejecucion->update($atributos);
+
+        if ($ejecucion->solicitud !== null) {
+            $ejecucion->solicitud->update([
+                'estado' => EstadoLimpieza::Pendiente,
+                'personal_id' => null,
+            ]);
+        }
     }
 }

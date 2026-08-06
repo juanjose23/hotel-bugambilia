@@ -30,6 +30,11 @@ class LimpiezaEjecucionSeeder extends Seeder
 
         $horarios = LimpiezaHorario::with('detalles')->get();
 
+        // Límite de carritos ocupados por ejecuciones demo EnProgreso:
+        // siempre se deja al menos un carrito libre para poder usar "Iniciar Limpieza".
+        $carritosEnUso = 0;
+        $maxCarritosEnUso = max(0, $carritos->count() - 1);
+
         $checklistBase = [
             'Tender camas y cambiar sábanas',
             'Sacudir polvo de superficies y mobiliario',
@@ -82,6 +87,11 @@ class LimpiezaEjecucionSeeder extends Seeder
                     ]
                 );
             } elseif ($rand < 6) {
+                $carritoEnProgreso = $carritosEnUso < $maxCarritosEnUso ? $carrito?->id : null;
+                if ($carritoEnProgreso !== null) {
+                    $carritosEnUso++;
+                }
+
                 LimpiezaEjecucion::firstOrCreate(
                     [
                         'horario_id' => $horario->id,
@@ -92,7 +102,7 @@ class LimpiezaEjecucionSeeder extends Seeder
                     [
                         'turno_id' => $horario->turno_id,
                         'colaborador_id' => $colab?->id,
-                        'carrito_id' => $carrito?->id,
+                        'carrito_id' => $carritoEnProgreso,
                         'hora_inicio' => sprintf('%02d:10:00', 10 + ($index % 4)),
                         'hora_fin' => null,
                         'estado' => EstadoLimpieza::EnProgreso,

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repository\Queries\Shared;
 
 use App\Repository\Models\Colaboradores\Colaborador;
-use App\Repository\Models\User;
 
 final class ObtenerColaboradoresLimpieza
 {
@@ -14,15 +13,12 @@ final class ObtenerColaboradoresLimpieza
      */
     public static function opciones(): array
     {
-        $personasIds = User::permission('Update:LimpiezaEjecucion')
-            ->whereNotNull('persona_id')
-            ->distinct()
-            ->pluck('persona_id');
+        $query = Colaborador::query()
+            ->with(['persona.personaNatural', 'persona.personaJuridica'])
+            ->orderBy('id');
 
         /** @var array<int, string> $options */
-        $options = Colaborador::query()
-            ->whereIn('persona_id', $personasIds)
-            ->with(['persona.personaNatural', 'persona.personaJuridica'])
+        $options = $query
             ->get()
             ->mapWithKeys(function (Colaborador $c) {
                 $name = $c->persona

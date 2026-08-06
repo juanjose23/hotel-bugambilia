@@ -24,7 +24,7 @@ final class ReclamarEIniciarLimpieza
     {
         return DB::transaction(function () use ($ejecucionId, $colaboradorId, $carritoId): LimpiezaEjecucion {
             if ($carritoId !== null) {
-                $this->bloquearCarrito->execute($carritoId, $ejecucionId);
+                $this->bloquearCarrito->execute($carritoId, $ejecucionId, $colaboradorId);
             }
 
             $ejecucion = $this->obtenerEjecucion->execute($ejecucionId);

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class TerminarLimpieza
 {
     public function __construct(
-        private readonly FinalizadorEjecucionLimpieza $finalizadorEjecucion,
+        private readonly FinalizarEjecucionLimpieza $finalizarEjecucion,
         private readonly ActualizadorEstadoEspacioLimpieza $actualizadorEstado,
     ) {}
 
@@ -25,7 +25,7 @@ class TerminarLimpieza
             $solicitud = $this->resolveSolicitud($dto->record);
 
             if ($ejecucion) {
-                $this->finalizadorEjecucion->finalizar($ejecucion, $dto);
+                $this->finalizarEjecucion->finalizar($ejecucion, $dto);
             }
 
             if ($solicitud) {

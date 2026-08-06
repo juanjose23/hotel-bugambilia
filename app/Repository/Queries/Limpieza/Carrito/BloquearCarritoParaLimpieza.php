@@ -5,17 +5,23 @@ declare(strict_types=1);
 namespace App\Repository\Queries\Limpieza\Carrito;
 
 use App\BusinessLogic\Limpieza\Exceptions\OperacionLimpiezaNoPermitida;
+use App\Enums\Catalogos\TipoUbicacion;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 
 final class BloquearCarritoParaLimpieza
 {
-    public function execute(int $carritoId, int $ejecucionId): void
+    public function execute(int $carritoId, int $ejecucionId, ?int $colaboradorId = null): void
     {
         $carrito = Ubicacion::query()
             ->whereKey($carritoId)
-            ->where('tipo', 'carrito')
+            ->where(function ($q) {
+                $q->where('tipo', TipoUbicacion::CARRITO->value)
+                    ->orWhere('tipo', 'carrito')
+                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carrito%'])
+                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carro%']);
+            })
             ->lockForUpdate()
             ->first();
 
@@ -23,23 +29,28 @@ final class BloquearCarritoParaLimpieza
             throw new OperacionLimpiezaNoPermitida('El carrito seleccionado no existe o no está disponible.');
         }
 
-        $perteneceAlTurno = LimpiezaEjecucion::query()
-            ->whereKey($ejecucionId)
-            ->whereHas('turno.carritos', fn ($query) => $query->whereKey($carritoId))
-            ->exists();
-
-        if (! $perteneceAlTurno) {
-            throw new OperacionLimpiezaNoPermitida('El carrito seleccionado no pertenece al turno de esta tarea.');
-        }
-
-        $ocupado = LimpiezaEjecucion::query()
-            ->where('estado', EstadoLimpieza::EnProgreso)
+        $ocupadoQuery = LimpiezaEjecucion::query()
             ->where('carrito_id', $carritoId)
             ->whereKeyNot($ejecucionId)
-            ->exists();
+            ->where(function ($query): void {
+                $query
+                    ->where('estado', EstadoLimpieza::EnProgreso)
+                    ->orWhere(function ($pendiente): void {
+                        $pendiente
+                            ->where('estado', EstadoLimpieza::Pendiente)
+                            ->whereDate('fecha', now()->toDateString());
+                    });
+            });
 
-        if ($ocupado) {
-            throw new OperacionLimpiezaNoPermitida('El carrito seleccionado ya está siendo utilizado.');
+        if ($colaboradorId !== null && $colaboradorId > 0) {
+            $ocupadoQuery->where(function ($q) use ($colaboradorId) {
+                $q->where('colaborador_id', '!=', $colaboradorId)
+                    ->orWhereNull('colaborador_id');
+            });
+        }
+
+        if ($ocupadoQuery->exists()) {
+            throw new OperacionLimpiezaNoPermitida('El carrito seleccionado ya está siendo utilizado por otro colaborador.');
         }
     }
 }

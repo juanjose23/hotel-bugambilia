@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Limpieza\Stock;
 
-use App\Interactors\Inventario\ConsumirStock\ConsumirStock;
+use App\Interactors\Inventario\ConsumirStock;
 use App\Repository\Models\Catalogos\ProductoVariante;
 
 class RegistrarConsumoInsumoLimpieza
