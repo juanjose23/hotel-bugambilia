@@ -16,8 +16,16 @@ class ObtenerEstadisticasCarrito
     public function execute(int $carritoId): CarritoEstadisticasData
     {
         $ejecucionActiva = LimpiezaEjecucion::with('colaborador.persona.personaNatural')
-            ->where('estado', EstadoLimpieza::EnProgreso)
             ->where('carrito_id', $carritoId)
+            ->where(function ($query): void {
+                $query
+                    ->where('estado', EstadoLimpieza::EnProgreso)
+                    ->orWhere(function ($pendiente): void {
+                        $pendiente
+                            ->where('estado', EstadoLimpieza::Pendiente)
+                            ->whereDate('fecha', now()->toDateString());
+                    });
+            })
             ->first();
 
         $stockStats = DB::table((new Stock)->getTable())

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Limpieza\Carrito;
 
+use App\Enums\Catalogos\TipoUbicacion;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
@@ -26,7 +27,13 @@ class ListarCarritosDisponibles
             ->pluck('carrito_id')
             ->toArray();
 
-        return Ubicacion::where('tipo', 'carrito')
+        return Ubicacion::query()
+            ->where(function ($q) {
+                $q->where('tipo', TipoUbicacion::CARRITO->value)
+                    ->orWhere('tipo', 'carrito')
+                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carrito%'])
+                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carro%']);
+            })
             ->where('estado', 1)
             ->whereNotIn('id', $assignedCartIds)
             ->get();

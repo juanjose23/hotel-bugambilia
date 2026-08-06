@@ -26,7 +26,13 @@ class ObtenerListadoCarritos
 
         $bloqueadoSub = LimpiezaEjecucion::selectRaw('CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END')
             ->whereColumn('carrito_id', 'ubicaciones.id')
-            ->where('estado', EstadoLimpieza::EnProgreso);
+            ->where(function ($q): void {
+                $q->where('estado', EstadoLimpieza::EnProgreso)
+                    ->orWhere(function ($pendiente): void {
+                        $pendiente->where('estado', EstadoLimpieza::Pendiente)
+                            ->whereDate('fecha', now()->toDateString());
+                    });
+            });
 
         return $query
             ->addSelect([
