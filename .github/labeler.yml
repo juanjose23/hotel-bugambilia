@@ -1,87 +1,250 @@
 # Auto-label PRs based on changed paths
 
 # Modules
+'module: activos':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Activos/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Activos/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Activos/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Activos/**'
+      - any-glob-to-any-file: 'app/Filament/Pages/Activos/**'
+      - any-glob-to-any-file: 'app/Notifications/Activos/**'
+      - any-glob-to-any-file: 'app/Events/Activos/**'
+      - any-glob-to-any-file: 'database/migrations/Activos/**'
+      - any-glob-to-any-file: 'resources/views/filament/resources/activos/**'
+
+'module: auditoria':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Auditoria/**'
+      - any-glob-to-any-file: 'app/Interactors/Audits/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Audits/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Audits/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Auditoria/**'
+      - any-glob-to-any-file: 'database/migrations/Generales/*audit*'
+
+'module: catalogos':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Catalogos/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Catalogos/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Catalogos/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Catalogos/**'
+      - any-glob-to-any-file: 'database/migrations/Catalogos/**'
+      - any-glob-to-any-file: 'database/migrations/**/*producto*'
+      - any-glob-to-any-file: 'resources/views/filament/resources/catalogos/**'
+
+'module: checkin-checkout':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/CheckIn/**'
+      - any-glob-to-any-file: 'app/Interactors/CheckOut/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/CheckIn/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/CheckOut/**'
+
+'module: clientes':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Repository/Models/Clientes/**'
+      - any-glob-to-any-file: 'database/migrations/Usuarios/*cliente*'
+
+'module: colaboradores':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Colaboradores/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Colaboradores/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Colaboradores/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Colaboradores/**'
+      - any-glob-to-any-file: 'database/migrations/Usuarios/*colaborador*'
+      - any-glob-to-any-file: 'resources/views/filament/resources/colaboradores/**'
+
 'module: compras':
   - changed-files:
       - any-glob-to-any-file: 'app/Interactors/Compras/**'
-      - any-glob-to-any-file: 'app/Models/Compras/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Compras/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Compras/**'
       - any-glob-to-any-file: 'app/Filament/Resources/Compras/**'
-      - any-glob-to-any-file: 'database/migrations/*compras*'
+      - any-glob-to-any-file: 'app/Filament/Pages/Compras/**'
+      - any-glob-to-any-file: 'app/Notifications/Compras/**'
+      - any-glob-to-any-file: 'app/Events/Compras/**'
+      - any-glob-to-any-file: 'database/migrations/Compras/**'
+      - any-glob-to-any-file: 'resources/views/filament/resources/compras/**'
 
-'module: inventarios':
+'module: cuentas':
   - changed-files:
-      - any-glob-to-any-file: 'app/Interactors/Inventarios/**'
-      - any-glob-to-any-file: 'app/Models/Inventario/**'
-      - any-glob-to-any-file: 'database/migrations/*inventario*'
-
-'module: habitaciones':
-  - changed-files:
-      - any-glob-to-any-file: 'app/Interactors/Habitaciones/**'
-      - any-glob-to-any-file: 'app/Models/Habitaciones/**'
-      - any-glob-to-any-file: 'database/migrations/*habitacion*'
+      - any-glob-to-any-file: 'app/Interactors/Cuentas/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Cuentas/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Cuentas/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Cuentas/**'
+      - any-glob-to-any-file: 'app/Events/Cuentas/**'
+      - any-glob-to-any-file: 'database/migrations/Cuentas/**'
+      - any-glob-to-any-file: 'database/migrations/**/*cuenta*'
+      - any-glob-to-any-file: 'database/migrations/**/*venta*'
 
 'module: espacios':
   - changed-files:
       - any-glob-to-any-file: 'app/Interactors/Espacios/**'
-      - any-glob-to-any-file: 'app/Models/Espacios/**'
-      - any-glob-to-any-file: 'database/migrations/*espacio*'
+      - any-glob-to-any-file: 'app/Repository/Models/Espacios/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Espacios/**'
+      - any-glob-to-any-file: 'database/migrations/Habitaciones/*espacio*'
+
+'module: estancias':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Repository/Models/Estancias/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Estancias/**'
+      - any-glob-to-any-file: 'database/migrations/Reservas/*estancia*'
+
+'module: habitaciones':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Habitaciones/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Habitaciones/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Habitaciones/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Habitaciones/**'
+      - any-glob-to-any-file: 'database/migrations/Habitaciones/*habitacion*'
+
+'module: huespedes':
+  - changed-files:
+      - any-glob-to-any-file: 'app/BusinessLogic/Huespedes/**'
+
+'module: inventario':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Inventario/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Inventario/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Inventario/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Inventario/**'
+      - any-glob-to-any-file: 'app/Filament/Pages/Inventario/**'
+      - any-glob-to-any-file: 'app/Notifications/Inventario/**'
+      - any-glob-to-any-file: 'app/Events/Inventario/**'
+      - any-glob-to-any-file: 'database/migrations/Inventario/**'
+      - any-glob-to-any-file: 'database/migrations/**/*stock*'
+      - any-glob-to-any-file: 'resources/views/filament/resources/inventario/**'
+
+'module: limpieza':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Limpieza/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Limpieza/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Limpieza/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Limpieza/**'
+      - any-glob-to-any-file: 'app/Filament/Pages/Limpieza/**'
+      - any-glob-to-any-file: 'app/Notifications/Limpieza/**'
+      - any-glob-to-any-file: 'app/Events/Limpieza/**'
+      - any-glob-to-any-file: 'database/migrations/Limpieza/**'
+      - any-glob-to-any-file: 'resources/views/filament/resources/limpieza/**'
+
+'module: monedas':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Monedas/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Monedas/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Monedas/**'
+      - any-glob-to-any-file: 'database/migrations/Generales/*moneda*'
+      - any-glob-to-any-file: 'database/migrations/Generales/*tasa*'
+
+'module: personas':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Personas/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Personas/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Personas/**'
+      - any-glob-to-any-file: 'database/migrations/Usuarios/*persona*'
+
+'module: politicas':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Politicas/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Politicas/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Politicas/**'
+      - any-glob-to-any-file: 'database/migrations/Generales/*politica*'
+
+'module: promociones':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Promociones/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Promociones/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Promociones/**'
+      - any-glob-to-any-file: 'database/migrations/Promociones/**'
+
+'module: reportes':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Reportes/**'
+      - any-glob-to-any-file: 'app/Notifications/Reportes/**'
+      - any-glob-to-any-file: 'app/Exports/**'
+
+'module: reservas':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Reservas/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Reservas/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Reservas/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Reservas/**'
+      - any-glob-to-any-file: 'app/Filament/Pages/Reservas/**'
+      - any-glob-to-any-file: 'app/Notifications/Reservas/**'
+      - any-glob-to-any-file: 'app/Events/Reservas/**'
+      - any-glob-to-any-file: 'database/migrations/Reservas/**'
+      - any-glob-to-any-file: 'resources/views/filament/resources/reservas/**'
+
+'module: restaurante':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Restaurante/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Restaurante/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Restaurante/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Restaurante/**'
+      - any-glob-to-any-file: 'app/Filament/Pages/Restaurante/**'
+      - any-glob-to-any-file: 'app/Notifications/Restaurante/**'
+      - any-glob-to-any-file: 'app/Events/Restaurante/**'
+      - any-glob-to-any-file: 'database/migrations/Restaurante/**'
+      - any-glob-to-any-file: 'database/migrations/**/*pedido*'
+      - any-glob-to-any-file: 'resources/views/filament/resources/restaurante/**'
+      - any-glob-to-any-file: 'resources/views/filament/pages/restaurante/**'
+
+'module: roles':
+  - changed-files:
+      - any-glob-to-any-file: 'app/Interactors/Roles/**'
 
 'module: servicios':
   - changed-files:
       - any-glob-to-any-file: 'app/Interactors/Servicios/**'
-      - any-glob-to-any-file: 'app/Models/Servicios/**'
-      - any-glob-to-any-file: 'database/migrations/*servicio*'
+      - any-glob-to-any-file: 'app/Repository/Models/Servicios/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Servicios/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Servicios/**'
+      - any-glob-to-any-file: 'app/Filament/Pages/Servicios/**'
+      - any-glob-to-any-file: 'database/migrations/Servicios/**'
+      - any-glob-to-any-file: 'resources/views/filament/resources/servicios/**'
 
-'module: activos':
+'module: usuarios':
   - changed-files:
-      - any-glob-to-any-file: 'app/Interactors/Activos/**'
-      - any-glob-to-any-file: 'database/migrations/*activo*'
+      - any-glob-to-any-file: 'app/Interactors/Usuarios/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Usuarios/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Usuarios/**'
+      - any-glob-to-any-file: 'app/Filament/Resources/Usuarios/**'
+      - any-glob-to-any-file: 'app/Notifications/Usuarios/**'
+      - any-glob-to-any-file: 'app/Events/Usuarios/**'
+      - any-glob-to-any-file: 'database/migrations/Usuarios/**'
 
-'module: colaboradores':
+'module: shared':
   - changed-files:
-      - any-glob-to-any-file: 'app/Filament/Resources/Colaboradores/**'
-      - any-glob-to-any-file: 'database/migrations/*colaborador*'
+      - any-glob-to-any-file: 'app/Interactors/Shared/**'
+      - any-glob-to-any-file: 'app/Repository/Models/Shared/**'
+      - any-glob-to-any-file: 'app/Repository/Queries/Shared/**'
+      - any-glob-to-any-file: 'app/BusinessLogic/Shared/**'
+      - any-glob-to-any-file: 'app/Filament/Shared/**'
+      - any-glob-to-any-file: 'app/Events/Shared/**'
 
-'module: catalogos':
+'module: landing':
   - changed-files:
-      - any-glob-to-any-file: 'app/Models/Catalogos/**'
-      - any-glob-to-any-file: 'database/migrations/*catalogo*'
-
-'module: personas':
-  - changed-files:
-      - any-glob-to-any-file: 'app/Models/Personas/**'
-      - any-glob-to-any-file: 'database/migrations/*persona*'
-
-'module: politicas':
-  - changed-files:
-      - any-glob-to-any-file: 'app/Models/Politicas/**'
-      - any-glob-to-any-file: 'app/Filament/Resources/Politicas/**'
-      - any-glob-to-any-file: 'database/migrations/*politica*'
+      - any-glob-to-any-file: 'app/Interactors/Landing/**'
 
 'module: core':
   - changed-files:
-      - any-glob-to-any-file: 'app/Models/**'
-      - any-glob-to-any-file: 'app/Filament/Resources/Shared/**'
-      - any-glob-to-any-file: 'database/migrations/**'
-
-'module: monitoreo':
-  - changed-files:
+      - any-glob-to-any-file: 'app/Actions/**'
+      - any-glob-to-any-file: 'app/Enums/**'
       - any-glob-to-any-file: 'app/Jobs/**'
-      - any-glob-to-any-file: 'app/Helpers/**'
-      - any-glob-to-any-file: 'app/Facades/**'
-      - any-glob-to-any-file: 'app/Observers/**'
-
-'module: limpieza':
-  - changed-files:
-      - any-glob-to-any-file: 'Interactors/Limpieza/**'
-      - any-glob-to-any-file: 'app/Models/Limpieza/**'
-      - any-glob-to-any-file: 'app/Filament/Resources/Habitaciones/SolicitudLimpiezaResource/**'
-      - any-glob-to-any-file: 'database/migrations/*limpieza*'
+      - any-glob-to-any-file: 'app/Listeners/**'
+      - any-glob-to-any-file: 'app/Console/**'
+      - any-glob-to-any-file: 'app/Providers/**'
+      - any-glob-to-any-file: 'app/Services/**'
+      - any-glob-to-any-file: 'app/Support/**'
+      - any-glob-to-any-file: 'app/Presenters/**'
+      - any-glob-to-any-file: 'app/Traits/**'
+      - any-glob-to-any-file: 'app/Exceptions/**'
+      - any-glob-to-any-file: 'app/Http/**'
+      - any-glob-to-any-file: 'database/migrations/Generales/**'
 
 # Types
 'type: filament':
   - changed-files:
       - any-glob-to-any-file: 'app/Filament/**'
+      - any-glob-to-any-file: 'resources/views/filament/**'
 
 'type: migration':
   - changed-files:
@@ -106,3 +269,14 @@
 'type: workflow':
   - changed-files:
       - any-glob-to-any-file: '.github/workflows/**'
+
+'type: frontend':
+  - changed-files:
+      - any-glob-to-any-file: 'resources/js/**'
+      - any-glob-to-any-file: 'resources/css/**'
+
+'type: documentacion':
+  - changed-files:
+      - any-glob-to-any-file: 'Documentacion/**'
+      - any-glob-to-any-file: '*.md'
+      - any-glob-to-any-file: '.github/copilot-instructions.md'
