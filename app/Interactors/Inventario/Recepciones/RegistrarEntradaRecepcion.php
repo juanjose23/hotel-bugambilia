@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario;
+namespace App\Interactors\Inventario\Recepciones;
 
 use App\BusinessLogic\Inventario\Servicios\CreadorLoteRecepcion;
 use App\BusinessLogic\Inventario\Servicios\IndividualizadorAutomaticoRecepcion;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\ConsumirStock;
+namespace App\Interactors\Inventario;
 
 use App\BusinessLogic\Inventario\Servicios\ServicioConsumos;
 use App\Repository\Models\Inventario\Stock;

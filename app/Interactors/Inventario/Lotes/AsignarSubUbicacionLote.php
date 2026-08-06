@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\Lotes\AsignarSubUbicacion;
+namespace App\Interactors\Inventario\Lotes;
 
 use App\BusinessLogic\Inventario\Servicios\ServicioSubUbicacion;
 use App\Repository\Models\Inventario\Lote;

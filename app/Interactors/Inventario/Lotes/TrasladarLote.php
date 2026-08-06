@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\Lotes\Trasladar;
+namespace App\Interactors\Inventario\Lotes;
 
 use App\BusinessLogic\Inventario\Servicios\ServicioTraslados;
 use App\Events\Inventario\LoteTrasladado;

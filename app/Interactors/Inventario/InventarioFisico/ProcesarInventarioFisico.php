@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\InventarioFisico\ProcesarInventarioFisico;
+namespace App\Interactors\Inventario\InventarioFisico;
 
 use App\BusinessLogic\Inventario\ConciliadorInventarioFisico;
 use App\Enums\Inventario\EstadoInventarioFisico;

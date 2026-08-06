@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\Lotes\VerificarCaducidades;
+namespace App\Interactors\Inventario\Lotes;
 
 use App\Enums\Inventario\EstadoLote;
 use App\Notifications\Inventario\NotificadorInventario;
