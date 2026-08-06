@@ -36,9 +36,17 @@ class IniciarLimpieza
             }
 
             if ($ejecucion && $carritoId) {
-                $isBlocked = LimpiezaEjecucion::where('estado', EstadoLimpieza::EnProgreso)
-                    ->where('carrito_id', $carritoId)
+                $isBlocked = LimpiezaEjecucion::where('carrito_id', $carritoId)
                     ->where('id', '!=', $ejecucion->id)
+                    ->where(function ($query): void {
+                        $query
+                            ->where('estado', EstadoLimpieza::EnProgreso)
+                            ->orWhere(function ($pendiente): void {
+                                $pendiente
+                                    ->where('estado', EstadoLimpieza::Pendiente)
+                                    ->whereDate('fecha', now()->toDateString());
+                            });
+                    })
                     ->exists();
 
                 if ($isBlocked) {

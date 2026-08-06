@@ -16,7 +16,7 @@ use App\Repository\Models\Shared\Stock as SharedStock;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritoAsignado;
 use Illuminate\Support\Facades\DB;
 
-class ProcesarOperacionLimpiezaOrquestador
+class ProcesarOperacionLimpieza
 {
     public function __construct(
         private readonly ObtenerCarritoAsignado $obtenerCarritoAsignado,

@@ -14,7 +14,7 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 
-final class FinalizadorEjecucionLimpieza
+final class FinalizarEjecucionLimpieza
 {
     public function __construct(
         private readonly ReabastecerUbicacion $reabastecerUbicacion,
