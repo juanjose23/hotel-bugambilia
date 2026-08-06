@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Catalogos;
+namespace App\Interactors\Catalogos\Productos;
 
 use App\BusinessLogic\Catalogos\ImportadorProductos;
 
