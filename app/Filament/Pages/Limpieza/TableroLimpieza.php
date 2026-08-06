@@ -191,7 +191,7 @@ class TableroLimpieza extends Page implements HasForms
                                     ->default(fn (): ?int => $this->currentColaboradorId)
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(function (callable $set, mixed $state): void {
+                                    ->afterStateUpdated(function (Set $set, mixed $state): void {
                                         if ($state !== null && is_numeric($state)) {
                                             $colabId = (int) $state;
                                             $carritoModel = app(ObtenerCarritoAsignado::class)->execute($colabId);
@@ -351,6 +351,12 @@ class TableroLimpieza extends Page implements HasForms
         $nombre = $this->nombreColaborador->obtenerNombreCompleto($colaborador);
 
         return $nombre !== '' ? $nombre : 'Desconocido';
+    }
+
+    public function tieneColaboradorAsignado(LimpiezaEjecucion $ejecucion): bool
+    {
+        return $ejecucion->colaborador !== null
+            || $ejecucion->solicitud?->personal?->persona?->colaborador !== null;
     }
 
     public function loadMorePendientes(): void
