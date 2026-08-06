@@ -36,17 +36,17 @@ final class EstanciaRelationManager extends RelationManager
                 TextColumn::make('cantidad_llaves')
                     ->label('Llaves')
                     ->numeric(),
-                TextColumn::make('cuenta.numero_folio')
+                TextColumn::make('cuenta.numero_cuenta')
                     ->label('Folio de cuenta')
                     ->placeholder('Sin cuenta'),
                 TextColumn::make('cuenta.estado')
                     ->label('Estado cuenta')
                     ->badge(),
-                TextColumn::make('cuenta.total_cargos')
-                    ->label('Cargos')
+                TextColumn::make('cuenta.total')
+                    ->label('Total')
                     ->money('NIO')
                     ->placeholder('—'),
-                TextColumn::make('cuenta.total_pagos')
+                TextColumn::make('cuenta.total_pagado')
                     ->label('Pagos')
                     ->money('NIO')
                     ->placeholder('—'),

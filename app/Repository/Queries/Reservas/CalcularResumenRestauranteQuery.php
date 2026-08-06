@@ -208,10 +208,6 @@ final readonly class CalcularResumenRestauranteQuery
                     ];
 
                     $capacidadFaltante -= $capacidad;
-
-                    if ($capacidadFaltante <= 0) {
-                        break;
-                    }
                 }
             }
         }

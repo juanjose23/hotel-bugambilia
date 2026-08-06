@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Interactors\CheckIn\RegistrarCheckIn;
 use App\Interactors\CheckOut\RegistrarCheckOut;
-use App\Interactors\Reservas\ConfirmarReserva;
-use App\Interactors\Reservas\CrearReserva;
+use App\Interactors\Reservas\Gestion\ConfirmarReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
@@ -18,6 +20,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\User;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use Database\Factories\Habitaciones\HabitacionFactory;
 use Database\Seeders\CatalogoSeeder;
 use Database\Seeders\CatalogoTipoSeeder;
@@ -72,6 +75,156 @@ test('agrega servicios y espacios adicionales como detalles hijos', function ():
         ->and($detalles->skip(1)->pluck('parent_id')->unique()->all())->toBe([$principal->id])
         ->and((float) $reserva->subtotal)->toBe((float) $detalles->sum('subtotal'))
         ->and((float) $reserva->total)->toBeGreaterThanOrEqual((float) $reserva->subtotal);
+});
+
+test('agrega mesas sugeridas al crear reserva de restaurante con capacidad insuficiente', function (): void {
+    $ambiente = Espacio::query()->create([
+        'codigo' => 'AMB-AUTO-01',
+        'nombre' => 'Ambiente Auto',
+        'tipo' => TipoEspacio::AMBIENTE,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => false,
+        'capacidad_personas' => 0,
+    ]);
+
+    $mesaPrincipal = Espacio::query()->create([
+        'codigo' => 'MESA-AUTO-01',
+        'nombre' => 'Mesa Auto 01',
+        'tipo' => TipoEspacio::MESA,
+        'padre_id' => $ambiente->id,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => true,
+        'capacidad_personas' => 2,
+    ]);
+    $mesaSugerida = Espacio::query()->create([
+        'codigo' => 'MESA-AUTO-02',
+        'nombre' => 'Mesa Auto 02',
+        'tipo' => TipoEspacio::MESA,
+        'padre_id' => $ambiente->id,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => true,
+        'capacidad_personas' => 4,
+    ]);
+    $mesaDisponible = Espacio::query()->create([
+        'codigo' => 'MESA-AUTO-03',
+        'nombre' => 'Mesa Auto 03',
+        'tipo' => TipoEspacio::MESA,
+        'padre_id' => $ambiente->id,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => true,
+        'capacidad_personas' => 4,
+    ]);
+
+    $recursoOcupado = app(ReservaRepositorioInterface::class)->resolverRecurso(TipoReserva::RESTAURANTE, (int) $mesaSugerida->id);
+    $reservaExistente = Reserva::query()->create([
+        'codigo_reserva' => 'RES-MESA-OCUPADA',
+        'nombre_cliente' => 'Reserva ya tomada',
+        'tipo_reserva' => TipoReserva::RESTAURANTE,
+        'espacio_id' => $mesaSugerida->id,
+        'fecha_check_in' => '2026-11-10',
+        'hora_reserva' => '13:00',
+        'adultos' => 4,
+        'estado' => EstadoReserva::CONFIRMADA,
+        'total' => 100,
+    ]);
+    $reservaExistente->detalles()->create([
+        'reservable_id' => $recursoOcupado->id,
+        'estado' => EstadoReservaDetalle::CONFIRMADO,
+        'fecha_inicio' => '2026-11-10 13:00:00',
+        'fecha_fin' => '2026-11-10 15:00:00',
+        'cantidad' => 1,
+        'precio_unitario' => 0,
+        'subtotal' => 0,
+    ]);
+
+    $reserva = app(CrearReserva::class)->ejecutar([
+        'nombre_cliente' => 'Reserva restaurante grupo',
+        'tipo_reserva' => TipoReserva::RESTAURANTE->value,
+        'espacio_id' => $mesaPrincipal->id,
+        'fecha_check_in' => '2026-11-10',
+        'hora_reserva' => '13:00',
+        'duracion_horas' => 2,
+        'adultos' => 6,
+    ]);
+
+    $idsMesasDetalle = $reserva->detalles()
+        ->with('reservable.espacio')
+        ->get()
+        ->map(fn ($detalle): ?int => $detalle->reservable?->espacio?->id)
+        ->filter()
+        ->values()
+        ->all();
+
+    expect($idsMesasDetalle)->toContain((int) $mesaPrincipal->id)
+        ->and($idsMesasDetalle)->not->toContain((int) $mesaSugerida->id)
+        ->and($idsMesasDetalle)->toContain((int) $mesaDisponible->id)
+        ->and($reserva->detalles()->whereNotNull('parent_id')->count())->toBe(1)
+        ->and($mesaSugerida->refresh()->estado)->toBe(EstadoEspacio::Disponible)
+        ->and($mesaDisponible->refresh()->reservable_id)->not->toBeNull();
+});
+
+test('respeta la mesa adicional elegida por el usuario aunque exista otra sugerencia', function (): void {
+    $ambiente = Espacio::query()->create([
+        'codigo' => 'AMB-MANUAL-01',
+        'nombre' => 'Ambiente Manual',
+        'tipo' => TipoEspacio::AMBIENTE,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => false,
+        'capacidad_personas' => 0,
+    ]);
+
+    $mesaPrincipal = Espacio::query()->create([
+        'codigo' => 'MESA-MANUAL-01',
+        'nombre' => 'Mesa Manual 01',
+        'tipo' => TipoEspacio::MESA,
+        'padre_id' => $ambiente->id,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => true,
+        'capacidad_personas' => 2,
+    ]);
+    $mesaSugerible = Espacio::query()->create([
+        'codigo' => 'MESA-MANUAL-02',
+        'nombre' => 'Mesa Manual 02',
+        'tipo' => TipoEspacio::MESA,
+        'padre_id' => $ambiente->id,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => true,
+        'capacidad_personas' => 4,
+    ]);
+    $mesaElegida = Espacio::query()->create([
+        'codigo' => 'MESA-MANUAL-03',
+        'nombre' => 'Mesa Manual 03',
+        'tipo' => TipoEspacio::MESA,
+        'padre_id' => $ambiente->id,
+        'estado' => EstadoEspacio::Disponible,
+        'reservable' => true,
+        'capacidad_personas' => 4,
+    ]);
+
+    $reserva = app(CrearReserva::class)->ejecutar([
+        'nombre_cliente' => 'Reserva restaurante manual',
+        'tipo_reserva' => TipoReserva::RESTAURANTE->value,
+        'espacio_id' => $mesaPrincipal->id,
+        'fecha_check_in' => '2026-11-12',
+        'hora_reserva' => '14:00',
+        'duracion_horas' => 2,
+        'adultos' => 6,
+    ], [], [
+        ['espacio_id' => $mesaElegida->id, 'cantidad' => 1],
+    ]);
+
+    $idsMesasDetalle = $reserva->detalles()
+        ->with('reservable.espacio')
+        ->get()
+        ->map(fn ($detalle): ?int => $detalle->reservable?->espacio?->id)
+        ->filter()
+        ->values()
+        ->all();
+
+    expect($idsMesasDetalle)->toContain((int) $mesaPrincipal->id)
+        ->and($idsMesasDetalle)->toContain((int) $mesaElegida->id)
+        ->and($idsMesasDetalle)->not->toContain((int) $mesaSugerible->id)
+        ->and($mesaElegida->refresh()->reservable_id)->not->toBeNull();
 });
 
 test('calcula el total de la habitación con la tarifa del servidor', function (): void {

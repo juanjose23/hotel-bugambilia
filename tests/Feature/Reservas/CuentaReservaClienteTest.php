@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
-use App\Interactors\Reservas\RegistrarCobroInicialReserva;
+use App\Interactors\Reservas\Operaciones\RegistrarCobroInicialReserva;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;

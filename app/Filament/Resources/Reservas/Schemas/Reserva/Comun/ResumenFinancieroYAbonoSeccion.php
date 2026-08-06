@@ -9,6 +9,7 @@ use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Repository\Queries\Cuentas\ObtenerCargosFacturacionReservaQuery;
+use App\Repository\Queries\Cuentas\ObtenerCuentaReservaQuery;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Monedas\ObtenerMonedasQuery;
 use App\Repository\Queries\Reservas\CalcularVistaPreviaFinancieraReservaQuery;
@@ -83,7 +84,7 @@ final class ResumenFinancieroYAbonoSeccion
                             ->inline()
                             ->columnSpanFull()
                             ->helperText('Para un abono se sugiere el 50 %, pero puede ingresar el monto realmente recibido. El pago completo debe coincidir con el total.')
-                            ->visibleOn('create'),
+                            ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)),
 
                         TextInput::make('monto_pago_reserva')
                             ->label('Monto recibido')
@@ -103,11 +104,8 @@ final class ResumenFinancieroYAbonoSeccion
                                 'numeric' => 'El monto recibido debe ser un número válido.',
                                 'min' => 'El monto recibido debe ser mayor que cero.',
                             ])
-                            ->placeholder(function (Get $get): string {
-                                $resumen = self::calcularResumen($get);
-                                $valor = $get('tipo_pago_reserva');
-                                $tipoPago = is_string($valor) ? TipoPagoReserva::tryFrom($valor) : null;
-                                $montoBase = ($tipoPago ?? TipoPagoReserva::ABONO_50)->monto($resumen['total']);
+                            ->placeholder(function (Get $get, string $operation, $record): string {
+                                $montoBase = self::montoSugeridoPago($get, $operation, $record);
                                 $monedaId = is_numeric($get('moneda_id')) ? (int) $get('moneda_id') : null;
                                 $monto = app(ConvertirMoneda::class)->desdeBase($montoBase, $monedaId);
 
@@ -115,8 +113,8 @@ final class ResumenFinancieroYAbonoSeccion
                             })
                             ->helperText(fn (Get $get): string => $get('tipo_pago_reserva') === TipoPagoReserva::PAGO_COMPLETO->value
                                 ? 'Ingrese el total indicado para dejar la reserva completamente pagada.'
-                                : 'Se muestra como referencia el 50 %; puede registrar el monto realmente entregado por el cliente.')
-                            ->visible(fn (Get $get, string $operation): bool => $operation === 'create'
+                                : 'En edición se sugiere solo el faltante para que el pago acumulado cubra el 50 % del total.')
+                            ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
                                 && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value),
 
                         Select::make('moneda_id')
@@ -131,7 +129,7 @@ final class ResumenFinancieroYAbonoSeccion
                             ])
                             ->live()
                             ->native(false)
-                            ->visible(fn (Get $get, string $operation): bool => $operation === 'create'
+                            ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
                                 && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value),
 
                         Select::make('metodo_pago_reserva')
@@ -142,7 +140,7 @@ final class ResumenFinancieroYAbonoSeccion
                             ->validationMessages([
                                 'required' => 'Seleccione la forma de pago utilizada por el cliente.',
                             ])
-                            ->visible(fn (Get $get, string $operation): bool => $operation === 'create'
+                            ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
                                 && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value)
                             ->native(false),
 
@@ -150,10 +148,10 @@ final class ResumenFinancieroYAbonoSeccion
                             ->label('N° Referencia / Comprobante')
                             ->placeholder('Ej: Voucher #9876, Transf. #1234')
                             ->maxLength(100)
-                            ->visible(fn (Get $get, string $operation): bool => $operation === 'create'
+                            ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
                                 && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value),
                     ])
-                    ->visibleOn('create'),
+                    ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)),
 
                 CheckboxList::make('cargos_facturacion_ids')
                     ->label('Cargos de facturación adicionales')
@@ -199,5 +197,47 @@ final class ResumenFinancieroYAbonoSeccion
         }
 
         return app(CalcularVistaPreviaFinancieraReservaQuery::class)->ejecutar($datos);
+    }
+
+    private static function mostrarCobroInicial(Get $get, string $operation, mixed $record): bool
+    {
+        if ($operation === 'create') {
+            return true;
+        }
+
+        if ($operation !== 'edit' || ! is_object($record) || ! isset($record->id) || ! is_numeric($record->id)) {
+            return false;
+        }
+
+        if (self::montoFaltante50($get, $record) > 0) {
+            return true;
+        }
+
+        return app(ObtenerCuentaReservaQuery::class)->ejecutar((int) $record->id) === null;
+    }
+
+    private static function montoSugeridoPago(Get $get, string $operation, mixed $record): float
+    {
+        $resumen = self::calcularResumen($get);
+        $valor = $get('tipo_pago_reserva');
+        $tipoPago = is_string($valor) ? TipoPagoReserva::tryFrom($valor) : null;
+
+        if ($operation === 'edit' && $record !== null && ($tipoPago ?? TipoPagoReserva::ABONO_50) === TipoPagoReserva::ABONO_50) {
+            return self::montoFaltante50($get, $record);
+        }
+
+        return ($tipoPago ?? TipoPagoReserva::ABONO_50)->monto($resumen['total']);
+    }
+
+    private static function montoFaltante50(Get $get, mixed $record): float
+    {
+        if (! is_object($record)) {
+            return 0.0;
+        }
+
+        $resumen = self::calcularResumen($get);
+        $pagado = (float) ($record->total_pagado ?? 0);
+
+        return round(max(0.0, ((float) $resumen['total'] * 0.5) - $pagado), 2);
     }
 }

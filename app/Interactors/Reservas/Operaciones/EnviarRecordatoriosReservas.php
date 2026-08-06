@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Reservas;
+namespace App\Interactors\Reservas\Operaciones;
 
 use App\Notifications\Reservas\NotificadorReservas;
 use App\Repository\Queries\Reservas\ObtenerDestinatariosRecordatorioReservaQuery;

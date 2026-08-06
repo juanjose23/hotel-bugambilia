@@ -35,7 +35,6 @@ class InformacionGeneralSeccion
                     ->validationMessages([
                         'required' => 'Seleccione el tipo de reserva que desea registrar.',
                     ])
-                    ->disabledOn('edit')
                     ->live()
                     ->native(false)
                     ->columnSpan(1),
