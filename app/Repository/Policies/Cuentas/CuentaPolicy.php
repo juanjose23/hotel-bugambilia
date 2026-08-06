@@ -8,11 +8,7 @@ use App\Repository\Models\Cuentas\Cuenta;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
-/**
- * Policy de acceso al modelo Cuenta unificado.
- * Reemplaza App\Repository\Policies\Estancias\CuentaEstanciaPolicy.
- */
-final class CuentaPolicy
+class CuentaPolicy
 {
     use HandlesAuthorization;
 

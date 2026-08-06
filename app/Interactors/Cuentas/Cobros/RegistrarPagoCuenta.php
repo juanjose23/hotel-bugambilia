@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Cobros;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Events\Cuentas\PagoCuentaRegistrado;
+use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
@@ -55,16 +56,26 @@ final class RegistrarPagoCuenta
             $cuentaBloqueada = $this->cuentas->bloquear((int) $cuenta->id);
             $cuentaBloqueada = $this->recalcularCuenta->ejecutar($cuentaBloqueada, $usuarioId);
             $montoRedondeado = round($monto, 2);
+            $saldoActual = round((float) $cuentaBloqueada->saldo, 2);
 
-            if ($montoRedondeado > round((float) $cuentaBloqueada->saldo, 2)) {
-                throw new DomainException('El pago no puede ser mayor que el saldo pendiente de la cuenta.');
+            $montoAplicado = $montoRedondeado;
+            $vuelto = 0.0;
+
+            if ($montoRedondeado > $saldoActual && $saldoActual > 0) {
+                $montoAplicado = $saldoActual;
+                $vuelto = round($montoRedondeado - $saldoActual, 2);
+            }
+
+            if ($vuelto > 0 && (empty($observaciones) || ! str_contains($observaciones, 'Vuelto'))) {
+                $vueltoTexto = 'Vuelto: C$ '.number_format($vuelto, 2);
+                $observaciones = ! empty($observaciones) ? "{$observaciones} | {$vueltoTexto}" : $vueltoTexto;
             }
 
             $pago = $this->cuentas->crearPago($cuentaBloqueada, [
                 'forma_pago' => $metodoPago,
                 'moneda_id' => $monedaId ?? $cuentaBloqueada->moneda_id,
                 'estado' => $estado,
-                'monto' => $montoRedondeado,
+                'monto' => $montoAplicado,
                 'propina' => round($propina, 2),
                 'referencia_transaccion' => $referenciaTransaccion,
                 'observaciones' => $observaciones,

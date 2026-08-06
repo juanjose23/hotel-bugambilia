@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Gestion;
 
 use App\BusinessLogic\Cuentas\CalcularMontoCargo;
 use App\Enums\Cuentas\TipoCargo;
