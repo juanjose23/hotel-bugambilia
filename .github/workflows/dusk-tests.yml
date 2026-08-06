@@ -48,7 +48,9 @@ jobs:
 
       - name: Prepare Environment for Dusk
         run: |
+          cp .env.dusk .env
           cp .env.dusk .env.dusk.local
+          php artisan key:generate
           php artisan key:generate --env=dusk
 
       - name: Upgrade Chrome Driver
