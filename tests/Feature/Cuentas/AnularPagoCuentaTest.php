@@ -6,9 +6,9 @@ use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Cuentas\TipoCuenta;
-use App\Interactors\Cuentas\AnularPagoCuenta;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
-use App\Interactors\Cuentas\RegistrarPagoCuenta;
+use App\Interactors\Cuentas\Cobros\AnularPagoCuenta;
+use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 
 test('anula un pago correctamente y recalcula el saldo pendiente de la cuenta', function (): void {
