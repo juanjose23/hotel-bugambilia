@@ -6,7 +6,8 @@ namespace App\Interactors\Restaurante\Cocina;
 
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Events\Restaurante\PedidoEnviadoACocina;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
+use App\Interactors\Restaurante\Pedidos\BloquearItemsPorFaltaStock;
 use App\Interactors\Restaurante\Pedidos\RecalcularTotalesPedido;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -23,6 +24,7 @@ final class ReenviarItemsPendientesACocina
         private readonly RegistrarDetalleCuenta $registrarDetalle,
         private readonly NotificadorRestaurante $notificador,
         private readonly RecalcularTotalesPedido $recalcular,
+        private readonly BloquearItemsPorFaltaStock $bloquearItemsPorFaltaStock,
     ) {}
 
     public function ejecutar(Pedido $pedido): Pedido
@@ -36,6 +38,8 @@ final class ReenviarItemsPendientesACocina
         if ($itemsPendientes->isEmpty()) {
             throw new DomainException('No hay items pendientes para reenviar a cocina.');
         }
+
+        $this->bloquearItemsPorFaltaStock->ejecutar($pedido);
 
         return DB::transaction(function () use ($pedido, $itemsPendientes): Pedido {
             $procesados = [];

@@ -50,6 +50,7 @@
         </div>
 
         <button
+            dusk="mesa-{{ $mesa->id }}-separar"
             type="button"
             wire:click="separarMesas({{ $mesa->id }})"
             wire:loading.attr="disabled"

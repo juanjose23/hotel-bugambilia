@@ -10,6 +10,32 @@
         : ('#' . $pedido->codigo);
 
     $mesaNombre = $pedido->getRelation('mesa')?->nombre ?? 'Llevar / Domicilio';
+    $minutosEspera = $pedido->created_at ? $pedido->created_at->diffInMinutes(now()) : 0;
+    $slaNivel = match (true) {
+        $minutosEspera > 20 => 'critico',
+        $minutosEspera > 10 => 'alerta',
+        default => 'normal',
+    };
+    $slaClases = match ($slaNivel) {
+        'critico' => 'border-rose-500/80 dark:border-rose-500/70 bg-rose-50/95 dark:bg-rose-950/30 shadow-rose-900/20 animate-pulse',
+        'alerta' => 'border-amber-400/80 dark:border-amber-500/70 bg-amber-50/95 dark:bg-amber-950/25 shadow-amber-900/10',
+        default => 'border-emerald-300/80 dark:border-emerald-800 bg-white/95 dark:bg-gray-900/95',
+    };
+    $slaBarraClases = match ($slaNivel) {
+        'critico' => 'bg-rose-600',
+        'alerta' => 'bg-amber-500',
+        default => 'bg-emerald-500',
+    };
+    $slaBadgeClases = match ($slaNivel) {
+        'critico' => 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/70 dark:text-rose-200 dark:border-rose-800',
+        'alerta' => 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-800',
+        default => 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-200 dark:border-emerald-800',
+    };
+    $slaTexto = match ($slaNivel) {
+        'critico' => 'Crítico',
+        'alerta' => 'Atención',
+        default => 'En tiempo',
+    };
 @endphp
 
 @if($modo === 'publico')
@@ -28,103 +54,17 @@
             <x-filament::icon icon="heroicon-o-check-circle" class="w-8 h-8 sm:w-10 sm:h-10" />
         </div>
     </div>
-@elseif($modo === 'turno')
-    {{-- MODO TURNO / DESPACHO RESTAURANTE --}}
-    <div class="bg-slate-900/95 dark:bg-gray-900/95 p-4 sm:p-6 rounded-3xl border border-slate-800 dark:border-gray-800 shadow-xl backdrop-blur-lg flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all duration-300">
-        <div>
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
-                <div>
-                    <span class="text-xl sm:text-3xl font-black font-mono text-white tracking-tight">
-                        {{ $numComanda }}
-                    </span>
-                    <span class="text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 ml-2 inline-block">
-                        {{ $mesaNombre }}
-                    </span>
-                </div>
-
-                @if($tiempoTranscurrido)
-                    <div class="text-xs text-slate-400 flex items-center gap-1.5 font-medium bg-slate-800/60 px-2.5 py-1 rounded-xl border border-slate-700/50">
-                        <x-filament::icon icon="heroicon-o-clock" class="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
-                        Hace {{ $tiempoTranscurrido }}
-                    </div>
-                @endif
-            </div>
-
-            <div class="space-y-2 text-xs text-slate-300 pt-3">
-                @foreach($pedido->items as $item)
-                    @php
-                        $estadoItem = $item->estado instanceof \App\Enums\Restaurante\EstadoItemPedido
-                            ? $item->estado
-                            : (is_string($item->estado) ? \App\Enums\Restaurante\EstadoItemPedido::tryFrom($item->estado) : null);
-                    @endphp
-                    <div class="flex justify-between items-center gap-2 p-2 rounded-xl bg-slate-800/40 border border-slate-700/40 hover:bg-slate-800/80 transition-colors">
-                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                            {{-- Estado del Platillo --}}
-                            @if($estadoItem === \App\Enums\Restaurante\EstadoItemPedido::LISTO)
-                                <button
-                                    type="button"
-                                    wire:click="marcarItemServido({{ $item->id }})"
-                                    title="Marcar como servido al cliente"
-                                    class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm"
-                                >
-                                    <x-filament::icon icon="heroicon-o-check-badge" class="w-3.5 h-3.5" />
-                                </button>
-                            @elseif($estadoItem === \App\Enums\Restaurante\EstadoItemPedido::SERVIDO)
-                                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
-                                    <x-filament::icon icon="heroicon-o-check-badge" class="w-3.5 h-3.5" />
-                                </span>
-                            @elseif($estadoItem === \App\Enums\Restaurante\EstadoItemPedido::EN_PREPARACION)
-                                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
-                            @else
-                                <span class="w-2.5 h-2.5 rounded-full bg-slate-600 shrink-0"></span>
-                            @endif
-
-                            <div class="truncate">
-                                <span class="truncate font-semibold text-slate-100 text-xs sm:text-sm block">
-                                    {{ $item->getRelation('plato')?->nombre ?? 'Platillo' }}
-                                </span>
-                                @if($item->observaciones)
-                                    <span class="text-[10px] text-amber-300 font-medium block truncate">
-                                        {{ $item->observaciones }}
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <span class="font-extrabold text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-lg shrink-0">
-                            ×{{ (int) $item->cantidad }}
-                        </span>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- Acción Cobrar --}}
-        <div class="pt-3 border-t border-slate-800">
-            <button
-                type="button"
-                wire:click="iniciarCobroPedido({{ $pedido->id }})"
-                wire:loading.attr="disabled"
-                wire:target="iniciarCobroPedido({{ $pedido->id }})"
-                class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-xs sm:text-sm font-black text-white shadow-lg shadow-emerald-950/40 transition-all hover:from-emerald-500 hover:to-teal-500 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-            >
-                <x-filament::icon icon="heroicon-o-banknotes" class="w-4 h-4" />
-                <span wire:loading.remove wire:target="iniciarCobroPedido({{ $pedido->id }})">Cobrar / Pagar Cuenta</span>
-                <span wire:loading wire:target="iniciarCobroPedido({{ $pedido->id }})">Procesando…</span>
-            </button>
-        </div>
-    </div>
 @else
-    {{-- MODO KDS / COCINA & ADMINISTRACIÓN --}}
+    {{-- MODO KDS / COCINA & TURNO & DESPACHO --}}
     @php
         $estadoObj = $pedido->estado instanceof \App\Enums\Restaurante\EstadoPedido 
             ? $pedido->estado 
             : (is_string($pedido->estado) ? \App\Enums\Restaurante\EstadoPedido::tryFrom($pedido->estado) : null);
     @endphp
 
-    <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 p-4 sm:p-6 shadow-lg backdrop-blur-md flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 relative overflow-hidden group">
+    <div dusk="kds-pedido-{{ $pedido->id }}" class="rounded-3xl border {{ $slaClases }} p-4 sm:p-6 shadow-lg backdrop-blur-md flex flex-col justify-between space-y-4 hover:shadow-xl transition-all duration-300 relative overflow-hidden group bg-white/95 dark:bg-gray-900/95">
         {{-- Barra superior de acento según estado --}}
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500"></div>
+        <div class="absolute top-0 left-0 right-0 h-1.5 {{ $slaBarraClases }}"></div>
 
         <div>
             {{-- Encabezado --}}
@@ -133,7 +73,7 @@
                     <h3 class="font-black text-lg sm:text-xl text-gray-900 dark:text-white tracking-tight font-mono">
                         {{ $numComanda }}
                     </h3>
-                    <div class="flex items-center gap-2 mt-1.5">
+                    <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                         <span class="text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded-xl">
                             {{ $mesaNombre }}
                         </span>
@@ -143,6 +83,9 @@
                                 {{ $tiempoTranscurrido }}
                             </span>
                         @endif
+                        <span class="text-xs flex items-center gap-1 font-bold px-2 py-0.5 rounded-lg border {{ $slaBadgeClases }}">
+                            {{ $slaTexto }} · {{ $minutosEspera }} min
+                        </span>
                     </div>
                 </div>
 
@@ -166,6 +109,7 @@
                                     </span>
                                 @elseif($estadoItemEnum === \App\Enums\Restaurante\EstadoItemPedido::LISTO)
                                     <button
+                                        dusk="kds-item-{{ $item->id }}-servido"
                                         type="button"
                                         wire:click="marcarItemServido({{ $item->id }})"
                                         title="Marcar como servido al cliente"
@@ -175,23 +119,28 @@
                                     </button>
                                 @elseif($estadoItemEnum === \App\Enums\Restaurante\EstadoItemPedido::EN_PREPARACION)
                                     <div class="flex items-center gap-1.5 shrink-0 mt-0.5">
-                                        <button
-                                            type="button"
-                                            wire:click="marcarItemListo({{ $item->id }})"
-                                            title="Marcar como listo para servir"
-                                            class="w-6 h-6 rounded-full border border-emerald-500/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-xs"
-                                        >
-                                            <x-filament::icon icon="heroicon-o-check" class="w-3.5 h-3.5" />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            wire:click="anularItemPedido({{ $item->id }})"
-                                            title="Anular plato"
-                                            wire:confirm="¿Anular este plato?"
-                                            class="w-6 h-6 rounded-full border border-rose-400/60 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-xs"
-                                        >
-                                            <x-filament::icon icon="heroicon-o-x-mark" class="w-3.5 h-3.5" />
-                                        </button>
+                                        @if($modo === 'kds')
+                                    <button
+                                        dusk="kds-item-{{ $item->id }}-listo"
+                                        type="button"
+                                        wire:click="marcarItemListo({{ $item->id }})"
+                                        title="Marcar como listo para servir"
+                                                class="w-6 h-6 rounded-full border border-emerald-500/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-xs"
+                                            >
+                                                <x-filament::icon icon="heroicon-o-check" class="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                wire:click="anularItemPedido({{ $item->id }})"
+                                                title="Anular plato"
+                                                wire:confirm="¿Anular este plato?"
+                                                class="w-6 h-6 rounded-full border border-rose-400/60 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-xs"
+                                            >
+                                                <x-filament::icon icon="heroicon-o-x-mark" class="w-3.5 h-3.5" />
+                                            </button>
+                                        @else
+                                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+                                        @endif
                                     </div>
                                 @else
                                     <span class="w-6 h-6 rounded-full border border-gray-300 dark:border-gray-700 flex items-center justify-center shrink-0 mt-0.5">
@@ -222,31 +171,47 @@
 
         {{-- Acciones --}}
         <div class="pt-3 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-            @if($pedido->estado === \App\Enums\Restaurante\EstadoPedido::ABIERTO)
+            @if($modo === 'turno')
+                <button
+                    dusk="kds-pedido-{{ $pedido->id }}-cobrar"
+                    type="button"
+                    wire:click="iniciarCobroPedido({{ $pedido->id }})"
+                    wire:loading.attr="disabled"
+                    wire:target="iniciarCobroPedido({{ $pedido->id }})"
+                    class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs sm:text-sm font-black py-3 px-4 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                >
+                    <x-filament::icon icon="heroicon-o-banknotes" class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="iniciarCobroPedido({{ $pedido->id }})">Cobrar / Pagar Cuenta</span>
+                    <span wire:loading wire:target="iniciarCobroPedido({{ $pedido->id }})">Procesando…</span>
+                </button>
+            @else
+                @if($pedido->estado === \App\Enums\Restaurante\EstadoPedido::ABIERTO)
+                    <x-filament::button
+                        dusk="kds-pedido-{{ $pedido->id }}-preparar"
+                        wire:click="prepararAlimento({{ $pedido->id }})"
+                        color="warning"
+                        icon="heroicon-o-fire"
+                        size="sm"
+                        class="w-full sm:w-auto text-xs font-bold"
+                    >
+                        Preparar
+                    </x-filament::button>
+                @else
+                    <span class="hidden sm:block"></span>
+                @endif
+
                 <x-filament::button
-                    wire:click="prepararAlimento({{ $pedido->id }})"
-                    color="warning"
-                    icon="heroicon-o-fire"
+                    tag="a"
+                    href="{{ route('admin.restaurante.comanda', ['pedido' => $pedido->id]) }}"
+                    target="_blank"
+                    color="gray"
+                    icon="heroicon-o-printer"
                     size="sm"
                     class="w-full sm:w-auto text-xs font-bold"
                 >
-                    Preparar
+                    Imprimir Comanda
                 </x-filament::button>
-            @else
-                <span class="hidden sm:block"></span>
             @endif
-
-            <x-filament::button
-                tag="a"
-                href="{{ route('admin.restaurante.comanda', ['pedido' => $pedido->id]) }}"
-                target="_blank"
-                color="gray"
-                icon="heroicon-o-printer"
-                size="sm"
-                class="w-full sm:w-auto text-xs font-bold"
-            >
-                Imprimir Comanda
-            </x-filament::button>
         </div>
     </div>
 @endif

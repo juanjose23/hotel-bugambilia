@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Mesas;
 
 use App\Actions\Restaurante\NormalizarMetaDatosAction;
+use App\BusinessLogic\Restaurante\Mesas\ValidarTransicionMesa;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
@@ -17,6 +19,7 @@ final class UnirMesas
     public function __construct(
         private readonly RestauranteRepositorioInterface $repositorio,
         private readonly NormalizarMetaDatosAction $normalizarMetaDatosAction,
+        private readonly ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**
@@ -47,9 +50,12 @@ final class UnirMesas
 
             $reserva = $reservaId ? $this->repositorio->obtenerReservaPorId($reservaId) : null;
 
-            $estadoObjetivo = $reservaId && $reserva?->estado !== EstadoReserva::CHECKED_IN
-                ? EstadoEspacio::Reservado
-                : EstadoEspacio::Ocupado;
+            if ($reservaId !== null && $reserva?->estado !== EstadoReserva::CHECKED_IN) {
+                return;
+            }
+
+            $estadoObjetivo = EstadoEspacio::Ocupado;
+            $this->validarTransicion->validar($mesaPrincipal->estado, $estadoObjetivo, MotivoTransicionMesa::UnionMesas);
 
             $metaPrincipal = $this->normalizarMetaDatosAction->ejecutar($mesaPrincipal->meta_datos);
             /** @var int[] $unidasExistentes */
@@ -63,7 +69,7 @@ final class UnirMesas
             $metaPrincipal['motivo_union'] = $motivo;
             if ($reservaId) {
                 $metaPrincipal['reserva_id'] = $reservaId;
-                $metaPrincipal['codigo_reserva'] = $reserva?->codigo_reserva;
+                $metaPrincipal['codigo_reserva'] = $reserva->codigo_reserva;
             }
 
             $this->repositorio->actualizarEspacio($mesaPrincipal, [
@@ -78,13 +84,15 @@ final class UnirMesas
                     continue;
                 }
 
+                $this->validarTransicion->validar($secundaria->estado, $estadoObjetivo, MotivoTransicionMesa::UnionMesas);
+
                 $metaSecundaria = $this->normalizarMetaDatosAction->ejecutar($secundaria->meta_datos);
                 $metaSecundaria['mesa_principal_id'] = $mesaPrincipalId;
                 $metaSecundaria['mesa_principal_nombre'] = $mesaPrincipal->nombre;
                 $metaSecundaria['motivo_union'] = $motivo;
                 if ($reservaId) {
                     $metaSecundaria['reserva_id'] = $reservaId;
-                    $metaSecundaria['codigo_reserva'] = $reserva?->codigo_reserva;
+                    $metaSecundaria['codigo_reserva'] = $reserva->codigo_reserva;
                 }
 
                 $this->repositorio->actualizarEspacio($secundaria, [

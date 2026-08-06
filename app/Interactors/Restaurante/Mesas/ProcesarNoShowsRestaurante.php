@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Mesas;
 
+use App\BusinessLogic\Restaurante\Mesas\ValidarTransicionMesa;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
@@ -19,6 +21,7 @@ final class ProcesarNoShowsRestaurante
     public function __construct(
         private readonly ReservaRepositorioInterface $reservas,
         private readonly RestauranteRepositorioInterface $restaurante,
+        private readonly ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**
@@ -68,6 +71,7 @@ final class ProcesarNoShowsRestaurante
                             $meta['nombre_cliente']
                         );
 
+                        $this->validarTransicion->validar($mesa->estado, EstadoEspacio::Disponible, MotivoTransicionMesa::CancelacionReserva);
                         $this->restaurante->actualizarEspacio($mesa, [
                             'estado' => EstadoEspacio::Disponible,
                             'meta_datos' => $meta,

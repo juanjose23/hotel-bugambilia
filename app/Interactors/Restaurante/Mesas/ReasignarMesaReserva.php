@@ -6,7 +6,9 @@ namespace App\Interactors\Restaurante\Mesas;
 
 use App\Actions\Restaurante\NormalizarMetaDatosAction;
 use App\BusinessLogic\Restaurante\Mesas\ResolverUnionMesasAuto;
+use App\BusinessLogic\Restaurante\Mesas\ValidarTransicionMesa;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
@@ -23,6 +25,7 @@ final readonly class ReasignarMesaReserva
         private SepararMesas $separarMesas,
         private ResolverUnionMesasAuto $resolverUnionAuto,
         private NormalizarMetaDatosAction $normalizarMetaDatosAction,
+        private ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**
@@ -46,9 +49,17 @@ final readonly class ReasignarMesaReserva
             if ($reserva->espacio_id !== null) {
                 $mesaAnterior = $this->repositorio->obtenerEspacioPorId((int) $reserva->espacio_id);
                 if ($mesaAnterior instanceof Espacio) {
+                    if (
+                        $mesaAnterior->estado === EstadoEspacio::Ocupado
+                        && $this->repositorio->obtenerPedidosActivosDeMesa($mesaAnterior->id)->isNotEmpty()
+                    ) {
+                        throw new DomainException("No se puede liberar la mesa anterior '{$mesaAnterior->nombre}' porque tiene pedidos activos.");
+                    }
+
                     $meta = $this->normalizarMetaDatosAction->ejecutar($mesaAnterior->meta_datos);
                     unset($meta['reserva_id'], $meta['codigo_reserva']);
 
+                    $this->validarTransicion->validar($mesaAnterior->estado, EstadoEspacio::Disponible, MotivoTransicionMesa::CancelacionReserva);
                     $this->repositorio->actualizarEspacio($mesaAnterior, [
                         'estado' => EstadoEspacio::Disponible,
                         'meta_datos' => $meta,
@@ -80,6 +91,7 @@ final readonly class ReasignarMesaReserva
             $metaNueva['reserva_id'] = $reserva->id;
             $metaNueva['codigo_reserva'] = $reserva->codigo_reserva;
 
+            $this->validarTransicion->validar($nuevaMesa->estado, EstadoEspacio::Reservado);
             $this->repositorio->actualizarEspacio($nuevaMesa, [
                 'estado' => EstadoEspacio::Reservado,
                 'meta_datos' => $metaNueva,
