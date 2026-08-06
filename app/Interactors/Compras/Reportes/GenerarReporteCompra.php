@@ -39,7 +39,7 @@ use App\Repository\Queries\Compras\Reportes\ObtenerValorizacionPorCategoriaQuery
 use Barryvdh\DomPDF\PDF;
 use InvalidArgumentException;
 
-final readonly class GenerarReporteCompraUseCase
+final readonly class GenerarReporteCompra
 {
     public function __construct(
 
