@@ -216,6 +216,8 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 | `precio_unitario` | decimal | Precio unitario al momento del pedido |
 | `subtotal` | decimal | Subtotal (cantidad × precio_unitario) |
 | `estado` | EstadoItemPedido enum | Estado del item |
+| `bloqueo_stock_detalle` | json | Detalle de ingredientes faltantes cuando no se puede enviar a cocina |
+| `bloqueado_stock_en` | datetime | Fecha de bloqueo por falta de stock |
 | `notas` | text | Notas especiales (ej: "Sin cebolla") |
 
 #### Relaciones
@@ -230,6 +232,7 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 - `listo`: Listo para servir
 - `servido`: Entregado al cliente
 - `anulado`: Item cancelado
+- `bloqueado_stock`: Item pendiente de confirmación del cliente por falta de materia prima
 
 ---
 
@@ -301,7 +304,43 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 ---
 
-### 6. AuditoriaRestaurante
+### 6. TransformacionMateriaPrima
+
+**Ubicación**: `app/Repository/Models/Restaurante/TransformacionMateriaPrima.php`
+
+**Tabla**: `restaurante_transformaciones_materia_prima`
+
+**Descripción**: Registra una operación de transformación de material bruto en materia prima lista para cocina.
+
+#### Relaciones
+
+- **productoOrigen**: BelongsTo → Producto
+- **varianteOrigen**: BelongsTo → ProductoVariante
+- **ubicacionOrigen**: BelongsTo → Ubicacion
+- **realizadoPor**: BelongsTo → User
+- **items**: HasMany → TransformacionMateriaPrimaItem
+
+---
+
+### 7. RecetaTransformacionMateriaPrima
+
+**Ubicación**: `app/Repository/Models/Restaurante/RecetaTransformacionMateriaPrima.php`
+
+**Tabla**: `restaurante_recetas_transformacion_materia_prima`
+
+**Descripción**: Define qué material bruto produce una materia prima y con qué rendimiento esperado.
+
+#### Relaciones
+
+- **productoMateriaPrima**: BelongsTo → Producto
+- **varianteMateriaPrima**: BelongsTo → ProductoVariante
+- **productoBruto**: BelongsTo → Producto
+- **varianteBruta**: BelongsTo → ProductoVariante
+- **unidadMedida**: BelongsTo → Catalogo
+
+---
+
+### 8. AuditoriaRestaurante
 
 **Ubicación**: `app/Repository/Models/Restaurante/AuditoriaRestaurante.php`
 
@@ -373,6 +412,17 @@ ProcesoCocina
 
 ProcesoItem
  └── proceso (ProcesoCocina)
+
+TransformacionMateriaPrima
+ ├── productoOrigen (Producto)
+ ├── varianteOrigen (ProductoVariante)
+ ├── ubicacionOrigen (Ubicacion)
+ ├── realizadoPor (User)
+ └── items (TransformacionMateriaPrimaItem)
+
+RecetaTransformacionMateriaPrima
+ ├── varianteMateriaPrima (ProductoVariante)
+ └── varianteBruta (ProductoVariante)
 
 AuditoriaRestaurante
  ├── mesa (Espacio)

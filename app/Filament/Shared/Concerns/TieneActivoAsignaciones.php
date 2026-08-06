@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Concerns;
 
 use App\Enums\Activos\EstadoAsignacion;
-use App\Interactors\Activos\AsignarActivo;
+use App\Interactors\Activos\Gestion\AsignarActivo;
 use App\Repository\Models\Activos\ActivoAsignacion;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;

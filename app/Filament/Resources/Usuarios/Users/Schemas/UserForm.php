@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Usuarios\Users\Schemas;
 
-use App\Interactors\Usuarios\GenerarCredencialesUsuario;
+use App\Interactors\Usuarios\Credenciales\GenerarCredencialesUsuario;
 use App\Models\Personas\Persona;
 use App\Models\User;
 use App\Repository\Queries\Usuarios\ObtenerPersonasDisponibles;

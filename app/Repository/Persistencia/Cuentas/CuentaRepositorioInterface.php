@@ -46,6 +46,8 @@ interface CuentaRepositorioInterface
 
     public function descuentoManualDeCuenta(Cuenta $cuenta): ?CuentaCargo;
 
+    public function cuentaCargoPorCodigo(Cuenta $cuenta, string $codigo): ?CuentaCargo;
+
     /** @param array<string, mixed> $datos */
     public function actualizarCuentaCargo(CuentaCargo $cuentaCargo, array $datos): void;
 
@@ -54,6 +56,11 @@ interface CuentaRepositorioInterface
 
     /** @param array<string, mixed> $datos */
     public function crearDetalle(Cuenta $cuenta, array $datos): CuentaDetalle;
+
+    public function detalleActivoConOrigen(Cuenta $cuenta, string $origenType, int $origenId): ?CuentaDetalle;
+
+    /** @param array<string, mixed> $datos */
+    public function actualizarDetalle(CuentaDetalle $detalle, array $datos): CuentaDetalle;
 
     /** @param array<string, mixed> $datos */
     public function crearPago(Cuenta $cuenta, array $datos): PagoCuenta;

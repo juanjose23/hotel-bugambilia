@@ -6,6 +6,8 @@
 - **Pedidos y Comandas**: Sistema de pedidos por mesa, impresión de comandas térmicas
 - **Cuentas de Restaurante**: Cuentas propias para clientes no huéspedes con gestión de pagos
 - **Procesos de Cocina**: Producción de platos basada en recetas con consumo de ingredientes
+- **Materia Prima Cocina**: Transformación de material bruto en materia prima, con merma e inventario
+- **Conciliación de Recetas**: Diagnóstico de recetas contra stock, reglas de transformación y abastecimiento
 - **Gestión de Mesas**: Mapa interactivo de mesas, estados, unión/separación de mesas
 - **Reportes**: Dashboard de ventas, ranking de platos, métricas de desempeño
 - **Portal Web**: Página pública del restaurante con menú visible para huéspedes
@@ -132,7 +134,7 @@ app/
 
 ### Inventario
 - **Stock**: Consumo de ingredientes desde "Cocina Restaurante"
-- **ProductoKit**: Recetas de platos (ingredientes)
+- **ProductoKit**: Recetas de platos (ingredientes medidos contra el rendimiento de porciones de la receta)
 - **Lotes**: Costo unitario de ingredientes
 - **Movimientos**: Registro de CONSUMO al cocinar
 
@@ -153,14 +155,39 @@ app/
 ## Flujos Principales
 
 1. **Gestión de Platos**: Crear, editar, precios, imágenes, recetas
-2. **Procesos de Cocina**: Producción basada en recetas con consumo de stock
-3. **Pedidos**: Abrir mesa, agregar items, enviar a cocina
-4. **Cuentas de Restaurante**: Crear cuenta para cliente no huésped, agregar pedidos, registrar pagos
-5. **KDS (Kitchen Display System)**: Visualización de pedidos en cocina
-6. **Impresión de Comandas**: Tickets térmicos por área de cocina
-7. **Gestión de Mesas**: Estados, unión, separación, mover cuentas
-8. **Reportes**: Ventas, ranking de platos, métricas
-9. **Portal Web**: Menú visible para huéspedes
+2. **Procesos de Cocina**: Trazabilidad de preparación basada en recetas
+3. **Materia Prima Cocina**: Transformación de bruto a materia prima con merma e inventario
+4. **Conciliación de Recetas**: Validación de stock de materia prima y material bruto
+5. **Pedidos**: Abrir mesa, agregar items, enviar a cocina
+6. **Cuentas de Restaurante**: Crear cuenta para cliente no huésped, agregar pedidos, registrar pagos
+7. **KDS (Kitchen Display System)**: Visualización de pedidos en cocina
+8. **Impresión de Comandas**: Tickets térmicos por área de cocina
+9. **Gestión de Mesas**: Estados, unión, separación, mover cuentas
+10. **Reportes**: Ventas, ranking de platos, métricas
+11. **Portal Web**: Menú visible para huéspedes
+
+## Regla Operativa de Cocina e Inventario
+
+Las recetas de platillos deben consumir **materia prima lista**. La materia prima se produce en `Restaurante > Materia Prima Cocina` desde material bruto. Cuando una receta no tiene stock suficiente, `Restaurante > Conciliación Recetas` clasifica el problema:
+
+- `ok`: hay materia prima suficiente.
+- `puede_transformarse`: falta materia prima, pero hay material bruto suficiente.
+- `falta_bruto`: existe regla de transformación, pero falta material bruto.
+- `sin_regla_transformacion`: falta materia prima y no existe regla para saber desde qué bruto producirla.
+- `receta_incompleta` / `variante_invalida`: la receta necesita corrección de datos maestros.
+
+Cada producto usado como receta define `rendimiento_porciones`. La cantidad consumida por pedido se calcula como:
+
+`(cantidad del ingrediente en la receta / rendimiento_porciones) × cantidad pedida`
+
+Si al enviar o reenviar una comanda falta stock, los items afectados pasan a `Bloqueado por Stock` y guardan el detalle del faltante. El mesero debe abrir el pedido y usar `Resolver Faltantes` para registrar lo confirmado con el cliente:
+
+- usar un ingrediente sustituto;
+- cambiar el platillo;
+- quitar el item;
+- cancelar el pedido completo.
+
+Después de resolver, el item vuelve a pendiente y puede reenviarse a cocina.
 
 ## Permisos (Filament Shield)
 

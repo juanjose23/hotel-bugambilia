@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Cuentas\CuentaResource\RelationManagers;
 
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Cuentas\RegistrarDetalleCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use BackedEnum;
 use DomainException;

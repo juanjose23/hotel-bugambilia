@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Catalogos\Productos\RelationManagers;
 
+use App\Actions\Catalogos\GenerarCodigoVarianteProducto;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
+use App\Repository\Models\Catalogos\Producto;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -35,6 +37,15 @@ class VariantesRelationManager extends RelationManager
 
     protected static ?string $pluralLabel = 'variantes';
 
+    private function generarCodigoVariante(): ?string
+    {
+        $producto = $this->getOwnerRecord();
+
+        return $producto instanceof Producto
+            ? app(GenerarCodigoVarianteProducto::class)->ejecutar($producto)
+            : null;
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -49,6 +60,8 @@ class VariantesRelationManager extends RelationManager
                             ->required()
                             ->maxLength(50)
                             ->unique(ignoreRecord: true)
+                            ->default(fn (): ?string => $this->generarCodigoVariante())
+                            ->helperText('Generado automáticamente, único y editable.')
                             ->prefixIcon(Heroicon::QrCode),
 
                         TextInput::make('nombre_variante')

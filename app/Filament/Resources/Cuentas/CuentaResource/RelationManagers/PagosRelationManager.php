@@ -7,7 +7,7 @@ namespace App\Filament\Resources\Cuentas\CuentaResource\RelationManagers;
 use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
-use App\Interactors\Cuentas\RegistrarPagoCuenta;
+use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Support\CachedOptions;

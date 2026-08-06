@@ -15,24 +15,34 @@ class MesaSelect
         string $column = 'espacio_id',
         bool $soloReservables = false,
         bool $soloActivos = true,
+        bool $incluirRestaurante = true,
+        ?string $dusk = null,
     ): Select {
-        return Select::make($column)
+        $select = Select::make($column)
             ->label('Mesa / Espacio del Restaurante')
             ->placeholder('Seleccione mesa o área del restaurante')
-            ->options(fn (): array => self::obtenerOpciones($soloReservables, $soloActivos))
+            ->options(fn (): array => self::obtenerOpciones($soloReservables, $soloActivos, $incluirRestaurante))
             ->searchable()
             ->preload()
             ->native(false)
             ->prefixIcon(Heroicon::UserGroup);
+
+        if ($dusk !== null) {
+            $select->extraAttributes(['dusk' => $dusk]);
+        }
+
+        return $select;
     }
 
     /**
      * @return array<int, string>
      */
-    private static function obtenerOpciones(bool $soloReservables, bool $soloActivos): array
+    private static function obtenerOpciones(bool $soloReservables, bool $soloActivos, bool $incluirRestaurante): array
     {
         $query = Espacio::query()
-            ->whereIn('tipo', [TipoEspacio::MESA->value, TipoEspacio::RESTAURANTE->value]);
+            ->whereIn('tipo', $incluirRestaurante
+                ? [TipoEspacio::MESA->value, TipoEspacio::RESTAURANTE->value]
+                : [TipoEspacio::MESA->value]);
 
         if ($soloReservables) {
             $query->where('reservable', true);

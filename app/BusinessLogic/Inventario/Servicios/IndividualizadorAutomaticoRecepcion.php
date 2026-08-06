@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Inventario\Servicios;
 
-use App\Interactors\Activos\IndividualizarActivos;
+use App\Interactors\Activos\Gestion\IndividualizarActivos;
 use App\Repository\Models\Activos\RegistroIndividualizacion;
 
 class IndividualizadorAutomaticoRecepcion

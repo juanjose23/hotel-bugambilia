@@ -81,6 +81,61 @@ final class MensajesCompra
         );
     }
 
+    public function abastecimientoCocinaCreado(Solicitud $solicitud): DatosNotificacion
+    {
+        return new DatosNotificacion(
+            'Abastecimiento de Cocina Solicitado',
+            "Cocina solicitó abastecimiento en {$solicitud->codigo}. Inventario debe revisar si se resuelve entre bodegas o pasa a compra.",
+            TipoNotificacion::Warning,
+            [
+                Action::make('view')
+                    ->label('Revisar')
+                    ->url($this->url->solicitud($solicitud))
+                    ->button(),
+            ],
+        );
+    }
+
+    /**
+     * @param  list<string>  $traslados
+     */
+    public function abastecimientoCocinaResueltoConInventario(Solicitud $solicitud, array $traslados = []): DatosNotificacion
+    {
+        $detalle = $traslados !== []
+            ? ' Detalle: '.implode('; ', array_slice($traslados, 0, 4)).'.'
+            : '';
+
+        return new DatosNotificacion(
+            'Abastecimiento Resuelto con Inventario',
+            "La solicitud {$solicitud->codigo} fue resuelta con traslado interno hacia cocina.{$detalle}",
+            TipoNotificacion::Success,
+            [
+                Action::make('view')
+                    ->label('Ver Solicitud')
+                    ->url($this->url->solicitud($solicitud))
+                    ->button(),
+            ],
+        );
+    }
+
+    /**
+     * @param  list<string>  $faltantes
+     */
+    public function abastecimientoCocinaRequiereCompra(Solicitud $solicitud, array $faltantes): DatosNotificacion
+    {
+        return new DatosNotificacion(
+            'Abastecimiento Requiere Compra',
+            "La solicitud {$solicitud->codigo} no tiene inventario interno suficiente: ".implode('; ', array_slice($faltantes, 0, 3)).'.',
+            TipoNotificacion::StockOut,
+            [
+                Action::make('view')
+                    ->label('Crear Cotización / OC')
+                    ->url($this->url->solicitud($solicitud))
+                    ->button(),
+            ],
+        );
+    }
+
     public function cotizacionCreada(Cotizacion $cotizacion): DatosNotificacion
     {
         $nombreProveedor = $cotizacion->proveedor?->persona->nombre_completo ?? 'proveedor';

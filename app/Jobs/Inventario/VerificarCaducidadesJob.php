@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs\Inventario;
 
-use App\Interactors\Inventario\Lotes\VerificarCaducidades\VerificarCaducidades;
+use App\Interactors\Inventario\Lotes\VerificarCaducidades;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
