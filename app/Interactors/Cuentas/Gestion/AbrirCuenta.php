@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Gestion;
 
 use App\BusinessLogic\Cuentas\ValidarCuenta;
 use App\Enums\Cuentas\EstadoCuenta;
@@ -10,8 +10,10 @@ use App\Enums\Cuentas\TipoCuenta;
 use App\Events\Cuentas\CuentaAbierta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
+use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Models\User;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -54,6 +56,9 @@ final class AbrirCuenta
                 $referencia = $reserva->id ?? $estancia->id ?? now()->timestamp;
                 $numeroCuenta = sprintf('CTA-%s-%06d', now()->format('Y'), $referencia);
 
+                $monedaIdResuelto = $monedaId ?? Moneda::query()->where('es_principal', true)->value('id') ?? Moneda::query()->value('id');
+                $usuarioIdResuelto = ($usuarioId !== null && User::query()->where('id', $usuarioId)->exists()) ? $usuarioId : null;
+
                 $cuenta = $this->cuentas->crear([
                     'numero_cuenta' => $numeroCuenta,
                     'tipo_cuenta' => $tipo,
@@ -61,11 +66,16 @@ final class AbrirCuenta
                     'cliente_id' => $cliente?->id,
                     'estancia_id' => $estancia?->id,
                     'reserva_id' => $reserva?->id,
-                    'moneda_id' => $monedaId,
+                    'moneda_id' => $monedaIdResuelto,
                     'limite_autorizado' => $limite,
                     'abierta_at' => now(),
-                    'abierta_por' => $usuarioId,
+                    'abierta_por' => $usuarioIdResuelto,
                 ]);
+            }
+
+            $reservaModel = $reserva ?? $estancia?->reserva;
+            if ($reservaModel !== null && ! $reservaModel->solicita_cuenta) {
+                $reservaModel->update(['solicita_cuenta' => true]);
             }
 
             CuentaAbierta::dispatch($cuenta);

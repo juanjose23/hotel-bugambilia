@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Cuentas;
+namespace App\Interactors\Cuentas\Cobros;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
