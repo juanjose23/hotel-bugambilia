@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\Lotes\RegistrarMerma;
+namespace App\Interactors\Inventario\Lotes;
 
 use App\BusinessLogic\Inventario\Estrategias\FEFOStrategy;
 use App\BusinessLogic\Inventario\Servicios\ServicioMermas;
@@ -10,7 +10,7 @@ use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\Lote;
 use App\Repository\Queries\Inventario\Stock\ObtenerStockParaConsumo;
 use DomainException;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 final class RegistrarMermaGlobalDiaria
@@ -56,11 +56,10 @@ final class RegistrarMermaGlobalDiaria
                     throw new DomainException("No hay stock disponible del producto ID {$productoId} en la ubicación seleccionada.");
                 }
 
-                /** @var EloquentCollection<int, Lote> $lotes */
-                $lotes = $stocks->pluck('lote')->filter()->values();
-                $loteCollection = $lotes;
+                $loteModels = array_values(array_filter($stocks->pluck('lote')->all(), fn (mixed $item): bool => $item instanceof Lote));
+                $lotes = new Collection($loteModels);
 
-                $seleccion = $this->fefo->seleccionarLotes($loteCollection, $cantidad);
+                $seleccion = $this->fefo->seleccionarLotes($lotes, $cantidad);
                 $totalAsignado = array_sum(array_column($seleccion, 'cantidad'));
 
                 if ($totalAsignado < $cantidad) {

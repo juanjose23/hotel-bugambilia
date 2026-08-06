@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\Recepciones\ConvertirItemAUbicaciones;
+namespace App\Interactors\Inventario\Recepciones;
 
 use App\BusinessLogic\Inventario\Generadores\GeneradorEstructurasUbicacion;
 use App\Repository\Models\Catalogos\Ubicacion;

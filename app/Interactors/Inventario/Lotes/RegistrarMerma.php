@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\Lotes\RegistrarMerma;
+namespace App\Interactors\Inventario\Lotes;
 
 use App\BusinessLogic\Inventario\Servicios\ServicioMermas;
 use App\Events\Inventario\MermaRegistrada;

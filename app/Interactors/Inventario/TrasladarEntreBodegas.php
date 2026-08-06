@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Interactors\Inventario\TrasladarEntreBodegas;
+namespace App\Interactors\Inventario;
 
 use App\BusinessLogic\Inventario\Servicios\ServicioTraslados;
 use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
