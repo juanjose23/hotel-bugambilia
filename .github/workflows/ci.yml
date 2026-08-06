@@ -67,6 +67,8 @@ jobs:
         run: php artisan serve --no-reload &
 
       - name: Run Dusk Tests
+        env:
+          DUSK_HEADLESS_DISABLED: "false"
         run: php artisan dusk
 
       - name: Upload Screenshots

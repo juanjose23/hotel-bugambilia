@@ -14,7 +14,7 @@
     </testsuites>
     <php>
         <env name="APP_ENV" value="dusk.local"/>
-        <env name="DUSK_HEADLESS_DISABLED" value="true"/>
+        <env name="DUSK_HEADLESS_DISABLED" value="false"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
         <env name="SESSION_DRIVER" value="file"/>
