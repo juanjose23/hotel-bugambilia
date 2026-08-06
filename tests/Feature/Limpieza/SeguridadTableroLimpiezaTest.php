@@ -63,22 +63,23 @@ it('impide completar una ejecución asignada a otro colaborador', function (): v
     expect($ejecucion->refresh()->estado)->toBe(EstadoLimpieza::EnProgreso);
 });
 
-it('impide usar un carrito que no pertenece al turno de la ejecución', function (): void {
+it('permite usar un carrito libre aunque no esté asociado previamente al turno', function (): void {
     $colaborador = Colaborador::factory()->create();
     $carrito = Ubicacion::query()->create([
-        'nombre' => 'Carrito ajeno',
+        'nombre' => 'Carrito libre',
         'tipo' => 'carrito',
         'estado' => 1,
     ]);
     $ejecucion = LimpiezaEjecucion::factory()->pendiente()->create();
 
-    expect(fn () => app(ReclamarEIniciarLimpieza::class)->execute(
+    $resultado = app(ReclamarEIniciarLimpieza::class)->execute(
         $ejecucion->id,
         $colaborador->id,
         $carrito->id,
-    ))->toThrow(OperacionLimpiezaNoPermitida::class);
+    );
 
-    expect($ejecucion->refresh()->estado)->toBe(EstadoLimpieza::Pendiente);
+    expect($resultado->estado)->toBe(EstadoLimpieza::EnProgreso)
+        ->and($resultado->carrito_id)->toBe($carrito->id);
 });
 
 it('impide usar un carrito ocupado por otra limpieza activa', function (): void {
