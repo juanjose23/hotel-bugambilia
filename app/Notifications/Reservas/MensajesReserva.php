@@ -87,4 +87,29 @@ final readonly class MensajesReserva
             $reserva ? [Action::make('view')->label('Ver')->url($this->url->reserva($reserva))->button()] : [],
         );
     }
+
+    public function reservaNoConfirmadaExpirada(Reserva $reserva): DatosNotificacion
+    {
+        return new DatosNotificacion(
+            'Reserva Pendiente Expirada',
+            "La reserva $reserva->codigo_reserva para $reserva->nombre_cliente fue cancelada por vencer el tiempo límite sin confirmación/pago.",
+            TipoNotificacion::ReservationCancelled,
+            [Action::make('view')->label('Ver')->url($this->url->reserva($reserva))->button()],
+        );
+    }
+
+    public function checkOutProximoExpirar(Estancia $estancia): DatosNotificacion
+    {
+        $reserva = $estancia->reserva;
+        $codigo = $reserva->codigo_reserva ?? "Estancia #$estancia->id";
+        $cliente = $reserva->nombre_cliente ?? 'Huésped';
+        $habitacion = $estancia->habitacion->numero ?? $estancia->habitacion->nombre ?? 'N/A';
+
+        return new DatosNotificacion(
+            'Check-Out Próximo a Vencer',
+            "La estancia de $cliente en habitación $habitacion (reserva $codigo) está próxima a vencer su fecha/hora de check-out.",
+            TipoNotificacion::ReservationReminder,
+            $reserva ? [Action::make('view')->label('Ver Reserva')->url($this->url->reserva($reserva))->button()] : [],
+        );
+    }
 }

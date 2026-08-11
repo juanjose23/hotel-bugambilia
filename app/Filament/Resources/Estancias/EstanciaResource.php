@@ -9,6 +9,7 @@ use App\Filament\Resources\Estancias\EstanciaResource\Pages\ListEstancias;
 use App\Filament\Resources\Estancias\EstanciaResource\Pages\ViewEstancia;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Estancias\Estancia;
+use App\Support\MonedaHelper;
 use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 final class EstanciaResource extends Resource
@@ -57,6 +59,7 @@ final class EstanciaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['reserva.moneda', 'cuenta.moneda', 'habitacion']))
             ->columns([
                 TextColumn::make('reserva.codigo_reserva')
                     ->label('Código Reserva')
@@ -97,7 +100,7 @@ final class EstanciaResource extends Resource
 
                 TextColumn::make('cuenta.saldo')
                     ->label('Saldo Cuenta')
-                    ->money('NIO')
+                    ->money(fn (?Estancia $record): string => MonedaHelper::codigo($record?->reserva->moneda ?? $record?->cuenta?->moneda))
                     ->placeholder('—'),
             ])
             ->defaultSort('id', 'desc')

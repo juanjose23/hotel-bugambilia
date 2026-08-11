@@ -11,6 +11,7 @@ use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Support\CachedOptions;
+use App\Support\MonedaHelper;
 use BackedEnum;
 use DomainException;
 use Filament\Actions\CreateAction;
@@ -61,13 +62,13 @@ final class PagosRelationManager extends RelationManager
 
                 TextColumn::make('monto')
                     ->label('Monto aplicado')
-                    ->money(fn ($record): string => $record->cuenta->moneda->codigo ?? 'NIO')
+                    ->money(fn ($record): string => MonedaHelper::codigo($record->cuenta?->moneda))
                     ->sortable()
                     ->weight(FontWeight::Bold),
 
                 TextColumn::make('propina')
                     ->label('Propina')
-                    ->money(fn ($record): string => $record->cuenta->moneda->codigo ?? 'NIO'),
+                    ->money(fn ($record): string => MonedaHelper::codigo($record->cuenta?->moneda)),
 
                 TextColumn::make('referencia_transaccion')
                     ->label('Referencia')
@@ -95,7 +96,7 @@ final class PagosRelationManager extends RelationManager
 
                         $saldo = (float) $cuenta->saldo;
                         $total = (float) $cuenta->total;
-                        $simbolo = $cuenta->moneda !== null ? $cuenta->moneda->simbolo : 'C$';
+                        $simbolo = MonedaHelper::simbolo($cuenta->moneda);
 
                         return [
                             TextEntry::make('_resumen')
@@ -193,7 +194,7 @@ final class PagosRelationManager extends RelationManager
 
                             $cuenta->refresh();
                             $saldoRestante = (float) $cuenta->saldo;
-                            $simbolo = $cuenta->moneda !== null ? $cuenta->moneda->simbolo : 'C$';
+                            $simbolo = MonedaHelper::simbolo($cuenta->moneda);
 
                             Notification::make()
                                 ->title($saldoRestante <= 0 ? 'Pago completo' : 'Abono registrado')
@@ -220,14 +221,12 @@ final class PagosRelationManager extends RelationManager
     {
         $monedaId = $get('moneda_pago_id');
         if (! is_numeric($monedaId)) {
-            $sim = app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar()?->simbolo;
-
-            return is_string($sim) ? $sim : 'C$';
+            return MonedaHelper::simbolo();
         }
 
         $data = CachedOptions::monedasSimbolos()->get((int) $monedaId);
 
-        return is_array($data) ? (string) $data['simbolo'] : 'C$';
+        return is_array($data) ? (string) $data['simbolo'] : MonedaHelper::simbolo();
     }
 
     private function convertirAMonedaCuenta(float $monto, ?int $monedaPagoId, Cuenta $cuenta): float

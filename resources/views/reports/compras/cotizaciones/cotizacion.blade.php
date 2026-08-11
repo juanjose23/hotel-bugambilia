@@ -38,7 +38,7 @@
 
             @if($record->es_elegida)
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px; border-radius: 4px; margin-bottom: 20px; text-align: center;">
-                <strong style="color: #166534; font-size: 12px; text-transform: uppercase;">★ Opción Seleccionada para Compra ★</strong>
+                <strong style="color: #166534; font-size: 12px; text-transform: uppercase;">Opción Seleccionada para Compra</strong>
             </div>
             @endif
 

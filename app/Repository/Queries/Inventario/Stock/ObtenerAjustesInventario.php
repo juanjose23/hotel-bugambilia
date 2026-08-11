@@ -7,6 +7,7 @@ namespace App\Repository\Queries\Inventario\Stock;
 use App\Repository\Models\Inventario\MovimientoStock;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ObtenerAjustesInventario
 {
@@ -16,13 +17,16 @@ class ObtenerAjustesInventario
      */
     public function ejecutar(array $filtros = [], int $perPage = 100): LengthAwarePaginator
     {
-        $fechaDesde = isset($filtros['fecha_desde']) && is_string($filtros['fecha_desde'])
-            ? $filtros['fecha_desde']
-            : null;
-        $fechaHasta = isset($filtros['fecha_hasta']) && is_string($filtros['fecha_hasta'])
-            ? $filtros['fecha_hasta']
-            : null;
+        return $this->aplicarFiltros($this->consultaBase(), $filtros)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
 
+    /**
+     * @return Builder<MovimientoStock>
+     */
+    private function consultaBase(): Builder
+    {
         return MovimientoStock::query()
             ->with([
                 'lote:id,codigo_lote,costo_unitario',
@@ -31,7 +35,20 @@ class ObtenerAjustesInventario
                 'ubicacionDestino:id,nombre',
                 'creadoPor:id,name',
                 'creadoPor.persona:id,colaborador_id,primer_nombre',
-            ])
+            ]);
+    }
+
+    /**
+     * @param  Builder<MovimientoStock>  $query
+     * @param  array<string, mixed>  $filtros
+     * @return Builder<MovimientoStock>
+     */
+    private function aplicarFiltros(Builder $query, array $filtros): Builder
+    {
+        $fechaDesde = $this->fechaFiltro($filtros, 'fecha_desde');
+        $fechaHasta = $this->fechaFiltro($filtros, 'fecha_hasta');
+
+        return $query
             ->where('tipo', 'MOV_AJUSTE')
             ->when(
                 isset($filtros['producto_id']) && $filtros['producto_id'],
@@ -44,8 +61,16 @@ class ObtenerAjustesInventario
             ->when(
                 $fechaHasta !== null,
                 fn ($q) => $q->where('created_at', '<=', Carbon::parse($fechaHasta)->endOfDay())
-            )
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+            );
+    }
+
+    /**
+     * @param  array<string, mixed>  $filtros
+     */
+    private function fechaFiltro(array $filtros, string $campo): ?string
+    {
+        $valor = $filtros[$campo] ?? null;
+
+        return is_string($valor) ? $valor : null;
     }
 }

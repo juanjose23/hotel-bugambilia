@@ -19,6 +19,7 @@ use App\Support\Pdf\TipoPaginaResolver;
 use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 use Illuminate\Support\Collection;
 
 final class GenerarEtiquetasCodigosBarrasAction
@@ -31,7 +32,7 @@ final class GenerarEtiquetasCodigosBarrasAction
         private readonly BarcodeGenerator $barcodeGenerator,
     ) {}
 
-    public function ejecutar(ProductoFiltrosData $filtros): \Barryvdh\DomPDF\PDF
+    public function ejecutar(ProductoFiltrosData $filtros): PdfDocumento
     {
         [$tamanoPapel, $orientacion] = app(TipoPaginaResolver::class)
             ->resolver($filtros->tipoPagina);

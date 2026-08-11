@@ -16,7 +16,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class ServicioAsignacion extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
-    use Auditable, SoftDeletes;
 
     protected $table = 'servicio_asignaciones';
 

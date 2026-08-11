@@ -33,10 +33,10 @@ const SeccionReservaRestaurante = ({
     const handleWhatsAppReserva = () => {
         const mensaje = encodeURIComponent(
             `Hola Restaurante Bugambilias, me gustaría solicitar una reserva:\n\n` +
-                `📍 Ambiente: ${ambienteSeleccionado}\n` +
-                `👥 Personas: ${cantidadPersonas}\n` +
-                `📅 Fecha: ${fechaReserva || 'Próximos días'}\n` +
-                `⏰ Hora: ${horaReserva}\n\n` +
+                `Ambiente: ${ambienteSeleccionado}\n` +
+                `Personas: ${cantidadPersonas}\n` +
+                `Fecha: ${fechaReserva || 'Próximos días'}\n` +
+                `Hora: ${horaReserva}\n\n` +
                 `¿Tienen disponibilidad?`,
         );
         window.open(`https://wa.me/${cleanPhone}?text=${mensaje}`, '_blank');

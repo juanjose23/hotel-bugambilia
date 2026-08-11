@@ -49,7 +49,7 @@ class RecalificarProductosActivoFijoSeeder extends Seeder
             ->pluck('id');
 
         if ($categoriaIds->isEmpty()) {
-            $this->command->warn('⚠ No se encontraron categorías de activo fijo en catalogos. Verifique que CatalogoSeeder se ejecutó primero.');
+            $this->command->warn('No se encontraron categorías de activo fijo en catalogos. Verifique que CatalogoSeeder se ejecutó primero.');
 
             return;
         }
@@ -70,7 +70,7 @@ class RecalificarProductosActivoFijoSeeder extends Seeder
             ]);
 
         // Reporte por categoría
-        $this->command->info('✅ RecalificarProductosActivoFijoSeeder completado:');
+        $this->command->info('RecalificarProductosActivoFijoSeeder completado:');
 
         foreach (self::CATEGORIAS_ACTIVO_FIJO as $codigo) {
             $catId = DB::table('catalogos')->where('codigo', $codigo)->value('id');

@@ -205,6 +205,7 @@ const Espacios = ({
 
                                             <Link
                                                 href={`/espacios/${espacio.slug || espacio.id}`}
+                                                prefetch="hover"
                                             >
                                                 <h3 className="mb-1.5 text-base font-black text-foreground transition-colors group-hover:text-bugambilia-600 dark:group-hover:text-bugambilia-400">
                                                     {espacio.nombre}
@@ -292,6 +293,7 @@ const Espacios = ({
                                         >
                                             <Link
                                                 href={`/espacios/${espacio.slug || espacio.id}`}
+                                                prefetch="hover"
                                             >
                                                 <Eye className="mr-1.5 h-3.5 w-3.5" />
                                                 {espacio.es_restaurante

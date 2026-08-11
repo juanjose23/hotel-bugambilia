@@ -35,16 +35,21 @@ final class SelectorCliente
                     return $placeholder;
                 }
 
-                $persona = Persona::query()
-                    ->with(['personaNatural', 'personaJuridica', 'cliente.tipoCliente'])
+                $cliente = Cliente::query()
+                    ->with(['persona.personaNatural', 'persona.personaJuridica', 'tipoCliente'])
                     ->find((int) $value);
 
-                if (! $persona instanceof Persona) {
-                    $cliente = Cliente::with(['persona.personaNatural', 'persona.personaJuridica', 'tipoCliente'])->find((int) $value);
-                    $persona = $cliente?->persona;
+                if (! $cliente instanceof Cliente) {
+                    $persona = Persona::query()
+                        ->with(['personaNatural', 'personaJuridica', 'cliente.tipoCliente'])
+                        ->find((int) $value);
+
+                    $cliente = $persona?->cliente;
                 }
 
-                if (! $persona instanceof Persona) {
+                $persona = $cliente?->persona;
+
+                if (! $cliente instanceof Cliente || ! $persona instanceof Persona) {
                     return null;
                 }
 
@@ -91,16 +96,21 @@ final class SelectorCliente
                         return;
                     }
 
-                    $persona = Persona::query()
-                        ->with(['personaNatural', 'personaJuridica', 'user'])
+                    $cliente = Cliente::query()
+                        ->with(['persona.personaNatural', 'persona.personaJuridica', 'persona.user'])
                         ->find((int) $state);
 
-                    if (! $persona instanceof Persona) {
-                        $cliente = Cliente::with('persona')->find((int) $state);
-                        $persona = $cliente?->persona;
+                    if (! $cliente instanceof Cliente) {
+                        $persona = Persona::query()
+                            ->with(['personaNatural', 'personaJuridica', 'user'])
+                            ->find((int) $state);
+
+                        $cliente = $persona?->cliente;
                     }
 
-                    if (! $persona instanceof Persona) {
+                    $persona = $cliente?->persona;
+
+                    if (! $cliente instanceof Cliente || ! $persona instanceof Persona) {
                         return;
                     }
 

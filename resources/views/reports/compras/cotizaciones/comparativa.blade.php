@@ -71,7 +71,7 @@
                                             {{ $cItem->variante->nombre_variante ?? 'N/A' }}
                                         </span>
                                         @if($isWinner)
-                                            <div style="font-size: 7px; color: #166534; font-weight: bold; margin-top: 2px;">★ ADJUDICADO</div>
+                                            <div style="font-size: 7px; color: #166534; font-weight: bold; margin-top: 2px;">ADJUDICADO</div>
                                         @endif
                                     @else
                                         <span style="color: #ccc; font-style: italic;">No Cotizado</span>

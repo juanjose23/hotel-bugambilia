@@ -9,12 +9,13 @@ use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use App\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteTrazabilidadCompletaPdfAction
 {
     use GuardaReporte;
 
-    public function ejecutar(TrazabilidadCompletaReporteData $reportData): \Barryvdh\DomPDF\PDF
+    public function ejecutar(TrazabilidadCompletaReporteData $reportData): PdfDocumento
     {
         $codigoReporte = 'HTB-COM-009';
         $nombreReporte = 'Trazabilidad Completa del Proceso de Compra';

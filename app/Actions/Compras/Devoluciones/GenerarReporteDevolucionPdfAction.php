@@ -11,6 +11,7 @@ use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use App\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteDevolucionPdfAction
 {
@@ -21,7 +22,7 @@ final class GenerarReporteDevolucionPdfAction
         private readonly ObtenerDevolucionReporteQuery $query,
     ) {}
 
-    public function ejecutar(DevolucionCompra $devolucion): \Barryvdh\DomPDF\PDF
+    public function ejecutar(DevolucionCompra $devolucion): PdfDocumento
     {
         $devolucionConRelaciones = $this->query->ejecutar($devolucion->id) ?? $devolucion;
 

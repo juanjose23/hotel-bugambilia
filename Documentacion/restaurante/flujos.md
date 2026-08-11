@@ -279,20 +279,20 @@
 
 #### `pedido_items`
 
-| Columna           | Tipo          | Restricciones                   | Descripción                                                     |
-| ----------------- | ------------- | ------------------------------- | --------------------------------------------------------------- |
-| `id`              | bigint        | PK, auto                        | Identificador único                                             |
-| `pedido_id`       | bigint        | FK → pedidos, CASCADE ON DELETE | Pedido padre                                                    |
-| `plato_id`        | bigint        | FK → platos, NULL ON DELETE     | Plato pedido                                                    |
-| `cantidad`        | decimal(10,2) | DEFAULT 1                       | Cantidad ordenada                                               |
-| `precio_unitario` | decimal(10,2) | NOT NULL                        | Precio unitario al momento del pedido                           |
-| `subtotal`        | decimal(10,2) | NOT NULL                        | Subtotal (cantidad × precio_unitario)                           |
-| `estado`          | varchar(20)   | DEFAULT 'pendiente'             | Estado del item (pendiente/preparacion/listo/servido/cancelado) |
-| `bloqueo_stock_detalle` | json     | NULLABLE                        | Ingredientes faltantes que bloquean el item                     |
-| `bloqueado_stock_en` | timestamp   | NULLABLE                        | Fecha/hora del bloqueo por stock                                |
-| `notas`           | text          | NULLABLE                        | Notas especiales (ej: "Sin cebolla")                            |
-| `created_at`      | timestamp     |                                 | Fecha de creación                                               |
-| `updated_at`      | timestamp     |                                 | Fecha de actualización                                          |
+| Columna                 | Tipo          | Restricciones                   | Descripción                                                     |
+| ----------------------- | ------------- | ------------------------------- | --------------------------------------------------------------- |
+| `id`                    | bigint        | PK, auto                        | Identificador único                                             |
+| `pedido_id`             | bigint        | FK → pedidos, CASCADE ON DELETE | Pedido padre                                                    |
+| `plato_id`              | bigint        | FK → platos, NULL ON DELETE     | Plato pedido                                                    |
+| `cantidad`              | decimal(10,2) | DEFAULT 1                       | Cantidad ordenada                                               |
+| `precio_unitario`       | decimal(10,2) | NOT NULL                        | Precio unitario al momento del pedido                           |
+| `subtotal`              | decimal(10,2) | NOT NULL                        | Subtotal (cantidad × precio_unitario)                           |
+| `estado`                | varchar(20)   | DEFAULT 'pendiente'             | Estado del item (pendiente/preparacion/listo/servido/cancelado) |
+| `bloqueo_stock_detalle` | json          | NULLABLE                        | Ingredientes faltantes que bloquean el item                     |
+| `bloqueado_stock_en`    | timestamp     | NULLABLE                        | Fecha/hora del bloqueo por stock                                |
+| `notas`                 | text          | NULLABLE                        | Notas especiales (ej: "Sin cebolla")                            |
+| `created_at`            | timestamp     |                                 | Fecha de creación                                               |
+| `updated_at`            | timestamp     |                                 | Fecha de actualización                                          |
 
 #### `procesos_cocina`
 

@@ -1,3 +1,4 @@
+import * as LucideIcons from 'lucide-react';
 import {
     Wifi,
     Wind,
@@ -35,6 +36,14 @@ import {
     Hand,
     Plane,
     Laptop,
+    Sparkles,
+    BedDouble,
+    Shirt,
+    PhoneCall,
+    Martini,
+    Calendar,
+    CreditCard,
+    Percent,
 } from 'lucide-react';
 import React from 'react';
 
@@ -52,7 +61,7 @@ interface PropiedadesSeccionServiciosIncluidos {
     className?: string;
 }
 
-// Mapa exhaustivo de iconos guardados en la BD (Heroicons y Lucide)
+// Mapa exhaustivo de iconos guardados en la BD (Heroicons y Lucide convertidos a Lucide React)
 const MAPA_ICONOS: Record<string, React.ElementType> = {
     // Convenciones Heroicons de Filament / Seeders
     'heroicon-o-wifi': Wifi,
@@ -65,7 +74,7 @@ const MAPA_ICONOS: Record<string, React.ElementType> = {
     'heroicon-o-briefcase': Briefcase,
     'heroicon-o-shopping-bag': ShoppingBag,
     'heroicon-o-scissors': Scissors,
-    'heroicon-o-sparkles': ShieldCheck,
+    'heroicon-o-sparkles': Sparkles,
     'heroicon-o-users': Users,
     'heroicon-o-document-text': FileText,
     'heroicon-o-presentation-chart-line': Presentation,
@@ -82,7 +91,7 @@ const MAPA_ICONOS: Record<string, React.ElementType> = {
 
     // Nombres cortos Lucide / BD
     wifi: Wifi,
-    sparkles: ShieldCheck,
+    sparkles: Sparkles,
     clock: Clock,
     key: KeyRound,
     briefcase: Briefcase,
@@ -94,16 +103,30 @@ const MAPA_ICONOS: Record<string, React.ElementType> = {
     pool: Waves,
     swimming: Waves,
     utensils: Utensils,
+    restaurant: Utensils,
+    bar: Martini,
+    cocktail: Martini,
     car: Car,
+    parking: Car,
+    laundry: Shirt,
+    shirt: Shirt,
+    phone: PhoneCall,
     gym: Dumbbell,
     fitness: Dumbbell,
     wine: Wine,
     concierge: ConciergeBell,
+    bell: ConciergeBell,
     laptop: Laptop,
     desktop: Tv,
     tv: Tv,
     ac: Wind,
     wind: Wind,
+    bed: BedDouble,
+    calendar: Calendar,
+    card: CreditCard,
+    percent: Percent,
+    gift: Gift,
+    shield: ShieldCheck,
 };
 
 const CATEGORIAS_COLORES = [
@@ -132,6 +155,20 @@ function resolverIconoBD(iconoBD?: string | null): React.ElementType {
 
     if (MAPA_ICONOS[claveSinPrefijo]) {
         return MAPA_ICONOS[claveSinPrefijo];
+    }
+
+    // Convertir kebab-case a PascalCase para resolver cualquier icono de node_modules/lucide-react
+    const pascalName = claveSinPrefijo
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('');
+
+    const DynamicIcon = (
+        LucideIcons as unknown as Record<string, React.ElementType>
+    )[pascalName];
+
+    if (DynamicIcon) {
+        return DynamicIcon;
     }
 
     // Si no se encuentra icono específico, usar CheckCircle2 como icono neutro y elegante

@@ -8,6 +8,8 @@ use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoAsignacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 
 class ObtenerActivosPorUbicacionUseCase
 {
@@ -16,7 +18,28 @@ class ObtenerActivosPorUbicacionUseCase
      */
     public function ejecutar(?string $tipoFiltro = null): array
     {
-        $asignaciones = ActivoAsignacion::with([
+        $asignaciones = $this->consultarAsignaciones($tipoFiltro);
+
+        $ubicaciones = [];
+
+        foreach ($asignaciones as $items) {
+            $first = $items->first();
+            if (! $first?->asignable) {
+                continue;
+            }
+
+            $ubicaciones[] = $this->construirEntradaUbicacion($first, $items);
+        }
+
+        return $ubicaciones;
+    }
+
+    /**
+     * @return Collection<int|string, EloquentCollection<int, ActivoAsignacion>>
+     */
+    private function consultarAsignaciones(?string $tipoFiltro): Collection
+    {
+        return ActivoAsignacion::with([
             'activo.producto',
             'activo.moneda',
             'asignable',
@@ -26,33 +49,37 @@ class ObtenerActivosPorUbicacionUseCase
             ->when($tipoFiltro, fn ($q) => $q->where('asignable_type', $tipoFiltro))
             ->get()
             ->groupBy(fn ($a) => $a->asignable_type.'|'.$a->asignable_id);
+    }
 
-        $ubicaciones = [];
+    /**
+     * @param  Collection<int, ActivoAsignacion>  $items
+     * @return array<string, mixed>
+     */
+    private function construirEntradaUbicacion(ActivoAsignacion $first, Collection $items): array
+    {
+        $activosFiltrados = $items->pluck('activo')->filter()->values();
+        $subtotal = $activosFiltrados->sum(fn ($a) => (float) (($a instanceof Activo ? $a->costo_adquisicion : 0) ?? 0));
 
-        foreach ($asignaciones as $items) {
-            $first = $items->first();
-            if (! $first?->asignable) {
-                continue;
-            }
-            $tipoLabel = match ($first->asignable_type) {
-                Habitacion::class => 'Habitación',
-                Espacio::class => 'Espacio',
-                default => 'Ubicación',
-            };
-            $nombreUbicacion = $first->destinoLabel();
-            $activosFiltrados = $items->pluck('activo')->filter()->values();
-            $subtotal = $activosFiltrados->sum(fn ($a) => (float) (($a instanceof Activo ? $a->costo_adquisicion : 0) ?? 0));
-            $primerActivo = $activosFiltrados->first();
-            $simbolo = $primerActivo instanceof Activo ? ($primerActivo->moneda->simbolo ?? '$') : '$';
-            $ubicaciones[] = [
-                'tipo' => $tipoLabel,
-                'nombre' => $nombreUbicacion,
-                'activos' => $activosFiltrados,
-                'subtotal' => $subtotal,
-                'moneda' => $simbolo,
-            ];
-        }
+        return [
+            'tipo' => $this->etiquetaTipo($first->asignable_type),
+            'nombre' => $first->destinoLabel(),
+            'activos' => $activosFiltrados,
+            'subtotal' => $subtotal,
+            'moneda' => $this->simboloMoneda($activosFiltrados->first()),
+        ];
+    }
 
-        return $ubicaciones;
+    private function etiquetaTipo(string $tipo): string
+    {
+        return match ($tipo) {
+            Habitacion::class => 'Habitación',
+            Espacio::class => 'Espacio',
+            default => 'Ubicación',
+        };
+    }
+
+    private function simboloMoneda(mixed $primerActivo): string
+    {
+        return $primerActivo instanceof Activo ? ($primerActivo->moneda->simbolo ?? '$') : '$';
     }
 }

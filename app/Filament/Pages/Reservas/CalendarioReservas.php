@@ -23,8 +23,7 @@ use UnitEnum;
  */
 final class CalendarioReservas extends Page implements HasForms
 {
-    use HasPageShield;
-    use InteractsWithForms;
+    use HasPageShield, InteractsWithForms;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
@@ -171,9 +170,21 @@ final class CalendarioReservas extends Page implements HasForms
         $this->cargarCalendario();
     }
 
+    public function updatedMonth(): void
+    {
+        $this->month = (int) $this->month;
+        $this->cargarCalendario();
+    }
+
+    public function updatedYear(): void
+    {
+        $this->year = (int) $this->year;
+        $this->cargarCalendario();
+    }
+
     public function previousMonth(): void
     {
-        $date = Carbon::now()->setDate($this->year, $this->month, 1)->startOfDay()->subMonth();
+        $date = Carbon::createFromDate($this->year, $this->month, 1)->startOfDay()->subMonth();
         $this->month = $date->month;
         $this->year = $date->year;
         $this->cargarCalendario();
@@ -181,7 +192,7 @@ final class CalendarioReservas extends Page implements HasForms
 
     public function nextMonth(): void
     {
-        $date = Carbon::now()->setDate($this->year, $this->month, 1)->startOfDay()->addMonth();
+        $date = Carbon::createFromDate($this->year, $this->month, 1)->startOfDay()->addMonth();
         $this->month = $date->month;
         $this->year = $date->year;
         $this->cargarCalendario();

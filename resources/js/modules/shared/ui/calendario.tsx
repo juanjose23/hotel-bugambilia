@@ -1,5 +1,6 @@
-import { DayPicker, type DateRange } from 'react-day-picker';
 import { es } from 'date-fns/locale';
+import { DayPicker } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import { cn } from '@/modules/shared/utils/clases';
 import 'react-day-picker/style.css';
 

@@ -33,7 +33,7 @@ class ObtenerPathUbicacion
                     return $u->nombre;
                 }
 
-                return $buildPath($padre).' ➔ '.$u->nombre;
+                return $buildPath($padre).' -> '.$u->nombre;
             }
 
             return $u->nombre;

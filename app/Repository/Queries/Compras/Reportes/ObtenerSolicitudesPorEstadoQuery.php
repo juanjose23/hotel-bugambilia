@@ -7,10 +7,34 @@ namespace App\Repository\Queries\Compras\Reportes;
 use App\Actions\Shared\ParsearFecha;
 use App\BusinessLogic\Compras\Data\Reportes\SolicitudesEstadoReporteData;
 use App\Repository\Models\Compras\Solicitud;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 final class ObtenerSolicitudesPorEstadoQuery
 {
     public function ejecutar(?string $fechaInicioStr, ?string $fechaFinStr, ?string $estado = null): SolicitudesEstadoReporteData
+    {
+        [$fechaInicio, $fechaFin] = $this->resolverRangoFechas($fechaInicioStr, $fechaFinStr);
+        $solicitudes = $this->consultarSolicitudes($fechaInicio, $fechaFin, $estado);
+
+        $data = [
+            'total_solicitudes' => $solicitudes->count(),
+            'aprobadas' => $solicitudes->where('estado', 'aprobada')->count(),
+            'rechazadas' => $solicitudes->where('estado', 'rechazada')->count(),
+            'pendientes' => $solicitudes->where('estado', 'pendiente')->count(),
+        ];
+
+        return new SolicitudesEstadoReporteData(
+            data: $data,
+            fechaInicio: $fechaInicio->format('d/m/Y'),
+            fechaFin: $fechaFin->format('d/m/Y'),
+        );
+    }
+
+    /**
+     * @return array{CarbonInterface, CarbonInterface}
+     */
+    private function resolverRangoFechas(?string $fechaInicioStr, ?string $fechaFinStr): array
     {
         $parsearFecha = app(ParsearFecha::class);
         $fechaInicio = $parsearFecha->ejecutar($fechaInicioStr, now()->startOfMonth());
@@ -20,6 +44,14 @@ final class ObtenerSolicitudesPorEstadoQuery
             [$fechaInicio, $fechaFin] = [$fechaFin->copy()->startOfDay(), $fechaInicio->copy()->endOfDay()];
         }
 
+        return [$fechaInicio, $fechaFin];
+    }
+
+    /**
+     * @return EloquentCollection<int, Solicitud>
+     */
+    private function consultarSolicitudes(CarbonInterface $fechaInicio, CarbonInterface $fechaFin, ?string $estado): EloquentCollection
+    {
         $query = Solicitud::with([
             'departamentoSolicitante',
             'colaborador.persona.personaNatural',
@@ -32,24 +64,9 @@ final class ObtenerSolicitudesPorEstadoQuery
 
         $query->whereBetween('created_at', [$fechaInicio, $fechaFin]);
 
+        /** @var EloquentCollection<int, Solicitud> $solicitudes */
         $solicitudes = $query->get();
 
-        $totalSolicitudes = $solicitudes->count();
-        $totalAprobadas = $solicitudes->where('estado', 'aprobada')->count();
-        $totalRechazadas = $solicitudes->where('estado', 'rechazada')->count();
-        $totalPendientes = $solicitudes->where('estado', 'pendiente')->count();
-
-        $data = [
-            'total_solicitudes' => $totalSolicitudes,
-            'aprobadas' => $totalAprobadas,
-            'rechazadas' => $totalRechazadas,
-            'pendientes' => $totalPendientes,
-        ];
-
-        return new SolicitudesEstadoReporteData(
-            data: $data,
-            fechaInicio: $fechaInicio->format('d/m/Y'),
-            fechaFin: $fechaFin->format('d/m/Y'),
-        );
+        return $solicitudes;
     }
 }

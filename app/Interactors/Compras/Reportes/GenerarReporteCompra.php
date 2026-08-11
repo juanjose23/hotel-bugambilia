@@ -78,139 +78,232 @@ final readonly class GenerarReporteCompra
     /** @param array<string, mixed> $params */
     public function execute(string $reportName, array $params = []): PDF
     {
-        $fechaInicio = isset($params['fecha_inicio']) && is_string($params['fecha_inicio']) ? $params['fecha_inicio'] : null;
-        $fechaFin = isset($params['fecha_fin']) && is_string($params['fecha_fin']) ? $params['fecha_fin'] : null;
-        $estado = isset($params['estado']) && is_string($params['estado']) ? $params['estado'] : null;
-        $meses = isset($params['meses']) && is_numeric($params['meses']) ? (int) $params['meses'] : 6;
+        return match ($reportName) {
+            'solicitud' => $this->solicitud($params),
+            'cotizacion' => $this->cotizacion($params),
+            'orden_compra' => $this->ordenCompra($params),
+            'recepcion' => $this->recepcion($params),
+            'devolucion' => $this->devolucion($params),
+            'comparativa' => $this->comparativa($params),
+            'resumen_departamentos' => $this->resumenDepartamentos($params),
+            'rotacion_compras' => $this->rotacionCompras($params),
+            'tiempos_entrega' => $this->tiemposEntrega($params),
+            'solicitudes_estado' => $this->solicitudesEstado($params),
+            'seguimiento_oc' => $this->seguimientoOc($params),
+            'recepciones_proveedor' => $this->recepcionesProveedor($params),
+            'analisis_precio' => $this->analisisPrecio($params),
+            'valorizacion_categoria' => $this->valorizacionCategoria($params),
+            'ranking_proveedores' => $this->rankingProveedores($params),
+            'devoluciones_proveedor' => $this->devolucionesProveedor($params),
+            'trazabilidad_completa' => $this->trazabilidadCompleta($params),
+            default => throw new InvalidArgumentException("Reporte '$reportName' no soportado."),
+        };
+    }
 
-        switch ($reportName) {
+    /** @param array<string, mixed> $params */
+    private function solicitud(array $params): PDF
+    {
+        /** @var Solicitud $solicitud */
+        $solicitud = $params['solicitud'];
 
-            case 'solicitud':
-                /** @var Solicitud $solicitud */
-                $solicitud = $params['solicitud'];
+        return $this->generarSolicitudPdf->ejecutar($solicitud);
+    }
 
-                return $this->generarSolicitudPdf->ejecutar($solicitud);
+    /** @param array<string, mixed> $params */
+    private function cotizacion(array $params): PDF
+    {
+        /** @var Cotizacion $cotizacion */
+        $cotizacion = $params['cotizacion'];
 
-            case 'cotizacion':
-                /** @var Cotizacion $cotizacion */
-                $cotizacion = $params['cotizacion'];
+        return $this->generarCotizacionPdf->ejecutar($cotizacion);
+    }
 
-                return $this->generarCotizacionPdf->ejecutar($cotizacion);
+    /** @param array<string, mixed> $params */
+    private function ordenCompra(array $params): PDF
+    {
+        /** @var OrdenCompra $orden */
+        $orden = $params['orden'];
 
-            case 'orden_compra':
-                /** @var OrdenCompra $orden */
-                $orden = $params['orden'];
+        return $this->generarOrdenCompraPdf->ejecutar($orden);
+    }
 
-                return $this->generarOrdenCompraPdf->ejecutar($orden);
+    /** @param array<string, mixed> $params */
+    private function recepcion(array $params): PDF
+    {
+        /** @var RecepcionCompra $recepcion */
+        $recepcion = $params['recepcion'];
 
-            case 'recepcion':
-                /** @var RecepcionCompra $recepcion */
-                $recepcion = $params['recepcion'];
+        return $this->generarRecepcionPdf->ejecutar($recepcion);
+    }
 
-                return $this->generarRecepcionPdf->ejecutar($recepcion);
+    /** @param array<string, mixed> $params */
+    private function devolucion(array $params): PDF
+    {
+        /** @var DevolucionCompra $devolucion */
+        $devolucion = $params['devolucion'];
 
-            case 'devolucion':
-                /** @var DevolucionCompra $devolucion */
-                $devolucion = $params['devolucion'];
+        return $this->generarDevolucionPdf->ejecutar($devolucion);
+    }
 
-                return $this->generarDevolucionPdf->ejecutar($devolucion);
+    /** @param array<string, mixed> $params */
+    private function comparativa(array $params): PDF
+    {
+        /** @var Solicitud $solicitud */
+        $solicitud = $params['solicitud'];
 
-            case 'comparativa':
-                /** @var Solicitud $solicitud */
-                $solicitud = $params['solicitud'];
+        return $this->generarComparativaPdf->ejecutar($solicitud);
+    }
 
-                return $this->generarComparativaPdf->ejecutar($solicitud);
+    /** @param array<string, mixed> $params */
+    private function resumenDepartamentos(array $params): PDF
+    {
+        return $this->generarResumenDepartamentosPdf
+            ->ejecutar(
+                $this->fechaInicio($params),
+                $this->fechaFin($params),
+            );
+    }
 
-            case 'resumen_departamentos':
-                return $this->generarResumenDepartamentosPdf
-                    ->ejecutar(
-                        $fechaInicio,
-                        $fechaFin,
-                    );
+    /** @param array<string, mixed> $params */
+    private function rotacionCompras(array $params): PDF
+    {
+        $reportData = $this->obtenerRotacionCompras->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+        );
 
-            case 'rotacion_compras':
-                $reportData = $this->obtenerRotacionCompras->ejecutar(
-                    $fechaInicio,
-                    $fechaFin
-                );
+        return $this->generarRotacionPdf->ejecutar($reportData);
+    }
 
-                return $this->generarRotacionPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function tiemposEntrega(array $params): PDF
+    {
+        $reportData = $this->obtenerTiemposEntrega->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+        );
 
-            case 'tiempos_entrega':
-                $reportData = $this->obtenerTiemposEntrega->ejecutar(
-                    $fechaInicio,
-                    $fechaFin
-                );
+        return $this->generarTiemposEntregaPdf->ejecutar($reportData);
+    }
 
-                return $this->generarTiemposEntregaPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function solicitudesEstado(array $params): PDF
+    {
+        $reportData = $this->obtenerSolicitudesPorEstado->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+            $this->estado($params),
+        );
 
-            case 'solicitudes_estado':
-                $reportData = $this->obtenerSolicitudesPorEstado->ejecutar(
-                    $fechaInicio,
-                    $fechaFin,
-                    $estado,
-                );
+        return $this->generarSolicitudesEstadoPdf->ejecutar($reportData);
+    }
 
-                return $this->generarSolicitudesEstadoPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function seguimientoOc(array $params): PDF
+    {
+        $reportData = $this->obtenerSeguimientoOrdenes->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+        );
 
-            case 'seguimiento_oc':
-                $reportData = $this->obtenerSeguimientoOrdenes->ejecutar(
-                    $fechaInicio,
-                    $fechaFin
-                );
+        return $this->generarSeguimientoOcPdf->ejecutar($reportData);
+    }
 
-                return $this->generarSeguimientoOcPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function recepcionesProveedor(array $params): PDF
+    {
+        $reportData = $this->obtenerRecepcionesPorProveedor->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+        );
 
-            case 'recepciones_proveedor':
-                $reportData = $this->obtenerRecepcionesPorProveedor->ejecutar(
-                    $fechaInicio,
-                    $fechaFin
-                );
+        return $this->generarRecepcionesPorProveedorPdf->ejecutar($reportData);
+    }
 
-                return $this->generarRecepcionesPorProveedorPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function analisisPrecio(array $params): PDF
+    {
+        $reportData = $this->obtenerAnalisisPrecio->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+            $this->meses($params),
+        );
 
-            case 'analisis_precio':
-                $reportData = $this->obtenerAnalisisPrecio->ejecutar(
-                    $fechaInicio,
-                    $fechaFin,
-                    $meses,
-                );
+        return $this->generarAnalisisPrecioPdf->ejecutar($reportData);
+    }
 
-                return $this->generarAnalisisPrecioPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function valorizacionCategoria(array $params): PDF
+    {
+        $reportData = $this->obtenerValorizacion->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+        );
 
-            case 'valorizacion_categoria':
-                $reportData = $this->obtenerValorizacion->ejecutar(
-                    $fechaInicio,
-                    $fechaFin
-                );
+        return $this->generarValorizacionPdf->ejecutar($reportData);
+    }
 
-                return $this->generarValorizacionPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function rankingProveedores(array $params): PDF
+    {
+        $reportData = $this->obtenerRankingProveedores->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+        );
 
-            case 'ranking_proveedores':
-                $reportData = $this->obtenerRankingProveedores->ejecutar(
-                    $fechaInicio,
-                    $fechaFin
-                );
+        return $this->generarRankingProveedoresPdf->ejecutar($reportData);
+    }
 
-                return $this->generarRankingProveedoresPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function devolucionesProveedor(array $params): PDF
+    {
+        $reportData = $this->obtenerDevoluciones->ejecutar(
+            $this->fechaInicio($params),
+            $this->fechaFin($params),
+        );
 
-            case 'devoluciones_proveedor':
-                $reportData = $this->obtenerDevoluciones->ejecutar(
-                    $fechaInicio,
-                    $fechaFin
-                );
+        return $this->generarDevolucionesPdf->ejecutar($reportData);
+    }
 
-                return $this->generarDevolucionesPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function trazabilidadCompleta(array $params): PDF
+    {
+        /** @var Solicitud $solicitud */
+        $solicitud = $params['solicitud'];
+        $reportData = $this->obtenerTrazabilidadCompleta->ejecutar($solicitud);
 
-            case 'trazabilidad_completa':
-                /** @var Solicitud $solicitud */
-                $solicitud = $params['solicitud'];
-                $reportData = $this->obtenerTrazabilidadCompleta->ejecutar($solicitud);
+        return $this->generarTrazabilidadCompletaPdf->ejecutar($reportData);
+    }
 
-                return $this->generarTrazabilidadCompletaPdf->ejecutar($reportData);
+    /** @param array<string, mixed> $params */
+    private function fechaInicio(array $params): ?string
+    {
+        $valor = $params['fecha_inicio'] ?? null;
 
-            default:
-                throw new InvalidArgumentException("Reporte '$reportName' no soportado.");
-        }
+        return is_string($valor) ? $valor : null;
+    }
+
+    /** @param array<string, mixed> $params */
+    private function fechaFin(array $params): ?string
+    {
+        $valor = $params['fecha_fin'] ?? null;
+
+        return is_string($valor) ? $valor : null;
+    }
+
+    /** @param array<string, mixed> $params */
+    private function estado(array $params): ?string
+    {
+        $valor = $params['estado'] ?? null;
+
+        return is_string($valor) ? $valor : null;
+    }
+
+    /** @param array<string, mixed> $params */
+    private function meses(array $params): int
+    {
+        $valor = $params['meses'] ?? null;
+
+        return is_numeric($valor) ? (int) $valor : 6;
     }
 }

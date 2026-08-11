@@ -25,7 +25,7 @@ final class ReservaController extends Controller
     public function crear(CrearReservaRequest $request): RedirectResponse
     {
         $datos = $request->validated();
-        $datos['cliente_id'] = $request->user()?->id;
+        $datos['cliente_id'] = $request->user()?->persona?->cliente?->id;
         $servicios = $datos['servicios_adicionales'] ?? [];
         $espacios = $datos['espacios_adicionales'] ?? [];
 

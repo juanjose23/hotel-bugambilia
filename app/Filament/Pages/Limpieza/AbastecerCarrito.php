@@ -24,7 +24,7 @@ use UnitEnum;
 
 class AbastecerCarrito extends Page implements HasTable
 {
-    use HasPageShield;
+    use HasPageShield, InteractsWithTable;
 
     protected ObtenerListadoCarritos $listadoCarritos;
 
@@ -32,9 +32,6 @@ class AbastecerCarrito extends Page implements HasTable
     {
         $this->listadoCarritos = $listadoCarritos;
     }
-
-    use InteractsWithTable;
-    use InteractsWithTable;
 
     protected string $view = 'filament.resources.limpieza.abastecer-carrito';
 

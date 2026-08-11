@@ -133,21 +133,25 @@ app/
 ## Integración con Otros Módulos
 
 ### Inventario
+
 - **Stock**: Consumo de ingredientes desde "Cocina Restaurante"
 - **ProductoKit**: Recetas de platos (ingredientes medidos contra el rendimiento de porciones de la receta)
 - **Lotes**: Costo unitario de ingredientes
 - **Movimientos**: Registro de CONSUMO al cocinar
 
 ### Espacios
+
 - **Espacios**: Mesas del restaurante (tipo 'mesa')
 - **Ambientes**: Agrupación de mesas por área
 - **Estados**: Disponible, Ocupado, Limpieza, Reservado, etc.
 
 ### Limpieza
+
 - **SolicitudLimpieza**: Automática al crear/cerrar pedidos
 - **Prioridades**: Normal (apertura), Urgente (cierre)
 
 ### Habitaciones
+
 - **CuentaEstancia**: Carga de pedidos a cuenta de habitación (para huéspedes)
 - **CuentaRestaurante**: Cuentas propias del restaurante (para clientes no huéspedes)
 - **EstadoPedido**: CARGADO_A_HABITACION

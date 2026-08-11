@@ -31,8 +31,7 @@ use UnitEnum;
  */
 class ReportesActivos extends Page implements HasForms
 {
-    use HasPageShield;
-    use InteractsWithForms;
+    use HasPageShield, InteractsWithForms;
 
     protected string $view = 'filament.resources.activos.reportes-activos';
 

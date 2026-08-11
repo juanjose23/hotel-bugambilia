@@ -6,32 +6,57 @@ namespace App\Repository\Queries\Inventario\Stock;
 
 use App\BusinessLogic\Inventario\Data\Stock\CostoVentasData;
 use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 class ObtenerAnalisisCostoVentas
 {
-    /** @param  array<string, mixed>  $filtros
+    /**
+     * @param  array<string, mixed>  $filtros
      * @return Collection<int, CostoVentasData>
      */
     public function ejecutar(array $filtros = []): Collection
     {
-        $fechaDesdeStr = isset($filtros['fecha_desde']) && is_string($filtros['fecha_desde'])
-            ? $filtros['fecha_desde']
-            : null;
-        $fechaHastaStr = isset($filtros['fecha_hasta']) && is_string($filtros['fecha_hasta'])
-            ? $filtros['fecha_hasta']
-            : null;
+        [$fechaDesde, $fechaHasta] = $this->rangoFechas($filtros);
+
+        $compras = $this->obtenerCompras($fechaDesde, $fechaHasta);
+        $consumos = $this->obtenerConsumos($fechaDesde, $fechaHasta);
+
+        return $this->consultaProductos()
+            ->get()
+            ->map(fn ($row) => $this->mapearFila($row, $compras, $consumos))
+            ->filter(fn ($item) => $item->cantidadComprada > 0 || $item->cantidadConsumida > 0)
+            ->values();
+    }
+
+    /**
+     * @param  array<string, mixed>  $filtros
+     * @return array{Carbon, Carbon}
+     */
+    private function rangoFechas(array $filtros): array
+    {
+        $fechaDesdeStr = is_string($filtros['fecha_desde'] ?? null) ? $filtros['fecha_desde'] : null;
+        $fechaHastaStr = is_string($filtros['fecha_hasta'] ?? null) ? $filtros['fecha_hasta'] : null;
 
         $fechaDesde = $fechaDesdeStr !== null
             ? Carbon::parse($fechaDesdeStr)->startOfDay()
-            : now()->startOfMonth()->startOfDay();
+            : Carbon::now()->startOfMonth()->startOfDay();
 
         $fechaHasta = $fechaHastaStr !== null
             ? Carbon::parse($fechaHastaStr)->endOfDay()
-            : now()->endOfDay();
+            : Carbon::now()->endOfDay();
 
-        $compras = DB::table('recepcion_items as ri')
+        return [$fechaDesde, $fechaHasta];
+    }
+
+    /**
+     * @return Collection<string, stdClass>
+     */
+    private function obtenerCompras(Carbon $fechaDesde, Carbon $fechaHasta): Collection
+    {
+        return DB::table('recepcion_items as ri')
             ->join('recepciones_compra as rc', 'ri.recepcion_id', '=', 'rc.id')
             ->join('orden_compra_items as oci', 'ri.orden_item_id', '=', 'oci.id')
             ->leftJoin('ordenes_compra as oc', 'oci.orden_compra_id', '=', 'oc.id')
@@ -47,8 +72,14 @@ class ObtenerAnalisisCostoVentas
             ->groupBy('ri.producto_id', 'ri.producto_variante_id')
             ->get()
             ->keyBy(fn ($item) => $item->producto_id.'-'.($item->producto_variante_id ?? '0'));
+    }
 
-        $consumos = DB::table('inv_movimientos as m')
+    /**
+     * @return Collection<string, stdClass>
+     */
+    private function obtenerConsumos(Carbon $fechaDesde, Carbon $fechaHasta): Collection
+    {
+        return DB::table('inv_movimientos as m')
             ->where('m.tipo', 'CONSUMO')
             ->whereBetween('m.created_at', [$fechaDesde, $fechaHasta])
             ->select([
@@ -59,7 +90,10 @@ class ObtenerAnalisisCostoVentas
             ->groupBy('m.producto_id')
             ->get()
             ->keyBy(fn ($item) => (string) $item->producto_id);
+    }
 
+    private function consultaProductos(): Builder
+    {
         return DB::table('producto_variantes as pv')
             ->join('productos as p', 'pv.producto_id', '=', 'p.id')
             ->leftJoin('catalogos as cat', 'p.categoria_id', '=', 'cat.id')
@@ -72,38 +106,41 @@ class ObtenerAnalisisCostoVentas
                 'pv.nombre_variante as variante',
                 'cat.nombre as categoria',
             ])
-            ->orderBy('p.nombre')
-            ->get()
-            ->map(function ($row) use ($compras, $consumos) {
-                $key = $row->producto_id.'-'.$row->variante_id;
+            ->orderBy('p.nombre');
+    }
 
-                $compra = $compras->get($key);
-                $consumo = $consumos->get((string) $row->producto_id);
+    /**
+     * @param  Collection<string, stdClass>  $compras
+     * @param  Collection<string, stdClass>  $consumos
+     */
+    private function mapearFila(stdClass $row, Collection $compras, Collection $consumos): CostoVentasData
+    {
+        $key = $row->producto_id.'-'.$row->variante_id;
 
-                $cantComprada = (float) ($compra->cant_comprada ?? 0.0);
-                $costoCompra = (float) ($compra->costo_compra ?? 0.0);
+        $compra = $compras->get($key);
+        $consumo = $consumos->get((string) $row->producto_id);
 
-                $cantConsumida = max(0.0, (float) ($consumo->cant_consumida ?? 0.0));
-                $costoConsumo = max(0.0, (float) ($consumo->costo_consumo ?? 0.0));
+        $cantComprada = (float) ($compra->cant_comprada ?? 0.0);
+        $costoCompra = (float) ($compra->costo_compra ?? 0.0);
 
-                $desviacion = 0.0;
-                if ($costoCompra > 0) {
-                    $desviacion = (($costoConsumo - $costoCompra) / $costoCompra) * 100;
-                }
+        $cantConsumida = max(0.0, (float) ($consumo->cant_consumida ?? 0.0));
+        $costoConsumo = max(0.0, (float) ($consumo->costo_consumo ?? 0.0));
 
-                return new CostoVentasData(
-                    productoId: (int) $row->producto_id,
-                    producto: $row->producto,
-                    variante: $row->variante,
-                    categoria: $row->categoria,
-                    cantidadComprada: $cantComprada,
-                    costoCompras: $costoCompra,
-                    cantidadConsumida: $cantConsumida,
-                    costoConsumo: $costoConsumo,
-                    desviacionPorcentaje: $desviacion
-                );
-            })
-            ->filter(fn ($item) => $item->cantidadComprada > 0 || $item->cantidadConsumida > 0)
-            ->values();
+        $desviacion = 0.0;
+        if ($costoCompra > 0) {
+            $desviacion = (($costoConsumo - $costoCompra) / $costoCompra) * 100;
+        }
+
+        return new CostoVentasData(
+            productoId: (int) $row->producto_id,
+            producto: $row->producto,
+            variante: $row->variante,
+            categoria: $row->categoria,
+            cantidadComprada: $cantComprada,
+            costoCompras: $costoCompra,
+            cantidadConsumida: $cantConsumida,
+            costoConsumo: $costoConsumo,
+            desviacionPorcentaje: $desviacion,
+        );
     }
 }

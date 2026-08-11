@@ -22,7 +22,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class TasaCambio extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
-    use Auditable, SoftDeletes;
 
     protected $table = 'tasas_cambio';
 

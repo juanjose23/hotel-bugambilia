@@ -6,11 +6,31 @@ namespace App\Repository\Queries\Compras\Reportes;
 
 use App\Actions\Shared\ParsearFecha;
 use App\BusinessLogic\Compras\Data\Reportes\RankingProveedoresReporteData;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 final class ObtenerRankingProveedoresQuery
 {
     public function ejecutar(?string $fechaInicioStr, ?string $fechaFinStr): RankingProveedoresReporteData
+    {
+        [$fechaInicio, $fechaFin] = $this->resolverRangoFechas($fechaInicioStr, $fechaFinStr);
+        $ordenes = $this->consultarOrdenes($fechaInicio, $fechaFin);
+        $devoluciones = $this->consultarDevoluciones($fechaInicio, $fechaFin);
+        $ranked = $this->combinarRanking($ordenes, $devoluciones);
+
+        return new RankingProveedoresReporteData(
+            data: $ranked,
+            fechaInicio: $fechaInicio->format('d/m/Y'),
+            fechaFin: $fechaFin->format('d/m/Y'),
+        );
+    }
+
+    /**
+     * @return array{CarbonInterface, CarbonInterface}
+     */
+    private function resolverRangoFechas(?string $fechaInicioStr, ?string $fechaFinStr): array
     {
         $parsearFecha = app(ParsearFecha::class);
         $fechaInicio = $parsearFecha->ejecutar($fechaInicioStr, now()->startOfMonth());
@@ -20,7 +40,15 @@ final class ObtenerRankingProveedoresQuery
             [$fechaInicio, $fechaFin] = [$fechaFin->copy()->startOfDay(), $fechaInicio->copy()->endOfDay()];
         }
 
-        $ordenes = DB::table('ordenes_compra as oc')
+        return [$fechaInicio, $fechaFin];
+    }
+
+    /**
+     * @return Collection<int, stdClass>
+     */
+    private function consultarOrdenes(CarbonInterface $fechaInicio, CarbonInterface $fechaFin): Collection
+    {
+        return DB::table('ordenes_compra as oc')
             ->join('proveedores as prov', 'oc.proveedor_id', '=', 'prov.id')
             ->leftJoin('recepciones_compra as rc', function ($join) {
                 $join->on('rc.orden_compra_id', '=', 'oc.id')
@@ -39,8 +67,14 @@ final class ObtenerRankingProveedoresQuery
             ->whereNotNull('oc.proveedor_id')
             ->groupBy('prov.id')
             ->get();
+    }
 
-        $devoluciones = DB::table('devoluciones_compra as dc')
+    /**
+     * @return Collection<int|string, stdClass>
+     */
+    private function consultarDevoluciones(CarbonInterface $fechaInicio, CarbonInterface $fechaFin): Collection
+    {
+        return DB::table('devoluciones_compra as dc')
             ->join('ordenes_compra as oc', 'dc.orden_compra_id', '=', 'oc.id')
             ->whereNull('dc.deleted_at')
             ->whereNull('oc.deleted_at')
@@ -49,8 +83,16 @@ final class ObtenerRankingProveedoresQuery
             ->groupBy('oc.proveedor_id')
             ->get()
             ->keyBy('proveedor_id');
+    }
 
-        $ranked = $ordenes->map(function ($item) use ($devoluciones) {
+    /**
+     * @param  Collection<int, stdClass>  $ordenes
+     * @param  Collection<int|string, stdClass>  $devoluciones
+     * @return array<int, mixed>
+     */
+    private function combinarRanking(Collection $ordenes, Collection $devoluciones): array
+    {
+        return $ordenes->map(function ($item) use ($devoluciones) {
             $dev = $devoluciones->get($item->proveedor_id);
             $totalDevoluciones = $dev ? $dev->total_devoluciones : 0;
             $item->total_devoluciones = $totalDevoluciones;
@@ -61,11 +103,5 @@ final class ObtenerRankingProveedoresQuery
 
             return $item;
         })->sortBy('promedio_dias_entrega')->values()->toArray();
-
-        return new RankingProveedoresReporteData(
-            data: $ranked,
-            fechaInicio: $fechaInicio->format('d/m/Y'),
-            fechaFin: $fechaFin->format('d/m/Y'),
-        );
     }
 }

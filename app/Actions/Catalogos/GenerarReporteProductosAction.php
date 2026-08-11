@@ -16,17 +16,17 @@ use App\Support\Pdf\TipoPaginaResolver;
 use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 use Illuminate\Support\Collection;
 
 final class GenerarReporteProductosAction
 {
-    use FiltrosProducto;
-    use GuardaReporte;
+    use FiltrosProducto, GuardaReporte;
 
     public function ejecutar(
         ProductoFiltrosData $filtros,
         bool $incluirVariantes = true,
-    ): \Barryvdh\DomPDF\PDF {
+    ): PdfDocumento {
         [$tamanoPapel, $orientacion] = app(TipoPaginaResolver::class)
             ->resolver($filtros->tipoPagina);
 

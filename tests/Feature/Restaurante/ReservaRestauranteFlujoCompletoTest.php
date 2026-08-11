@@ -21,7 +21,6 @@ use App\Repository\Models\Personas\PersonaNatural;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\Shared\Precio;
-use App\Repository\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 
@@ -41,8 +40,6 @@ beforeEach(function (): void {
 
 test('crea reservación de restaurante con cliente asignado, mesas unidas y preorden de platillos', function (): void {
     Event::fake([ReservaCreada::class]);
-
-    $user = User::factory()->create();
 
     $tipoCatalogo = CatalogoTipo::query()->firstOrCreate(
         ['codigo' => 'TIPO-CLIENTE'],
@@ -120,7 +117,7 @@ test('crea reservación de restaurante con cliente asignado, mesas unidas y preo
     ]);
 
     $datos = [
-        'cliente_id' => $user->id,
+        'cliente_id' => $cliente->id,
         'nombre_cliente' => 'Carlos Mendoza',
         'telefono_cliente' => '88889999',
         'email_cliente' => 'carlos@ejemplo.com',
@@ -159,7 +156,7 @@ test('crea reservación de restaurante con cliente asignado, mesas unidas y preo
     $reserva = $interactor->ejecutar($datos, [], $espaciosAdicionales);
 
     expect($reserva)->toBeInstanceOf(Reserva::class)
-        ->and($reserva->cliente_id)->toBe($user->id)
+        ->and($reserva->cliente_id)->toBe($cliente->id)
         ->and($reserva->estado)->toBe(EstadoReserva::CONFIRMADA)
         ->and((float) $reserva->total)->toBe(575.00)
         ->and((float) $reserva->total_pagado)->toBe(287.50)

@@ -37,16 +37,18 @@ interface ReservaRepositorioInterface
     public function crearHuespedes(ReservaDetalle $detalle, array $huespedes): void;
 
     /**
-     * Reemplaza los detalles hijos (servicios y espacios adicionales) de una reserva.
+     * Reemplaza los detalles hijos (servicios, espacios y habitaciones adicionales) de una reserva.
      *
      * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
      * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
+     * @param  array<int, array{habitacion_id: int, cantidad: int, precio: float}>  $habitaciones
      */
     public function reemplazarAdicionales(
         Reserva $reserva,
         ReservaDetalle $principal,
         array $servicios,
         array $espacios,
+        array $habitaciones = [],
     ): void;
 
     /** @param array<string, mixed> $datos */

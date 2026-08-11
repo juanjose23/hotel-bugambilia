@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
-use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Queries\Catalogos\GenerarCodigoBarras;
+use App\Repository\Queries\Catalogos\ObtenerProductosCodigosBarras;
 use Illuminate\Console\Command;
 
 class GenerarCodigosBarrasCommand extends Command
 {
     public function __construct(
+        private readonly ObtenerProductosCodigosBarras $obtenerProductos,
         private readonly GenerarCodigoBarras $generarCodigosBarras,
     ) {
         parent::__construct();
@@ -21,13 +24,9 @@ class GenerarCodigosBarrasCommand extends Command
     public function handle(): int
     {
         $productoId = $this->option('producto-id');
-
-        $query = Producto::query();
-        if ($productoId) {
-            $query->where('id', $productoId);
-        }
-
-        $productos = $query->with(['variantes'])->get();
+        $productos = $this->obtenerProductos->ejecutar(
+            is_numeric($productoId) ? (int) $productoId : null,
+        );
 
         if ($productos->isEmpty()) {
             $this->error('No se encontraron productos.');
@@ -41,12 +40,12 @@ class GenerarCodigosBarrasCommand extends Command
         foreach ($productos as $producto) {
             $codigosGenerados = $this->generarCodigosBarras->generarLote($producto);
             $count = count($codigosGenerados);
-            $this->line("\n✓ Producto: {$producto->nombre} ({$count} variantes)");
+            $this->line("\nProducto: {$producto->nombre} ({$count} variantes)");
             $bar->advance();
         }
 
         $bar->finish();
-        $this->info("\n✓ Códigos de barras generados correctamente.");
+        $this->info("\nCódigos de barras generados correctamente.");
 
         return self::SUCCESS;
     }

@@ -6,11 +6,29 @@ namespace App\Repository\Queries\Compras\Reportes;
 
 use App\Actions\Shared\ParsearFecha;
 use App\BusinessLogic\Compras\Data\Reportes\SeguimientoOrdenCompraReporteData;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 final class ObtenerSeguimientoOrdenesCompraQuery
 {
     public function ejecutar(?string $fechaInicioStr, ?string $fechaFinStr): SeguimientoOrdenCompraReporteData
+    {
+        [$fechaInicio, $fechaFin] = $this->resolverRangoFechas($fechaInicioStr, $fechaFinStr);
+        $dataAgrupada = $this->agruparRegistros($this->consultarRegistros($fechaInicio, $fechaFin));
+
+        return new SeguimientoOrdenCompraReporteData(
+            data: $dataAgrupada,
+            fechaInicio: $fechaInicio->format('d/m/Y'),
+            fechaFin: $fechaFin->format('d/m/Y'),
+        );
+    }
+
+    /**
+     * @return array{CarbonInterface, CarbonInterface}
+     */
+    private function resolverRangoFechas(?string $fechaInicioStr, ?string $fechaFinStr): array
     {
         $parsearFecha = app(ParsearFecha::class);
         $fechaInicio = $parsearFecha->ejecutar($fechaInicioStr, now()->startOfMonth());
@@ -20,7 +38,15 @@ final class ObtenerSeguimientoOrdenesCompraQuery
             [$fechaInicio, $fechaFin] = [$fechaFin->copy()->startOfDay(), $fechaInicio->copy()->endOfDay()];
         }
 
-        $data = DB::table('ordenes_compra as oc')
+        return [$fechaInicio, $fechaFin];
+    }
+
+    /**
+     * @return Collection<int, stdClass>
+     */
+    private function consultarRegistros(CarbonInterface $fechaInicio, CarbonInterface $fechaFin): Collection
+    {
+        return DB::table('ordenes_compra as oc')
             ->leftJoin('proveedores as prov', 'oc.proveedor_id', '=', 'prov.id')
             ->leftJoin('solicitudes_compra as sc', 'oc.solicitud_id', '=', 'sc.id')
             ->leftJoin('recepciones_compra as rc', 'oc.id', '=', 'rc.orden_compra_id')
@@ -38,8 +64,15 @@ final class ObtenerSeguimientoOrdenesCompraQuery
             ->whereBetween('oc.fecha_orden', [$fechaInicio, $fechaFin])
             ->orderBy('oc.fecha_orden')
             ->get();
+    }
 
-        $dataAgrupada = $data->groupBy('orden_id')->map(function ($items) {
+    /**
+     * @param  Collection<int, stdClass>  $data
+     * @return array<int, mixed>
+     */
+    private function agruparRegistros(Collection $data): array
+    {
+        return $data->groupBy('orden_id')->map(function ($items) {
             $first = $items->first();
             if ($first === null) {
                 return (object) [
@@ -64,11 +97,5 @@ final class ObtenerSeguimientoOrdenesCompraQuery
                 'recepcion_count' => $recepcionCount,
             ];
         })->values()->toArray();
-
-        return new SeguimientoOrdenCompraReporteData(
-            data: $dataAgrupada,
-            fechaInicio: $fechaInicio->format('d/m/Y'),
-            fechaFin: $fechaFin->format('d/m/Y'),
-        );
     }
 }

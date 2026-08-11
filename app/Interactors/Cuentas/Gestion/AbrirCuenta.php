@@ -46,6 +46,7 @@ final class AbrirCuenta
 
                 $cuenta = $this->cuentas->abrir($cuentaExistente, [
                     'estado' => EstadoCuenta::ABIERTA,
+                    'cliente_id' => $this->resolverClienteId($cuentaExistente, $cliente, $reserva, $estancia),
                     'limite_autorizado' => $limite ?? $cuentaExistente->limite_autorizado,
                     'estancia_id' => $estancia->id ?? $cuentaExistente->estancia_id,
                     'abierta_at' => now(),
@@ -54,7 +55,13 @@ final class AbrirCuenta
             } else {
                 // Crea directamente en estado ABIERTA (venta directa, restaurante POS)
                 $referencia = $reserva->id ?? $estancia->id ?? now()->timestamp;
-                $numeroCuenta = sprintf('CTA-%s-%06d', now()->format('Y'), $referencia);
+                $baseNumero = sprintf('CTA-%s-%06d', now()->format('Y'), $referencia);
+                $numeroCuenta = $baseNumero;
+                $contador = 1;
+                while (Cuenta::withTrashed()->where('numero_cuenta', $numeroCuenta)->exists()) {
+                    $contador++;
+                    $numeroCuenta = sprintf('%s-%d', $baseNumero, $contador);
+                }
 
                 $monedaIdResuelto = $monedaId ?? Moneda::query()->where('es_predeterminada', true)->value('id') ?? Moneda::query()->value('id');
                 $usuarioIdResuelto = ($usuarioId !== null && User::query()->where('id', $usuarioId)->exists()) ? $usuarioId : null;
@@ -63,7 +70,7 @@ final class AbrirCuenta
                     'numero_cuenta' => $numeroCuenta,
                     'tipo_cuenta' => $tipo,
                     'estado' => EstadoCuenta::ABIERTA,
-                    'cliente_id' => $cliente?->id,
+                    'cliente_id' => $this->resolverClienteId($cuentaExistente, $cliente, $reserva, $estancia),
                     'estancia_id' => $estancia?->id,
                     'reserva_id' => $reserva?->id,
                     'moneda_id' => $monedaIdResuelto,
@@ -82,5 +89,32 @@ final class AbrirCuenta
 
             return $cuenta;
         });
+    }
+
+    private function resolverClienteId(
+        ?Cuenta $cuentaExistente,
+        ?Persona $cliente,
+        ?Reserva $reserva,
+        ?Estancia $estancia,
+    ): ?int {
+        if ($cuentaExistente !== null && $cuentaExistente->cliente_id !== null) {
+            return $cuentaExistente->cliente_id;
+        }
+
+        if ($cliente !== null) {
+            return $cliente->id;
+        }
+
+        if ($reserva !== null) {
+            return $reserva->cliente_id;
+        }
+
+        $reservaDeEstancia = $estancia?->reserva;
+
+        if ($reservaDeEstancia !== null) {
+            return $reservaDeEstancia->cliente_id;
+        }
+
+        return null;
     }
 }

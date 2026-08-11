@@ -13,8 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 final class GenerarReporteJob implements ShouldQueue
 {
-    use GuardaReporte;
-    use Queueable;
+    use GuardaReporte, Queueable;
 
     public int $tries = 3;
 

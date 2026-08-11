@@ -8,6 +8,8 @@ use App\Jobs\Activos\VerificarGarantiasJob;
 use App\Jobs\Activos\VerificarMantenimientosPreventivosJob;
 use App\Jobs\Inventario\VerificarCaducidadesJob;
 use App\Jobs\Reservas\EnviarRecordatoriosReservasJob;
+use App\Jobs\Reservas\LimpiarReservacionesNoConfirmadasJob;
+use App\Jobs\Reservas\NotificarCheckOutsProximosJob;
 use App\Jobs\Restaurante\ProcesarNoShowsRestauranteJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -26,6 +28,16 @@ Artisan::command('restaurante:procesar-noshows', function (): void {
     ProcesarNoShowsRestauranteJob::dispatchSync();
     fwrite(STDOUT, "No-shows de restaurante procesados exitosamente.\n");
 })->purpose('Procesar reservaciones de restaurante que excedieron la tolerancia de 30 minutos');
+
+Artisan::command('reservas:limpiar-no-confirmadas', function (): void {
+    LimpiarReservacionesNoConfirmadasJob::dispatchSync();
+    fwrite(STDOUT, "Reservaciones no confirmadas canceladas y notificadas exitosamente.\n");
+})->purpose('Limpiar reservaciones no confirmadas expiradas y alertar');
+
+Artisan::command('reservas:notificar-checkouts-proximos', function (): void {
+    NotificarCheckOutsProximosJob::dispatchSync();
+    fwrite(STDOUT, "Check-outs próximos a vencer notificados exitosamente.\n");
+})->purpose('Notificar al personal sobre estancias con check-out próximo a vencer');
 
 Artisan::command('mantenimiento:procesar-todos', function (): void {
     VerificarMantenimientosPreventivosJob::dispatchSync();
@@ -107,3 +119,9 @@ $registerScheduledEvent(new EnviarRecordatoriosReservasJob, 'jobs.reservas_recor
 
 // 9. Procesar reservaciones No-Show de restaurante (tolerancia 30 min)
 $registerScheduledEvent(new ProcesarNoShowsRestauranteJob, 'jobs.restaurante_noshows', 'everyfifteenminutes', $timezoneStr);
+
+// 10. Limpiar reservaciones no confirmadas vencidas
+$registerScheduledEvent(new LimpiarReservacionesNoConfirmadasJob, 'jobs.reservas_limpiar_no_confirmadas', 'everyfifteenminutes', $timezoneStr);
+
+// 11. Notificar check-outs próximos a vencer
+$registerScheduledEvent(new NotificarCheckOutsProximosJob, 'jobs.reservas_checkouts_proximos', 'everyfifteenminutes', $timezoneStr);

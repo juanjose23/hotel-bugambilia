@@ -40,8 +40,17 @@ class ServicioInfolist
                         TextEntry::make('icono')
                             ->label('Icono Representativo')
                             ->placeholder('Ninguno')
-                            ->icon(fn ($state) => $state)
-                            ->formatStateUsing(fn ($state) => $state ? ucwords(str_replace(['heroicon-o-', '-'], ['', ' '], $state)) : 'Ninguno'),
+                            ->icon(function (?string $state): string {
+                                if (! $state) {
+                                    return 'heroicon-o-sparkles';
+                                }
+                                if (str_starts_with($state, 'heroicon-')) {
+                                    return $state;
+                                }
+
+                                return 'heroicon-o-sparkles';
+                            })
+                            ->formatStateUsing(fn (?string $state): string => $state ? ucwords(str_replace(['heroicon-o-', '-'], ['', ' '], $state)) : 'Ninguno'),
 
                         ...TimestampsInfolistEntry::make(),
 
