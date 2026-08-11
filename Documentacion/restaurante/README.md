@@ -15,7 +15,7 @@
 
 ## Stack Tecnológico
 
-- **Backend**: PHP 8.3+, Laravel 13, Filament 5
+- **Backend**: PHP 8.4+, Laravel 13, Filament 5
 - **Frontend**: Inertia.js v3, React 19, TypeScript, TailwindCSS v4
 - **Base de Datos**: PostgreSQL (producción), SQLite (pruebas)
 
@@ -133,21 +133,25 @@ app/
 ## Integración con Otros Módulos
 
 ### Inventario
+
 - **Stock**: Consumo de ingredientes desde "Cocina Restaurante"
 - **ProductoKit**: Recetas de platos (ingredientes medidos contra el rendimiento de porciones de la receta)
 - **Lotes**: Costo unitario de ingredientes
 - **Movimientos**: Registro de CONSUMO al cocinar
 
 ### Espacios
+
 - **Espacios**: Mesas del restaurante (tipo 'mesa')
 - **Ambientes**: Agrupación de mesas por área
 - **Estados**: Disponible, Ocupado, Limpieza, Reservado, etc.
 
 ### Limpieza
+
 - **SolicitudLimpieza**: Automática al crear/cerrar pedidos
 - **Prioridades**: Normal (apertura), Urgente (cierre)
 
 ### Habitaciones
+
 - **CuentaEstancia**: Carga de pedidos a cuenta de habitación (para huéspedes)
 - **CuentaRestaurante**: Cuentas propias del restaurante (para clientes no huéspedes)
 - **EstadoPedido**: CARGADO_A_HABITACION

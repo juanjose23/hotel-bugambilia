@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Repository\Models\Reservas;
 
 use App\Enums\Reservas\EstadoReservaDetalle;
+use App\Enums\Reservas\OrigenReservaDetalle;
+use App\Repository\Models\Estancias\Estancia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class ReservaDetalle extends Model
@@ -18,12 +21,16 @@ final class ReservaDetalle extends Model
 
     protected $guarded = ['id'];
 
-    protected $attributes = ['estado' => 1, 'cantidad' => 1];
+    protected $attributes = ['estado' => 1, 'cantidad' => 1, 'origen' => 1];
 
     protected $casts = [
         'estado' => EstadoReservaDetalle::class,
+        'origen' => OrigenReservaDetalle::class,
         'fecha_inicio' => 'datetime',
         'fecha_fin' => 'datetime',
+        'hold_expires_at' => 'datetime',
+        'confirmado_at' => 'datetime',
+        'cancelado_at' => 'datetime',
         'cantidad' => 'integer',
         'adultos' => 'integer',
         'ninos' => 'integer',
@@ -37,6 +44,12 @@ final class ReservaDetalle extends Model
     public function reserva(): BelongsTo
     {
         return $this->belongsTo(Reserva::class);
+    }
+
+    /** @return BelongsTo<Estancia, $this> */
+    public function estanciaPadre(): BelongsTo
+    {
+        return $this->belongsTo(Estancia::class, 'estancia_id');
     }
 
     /** @return BelongsTo<RecursoReservable, $this> */
@@ -61,5 +74,17 @@ final class ReservaDetalle extends Model
     public function huespedes(): HasMany
     {
         return $this->hasMany(ReservaHuesped::class, 'reserva_detalle_id');
+    }
+
+    /** @return HasOne<Estancia, $this> */
+    public function estancia(): HasOne
+    {
+        return $this->hasOne(Estancia::class, 'reserva_detalle_id');
+    }
+
+    /** @return HasMany<Estancia, $this> */
+    public function estancias(): HasMany
+    {
+        return $this->hasMany(Estancia::class, 'reserva_detalle_id');
     }
 }

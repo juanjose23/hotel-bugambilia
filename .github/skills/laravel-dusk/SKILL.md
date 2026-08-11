@@ -10,6 +10,7 @@ Comprehensive assistance with Laravel Dusk browser automation and testing, provi
 ## When to Use This Skill
 
 This skill should be triggered when:
+
 - Writing or debugging browser automation tests for Laravel
 - Testing user interfaces and JavaScript interactions
 - Implementing end-to-end (E2E) testing workflows
@@ -227,12 +228,14 @@ $browser->assertAuthenticated()
 ### Dusk Selectors vs CSS Selectors
 
 **Dusk selectors** (recommended) use HTML `dusk` attributes that won't change with UI updates:
+
 - More stable than CSS classes or IDs
 - Explicitly mark elements for testing
 - Use `@` prefix in tests: `$browser->click('@submit-button')`
 - Add to HTML: `<button dusk="submit-button">Submit</button>`
 
 **CSS selectors** are more brittle but sometimes necessary:
+
 - `.class-name`, `#id`, `div > button`
 - Can break when HTML structure changes
 - Use when you don't control the HTML
@@ -240,6 +243,7 @@ $browser->assertAuthenticated()
 ### Waiting Strategies
 
 **Always wait explicitly** rather than using arbitrary pauses:
+
 - `waitFor('.selector')` - Wait for element to exist
 - `waitUntilMissing('.selector')` - Wait for element to disappear
 - `waitForText('text')` - Wait for text to appear
@@ -249,6 +253,7 @@ $browser->assertAuthenticated()
 ### Page Objects
 
 Organize complex test logic into **Page classes**:
+
 - Define URL, assertions, and element selectors
 - Create reusable methods for page-specific actions
 - Improve test readability and maintainability
@@ -257,6 +262,7 @@ Organize complex test logic into **Page classes**:
 ### Browser Macros
 
 Define **reusable browser methods** for common patterns:
+
 - Register in service provider's `boot()` method
 - Use across all tests
 - Chain like built-in methods
@@ -267,16 +273,17 @@ Define **reusable browser methods** for common patterns:
 This skill includes comprehensive documentation in `references/`:
 
 - **other.md** - Complete Laravel Dusk documentation covering:
-  - Installation and configuration
-  - ChromeDriver management
-  - Test generation and execution
-  - Browser interaction methods
-  - Form handling and file uploads
-  - Waiting strategies and assertions
-  - Page Objects and Components patterns
-  - CI/CD integration examples
+    - Installation and configuration
+    - ChromeDriver management
+    - Test generation and execution
+    - Browser interaction methods
+    - Form handling and file uploads
+    - Waiting strategies and assertions
+    - Page Objects and Components patterns
+    - CI/CD integration examples
 
 Use the reference file when you need:
+
 - Detailed API documentation for specific methods
 - Complete list of available assertions (70+)
 - Configuration options for different environments
@@ -365,12 +372,14 @@ php artisan dusk:chrome-driver --detect
 ## Resources
 
 ### Official Documentation
+
 - Laravel Dusk Documentation: https://laravel.com/docs/12.x/dusk
 - API Reference: See `references/other.md` for complete method listings
 
 ### Common Patterns in Reference Files
 
 The reference documentation includes:
+
 - 70+ assertion methods with descriptions
 - Complete form interaction API
 - Waiting strategies and timing best practices
@@ -397,21 +406,25 @@ The reference documentation includes:
 ### Common Issues
 
 **ChromeDriver version mismatch:**
+
 ```bash
 php artisan dusk:chrome-driver --detect
 ```
 
 **Elements not found:**
+
 - Use `waitFor('.selector')` before interacting
 - Check if element is in an iframe
 - Verify selector with browser dev tools
 
 **Tests failing randomly:**
+
 - Replace `pause()` with explicit waits
 - Increase timeout: `waitFor('.selector', 10)`
 - Use `waitUntil()` for JavaScript conditions
 
 **Database state issues:**
+
 - Use `DatabaseTruncation` trait
 - Reset data in `setUp()` method
 - Check for transactions in application code

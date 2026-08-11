@@ -150,6 +150,7 @@ export const TarjetaCatalogoUnificada: React.FC<
 
                 <Link
                     href={hrefDetalle}
+                    prefetch="hover"
                     className="inline-flex items-center gap-1 text-xs font-extrabold text-bugambilia-600 transition-colors group-hover:underline dark:text-bugambilia-400"
                 >
                     <span>Ver Detalles</span>

@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Interactors\Landing;
 
+use App\Presenters\Landing\ServicioTarjetaPresenter;
 use App\Repository\Models\Servicios\Servicio;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Str;
 
 final class ObtenerServiciosLanding
 {
+    public function __construct(
+        private readonly ServicioTarjetaPresenter $servicioPresenter,
+    ) {}
+
     /**
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
@@ -39,58 +43,7 @@ final class ObtenerServiciosLanding
                 'categoria' => $categoria,
                 'buscar' => $busqueda,
             ]))
-            ->through(function (Servicio $s) {
-                $precioObj = $s->precios->first();
-                $monto = $precioObj ? (float) $precioObj->precio : null;
-                $moneda = $precioObj?->moneda;
-                $simbolo = $moneda ? $moneda->simbolo : '$';
-
-                $categoria = $s->categoria;
-                $categoriaNombre = $categoria ? $categoria->nombre : 'Servicio General';
-
-                $imagen = $s->imagenes->first();
-                $imagenUrl = null;
-
-                if ($imagen && ! empty($imagen->url)) {
-                    $url = trim($imagen->url);
-                    if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://') || str_starts_with($url, '/')) {
-                        $imagenUrl = $url;
-                    } else {
-                        $imagenUrl = '/storage/'.ltrim($url, '/');
-                    }
-                }
-
-                if (! $imagenUrl) {
-                    $cat = strtolower($categoriaNombre);
-                    $name = strtolower($s->nombre);
-                    if (str_contains($cat, 'gastro') || str_contains($cat, 'restaurante') || str_contains($name, 'desayuno') || str_contains($name, 'cena')) {
-                        $imagenUrl = '/images/service-kitchen.png';
-                    } elseif (str_contains($cat, 'piscina') || str_contains($name, 'piscina') || str_contains($cat, 'agua')) {
-                        $imagenUrl = '/images/service-pool.png';
-                    } elseif (str_contains($cat, 'bar') || str_contains($cat, 'bebida') || str_contains($name, 'bar')) {
-                        $imagenUrl = '/images/service-bartender.png';
-                    } elseif (str_contains($cat, 'evento') || str_contains($name, 'evento')) {
-                        $imagenUrl = '/images/service-events.png';
-                    } else {
-                        $imagenUrl = '/images/terrace.jpg';
-                    }
-                }
-
-                $slug = Str::slug($s->nombre).'-'.$s->id;
-
-                return [
-                    'id' => $s->id,
-                    'codigo' => $s->codigo,
-                    'slug' => $slug,
-                    'nombre' => $s->nombre,
-                    'descripcion' => $s->descripcion ?? 'Servicio exclusivo para nuestros huéspedes.',
-                    'categoria' => $categoriaNombre,
-                    'precio' => $monto,
-                    'moneda' => $simbolo,
-                    'imagen' => $imagenUrl,
-                    'icono' => $s->icono,
-                ];
-            });
+            ->through(fn (Servicio $s): array => $this->servicioPresenter->tarjeta($s));
 
         return $paginator;
     }

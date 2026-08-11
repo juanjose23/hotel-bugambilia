@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Reservas\Schemas\Reserva;
 
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Reservas\Reserva;
+use App\Support\MonedaHelper;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
@@ -192,6 +193,7 @@ class ResumenReserva
                                     $cant = is_numeric($plato['cantidad'] ?? null) ? (int) $plato['cantidad'] : 1;
                                     $precioRaw = $plato['precio_unitario'] ?? 0;
                                     $subtotalRaw = $plato['subtotal'] ?? 0;
+                                    $simboloMoneda = MonedaHelper::simbolo($record->moneda);
                                     $precio = number_format(is_numeric($precioRaw) ? (float) $precioRaw : 0.0, 2);
                                     $subtotal = number_format(is_numeric($subtotalRaw) ? (float) $subtotalRaw : 0.0, 2);
                                     $obsVal = $plato['observaciones'] ?? null;
@@ -199,7 +201,7 @@ class ResumenReserva
 
                                     $itemsHtml .= '<li class="py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 text-xs">'.
                                         '<span><strong class="font-bold text-emerald-600 dark:text-emerald-400">'.$cant.'x</strong> <span class="font-medium text-gray-900 dark:text-white">'.$nombre.'</span>'.$obs.'</span>'.
-                                        '<span class="font-semibold text-gray-700 dark:text-gray-200">C$ '.$subtotal.' <span class="text-[10px] text-gray-400">(C$ '.$precio.' c/u)</span></span>'.
+                                        '<span class="font-semibold text-gray-700 dark:text-gray-200">'.$simboloMoneda.' '.$subtotal.' <span class="text-[10px] text-gray-400">('.$simboloMoneda.' '.$precio.' c/u)</span></span>'.
                                         '</li>';
                                 }
 
@@ -219,15 +221,15 @@ class ResumenReserva
                     ->schema([
                         TextEntry::make('subtotal')
                             ->label('Subtotal')
-                            ->money(fn ($record): string => $record->moneda !== null ? $record->moneda->codigo : 'NIO'),
+                            ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda)),
 
                         TextEntry::make('descuento')
                             ->label('Descuento')
-                            ->money(fn ($record): string => $record->moneda !== null ? $record->moneda->codigo : 'NIO'),
+                            ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda)),
 
                         TextEntry::make('total')
                             ->label('Total General')
-                            ->money(fn ($record): string => $record->moneda !== null ? $record->moneda->codigo : 'NIO')
+                            ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda))
                             ->badge()
                             ->color('primary'),
 
@@ -238,13 +240,13 @@ class ResumenReserva
 
                         TextEntry::make('total_pagado')
                             ->label('Monto Pagado')
-                            ->money(fn ($record): string => $record->moneda !== null ? $record->moneda->codigo : 'NIO')
+                            ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda))
                             ->badge()
                             ->color('success'),
 
                         TextEntry::make('saldo')
                             ->label('Saldo Pendiente')
-                            ->money(fn ($record): string => $record->moneda !== null ? $record->moneda->codigo : 'NIO')
+                            ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda))
                             ->badge()
                             ->color(fn ($state): string => (float) $state <= 0.0 ? 'success' : 'danger'),
 
@@ -267,7 +269,7 @@ class ResumenReserva
 
                                 return null;
                             })
-                            ->money(fn ($record): string => $record->moneda !== null ? $record->moneda->codigo : 'NIO')
+                            ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda))
                             ->placeholder('—'),
                     ]),
 

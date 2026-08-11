@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Servicios\Servicios\Pages;
 
 use App\Filament\Resources\Servicios\Servicios\ServicioResource;
-use App\Repository\Models\Servicios\Servicio;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -22,25 +21,5 @@ class EditServicio extends EditRecord
             ForceDeleteAction::make(),
             RestoreAction::make(),
         ];
-    }
-
-    protected function afterSave(): void
-    {
-        /** @var Servicio $record */
-        $record = $this->getRecord();
-        $record->loadMissing('imagenes');
-        $imagenes = $this->data['imagenes'] ?? null;
-
-        if (is_array($imagenes)) {
-            $record->imagenes()->delete();
-            foreach ($imagenes as $index => $path) {
-                if ($path) {
-                    $record->imagenes()->create([
-                        'url' => $path,
-                        'orden' => $index + 1,
-                    ]);
-                }
-            }
-        }
     }
 }

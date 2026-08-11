@@ -11,6 +11,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\User;
+use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -53,7 +54,14 @@ final class Cuenta extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
 
-    protected $table = 'cuentas';
+    protected static function booted(): void
+    {
+        self::creating(function (Cuenta $cuenta): void {
+            if ($cuenta->moneda_id === null) {
+                $cuenta->moneda_id = app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar()?->id;
+            }
+        });
+    }
 
     protected $fillable = [
         'numero_cuenta', 'tipo_cuenta', 'estado',

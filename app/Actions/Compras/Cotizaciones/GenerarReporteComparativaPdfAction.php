@@ -10,6 +10,7 @@ use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use App\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteComparativaPdfAction
 {
@@ -19,7 +20,7 @@ final class GenerarReporteComparativaPdfAction
         private readonly ObtenerComparativaReporteQuery $query,
     ) {}
 
-    public function ejecutar(Solicitud $solicitud): \Barryvdh\DomPDF\PDF
+    public function ejecutar(Solicitud $solicitud): PdfDocumento
     {
         $solicitudConRelaciones = $this->query->ejecutar($solicitud->id) ?? $solicitud;
 

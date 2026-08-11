@@ -32,8 +32,7 @@ use Filament\Tables\Table;
 
 class CotizacionTable
 {
-    use InyectaDesdeContenedor;
-    use TieneAccionesImprimirExportar;
+    use InyectaDesdeContenedor, TieneAccionesImprimirExportar;
 
     public function __construct(
         private readonly GenerarOrdenDesdeCotizacion $generarOrdenDesdeCotizacion,

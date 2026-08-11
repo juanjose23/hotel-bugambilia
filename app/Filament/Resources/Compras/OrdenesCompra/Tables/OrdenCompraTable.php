@@ -31,8 +31,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class OrdenCompraTable
 {
-    use InyectaDesdeContenedor;
-    use TieneAccionesImprimirExportar;
+    use InyectaDesdeContenedor, TieneAccionesImprimirExportar;
 
     private readonly EmitirOrdenCompra $emitirOrdenCompra;
 

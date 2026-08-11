@@ -11,12 +11,13 @@ use App\Support\Pdf\LayoutPdf;
 use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteRotacionPdfAction
 {
     use GuardaReporte;
 
-    public function ejecutar(RotacionComprasReporteData $reportData): \Barryvdh\DomPDF\PDF
+    public function ejecutar(RotacionComprasReporteData $reportData): PdfDocumento
     {
         $codigoReporte = 'HTB-COM-007';
         $nombreReporte = 'Reporte de Rotación y Consumo de Compras';

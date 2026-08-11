@@ -11,6 +11,8 @@ use App\Filament\Pages\Reservas\CheckOutPage;
 use App\Interactors\Reservas\Gestion\CancelarReserva;
 use App\Interactors\Reservas\Gestion\ConfirmarReserva;
 use App\Interactors\Restaurante\Mesas\ConfirmarLlegadaReservaMesa;
+use App\Notifications\Reservas\NotificadorReservas;
+use App\Repository\Models\Reservas\Reserva;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -71,6 +73,26 @@ class AccionesReserva
                 ->color('gray')
                 ->url(fn ($record): string => route('reservas.voucher', ['reserva' => $record->id]))
                 ->openUrlInNewTab(),
+
+            Action::make('enviar_voucher_email')
+                ->label('Enviar PDF por Email')
+                ->icon(Heroicon::Envelope)
+                ->color('info')
+                ->requiresConfirmation()
+                ->action(function (Reserva $record): void {
+                    if (empty($record->email_cliente)) {
+                        Notification::make()->title('Cliente sin correo')->body('La reservación no posee un correo electrónico registrado.')->warning()->send();
+
+                        return;
+                    }
+
+                    try {
+                        app(NotificadorReservas::class)->reservaCreada($record);
+                        Notification::make()->title('Comprobante enviado')->body("El expediente PDF de la reserva fue enviado a {$record->email_cliente}.")->success()->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->title('Error al enviar')->body($e->getMessage())->danger()->send();
+                    }
+                }),
 
             Action::make('cancelar')
                 ->label('Cancelar')

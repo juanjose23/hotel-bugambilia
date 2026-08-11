@@ -20,19 +20,19 @@ final class NotificadorReservas extends NotificadorBase
 
     public function reservaCreada(Reserva $reserva): void
     {
-        $usuarios = $this->destinatarios->obtener($reserva->cliente);
+        $usuarios = $this->destinatarios->obtener();
         $this->enviar($usuarios, $this->mensajes->reservaCreada($reserva));
     }
 
     public function reservaConfirmada(Reserva $reserva): void
     {
-        $usuarios = $this->destinatarios->obtener($reserva->cliente);
+        $usuarios = $this->destinatarios->obtener();
         $this->enviar($usuarios, $this->mensajes->reservaConfirmada($reserva));
     }
 
     public function reservaCancelada(Reserva $reserva): void
     {
-        $usuarios = $this->destinatarios->obtener($reserva->cliente);
+        $usuarios = $this->destinatarios->obtener();
         $this->enviar($usuarios, $this->mensajes->reservaCancelada($reserva));
     }
 
@@ -52,5 +52,17 @@ final class NotificadorReservas extends NotificadorBase
     {
         $usuarios = $this->destinatarios->obtener();
         $this->enviar($usuarios, $this->mensajes->checkOutRegistrado($estancia));
+    }
+
+    /** @param Collection<int, User> $usuarios */
+    public function reservaNoConfirmadaExpirada(Reserva $reserva, Collection $usuarios): void
+    {
+        $this->enviar($usuarios, $this->mensajes->reservaNoConfirmadaExpirada($reserva));
+    }
+
+    /** @param Collection<int, User> $usuarios */
+    public function checkOutProximoExpirar(Estancia $estancia, Collection $usuarios): void
+    {
+        $this->enviar($usuarios, $this->mensajes->checkOutProximoExpirar($estancia));
     }
 }

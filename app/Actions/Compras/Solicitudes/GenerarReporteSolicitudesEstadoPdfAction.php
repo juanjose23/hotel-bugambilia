@@ -11,44 +11,31 @@ use App\Support\Pdf\LayoutPdf;
 use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
+use Illuminate\Support\Collection;
 
 final class GenerarReporteSolicitudesEstadoPdfAction
 {
     use GuardaReporte;
 
-    public function ejecutar(SolicitudesEstadoReporteData $reportData): \Barryvdh\DomPDF\PDF
+    public function ejecutar(SolicitudesEstadoReporteData $reportData): PdfDocumento
     {
         $codigoReporte = 'HTB-COM-010';
         $nombreReporte = 'Solicitudes de Compra por Estado';
-        $datosHotel = HotelInfo::getBaseData();
+        $layout = $this->construirLayout();
+        $paginas = $this->paginarDatos($reportData->data, $layout);
 
-        $layout = new LayoutPdf(
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
-        );
-
-        $paginador = new ReportePaginador($layout);
-        $items = collect($reportData->data);
-
-        $paginas = $paginador->paginar(
-            items: $items,
-            tipo: TiposReporte::TABLA_SIMPLE,
-        );
-
-        $pdf = Pdf::loadView('reports.compras.solicitudes.solicitudes-estado', [
-            'paginas' => $paginas,
-            'codigoReporte' => $codigoReporte,
-            'nombreReporte' => $nombreReporte,
-            'datosHotel' => $datosHotel,
-            'fechaInicio' => $reportData->fechaInicio,
-            'fechaFin' => $reportData->fechaFin,
-            'estado' => $reportData->estado,
-            'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
-            'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
-        ])->setPaper('letter', 'portrait');
+        $pdf = Pdf::loadView('reports.compras.solicitudes.solicitudes-estado', $this->parametrosVista(
+            codigoReporte: $codigoReporte,
+            nombreReporte: $nombreReporte,
+            layout: $layout,
+            extra: [
+                'paginas' => $paginas,
+                'fechaInicio' => $reportData->fechaInicio,
+                'fechaFin' => $reportData->fechaFin,
+                'estado' => $reportData->estado,
+            ],
+        ))->setPaper('letter', 'portrait');
 
         $this->guardarAuditoria(
             tipoReporte: $codigoReporte,
@@ -61,5 +48,45 @@ final class GenerarReporteSolicitudesEstadoPdfAction
         );
 
         return $pdf;
+    }
+
+    private function construirLayout(): LayoutPdf
+    {
+        return new LayoutPdf(
+            margenSuperiorMm: 8,
+            margenInferiorMm: 10,
+            altoPieMm: 0,
+        );
+    }
+
+    /**
+     * @param  array<string, int>  $data
+     * @return array<int, Collection<string, int>>
+     */
+    private function paginarDatos(array $data, LayoutPdf $layout): array
+    {
+        $paginador = new ReportePaginador($layout);
+
+        return $paginador->paginar(
+            items: collect($data),
+            tipo: TiposReporte::TABLA_SIMPLE,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
+     */
+    private function parametrosVista(string $codigoReporte, string $nombreReporte, LayoutPdf $layout, array $extra = []): array
+    {
+        return array_merge([
+            'codigoReporte' => $codigoReporte,
+            'nombreReporte' => $nombreReporte,
+            'datosHotel' => HotelInfo::getBaseData(),
+            'pageMarginTop' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginBottom' => $layout->margenInferiorMm,
+            'pageMarginLeft' => $layout->margenSuperiorMm,
+        ], $extra);
     }
 }

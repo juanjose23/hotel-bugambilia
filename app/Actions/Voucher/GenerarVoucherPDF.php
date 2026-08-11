@@ -27,7 +27,9 @@ final class GenerarVoucherPDF
     public function ejecutar(Reserva $reserva): StreamedResponse
     {
         $reserva->loadMissing([
-            'habitacion',
+            'habitacion.servicioAsignaciones.servicio',
+            'habitacion.categoria',
+            'habitacion.detalle',
             'espacio',
             'detalles.reservable.habitacion',
             'detalles.reservable.espacio',
@@ -35,6 +37,8 @@ final class GenerarVoucherPDF
             'serviciosAdicionalesItems.servicio',
             'huespedes',
             'estancia.cuenta',
+            'cuentas.detalles',
+            'cuentas.cargos',
             'cuentas.pagos',
             'moneda',
         ]);

@@ -40,7 +40,7 @@ class EsquemaReservaRestaurante
                 ->columnSpanFull()
                 ->icon(Heroicon::Clock)
                 ->columns(4)
-                ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
+                ->visible(fn (Get $get): bool => in_array($get('tipo_reserva'), [TipoReserva::RESTAURANTE->value, TipoReserva::PAQUETE->value], true))
                 ->schema([
                     DatePicker::make('fecha_check_in')
                         ->label('Fecha de Reservación')
@@ -114,7 +114,7 @@ class EsquemaReservaRestaurante
                 ->columnSpanFull()
                 ->icon(Heroicon::UserGroup)
                 ->columns(2)
-                ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
+                ->visible(fn (Get $get): bool => in_array($get('tipo_reserva'), [TipoReserva::RESTAURANTE->value, TipoReserva::PAQUETE->value], true))
                 ->schema([
                     MesaSelect::make(column: 'espacio_id', soloReservables: true, incluirRestaurante: false, dusk: 'reserva-mesa')
                         ->required(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
@@ -136,7 +136,7 @@ class EsquemaReservaRestaurante
                 ->columnSpanFull()
                 ->icon(Heroicon::ShoppingBag)
                 ->description('Seleccione los platillos que el cliente solicita tener preparados inmediatamente a su llegada.')
-                ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
+                ->visible(fn (Get $get): bool => in_array($get('tipo_reserva'), [TipoReserva::RESTAURANTE->value, TipoReserva::PAQUETE->value], true))
                 ->schema([
                     Repeater::make('items_preorden')
                         ->label('Platillos Pre-ordenados')
@@ -197,7 +197,7 @@ class EsquemaReservaRestaurante
                 ->columnSpanFull()
                 ->icon(Heroicon::Calculator)
                 ->description('Incluye las horas reservadas, las mesas seleccionadas y todos los platillos de la preorden.')
-                ->visible(fn (Get $get): bool => $get('tipo_reserva') === TipoReserva::RESTAURANTE->value)
+                ->visible(fn (Get $get): bool => in_array($get('tipo_reserva'), [TipoReserva::RESTAURANTE->value, TipoReserva::PAQUETE->value], true))
                 ->columns(['default' => 1, 'sm' => 2, 'lg' => 4])
                 ->schema([
                     TextEntry::make('resumen_horas_restaurante')

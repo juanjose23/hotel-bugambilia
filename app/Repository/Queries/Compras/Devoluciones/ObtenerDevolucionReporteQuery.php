@@ -13,6 +13,8 @@ use App\BusinessLogic\Compras\Data\Shared\ProductoReporteData;
 use App\BusinessLogic\Compras\Data\Shared\ValorReporteData;
 use App\BusinessLogic\Compras\Data\Shared\VarianteReporteData;
 use App\Repository\Models\Compras\DevolucionCompra;
+use App\Repository\Models\Compras\DevolucionItem;
+use App\Repository\Models\User;
 
 final class ObtenerDevolucionReporteQuery
 {
@@ -21,7 +23,7 @@ final class ObtenerDevolucionReporteQuery
         $devolucion = DevolucionCompra::with([
             'ordenCompra',
             'recepcionCompra',
-            'creador.persona',
+            'creador.persona.personaNatural',
             'items.producto',
             'items.variante',
             'items.unidadMedida',
@@ -32,41 +34,10 @@ final class ObtenerDevolucionReporteQuery
             return null;
         }
 
-        $creador = null;
-        if ($devolucion->creador) {
-            $creadorPersona = null;
-            if ($devolucion->creador->persona) {
-                $creadorPersona = new PersonaReporteData(
-                    primer_nombre: $devolucion->creador->persona->primer_nombre,
-                    primer_apellido: $devolucion->creador->persona->personaNatural?->primer_apellido,
-                    nombre_completo: $devolucion->creador->persona->nombre_completo,
-                    razon_social: null
-                );
-            }
-            $creador = new ColaboradorReporteData(
-                codigo: $devolucion->creador->codigo ?? (string) $devolucion->creador->id,
-                persona: $creadorPersona
-            );
-        }
-
         $estado = new EstadoReporteData(
             value: (string) $devolucion->estado->value,
             label: $devolucion->estado->label()
         );
-
-        $items = collect();
-        foreach ($devolucion->items as $item) {
-            $producto = $item->producto ? new ProductoReporteData(nombre: $item->producto->nombre) : null;
-            $variante = $item->variante ? new VarianteReporteData(codigo: $item->variante->codigo, nombre_variante: $item->variante->nombre_variante) : null;
-            $uMedida = $item->unidadMedida ? new ValorReporteData(valor: $item->unidadMedida->nombre) : null;
-            $items->push(new DevolucionItemReporteData(
-                id: $item->id,
-                producto: $producto,
-                variante: $variante,
-                unidadMedida: $uMedida,
-                cantidad_devolver: (float) $item->cantidad_devolver,
-            ));
-        }
 
         return new DevolucionReporteData(
             id: $devolucion->id,
@@ -74,11 +45,48 @@ final class ObtenerDevolucionReporteQuery
             fecha_devolucion: $devolucion->fecha_devolucion,
             motivo: $devolucion->motivo,
             documento_externo: $devolucion->documento_externo,
-            creador: $creador,
+            creador: $this->mapearCreador($devolucion->creador),
             ordenCompraCodigo: $devolucion->ordenCompra?->codigo,
             recepcionCompraCodigo: $devolucion->recepcionCompra?->codigo,
             estado: $estado,
-            items: $items
+            items: $devolucion->items->map(fn ($item) => $this->mapearItem($item))
+        );
+    }
+
+    private function mapearCreador(?User $creador): ?ColaboradorReporteData
+    {
+        if (! $creador) {
+            return null;
+        }
+
+        $creadorPersona = null;
+        if ($creador->persona) {
+            $creadorPersona = new PersonaReporteData(
+                primer_nombre: $creador->persona->primer_nombre,
+                primer_apellido: $creador->persona->personaNatural?->primer_apellido,
+                nombre_completo: $creador->persona->nombre_completo,
+                razon_social: null
+            );
+        }
+
+        return new ColaboradorReporteData(
+            codigo: $creador->codigo ?? (string) $creador->id,
+            persona: $creadorPersona
+        );
+    }
+
+    private function mapearItem(DevolucionItem $item): DevolucionItemReporteData
+    {
+        $producto = $item->producto ? new ProductoReporteData(nombre: $item->producto->nombre) : null;
+        $variante = $item->variante ? new VarianteReporteData(codigo: $item->variante->codigo, nombre_variante: $item->variante->nombre_variante) : null;
+        $uMedida = $item->unidadMedida ? new ValorReporteData(valor: $item->unidadMedida->nombre) : null;
+
+        return new DevolucionItemReporteData(
+            id: $item->id,
+            producto: $producto,
+            variante: $variante,
+            unidadMedida: $uMedida,
+            cantidad_devolver: (float) $item->cantidad_devolver,
         );
     }
 }

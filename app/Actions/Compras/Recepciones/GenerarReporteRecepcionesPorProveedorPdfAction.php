@@ -11,12 +11,13 @@ use App\Support\Pdf\LayoutPdf;
 use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteRecepcionesPorProveedorPdfAction
 {
     use GuardaReporte;
 
-    public function ejecutar(RecepcionesPorProveedorReporteData $reportData): \Barryvdh\DomPDF\PDF
+    public function ejecutar(RecepcionesPorProveedorReporteData $reportData): PdfDocumento
     {
         $codigoReporte = 'HTB-COM-012';
         $nombreReporte = 'Recepciones por Proveedor';

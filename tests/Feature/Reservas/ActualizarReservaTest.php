@@ -593,14 +593,14 @@ test('no genera conflicto al conservar sus propios espacios adicionales', functi
         ->and($hijos->first()?->reservable?->espacio?->id)->toBe($espacio->id);
 });
 
-test('rechaza editar los recursos adicionales después del check-in', function (): void {
+test('rechaza editar los recursos adicionales después del check out', function (): void {
     $habitacion = Habitacion::query()->firstOrFail();
     $servicio = Servicio::query()
         ->whereHas('precios', fn ($query) => $query->where('tipo_precio', 'base'))
         ->firstOrFail();
 
     $reserva = app(CrearReserva::class)->ejecutar([
-        'nombre_cliente' => 'Reserva en uso',
+        'nombre_cliente' => 'Reserva finalizada',
         'tipo_reserva' => TipoReserva::HABITACION->value,
         'habitacion_id' => $habitacion->id,
         'fecha_check_in' => '2026-11-10',
@@ -608,10 +608,10 @@ test('rechaza editar los recursos adicionales después del check-in', function (
         'adultos' => 2,
     ], [], []);
 
-    $reserva->update(['estado' => EstadoReserva::CHECKED_IN]);
+    $reserva->update(['estado' => EstadoReserva::CHECKED_OUT]);
 
     expect(fn () => app(ActualizarReserva::class)->ejecutar($reserva, [
-        'nombre_cliente' => 'Reserva en uso',
+        'nombre_cliente' => 'Reserva finalizada',
         'tipo_reserva' => TipoReserva::HABITACION->value,
         'habitacion_id' => $habitacion->id,
         'fecha_check_in' => '2026-11-10',

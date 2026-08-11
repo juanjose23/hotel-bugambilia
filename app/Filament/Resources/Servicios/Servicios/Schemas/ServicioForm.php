@@ -82,14 +82,51 @@ class ServicioForm
                             ->helperText('Activar para que este servicio sea visible en el sitio web público.'),
 
                         Select::make('icono')
-                            ->label('Icono Representativo')
+                            ->label('Icono Representativo (Sitio Web)')
                             ->options($listadoHeroicons->ejecutar())
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->prefixIcon(fn ($state) => $state ?? 'heroicon-o-sparkles')
-                            ->placeholder('Selecciona un icono emblemático')
-                            ->helperText('Icono visual que aparecerá listado al lado del servicio en el sitio web.'),
+                            ->prefixIcon(function (?string $state): string {
+                                if (! $state) {
+                                    return 'heroicon-o-sparkles';
+                                }
+                                if (str_starts_with($state, 'heroicon-')) {
+                                    return $state;
+                                }
+
+                                return match ($state) {
+                                    'wifi' => 'heroicon-o-wifi',
+                                    'coffee' => 'heroicon-o-cup-soda',
+                                    'utensils', 'restaurant' => 'heroicon-o-building-storefront',
+                                    'bar' => 'heroicon-o-cake',
+                                    'pool', 'swimming' => 'heroicon-o-lifebuoy',
+                                    'sparkles' => 'heroicon-o-sparkles',
+                                    'car', 'parking' => 'heroicon-o-truck',
+                                    'gym' => 'heroicon-o-trophy',
+                                    'laundry', 'shirt' => 'heroicon-o-scissors',
+                                    'concierge', 'bell' => 'heroicon-o-bell',
+                                    'ac', 'wind' => 'heroicon-o-sun',
+                                    'tv' => 'heroicon-o-computer-desktop',
+                                    'bath' => 'heroicon-o-home-modern',
+                                    'lock' => 'heroicon-o-lock-closed',
+                                    'key' => 'heroicon-o-key',
+                                    'sun' => 'heroicon-o-sun',
+                                    'flame' => 'heroicon-o-fire',
+                                    'gift' => 'heroicon-o-gift',
+                                    'phone' => 'heroicon-o-phone',
+                                    'bed' => 'heroicon-o-home',
+                                    'calendar' => 'heroicon-o-calendar',
+                                    'card' => 'heroicon-o-credit-card',
+                                    'scissors' => 'heroicon-o-scissors',
+                                    'plane' => 'heroicon-o-paper-airplane',
+                                    'briefcase' => 'heroicon-o-briefcase',
+                                    'map' => 'heroicon-o-map',
+                                    default => 'heroicon-o-sparkles',
+                                };
+                            })
+                            ->placeholder('Selecciona un icono emblemático para la página web')
+                            ->helperText('Selecciona un icono representativo que se mostrará en el sitio web (mapeado automáticamente a Lucide Icons).'),
 
                         Textarea::make('descripcion')
                             ->label('Descripción')
@@ -122,7 +159,9 @@ class ServicioForm
                             })
                             ->dehydrated(false)
                             ->saveRelationshipsUsing(function (Servicio $record, $state) use ($sincronizarGaleria) {
-                                $imageUrls = array_map(fn (mixed $val): string => is_scalar($val) || $val instanceof Stringable ? (string) $val : '', is_array($state) ? $state : []);
+                                $imageUrls = is_array($state)
+                                    ? array_values(array_filter(array_map(fn (mixed $val): string => is_scalar($val) || $val instanceof Stringable ? (string) $val : '', $state), fn (string $u): bool => $u !== ''))
+                                    : [];
                                 $sincronizarGaleria->execute($record, $imageUrls);
                             }),
                     ]),

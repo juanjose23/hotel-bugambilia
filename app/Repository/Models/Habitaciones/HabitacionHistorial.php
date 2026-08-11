@@ -14,7 +14,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class HabitacionHistorial extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
-    use Auditable, SoftDeletes;
 
     protected $table = 'habitacion_historial';
 

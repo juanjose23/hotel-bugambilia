@@ -143,7 +143,7 @@ class ActivoFijoSeeder extends Seeder
             $prodIds[$pd['nombre']] = ['pid' => $pid, 'vid' => $variantePrincipal];
         }
 
-        $this->command->info('✓ '.count($productosDef).' productos tipo=3 creados.');
+        $this->command->info(count($productosDef).' productos tipo=3 creados.');
 
         // ================================================================
         // 2. FLUJO DE COMPRA
@@ -313,17 +313,17 @@ class ActivoFijoSeeder extends Seeder
                             ]);
                             $contador++;
                             $totalActivos++;
-                            $this->command->info("    ✓ {$codigo}");
+                            $this->command->info("    {$codigo}");
                         } catch (\Throwable $e) {
-                            $this->command->error("    ✗ Error creando {$codigo}: ".$e->getMessage());
+                            $this->command->error("    Error creando {$codigo}: ".$e->getMessage());
                         }
                     }
                 }
 
-                $this->command->info("  ✓ {$contador} activos en {$f['label']}");
+                $this->command->info("  {$contador} activos en {$f['label']}");
 
             } catch (\Throwable $e) {
-                $this->command->error("  ✗ Flujo {$f['label']}: ".$e->getMessage());
+                $this->command->error("  Flujo {$f['label']}: ".$e->getMessage());
                 $this->command->error('  Line: '.$e->getLine().' File: '.$e->getFile());
             }
         }
@@ -367,7 +367,7 @@ class ActivoFijoSeeder extends Seeder
                         'estado' => EstadoAsignacion::Vigente,
                     ]);
                 }
-                $this->command->info('✓ Asignados a habitaciones.');
+                $this->command->info('Asignados a habitaciones.');
             }
 
             if ($espacios->isNotEmpty()) {
@@ -383,7 +383,7 @@ class ActivoFijoSeeder extends Seeder
                         'estado' => EstadoAsignacion::Vigente,
                     ]);
                 }
-                $this->command->info('✓ Asignados a espacios.');
+                $this->command->info('Asignados a espacios.');
             }
         } catch (\Throwable $e) {
             $this->command->error('Error en asignaciones: '.$e->getMessage());
@@ -408,7 +408,7 @@ class ActivoFijoSeeder extends Seeder
                     'estado' => $i === 0 ? EstadoMantenimiento::EnProceso : EstadoMantenimiento::Completado,
                 ]);
             }
-            $this->command->info('✓ Mantenimientos registrados.');
+            $this->command->info('Mantenimientos registrados.');
         } catch (\Throwable $e) {
             $this->command->error('Error en mantenimientos: '.$e->getMessage());
         }

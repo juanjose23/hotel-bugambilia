@@ -164,15 +164,14 @@ final readonly class RegistrarCliente
         array $datos,
         ?TipoConflictoIdentidad $tipoConflicto
     ): array {
+        $tipoResuelto = $tipoConflicto ?? TipoConflictoIdentidad::Homonimia;
+        $datosExistentes = $this->datosExistentesPersona($persona);
+
         $conflicto = ConflictoIdentidad::create([
             'persona_id' => $persona->id,
-            'tipo_conflicto' => $tipoConflicto ?? TipoConflictoIdentidad::Homonimia,
+            'tipo_conflicto' => $tipoResuelto,
             'datos_providos' => $datos,
-            'datos_existentes' => [
-                'nombre' => $persona->nombre_completo,
-                'telefono' => $persona->telefono,
-                'direccion' => $persona->direccion,
-            ],
+            'datos_existentes' => $datosExistentes,
             'estado' => EstadoConflictoIdentidad::Pendiente,
             'creado_por' => Auth::id(),
         ]);
@@ -180,17 +179,25 @@ final readonly class RegistrarCliente
         PersonaConflictoIdentidad::dispatch(
             $conflicto,
             $persona,
-            $tipoConflicto ?? TipoConflictoIdentidad::Homonimia,
+            $tipoResuelto,
             $datos,
-            [
-                'nombre' => $persona->nombre_completo,
-                'telefono' => $persona->telefono,
-                'direccion' => $persona->direccion,
-            ]
+            $datosExistentes,
         );
 
         throw new RuntimeException(
             'Se detectó un conflicto de identidad. Un administrador deberá revisarlo antes de continuar.'
         );
+    }
+
+    /**
+     * @return array{nombre: string|null, telefono: string|null, direccion: string|null}
+     */
+    private function datosExistentesPersona(Persona $persona): array
+    {
+        return [
+            'nombre' => $persona->nombre_completo,
+            'telefono' => $persona->telefono,
+            'direccion' => $persona->direccion,
+        ];
     }
 }

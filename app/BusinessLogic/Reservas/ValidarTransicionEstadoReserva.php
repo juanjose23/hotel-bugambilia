@@ -23,10 +23,12 @@ final class ValidarTransicionEstadoReserva
     public function esPermitida(EstadoReserva $actual, EstadoReserva $nuevo): bool
     {
         return match ($actual) {
-            EstadoReserva::PENDIENTE => in_array($nuevo, [EstadoReserva::CONFIRMADA, EstadoReserva::CANCELADA], true),
-            EstadoReserva::CONFIRMADA => in_array($nuevo, [EstadoReserva::CHECKED_IN, EstadoReserva::CANCELADA], true),
-            EstadoReserva::CHECKED_IN => $nuevo === EstadoReserva::CHECKED_OUT,
-            EstadoReserva::CHECKED_OUT, EstadoReserva::CANCELADA => false,
+            EstadoReserva::PENDIENTE => in_array($nuevo, [EstadoReserva::CONFIRMADA, EstadoReserva::CANCELADA, EstadoReserva::NO_SHOW], true),
+            EstadoReserva::CONFIRMADA => in_array($nuevo, [EstadoReserva::PARCIALMENTE_CHECKED_IN, EstadoReserva::CHECKED_IN, EstadoReserva::CANCELADA, EstadoReserva::NO_SHOW], true),
+            EstadoReserva::PARCIALMENTE_CHECKED_IN => in_array($nuevo, [EstadoReserva::CHECKED_IN, EstadoReserva::PARCIALMENTE_CHECKED_OUT, EstadoReserva::CANCELADA], true),
+            EstadoReserva::CHECKED_IN => in_array($nuevo, [EstadoReserva::PARCIALMENTE_CHECKED_OUT, EstadoReserva::CHECKED_OUT], true),
+            EstadoReserva::PARCIALMENTE_CHECKED_OUT => $nuevo === EstadoReserva::CHECKED_OUT,
+            EstadoReserva::CHECKED_OUT, EstadoReserva::CANCELADA, EstadoReserva::NO_SHOW => false,
         };
     }
 }

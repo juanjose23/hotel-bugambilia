@@ -16,24 +16,24 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `codigo` | string | Código de la cuenta (CTA-XXXX) |
-| `cliente_id` | int | FK a personas (cliente opcional) |
-| `mesa_id` | int | FK a espacios (mesa asociada opcional) |
-| `estado` | EstadoCuentaRestaurante enum | Estado de la cuenta |
-| `subtotal` | decimal | Subtotal de la cuenta |
-| `descuento_monto` | decimal | Monto de descuento |
-| `descuento_porcentaje` | decimal | Porcentaje de descuento |
-| `impuesto_monto` | decimal | Monto de impuesto |
-| `impuesto_porcentaje` | decimal | Porcentaje de impuesto |
-| `propina_monto` | decimal | Monto de propina |
-| `propina_porcentaje` | decimal | Porcentaje de propina |
-| `total` | decimal | Total de la cuenta |
-| `abierta_en` | datetime | Hora de apertura |
-| `cerrada_en` | datetime | Hora de cierre |
-| `notas` | text | Observaciones de la cuenta |
+| Propiedad              | Tipo                         | Descripción                            |
+| ---------------------- | ---------------------------- | -------------------------------------- |
+| `id`                   | int                          | Identificador único                    |
+| `codigo`               | string                       | Código de la cuenta (CTA-XXXX)         |
+| `cliente_id`           | int                          | FK a personas (cliente opcional)       |
+| `mesa_id`              | int                          | FK a espacios (mesa asociada opcional) |
+| `estado`               | EstadoCuentaRestaurante enum | Estado de la cuenta                    |
+| `subtotal`             | decimal                      | Subtotal de la cuenta                  |
+| `descuento_monto`      | decimal                      | Monto de descuento                     |
+| `descuento_porcentaje` | decimal                      | Porcentaje de descuento                |
+| `impuesto_monto`       | decimal                      | Monto de impuesto                      |
+| `impuesto_porcentaje`  | decimal                      | Porcentaje de impuesto                 |
+| `propina_monto`        | decimal                      | Monto de propina                       |
+| `propina_porcentaje`   | decimal                      | Porcentaje de propina                  |
+| `total`                | decimal                      | Total de la cuenta                     |
+| `abierta_en`           | datetime                     | Hora de apertura                       |
+| `cerrada_en`           | datetime                     | Hora de cierre                         |
+| `notas`                | text                         | Observaciones de la cuenta             |
 
 #### Relaciones
 
@@ -67,17 +67,17 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `codigo` | string | Código del pago (PAG-XXXX) |
-| `cuenta_restaurante_id` | int | FK a cuentas_restaurante |
-| `metodo_pago` | MetodoPago enum | Método de pago |
-| `monto` | decimal | Monto del pago |
-| `referencia` | string | Referencia del pago (ej: número de autorización) |
-| `recibido_por` | int | FK a personas (quien recibió el pago) |
-| `fecha_pago` | datetime | Fecha del pago |
-| `notas` | text | Observaciones del pago |
+| Propiedad               | Tipo            | Descripción                                      |
+| ----------------------- | --------------- | ------------------------------------------------ |
+| `id`                    | int             | Identificador único                              |
+| `codigo`                | string          | Código del pago (PAG-XXXX)                       |
+| `cuenta_restaurante_id` | int             | FK a cuentas_restaurante                         |
+| `metodo_pago`           | MetodoPago enum | Método de pago                                   |
+| `monto`                 | decimal         | Monto del pago                                   |
+| `referencia`            | string          | Referencia del pago (ej: número de autorización) |
+| `recibido_por`          | int             | FK a personas (quien recibió el pago)            |
+| `fecha_pago`            | datetime        | Fecha del pago                                   |
+| `notas`                 | text            | Observaciones del pago                           |
 
 #### Relaciones
 
@@ -102,18 +102,18 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `codigo` | string | Código del plato (PLT-XXXX) |
-| `nombre` | string | Nombre del plato |
-| `categoria_id` | int | FK a catalogos (categoría del plato) |
-| `producto_receta_id` | int | FK a productos (receta asociada) |
-| `descripcion` | text | Descripción del plato |
-| `web` | boolean | Visible en portal web |
-| `estado` | int | 1=Activo, 0=Inactivo |
-| `tiempo_preparacion` | string | Ej: "15 - 25 min" |
-| `area_cocina` | AreaCocina enum | Área de cocina (Cocina, Bar, Postres, Parrilla) |
+| Propiedad            | Tipo            | Descripción                                     |
+| -------------------- | --------------- | ----------------------------------------------- |
+| `id`                 | int             | Identificador único                             |
+| `codigo`             | string          | Código del plato (PLT-XXXX)                     |
+| `nombre`             | string          | Nombre del plato                                |
+| `categoria_id`       | int             | FK a catalogos (categoría del plato)            |
+| `producto_receta_id` | int             | FK a productos (receta asociada)                |
+| `descripcion`        | text            | Descripción del plato                           |
+| `web`                | boolean         | Visible en portal web                           |
+| `estado`             | int             | 1=Activo, 0=Inactivo                            |
+| `tiempo_preparacion` | string          | Ej: "15 - 25 min"                               |
+| `area_cocina`        | AreaCocina enum | Área de cocina (Cocina, Bar, Postres, Parrilla) |
 
 #### Relaciones
 
@@ -147,28 +147,28 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `codigo` | string | Código del pedido (PED-YYYYMMDD-XXXX) |
-| `mesa_id` | int | FK a espacios (mesa asignada) |
-| `mesero_id` | int | FK a colaboradores (mesero) |
-| `cliente_id` | int | FK a personas (cliente) |
-| `cuenta_estancia_id` | int | FK a cuentas de estancia (opcional, para huéspedes) |
-| `cuenta_restaurante_id` | int | FK a cuentas_restaurante (opcional, para clientes no huéspedes) |
-| `padre_pedido_id` | int | FK a pedidos (para sub-cuentas) |
-| `estado` | EstadoPedido enum | Estado del pedido |
-| `total` | decimal | Total del pedido |
-| `propina_monto` | decimal | Monto de propina |
-| `propina_porcentaje` | decimal | Porcentaje de propina |
-| `impuesto_monto` | decimal | Monto de impuesto |
-| `impuesto_porcentaje` | decimal | Porcentaje de impuesto |
-| `descuento_monto` | decimal | Monto de descuento |
-| `descuento_porcentaje` | decimal | Porcentaje de descuento |
-| `consecutivo_comanda` | int | Consecutivo para impresión |
-| `abierto_en` | datetime | Hora de apertura |
-| `cerrado_en` | datetime | Hora de cierre |
-| `notas` | text | Observaciones del pedido |
+| Propiedad               | Tipo              | Descripción                                                     |
+| ----------------------- | ----------------- | --------------------------------------------------------------- |
+| `id`                    | int               | Identificador único                                             |
+| `codigo`                | string            | Código del pedido (PED-YYYYMMDD-XXXX)                           |
+| `mesa_id`               | int               | FK a espacios (mesa asignada)                                   |
+| `mesero_id`             | int               | FK a colaboradores (mesero)                                     |
+| `cliente_id`            | int               | FK a personas (cliente)                                         |
+| `cuenta_estancia_id`    | int               | FK a cuentas de estancia (opcional, para huéspedes)             |
+| `cuenta_restaurante_id` | int               | FK a cuentas_restaurante (opcional, para clientes no huéspedes) |
+| `padre_pedido_id`       | int               | FK a pedidos (para sub-cuentas)                                 |
+| `estado`                | EstadoPedido enum | Estado del pedido                                               |
+| `total`                 | decimal           | Total del pedido                                                |
+| `propina_monto`         | decimal           | Monto de propina                                                |
+| `propina_porcentaje`    | decimal           | Porcentaje de propina                                           |
+| `impuesto_monto`        | decimal           | Monto de impuesto                                               |
+| `impuesto_porcentaje`   | decimal           | Porcentaje de impuesto                                          |
+| `descuento_monto`       | decimal           | Monto de descuento                                              |
+| `descuento_porcentaje`  | decimal           | Porcentaje de descuento                                         |
+| `consecutivo_comanda`   | int               | Consecutivo para impresión                                      |
+| `abierto_en`            | datetime          | Hora de apertura                                                |
+| `cerrado_en`            | datetime          | Hora de cierre                                                  |
+| `notas`                 | text              | Observaciones del pedido                                        |
 
 #### Relaciones
 
@@ -207,18 +207,18 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `pedido_id` | int | FK a pedidos (pedido padre) |
-| `plato_id` | int | FK a platos |
-| `cantidad` | decimal | Cantidad ordenada |
-| `precio_unitario` | decimal | Precio unitario al momento del pedido |
-| `subtotal` | decimal | Subtotal (cantidad × precio_unitario) |
-| `estado` | EstadoItemPedido enum | Estado del item |
-| `bloqueo_stock_detalle` | json | Detalle de ingredientes faltantes cuando no se puede enviar a cocina |
-| `bloqueado_stock_en` | datetime | Fecha de bloqueo por falta de stock |
-| `notas` | text | Notas especiales (ej: "Sin cebolla") |
+| Propiedad               | Tipo                  | Descripción                                                          |
+| ----------------------- | --------------------- | -------------------------------------------------------------------- |
+| `id`                    | int                   | Identificador único                                                  |
+| `pedido_id`             | int                   | FK a pedidos (pedido padre)                                          |
+| `plato_id`              | int                   | FK a platos                                                          |
+| `cantidad`              | decimal               | Cantidad ordenada                                                    |
+| `precio_unitario`       | decimal               | Precio unitario al momento del pedido                                |
+| `subtotal`              | decimal               | Subtotal (cantidad × precio_unitario)                                |
+| `estado`                | EstadoItemPedido enum | Estado del item                                                      |
+| `bloqueo_stock_detalle` | json                  | Detalle de ingredientes faltantes cuando no se puede enviar a cocina |
+| `bloqueado_stock_en`    | datetime              | Fecha de bloqueo por falta de stock                                  |
+| `notas`                 | text                  | Notas especiales (ej: "Sin cebolla")                                 |
 
 #### Relaciones
 
@@ -246,18 +246,18 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `codigo` | string | Código del proceso |
-| `plato_id` | int | FK a platos |
-| `cantidad_platos` | int | Número de platos a producir |
-| `producto_origen_id` | int | FK a productos (receta origen) |
-| `variante_origen_id` | int | FK a variantes (opcional) |
+| Propiedad            | Tipo    | Descripción                            |
+| -------------------- | ------- | -------------------------------------- |
+| `id`                 | int     | Identificador único                    |
+| `codigo`             | string  | Código del proceso                     |
+| `plato_id`           | int     | FK a platos                            |
+| `cantidad_platos`    | int     | Número de platos a producir            |
+| `producto_origen_id` | int     | FK a productos (receta origen)         |
+| `variante_origen_id` | int     | FK a variantes (opcional)              |
 | `cantidad_procesada` | decimal | Cantidad procesada (= cantidad_platos) |
-| `costo_total` | decimal | Costo total calculado |
-| `realizado_por` | int | FK a users (usuario) |
-| `observaciones` | text | Notas del proceso |
+| `costo_total`        | decimal | Costo total calculado                  |
+| `realizado_por`      | int     | FK a users (usuario)                   |
+| `observaciones`      | text    | Notas del proceso                      |
 
 #### Relaciones
 
@@ -285,18 +285,18 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `proceso_id` | int | FK a procesos_cocina |
-| `producto_destino_id` | int | FK a productos (ingrediente) |
-| `variante_destino_id` | int | FK a variantes |
-| `cantidad` | decimal | Cantidad (receta × platos) |
-| `peso_unitario` | decimal | Peso unitario de la variante |
-| `peso_total` | decimal | Peso total del ingrediente |
-| `costo_asignado` | decimal | Costo asignado |
-| `es_merma` | boolean | Si es merma/pérdida |
-| `ubicacion_destino_id` | int | FK a ubicaciones |
+| Propiedad              | Tipo    | Descripción                  |
+| ---------------------- | ------- | ---------------------------- |
+| `id`                   | int     | Identificador único          |
+| `proceso_id`           | int     | FK a procesos_cocina         |
+| `producto_destino_id`  | int     | FK a productos (ingrediente) |
+| `variante_destino_id`  | int     | FK a variantes               |
+| `cantidad`             | decimal | Cantidad (receta × platos)   |
+| `peso_unitario`        | decimal | Peso unitario de la variante |
+| `peso_total`           | decimal | Peso total del ingrediente   |
+| `costo_asignado`       | decimal | Costo asignado               |
+| `es_merma`             | boolean | Si es merma/pérdida          |
+| `ubicacion_destino_id` | int     | FK a ubicaciones             |
 
 #### Relaciones
 
@@ -350,16 +350,16 @@ Los modelos del módulo Restaurante representan las entidades del dominio y resi
 
 #### Propiedades
 
-| Propiedad | Tipo | Descripción |
-|----------|------|-------------|
-| `id` | int | Identificador único |
-| `accion` | AccionAuditoriaRestaurante enum | Tipo de acción |
-| `mesa_id` | int | FK a espacios (mesa relacionada) |
-| `pedido_id` | int | FK a pedidos (pedido relacionado) |
-| `user_id` | int | FK a users (usuario que ejecutó) |
-| `detalles` | json | Detalles adicionales de la acción |
-| `ip_address` | string | Dirección IP del usuario |
-| `created_at` | datetime | Fecha de registro |
+| Propiedad    | Tipo                            | Descripción                       |
+| ------------ | ------------------------------- | --------------------------------- |
+| `id`         | int                             | Identificador único               |
+| `accion`     | AccionAuditoriaRestaurante enum | Tipo de acción                    |
+| `mesa_id`    | int                             | FK a espacios (mesa relacionada)  |
+| `pedido_id`  | int                             | FK a pedidos (pedido relacionado) |
+| `user_id`    | int                             | FK a users (usuario que ejecutó)  |
+| `detalles`   | json                            | Detalles adicionales de la acción |
+| `ip_address` | string                          | Dirección IP del usuario          |
+| `created_at` | datetime                        | Fecha de registro                 |
 
 #### Relaciones
 
@@ -440,16 +440,20 @@ Todos los modelos principales usan:
 ## Índices de Base de Datos
 
 ### pedidos
+
 - `mesa_id`: Para consultas por mesa
 - `estado`: Para filtrar pedidos activos
 
 ### pedido_items
+
 - `pedido_id`: Para cargar items de un pedido
 - `plato_id`: Para consultas por plato
 
 ### procesos_cocina
+
 - `plato_id`: Para procesos por plato
 - `realizado_por`: Para procesos por usuario
 
 ### proceso_items
+
 - `proceso_id`: Para items de un proceso

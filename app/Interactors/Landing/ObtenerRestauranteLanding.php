@@ -10,6 +10,30 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 
 final class ObtenerRestauranteLanding
 {
+    /** @var array<string, list<string>> */
+    private const array FALLBACK_FOTOS_AMBIENTES = [
+        'interior' => ['/images/service-kitchen.png', '/images/terrace.jpg'],
+        'terraza' => ['/images/terrace.jpg', '/images/service-kitchen.png'],
+        'barra' => ['/images/service-bartender.png', '/images/terrace.jpg'],
+        'vip' => ['/images/terrace.jpg', '/images/service-bartender.png'],
+    ];
+
+    /** @var list<string> */
+    private const array IMAGENES_RESTAURANTE_FALLBACK = [
+        '/images/terrace.jpg',
+        '/images/service-kitchen.png',
+        '/images/service-bartender.png',
+    ];
+
+    /** @var list<string> */
+    private const array KEYWORDS_CHEF = ['lomo', 'filete', 'camarones'];
+
+    /** @var list<string> */
+    private const array KEYWORDS_FAVORITO = ['tres leches', 'nachos'];
+
+    /** @var list<string> */
+    private const array KEYWORDS_FRESCO = ['pescado', 'ceviche'];
+
     public function __construct(
         private readonly RestauranteRepositorioInterface $repositorio,
     ) {}
@@ -27,212 +51,285 @@ final class ObtenerRestauranteLanding
         $restaurante = $this->repositorio->obtenerRestauranteParaLanding();
 
         if (! $restaurante instanceof Espacio) {
-            return [
-                'restaurante' => null,
-                'ambientes' => [],
-                'mesas' => [],
-                'menu' => [],
-            ];
+            return ['restaurante' => null, 'ambientes' => [], 'mesas' => [], 'menu' => []];
         }
 
-        $metaRestaurante = $this->decodificarMeta($restaurante->meta_datos);
-
-        $imagenesRestaurante = $restaurante->imagenes->pluck('url')->filter()->values()->toArray();
-        if (empty($imagenesRestaurante)) {
-            $imagenesRestaurante = [
-                '/images/terrace.jpg',
-                '/images/service-kitchen.png',
-                '/images/service-bartender.png',
-            ];
-        }
-
-        $mesasMapped = $this->repositorio->obtenerMesasDeRestaurante($restaurante->id)
-            ->map(function (Espacio $mesa): array {
-                $metaMesa = $this->decodificarMeta($mesa->meta_datos);
-
-                return [
-                    'id' => $mesa->id,
-                    'nombre' => $mesa->nombre ?? '',
-                    'capacidad' => $mesa->capacidad_personas ?? 2,
-                    'tipo_mesa' => $metaMesa['tipo_mesa'] ?? 'cuadrada',
-                    'zona' => $metaMesa['zona_restaurante'] ?? 'interior',
-                ];
-            });
-
-        /** @var array<int, array{id: int, nombre: string, capacidad: int, tipo_mesa: string, zona: string}> $mesas */
-        $mesas = $mesasMapped->toArray();
-
-        $ambientesBD = $this->repositorio->obtenerAmbientesDeRestaurante($restaurante->id);
-
-        $fallbackFotosAmbientes = [
-            'interior' => ['/images/service-kitchen.png', '/images/terrace.jpg'],
-            'terraza' => ['/images/terrace.jpg', '/images/service-kitchen.png'],
-            'barra' => ['/images/service-bartender.png', '/images/terrace.jpg'],
-            'vip' => ['/images/terrace.jpg', '/images/service-bartender.png'],
-        ];
-
-        $ambientes = $ambientesBD->map(function (Espacio $amb) use ($mesas, $fallbackFotosAmbientes): array {
-            $meta = $this->decodificarMeta($amb->meta_datos);
-            $zonaRaw = $meta['zona_restaurante'] ?? 'interior';
-            $zona = is_string($zonaRaw) ? $zonaRaw : 'interior';
-            $caracteristicas = is_array($meta['caracteristicas'] ?? null)
-                ? $meta['caracteristicas']
-                : ['Musica de Fondo', 'Iluminacion Calida', 'Atencion Personalizada'];
-
-            $imagenes = $amb->imagenes->pluck('url')->filter()->values()->toArray();
-            if (empty($imagenes)) {
-                $imagenes = $fallbackFotosAmbientes[$zona] ?? ['/images/terrace.jpg'];
-            }
-
-            $mesasDeZona = array_filter($mesas, fn (array $m): bool => $m['zona'] === $zona);
-
-            return [
-                'id' => $amb->id,
-                'codigo' => $amb->codigo,
-                'nombre' => $amb->nombre,
-                'tipo' => $amb->tipo->value,
-                'capacidad' => $amb->capacidad_personas ?? 20,
-                'descripcion' => $amb->descripcion ?? 'Ambiente disenado para ofrecer una velada gastronomica inigualable.',
-                'zona' => $zona,
-                'caracteristicas' => $caracteristicas,
-                'imagenes' => $imagenes,
-                'mesas_count' => count($mesasDeZona),
-                'mesas' => array_values($mesasDeZona),
-            ];
-        })->values()->all();
-
-        /** @var array<int, array<string, mixed>> $ambientes */
-        $ambientes = $ambientes;
-
-        if (empty($ambientes)) {
-            $ambientes = [
-                [
-                    'id' => 1,
-                    'codigo' => 'AMB-SALON',
-                    'nombre' => 'Salon Principal Bugambilias',
-                    'tipo' => 'ambiente',
-                    'capacidad' => 25,
-                    'descripcion' => 'Salon climatizado de ambiente elegante y sofisticado, perfecto para cenas formales y reuniones familiares.',
-                    'zona' => 'interior',
-                    'caracteristicas' => ['Aire Acondicionado', 'Musica de Fondo', 'Iluminacion Calida', 'Vista a la Galeria'],
-                    'imagenes' => ['/images/service-kitchen.png', '/images/terrace.jpg'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'interior')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'interior')),
-                ],
-                [
-                    'id' => 2,
-                    'codigo' => 'AMB-TERRAZA',
-                    'nombre' => 'Terraza al Aire Libre',
-                    'tipo' => 'terraza',
-                    'capacidad' => 20,
-                    'descripcion' => 'Rodeada de exuberantes jardines tropicales y flores de bugambilia, disfrutando la brisa fresca de Esteli.',
-                    'zona' => 'terraza',
-                    'caracteristicas' => ['Vista al Jardin', 'Pergola Iluminada', 'Brisa Natural', 'Mesas al Aire Libre'],
-                    'imagenes' => ['/images/terrace.jpg', '/images/service-kitchen.png'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'terraza')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'terraza')),
-                ],
-                [
-                    'id' => 3,
-                    'codigo' => 'AMB-BAR',
-                    'nombre' => 'Bar & Lounge El Mirador',
-                    'tipo' => 'bar',
-                    'capacidad' => 15,
-                    'descripcion' => 'Barra moderna especializada en cocteleria de autor, seleccion de vinos, cervezas artesanales y tapas.',
-                    'zona' => 'barra',
-                    'caracteristicas' => ['Barra de Cocteles', 'Pantalla HD', 'Musica Lounge', 'Seleccion de Vinos'],
-                    'imagenes' => ['/images/service-bartender.png', '/images/terrace.jpg'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'barra')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'barra')),
-                ],
-                [
-                    'id' => 4,
-                    'codigo' => 'AMB-VIP',
-                    'nombre' => 'Cenador Privado VIP',
-                    'tipo' => 'ambiente',
-                    'capacidad' => 10,
-                    'descripcion' => 'Espacio reservado con atencion personalizada de garzon, ideal para celebraciones privadas y aniversarios.',
-                    'zona' => 'vip',
-                    'caracteristicas' => ['Servicio Exclusivo', 'Garzon Dedicado', 'Ambiente Privado', 'Decoracion Especial'],
-                    'imagenes' => ['/images/terrace.jpg', '/images/service-bartender.png'],
-                    'mesas_count' => count(array_filter($mesas, fn ($m): bool => $m['zona'] === 'vip')),
-                    'mesas' => array_values(array_filter($mesas, fn ($m): bool => $m['zona'] === 'vip')),
-                ],
-            ];
-        }
-
-        $menu = $this->repositorio->obtenerMenuParaLanding()
-            ->map(function (Plato $p): array {
-                $precio = $p->precios->first();
-                $img = $p->imagenes->first();
-                $catNombre = $p->categoria ? $p->categoria->nombre : 'Especialidades';
-                $catCodigo = $p->categoria ? $p->categoria->codigo : 'RESTAURANTE';
-
-                /** @var array<int, string> $etiquetas */
-                $etiquetas = [];
-                $nombreLower = mb_strtolower($p->nombre);
-                if (str_contains($nombreLower, 'lomo') || str_contains($nombreLower, 'filete') || str_contains($nombreLower, 'camarones')) {
-                    $etiquetas[] = 'Especialidad del Chef';
-                }
-                if (str_contains($nombreLower, 'tres leches') || str_contains($nombreLower, 'nachos')) {
-                    $etiquetas[] = 'Favorito de la Casa';
-                }
-                if (str_contains($nombreLower, 'pescado') || str_contains($nombreLower, 'ceviche')) {
-                    $etiquetas[] = 'Ingredientes Frescos';
-                }
-
-                return [
-                    'id' => $p->id,
-                    'nombre' => $p->nombre,
-                    'descripcion' => $p->descripcion ?? '',
-                    'categoria' => $catNombre,
-                    'categoria_codigo' => $catCodigo,
-                    'precio' => $precio ? (float) (string) $precio->precio : null,
-                    'moneda' => $precio?->moneda->simbolo ?? 'C$',
-                    'imagen' => $img ? $img->url : $this->obtenerImagenMenuFallback($catNombre),
-                    'etiquetas' => $etiquetas,
-                    'tiempo_preparacion' => $p->tiempo_preparacion ?? '15 - 25 min',
-                    'disponible' => true,
-                ];
-            })->values()->all();
-
-        /** @var array<int, array<string, mixed>> $menu */
-        $menu = $menu;
+        $mesas = $this->mapearMesas($restaurante->id);
+        $ambientes = $this->mapearAmbientes($restaurante->id, $mesas);
 
         return [
-            'restaurante' => [
-                'id' => $restaurante->id,
-                'nombre' => $restaurante->nombre ?? 'Restaurante Bugambilias',
-                'descripcion' => $restaurante->descripcion ?? 'Experiencia gastronomica excepcional en Esteli. Sabores locales e internacionales en ambientes acogedores.',
-                'capacidad' => $restaurante->capacidad_personas ?? 40,
-                'imagenes' => $imagenesRestaurante,
-                'tipo_cocina' => $metaRestaurante['tipo_cocina'] ?? 'Nicaraguense e Internacional',
-                'tipo_servicio' => $metaRestaurante['tipo_servicio'] ?? 'A la carta / Gourmet',
-                'horario_desayuno' => $metaRestaurante['horario_desayuno'] ?? '07:00 - 10:30 AM',
-                'horario_almuerzo' => $metaRestaurante['horario_almuerzo'] ?? '12:00 - 03:30 PM',
-                'horario_cena' => $metaRestaurante['horario_cena'] ?? '06:00 - 10:00 PM',
-            ],
+            'restaurante' => $this->mapearRestaurante($restaurante),
             'ambientes' => $ambientes,
             'mesas' => $mesas,
-            'menu' => $menu,
+            'menu' => $this->mapearMenu(),
         ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Restaurante
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapearRestaurante(Espacio $restaurante): array
+    {
+        $meta = $this->decodificarMeta($restaurante->meta_datos);
+        $imagenes = $restaurante->imagenes->pluck('url')->filter()->values()->toArray();
+
+        return [
+            'id' => $restaurante->id,
+            'nombre' => $restaurante->nombre ?? 'Restaurante Bugambilias',
+            'descripcion' => $restaurante->descripcion ?? 'Experiencia gastronomica excepcional en Esteli. Sabores locales e internacionales en ambientes acogedores.',
+            'capacidad' => $restaurante->capacidad_personas ?? 40,
+            'imagenes' => $imagenes ?: self::IMAGENES_RESTAURANTE_FALLBACK,
+            'tipo_cocina' => $meta['tipo_cocina'] ?? 'Nicaraguense e Internacional',
+            'tipo_servicio' => $meta['tipo_servicio'] ?? 'A la carta / Gourmet',
+            'horario_desayuno' => $meta['horario_desayuno'] ?? '07:00 - 10:30 AM',
+            'horario_almuerzo' => $meta['horario_almuerzo'] ?? '12:00 - 03:30 PM',
+            'horario_cena' => $meta['horario_cena'] ?? '06:00 - 10:00 PM',
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Mesas
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapearMesas(int $restauranteId): array
+    {
+        return $this->repositorio
+            ->obtenerMesasDeRestaurante($restauranteId)
+            ->map(fn (Espacio $mesa): array => $this->mesaToArray($mesa))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mesaToArray(Espacio $mesa): array
+    {
+        $meta = $this->decodificarMeta($mesa->meta_datos);
+
+        return [
+            'id' => $mesa->id,
+            'nombre' => $mesa->nombre ?? '',
+            'capacidad' => $mesa->capacidad_personas ?? 2,
+            'tipo_mesa' => $meta['tipo_mesa'] ?? 'cuadrada',
+            'zona' => $meta['zona_restaurante'] ?? 'interior',
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Ambientes
+    // -------------------------------------------------------------------------
+
+    /**
+     * @param  array<int, array<string, mixed>>  $mesas
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapearAmbientes(int $restauranteId, array $mesas): array
+    {
+        $ambientesBD = $this->repositorio->obtenerAmbientesDeRestaurante($restauranteId);
+
+        $ambientes = $ambientesBD
+            ->map(fn (Espacio $amb): array => $this->ambienteToArray($amb, $mesas))
+            ->values()
+            ->all();
+
+        return $ambientes ?: $this->ambientesFallback($mesas);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $mesas
+     * @return array<string, mixed>
+     */
+    private function ambienteToArray(Espacio $amb, array $mesas): array
+    {
+        $meta = $this->decodificarMeta($amb->meta_datos);
+        $zona = is_string($meta['zona_restaurante'] ?? null) ? $meta['zona_restaurante'] : 'interior';
+        $imagenes = $amb->imagenes->pluck('url')->filter()->values()->toArray();
+
+        /** @var list<string> $caracteristicas */
+        $caracteristicas = is_array($meta['caracteristicas'] ?? null)
+            ? $meta['caracteristicas']
+            : ['Musica de Fondo', 'Iluminacion Calida', 'Atencion Personalizada'];
+
+        $mesasDeZona = array_values(array_filter($mesas, fn (array $m): bool => $m['zona'] === $zona));
+
+        return [
+            'id' => $amb->id,
+            'codigo' => $amb->codigo,
+            'nombre' => $amb->nombre,
+            'tipo' => $amb->tipo->value,
+            'capacidad' => $amb->capacidad_personas ?? 20,
+            'descripcion' => $amb->descripcion ?? 'Ambiente disenado para ofrecer una velada gastronomica inigualable.',
+            'zona' => $zona,
+            'caracteristicas' => $caracteristicas,
+            'imagenes' => $imagenes ?: (self::FALLBACK_FOTOS_AMBIENTES[$zona] ?? ['/images/terrace.jpg']),
+            'mesas_count' => count($mesasDeZona),
+            'mesas' => $mesasDeZona,
+        ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $mesas
+     * @return list<array<string, mixed>>
+     */
+    private function ambientesFallback(array $mesas): array
+    {
+        return [
+            $this->ambienteFallbackEntry('AMB-SALON', 'Salon Principal Bugambilias', 'ambiente', 25, 'interior',
+                'Salon climatizado de ambiente elegante y sofisticado, perfecto para cenas formales y reuniones familiares.',
+                ['Aire Acondicionado', 'Musica de Fondo', 'Iluminacion Calida', 'Vista a la Galeria'],
+                ['/images/service-kitchen.png', '/images/terrace.jpg'], $mesas),
+            $this->ambienteFallbackEntry('AMB-TERRAZA', 'Terraza al Aire Libre', 'terraza', 20, 'terraza',
+                'Rodeada de exuberantes jardines tropicales y flores de bugambilia, disfrutando la brisa fresca de Esteli.',
+                ['Vista al Jardin', 'Pergola Iluminada', 'Brisa Natural', 'Mesas al Aire Libre'],
+                ['/images/terrace.jpg', '/images/service-kitchen.png'], $mesas),
+            $this->ambienteFallbackEntry('AMB-BAR', 'Bar & Lounge El Mirador', 'bar', 15, 'barra',
+                'Barra moderna especializada en cocteleria de autor, seleccion de vinos, cervezas artesanales y tapas.',
+                ['Barra de Cocteles', 'Pantalla HD', 'Musica Lounge', 'Seleccion de Vinos'],
+                ['/images/service-bartender.png', '/images/terrace.jpg'], $mesas),
+            $this->ambienteFallbackEntry('AMB-VIP', 'Cenador Privado VIP', 'ambiente', 10, 'vip',
+                'Espacio reservado con atencion personalizada de garzon, ideal para celebraciones privadas y aniversarios.',
+                ['Servicio Exclusivo', 'Garzon Dedicado', 'Ambiente Privado', 'Decoracion Especial'],
+                ['/images/terrace.jpg', '/images/service-bartender.png'], $mesas),
+        ];
+    }
+
+    /**
+     * @param  list<string>  $caracteristicas
+     * @param  list<string>  $imagenes
+     * @param  array<int, array<string, mixed>>  $todasLasMesas
+     * @return array<string, mixed>
+     */
+    private function ambienteFallbackEntry(
+        string $codigo,
+        string $nombre,
+        string $tipo,
+        int $capacidad,
+        string $zona,
+        string $descripcion,
+        array $caracteristicas,
+        array $imagenes,
+        array $todasLasMesas,
+    ): array {
+        $mesasDeZona = array_values(array_filter($todasLasMesas, fn (array $m): bool => $m['zona'] === $zona));
+
+        return [
+            'id' => 0,
+            'codigo' => $codigo,
+            'nombre' => $nombre,
+            'tipo' => $tipo,
+            'capacidad' => $capacidad,
+            'descripcion' => $descripcion,
+            'zona' => $zona,
+            'caracteristicas' => $caracteristicas,
+            'imagenes' => $imagenes,
+            'mesas_count' => count($mesasDeZona),
+            'mesas' => $mesasDeZona,
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Menú
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapearMenu(): array
+    {
+        return $this->repositorio
+            ->obtenerMenuParaLanding()
+            ->map(fn (Plato $p): array => $this->platoToArray($p))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function platoToArray(Plato $p): array
+    {
+        $precio = $p->precios->first();
+        $img = $p->imagenes->first();
+        $catNombre = $p->categoria->nombre ?? 'Especialidades';
+        $catCodigo = $p->categoria->codigo ?? 'RESTAURANTE';
+
+        return [
+            'id' => $p->id,
+            'nombre' => $p->nombre,
+            'descripcion' => $p->descripcion ?? '',
+            'categoria' => $catNombre,
+            'categoria_codigo' => $catCodigo,
+            'precio' => $precio ? (float) (string) $precio->precio : null,
+            'moneda' => $precio?->moneda->simbolo ?? 'C$',
+            'imagen' => $img->url ?? $this->obtenerImagenMenuFallback($catNombre),
+            'etiquetas' => $this->resolverEtiquetasPlato($p->nombre),
+            'tiempo_preparacion' => $p->tiempo_preparacion ?? '15 - 25 min',
+            'disponible' => true,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolverEtiquetasPlato(string $nombre): array
+    {
+        $nombreLower = mb_strtolower($nombre);
+        $etiquetas = [];
+
+        foreach (self::KEYWORDS_CHEF as $keyword) {
+            if (str_contains($nombreLower, $keyword)) {
+                $etiquetas[] = 'Especialidad del Chef';
+                break;
+            }
+        }
+
+        foreach (self::KEYWORDS_FAVORITO as $keyword) {
+            if (str_contains($nombreLower, $keyword)) {
+                $etiquetas[] = 'Favorito de la Casa';
+                break;
+            }
+        }
+
+        foreach (self::KEYWORDS_FRESCO as $keyword) {
+            if (str_contains($nombreLower, $keyword)) {
+                $etiquetas[] = 'Ingredientes Frescos';
+                break;
+            }
+        }
+
+        return $etiquetas;
     }
 
     private function obtenerImagenMenuFallback(string $categoria): string
     {
         $cat = mb_strtolower($categoria);
+
         if (str_contains($cat, 'entrada')) {
             return '/images/service-kitchen.png';
         }
+
         if (str_contains($cat, 'postre')) {
             return '/images/terrace.jpg';
         }
+
         if (str_contains($cat, 'bebida') || str_contains($cat, 'coctel')) {
             return '/images/service-bartender.png';
         }
 
         return '/images/service-kitchen.png';
     }
+
+    // -------------------------------------------------------------------------
+    // Utilidades
+    // -------------------------------------------------------------------------
 
     /**
      * @return array<string, mixed>

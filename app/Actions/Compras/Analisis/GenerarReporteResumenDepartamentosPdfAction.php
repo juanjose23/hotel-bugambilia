@@ -11,6 +11,7 @@ use App\Support\Pdf\LayoutPdf;
 use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteResumenDepartamentosPdfAction
 {
@@ -20,7 +21,7 @@ final class GenerarReporteResumenDepartamentosPdfAction
         private readonly ObtenerResumenDepartamentosCompras $query,
     ) {}
 
-    public function ejecutar(?string $fechaInicio = null, ?string $fechaFin = null): \Barryvdh\DomPDF\PDF
+    public function ejecutar(?string $fechaInicio = null, ?string $fechaFin = null): PdfDocumento
     {
         $codigoReporte = 'HTB-COM-017';
         $nombreReporte = 'Resumen de Compras por Departamento';

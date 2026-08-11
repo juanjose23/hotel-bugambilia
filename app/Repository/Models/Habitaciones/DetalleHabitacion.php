@@ -12,7 +12,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class DetalleHabitacion extends Model implements AuditableContract
 {
     use Auditable;
-    use Auditable;
 
     protected $table = 'detalles_habitacion';
 

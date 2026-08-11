@@ -16,14 +16,19 @@ use App\BusinessLogic\Compras\Data\Shared\ProveedorReporteData;
 use App\BusinessLogic\Compras\Data\Shared\VarianteReporteData;
 use App\BusinessLogic\Compras\Data\Solicitudes\SolicitudItemReporteData;
 use App\BusinessLogic\Compras\Data\Solicitudes\SolicitudReporteData;
+use App\Repository\Models\Colaboradores\Colaborador;
+use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Models\Compras\CotizacionItem;
+use App\Repository\Models\Compras\Proveedor;
 use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Models\Compras\SolicitudItem;
 
 final class ObtenerComparativaReporteQuery
 {
     public function ejecutar(int $id): ?SolicitudReporteData
     {
         $solicitud = Solicitud::with([
-            'colaborador.persona',
+            'colaborador.persona.personaNatural',
             'departamentoSolicitante',
             'items.producto',
             'items.variante',
@@ -39,100 +44,6 @@ final class ObtenerComparativaReporteQuery
             return null;
         }
 
-        $colaborador = null;
-        if ($solicitud->colaborador) {
-            $persona = null;
-            if ($solicitud->colaborador->persona) {
-                $persona = new PersonaReporteData(
-                    primer_nombre: $solicitud->colaborador->persona->primer_nombre,
-                    primer_apellido: $solicitud->colaborador->persona->personaNatural?->primer_apellido,
-                    nombre_completo: $solicitud->colaborador->persona->nombre_completo,
-                    razon_social: null,
-                );
-            }
-            $colaborador = new ColaboradorReporteData(
-                codigo: $solicitud->colaborador->codigo,
-                persona: $persona
-            );
-        }
-
-        $dept = null;
-        if ($solicitud->departamentoSolicitante) {
-            $dept = new DepartamentoReporteData(nombre: $solicitud->departamentoSolicitante->nombre);
-        }
-
-        $estado = new EstadoReporteData(
-            value: $solicitud->estado->value,
-            label: $solicitud->estado->label()
-        );
-
-        $items = collect();
-        foreach ($solicitud->items as $item) {
-            $producto = $item->producto ? new ProductoReporteData(nombre: $item->producto->nombre) : null;
-            $variante = $item->variante ? new VarianteReporteData(codigo: $item->variante->codigo, nombre_variante: $item->variante->nombre_variante) : null;
-            $items->push(new SolicitudItemReporteData(
-                id: $item->id,
-                producto_id: (int) $item->producto_id,
-                producto: $producto,
-                productoVariante: $variante,
-                variante: $variante,
-                cantidad_solicitada: (float) $item->cantidad_solicitada,
-                cantidad_aprobada: (float) $item->cantidad_aprobada
-            ));
-        }
-
-        $cotizaciones = collect();
-        foreach ($solicitud->cotizaciones as $cot) {
-            $provPersona = null;
-            if ($cot->proveedor?->persona) {
-                $razStr = $cot->proveedor->persona->personaJuridica->razon_social ?? $cot->proveedor->persona->nombre_completo;
-                $provPersona = new PersonaReporteData(
-                    primer_nombre: $cot->proveedor->persona->primer_nombre,
-                    primer_apellido: $cot->proveedor->persona->personaNatural?->primer_apellido,
-                    nombre_completo: $cot->proveedor->persona->nombre_completo,
-                    razon_social: $razStr
-                );
-            }
-            $proveedor = new ProveedorReporteData(
-                persona: $provPersona,
-                contacto_nombre: $cot->proveedor?->contactoPrincipal?->nombre
-            );
-            $moneda = $cot->moneda ? new MonedaReporteData(codigo: $cot->moneda->codigo, simbolo: $cot->moneda->simbolo) : null;
-
-            $cotItems = collect();
-            foreach ($cot->items as $cItem) {
-                $cProd = $cItem->producto ? new ProductoReporteData(nombre: $cItem->producto->nombre) : null;
-                $cVar = $cItem->variante ? new VarianteReporteData(codigo: $cItem->variante->codigo, nombre_variante: $cItem->variante->nombre_variante) : null;
-                $cotItems->push(new CotizacionItemReporteData(
-                    id: $cItem->id,
-                    producto_id: $cItem->producto_id,
-                    producto: $cProd,
-                    variante: $cVar,
-                    cantidad: (float) $cItem->cantidad,
-                    precio_unitario: (float) $cItem->precio_unitario,
-                    subtotal: (float) $cItem->subtotal,
-                    es_elegido: $cItem->es_elegido
-                ));
-            }
-
-            $cotizaciones->push(new CotizacionReporteData(
-                id: $cot->id,
-                solicitud_id: (int) $cot->solicitud_id,
-                proveedor_id: (int) $cot->proveedor_id,
-                proveedor: $proveedor,
-                moneda: $moneda,
-                total: (float) $cot->total,
-                tiempo_entrega_dias: (int) $cot->dias_entrega,
-                dias_entrega: (int) $cot->dias_entrega,
-                fecha_cotizacion: $cot->fecha_cotizacion,
-                es_elegida: (bool) $cot->es_elegida,
-                tasa_cambio: (float) ($cot->tasa_cambio ?: 1.0),
-                observaciones: $cot->observaciones,
-                solicitud: null,
-                items: $cotItems
-            ));
-        }
-
         return new SolicitudReporteData(
             id: $solicitud->id,
             codigo: $solicitud->codigo,
@@ -140,11 +51,108 @@ final class ObtenerComparativaReporteQuery
             fecha_necesita: $solicitud->fecha_necesita,
             motivo: $solicitud->motivo,
             notas: $solicitud->notas,
-            colaborador: $colaborador,
-            departamentoSolicitante: $dept,
-            estado: $estado,
-            items: $items,
-            cotizaciones: $cotizaciones
+            colaborador: $this->mapearColaborador($solicitud->colaborador),
+            departamentoSolicitante: $solicitud->departamentoSolicitante ? new DepartamentoReporteData(nombre: $solicitud->departamentoSolicitante->nombre) : null,
+            estado: new EstadoReporteData(
+                value: $solicitud->estado->value,
+                label: $solicitud->estado->label()
+            ),
+            items: $solicitud->items->map(fn ($item) => $this->mapearSolicitudItem($item)),
+            cotizaciones: $solicitud->cotizaciones->map(fn ($cot) => $this->mapearCotizacion($cot))
+        );
+    }
+
+    private function mapearColaborador(?Colaborador $colaborador): ?ColaboradorReporteData
+    {
+        if (! $colaborador) {
+            return null;
+        }
+
+        $persona = null;
+        if ($colaborador->persona) {
+            $persona = new PersonaReporteData(
+                primer_nombre: $colaborador->persona->primer_nombre,
+                primer_apellido: $colaborador->persona->personaNatural?->primer_apellido,
+                nombre_completo: $colaborador->persona->nombre_completo,
+                razon_social: null,
+            );
+        }
+
+        return new ColaboradorReporteData(
+            codigo: $colaborador->codigo,
+            persona: $persona
+        );
+    }
+
+    private function mapearSolicitudItem(SolicitudItem $item): SolicitudItemReporteData
+    {
+        $producto = $item->producto ? new ProductoReporteData(nombre: $item->producto->nombre) : null;
+        $variante = $item->variante ? new VarianteReporteData(codigo: $item->variante->codigo, nombre_variante: $item->variante->nombre_variante) : null;
+
+        return new SolicitudItemReporteData(
+            id: $item->id,
+            producto_id: (int) $item->producto_id,
+            producto: $producto,
+            productoVariante: $variante,
+            variante: $variante,
+            cantidad_solicitada: (float) $item->cantidad_solicitada,
+            cantidad_aprobada: (float) $item->cantidad_aprobada
+        );
+    }
+
+    private function mapearCotizacion(Cotizacion $cot): CotizacionReporteData
+    {
+        return new CotizacionReporteData(
+            id: $cot->id,
+            solicitud_id: (int) $cot->solicitud_id,
+            proveedor_id: (int) $cot->proveedor_id,
+            proveedor: $this->mapearProveedor($cot->proveedor),
+            moneda: $cot->moneda ? new MonedaReporteData(codigo: $cot->moneda->codigo, simbolo: $cot->moneda->simbolo) : null,
+            total: (float) $cot->total,
+            tiempo_entrega_dias: (int) $cot->dias_entrega,
+            dias_entrega: (int) $cot->dias_entrega,
+            fecha_cotizacion: $cot->fecha_cotizacion,
+            es_elegida: (bool) $cot->es_elegida,
+            tasa_cambio: (float) ($cot->tasa_cambio ?: 1.0),
+            observaciones: $cot->observaciones,
+            solicitud: null,
+            items: $cot->items->map(fn ($cItem) => $this->mapearCotizacionItem($cItem))
+        );
+    }
+
+    private function mapearProveedor(?Proveedor $proveedor): ProveedorReporteData
+    {
+        $provPersona = null;
+        if ($proveedor?->persona) {
+            $razStr = $proveedor->persona->personaJuridica->razon_social ?? $proveedor->persona->nombre_completo;
+            $provPersona = new PersonaReporteData(
+                primer_nombre: $proveedor->persona->primer_nombre,
+                primer_apellido: $proveedor->persona->personaNatural?->primer_apellido,
+                nombre_completo: $proveedor->persona->nombre_completo,
+                razon_social: $razStr
+            );
+        }
+
+        return new ProveedorReporteData(
+            persona: $provPersona,
+            contacto_nombre: $proveedor?->contactoPrincipal?->nombre
+        );
+    }
+
+    private function mapearCotizacionItem(CotizacionItem $cItem): CotizacionItemReporteData
+    {
+        $cProd = $cItem->producto ? new ProductoReporteData(nombre: $cItem->producto->nombre) : null;
+        $cVar = $cItem->variante ? new VarianteReporteData(codigo: $cItem->variante->codigo, nombre_variante: $cItem->variante->nombre_variante) : null;
+
+        return new CotizacionItemReporteData(
+            id: $cItem->id,
+            producto_id: $cItem->producto_id,
+            producto: $cProd,
+            variante: $cVar,
+            cantidad: (float) $cItem->cantidad,
+            precio_unitario: (float) $cItem->precio_unitario,
+            subtotal: (float) $cItem->subtotal,
+            es_elegido: $cItem->es_elegido
         );
     }
 }

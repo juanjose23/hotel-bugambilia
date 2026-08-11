@@ -46,9 +46,8 @@
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <x-heroicon-o-user class="w-4 h-4 text-gray-400" />
-                                @php $nombreColab = $this->obtenerNombreColaborador($e); @endphp
-                                @if ($nombreColab !== 'Sin asignar')
-                                    <span>Asignado: <span class="font-medium text-gray-700 dark:text-gray-300">{{ $nombreColab }}</span></span>
+                                @if ($this->tieneColaboradorAsignado($e))
+                                    <span>Asignado: <span class="font-medium text-gray-700 dark:text-gray-300">{{ $this->obtenerNombreColaborador($e) }}</span></span>
                                 @else
                                     <span class="text-red-500 dark:text-red-400 font-semibold">Sin asignar / Libre</span>
                                 @endif

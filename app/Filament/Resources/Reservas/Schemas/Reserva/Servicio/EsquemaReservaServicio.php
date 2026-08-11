@@ -23,8 +23,8 @@ class EsquemaReservaServicio
             Section::make('Horario y Detalles del Servicio Especial')
                 ->columnSpanFull()
                 ->icon(Heroicon::Sparkles)
-                ->columns(3)
-                ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::SERVICIO->value)
+                ->columns(['default' => 1, 'sm' => 2, 'md' => 3])
+                ->visible(fn ($get): bool => in_array($get('tipo_reserva'), [TipoReserva::SERVICIO->value, TipoReserva::PAQUETE->value], true))
                 ->schema([
                     DatePicker::make('fecha_check_in')
                         ->label('Fecha del Servicio')
@@ -63,7 +63,7 @@ class EsquemaReservaServicio
                 ->columnSpanFull()
                 ->icon(Heroicon::Sparkles)
                 ->columns(2)
-                ->visible(fn ($get): bool => $get('tipo_reserva') === TipoReserva::SERVICIO->value)
+                ->visible(fn ($get): bool => in_array($get('tipo_reserva'), [TipoReserva::SERVICIO->value, TipoReserva::PAQUETE->value], true))
                 ->schema([
                     ServicioSelect::make(column: 'servicio_id')
                         ->required(fn ($get): bool => $get('tipo_reserva') === TipoReserva::SERVICIO->value)

@@ -51,6 +51,7 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
 
         $servicios = $this->resolverServicios($datos);
         $espacios = $this->resolverEspacios($datos, $tipo);
+        $habitacionesAdicionales = $this->resolverHabitacionesAdicionales($datos, $tipo);
 
         $subtotal = $this->calcularSubtotal(
             $tipo,
@@ -59,6 +60,7 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
             $tarifaBase,
             $servicios,
             $espacios,
+            $habitacionesAdicionales,
         );
 
         $promocion = $this->obtenerPromocion($datos);
@@ -70,6 +72,9 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
                 : null,
             $promocion?->descuento_monto !== null
                 ? (float) $promocion->descuento_monto
+                : null,
+            $promocion?->precio_paquete !== null
+                ? (float) $promocion->precio_paquete
                 : null,
         );
 
@@ -190,6 +195,20 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
                 fn (int $id): float => $this->tarifas->servicio($id),
             ),
 
+            TipoReserva::PAQUETE => $this->tarifaPorId(
+                $datos,
+                'habitacion_id',
+                fn (int $id): float => $this->tarifas->habitacion($id),
+            ) + $this->tarifaPorId(
+                $datos,
+                'espacio_id',
+                fn (int $id): float => $this->tarifas->espacio($id),
+            ) + $this->tarifaPorId(
+                $datos,
+                'servicio_id',
+                fn (int $id): float => $this->tarifas->servicio($id),
+            ),
+
             default => 0.0,
         };
     }
@@ -222,6 +241,10 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
      *     precio: float,
      *     cantidad: int
      * }> $espacios
+     * @param array<int, array{
+     *     precio: float,
+     *     cantidad: int
+     * }> $habitacionesAdicionales
      */
     private function calcularSubtotal(
         ?TipoReserva $tipo,
@@ -230,6 +253,7 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
         float $tarifaBase,
         array $servicios,
         array $espacios,
+        array $habitacionesAdicionales = [],
     ): float {
         if ($tipo === TipoReserva::RESTAURANTE) {
             $resumen = $this->restaurante->ejecutar(
@@ -263,6 +287,10 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
         }
 
         $subtotal = $tarifaBase * $unidades;
+
+        foreach ($habitacionesAdicionales as $hab) {
+            $subtotal += $hab['precio'] * $unidades;
+        }
 
         foreach ($espacios as $espacio) {
             $subtotal +=
@@ -435,6 +463,38 @@ final readonly class CalcularVistaPreviaFinancieraReservaQuery
 
             return $this->normalizarConceptos(
                 $servicios,
+            );
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $datos
+     * @return array<int, array{
+     *     precio: float,
+     *     cantidad: int
+     * }>
+     */
+    private function resolverHabitacionesAdicionales(
+        array $datos,
+        ?TipoReserva $tipo,
+    ): array {
+        if ($tipo !== TipoReserva::HABITACION && $tipo !== TipoReserva::PAQUETE) {
+            return [];
+        }
+
+        try {
+            $habitaciones = $this->adicionales->resolverHabitaciones(
+                $this->arrayDato(
+                    $datos,
+                    'habitaciones_adicionales',
+                ),
+                $this->id($datos, 'habitacion_id'),
+            );
+
+            return $this->normalizarConceptos(
+                $habitaciones,
             );
         } catch (Throwable) {
             return [];

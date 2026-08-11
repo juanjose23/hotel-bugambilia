@@ -52,9 +52,7 @@ use UnitEnum;
  */
 final class MateriaPrimaCocina extends Page implements HasForms, HasTable
 {
-    use HasPageShield;
-    use InteractsWithForms;
-    use InteractsWithTable;
+    use HasPageShield, InteractsWithForms, InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository\Policies\Reservas;
 
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
@@ -69,7 +70,9 @@ class ReservaPolicy
 
     public function cancel(AuthUser $authUser, Reserva $reserva): bool
     {
-        return $authUser->id === $reserva->cliente_id || $authUser->can('Update:Reserva');
+        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
+
+        return ($clienteId !== null && $clienteId === $reserva->cliente_id) || $authUser->can('Update:Reserva');
     }
 
     public function reorder(AuthUser $authUser): bool

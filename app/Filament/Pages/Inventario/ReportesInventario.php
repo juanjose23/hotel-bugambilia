@@ -38,8 +38,7 @@ use UnitEnum;
  */
 class ReportesInventario extends Page implements HasForms
 {
-    use HasPageShield;
-    use InteractsWithForms;
+    use HasPageShield, InteractsWithForms;
 
     protected string $view = 'filament.resources.inventario.reportes-inventario';
 
