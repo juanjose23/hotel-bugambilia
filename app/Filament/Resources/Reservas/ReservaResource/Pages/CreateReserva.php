@@ -51,12 +51,14 @@ class CreateReserva extends CreateRecord
     {
         $servicios = $data['servicios_adicionales'] ?? [];
         $espacios = $data['espacios_adicionales'] ?? [];
+        $habitaciones = $data['habitaciones_adicionales'] ?? [];
 
         try {
             return $this->crearReserva->ejecutar(
                 $data,
                 is_array($servicios) ? $servicios : [],
                 is_array($espacios) ? $espacios : [],
+                is_array($habitaciones) ? $habitaciones : [],
             );
         } catch (DomainException|InvalidArgumentException $exception) {
             $mensaje = trim($exception->getMessage());
@@ -72,6 +74,17 @@ class CreateReserva extends CreateRecord
                 'data.'.$this->campoParaMensaje($mensaje) => $mensaje,
             ]);
         }
+    }
+
+    /**
+     * Se ocultan las acciones a pie de página general para que los botones de creación
+     * se desplieguen únicamente en el último paso ("Pago y confirmación") del Wizard.
+     *
+     * @return array<Action>
+     */
+    protected function getFormActions(): array
+    {
+        return [];
     }
 
     protected function getCreateFormAction(): Action

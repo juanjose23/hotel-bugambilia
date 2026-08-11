@@ -42,8 +42,7 @@ use UnitEnum;
  */
 final class CocinaPedidos extends Page implements HasForms
 {
-    use HasPageShield;
-    use InteractsWithForms;
+    use HasPageShield, InteractsWithForms;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-fire';
 
@@ -246,6 +245,20 @@ final class CocinaPedidos extends Page implements HasForms
             $data = $this->sustitucionForm->getState();
             $sustitutos = is_array($data['sustitutos'] ?? null) ? $data['sustitutos'] : [];
 
+            // Pre-cargar todos los PedidoItems en una sola query (evita N+1)
+            $pedidoItemIds = array_filter(
+                array_map(
+                    fn (mixed $f): int => is_numeric($f['pedido_item_id'] ?? null) ? (int) $f['pedido_item_id'] : 0,
+                    $this->faltantesPreparacion,
+                ),
+                fn (int $id): bool => $id > 0,
+            );
+
+            $itemsPorId = PedidoItem::query()
+                ->whereIn('id', $pedidoItemIds)
+                ->get()
+                ->keyBy('id');
+
             foreach ($this->faltantesPreparacion as $index => $faltante) {
                 $sustitutoId = isset($sustitutos[$index]) && is_numeric($sustitutos[$index])
                     ? (int) $sustitutos[$index]
@@ -259,7 +272,8 @@ final class CocinaPedidos extends Page implements HasForms
                 $varianteOriginalId = is_numeric($faltante['variante_original_id'] ?? null) ? (int) $faltante['variante_original_id'] : 0;
                 $requeridoVal = is_numeric($faltante['requerido'] ?? null) ? (float) $faltante['requerido'] : 0.0;
 
-                $item = PedidoItem::query()->find($pedidoItemId);
+                // Lookup O(1) desde la colección pre-cargada, sin query adicional
+                $item = $itemsPorId->get($pedidoItemId);
 
                 if (! $item instanceof PedidoItem) {
                     continue;

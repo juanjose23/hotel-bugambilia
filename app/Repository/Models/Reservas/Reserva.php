@@ -7,6 +7,7 @@ namespace App\Repository\Models\Reservas;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Estancias\Estancia;
@@ -14,7 +15,6 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Promociones\Promocion;
 use App\Repository\Models\Servicios\Servicio;
-use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -50,12 +50,34 @@ final class Reserva extends Model implements AuditableContract
     ];
 
     protected $fillable = [
-        'codigo_reserva', 'cliente_id', 'nombre_cliente', 'telefono_cliente',
-        'email_cliente', 'tipo_reserva', 'habitacion_id', 'espacio_id',
-        'servicio_id', 'promocion_id', 'fecha_check_in', 'fecha_check_out', 'hora_reserva',
-        'adultos', 'ninos', 'solicita_cuenta', 'limite_cuenta_solicitado', 'estado',
-        'subtotal', 'descuento', 'total', 'moneda_id', 'tipo_pago', 'total_pagado', 'saldo',
-        'notas', 'acompanantes', 'meta_datos',
+        'codigo_reserva',
+        'cliente_id',
+        'nombre_cliente',
+        'telefono_cliente',
+        'email_cliente',
+        'tipo_reserva',
+        'habitacion_id',
+        'espacio_id',
+        'servicio_id',
+        'promocion_id',
+        'fecha_check_in',
+        'fecha_check_out',
+        'hora_reserva',
+        'adultos',
+        'ninos',
+        'solicita_cuenta',
+        'limite_cuenta_solicitado',
+        'estado',
+        'subtotal',
+        'descuento',
+        'total',
+        'moneda_id',
+        'tipo_pago',
+        'total_pagado',
+        'saldo',
+        'notas',
+        'acompanantes',
+        'meta_datos',
     ];
 
     protected $casts = [
@@ -79,11 +101,11 @@ final class Reserva extends Model implements AuditableContract
     ];
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Cliente, $this>
      */
     public function cliente(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'cliente_id');
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
     /**
@@ -156,6 +178,12 @@ final class Reserva extends Model implements AuditableContract
     public function estancia(): HasOne
     {
         return $this->hasOne(Estancia::class);
+    }
+
+    /** @return HasMany<Estancia, $this> */
+    public function estancias(): HasMany
+    {
+        return $this->hasMany(Estancia::class);
     }
 
     /** @return HasMany<Cuenta, $this> */

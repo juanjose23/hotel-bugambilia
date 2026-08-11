@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Support\Pdf\Calculadores\CalculadorAltura;
+use App\Support\Pdf\ConfiguracionPagina;
 use App\Support\Pdf\LayoutPdf;
 use App\Support\Pdf\TiposReporte;
 use Illuminate\Support\Collection;
@@ -44,15 +45,7 @@ final readonly class ReportePaginador
         }
 
         if ($tipo === TiposReporte::ETIQUETA) {
-            $elementosPorPagina = $this->etiquetasPorPagina(
-                altoEtiquetaMm: $config->altoFilaMm,
-                columnas: $config->columnas ?? 3,
-            );
-
-            return $items->chunk($elementosPorPagina)
-                ->map(fn ($c) => $c->values())
-                ->values()
-                ->all();
+            return $this->paginarEtiquetas($items, $config);
         }
 
         return $this->chunkParaPdf($items, $config->altoFilaMm);
@@ -93,10 +86,7 @@ final readonly class ReportePaginador
         $filasTotales = $this->filasPorPagina(altoFilaMm: $altoFilaMm);
 
         if ($altoExtraPrimeraPaginaMm <= 0 || $filasTotales <= 1) {
-            return $items->chunk($filasTotales)
-                ->map(fn ($c) => $c->values())
-                ->values()
-                ->all();
+            return $this->dividirEnPaginas($items, $filasTotales);
         }
 
         $altoFila = max(1, $altoFilaMm);
@@ -107,15 +97,56 @@ final readonly class ReportePaginador
             return [$items->values()];
         }
 
+        return $this->dividirConPrimeraPagina($items, $filasPrimeraPagina, $filasTotales);
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param  Collection<TKey, TValue>  $items
+     * @return array<int, Collection<TKey, TValue>>
+     */
+    private function paginarEtiquetas(Collection $items, ConfiguracionPagina $config): array
+    {
+        $elementosPorPagina = $this->etiquetasPorPagina(
+            altoEtiquetaMm: $config->altoFilaMm,
+            columnas: $config->columnas ?? 3,
+        );
+
+        return $this->dividirEnPaginas($items, $elementosPorPagina);
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param  Collection<TKey, TValue>  $items
+     * @return array<int, Collection<TKey, TValue>>
+     */
+    private function dividirEnPaginas(Collection $items, int $elementosPorPagina): array
+    {
+        return $items->chunk($elementosPorPagina)
+            ->map(fn ($c) => $c->values())
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param  Collection<TKey, TValue>  $items
+     * @return array<int, Collection<TKey, TValue>>
+     */
+    private function dividirConPrimeraPagina(Collection $items, int $filasPrimeraPagina, int $filasTotales): array
+    {
         $primeraPagina = $items->take($filasPrimeraPagina)->values();
         $resto = $items->slice($filasPrimeraPagina)->values();
 
         return array_merge(
             [$primeraPagina],
-            $resto->chunk($filasTotales)
-                ->map(fn ($c) => $c->values())
-                ->values()
-                ->all(),
+            $this->dividirEnPaginas($resto, $filasTotales),
         );
     }
 
@@ -142,17 +173,17 @@ final readonly class ReportePaginador
         foreach ($items as $item) {
             $alto = max($altoBase, $calculador->altura($item));
 
-            $disponibleActual = $esPrimeraPagina
-                ? max(1, $disponible - $altoExtraPrimeraPaginaMm)
-                : $disponible;
+            $disponibleActual = $this->disponibleActual(
+                $disponible,
+                $altoExtraPrimeraPaginaMm,
+                $esPrimeraPagina,
+            );
 
             if ($acumulado + $alto > $disponibleActual && ! empty($paginaActual)) {
                 $paginas[] = collect($paginaActual);
                 $paginaActual = [];
                 $acumulado = 0;
                 $esPrimeraPagina = false;
-
-                $disponibleActual = $disponible;
             }
 
             $paginaActual[] = $item;
@@ -168,5 +199,12 @@ final readonly class ReportePaginador
         }
 
         return $paginas;
+    }
+
+    private function disponibleActual(int $disponible, int $altoExtraPrimeraPaginaMm, bool $esPrimeraPagina): int
+    {
+        return $esPrimeraPagina
+            ? max(1, $disponible - $altoExtraPrimeraPaginaMm)
+            : $disponible;
     }
 }

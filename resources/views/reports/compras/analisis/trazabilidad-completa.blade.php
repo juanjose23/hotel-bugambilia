@@ -65,7 +65,7 @@
                         <td>{{ $cot->proveedor_nombre ?? '—' }}</td>
                         <td style="text-align:right;font-weight:bold;">${{ number_format((float)$cot->total, 2) }}</td>
                         <td style="text-align:center;">{{ $cot->tiempo_entrega_dias ?? '—' }}</td>
-                        <td style="text-align:center;color:{{ $cot->es_elegida ? '#16a34a' : '#999' }};font-weight:bold;">{{ $cot->es_elegida ? '★ SÍ' : 'No' }}</td>
+                        <td style="text-align:center;color:{{ $cot->es_elegida ? '#16a34a' : '#999' }};font-weight:bold;">{{ $cot->es_elegida ? 'SÍ' : 'No' }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -95,7 +95,7 @@
 
             @if(!empty($orden->recepciones))
             <div style="padding-left:16px;border-left:3px solid #16a34a;margin-bottom:12px;">
-                <div style="font-size:9px;font-weight:bold;color:#065f46;margin-bottom:4px;">▶ RECEPCIONES EN BODEGA (HTB-COM-004):</div>
+                <div style="font-size:9px;font-weight:bold;color:#065f46;margin-bottom:4px;">RECEPCIONES EN BODEGA (HTB-COM-004):</div>
                 <table class="data-table">
                     <thead><tr><th>Código</th><th>Factura/Ref.</th><th style="text-align:center;">Fecha Recepción</th><th>Estado</th><th>Receptor</th></tr></thead>
                     <tbody>

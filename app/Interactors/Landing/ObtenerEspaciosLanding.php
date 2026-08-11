@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Interactors\Landing;
 
+use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Presenters\Landing\EspacioTarjetaPresenter;
 use App\Repository\Models\Espacios\Espacio;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 
 final class ObtenerEspaciosLanding
 {
+    public function __construct(
+        private readonly EspacioTarjetaPresenter $espacioPresenter,
+    ) {}
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -20,52 +26,12 @@ final class ObtenerEspaciosLanding
             ->orderBy('orden')
             ->orderBy('nombre');
 
-        if ($categoriaTipo !== null && trim($categoriaTipo) !== '' && strtoupper(trim($categoriaTipo)) !== 'TODOS') {
-            $query->where('tipo', trim($categoriaTipo));
-        }
+        $this->aplicarFiltroCategoria($query, $categoriaTipo);
 
-        /** @var array<int, array<string, mixed>> $result */
-        $result = $query->get()->map(function (Espacio $espacio): array {
-            $imagenes = $espacio->imagenes->pluck('url')->filter()->values()->toArray();
-            if (empty($imagenes)) {
-                $imagenes = match ($espacio->tipo->value) {
-                    'restaurante', 'bar' => ['/images/service-kitchen.png', '/images/service-bartender.png'],
-                    'piscina' => ['/images/service-pool.png', '/images/terrace.jpg'],
-                    'salon' => ['/images/service-events.png', '/images/room-detail.jpg'],
-                    default => ['/images/terrace.jpg', '/images/main-room.jpg'],
-                };
-            }
-
-            $tipoStr = $espacio->tipo->value;
-            $tipoLabel = $espacio->tipo->getLabel();
-
-            return [
-                'id' => $espacio->id,
-                'codigo' => $espacio->codigo,
-                'slug' => $espacio->slug ?? Str::slug($espacio->nombre),
-                'nombre' => $espacio->nombre,
-                'tipo' => $tipoStr,
-                'tipo_label' => $tipoLabel,
-                'capacidad' => $espacio->capacidad_personas ?? 1,
-                'descripcion' => ! empty($espacio->descripcion) ? $espacio->descripcion : 'Sin descripción detallada disponible.',
-                'ubicacion' => $espacio->ubicacion->nombre ?? 'Instalaciones Principales',
-                'web' => (bool) $espacio->web,
-                'reservable' => (bool) $espacio->reservable,
-                'imagenes' => $imagenes,
-                'es_restaurante' => $tipoStr === 'restaurante',
-                'meta_datos' => $espacio->meta_datos ?? [],
-                'sub_espacios' => $espacio->hijos->map(fn (Espacio $hijo): array => [
-                    'id' => $hijo->id,
-                    'codigo' => $hijo->codigo,
-                    'slug' => $hijo->slug ?? Str::slug($hijo->nombre),
-                    'nombre' => $hijo->nombre,
-                    'capacidad' => $hijo->capacidad_personas ?? 1,
-                    'reservable' => (bool) $hijo->reservable,
-                ])->values()->all(),
-            ];
-        })->values()->all();
-
-        return $result;
+        return $query->get()
+            ->map(fn (Espacio $espacio): array => $this->espacioPresenter->tarjeta($espacio))
+            ->values()
+            ->all();
     }
 
     /**
@@ -73,21 +39,36 @@ final class ObtenerEspaciosLanding
      */
     public function tiposDisponibles(): array
     {
-        $espacios = Espacio::activosWeb()
+        $tiposValores = Espacio::activosWeb()
             ->whereNull('padre_id')
-            ->select(['id', 'tipo'])
-            ->get();
+            ->distinct()
+            ->pluck('tipo');
 
         $tipos = [];
-        foreach ($espacios as $e) {
-            $tipoStr = $e->tipo->value;
-            $label = $e->tipo->getLabel();
+        foreach ($tiposValores as $tipoValor) {
+            $tipo = $tipoValor instanceof TipoEspacio ? $tipoValor : (is_string($tipoValor) ? TipoEspacio::tryFrom($tipoValor) : null);
+
+            if ($tipo === null) {
+                continue;
+            }
+
+            $tipoStr = $tipo->value;
 
             if (! isset($tipos[$tipoStr])) {
-                $tipos[$tipoStr] = ['tipo' => $tipoStr, 'label' => $label];
+                $tipos[$tipoStr] = ['tipo' => $tipoStr, 'label' => $tipo->getLabel()];
             }
         }
 
         return array_values($tipos);
+    }
+
+    /**
+     * @param  Builder<Espacio>  $query
+     */
+    private function aplicarFiltroCategoria(Builder $query, ?string $categoriaTipo): void
+    {
+        if ($categoriaTipo !== null && trim($categoriaTipo) !== '' && strtoupper(trim($categoriaTipo)) !== 'TODOS') {
+            $query->where('tipo', trim($categoriaTipo));
+        }
     }
 }

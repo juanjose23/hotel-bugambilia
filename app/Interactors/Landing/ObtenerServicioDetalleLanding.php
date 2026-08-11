@@ -45,11 +45,29 @@ final class ObtenerServicioDetalleLanding
     {
         $query = Servicio::with(['categoria', 'imagenes', 'precios.moneda', 'politicas'])->activos()->where('web', true);
 
-        if (preg_match('/-(\d+)$/', $slug, $matches)) {
-            return $query->find((int) $matches[1]);
+        if (is_numeric($slug)) {
+            $servicio = (clone $query)->find((int) $slug);
+            if ($servicio !== null) {
+                return $servicio;
+            }
         }
 
-        return $query->where('codigo', $slug)->first();
+        if (preg_match('/-(\d+)$/', $slug, $matches)) {
+            $servicio = (clone $query)->find((int) $matches[1]);
+            if ($servicio !== null) {
+                return $servicio;
+            }
+        }
+
+        $servicios = $query->get();
+
+        return $servicios->first(function (Servicio $servicio) use ($slug): bool {
+            if ($servicio->codigo === $slug) {
+                return true;
+            }
+
+            return Str::slug($servicio->nombre) === $slug || (Str::slug($servicio->nombre).'-'.$servicio->id) === $slug;
+        });
     }
 
     /**

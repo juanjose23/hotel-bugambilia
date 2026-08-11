@@ -15,12 +15,21 @@ use DomainException;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Database\Eloquent\Model;
 
 final class ViewCuenta extends ViewRecord
 {
     protected static string $resource = CuentaResource::class;
 
     protected static ?string $title = 'Detalle de Cuenta';
+
+    protected function resolveRecord(int|string $key): Model
+    {
+        $record = parent::resolveRecord($key);
+        $record->loadMissing(['moneda', 'cliente', 'estancia.habitacion', 'reserva.moneda']);
+
+        return $record;
+    }
 
     protected function getHeaderActions(): array
     {

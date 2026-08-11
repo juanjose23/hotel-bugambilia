@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Activos;
 
-use App\Http\Controllers\Controller;
-use App\Jobs\GenerarReporteJob;
+use App\Http\Controllers\ReporteController;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use App\Repository\Queries\Activos\GenerarReporteActivoUseCase;
@@ -15,7 +14,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class ReporteActivoController extends Controller
+final class ReporteActivoController extends ReporteController
 {
     public function __construct(
         private readonly GenerarReporteActivoUseCase $generarReporteActivo,
@@ -185,25 +184,5 @@ final class ReporteActivoController extends Controller
         }
 
         return $result;
-    }
-
-    private function streamPdf(PDF $pdf, string $filename): StreamedResponse
-    {
-        return response()->stream(fn () => print ($pdf->output()), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => "filename=\"{$filename}\"",
-        ]);
-    }
-
-    /** @param array<string, mixed> $params */
-    private function despacharEnSegundoPlano(string $reportCode, array $params = []): RedirectResponse
-    {
-        GenerarReporteJob::dispatch(
-            codigoReporte: $reportCode,
-            parametros: $params,
-            usuarioId: (int) (auth()->id() ?? 0),
-        );
-
-        return back()->with('status', 'El reporte se esta generando. Recibiras una notificacion cuando este listo.');
     }
 }

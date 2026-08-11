@@ -15,7 +15,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class LavanderiaProceso extends Model implements AuditableContract
 {
     use Auditable;
-    use Auditable;
 
     protected $table = 'limp_lavanderia_procesos';
 

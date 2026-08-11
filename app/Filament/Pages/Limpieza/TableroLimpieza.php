@@ -8,13 +8,13 @@ use App\BusinessLogic\Limpieza\Exceptions\OperacionLimpiezaNoPermitida;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\LimpiezaEjecucionResource;
 use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
+use App\Interactors\Limpieza\Ejecucion\AsignarSolicitudLimpieza;
 use App\Interactors\Limpieza\Ejecucion\CompletarEjecucionAsignada;
 use App\Interactors\Limpieza\Ejecucion\ReclamarEIniciarLimpieza;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
-use App\Repository\Models\Limpieza\Turno;
 use App\Repository\Models\User;
 use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritoAsignado;
@@ -39,6 +39,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use UnitEnum;
@@ -50,8 +51,7 @@ use UnitEnum;
  */
 class TableroLimpieza extends Page implements HasForms
 {
-    use HasPageShield;
-    use InteractsWithForms;
+    use HasPageShield, InteractsWithForms;
 
     protected ObtenerNombreCompleto $nombreColaborador;
 
@@ -65,6 +65,8 @@ class TableroLimpieza extends Page implements HasForms
 
     protected ObtenerChecklistDefecto $obtenerChecklist;
 
+    protected AsignarSolicitudLimpieza $asignarSolicitud;
+
     public function boot(
         ObtenerNombreCompleto $nombreColaborador,
         ObtenerEjecucionLimpieza $obtenerEjecucion,
@@ -72,6 +74,7 @@ class TableroLimpieza extends Page implements HasForms
         ObtenerCarritosDisponibles $obtenerCarritos,
         ObtenerAbastecimientoSugerido $obtenerAbastecimiento,
         ObtenerChecklistDefecto $obtenerChecklist,
+        AsignarSolicitudLimpieza $asignarSolicitud,
     ): void {
         $this->nombreColaborador = $nombreColaborador;
         $this->obtenerEjecucion = $obtenerEjecucion;
@@ -79,6 +82,7 @@ class TableroLimpieza extends Page implements HasForms
         $this->obtenerCarritos = $obtenerCarritos;
         $this->obtenerAbastecimiento = $obtenerAbastecimiento;
         $this->obtenerChecklist = $obtenerChecklist;
+        $this->asignarSolicitud = $asignarSolicitud;
     }
 
     protected string $view = 'filament.resources.limpieza.tablero-limpieza';
@@ -250,10 +254,10 @@ class TableroLimpieza extends Page implements HasForms
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     * @return SupportCollection<int, LimpiezaEjecucion>
      */
     #[Computed]
-    public function pendientes(): \Illuminate\Support\Collection
+    public function pendientes(): SupportCollection
     {
         return $this->executions()
             ->where('estado', EstadoLimpieza::Pendiente)
@@ -262,10 +266,10 @@ class TableroLimpieza extends Page implements HasForms
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     * @return SupportCollection<int, LimpiezaEjecucion>
      */
     #[Computed]
-    public function enProgreso(): \Illuminate\Support\Collection
+    public function enProgreso(): SupportCollection
     {
         return $this->executions()
             ->where('estado', EstadoLimpieza::EnProgreso)
@@ -274,10 +278,10 @@ class TableroLimpieza extends Page implements HasForms
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     * @return SupportCollection<int, LimpiezaEjecucion>
      */
     #[Computed]
-    public function completadas(): \Illuminate\Support\Collection
+    public function completadas(): SupportCollection
     {
         return $this->executions()
             ->filter(fn (LimpiezaEjecucion $e): bool => $e->estado->estaFinalizada())
@@ -303,28 +307,28 @@ class TableroLimpieza extends Page implements HasForms
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     * @return SupportCollection<int, LimpiezaEjecucion>
      */
     #[Computed]
-    public function pendientesPaged(): \Illuminate\Support\Collection
+    public function pendientesPaged(): SupportCollection
     {
         return $this->pendientes()->take($this->pendientesLimit)->values();
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     * @return SupportCollection<int, LimpiezaEjecucion>
      */
     #[Computed]
-    public function enProgresoPaged(): \Illuminate\Support\Collection
+    public function enProgresoPaged(): SupportCollection
     {
         return $this->enProgreso()->take($this->enProgresoLimit)->values();
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, LimpiezaEjecucion>
+     * @return SupportCollection<int, LimpiezaEjecucion>
      */
     #[Computed]
-    public function completadasPaged(): \Illuminate\Support\Collection
+    public function completadasPaged(): SupportCollection
     {
         return $this->completadas()->take($this->completadasLimit)->values();
     }
@@ -390,39 +394,9 @@ class TableroLimpieza extends Page implements HasForms
 
         Gate::authorize('iniciar', $execution);
 
-        $targetColaboradorId = $execution->colaborador_id
-            ?: ($execution->solicitud?->personal?->persona?->colaborador?->id ?: $this->currentColaboradorId);
-
-        if (! $targetColaboradorId) {
-            $options = $this->getColaboradoresResponsablesOptions();
-            if (! empty($options)) {
-                $firstKey = array_key_first($options);
-                $targetColaboradorId = (int) $firstKey;
-            }
-        }
-
         $this->startingExecutionId = $executionId;
 
-        $carritoAsignadoId = $execution->carrito_id;
-        if (! $carritoAsignadoId && $targetColaboradorId) {
-            $carritoModel = app(ObtenerCarritoAsignado::class)->execute($targetColaboradorId);
-            $carritoAsignadoId = $carritoModel?->id;
-        }
-
-        if (! $carritoAsignadoId && $targetColaboradorId) {
-            $availableCarritos = $this->obtenerCarritos->execute($executionId, $targetColaboradorId);
-            if (! empty($availableCarritos)) {
-                $firstCartKey = array_key_first($availableCarritos);
-                $carritoAsignadoId = (int) $firstCartKey;
-            }
-        }
-
-        $this->startForm->fill([
-            'colaborador_responsable' => $targetColaboradorId,
-            'carrito_id' => $carritoAsignadoId,
-        ]);
-
-        $this->dispatch('open-modal', id: 'iniciar-limpieza-modal');
+        $this->prellenarInicio($execution);
     }
 
     public function closeStartModal(): void
@@ -694,19 +668,17 @@ class TableroLimpieza extends Page implements HasForms
             return;
         }
 
-        if (! $user->can('page_GestionMesas') && ! $user->can('page_TableroLimpieza') && ! $user->hasRole('super_admin')) {
+        try {
+            $ejecucion = $this->asignarSolicitud->execute($user, $solicitudId);
+        } catch (OperacionLimpiezaNoPermitida $exception) {
             Notification::make()
                 ->title('Sin permisos')
-                ->body('Solo personal autorizado puede asignar solicitudes de limpieza.')
+                ->body($exception->getMessage())
                 ->danger()
                 ->send();
 
             return;
-        }
-
-        $solicitud = SolicitudLimpieza::query()->with(['limpiable.ubicacion', 'ejecuciones'])->find($solicitudId);
-
-        if (! $solicitud) {
+        } catch (ModelNotFoundException) {
             Notification::make()
                 ->title('No encontrada')
                 ->body('La solicitud de limpieza ya no existe.')
@@ -716,56 +688,8 @@ class TableroLimpieza extends Page implements HasForms
             return;
         }
 
-        $colaborador = $user->persona?->colaborador;
-
-        $ejecucionExistente = $solicitud->ejecuciones()->first();
-        if (! $ejecucionExistente) {
-            $limpiable = $solicitud->limpiable;
-            $ubicacion = null;
-            if ($limpiable instanceof Model && method_exists($limpiable, 'ubicacion')) {
-                $limpiable->loadMissing('ubicacion');
-                /** @phpstan-ignore property.notFound */
-                $ubicacion = $limpiable->ubicacion;
-            }
-
-            $turno = null;
-            $currentUbicacion = $ubicacion;
-            while ($currentUbicacion) {
-                $turno = Turno::where('estado', true)
-                    ->whereHas('carritos', fn ($q) => $q->where('ubicacion_id', $currentUbicacion->id))
-                    ->first();
-                if ($turno) {
-                    break;
-                }
-                $currentUbicacion->loadMissing('padre');
-                $currentUbicacion = $currentUbicacion->padre;
-            }
-            if (! $turno) {
-                $turno = Turno::where('estado', true)->first() ?: Turno::first();
-            }
-
-            $ejecucionExistente = LimpiezaEjecucion::create([
-                'solicitud_id' => $solicitud->id,
-                'limpiable_type' => $solicitud->limpiable_type,
-                'limpiable_id' => $solicitud->limpiable_id,
-                'turno_id' => $turno instanceof Turno ? $turno->id : null,
-                'colaborador_id' => $colaborador?->id,
-                'fecha' => now()->toDateString(),
-                'estado' => EstadoLimpieza::Pendiente,
-            ]);
-        } elseif ($colaborador instanceof Colaborador && $ejecucionExistente->colaborador_id === null) {
-            $ejecucionExistente->update([
-                'colaborador_id' => $colaborador->id,
-            ]);
-        }
-
-        $solicitud->update([
-            'personal_id' => $colaborador instanceof Colaborador ? $user->id : $solicitud->personal_id,
-            'estado' => EstadoLimpieza::Pendiente,
-        ]);
-
-        $nombre = $solicitud->limpiable instanceof Model && property_exists($solicitud->limpiable, 'nombre')
-            ? ($solicitud->limpiable->nombre ?? 'Sin nombre')
+        $nombre = $ejecucion->limpiable instanceof Model && property_exists($ejecucion->limpiable, 'nombre')
+            ? ($ejecucion->limpiable->nombre ?? 'Sin nombre')
             : 'Sin nombre';
 
         Notification::make()
@@ -778,38 +702,54 @@ class TableroLimpieza extends Page implements HasForms
         unset($this->executions);
         unset($this->pendientes);
 
-        $targetColaboradorId = $ejecucionExistente->colaborador_id
-            ?: ($solicitud->personal?->persona?->colaborador?->id ?: $this->currentColaboradorId);
+        $this->startingExecutionId = (int) $ejecucion->id;
+
+        $this->prellenarInicio($ejecucion);
+    }
+
+    private function prellenarInicio(LimpiezaEjecucion $ejecucion): void
+    {
+        $resolucion = $this->resolverColaboradorYCarrito($ejecucion);
+
+        $this->startForm->fill([
+            'colaborador_responsable' => $resolucion['colaborador_id'],
+            'carrito_id' => $resolucion['carrito_id'],
+        ]);
+
+        $this->dispatch('open-modal', id: 'iniciar-limpieza-modal');
+    }
+
+    /**
+     * @return array{colaborador_id: int|null, carrito_id: int|null}
+     */
+    private function resolverColaboradorYCarrito(LimpiezaEjecucion $ejecucion): array
+    {
+        $targetColaboradorId = $ejecucion->colaborador_id
+            ?: ($ejecucion->solicitud?->personal?->persona?->colaborador?->id ?: $this->currentColaboradorId);
 
         if (! $targetColaboradorId) {
             $options = $this->getColaboradoresResponsablesOptions();
             if (! empty($options)) {
-                $firstKey = array_key_first($options);
-                $targetColaboradorId = (int) $firstKey;
+                $targetColaboradorId = (int) array_key_first($options);
             }
         }
 
-        $this->startingExecutionId = (int) $ejecucionExistente->id;
-
-        $carritoAsignadoId = $ejecucionExistente->carrito_id;
+        $carritoAsignadoId = $ejecucion->carrito_id;
         if (! $carritoAsignadoId && $targetColaboradorId) {
             $carritoModel = app(ObtenerCarritoAsignado::class)->execute($targetColaboradorId);
             $carritoAsignadoId = $carritoModel?->id;
         }
 
         if (! $carritoAsignadoId && $targetColaboradorId) {
-            $availableCarritos = $this->obtenerCarritos->execute((int) $ejecucionExistente->id, $targetColaboradorId);
+            $availableCarritos = $this->obtenerCarritos->execute((int) $ejecucion->id, $targetColaboradorId);
             if (! empty($availableCarritos)) {
-                $firstCartKey = array_key_first($availableCarritos);
-                $carritoAsignadoId = (int) $firstCartKey;
+                $carritoAsignadoId = (int) array_key_first($availableCarritos);
             }
         }
 
-        $this->startForm->fill([
-            'colaborador_responsable' => $targetColaboradorId,
+        return [
+            'colaborador_id' => $targetColaboradorId,
             'carrito_id' => $carritoAsignadoId,
-        ]);
-
-        $this->dispatch('open-modal', id: 'iniciar-limpieza-modal');
+        ];
     }
 }

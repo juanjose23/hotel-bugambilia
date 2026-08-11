@@ -10,6 +10,7 @@ use App\Support\Barcode\BarcodeGenerator;
 use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteRecepcionPdfAction
 {
@@ -20,7 +21,7 @@ final class GenerarReporteRecepcionPdfAction
         private readonly ObtenerRecepcionReporteQuery $query,
     ) {}
 
-    public function ejecutar(RecepcionCompra $recepcion): \Barryvdh\DomPDF\PDF
+    public function ejecutar(RecepcionCompra $recepcion): PdfDocumento
     {
         $recepcionConRelaciones = $this->query->ejecutar($recepcion->id) ?? $recepcion;
 

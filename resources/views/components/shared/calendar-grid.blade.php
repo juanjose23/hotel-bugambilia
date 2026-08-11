@@ -82,7 +82,36 @@
             </div>
 
             {{-- Navegación --}}
-            <div class="flex items-center gap-1">
+            <div class="flex flex-wrap items-center gap-2">
+
+                <div class="flex items-center gap-1">
+                    <select
+                        wire:model.live="month"
+                        class="rounded-lg border-gray-300 bg-white text-xs font-medium text-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+
+                    <select
+                        wire:model.live="year"
+                        class="rounded-lg border-gray-300 bg-white text-xs font-medium text-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        @foreach (range(now()->year - 2, now()->year + 3) as $y)
+                            <option value="{{ $y }}">{{ $y }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <x-filament::button
                     wire:click="previousMonth"
@@ -279,10 +308,9 @@
                             style="
                                 min-width: 0;
                                 min-height: 175px;
-                                background: rgb(249 250 251);
                             "
 
-                            class="dark:bg-gray-950"
+                            class="bg-gray-100/50 dark:bg-gray-950/80"
                         ></div>
 
                     @else

@@ -6,6 +6,7 @@ namespace App\Repository\Queries\Inventario\Stock;
 
 use App\BusinessLogic\Inventario\Data\Stock\StockProductoData;
 use App\Enums\Inventario\EstadoLote;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -20,6 +21,26 @@ class ObtenerStockPorProducto
      * @return Collection<int, StockProductoData>
      */
     public function ejecutar(array $filtros = []): Collection
+    {
+        return $this->consultaBase($filtros)
+            ->get()
+            ->map(fn ($row) => new StockProductoData(
+                productoId: (int) $row->producto_id,
+                producto: $row->producto,
+                variante: $row->variante,
+                categoria: $row->categoria,
+                ubicacionId: (int) $row->ubicacion_id,
+                ubicacion: $row->ubicacion,
+                stockDisponible: (float) $row->stock_disponible,
+                stockCuarentena: (float) $row->stock_cuarentena,
+                totalLotes: (int) $row->total_lotes,
+            ));
+    }
+
+    /**
+     * @param  array{producto_id?: int|null, ubicacion_id?: int|null}  $filtros
+     */
+    private function consultaBase(array $filtros): Builder
     {
         return DB::table('inv_lotes as l')
             ->join('productos as p', 'l.producto_id', '=', 'p.id')
@@ -47,18 +68,6 @@ class ObtenerStockPorProducto
                 DB::raw('COUNT(l.id) as total_lotes'),
             ])
             ->groupBy('p.id', 'p.nombre', 'pv.nombre_variante', 'cat.nombre', 'u.id', 'u.nombre')
-            ->orderBy('p.nombre')
-            ->get()
-            ->map(fn ($row) => new StockProductoData(
-                productoId: (int) $row->producto_id,
-                producto: $row->producto,
-                variante: $row->variante,
-                categoria: $row->categoria,
-                ubicacionId: (int) $row->ubicacion_id,
-                ubicacion: $row->ubicacion,
-                stockDisponible: (float) $row->stock_disponible,
-                stockCuarentena: (float) $row->stock_cuarentena,
-                totalLotes: (int) $row->total_lotes,
-            ));
+            ->orderBy('p.nombre');
     }
 }

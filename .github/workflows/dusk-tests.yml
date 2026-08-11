@@ -2,13 +2,19 @@ name: Laravel Dusk E2E Tests
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
+  workflow_dispatch:
 
 jobs:
   dusk-tests:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
 
     services:
       postgres:
@@ -25,6 +31,19 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      selenium:
+        image: selenium/standalone-${{ matrix.browser }}
+        ports:
+          - 4444:4444
+        options: >-
+          --shm-size=2gb
+          --add-host host.docker.internal:host-gateway
+          --health-cmd /opt/bin/check-status.sh
+          --health-interval 10s
+          --health-timeout 10s
+          --health-start-period 20s
+          --health-retries 12
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -35,6 +54,9 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, pdo, pdo_pgsql, bcmath, gd
           coverage: none
+
+      - name: Prepare Base Environment File
+        run: php -r "file_exists('.env') || copy('.env.dusk.example', '.env');"
 
       - name: Install Composer Dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -48,16 +70,11 @@ jobs:
 
       - name: Prepare Environment for Dusk
         run: |
-          cp .env.dusk .env
-          cp .env.dusk .env.dusk.local
+          cp .env.dusk.example .env
+          cp .env.dusk.example .env.dusk
+          cp .env.dusk.example .env.dusk.local
           php artisan key:generate
           php artisan key:generate --env=dusk
-
-      - name: Upgrade Chrome Driver
-        run: php artisan dusk:chrome-driver 150
-
-      - name: Start Chrome Driver in Background
-        run: ./vendor/laravel/dusk/bin/chromedriver-linux --port=9515 &
 
       - name: Run Dusk Database Migrations & Seeds
         env:
@@ -73,31 +90,40 @@ jobs:
 
       - name: Start Laravel Web Server
         env:
+          APP_URL: http://host.docker.internal:8000
           DB_CONNECTION: pgsql
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_DATABASE: hotel_bugambilias_dusk
           DB_USERNAME: postgres
           DB_PASSWORD: password
-        run: php artisan serve --port=8000 --env=dusk &
+        run: php artisan serve --host=0.0.0.0 --port=8000 --env=dusk &
+
+      - name: Wait for Laravel Web Server
+        run: |
+          for i in $(seq 1 30); do
+            curl -s -o /dev/null http://127.0.0.1:8000/ && break
+            sleep 1
+          done
 
       - name: Run Laravel Dusk Tests
         env:
-          APP_URL: http://127.0.0.1:8000
+          APP_URL: http://host.docker.internal:8000
           DB_CONNECTION: pgsql
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_DATABASE: hotel_bugambilias_dusk
           DB_USERNAME: postgres
           DB_PASSWORD: password
-          DUSK_HEADLESS_DISABLED: false
-        run: php artisan dusk
+          BROWSER: ${{ matrix.browser }}
+          DUSK_DRIVER_URL: http://localhost:4444
+        run: php artisan dusk --without-tty
 
       - name: Upload Artifacts on Failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: dusk-failure-evidence
+          name: dusk-failure-evidence-${{ matrix.browser }}
           path: |
             tests/Browser/screenshots/
             tests/Browser/console/

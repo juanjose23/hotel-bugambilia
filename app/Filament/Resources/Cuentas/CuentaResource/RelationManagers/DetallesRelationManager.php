@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Cuentas\CuentaResource\RelationManagers;
 use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
+use App\Support\MonedaHelper;
 use BackedEnum;
 use DomainException;
 use Filament\Actions\CreateAction;
@@ -88,7 +89,7 @@ final class DetallesRelationManager extends RelationManager
                                     '%s × %s — %s %s',
                                     $nombre,
                                     $cantidad,
-                                    $record->moneda->simbolo ?? 'C$',
+                                    MonedaHelper::simbolo($record?->moneda),
                                     number_format($subtotal, 2),
                                 );
                             })
@@ -104,10 +105,10 @@ final class DetallesRelationManager extends RelationManager
                     ->numeric(decimalPlaces: 2),
                 TextColumn::make('precio_unitario')
                     ->label('P. Unitario')
-                    ->money(fn ($record): string => $record->moneda->codigo ?? 'NIO'),
+                    ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda)),
                 TextColumn::make('subtotal')
                     ->label('Subtotal')
-                    ->money(fn ($record): string => $record->moneda->codigo ?? 'NIO')
+                    ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda))
                     ->sortable()
                     ->weight(FontWeight::Bold),
                 TextColumn::make('estado')

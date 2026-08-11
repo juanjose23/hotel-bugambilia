@@ -17,7 +17,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class Precio extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
-    use Auditable, SoftDeletes;
 
     protected $table = 'precios';
 

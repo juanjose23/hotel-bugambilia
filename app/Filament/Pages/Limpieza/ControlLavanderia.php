@@ -40,10 +40,7 @@ use UnitEnum;
  */
 class ControlLavanderia extends Page implements HasForms, HasTable
 {
-    use HasPageShield;
-    use InteractsWithForms;
-    use InteractsWithTable;
-    use InteractsWithTable;
+    use HasPageShield, InteractsWithForms, InteractsWithTable;
 
     protected string $view = 'filament.resources.limpieza.control-lavanderia';
 

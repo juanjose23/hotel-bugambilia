@@ -4,7 +4,7 @@
 @source '../../../../resources/views/filament/**/*';
 
 /* ============================================
-   ☀️ MODO CLARO — Hotel Bugambilias
+   MODO CLARO — Hotel Bugambilias
    Fresco, limpio y artesanal
    ============================================ */
 :root {
@@ -48,7 +48,7 @@
 }
 
 /* ============================================
-   🌙 MODO OSCURO — Hotel Bugambilias
+   MODO OSCURO — Hotel Bugambilias
    Lujo nocturno y elegancia — Tema predeterminado
    ============================================ */
 .dark {
@@ -105,7 +105,9 @@
     background-color: var(--card) !important;
     border: 1px solid var(--border) !important;
     border-radius: 1rem !important;
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    box-shadow:
+        0 20px 25px -5px rgb(0 0 0 / 0.2),
+        0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
     padding: 0.75rem !important;
 }
 
@@ -136,7 +138,11 @@
 /* Día seleccionado */
 .fi-fo-date-time-picker-day.fi-selected,
 .flatpickr-day.selected {
-    background: linear-gradient(135deg, oklch(0.3 0.19 358), oklch(0.45 0.18 358)) !important;
+    background: linear-gradient(
+        135deg,
+        oklch(0.3 0.19 358),
+        oklch(0.45 0.18 358)
+    ) !important;
     color: #ffffff !important;
     font-weight: 800 !important;
     border-radius: 0.5rem !important;

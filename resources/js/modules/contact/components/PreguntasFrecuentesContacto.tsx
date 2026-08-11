@@ -49,7 +49,7 @@ const PreguntasFrecuentesContacto = () => {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-12 text-center">
                     <Badge className="mb-4 border-bugambilia-200 bg-bugambilia-100 text-bugambilia-700 dark:border-bugambilia-700 dark:bg-bugambilia-900/30 dark:text-bugambilia-300">
-                        ❓ Preguntas frecuentes
+                        Preguntas frecuentes
                     </Badge>
                     <h2 className="mb-6 text-3xl font-bold text-gray-900 md:text-4xl dark:text-white">
                         Preguntas frecuentes

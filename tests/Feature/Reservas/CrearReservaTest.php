@@ -9,14 +9,19 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\CheckIn\RegistrarCheckIn;
 use App\Interactors\CheckOut\RegistrarCheckOut;
 use App\Interactors\Reservas\Gestion\ConfirmarReserva;
 use App\Interactors\Reservas\Gestion\CrearReserva;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Pais;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\User;
@@ -253,7 +258,7 @@ test('calcula el total de la habitación con la tarifa del servidor', function (
         ->and($reserva->estado)->toBe(EstadoReserva::PENDIENTE)
         ->and((float) $reserva->subtotal)->toBe(round($tarifaBase * 2, 2))
         ->and((float) $reserva->total)->toBe(round($tarifaBase * 2 * 1.15, 2))
-        ->and($reserva->codigo_reserva)->toStartWith('RES-2026-');
+        ->and($reserva->codigo_reserva)->toStartWith('HTB-2026-');
 
     $detalle = $reserva->detalles()->with('huespedes')->firstOrFail();
     expect($detalle->reservable_id)->not->toBeNull()
@@ -348,9 +353,17 @@ test('un visitante no puede cancelar una reserva', function (): void {
 });
 
 test('otro cliente no puede cancelar una reserva ajena', function (): void {
-    $propietario = User::factory()->create();
+    $pais = Pais::query()->firstOrFail();
+    $catalogo = Catalogo::query()->firstOrFail();
+    $persona = Persona::factory()->create(['pais_id' => $pais->id]);
+    $propietario = User::factory()->create(['persona_id' => $persona->id]);
     $otroCliente = User::factory()->create();
-    $reserva = Reserva::query()->create(datosReserva(['cliente_id' => $propietario->id]));
+    $cliente = Cliente::query()->create([
+        'persona_id' => $persona->id,
+        'catalogo_id' => $catalogo->id,
+        'estado' => EstadoGeneral::Activo,
+    ]);
+    $reserva = Reserva::query()->create(datosReserva(['cliente_id' => $cliente->id]));
 
     $this->actingAs($otroCliente)
         ->post(route('reservas.cancelar', $reserva))
@@ -360,8 +373,16 @@ test('otro cliente no puede cancelar una reserva ajena', function (): void {
 });
 
 test('el propietario puede cancelar su reserva', function (): void {
-    $propietario = User::factory()->create();
-    $reserva = Reserva::query()->create(datosReserva(['cliente_id' => $propietario->id]));
+    $pais = Pais::query()->firstOrFail();
+    $catalogo = Catalogo::query()->firstOrFail();
+    $persona = Persona::factory()->create(['pais_id' => $pais->id]);
+    $propietario = User::factory()->create(['persona_id' => $persona->id]);
+    $cliente = Cliente::query()->create([
+        'persona_id' => $persona->id,
+        'catalogo_id' => $catalogo->id,
+        'estado' => EstadoGeneral::Activo,
+    ]);
+    $reserva = Reserva::query()->create(datosReserva(['cliente_id' => $cliente->id]));
 
     $this->actingAs($propietario)
         ->post(route('reservas.cancelar', $reserva))
@@ -431,11 +452,14 @@ function datosReserva(array $cambios = []): array
         'estado' => EstadoEspacio::Disponible,
     ]);
 
+    $moneda = Moneda::query()->where('es_predeterminada', true)->first();
+
     return array_merge([
         'codigo_reserva' => 'RES-TEST-'.str()->random(10),
         'nombre_cliente' => 'Cliente de prueba',
         'habitacion_id' => $habitacion->id,
         'tipo_reserva' => TipoReserva::HABITACION,
+        'moneda_id' => $moneda?->id,
         'fecha_check_in' => '2026-10-01',
         'fecha_check_out' => '2026-10-02',
         'adultos' => 1,

@@ -39,6 +39,25 @@ final class ObtenerDatosPedidoFormQuery
     }
 
     /**
+     * @param  array<int, int>  $platoIds
+     * @return Collection<int, Plato>
+     */
+    public function platosParaPreorden(array $platoIds): Collection
+    {
+        if ($platoIds === []) {
+            return collect();
+        }
+
+        /** @var Collection<int, Plato> $platos */
+        $platos = Plato::query()
+            ->whereIn('id', $platoIds)
+            ->get()
+            ->keyBy('id');
+
+        return $platos;
+    }
+
+    /**
      * Obtiene el precio actual del plato, prefiriendo la moneda por defecto del sistema.
      */
     public function precioActualDePlato(int $platoId): ?float

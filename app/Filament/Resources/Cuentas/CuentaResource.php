@@ -13,6 +13,7 @@ use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Personas\Persona;
+use App\Support\MonedaHelper;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -70,7 +71,7 @@ final class CuentaResource extends Resource
 
                     TextEntry::make('limite_autorizado')
                         ->label('Límite de Crédito')
-                        ->money('NIO')
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda))
                         ->placeholder('Sin límite'),
 
                     TextEntry::make('abierta_at')
@@ -130,42 +131,42 @@ final class CuentaResource extends Resource
                 ->schema([
                     TextEntry::make('subtotal')
                         ->label('Subtotal')
-                        ->money('NIO'),
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda)),
 
                     TextEntry::make('descuento_total')
                         ->label('Descuentos')
-                        ->money('NIO'),
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda)),
 
                     TextEntry::make('impuesto_total')
                         ->label('Impuestos')
-                        ->money('NIO'),
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda)),
 
                     TextEntry::make('cargo_servicio_total')
                         ->label('Cargo Servicio')
-                        ->money('NIO'),
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda)),
 
                     TextEntry::make('propina_total')
                         ->label('Propinas')
-                        ->money('NIO'),
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda)),
 
                     TextEntry::make('recargo_total')
                         ->label('Recargos')
-                        ->money('NIO'),
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda)),
 
                     TextEntry::make('total')
                         ->label('TOTAL')
-                        ->money('NIO')
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda))
                         ->weight(FontWeight::Bold)
                         ->size(TextSize::Large),
 
                     TextEntry::make('total_pagado')
                         ->label('Ya Pagado')
-                        ->money('NIO')
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda))
                         ->color('success'),
 
                     TextEntry::make('saldo')
                         ->label('SALDO PENDIENTE')
-                        ->money('NIO')
+                        ->money(fn (Cuenta $record): string => MonedaHelper::codigo($record->moneda))
                         ->weight(FontWeight::Bold)
                         ->color(fn (Cuenta $record): string => (float) $record->saldo > 0 ? 'danger' : 'success')
                         ->columnSpan(2),
@@ -186,10 +187,10 @@ final class CuentaResource extends Resource
                                 ->label('Cant.'),
                             TextEntry::make('precio_unitario')
                                 ->label('Precio Unitario')
-                                ->money('NIO'),
+                                ->money(fn ($record): string => MonedaHelper::codigo($record->cuenta?->moneda)),
                             TextEntry::make('subtotal')
                                 ->label('Subtotal')
-                                ->money('NIO'),
+                                ->money(fn ($record): string => MonedaHelper::codigo($record->cuenta?->moneda)),
                             TextEntry::make('estado')
                                 ->label('Estado')
                                 ->badge(),
@@ -201,6 +202,7 @@ final class CuentaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['moneda', 'cliente', 'estancia.habitacion']))
             ->columns([
                 TextColumn::make('numero_cuenta')
                     ->label('Número de Cuenta')
@@ -231,25 +233,25 @@ final class CuentaResource extends Resource
 
                 TextColumn::make('limite_autorizado')
                     ->label('Límite')
-                    ->money('NIO')
+                    ->money(fn (?Cuenta $record): string => MonedaHelper::codigo($record?->moneda))
                     ->placeholder('Sin límite')
                     ->sortable(),
 
                 TextColumn::make('total')
                     ->label('Total')
-                    ->money('NIO')
+                    ->money(fn (?Cuenta $record): string => MonedaHelper::codigo($record?->moneda))
                     ->sortable(),
 
                 TextColumn::make('total_pagado')
                     ->label('Pagado')
-                    ->money('NIO')
+                    ->money(fn (?Cuenta $record): string => MonedaHelper::codigo($record?->moneda))
                     ->sortable(),
 
                 TextColumn::make('saldo')
                     ->label('Saldo Pendiente')
-                    ->money('NIO')
+                    ->money(fn (?Cuenta $record): string => MonedaHelper::codigo($record?->moneda))
                     ->sortable()
-                    ->color(fn (Cuenta $record): string => (float) $record->saldo > 0 ? 'danger' : 'success'),
+                    ->color(fn (?Cuenta $record): string => (float) ($record->saldo ?? 0) > 0 ? 'danger' : 'success'),
 
                 TextColumn::make('abierta_at')
                     ->label('Abierta el')
@@ -259,7 +261,7 @@ final class CuentaResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->recordActions([
                 ViewAction::make(),
-                CobrarCuentaAction::make()->size('sm'),
+                CobrarCuentaAction::makeTableAction()->size('sm'),
             ])
             ->filters([
                 FiltroEstado::make(EstadoCuenta::class),

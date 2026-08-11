@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repository\Queries\Inventario\Gestion;
 
 use App\BusinessLogic\Inventario\Data\Gestion\RotacionProductoData;
+use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -21,29 +23,10 @@ class ObtenerRotacionInventario
     public function ejecutar(array $filtros = []): Collection
     {
         $meses = isset($filtros['meses']) && $filtros['meses'] > 0 ? (int) $filtros['meses'] : 3;
-        $fechaDesde = now()->subMonths($meses)->startOfDay();
+        $fechaDesde = Carbon::now()->subMonths($meses)->startOfDay();
 
-        $tiposSalida = ['MOV_SALIDA', 'MOV_AJUSTE', 'CONSUMO'];
-
-        $salidas = DB::table('inv_movimientos as m')
-            ->join('productos as p', 'm.producto_id', '=', 'p.id')
-            ->whereIn('m.tipo', $tiposSalida)
-            ->where('m.created_at', '>=', $fechaDesde)
-            ->select([
-                'p.id as producto_id',
-                'p.nombre as producto',
-                DB::raw('SUM(m.cantidad) as total_salidas'),
-            ])
-            ->groupBy('p.id', 'p.nombre');
-
-        $stockPromedio = DB::table('inv_lotes as l')
-            ->join('productos as p', 'l.producto_id', '=', 'p.id')
-            ->whereNull('l.deleted_at')
-            ->select([
-                'p.id as producto_id',
-                DB::raw('AVG(l.cantidad_disponible) as stock_promedio'),
-            ])
-            ->groupBy('p.id');
+        $salidas = $this->consultaSalidas($fechaDesde);
+        $stockPromedio = $this->consultaStockPromedio();
 
         // Combinar: traemos salidas y le unimos el stock promedio
         $salidasSql = $salidas->toSql();
@@ -71,5 +54,31 @@ class ObtenerRotacionInventario
                 default => 'Baja',
             },
         ));
+    }
+
+    private function consultaSalidas(Carbon $fechaDesde): Builder
+    {
+        return DB::table('inv_movimientos as m')
+            ->join('productos as p', 'm.producto_id', '=', 'p.id')
+            ->whereIn('m.tipo', ['MOV_SALIDA', 'MOV_AJUSTE', 'CONSUMO'])
+            ->where('m.created_at', '>=', $fechaDesde)
+            ->select([
+                'p.id as producto_id',
+                'p.nombre as producto',
+                DB::raw('SUM(m.cantidad) as total_salidas'),
+            ])
+            ->groupBy('p.id', 'p.nombre');
+    }
+
+    private function consultaStockPromedio(): Builder
+    {
+        return DB::table('inv_lotes as l')
+            ->join('productos as p', 'l.producto_id', '=', 'p.id')
+            ->whereNull('l.deleted_at')
+            ->select([
+                'p.id as producto_id',
+                DB::raw('AVG(l.cantidad_disponible) as stock_promedio'),
+            ])
+            ->groupBy('p.id');
     }
 }

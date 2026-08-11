@@ -7,11 +7,13 @@ namespace App\Interactors\Reservas\Gestion;
 use App\BusinessLogic\Reservas\CalcularResumenRestauranteLogica;
 use App\BusinessLogic\Reservas\ValidarFechasReserva;
 use App\BusinessLogic\Reservas\ValidarSeleccionAdicionales;
+use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Reservas\ControlDisponibilidad;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Interactors\Cuentas\Gestion\AbrirCuenta;
 use App\Interactors\Reservas\Operaciones\SincronizarCuentaReserva;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
@@ -39,13 +41,14 @@ final class ActualizarReserva
         private readonly ObtenerCuentaReservaQuery $obtenerCuentaReserva,
         private readonly SincronizarCuentaReserva $sincronizarCuentaReserva,
         private readonly CalcularResumenRestauranteLogica $calcularResumenRestauranteLogica,
+        private readonly AbrirCuenta $abrirCuenta,
     ) {}
 
     /** @param array<string, mixed> $datos */
     public function ejecutar(Reserva $reserva, array $datos): Reserva
     {
-        if ($reserva->estado->value > EstadoReserva::CONFIRMADA->value) {
-            throw new DomainException('No se pueden modificar los recursos adicionales de una reserva que ya pasó el check-in.');
+        if (in_array($reserva->estado, [EstadoReserva::PARCIALMENTE_CHECKED_OUT, EstadoReserva::CHECKED_OUT, EstadoReserva::CANCELADA, EstadoReserva::NO_SHOW], true)) {
+            throw new DomainException('No se pueden modificar los recursos de una reserva que ya fue completada o cancelada.');
         }
 
         return DB::transaction(function () use ($reserva, $datos): Reserva {
@@ -73,6 +76,10 @@ final class ActualizarReserva
             $espacios = $this->validarAdicionales->resolverEspacios(
                 $espaciosSolicitados,
             );
+            $habitaciones = $this->validarAdicionales->resolverHabitaciones(
+                $this->arrayDato($datos, 'habitaciones_adicionales'),
+                $tipo === TipoReserva::HABITACION ? $entidadPrincipalId : null,
+            );
 
             $principal = $this->reservas->detallePrincipalDe($reserva);
             $checkInStr = is_string($datosRecalculo['fecha_check_in'] ?? null)
@@ -90,13 +97,13 @@ final class ActualizarReserva
             $recursoPrincipal = $this->reservas->resolverRecurso($tipo, $entidadPrincipalId);
             [$inicio, $fin] = $this->periodo($tipo, $checkIn, $checkOut, $datosRecalculo, $recursoPrincipal->duracion_minutos);
 
-            $this->validarDisponibilidadAdicionales($reserva, $inicio, $fin, $servicios, $espacios);
+            $this->validarDisponibilidadAdicionales($reserva, $inicio, $fin, $servicios, $espacios, $habitaciones);
             $this->validarDisponibilidadPrincipal($reserva, $recursoPrincipal->id, $inicio, $fin);
 
             $resumen = $this->calcularVistaPrevia->ejecutar($datosRecalculo);
 
             $principal = $this->actualizarDetallePrincipal($tipo, $principal, $recursoPrincipal->id, $inicio, $fin, $datosRecalculo, $resumen);
-            $this->reservas->reemplazarAdicionales($reserva, $principal, $servicios, $espacios);
+            $this->reservas->reemplazarAdicionales($reserva, $principal, $servicios, $espacios, $habitaciones);
             $total = (float) $resumen['total'];
             $totalPagado = (float) $reserva->total_pagado;
             $saldo = round(max(0.0, $total - $totalPagado), 2);
@@ -132,21 +139,34 @@ final class ActualizarReserva
 
             $cuenta = $this->obtenerCuentaReserva->ejecutar((int) $reserva->id);
 
-            if ($cuenta !== null) {
-                return $this->sincronizarCuentaReserva->ejecutar(
+            if ($cuenta === null || ! $cuenta->estado->permiteNuevosCargos()) {
+                $tipoCuenta = match ($tipo) {
+                    TipoReserva::HABITACION => TipoCuenta::ESTANCIA,
+                    TipoReserva::RESTAURANTE => TipoCuenta::RESTAURANTE_DIRECTO,
+                    TipoReserva::SERVICIO, TipoReserva::PAQUETE => TipoCuenta::SERVICIO,
+                };
+
+                $cuenta = $this->abrirCuenta->ejecutar(
+                    tipo: $tipoCuenta,
                     reserva: $reserva,
-                    cuenta: $cuenta,
+                    cliente: $reserva->cliente?->persona,
+                    monedaId: $reserva->moneda_id,
                     usuarioId: is_numeric($datos['usuario_id'] ?? null) ? (int) $datos['usuario_id'] : null,
                 );
             }
 
-            return $reserva;
+            return $this->sincronizarCuentaReserva->ejecutar(
+                reserva: $reserva,
+                cuenta: $cuenta,
+                usuarioId: is_numeric($datos['usuario_id'] ?? null) ? (int) $datos['usuario_id'] : null,
+            );
         });
     }
 
     /**
      * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
      * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
+     * @param  array<int, array{habitacion_id: int, cantidad: int, precio: float}>  $habitaciones
      */
     private function validarDisponibilidadAdicionales(
         Reserva $reserva,
@@ -154,7 +174,18 @@ final class ActualizarReserva
         DateTimeImmutable $fin,
         array $servicios,
         array $espacios,
+        array $habitaciones = [],
     ): void {
+        foreach ($habitaciones as $hab) {
+            $recurso = $this->reservas->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
+            $this->disponibilidadRecursos->bloquear($recurso->id);
+
+            if ($recurso->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
+                && $this->disponibilidadRecursos->existeConflicto($recurso->id, $inicio, $fin, $reserva->id)) {
+                throw new InvalidArgumentException("La habitación adicional {$recurso->nombre} no está disponible en las fechas indicadas.");
+            }
+        }
+
         foreach ($servicios as $servicio) {
             $recurso = $this->reservas->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
             $this->disponibilidadRecursos->bloquear($recurso->id);
@@ -197,6 +228,7 @@ final class ActualizarReserva
             'ninos' => $datos['ninos'] ?? $reserva->ninos,
             'servicios_adicionales' => $this->arrayDato($datos, 'servicios_adicionales'),
             'espacios_adicionales' => $this->arrayDato($datos, 'espacios_adicionales'),
+            'habitaciones_adicionales' => $this->arrayDato($datos, 'habitaciones_adicionales'),
             'items_preorden' => $this->arrayDato($datos, 'items_preorden', $this->itemsPreordenActuales($reserva)),
             'promocion_id' => $datos['promocion_id'] ?? $reserva->promocion_id,
             'cargos_facturacion_ids' => [],

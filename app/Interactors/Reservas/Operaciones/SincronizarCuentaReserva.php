@@ -6,14 +6,19 @@ namespace App\Interactors\Reservas\Operaciones;
 
 use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Enums\Cuentas\BaseCalculo;
+use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
+use App\Enums\Cuentas\TipoCuenta;
+use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
+use App\Interactors\Cuentas\Gestion\AbrirCuenta;
 use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use Illuminate\Support\Collection;
 
 final class SincronizarCuentaReserva
 {
@@ -22,12 +27,43 @@ final class SincronizarCuentaReserva
         private readonly ReservaRepositorioInterface $reservas,
         private readonly RecalcularCuenta $recalcularCuenta,
         private readonly ConvertirMoneda $convertirMoneda,
+        private readonly AbrirCuenta $abrirCuenta,
     ) {}
 
     public function ejecutar(Reserva $reserva, Cuenta $cuenta, ?int $usuarioId = null): Reserva
     {
-        $subtotal = $this->convertirMoneda->desdeBase((float) $reserva->subtotal, (int) $cuenta->moneda_id);
-        $descuento = $this->convertirMoneda->desdeBase((float) $reserva->descuento, (int) $cuenta->moneda_id);
+        if (! $cuenta->estado->permiteNuevosCargos()) {
+            $tipoCuenta = match ($reserva->tipo_reserva) {
+                TipoReserva::HABITACION => TipoCuenta::ESTANCIA,
+                TipoReserva::RESTAURANTE => TipoCuenta::RESTAURANTE_DIRECTO,
+                TipoReserva::SERVICIO, TipoReserva::PAQUETE => TipoCuenta::SERVICIO,
+            };
+
+            $cuenta = $this->abrirCuenta->ejecutar(
+                tipo: $tipoCuenta,
+                reserva: $reserva,
+                cliente: $reserva->cliente?->persona,
+                monedaId: $reserva->moneda_id,
+                usuarioId: $usuarioId,
+            );
+        }
+
+        $cuentasCerradas = Cuenta::query()
+            ->where('reserva_id', $reserva->id)
+            ->where('id', '!=', $cuenta->id)
+            ->where('estado', EstadoCuenta::CERRADA)
+            ->get();
+
+        $subtotalCerradoBase = $this->sumaFlotante($cuentasCerradas, 'subtotal');
+        $descuentoCerradoBase = $this->sumaFlotante($cuentasCerradas, 'descuento_total');
+        $totalCerradoBase = $this->sumaFlotante($cuentasCerradas, 'total');
+        $totalPagadoCerradoBase = $this->sumaFlotante($cuentasCerradas, 'total_pagado');
+
+        $subtotalAjustadoBase = max(0.0, (float) $reserva->subtotal - $subtotalCerradoBase);
+        $descuentoAjustadoBase = max(0.0, (float) $reserva->descuento - $descuentoCerradoBase);
+
+        $subtotal = $this->convertirMoneda->desdeBase($subtotalAjustadoBase, (int) $cuenta->moneda_id);
+        $descuento = $this->convertirMoneda->desdeBase($descuentoAjustadoBase, (int) $cuenta->moneda_id);
         $detalle = $this->cuentas->detalleActivoConOrigen($cuenta, $reserva->getMorphClass(), (int) $reserva->id);
 
         $datosDetalle = [
@@ -55,13 +91,27 @@ final class SincronizarCuentaReserva
         $this->sincronizarDescuento($reserva, $cuenta, $descuento, $subtotal, $usuarioId);
 
         $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
+        $subtotalReservaTotal = round((float) $cuenta->subtotal + $subtotalCerradoBase, 2);
+        $totalReservaTotal = round((float) $cuenta->total + $totalCerradoBase, 2);
+        $totalPagadoReservaTotal = round(max((float) $reserva->total_pagado, (float) $cuenta->total_pagado + $totalPagadoCerradoBase), 2);
+        $saldoReservaTotal = round(max(0.0, $totalReservaTotal - $totalPagadoReservaTotal), 2);
 
         return $this->reservas->actualizar($reserva, [
-            'subtotal' => $cuenta->subtotal,
-            'total' => $cuenta->total,
-            'total_pagado' => $cuenta->total_pagado,
-            'saldo' => $cuenta->saldo,
+            'subtotal' => $subtotalReservaTotal,
+            'total' => $totalReservaTotal,
+            'total_pagado' => $totalPagadoReservaTotal,
+            'saldo' => $saldoReservaTotal,
         ]);
+    }
+
+    /**
+     * @param  Collection<int, Cuenta>  $cuentas
+     */
+    private function sumaFlotante(Collection $cuentas, string $columna): float
+    {
+        $suma = $cuentas->sum($columna);
+
+        return is_numeric($suma) ? (float) $suma : 0.0;
     }
 
     private function sincronizarDescuento(Reserva $reserva, Cuenta $cuenta, float $descuento, float $subtotal, ?int $usuarioId): void

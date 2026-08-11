@@ -99,17 +99,25 @@ final class RegistrarCobroInicialReserva
         }
 
         $idsSeleccionados = array_map('intval', $cargosFacturacionIds);
+        $cargosVigentesIds = $cuenta->cargos()
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->whereNotNull('cargo_id')
+            ->pluck('cargo_id')
+            ->flip();
+
+        $nuevosCargos = [];
         foreach ($this->cuentas->cargosFacturacionActivos() as $cargo) {
             if (! $cargo->obligatorio && ! in_array($cargo->id, $idsSeleccionados, true)) {
                 continue;
             }
 
-            if ($this->cuentas->cuentaCargoVigente($cuenta, $cargo->id) !== null) {
+            if ($cargosVigentesIds->has($cargo->id)) {
                 continue;
             }
 
             $calculo = $this->calcularMontoCargo->calcular($cargo, $cuenta, (float) $cuenta->subtotal);
-            $this->cuentas->crearCuentaCargo($cuenta, [
+            $nuevosCargos[] = [
+                'cuenta_id' => $cuenta->id,
                 'moneda_id' => $cuenta->moneda_id,
                 'cargo_id' => $cargo->id,
                 'tipo' => $cargo->tipo->value,
@@ -123,8 +131,14 @@ final class RegistrarCobroInicialReserva
                 'aplicado_por' => $usuarioId,
                 'estado' => EstadoGeneral::Activo->value,
                 'observaciones' => 'Cargo seleccionado al crear la reserva',
-            ]);
+            ];
         }
+
+        // INSERT masivo: una sola query para todos los cargos nuevos
+        if ($nuevosCargos !== []) {
+            $cuenta->cargos()->insert($nuevosCargos);
+        }
+
         $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
         $totalCuenta = (float) $cuenta->total;
         $montoPago = $tipoPago === TipoPagoReserva::SIN_PAGO

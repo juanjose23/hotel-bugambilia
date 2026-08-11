@@ -13,6 +13,7 @@ El módulo Restaurante se integra con varios otros módulos del sistema para fun
 **Ubicación**: Ubicación "Cocina Restaurante" en el módulo de Inventario.
 
 **Uso**:
+
 - **Procesos de Cocina**: Consume stock al producir platos
 - **Pedidos**: Consume stock al marcar items como listos
 - **Materia Prima Cocina**: Transforma material bruto en materia prima lista, registra entrada, salida y merma
@@ -36,11 +37,13 @@ Registrar MovimientoStock (tipo: CONSUMO)
 ```
 
 **Modelos Relacionados**:
+
 - `Stock`: Stock de variantes en ubicación
 - `Lote`: Lote con costo_unitario
 - `MovimientoStock`: Registro de movimientos
 
 **Queries Utilizadas**:
+
 - `ObtenerStockConLote`: Obtiene stock con lote asociado
 - `ObtenerStockPorVariante`: Obtiene stock por variante
 
@@ -53,6 +56,7 @@ Registrar MovimientoStock (tipo: CONSUMO)
 **Relación**: Un Plato tiene una receta (Producto) que tiene ingredientes (ProductoKit).
 
 **Estructura**:
+
 ```
 Plato
     └── receta (Producto)
@@ -62,11 +66,13 @@ Plato
 ```
 
 **Uso**:
+
 - **Cálculo de Costo**: Lee ingredientes para sumar costos
 - **Procesos de Cocina**: Lee ingredientes para consumir stock
 - **Consumo de Pedidos**: Lee ingredientes para consumir al cocinar
 
 **Campos Importantes**:
+
 - `producto_padre_id`: Producto receta
 - `producto_variante_id`: Variante del ingrediente
 - `cantidad`: Cantidad necesaria en la receta
@@ -80,11 +86,13 @@ Plato
 **Relación**: Stock → Lote → costo_unitario
 
 **Uso**:
+
 - **CalcularCostoPlato**: Obtiene costo_unitario del lote
 - **RegistrarProcesoCocina**: Asigna costo a cada ingrediente
 - **Reportes**: Calcula margen de ganancia
 
 **Fórmula**:
+
 ```
 costo_ingrediente = cantidad_receta × costo_unitario_lote
 costo_total_plato = Σ costo_ingrediente
@@ -100,11 +108,13 @@ precio_sugerido = costo_total / (1 - margen/100)
 **Tipo**: `CONSUMO`
 
 **Cuándo se registra**:
+
 - Al crear un ProcesoCocina (producción)
 - Al marcar un item de pedido como listo (KDS)
 - Al transformar materia prima se registran `TRANSFORMACION_SALIDA`, `TRANSFORMACION_ENTRADA` y `MERMA_COCINA`
 
 **Datos registrados**:
+
 - `producto_id`: Ingrediente consumido
 - `producto_variante_id`: Variante consumida
 - `tipo`: CONSUMO
@@ -125,6 +135,7 @@ precio_sugerido = costo_total / (1 - margen/100)
 **Relación**: Pedido → mesa (Espacio)
 
 **Estados de Mesa**:
+
 - `Disponible`: Mesa libre para asignar
 - `Ocupado`: Mesa con pedido activo
 - `Limpieza`: Mesa pendiente de limpieza
@@ -133,6 +144,7 @@ precio_sugerido = costo_total / (1 - margen/100)
 - `Inactivo`: Mesa desactivada
 
 **Transiciones Automáticas**:
+
 - **Abrir pedido**: Disponible → Ocupado
 - **Cerrar pedido**: Ocupado → Limpieza
 - **Unir mesas**: Disponible → Ocupado (todas)
@@ -151,6 +163,7 @@ precio_sugerido = costo_total / (1 - margen/100)
 **Relación**: Espacio (restaurante) → sub-espacios (ambientes) → mesas
 
 **Uso en GestionMesas**:
+
 - Agrupa mesas visualmente
 - Permite filtrar por ambiente
 - Muestra capacidad por ambiente
@@ -164,10 +177,12 @@ precio_sugerido = costo_total / (1 - margen/100)
 **Validación**: `ValidarCapacidadMesasRestaurante`
 
 **Uso**:
+
 - Al unir mesas para grupos grandes
 - Al asignar reserva a mesas
 
 **Cálculo**:
+
 ```
 capacidad_total = Σ capacidad(mesas)
 if capacidad_total < capacidad_requerida {
@@ -184,6 +199,7 @@ if capacidad_total < capacidad_requerida {
 **Propósito**: Crear solicitudes de limpieza automáticamente al cambiar estado de mesas.
 
 **Cuándo se crea**:
+
 - **Al abrir pedido**: Prioridad `normal`
 - **Al cerrar pedido**: Prioridad `urgente`
 
@@ -216,10 +232,12 @@ Crear SolicitudLimpieza (prioridad: urgente)
 **Propósito**: Sincronizar estados de mesa con solicitudes de limpieza.
 
 **Estados que generan limpieza**:
+
 - `Limpieza`: Solicita limpieza normal
 - `Sucio`: Solicita limpieza urgente
 
 **Integración bidireccional**:
+
 - Restaurante → Limpieza: Crea solicitudes
 - Limpieza → Restaurante: Actualiza estado de mesa a Disponible
 
@@ -248,6 +266,7 @@ Liberar mesa
 **Estado Pedido**: `CARGADO_A_HABITACION`
 
 **Relaciones**:
+
 - `Pedido.cuenta_estancia_id` → `CuentaEstancia.id`
 - `CuentaEstancia.estancia_id` → `Estancia.id`
 - `Estancia.habitacion_id` → `Habitacion.id`
@@ -259,6 +278,7 @@ Liberar mesa
 **Propósito**: Gestionar cuentas propias del restaurante para clientes que no son huéspedes.
 
 **Modelos**:
+
 - `CuentaRestaurante`: Cuenta independiente del restaurante
 - `PagoRestaurante`: Pagos realizados a cuentas de restaurante
 
@@ -279,12 +299,14 @@ Cambiar estado a PAGADA
 ```
 
 **Estados de Cuenta**:
+
 - `ABIERTA`: Cuenta activa, aceptando pedidos
 - `EN_PROCESO`: Procesando pagos
 - `PAGADA`: Cuenta pagada completamente
 - `CANCELADA`: Cuenta cancelada
 
 **Métodos de Pago**:
+
 - Efectivo
 - Tarjeta de Crédito
 - Tarjeta de Débito
@@ -293,6 +315,7 @@ Cambiar estado a PAGADA
 - Cortesía
 
 **Relaciones**:
+
 - `Pedido.cuenta_restaurante_id` → `CuentaRestaurante.id`
 - `CuentaRestaurante.cliente_id` → `Persona.id`
 - `CuentaRestaurante.mesa_id` → `Espacio.id`
@@ -300,6 +323,7 @@ Cambiar estado a PAGADA
 - `PagoRestaurante.recibido_por` → `Persona.id`
 
 **Diferencia con CuentaEstancia**:
+
 - `CuentaEstancia`: Para huéspedes del hotel, se carga a habitación
 - `CuentaRestaurante`: Para clientes externos, pagos directos en restaurante
 
@@ -312,6 +336,7 @@ Cambiar estado a PAGADA
 **Relación**: `Pedido.cliente_id` → `Persona.id`
 
 **Uso**:
+
 - Identificar huésped que realizó el pedido
 - Historial de consumo por huésped
 - Facturación a habitación
@@ -327,11 +352,13 @@ Cambiar estado a PAGADA
 **Relación**: `Pedido.mesero_id` → `Colaborador.id`
 
 **Uso**:
+
 - Asignar responsable del pedido
 - Cálculo de comisiones
 - Reportes de desempeño por mesero
 
 **Filtro en Filament**:
+
 - Pedidos por mesero
 - Reportes de ventas por mesero
 
@@ -344,6 +371,7 @@ Cambiar estado a PAGADA
 **Relación**: `ProcesoCocina.realizado_por` → `User.id`
 
 **Uso**:
+
 - Trazabilidad de producción
 - Control de calidad
 - Reportes de productividad
@@ -375,6 +403,7 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 **Relación**: `Plato.categoria_id` → `Catalogo.id`
 
 **Códigos de Catálogo**:
+
 - `REST_ENTRADAS`: Entradas
 - `REST_PLATOS`: Platos Fuertes
 - `REST_POSTRES`: Postres
@@ -384,6 +413,7 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 **Enum**: `CategoriaPlato`
 
 **Uso**:
+
 - Organización del menú
 - Filtros en Filament
 - Reportes por categoría
@@ -398,6 +428,7 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 **Relación**: Polimórfica `Precio.priceable` → `Plato`
 
 **Ejemplos**:
+
 - `CARTA`: Precio de carta normal
 - `MENU_DIA`: Precio menú del día
 - `ROOM_SERVICE`: Precio room service
@@ -412,12 +443,14 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 **Propósito**: Controlar acceso a recursos y páginas de Filament.
 
 **Permisos por Resource**:
+
 - `view_any_platos`, `create_platos`, `edit_platos`, `delete_platos`
 - `view_any_pedidos`, `create_pedidos`, `edit_pedidos`, `delete_pedidos`
 - `view_any_procesos_cocina`, `create_procesos_cocina`, `edit_procesos_cocina`
 - `view_any_auditoria_restaurante`
 
 **Permisos por Page**:
+
 - `page_GestionMesas`
 - `page_ConfiguracionRestaurante`
 - `page_ReportesRestaurante`
@@ -425,6 +458,7 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 - `page_AutoPedido`
 
 **Roles típicos**:
+
 - `Admin`: Acceso completo
 - `Gerente Restaurante`: Acceso a gestión, reportes, configuración
 - `Mesero`: Acceso a pedidos, gestión de mesas
@@ -440,6 +474,7 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 **Relación**: `AuditoriaRestaurante.user_id` → `User.id`
 
 **Acciones auditadas**:
+
 - Cambio de estado de mesa
 - Mover cuenta entre mesas
 - Aplicar descuentos
@@ -447,6 +482,7 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 - Cambios de configuración
 
 **Datos registrados**:
+
 - Usuario (ID)
 - Dirección IP
 - Fecha y hora
@@ -463,6 +499,7 @@ La solicitud de cocina guarda `producto_variante_id`, por lo que compras/bodega 
 **Relación**: Reserva → mesas (via meta_datos o tabla pivot)
 
 **Uso**:
+
 - Unir mesas para una reserva
 - Mostrar reservas en GestionMesas
 - Priorizar mesas reservadas
@@ -494,6 +531,7 @@ Al llegar huésped → Cambiar a Ocupado
 **Interactor**: `ObtenerRestauranteLanding`
 
 **Datos proporcionados**:
+
 - Información del restaurante
 - Ambientes y mesas disponibles
 - Menú organizado por categorías
@@ -503,6 +541,7 @@ Al llegar huésped → Cambiar a Ocupado
 **Componente React**: `resources/js/pages/restaurante/Restaurante.tsx`
 
 **Componentes del módulo**:
+
 - `PortadaRestaurante`: Hero banner
 - `AmbientesRestaurante`: Ambientes y mesas
 - `MenuRestaurante`: Menú por categorías
@@ -520,6 +559,7 @@ Al llegar huésped → Cambiar a Ocupado
 **Filtro**: Solo platos con `web = true` se muestran en landing
 
 **Uso**:
+
 - Platos de temporada
 - Promociones especiales
 - Platos agotados (ocultar temporalmente)
@@ -535,6 +575,7 @@ Al llegar huésped → Cambiar a Ocupado
 **Configuración**: Almacenada en `meta_datos` del Espacio restaurante
 
 **Impresoras por área**:
+
 - `impresora_cocina`: Cocina Principal
 - `impresora_bar`: Barra / Tragos
 - `impresora_postres`: Postres & Repostería
@@ -564,6 +605,7 @@ $impresora = match ($plato->area_cocina) {
 **Vista**: `resources/views/restaurante/comanda.blade.php`
 
 **Características**:
+
 - Auto-imprime al cargar (`window.print()`)
 - Formato térmico 80mm
 - Muestra: código, mesa, fecha, items, total
@@ -571,6 +613,7 @@ $impresora = match ($plato->area_cocina) {
 - Soporta reimpresión
 
 **Tipos de ticket**:
+
 - `original`: Primera impresión
 - `reimpresion`: Reimpresión
 - `copia`: Copia adicional
@@ -582,15 +625,19 @@ $impresora = match ($plato->area_cocina) {
 ### Eventos del Módulo
 
 **PedidoCreado**: Se dispara al crear un pedido
+
 - Listener: (opcional) Notificar a cocina
 
 **PedidoEnviadoACocina**: Se dispara al enviar pedido a cocina
+
 - Listener: `CrearProcesosCocina` (si aplica)
 
 **ProcesoCocinaRegistrado**: Se dispara al registrar proceso de cocina
+
 - Listener: (opcional) Notificar a inventario
 
 **EstadoMesaCambiado**: Se dispara al cambiar estado de mesa
+
 - Listener: (opcional) Actualizar dashboard en tiempo real
 
 ---
@@ -645,6 +692,7 @@ $impresora = match ($plato->area_cocina) {
 ### Acoplamiento
 
 **Bajo acoplamiento**:
+
 - Restaurant usa Repository para acceder a datos de otros módulos
 - No hay dependencias directas a modelos de otros módulos en BusinessLogic
 - Interactors coordinan integraciones
@@ -662,6 +710,7 @@ $stock = Stock::where('ubicacion_id', $ubicacionId)->first();
 ### Transacciones
 
 **Transacciones distribuidas**:
+
 - Procesos que afectan múltiples módulos usan transacciones
 - Ejemplo: `RegistrarProcesoCocina` afecta Inventario y Restaurante
 
@@ -676,12 +725,14 @@ return DB::transaction(function () {
 ### Observers
 
 **Observers para automatización**:
+
 - `PedidoObserver`: Automatiza cambios de mesa y limpieza
 - Evita lógica duplicada en múltiples lugares
 
 ### Eventos
 
 **Eventos para desacoplamiento**:
+
 - Permiten que otros módulos reaccionen a acciones de Restaurante
 - Ejemplo: Módulo de Reportes puede escuchar `PedidoCreado`
 
@@ -690,11 +741,13 @@ return DB::transaction(function () {
 ### Feature Tests
 
 **FlujoRestauranteTest**:
+
 - Prueba flujo completo de pedido
 - Valida integración con Inventario (consumo de stock)
 - Valida integración con Limpieza (solicitudes automáticas)
 
 **RestauranteLandingTest**:
+
 - Prueba página pública
 - Valida integración con Espacios (mesas y ambientes)
 - Valida integración con Catálogos (categorías)
@@ -702,6 +755,7 @@ return DB::transaction(function () {
 ### Unit Tests
 
 **BusinessLogic**:
+
 - `CalcularCostoPlato`: Prueba cálculo con datos de Inventario
 - `ValidarDisponibilidadMesa`: Prueba validación con Espacios
 
@@ -710,10 +764,12 @@ return DB::transaction(function () {
 ### Logs de Integración
 
 **Errores de integración**:
+
 - Fallos al consumir stock (Inventario)
 - Fallos al crear solicitudes de limpieza (Limpieza)
 - Fallos al cargar a cuenta (Habitaciones)
 
 **Auditoría**:
+
 - Todas las acciones críticas se registran en `AuditoriaRestaurante`
 - Incluye usuario, IP, fecha y detalles

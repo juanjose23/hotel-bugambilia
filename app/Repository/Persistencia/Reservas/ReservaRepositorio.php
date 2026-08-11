@@ -80,7 +80,11 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
             TipoReserva::HABITACION => $this->datosHabitacion($entidadId),
             TipoReserva::RESTAURANTE => $this->datosEspacio($entidadId),
             TipoReserva::SERVICIO => $this->datosServicio($entidadId),
-            TipoReserva::PAQUETE => throw new InvalidArgumentException('Los paquetes todavía no tienen recursos configurados.'),
+            TipoReserva::PAQUETE => Habitacion::query()->find($entidadId) !== null
+                ? $this->datosHabitacion($entidadId)
+                : (Espacio::query()->find($entidadId) !== null
+                    ? $this->datosEspacio($entidadId)
+                    : $this->datosServicio($entidadId)),
         };
 
         if ($entidad->reservable_id !== null) {
@@ -109,35 +113,60 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
 
     public function crearHuespedes(ReservaDetalle $detalle, array $huespedes): void
     {
+        $registros = [];
+        $now = now();
+
         foreach ($huespedes as $huesped) {
-            if (! is_array($huesped) || ! is_string($huesped['nombre'] ?? null)) {
+            if (! is_array($huesped) || empty($huesped['nombre'])) {
                 continue;
             }
 
-            $tipo = match ($huesped['tipo'] ?? 'adulto') {
-                'nino' => TipoHuesped::NINO,
-                'infante' => TipoHuesped::INFANTE,
+            $tipoRaw = strtolower($this->aString($huesped['tipo'] ?? 'adulto', 'adulto'));
+            $tipo = match ($tipoRaw) {
+                'nino', 'niño', 'child' => TipoHuesped::NINO,
                 default => TipoHuesped::ADULTO,
             };
 
-            $detalle->huespedes()->create([
+            $registros[] = [
+                'reserva_detalle_id' => $detalle->id,
                 'nombre' => $huesped['nombre'],
                 'identificacion' => is_string($huesped['identificacion'] ?? null) ? $huesped['identificacion'] : null,
-                'tipo_huesped' => $tipo,
+                'tipo_huesped' => $tipo->value,
                 'es_titular' => (bool) ($huesped['es_titular'] ?? false),
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
+
+        if ($registros !== []) {
+            ReservaHuesped::insert($registros);
+        }
+    }
+
+    private function aString(mixed $valor, string $default = ''): string
+    {
+        if (is_string($valor)) {
+            return $valor;
+        }
+
+        if (is_numeric($valor)) {
+            return (string) $valor;
+        }
+
+        return $default;
     }
 
     /**
      * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
      * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
+     * @param  array<int, array{habitacion_id: int, cantidad: int, precio: float}>  $habitaciones
      */
     public function reemplazarAdicionales(
         Reserva $reserva,
         ReservaDetalle $principal,
         array $servicios,
         array $espacios,
+        array $habitaciones = [],
     ): void {
         $reserva->detalles()
             ->whereNotNull('parent_id')
@@ -145,6 +174,20 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
 
         $inicio = $principal->fecha_inicio;
         $fin = $principal->fecha_fin ?? $inicio;
+
+        foreach ($habitaciones as $hab) {
+            $recurso = $this->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
+
+            $this->crearDetalle($reserva, $recurso, [
+                'parent_id' => $principal->id,
+                'estado' => EstadoReservaDetalle::CONFIRMADO,
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
+                'cantidad' => 1,
+                'precio_unitario' => $hab['precio'],
+                'subtotal' => round($hab['precio'] * max(1, (int) $principal->cantidad), 2),
+            ]);
+        }
 
         foreach ($servicios as $servicio) {
             $recurso = $this->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
@@ -201,9 +244,12 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
             'estado' => match ($reserva->estado) {
                 EstadoReserva::PENDIENTE => EstadoReservaDetalle::PENDIENTE,
                 EstadoReserva::CONFIRMADA => EstadoReservaDetalle::CONFIRMADO,
+                EstadoReserva::PARCIALMENTE_CHECKED_IN => EstadoReservaDetalle::EN_USO,
                 EstadoReserva::CHECKED_IN => EstadoReservaDetalle::EN_USO,
+                EstadoReserva::PARCIALMENTE_CHECKED_OUT => EstadoReservaDetalle::EN_USO,
                 EstadoReserva::CHECKED_OUT => EstadoReservaDetalle::COMPLETADO,
                 EstadoReserva::CANCELADA => EstadoReservaDetalle::CANCELADO,
+                EstadoReserva::NO_SHOW => EstadoReservaDetalle::CANCELADO,
             },
             'fecha_inicio' => $inicio,
             'fecha_fin' => $fin,
@@ -279,16 +325,22 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
             $estadoDetalle = match ($estado) {
                 EstadoReserva::PENDIENTE => EstadoReservaDetalle::PENDIENTE,
                 EstadoReserva::CONFIRMADA => EstadoReservaDetalle::CONFIRMADO,
+                EstadoReserva::PARCIALMENTE_CHECKED_IN => EstadoReservaDetalle::EN_USO,
                 EstadoReserva::CHECKED_IN => EstadoReservaDetalle::EN_USO,
+                EstadoReserva::PARCIALMENTE_CHECKED_OUT => EstadoReservaDetalle::EN_USO,
                 EstadoReserva::CHECKED_OUT => EstadoReservaDetalle::COMPLETADO,
                 EstadoReserva::CANCELADA => EstadoReservaDetalle::CANCELADO,
+                EstadoReserva::NO_SHOW => EstadoReservaDetalle::CANCELADO,
             };
             $estadosOrigen = match ($estado) {
                 EstadoReserva::PENDIENTE => [],
                 EstadoReserva::CONFIRMADA => [EstadoReservaDetalle::PENDIENTE->value],
+                EstadoReserva::PARCIALMENTE_CHECKED_IN => [],
                 EstadoReserva::CHECKED_IN => [EstadoReservaDetalle::CONFIRMADO->value],
+                EstadoReserva::PARCIALMENTE_CHECKED_OUT => [],
                 EstadoReserva::CHECKED_OUT => [EstadoReservaDetalle::EN_USO->value],
                 EstadoReserva::CANCELADA => [EstadoReservaDetalle::PENDIENTE->value, EstadoReservaDetalle::CONFIRMADO->value],
+                EstadoReserva::NO_SHOW => [EstadoReservaDetalle::PENDIENTE->value, EstadoReservaDetalle::CONFIRMADO->value],
             };
 
             if ($estadosOrigen !== []) {
@@ -337,7 +389,11 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
             TipoReserva::HABITACION => $this->resolverRecursoDesdeId($reserva, TipoReserva::HABITACION, $reserva->habitacion_id, 'habitación'),
             TipoReserva::RESTAURANTE => $this->resolverRecursoDesdeId($reserva, TipoReserva::RESTAURANTE, $reserva->espacio_id, 'mesa/espacio'),
             TipoReserva::SERVICIO => $this->resolverRecursoDesdeId($reserva, TipoReserva::SERVICIO, $reserva->servicio_id, 'servicio'),
-            TipoReserva::PAQUETE => throw new InvalidArgumentException('Los paquetes todavía no tienen recursos configurados.'),
+            TipoReserva::PAQUETE => is_numeric($reserva->habitacion_id)
+                ? $this->resolverRecursoDesdeId($reserva, TipoReserva::HABITACION, $reserva->habitacion_id, 'habitación')
+                : (is_numeric($reserva->espacio_id)
+                    ? $this->resolverRecursoDesdeId($reserva, TipoReserva::RESTAURANTE, $reserva->espacio_id, 'mesa/espacio')
+                    : $this->resolverRecursoDesdeId($reserva, TipoReserva::SERVICIO, $reserva->servicio_id, 'servicio')),
         };
     }
 

@@ -11,6 +11,7 @@ use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use App\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteOrdenCompraPdfAction
 {
@@ -21,7 +22,7 @@ final class GenerarReporteOrdenCompraPdfAction
         private readonly ObtenerOrdenCompraReporteQuery $query,
     ) {}
 
-    public function ejecutar(OrdenCompra $ordenCompra): \Barryvdh\DomPDF\PDF
+    public function ejecutar(OrdenCompra $ordenCompra): PdfDocumento
     {
         /** @var int $ordenId */
         $ordenId = $ordenCompra->getKey();

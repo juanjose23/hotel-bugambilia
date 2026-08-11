@@ -15,7 +15,7 @@ class DatosClienteSeccion
         return Section::make('Datos del Cliente')
             ->columnSpanFull()
             ->icon(Heroicon::User)
-            ->columns(3)
+            ->columns(['default' => 1, 'sm' => 2])
             ->schema(SelectorCliente::make(columnSpan: 1, dusk: 'reserva-cliente'));
     }
 }

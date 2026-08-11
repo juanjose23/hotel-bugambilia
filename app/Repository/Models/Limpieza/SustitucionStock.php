@@ -14,7 +14,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class SustitucionStock extends Model implements AuditableContract
 {
     use Auditable;
-    use Auditable;
 
     protected $table = 'limp_sustituciones_stock';
 

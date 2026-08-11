@@ -31,9 +31,7 @@ use UnitEnum;
  */
 class ReportesCompras extends Page implements HasForms, HasTable
 {
-    use HasPageShield;
-    use InteractsWithForms;
-    use InteractsWithTable;
+    use HasPageShield, InteractsWithForms, InteractsWithTable;
 
     protected string $view = 'filament.resources.compras.reportes-compras';
 
