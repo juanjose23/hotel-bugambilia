@@ -8,6 +8,7 @@ use App\Enums\Cuentas\MetodoPago;
 use App\Filament\Shared\Forms\MonedaSelect;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;
+use App\Support\MonedaHelper;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
@@ -48,12 +49,9 @@ final class CamposCobroPagoForm
                     ->numeric()
                     ->prefix(function (Get $get): string {
                         $id = $get('moneda_pago_id');
-                        if (! is_numeric($id)) {
-                            return 'C$';
-                        }
-                        $moneda = Moneda::find((int) $id);
+                        $moneda = is_numeric($id) ? Moneda::find((int) $id) : null;
 
-                        return $moneda !== null ? (string) $moneda->simbolo : 'C$';
+                        return MonedaHelper::simbolo($moneda);
                     })
                     ->required()
                     ->minValue(0.01)
@@ -67,12 +65,9 @@ final class CamposCobroPagoForm
                     ->numeric()
                     ->prefix(function (Get $get): string {
                         $id = $get('moneda_pago_id');
-                        if (! is_numeric($id)) {
-                            return 'C$';
-                        }
-                        $moneda = Moneda::find((int) $id);
+                        $moneda = is_numeric($id) ? Moneda::find((int) $id) : null;
 
-                        return $moneda !== null ? (string) $moneda->simbolo : 'C$';
+                        return MonedaHelper::simbolo($moneda);
                     })
                     ->placeholder('Ej: 1000.00')
                     ->live()
@@ -98,28 +93,31 @@ final class CamposCobroPagoForm
                         return new HtmlString('');
                     }
 
-                    $tasa = TasaCambio::obtenerTasa(now(), 'USD', 'NIO');
-                    if ($tasa <= 0) {
-                        $tasa = 36.65;
-                    }
-
                     $monedaPago = Moneda::find($monedaPagoId);
                     $monedaVuelto = Moneda::find($monedaVueltoId);
+                    $monedaBase = MonedaHelper::obtenerMonedaPredeterminada();
 
-                    $codPago = $monedaPago !== null ? $monedaPago->codigo : 'NIO';
-                    $codVuelto = $monedaVuelto !== null ? $monedaVuelto->codigo : 'NIO';
+                    $codPago = MonedaHelper::codigo($monedaPago);
+                    $codVuelto = MonedaHelper::codigo($monedaVuelto);
+                    $codBase = MonedaHelper::codigo($monedaBase);
 
-                    // Convertir monto recibido a NIO según moneda de pago
-                    $montoRecibidoNIO = strtoupper($codPago) === 'USD' ? $montoRecibido * $tasa : $montoRecibido;
-                    $montoCobrarNIO = $montoCobrar; // Saldo de la cuenta está en NIO
+                    $tasa = TasaCambio::obtenerTasa(now(), $codPago, $codBase);
+                    if ($tasa <= 0) {
+                        $tasa = 1.0;
+                    }
 
-                    $diferenciaNIO = $montoRecibidoNIO - $montoCobrarNIO;
+                    // Convertir monto recibido a moneda base según moneda de pago
+                    $montoRecibidoBase = $codPago !== $codBase ? $montoRecibido * $tasa : $montoRecibido;
+                    $montoCobrarBase = $montoCobrar;
 
-                    if ($diferenciaNIO < -0.01) {
-                        $faltaNIO = abs($diferenciaNIO);
-                        $faltaDisplay = strtoupper($codPago) === 'USD'
-                            ? '$ '.number_format($faltaNIO / $tasa, 2).' USD'
-                            : 'C$ '.number_format($faltaNIO, 2).' NIO';
+                    $diferenciaBase = $montoRecibidoBase - $montoCobrarBase;
+
+                    if ($diferenciaBase < -0.01) {
+                        $faltaBase = abs($diferenciaBase);
+                        $simboloPago = MonedaHelper::simbolo($monedaPago);
+                        $faltaDisplay = $codPago !== $codBase
+                            ? "{$simboloPago} ".number_format($faltaBase / $tasa, 2)." {$codPago}"
+                            : "{$simboloPago} ".number_format($faltaBase, 2)." {$codBase}";
 
                         return new HtmlString(
                             '<div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center justify-between">'.
@@ -130,14 +128,15 @@ final class CamposCobroPagoForm
                     }
 
                     // Vuelto a entregar en la moneda seleccionada
-                    if (strtoupper($codVuelto) === 'USD') {
-                        $vueltoFinal = $diferenciaNIO / $tasa;
-                        $simboloVuelto = '$';
-                        $vueltoEquivalente = 'C$ '.number_format($diferenciaNIO, 2).' NIO';
+                    $simboloVuelto = MonedaHelper::simbolo($monedaVuelto);
+                    if ($codVuelto !== $codBase) {
+                        $tasaVuelto = TasaCambio::obtenerTasa(now(), $codVuelto, $codBase);
+                        $vueltoFinal = $tasaVuelto > 0 ? $diferenciaBase / $tasaVuelto : $diferenciaBase;
+                        $vueltoEquivalente = MonedaHelper::formatear($diferenciaBase, $monedaBase).' '.$codBase;
                     } else {
-                        $vueltoFinal = $diferenciaNIO;
-                        $simboloVuelto = 'C$';
-                        $vueltoEquivalente = '$ '.number_format($diferenciaNIO / $tasa, 2).' USD';
+                        $vueltoFinal = $diferenciaBase;
+                        $simboloBase = MonedaHelper::simbolo($monedaBase);
+                        $vueltoEquivalente = "{$simboloBase} ".number_format($diferenciaBase, 2)." {$codBase}";
                     }
 
                     return new HtmlString(
@@ -157,7 +156,7 @@ final class CamposCobroPagoForm
                 MonedaSelect::make('moneda_vuelto_id')
                     ->label('Moneda Vuelto')
                     ->required()
-                    ->default(fn () => Moneda::where('codigo', 'NIO')->first()?->id)
+                    ->default(fn () => MonedaHelper::obtenerMonedaPredeterminada()?->id)
                     ->live()
                     ->columnSpan(1),
 
@@ -166,12 +165,9 @@ final class CamposCobroPagoForm
                     ->numeric()
                     ->prefix(function (Get $get): string {
                         $id = $get('moneda_pago_id');
-                        if (! is_numeric($id)) {
-                            return 'C$';
-                        }
-                        $moneda = Moneda::find((int) $id);
+                        $moneda = is_numeric($id) ? Moneda::find((int) $id) : null;
 
-                        return $moneda !== null ? (string) $moneda->simbolo : 'C$';
+                        return MonedaHelper::simbolo($moneda);
                     })
                     ->default(0)
                     ->minValue(0)

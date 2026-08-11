@@ -38,14 +38,14 @@ final class RegistrarCheckIn
             $this->actualizarDatosCliente($reserva, $datos);
 
             $huespedes = $datos['huespedes_nuevos'] ?? [];
+            $detallePrincipal = $this->reservas->detallePrincipalDe($reserva);
             if (is_array($huespedes) && $huespedes !== []) {
-                $detallePrincipal = $this->reservas->detallePrincipalDe($reserva);
                 $this->reservas->crearHuespedes($detallePrincipal, array_values($huespedes));
                 $reserva->unsetRelation('detalles');
             }
 
             // Validar requisitos de negocio previos al check-in
-            $this->validarRequisitos->validar($reserva);
+            $this->validarRequisitos->validar($reserva, $detallePrincipal);
 
             $this->cambiarEstado->ejecutar($reserva, EstadoReserva::CHECKED_IN, $usuarioId, 'Check-in registrado');
 

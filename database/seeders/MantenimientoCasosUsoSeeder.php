@@ -23,7 +23,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
     {
         $admin = User::where('email', 'admin@hotel.com')->first() ?? User::first();
         if (! $admin) {
-            $this->command->warn('⚠ No se encontró usuario administrador.');
+            $this->command->warn('No se encontró usuario administrador.');
 
             return;
         }

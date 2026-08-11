@@ -6,6 +6,7 @@ namespace App\Repository\Queries\Inventario\Mermas;
 
 use App\BusinessLogic\Inventario\Data\Mermas\MermaDetalleData;
 use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -20,6 +21,38 @@ class ObtenerMermasTotales
      * @return Collection<int, MermaDetalleData>
      */
     public function ejecutar(array $filtros = []): Collection
+    {
+        return $this->consultaBase($filtros)
+            ->get()
+            ->map(function ($row) {
+                $ref = strtolower($row->referencia ?? '');
+
+                return new MermaDetalleData(
+                    tipoMovimiento: $row->tipo_movimiento,
+                    referencia: $row->referencia,
+                    producto: $row->producto,
+                    cantidadPerdida: (float) $row->cantidad_perdida,
+                    costoUnitario: (float) $row->costo_unitario,
+                    perdidaTotal: (float) $row->perdida_total,
+                    categoria: $this->resolverCategoria($ref),
+                );
+            });
+    }
+
+    /**
+     * @param  array{periodo_desde?: Carbon|string|null, periodo_hasta?: Carbon|string|null}  $filtros
+     */
+    public function totalPerdidas(array $filtros = []): float
+    {
+        $sum = $this->ejecutar($filtros)->sum('perdidaTotal');
+
+        return is_numeric($sum) ? (float) $sum : 0.0;
+    }
+
+    /**
+     * @param  array{periodo_desde?: Carbon|string|null, periodo_hasta?: Carbon|string|null}  $filtros
+     */
+    private function consultaBase(array $filtros): Builder
     {
         $tiposBaja = [
             'MOV_AJUSTE' => 'Ajuste de Inventario',
@@ -51,35 +84,15 @@ class ObtenerMermasTotales
                 DB::raw('SUM(m.cantidad * COALESCE(oci.precio_unitario, 0)) as perdida_total'),
             ])
             ->groupBy('m.tipo', 'm.referencia', 'p.nombre')
-            ->orderBy('perdida_total', 'desc')
-            ->get()
-            ->map(function ($row) {
-                $ref = strtolower($row->referencia ?? '');
-                $categoria = match (true) {
-                    str_contains($ref, 'vencimiento') || str_contains($ref, 'caducidad') => 'Caducidad',
-                    str_contains($ref, 'rechazo') => 'Calidad / Rechazo',
-                    default => 'Ajuste Manual',
-                };
-
-                return new MermaDetalleData(
-                    tipoMovimiento: $row->tipo_movimiento,
-                    referencia: $row->referencia,
-                    producto: $row->producto,
-                    cantidadPerdida: (float) $row->cantidad_perdida,
-                    costoUnitario: (float) $row->costo_unitario,
-                    perdidaTotal: (float) $row->perdida_total,
-                    categoria: $categoria,
-                );
-            });
+            ->orderBy('perdida_total', 'desc');
     }
 
-    /**
-     * @param  array{periodo_desde?: Carbon|string|null, periodo_hasta?: Carbon|string|null}  $filtros
-     */
-    public function totalPerdidas(array $filtros = []): float
+    private function resolverCategoria(string $referencia): string
     {
-        $sum = $this->ejecutar($filtros)->sum('perdidaTotal');
-
-        return is_numeric($sum) ? (float) $sum : 0.0;
+        return match (true) {
+            str_contains($referencia, 'vencimiento') || str_contains($referencia, 'caducidad') => 'Caducidad',
+            str_contains($referencia, 'rechazo') => 'Calidad / Rechazo',
+            default => 'Ajuste Manual',
+        };
     }
 }

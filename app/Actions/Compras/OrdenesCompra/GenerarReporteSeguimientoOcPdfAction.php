@@ -12,12 +12,13 @@ use App\Support\Pdf\Orientacion;
 use App\Support\Pdf\TiposReporte;
 use App\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteSeguimientoOcPdfAction
 {
     use GuardaReporte;
 
-    public function ejecutar(SeguimientoOrdenCompraReporteData $reportData): \Barryvdh\DomPDF\PDF
+    public function ejecutar(SeguimientoOrdenCompraReporteData $reportData): PdfDocumento
     {
         $codigoReporte = 'HTB-COM-011';
         $nombreReporte = 'Seguimiento de Órdenes de Compra';

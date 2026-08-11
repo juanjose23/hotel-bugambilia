@@ -11,7 +11,6 @@ use Illuminate\Foundation\Auth\User as AuthUser;
 class StockPolicy
 {
     use HandlesAuthorization;
-    use HandlesAuthorization;
 
     public function viewAny(AuthUser $authUser): bool
     {

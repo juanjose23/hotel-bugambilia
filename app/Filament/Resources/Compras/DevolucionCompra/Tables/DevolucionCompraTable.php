@@ -22,8 +22,7 @@ use Filament\Tables\Table;
 
 class DevolucionCompraTable
 {
-    use InyectaDesdeContenedor;
-    use TieneAccionesImprimirExportar;
+    use InyectaDesdeContenedor, TieneAccionesImprimirExportar;
 
     public function __construct(
         private readonly DevolverMercanciaProveedor $devolverMercanciaProveedor,

@@ -21,7 +21,6 @@ use Filament\Tables\Table;
 class RecepcionTable
 {
     use TieneAccionesImprimirExportar;
-    use TieneAccionesImprimirExportar;
 
     public static function configure(Table $table): Table
     {

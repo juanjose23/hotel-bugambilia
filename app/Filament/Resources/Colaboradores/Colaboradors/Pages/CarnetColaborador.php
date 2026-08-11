@@ -19,7 +19,6 @@ class CarnetColaborador extends Page
     }
 
     use InteractsWithRecord;
-    use InteractsWithRecord;
 
     protected static string $resource = ColaboradorResource::class;
 

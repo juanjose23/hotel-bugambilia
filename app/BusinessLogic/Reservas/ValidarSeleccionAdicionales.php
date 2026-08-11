@@ -85,6 +85,35 @@ final readonly class ValidarSeleccionAdicionales
         return $espacios;
     }
 
+    /**
+     * @param  array<int, mixed>  $solicitados
+     * @return array<int, array{habitacion_id: int, cantidad: int, precio: float}>
+     */
+    public function resolverHabitaciones(array $solicitados, ?int $habitacionPrincipalId = null): array
+    {
+        $habitaciones = [];
+
+        foreach ($solicitados as $solicitado) {
+            if (! is_array($solicitado)) {
+                throw new InvalidArgumentException('Las habitaciones adicionales no son válidas.');
+            }
+
+            $habitacionId = $this->enteroRequerido($solicitado, 'habitacion_id');
+
+            if ($habitacionId === $habitacionPrincipalId) {
+                throw new InvalidArgumentException('La habitación principal no puede agregarse nuevamente como adicional.');
+            }
+
+            $habitaciones[] = [
+                'habitacion_id' => $habitacionId,
+                'cantidad' => 1,
+                'precio' => $this->tarifas->habitacion($habitacionId),
+            ];
+        }
+
+        return $habitaciones;
+    }
+
     /** @param array<string|int, mixed> $datos */
     private function enteroRequerido(array $datos, string $campo): int
     {

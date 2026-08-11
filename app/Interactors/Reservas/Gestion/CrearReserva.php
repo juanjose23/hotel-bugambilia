@@ -20,8 +20,8 @@ use App\Enums\Reservas\TipoReserva;
 use App\Events\Reservas\ReservaCreada;
 use App\Interactors\Reservas\Operaciones\RegistrarCobroInicialReserva;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Reservas\DisponibilidadRecursoQuery;
 use App\Repository\Queries\Reservas\ObtenerPromocionReservaQuery;
 use App\Repository\Queries\Reservas\ObtenerTarifasReservaQuery;
@@ -58,12 +58,13 @@ final readonly class CrearReserva
      * @param  array<string, mixed>  $datos
      * @param  array<int, mixed>  $serviciosAdicionales
      * @param  array<int, mixed>  $espaciosAdicionales
+     * @param  array<int, mixed>  $habitacionesAdicionales
      *
      * @throws Throwable
      */
-    public function ejecutar(array $datos, array $serviciosAdicionales = [], array $espaciosAdicionales = []): Reserva
+    public function ejecutar(array $datos, array $serviciosAdicionales = [], array $espaciosAdicionales = [], array $habitacionesAdicionales = []): Reserva
     {
-        return DB::transaction(callback: function () use ($datos, $serviciosAdicionales, $espaciosAdicionales): Reserva {
+        return DB::transaction(callback: function () use ($datos, $serviciosAdicionales, $espaciosAdicionales, $habitacionesAdicionales): Reserva {
             $tipoValor = $datos['tipo_reserva'] ?? null;
             $checkInValor = $datos['fecha_check_in'] ?? null;
             $checkOutValor = $datos['fecha_check_out'] ?? null;
@@ -107,6 +108,10 @@ final readonly class CrearReserva
                 $espaciosAdicionales,
                 $tipo === TipoReserva::RESTAURANTE ? $entidadPrincipalId : null,
             );
+            $habitaciones = $this->validarAdicionales->resolverHabitaciones(
+                $habitacionesAdicionales,
+                $tipo === TipoReserva::HABITACION ? $entidadPrincipalId : null,
+            );
 
             $recursoPrincipal = $this->reservas->resolverRecurso($tipo, $entidadPrincipalId);
             [$inicio, $fin] = $this->calcularPeriodo->calcular($checkIn, $checkOut, $datos, $recursoPrincipal->duracion_minutos);
@@ -128,7 +133,11 @@ final readonly class CrearReserva
                     fn (array $esp): float => $esp['precio'] * $esp['cantidad'],
                     $espacios,
                 ));
-                $subtotal = round(($precioPrincipal * $unidades) + $subtotalServicios + $subtotalEspacios, 2);
+                $subtotalHabitaciones = array_sum(array_map(
+                    fn (array $hab): float => $hab['precio'] * $unidades,
+                    $habitaciones,
+                ));
+                $subtotal = round(($precioPrincipal * $unidades) + $subtotalServicios + $subtotalEspacios + $subtotalHabitaciones, 2);
             }
 
             $promocionId = is_numeric($datos['promocion_id'] ?? null) ? (int) $datos['promocion_id'] : null;
@@ -137,10 +146,20 @@ final readonly class CrearReserva
                 $subtotal,
                 $promocion?->descuento_porcentaje !== null ? (float) $promocion->descuento_porcentaje : null,
                 $promocion?->descuento_monto !== null ? (float) $promocion->descuento_monto : null,
+                $promocion?->precio_paquete !== null ? (float) $promocion->precio_paquete : null,
             );
 
             $rawPreorden = is_array($datos['items_preorden'] ?? null) ? $datos['items_preorden'] : [];
             $platosPreordenados = [];
+
+            $platoIds = array_values(array_unique(array_filter(
+                array_map(
+                    static fn (mixed $item): int => (is_array($item) && is_numeric($item['plato_id'] ?? null)) ? (int) $item['plato_id'] : 0,
+                    $rawPreorden,
+                ),
+                static fn (int $id): bool => $id > 0,
+            )));
+            $platosPorId = $this->datosPedidoForm->platosParaPreorden($platoIds);
 
             foreach ($rawPreorden as $item) {
                 if (! is_array($item) || ! is_numeric($item['plato_id'] ?? null)) {
@@ -153,8 +172,8 @@ final readonly class CrearReserva
                     ? (float) $precioVal
                     : ($this->datosPedidoForm->precioActualDePlato($platoId) ?? 0.0);
                 $cantidad = max(1, is_numeric($item['cantidad'] ?? null) ? (int) $item['cantidad'] : 1);
-                $platoModel = Plato::find($platoId);
-                $nombrePlato = $platoModel !== null ? $platoModel->nombre : "Platillo #{$platoId}";
+                $plato = $platosPorId->get($platoId);
+                $nombrePlato = $plato !== null ? $plato->nombre : "Platillo #{$platoId}";
 
                 $platosPreordenados[] = [
                     'plato_id' => $platoId,
@@ -186,7 +205,9 @@ final readonly class CrearReserva
                 'espacio_id' => $datos['espacio_id'] ?? null,
                 'servicio_id' => $datos['servicio_id'] ?? null,
                 'promocion_id' => $promocion?->id,
-                'moneda_id' => $datos['moneda_id'] ?? null,
+                'moneda_id' => is_numeric($datos['moneda_id'] ?? null)
+                    ? (int) $datos['moneda_id']
+                    : app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar()?->id,
                 'fecha_check_in' => $checkIn->format('Y-m-d'),
                 'fecha_check_out' => $checkOut?->format('Y-m-d'),
                 'hora_reserva' => $horaReservaStr,
@@ -222,7 +243,10 @@ final readonly class CrearReserva
                 'subtotal' => round($precioUnitarioDetalle * $unidades, 2),
             ]);
 
-            $huespedes = is_array($datos['huespedes'] ?? null) ? $datos['huespedes'] : [];
+            $huespedes = is_array($datos['huespedes'] ?? null) && $datos['huespedes'] !== []
+                ? $datos['huespedes']
+                : (is_array($datos['acompanantes'] ?? null) ? $datos['acompanantes'] : []);
+
             $huespedesFiltrados = array_values(array_filter(
                 $huespedes,
                 fn (mixed $item): bool => is_array($item) && isset($item['nombre']) && is_string($item['nombre']) && trim($item['nombre']) !== '',
@@ -230,6 +254,26 @@ final readonly class CrearReserva
 
             if ($huespedesFiltrados !== []) {
                 $this->reservas->crearHuespedes($detallePrincipal, $huespedesFiltrados);
+            }
+
+            foreach ($habitaciones as $hab) {
+                $recursoHab = $this->reservas->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
+                $this->disponibilidadRecursos->bloquear($recursoHab->id);
+
+                if ($recursoHab->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
+                    && $this->disponibilidadRecursos->existeConflicto($recursoHab->id, $inicio, $fin)) {
+                    throw new InvalidArgumentException("La habitación adicional {$recursoHab->nombre} no está disponible en las fechas indicadas.");
+                }
+
+                $this->reservas->crearDetalle($reserva, $recursoHab, [
+                    'parent_id' => $detallePrincipal->id,
+                    'estado' => EstadoReservaDetalle::CONFIRMADO,
+                    'fecha_inicio' => $inicio,
+                    'fecha_fin' => $fin,
+                    'cantidad' => 1,
+                    'precio_unitario' => $hab['precio'],
+                    'subtotal' => round($hab['precio'] * $unidades, 2),
+                ]);
             }
 
             foreach ($servicios as $servicio) {
@@ -339,7 +383,9 @@ final readonly class CrearReserva
             TipoReserva::HABITACION => $this->precioHabitacion($this->enteroRequerido($datos, 'habitacion_id'), $checkIn, $checkOut),
             TipoReserva::RESTAURANTE => $this->tarifas->espacio($this->enteroRequerido($datos, 'espacio_id')),
             TipoReserva::SERVICIO => $this->tarifas->servicio($this->enteroRequerido($datos, 'servicio_id')),
-            TipoReserva::PAQUETE => throw new InvalidArgumentException('Las reservas de paquete todavía no tienen una regla de tarifa configurada.'),
+            TipoReserva::PAQUETE => (is_numeric($datos['habitacion_id'] ?? null) ? $this->precioHabitacion((int) $datos['habitacion_id'], $checkIn, $checkOut) : 0.0)
+                + (is_numeric($datos['espacio_id'] ?? null) ? $this->tarifas->espacio((int) $datos['espacio_id']) : 0.0)
+                + (is_numeric($datos['servicio_id'] ?? null) ? $this->tarifas->servicio((int) $datos['servicio_id']) : 0.0),
         };
     }
 
@@ -390,7 +436,13 @@ final readonly class CrearReserva
             TipoReserva::HABITACION => $this->enteroRequerido($datos, 'habitacion_id'),
             TipoReserva::RESTAURANTE => $this->enteroRequerido($datos, 'espacio_id'),
             TipoReserva::SERVICIO => $this->enteroRequerido($datos, 'servicio_id'),
-            TipoReserva::PAQUETE => $this->enteroOpcional($datos, 'paquete_id', 0),
+            TipoReserva::PAQUETE => is_numeric($datos['habitacion_id'] ?? null)
+                ? (int) $datos['habitacion_id']
+                : (is_numeric($datos['espacio_id'] ?? null)
+                    ? (int) $datos['espacio_id']
+                    : (is_numeric($datos['servicio_id'] ?? null)
+                        ? (int) $datos['servicio_id']
+                        : $this->enteroOpcional($datos, 'paquete_id', 0))),
         };
     }
 }

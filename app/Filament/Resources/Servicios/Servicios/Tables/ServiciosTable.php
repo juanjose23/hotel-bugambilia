@@ -43,8 +43,45 @@ class ServiciosTable
                     ->label('Nombre')
                     ->searchable()
                     ->sortable()
-                    ->wrap()
-                    ->icon(fn ($record) => $record->icono),
+                    ->icon(function ($record): string {
+                        $st = $record->icono;
+                        if (! $st) {
+                            return 'heroicon-o-sparkles';
+                        }
+                        if (str_starts_with($st, 'heroicon-')) {
+                            return $st;
+                        }
+
+                        return match ($st) {
+                            'wifi' => 'heroicon-o-wifi',
+                            'coffee' => 'heroicon-o-cup-soda',
+                            'utensils', 'restaurant' => 'heroicon-o-building-storefront',
+                            'bar' => 'heroicon-o-cake',
+                            'pool', 'swimming' => 'heroicon-o-lifebuoy',
+                            'sparkles' => 'heroicon-o-sparkles',
+                            'car', 'parking' => 'heroicon-o-truck',
+                            'gym' => 'heroicon-o-trophy',
+                            'laundry', 'shirt' => 'heroicon-o-scissors',
+                            'concierge', 'bell' => 'heroicon-o-bell',
+                            'ac', 'wind' => 'heroicon-o-sun',
+                            'tv' => 'heroicon-o-computer-desktop',
+                            'bath' => 'heroicon-o-home-modern',
+                            'lock' => 'heroicon-o-lock-closed',
+                            'key' => 'heroicon-o-key',
+                            'sun' => 'heroicon-o-sun',
+                            'flame' => 'heroicon-o-fire',
+                            'gift' => 'heroicon-o-gift',
+                            'phone' => 'heroicon-o-phone',
+                            'bed' => 'heroicon-o-home',
+                            'calendar' => 'heroicon-o-calendar',
+                            'card' => 'heroicon-o-credit-card',
+                            'scissors' => 'heroicon-o-scissors',
+                            'plane' => 'heroicon-o-paper-airplane',
+                            'briefcase' => 'heroicon-o-briefcase',
+                            'map' => 'heroicon-o-map',
+                            default => 'heroicon-o-sparkles',
+                        };
+                    }),
 
                 TextColumn::make('categoria.nombre')
                     ->label('Categoría')

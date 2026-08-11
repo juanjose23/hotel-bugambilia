@@ -15,6 +15,7 @@ use App\Interactors\Reservas\Gestion\ActualizarReserva;
 use App\Interactors\Reservas\Operaciones\RegistrarCobroInicialReserva;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Queries\Cuentas\ObtenerCuentaReservaQuery;
@@ -87,7 +88,7 @@ class EditReserva extends EditRecord
     {
         $record = $this->record;
         $detalles = $record
-            ->load(['detalles.reservable.servicio', 'detalles.reservable.espacio'])
+            ->load(['detalles.reservable.servicio', 'detalles.reservable.espacio', 'detalles.reservable.habitacion'])
             ->detalles
             ->whereNotNull('parent_id');
 
@@ -104,6 +105,15 @@ class EditReserva extends EditRecord
             ->filter(fn ($detalle) => $detalle->reservable?->espacio instanceof Espacio)
             ->map(fn ($detalle): array => [
                 'espacio_id' => $detalle->reservable?->espacio?->id,
+                'cantidad' => 1,
+            ])
+            ->values()
+            ->all();
+
+        $data['habitaciones_adicionales'] = $detalles
+            ->filter(fn ($detalle) => $detalle->reservable?->habitacion instanceof Habitacion)
+            ->map(fn ($detalle): array => [
+                'habitacion_id' => $detalle->reservable?->habitacion?->id,
                 'cantidad' => 1,
             ])
             ->values()

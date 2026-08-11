@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('platos', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo', 20)->unique()->comment('Código correlativo único del platillo en restaurante');
+            $table->string('codigo', 50)->unique()->comment('Código correlativo único del platillo en restaurante');
             $table->string('nombre', 100)->comment('Nombre comercial del plato mostrado en menú');
             $table->foreignId('categoria_id')->nullable()->comment('FK a categoría de menú (entradas, fuertes, postres, bebidas)')->constrained('catalogos')->nullOnDelete();
             $table->foreignId('producto_receta_id')->nullable()->comment('FK al producto de tipo receta para consumo de insumos')->constrained('productos')->nullOnDelete();

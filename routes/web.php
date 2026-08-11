@@ -56,7 +56,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [AuthController::class, 'cerrarSesion'])->middleware('auth')->name('logout');
+    Route::post('/logout', [AuthController::class, 'cerrarSesion'])->middleware(['auth', 'throttle:logout'])->name('logout');
     Route::get('/cambiar-contrasena', [AuthController::class, 'mostrarCambiarContrasena'])->name('cambiar-contrasena');
     Route::post('/cambiar-contrasena', [AuthController::class, 'cambiarContrasena']);
     Route::get('/mis-reservas', MisReservasController::class)->name('mis-reservas');

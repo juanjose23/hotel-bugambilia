@@ -16,18 +16,26 @@ class CreateHabitacion extends CreateRecord
     {
         /** @var Habitacion $record */
         $record = $this->getRecord();
-        $record->loadMissing('imagenes');
         $imagenes = $this->data['imagenes'] ?? null;
 
-        if (is_array($imagenes)) {
-            foreach ($imagenes as $index => $path) {
-                if ($path) {
-                    $record->imagenes()->create([
-                        'url' => $path,
-                        'orden' => $index + 1,
-                    ]);
-                }
+        if (! is_array($imagenes)) {
+            return;
+        }
+
+        $filas = [];
+        foreach ($imagenes as $index => $path) {
+            if ($path) {
+                $filas[] = [
+                    'imageable_type' => Habitacion::class,
+                    'imageable_id' => $record->id,
+                    'url' => $path,
+                    'orden' => $index + 1,
+                ];
             }
+        }
+
+        if ($filas !== []) {
+            $record->imagenes()->insert($filas);
         }
     }
 }

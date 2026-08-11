@@ -49,7 +49,7 @@ return new class extends Migration
 
         if (DB::connection()->getDriverName() === 'pgsql') {
             DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_estado CHECK (estado IN (0, 1, 2, 3, 4, 5, 6))');
-            DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_capacidad CHECK (capacidad_personas >= 1)');
+            DB::statement('ALTER TABLE espacios ADD CONSTRAINT chk_espacios_capacidad CHECK (capacidad_personas >= 0)');
         }
     }
 

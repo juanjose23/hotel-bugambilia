@@ -6,7 +6,7 @@
 
 ## Tech Stack
 
-- **Backend:** PHP ^8.3 · Laravel ^13.17
+- **Backend:** PHP ^8.4 · Laravel ^13.17
 - **Frontend:** React · Vite · TypeScript · Tailwind CSS
 
 ## Architecture
@@ -80,10 +80,10 @@
 - ⚠️ **N+1 Query** in `CrearReserva@ejecutar`
 - 🧱 **Fat Method** `catalogos:generar-codigos-barras {--producto-id= : ID específico del producto}`
 - 🧱 **Fat Method** `dev:crear-usuario
-    {--email=admin@hotel.com}
-    {--password=12345678}
-    {--nombre=Admin}
-    {--telefono= : Telefono opcional}`
+  {--email=admin@hotel.com}
+  {--password=12345678}
+  {--nombre=Admin}
+  {--telefono= : Telefono opcional}`
 - 🧱 **Fat Method** `limpieza:enviar-recordatorios`
 - 🧱 **Fat Method** `limpieza:materializar-ejecuciones {fecha?}`
 - 🧱 **Fat Method** `handleRecordCreation`

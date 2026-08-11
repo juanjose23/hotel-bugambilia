@@ -16,12 +16,12 @@ Los enums del módulo Restaurante definen los estados, tipos y categorías cerra
 
 #### Valores
 
-| Case | Value | Label | Color Badge | Icon |
-|------|-------|-------|-------------|------|
-| `ABIERTA` | `abierta` | Abierta | warning | heroicon-o-folder-open |
-| `EN_PROCESO` | `en_proceso` | En Proceso | info | heroicon-o-arrow-path |
-| `PAGADA` | `pagada` | Pagada | success | heroicon-o-check-circle |
-| `CANCELADA` | `cancelada` | Cancelada | danger | heroicon-o-x-circle |
+| Case         | Value        | Label      | Color Badge | Icon                    |
+| ------------ | ------------ | ---------- | ----------- | ----------------------- |
+| `ABIERTA`    | `abierta`    | Abierta    | warning     | heroicon-o-folder-open  |
+| `EN_PROCESO` | `en_proceso` | En Proceso | info        | heroicon-o-arrow-path   |
+| `PAGADA`     | `pagada`     | Pagada     | success     | heroicon-o-check-circle |
+| `CANCELADA`  | `cancelada`  | Cancelada  | danger      | heroicon-o-x-circle     |
 
 #### Flujo de Estados
 
@@ -55,15 +55,15 @@ if ($cuenta->estado === EstadoCuentaRestaurante::PAGADA) {
 
 #### Valores
 
-| Case | Value | Label | Color Badge | Icon |
-|------|-------|-------|-------------|------|
-| `ABIERTO` | `abierto` | Abierto | warning | heroicon-o-folder-open |
-| `EN_PREPARACION` | `en_preparacion` | En Preparación | info | heroicon-o-fire |
-| `LISTO` | `listo` | Listo | success | heroicon-o-check |
-| `SERVIDO` | `servido` | Servido | primary | heroicon-o-check-circle |
-| `PAGADO` | `pagado` | Pagado | success | heroicon-o-banknotes |
-| `CARGADO_A_HABITACION` | `cargado_a_habitacion` | Cargado a Habitación | purple | heroicon-o-home |
-| `CANCELADO` | `cancelado` | Cancelado | danger | heroicon-o-x-circle |
+| Case                   | Value                  | Label                | Color Badge | Icon                    |
+| ---------------------- | ---------------------- | -------------------- | ----------- | ----------------------- |
+| `ABIERTO`              | `abierto`              | Abierto              | warning     | heroicon-o-folder-open  |
+| `EN_PREPARACION`       | `en_preparacion`       | En Preparación       | info        | heroicon-o-fire         |
+| `LISTO`                | `listo`                | Listo                | success     | heroicon-o-check        |
+| `SERVIDO`              | `servido`              | Servido              | primary     | heroicon-o-check-circle |
+| `PAGADO`               | `pagado`               | Pagado               | success     | heroicon-o-banknotes    |
+| `CARGADO_A_HABITACION` | `cargado_a_habitacion` | Cargado a Habitación | purple      | heroicon-o-home         |
+| `CANCELADO`            | `cancelado`            | Cancelado            | danger      | heroicon-o-x-circle     |
 
 #### Flujo de Estados
 
@@ -105,13 +105,13 @@ Badge::make('estado')
 
 #### Valores
 
-| Case | Value | Label | Color Badge |
-|------|-------|-------|-------------|
-| `PENDIENTE` | `pendiente` | Pendiente | gray |
-| `PREPARACION` | `preparacion` | En Preparación | info |
-| `LISTO` | `listo` | Listo | success |
-| `SERVIDO` | `servido` | Servido | primary |
-| `ANULADO` | `anulado` | Anulado | danger |
+| Case          | Value         | Label          | Color Badge |
+| ------------- | ------------- | -------------- | ----------- |
+| `PENDIENTE`   | `pendiente`   | Pendiente      | gray        |
+| `PREPARACION` | `preparacion` | En Preparación | info        |
+| `LISTO`       | `listo`       | Listo          | success     |
+| `SERVIDO`     | `servido`     | Servido        | primary     |
+| `ANULADO`     | `anulado`     | Anulado        | danger      |
 
 #### Flujo de Estados
 
@@ -146,13 +146,13 @@ if ($item->estado !== EstadoItemPedido::ANULADO) {
 
 #### Valores
 
-| Case | Value | Label |
-|------|-------|-------|
-| `Entradas` | `REST_ENTRADAS` | Entradas |
-| `Platos` | `REST_PLATOS` | Platos Fuertes |
-| `Postres` | `REST_POSTRES` | Postres |
-| `Bebidas` | `REST_BEBIDAS` | Bebidas |
-| `General` | `RESTAURANTE` | General |
+| Case       | Value           | Label          |
+| ---------- | --------------- | -------------- |
+| `Entradas` | `REST_ENTRADAS` | Entradas       |
+| `Platos`   | `REST_PLATOS`   | Platos Fuertes |
+| `Postres`  | `REST_POSTRES`  | Postres        |
+| `Bebidas`  | `REST_BEBIDAS`  | Bebidas        |
+| `General`  | `RESTAURANTE`   | General        |
 
 #### Métodos
 
@@ -161,7 +161,7 @@ if ($item->estado !== EstadoItemPedido::ANULADO) {
 CategoriaPlato::Entradas->label(); // "Entradas"
 
 // Obtener array de opciones para selects
-CategoriaPlato::options(); 
+CategoriaPlato::options();
 // ['REST_ENTRADAS' => 'Entradas', 'REST_PLATOS' => 'Platos Fuertes', ...]
 
 // Obtener array de códigos
@@ -194,12 +194,12 @@ Select::make('categoria_id')
 
 #### Valores
 
-| Case | Value | Label | Color Badge | Icon |
-|------|-------|-------|-------------|------|
-| `COCINA` | `cocina` | Cocina Principal | warning | heroicon-o-fire |
-| `BAR` | `bar` | Barra / Tragos | info | heroicon-o-glass-water |
-| `POSTRES` | `postres` | Postres & Repostería | success | heroicon-o-sparkles |
-| `PARRILLA` | `parrilla` | Parrilla & Carnes | danger | heroicon-o-beaker |
+| Case       | Value      | Label                | Color Badge | Icon                   |
+| ---------- | ---------- | -------------------- | ----------- | ---------------------- |
+| `COCINA`   | `cocina`   | Cocina Principal     | warning     | heroicon-o-fire        |
+| `BAR`      | `bar`      | Barra / Tragos       | info        | heroicon-o-glass-water |
+| `POSTRES`  | `postres`  | Postres & Repostería | success     | heroicon-o-sparkles    |
+| `PARRILLA` | `parrilla` | Parrilla & Carnes    | danger      | heroicon-o-beaker      |
 
 #### Uso
 
@@ -229,13 +229,13 @@ $impresora = match ($plato->area_cocina) {
 
 #### Valores
 
-| Case | Value | Label |
-|------|-------|-------|
-| `CambioEstadoMesa` | `CAMBIO_ESTADO_MESA` | Cambio Estado Mesa |
-| `MoverCuentaMesa` | `MOVER_CUENTA_MESA` | Mover Cuenta Mesa |
-| `AplicarDescuento` | `APLICAR_DESCUENTO` | Aplicar Descuento |
-| `ImprimirComanda` | `IMPRIMIR_COMANDA` | Imprimir Comanda |
-| `ReimprimirComanda` | `REIMPRIMIR_COMANDA` | Reimprimir Comanda |
+| Case                   | Value                               | Label                 |
+| ---------------------- | ----------------------------------- | --------------------- |
+| `CambioEstadoMesa`     | `CAMBIO_ESTADO_MESA`                | Cambio Estado Mesa    |
+| `MoverCuentaMesa`      | `MOVER_CUENTA_MESA`                 | Mover Cuenta Mesa     |
+| `AplicarDescuento`     | `APLICAR_DESCUENTO`                 | Aplicar Descuento     |
+| `ImprimirComanda`      | `IMPRIMIR_COMANDA`                  | Imprimir Comanda      |
+| `ReimprimirComanda`    | `REIMPRIMIR_COMANDA`                | Reimprimir Comanda    |
 | `GuardarConfiguracion` | `GUARDAR_CONFIGURACION_RESTAURANTE` | Guardar Configuración |
 
 #### Uso
@@ -264,12 +264,12 @@ $auditoria->registrar(
 
 #### Valores
 
-| Case | Value | Label | Color Badge | Icon |
-|------|-------|-------|-------------|------|
-| `ABIERTA` | `abierta` | Abierta | warning | heroicon-o-folder-open |
-| `EN_PROCESO` | `en_proceso` | En Proceso | info | heroicon-o-arrow-path |
-| `PAGADA` | `pagada` | Pagada | success | heroicon-o-check-circle |
-| `CANCELADA` | `cancelada` | Cancelada | danger | heroicon-o-x-circle |
+| Case         | Value        | Label      | Color Badge | Icon                    |
+| ------------ | ------------ | ---------- | ----------- | ----------------------- |
+| `ABIERTA`    | `abierta`    | Abierta    | warning     | heroicon-o-folder-open  |
+| `EN_PROCESO` | `en_proceso` | En Proceso | info        | heroicon-o-arrow-path   |
+| `PAGADA`     | `pagada`     | Pagada     | success     | heroicon-o-check-circle |
+| `CANCELADA`  | `cancelada`  | Cancelada  | danger      | heroicon-o-x-circle     |
 
 #### Flujo de Estados
 
@@ -303,14 +303,14 @@ if ($cuenta->estado === EstadoCuentaRestaurante::PAGADA) {
 
 #### Valores
 
-| Case | Value | Label | Color Badge | Icon |
-|------|-------|-------|-------------|------|
-| `EFECTIVO` | `efectivo` | Efectivo | success | heroicon-o-banknotes |
-| `TARJETA_CREDITO` | `tarjeta_credito` | Tarjeta de Crédito | info | heroicon-o-credit-card |
-| `TARJETA_DEBITO` | `tarjeta_debito` | Tarjeta de Débito | info | heroicon-o-credit-card |
-| `TRANSFERENCIA` | `transferencia` | Transferencia | warning | heroicon-o-arrows-right-left |
-| `QR` | `qr` | QR | primary | heroicon-o-qr-code |
-| `CORTESIA` | `cortesia` | Cortesía | gray | heroicon-o-gift |
+| Case              | Value             | Label              | Color Badge | Icon                         |
+| ----------------- | ----------------- | ------------------ | ----------- | ---------------------------- |
+| `EFECTIVO`        | `efectivo`        | Efectivo           | success     | heroicon-o-banknotes         |
+| `TARJETA_CREDITO` | `tarjeta_credito` | Tarjeta de Crédito | info        | heroicon-o-credit-card       |
+| `TARJETA_DEBITO`  | `tarjeta_debito`  | Tarjeta de Débito  | info        | heroicon-o-credit-card       |
+| `TRANSFERENCIA`   | `transferencia`   | Transferencia      | warning     | heroicon-o-arrows-right-left |
+| `QR`              | `qr`              | QR                 | primary     | heroicon-o-qr-code           |
+| `CORTESIA`        | `cortesia`        | Cortesía           | gray        | heroicon-o-gift              |
 
 #### Uso
 
@@ -337,11 +337,11 @@ Select::make('metodo_pago')
 
 #### Valores
 
-| Case | Value | Label |
-|------|-------|-------|
-| `ORIGINAL` | `original` | Comanda Original |
-| `REIMPRESION` | `reimpresion` | Reimpresión |
-| `COPIA` | `copia` | Copia |
+| Case          | Value         | Label            |
+| ------------- | ------------- | ---------------- |
+| `ORIGINAL`    | `original`    | Comanda Original |
+| `REIMPRESION` | `reimpresion` | Reimpresión      |
+| `COPIA`       | `copia`       | Copia            |
 
 #### Uso
 
@@ -410,12 +410,15 @@ enum NombreEnum: string implements HasColor, HasIcon, HasLabel
 ## Interfaces Implementadas
 
 ### HasLabel
+
 Proporciona el método `getLabel()` para obtener el texto legible del enum. Usado en Filament para mostrar en selects y badges.
 
 ### HasColor
+
 Proporciona el método `getColor()` para obtener el color de Filament (success, danger, warning, info, primary, gray).
 
 ### HasIcon
+
 Proporciona el método `getIcon()` para obtener el icono de Heroicons.
 
 ## Trait TieneAyudantesEnum
@@ -438,6 +441,7 @@ Trait compartido que proporciona métodos auxiliares comunes para todos los enum
 ## Ejemplo de Migración de Código Antiguo
 
 **Incorrecto (números mágicos)**:
+
 ```php
 if ($pedido->estado == 3) {
     // Estado pagado
@@ -445,6 +449,7 @@ if ($pedido->estado == 3) {
 ```
 
 **Correcto (con enums)**:
+
 ```php
 use App\Enums\Restaurante\EstadoPedido;
 

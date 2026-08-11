@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Inventario;
 
-use App\Http\Controllers\Controller;
-use App\Jobs\GenerarReporteJob;
+use App\Http\Controllers\ReporteController;
 use App\Repository\Queries\Inventario\Reportes\GenerarReporteInventario;
-use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class ReporteInventarioController extends Controller
+final class ReporteInventarioController extends ReporteController
 {
     public function __construct(
         private readonly GenerarReporteInventario $generarReporteInventario,
@@ -208,25 +206,5 @@ final class ReporteInventarioController extends Controller
     public function costoVentasExcel(Request $request): StreamedResponse
     {
         return $this->generarReporteInventario->executeExcel('costoVentasExcel', $request->all());
-    }
-
-    private function streamPdf(PDF $pdf, string $filename): StreamedResponse
-    {
-        return response()->stream(fn () => print ($pdf->output()), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => "filename=\"{$filename}\"",
-        ]);
-    }
-
-    /** @param array<string, mixed> $params */
-    private function despacharEnSegundoPlano(string $reportCode, array $params = []): RedirectResponse
-    {
-        GenerarReporteJob::dispatch(
-            codigoReporte: $reportCode,
-            parametros: $params,
-            usuarioId: (int) (auth()->id() ?? 0),
-        );
-
-        return back()->with('status', 'El reporte se esta generando. Recibiras una notificacion cuando este listo.');
     }
 }

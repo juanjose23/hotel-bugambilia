@@ -59,10 +59,7 @@ final class AuthController extends Controller
     {
         $datosValidados = $request->validated();
         /** @var array<string, mixed> $datosValidados */
-        $tipoPersona = isset($datosValidados['tipo_persona']) && is_string($datosValidados['tipo_persona'])
-            ? $datosValidados['tipo_persona']
-            : 'natural';
-
+        $tipoPersona = $this->resolverTipoPersona($datosValidados);
         $datosCliente = $this->construirDatosCliente->construir($datosValidados, $tipoPersona);
 
         try {
@@ -128,5 +125,17 @@ final class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/')->with('info', 'Sesión cerrada correctamente.');
+    }
+
+    /**
+     * Extrae el tipo de persona de los datos validados, con fallback a 'natural'.
+     *
+     * @param  array<string, mixed>  $datos
+     */
+    private function resolverTipoPersona(array $datos): string
+    {
+        return isset($datos['tipo_persona']) && is_string($datos['tipo_persona'])
+            ? $datos['tipo_persona']
+            : 'natural';
     }
 }

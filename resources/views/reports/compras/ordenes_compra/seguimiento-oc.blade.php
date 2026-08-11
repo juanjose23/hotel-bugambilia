@@ -42,7 +42,7 @@
             </table>
 
             <div style="margin-top:12px;font-size:8.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;padding:8px;border-radius:4px;">
-                ⚠ Las filas en naranja claro indican órdenes <strong>sin recepciones registradas</strong>. Las fechas de entrega en rojo están <strong>vencidas</strong>.
+                Las filas en naranja claro indican órdenes <strong>sin recepciones registradas</strong>. Las fechas de entrega en rojo están <strong>vencidas</strong>.
             </div>
         </div>
         <div class="report-footer">

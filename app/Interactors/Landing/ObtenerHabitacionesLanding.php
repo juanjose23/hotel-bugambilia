@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace App\Interactors\Landing;
 
+use App\Presenters\Landing\HabitacionCategoriaPresenter;
+use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Habitaciones\Habitacion;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Str;
 
 final class ObtenerHabitacionesLanding
 {
+    public function __construct(
+        private readonly HabitacionCategoriaPresenter $categoriaPresenter,
+    ) {}
+
     /**
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
@@ -18,6 +24,42 @@ final class ObtenerHabitacionesLanding
         $query = Habitacion::with(['categoria', 'detalle', 'imagenes', 'precios.moneda'])
             ->activas();
 
+        $this->aplicarFiltros($query, $categoria, $busqueda, $huespedes);
+
+        $habitaciones = $query->orderBy('categoria_id')
+            ->orderBy('id')
+            ->get();
+
+        $grupos = $this->categoriaPresenter->agrupar($habitaciones);
+        $totales = $this->categoriaPresenter->totalesPorCategoria(array_keys($grupos));
+        $resultados = $this->categoriaPresenter->resultados($grupos, $totales);
+
+        return $this->paginar($resultados, $perPage);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function categorias(): array
+    {
+        $categorias = Catalogo::query()
+            ->whereIn('id', Habitacion::activas()->whereNotNull('categoria_id')->select('categoria_id'))
+            ->pluck('nombre')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        /** @var array<int, string> $categorias */
+        return $categorias;
+    }
+
+    /**
+     * @param  Builder<Habitacion>  $query
+     */
+    private function aplicarFiltros(Builder $query, ?string $categoria, ?string $busqueda, ?int $huespedes): void
+    {
         if ($categoria !== null && trim($categoria) !== '' && strtoupper(trim($categoria)) !== 'TODOS') {
             $query->whereHas('categoria', function ($q) use ($categoria) {
                 $q->where('nombre', trim($categoria));
@@ -38,139 +80,26 @@ final class ObtenerHabitacionesLanding
                 $q->whereRaw('(capacidad_adultos + capacidad_ninos) >= ?', [$huespedes]);
             });
         }
+    }
 
-        $habitaciones = $query->orderBy('categoria_id')
-            ->orderBy('id')
-            ->get();
-
-        $grupos = [];
-
-        foreach ($habitaciones as $h) {
-            $catId = (int) ($h->categoria_id ?? 0);
-            $catNombre = $h->categoria->nombre ?? 'Habitación';
-            $key = (string) $catId;
-
-            if (! isset($grupos[$key])) {
-                $grupos[$key] = [
-                    'categoria_id' => $catId,
-                    'categoria' => $catNombre,
-                    'codigo_categoria' => $h->categoria->codigo ?? '',
-                    'descripcion' => $h->descripcion ?? '',
-                    'ids' => [],
-                    'precios' => [],
-                    'monedas' => [],
-                    'imagenes' => [],
-                    'capacidades' => [],
-                ];
-            }
-
-            $grupos[$key]['ids'][] = (int) $h->id;
-
-            $precioObj = $h->precios->first();
-            if ($precioObj !== null) {
-                $grupos[$key]['precios'][] = (float) $precioObj->precio;
-                if ($precioObj->moneda) {
-                    $grupos[$key]['monedas'][] = $precioObj->moneda->simbolo;
-                }
-            }
-
-            $imagenObj = $h->imagenes->first();
-            $grupos[$key]['imagenes'][] = $imagenObj?->url;
-
-            $detalle = $h->detalle;
-            $capacidad = $detalle !== null
-                ? (int) ($detalle->capacidad_adultos + $detalle->capacidad_ninos)
-                : 2;
-            $grupos[$key]['capacidades'][] = $capacidad;
-        }
-
-        $resultados = [];
-
-        $categoriaIds = array_keys($grupos);
-        $totalesPorCategoria = Habitacion::whereIn('categoria_id', $categoriaIds)
-            ->selectRaw('categoria_id, count(*) as total')
-            ->groupBy('categoria_id')
-            ->pluck('total', 'categoria_id');
-
-        foreach ($grupos as $g) {
-            $disponibles = count($g['ids']);
-            $total = $totalesPorCategoria->get($g['categoria_id'], 0);
-            $precioMin = $g['precios'] !== [] ? min($g['precios']) : null;
-            $simboloMoneda = $g['monedas'] !== [] ? $g['monedas'][0] : '$';
-
-            $imagen = null;
-            foreach ($g['imagenes'] as $img) {
-                if (is_string($img) && $img !== '') {
-                    $imagen = $img;
-                    break;
-                }
-            }
-            if ($imagen === null) {
-                $imagen = match ($disponibles % 3) {
-                    0 => '/images/group-room.jpg',
-                    1 => '/images/room-detail.jpg',
-                    default => '/images/main-room.jpg',
-                };
-            }
-
-            $capacidadMax = max($g['capacidades']);
-            $capacidadMin = min($g['capacidades']);
-            $capacidadTexto = $capacidadMax === $capacidadMin
-                ? (string) $capacidadMax
-                : "{$capacidadMin}-{$capacidadMax}";
-
-            $resultados[] = [
-                'id' => $g['categoria_id'],
-                'codigo' => $g['codigo_categoria'],
-                'slug' => Str::slug($g['categoria']).'-'.$g['ids'][0],
-                'nombre' => $g['categoria'],
-                'descripcion' => $g['descripcion'],
-                'categoria' => $g['categoria'],
-                'precio_desde' => $precioMin,
-                'moneda' => $simboloMoneda,
-                'imagen' => $imagen,
-                'disponibles' => $disponibles,
-                'total' => $total,
-                'capacidad' => $capacidadTexto,
-                'ids' => $g['ids'],
-            ];
-        }
-
+    /**
+     * @param  array<int, array<string, mixed>>  $resultados
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    private function paginar(array $resultados, int $perPage): LengthAwarePaginator
+    {
         $pageParam = request()->get('page', '1');
         $pagina = max(1, is_numeric($pageParam) ? (int) $pageParam : 1);
         $totalItems = count($resultados);
         $offset = ($pagina - 1) * $perPage;
         $itemsPagina = array_slice($resultados, $offset, $perPage);
 
-        /** @var LengthAwarePaginator<int, array<string, mixed>> $paginator */
-        $paginator = new LengthAwarePaginator(
+        return new LengthAwarePaginator(
             items: $itemsPagina,
             total: $totalItems,
             perPage: $perPage,
             currentPage: $pagina,
             options: ['path' => request()->url(), 'query' => request()->query()],
         );
-
-        return $paginator;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    public function categorias(): array
-    {
-        $categorias = Habitacion::activas()
-            ->whereNotNull('categoria_id')
-            ->with('categoria')
-            ->get()
-            ->pluck('categoria.nombre')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values()
-            ->toArray();
-
-        /** @var array<int, string> $categorias */
-        return $categorias;
     }
 }

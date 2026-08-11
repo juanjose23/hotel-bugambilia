@@ -5,13 +5,17 @@ declare(strict_types=1);
 use App\BusinessLogic\CheckIn\ValidarRequisitosCheckIn;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoRecursoReservable;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Habitaciones\DetalleHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Models\Reservas\ReservaDetalle;
 
 test('rechaza el check-in si la reserva no esta confirmada', function (): void {
     $reserva = Reserva::query()->create([
@@ -81,4 +85,48 @@ test('permite el check-in cuando la reserva esta confirmada y tiene habitacion a
 
     $validator = new ValidarRequisitosCheckIn;
     expect(fn () => $validator->validar($reserva))->not->toThrow(Exception::class);
+});
+
+test('permite el check-in de 1 adulto si la habitacion admite 1 adulto', function (): void {
+    $recurso = RecursoReservable::query()->create([
+        'nombre' => 'Habitación 102',
+        'tipo' => TipoRecursoReservable::HABITACION,
+        'control_disponibilidad' => 1,
+    ]);
+
+    /** @var Habitacion $habitacion */
+    $habitacion = Habitacion::factory()->create([
+        'codigo' => 'HAB-102',
+        'reservable_id' => $recurso->id,
+        'estado' => EstadoEspacio::Disponible,
+    ]);
+
+    DetalleHabitacion::query()->create([
+        'habitacion_id' => $habitacion->id,
+        'capacidad_adultos' => 1,
+        'capacidad_ninos' => 0,
+    ]);
+
+    $reserva = Reserva::query()->create([
+        'codigo_reserva' => 'RES-CHK-04',
+        'nombre_cliente' => 'Cliente Solo',
+        'tipo_reserva' => TipoReserva::HABITACION,
+        'fecha_check_in' => '2026-10-01',
+        'fecha_check_out' => '2026-10-02',
+        'estado' => EstadoReserva::CONFIRMADA,
+        'adultos' => 2, // La reserva global dice 2 adultos, pero en el detalle 1 hab hay 1 adulto
+        'habitacion_id' => $habitacion->id,
+    ]);
+
+    $detalle = ReservaDetalle::query()->create([
+        'reserva_id' => $reserva->id,
+        'adultos' => 1,
+        'ninos' => 0,
+        'fecha_inicio' => now(),
+        'fecha_fin' => now()->addDays(2),
+        'reservable_id' => $recurso->id,
+    ]);
+
+    $validator = new ValidarRequisitosCheckIn;
+    expect(fn () => $validator->validar($reserva, $detalle))->not->toThrow(Exception::class);
 });

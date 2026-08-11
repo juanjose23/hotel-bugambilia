@@ -29,4 +29,10 @@ return [
     'limpieza_recordatorio' => env('JOB_LIMPIEZA_RECORDATORIO_AT', '12:00'),
 
     'reservas_recordatorio' => env('JOB_RESERVAS_RECORDATORIO_AT', 'everyfiveminutes'),
+
+    'restaurante_noshows' => env('JOB_RESTAURANTE_NOSHOWS_AT', 'everyfifteenminutes'),
+
+    'reservas_limpiar_no_confirmadas' => env('JOB_RESERVAS_LIMPIAR_NO_CONFIRMADAS_AT', 'everyfifteenminutes'),
+
+    'reservas_checkouts_proximos' => env('JOB_RESERVAS_CHECKOUTS_PROXIMOS_AT', 'everyfifteenminutes'),
 ];

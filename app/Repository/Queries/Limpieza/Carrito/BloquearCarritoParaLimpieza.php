@@ -16,6 +16,7 @@ final class BloquearCarritoParaLimpieza
     {
         $carrito = Ubicacion::query()
             ->whereKey($carritoId)
+            ->where('estado', 1)
             ->where(function ($q) {
                 $q->where('tipo', TipoUbicacion::CARRITO->value)
                     ->orWhere('tipo', 'carrito')

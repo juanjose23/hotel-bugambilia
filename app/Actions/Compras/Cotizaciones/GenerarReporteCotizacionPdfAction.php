@@ -11,6 +11,7 @@ use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use App\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocumento;
 
 final class GenerarReporteCotizacionPdfAction
 {
@@ -21,7 +22,7 @@ final class GenerarReporteCotizacionPdfAction
         private readonly ObtenerCotizacionReporteQuery $query,
     ) {}
 
-    public function ejecutar(Cotizacion $cotizacion): \Barryvdh\DomPDF\PDF
+    public function ejecutar(Cotizacion $cotizacion): PdfDocumento
     {
         $cotizacionConRelaciones = $this->query->ejecutar($cotizacion->id) ?? $cotizacion;
 

@@ -42,11 +42,17 @@ final class RecalcularCuenta
 
         $this->sincronizarCargosObligatorios($cuenta, $subtotal, $usuarioId);
 
-        $descuentoTotal = $this->cuentas->sumaCargosActivos($cuenta, TipoCargo::Descuento);
-        $impuestoTotal = $this->cuentas->sumaCargosActivos($cuenta, TipoCargo::Impuesto);
-        $servicioTotal = $this->cuentas->sumaCargosActivos($cuenta, TipoCargo::Servicio);
-        $propinaTotal = $this->cuentas->sumaCargosActivos($cuenta, TipoCargo::Propina);
-        $recargoTotal = $this->cuentas->sumaCargosActivos($cuenta, TipoCargo::Recargo);
+        $cargosPorTipo = $cuenta->cargos()
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->selectRaw('tipo, SUM(monto) as total_monto')
+            ->groupBy('tipo')
+            ->pluck('total_monto', 'tipo');
+
+        $descuentoTotal = $this->aFloat($cargosPorTipo->get(TipoCargo::Descuento->value));
+        $impuestoTotal = $this->aFloat($cargosPorTipo->get(TipoCargo::Impuesto->value));
+        $servicioTotal = $this->aFloat($cargosPorTipo->get(TipoCargo::Servicio->value));
+        $propinaTotal = $this->aFloat($cargosPorTipo->get(TipoCargo::Propina->value));
+        $recargoTotal = $this->aFloat($cargosPorTipo->get(TipoCargo::Recargo->value));
 
         $total = round(
             $subtotal
@@ -76,26 +82,44 @@ final class RecalcularCuenta
         ]);
     }
 
+    private function aFloat(mixed $valor): float
+    {
+        if (is_numeric($valor)) {
+            return (float) $valor;
+        }
+
+        return 0.0;
+    }
+
     private function sincronizarCargosObligatorios(Cuenta $cuenta, float $subtotal, ?int $usuarioId): void
     {
         $cargosObligatorios = $this->cuentas->cargosFacturacionObligatorios();
+        $cargosVigentes = $cuenta->cargos()
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->whereNotNull('cargo_id')
+            ->get()
+            ->keyBy('cargo_id');
+
+        $actualizaciones = [];   // [id => datos] para UPDATE masivo
+        $nuevos = [];   // filas para INSERT masivo
 
         foreach ($cargosObligatorios as $cargo) {
-            $valor = (float) $cargo->valor;
             $calculo = $this->calcularMontoCargo->calcular($cargo, $cuenta, $subtotal);
             $baseMonto = $calculo['base'];
             $monto = $calculo['monto'];
+            $valor = (float) $cargo->valor;
 
-            $cuentaCargo = $this->cuentas->cuentaCargoVigente($cuenta, $cargo->id);
+            $cuentaCargo = $cargosVigentes->get($cargo->id);
 
             if ($cuentaCargo !== null) {
-                $this->cuentas->actualizarCuentaCargo($cuentaCargo, [
+                $actualizaciones[$cuentaCargo->id] = [
                     'base_monto' => $baseMonto,
                     'monto' => $monto,
                     'valor' => $valor,
-                ]);
+                ];
             } else {
-                $this->cuentas->crearCuentaCargo($cuenta, [
+                $nuevos[] = [
+                    'cuenta_id' => $cuenta->id,
                     'moneda_id' => $cuenta->moneda_id,
                     'cargo_id' => $cargo->id,
                     'tipo' => $cargo->tipo->value,
@@ -108,8 +132,21 @@ final class RecalcularCuenta
                     'monto' => $monto,
                     'aplicado_por' => $usuarioId,
                     'estado' => EstadoGeneral::Activo->value,
-                ]);
+                ];
             }
+        }
+
+        // UPDATE masivo: una query por cada cargo existente (WhereIn no disponible en la interfaz; actualizar directamente)
+        foreach ($actualizaciones as $cuentaCargoId => $datos) {
+            $cuentaCargo = $cargosVigentes->first(fn ($c) => $c->id === $cuentaCargoId);
+            if ($cuentaCargo !== null) {
+                $this->cuentas->actualizarCuentaCargo($cuentaCargo, $datos);
+            }
+        }
+
+        // INSERT masivo: una sola query para todos los nuevos cargos
+        if ($nuevos !== []) {
+            $cuenta->cargos()->insert($nuevos);
         }
     }
 }

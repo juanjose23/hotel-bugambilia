@@ -31,8 +31,6 @@ class InventarioFijoRelationManager extends RelationManager
         $this->asignarActivo = $asignarActivo;
     }
 
-    use TieneActivoAsignaciones;
-
     protected static string $relationship = 'asignacionesActivos';
 
     protected static ?string $title = 'Inventario Fijo – Accesorios y Mobiliario';

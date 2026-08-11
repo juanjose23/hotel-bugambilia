@@ -7,6 +7,8 @@ namespace App\Repository\Queries\Reservas;
 use App\BusinessLogic\Reservas\CalcularResumenRestaurante;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
 
 final readonly class CalcularResumenRestauranteQuery
@@ -94,6 +96,34 @@ final readonly class CalcularResumenRestauranteQuery
             ];
         }
 
+        $platoIds = [];
+        foreach ($itemsPreorden as $item) {
+            if (is_array($item) && is_numeric($item['plato_id'] ?? null)) {
+                $platoIds[] = (int) $item['plato_id'];
+            }
+        }
+        $platoIds = array_values(array_unique($platoIds));
+
+        $preciosPlatos = [];
+        if ($platoIds !== []) {
+            $monedaDefault = Moneda::query()->where('es_predeterminada', true)->value('id');
+            $monedaDefaultId = is_numeric($monedaDefault) ? (int) $monedaDefault : null;
+            $platosConPrecios = Plato::query()
+                ->whereIn('id', $platoIds)
+                ->with(['precios' => function ($q) use ($monedaDefaultId): void {
+                    if ($monedaDefaultId !== null) {
+                        $q->where('moneda_id', $monedaDefaultId);
+                    }
+                }])
+                ->get()
+                ->keyBy('id');
+
+            foreach ($platosConPrecios as $pId => $pObj) {
+                $precioObj = $pObj->precios->first();
+                $preciosPlatos[$pId] = $precioObj !== null ? (float) $precioObj->precio : 0.0;
+            }
+        }
+
         /**
          * @var array<int, array{
          *     cantidad: int,
@@ -112,7 +142,7 @@ final readonly class CalcularResumenRestauranteQuery
 
             $platoId = (int) $item['plato_id'];
 
-            $precio = $this->pedidos->precioActualDePlato($platoId);
+            $precio = $preciosPlatos[$platoId] ?? $this->pedidos->precioActualDePlato($platoId);
 
             $preorden[] = [
                 'cantidad' => max(

@@ -40,6 +40,11 @@ final class ObtenerCotizacionReporteQuery
             return null;
         }
 
+        return $this->construirReporte($cotizacion);
+    }
+
+    private function construirReporte(Cotizacion $cotizacion): CotizacionReporteData
+    {
         /** @var int $cotId */
         $cotId = $cotizacion->getAttribute('id');
         /** @var int $solId */
@@ -85,32 +90,6 @@ final class ObtenerCotizacionReporteQuery
 
         /** @var Model|null $persona */
         $persona = $proveedor->relationLoaded('persona') ? $proveedor->getRelation('persona') : null;
-        $provPersona = null;
-
-        if ($persona !== null) {
-            /** @var Model|null $personaJuridica */
-            $personaJuridica = $persona->relationLoaded('personaJuridica') ? $persona->getRelation('personaJuridica') : null;
-            /** @var Model|null $personaNatural */
-            $personaNatural = $persona->relationLoaded('personaNatural') ? $persona->getRelation('personaNatural') : null;
-
-            /** @var string|null $razonSocialJuridica */
-            $razonSocialJuridica = $personaJuridica?->getAttribute('razon_social');
-            /** @var string $nombreCompleto */
-            $nombreCompleto = $persona->getAttribute('nombre_completo');
-            $razStr = $razonSocialJuridica ?? $nombreCompleto;
-
-            /** @var string $primerNombre */
-            $primerNombre = $persona->getAttribute('primer_nombre');
-            /** @var string|null $primerApellido */
-            $primerApellido = $personaNatural?->getAttribute('primer_apellido');
-
-            $provPersona = new PersonaReporteData(
-                primer_nombre: $primerNombre,
-                primer_apellido: $primerApellido,
-                nombre_completo: $nombreCompleto,
-                razon_social: $razStr
-            );
-        }
 
         /** @var Model|null $contactoPrincipal */
         $contactoPrincipal = $proveedor->relationLoaded('contactoPrincipal') ? $proveedor->getRelation('contactoPrincipal') : null;
@@ -119,8 +98,38 @@ final class ObtenerCotizacionReporteQuery
         $contactoNombre = $contactoPrincipal?->getAttribute('nombre');
 
         return new ProveedorReporteData(
-            persona: $provPersona,
+            persona: $this->mapearPersona($persona),
             contacto_nombre: $contactoNombre
+        );
+    }
+
+    private function mapearPersona(?Model $persona): ?PersonaReporteData
+    {
+        if ($persona === null) {
+            return null;
+        }
+
+        /** @var Model|null $personaJuridica */
+        $personaJuridica = $persona->relationLoaded('personaJuridica') ? $persona->getRelation('personaJuridica') : null;
+        /** @var Model|null $personaNatural */
+        $personaNatural = $persona->relationLoaded('personaNatural') ? $persona->getRelation('personaNatural') : null;
+
+        /** @var string|null $razonSocialJuridica */
+        $razonSocialJuridica = $personaJuridica?->getAttribute('razon_social');
+        /** @var string $nombreCompleto */
+        $nombreCompleto = $persona->getAttribute('nombre_completo');
+        $razStr = $razonSocialJuridica ?? $nombreCompleto;
+
+        /** @var string $primerNombre */
+        $primerNombre = $persona->getAttribute('primer_nombre');
+        /** @var string|null $primerApellido */
+        $primerApellido = $personaNatural?->getAttribute('primer_apellido');
+
+        return new PersonaReporteData(
+            primer_nombre: $primerNombre,
+            primer_apellido: $primerApellido,
+            nombre_completo: $nombreCompleto,
+            razon_social: $razStr
         );
     }
 
@@ -181,52 +190,67 @@ final class ObtenerCotizacionReporteQuery
      */
     private function mapearItems(Collection $itemsCollection): Collection
     {
-        return $itemsCollection->map(function (CotizacionItem $item): CotizacionItemReporteData {
-            /** @var Model|null $producto */
-            $producto = $item->relationLoaded('producto') ? $item->getRelation('producto') : null;
-            /** @var Model|null $variante */
-            $variante = $item->relationLoaded('variante') ? $item->getRelation('variante') : null;
+        return $itemsCollection->map(fn (CotizacionItem $item) => $this->mapearItem($item));
+    }
 
-            /** @var string $prodNombre */
-            $prodNombre = $producto !== null ? $producto->getAttribute('nombre') : '';
-            $prodData = $producto !== null ? new ProductoReporteData(nombre: $prodNombre) : null;
+    private function mapearItem(CotizacionItem $item): CotizacionItemReporteData
+    {
+        /** @var Model|null $producto */
+        $producto = $item->relationLoaded('producto') ? $item->getRelation('producto') : null;
+        /** @var Model|null $variante */
+        $variante = $item->relationLoaded('variante') ? $item->getRelation('variante') : null;
 
-            if ($variante !== null) {
-                /** @var string $varCodigo */
-                $varCodigo = $variante->getAttribute('codigo');
-                /** @var string $varNombre */
-                $varNombre = $variante->getAttribute('nombre_variante');
-                $varData = new VarianteReporteData(
-                    codigo: $varCodigo,
-                    nombre_variante: $varNombre
-                );
-            } else {
-                $varData = null;
-            }
+        /** @var int $itemId */
+        $itemId = $item->getAttribute('id');
+        /** @var int $productoId */
+        $productoId = $item->getAttribute('producto_id');
+        /** @var float $cantidad */
+        $cantidad = $item->getAttribute('cantidad');
+        /** @var float $precioUnitario */
+        $precioUnitario = $item->getAttribute('precio_unitario');
+        /** @var float $subtotal */
+        $subtotal = $item->getAttribute('subtotal');
+        /** @var bool $esElegido */
+        $esElegido = $item->getAttribute('es_elegido');
 
-            /** @var int $itemId */
-            $itemId = $item->getAttribute('id');
-            /** @var int $productoId */
-            $productoId = $item->getAttribute('producto_id');
-            /** @var float $cantidad */
-            $cantidad = $item->getAttribute('cantidad');
-            /** @var float $precioUnitario */
-            $precioUnitario = $item->getAttribute('precio_unitario');
-            /** @var float $subtotal */
-            $subtotal = $item->getAttribute('subtotal');
-            /** @var bool $esElegido */
-            $esElegido = $item->getAttribute('es_elegido');
+        return new CotizacionItemReporteData(
+            id: $itemId,
+            producto_id: $productoId,
+            producto: $this->mapearProducto($producto),
+            variante: $this->mapearVariante($variante),
+            cantidad: $cantidad,
+            precio_unitario: $precioUnitario,
+            subtotal: $subtotal,
+            es_elegido: $esElegido
+        );
+    }
 
-            return new CotizacionItemReporteData(
-                id: $itemId,
-                producto_id: $productoId,
-                producto: $prodData,
-                variante: $varData,
-                cantidad: $cantidad,
-                precio_unitario: $precioUnitario,
-                subtotal: $subtotal,
-                es_elegido: $esElegido
-            );
-        });
+    private function mapearProducto(?Model $producto): ?ProductoReporteData
+    {
+        if ($producto === null) {
+            return null;
+        }
+
+        /** @var string $prodNombre */
+        $prodNombre = $producto->getAttribute('nombre');
+
+        return new ProductoReporteData(nombre: $prodNombre);
+    }
+
+    private function mapearVariante(?Model $variante): ?VarianteReporteData
+    {
+        if ($variante === null) {
+            return null;
+        }
+
+        /** @var string $varCodigo */
+        $varCodigo = $variante->getAttribute('codigo');
+        /** @var string $varNombre */
+        $varNombre = $variante->getAttribute('nombre_variante');
+
+        return new VarianteReporteData(
+            codigo: $varCodigo,
+            nombre_variante: $varNombre
+        );
     }
 }

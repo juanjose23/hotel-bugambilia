@@ -58,9 +58,7 @@ use Livewire\Attributes\Url;
  */
 class GestionarCarrito extends Page implements HasForms, HasTable
 {
-    use HasPageShield;
-    use InteractsWithForms;
-    use InteractsWithTable;
+    use HasPageShield, InteractsWithForms, InteractsWithTable;
 
     protected ObtenerStockPorUbicacion $stockPorUbicacion;
 

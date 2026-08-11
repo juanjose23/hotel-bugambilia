@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Compras;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ReporteController;
 use App\Interactors\Compras\Reportes\GenerarReporteCompra;
-use App\Jobs\GenerarReporteJob;
 use App\Repository\Models\Compras\Cotizacion;
 use App\Repository\Models\Compras\DevolucionCompra;
 use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Models\Compras\RecepcionCompra;
 use App\Repository\Models\Compras\Solicitud;
-use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class ReporteCompraController extends Controller
+final class ReporteCompraController extends ReporteController
 {
     public function __construct(
         private readonly GenerarReporteCompra $generarReporteCompra,
@@ -180,25 +178,5 @@ final class ReporteCompraController extends Controller
         $pdf = $this->generarReporteCompra->execute('trazabilidad_completa', ['solicitud' => $solicitud]);
 
         return $this->streamPdf($pdf, 'HTB-COM-009-Trazabilidad-'.$solicitud->codigo.'.pdf');
-    }
-
-    private function streamPdf(PDF $pdf, string $filename): StreamedResponse
-    {
-        return response()->stream(fn () => print ($pdf->output()), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => "filename=\"{$filename}\"",
-        ]);
-    }
-
-    /** @param array<string, mixed> $params */
-    private function despacharEnSegundoPlano(string $reportCode, array $params = []): RedirectResponse
-    {
-        GenerarReporteJob::dispatch(
-            codigoReporte: $reportCode,
-            parametros: $params,
-            usuarioId: (int) (auth()->id() ?? 0),
-        );
-
-        return back()->with('status', 'El reporte se esta generando. Recibiras una notificacion cuando este listo.');
     }
 }

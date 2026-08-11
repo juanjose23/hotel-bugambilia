@@ -190,11 +190,13 @@ Retorno de desglose de costos
 **Propósito**: Abstraer el acceso a datos y permitir testing.
 
 **Implementación**:
+
 - `RestauranteRepositorioInterface`: Define contrato
 - `RestauranteRepositorio`: Implementación concreta
 - Queries: Para operaciones de lectura complejas
 
 **Ejemplo**:
+
 ```php
 // Interactor
 public function ejecutar(int $pedidoId): Pedido
@@ -218,6 +220,7 @@ public function obtenerPedidoPorId(int $id): ?Pedido
 **Propósito**: Orquestar casos de uso completos del sistema.
 
 **Características**:
+
 - Coordinan múltiples BusinessLogic
 - Manejan transacciones
 - Disparan eventos
@@ -225,6 +228,7 @@ public function obtenerPedidoPorId(int $id): ?Pedido
 - No contienen lógica de presentación
 
 **Ejemplo**:
+
 ```php
 final class AbrirPedidoMesa
 {
@@ -232,14 +236,14 @@ final class AbrirPedidoMesa
     {
         return DB::transaction(function () use ($params) {
             $this->validarMesa->validar($mesa);
-            
+
             $pedido = new Pedido([...]);
             $this->repositorio->guardarPedido($pedido);
-            
+
             $this->repositorio->actualizarEspacio($mesa, [
                 'estado' => EstadoEspacio::Ocupado,
             ]);
-            
+
             return $pedido;
         });
     }
@@ -251,24 +255,26 @@ final class AbrirPedidoMesa
 **Propósito**: Contener reglas de negocio puras y reutilizables.
 
 **Características**:
+
 - Independientes de framework
 - Sin dependencias HTTP
 - Sin persistencia directa
 - Reutilizables desde múltiples contextos
 
 **Ejemplo**:
+
 ```php
 final class CalcularCostoPlato
 {
     public function ejecutar(int $productoRecetaId): array
     {
         $ingredientes = $this->repositorio->obtenerIngredientesReceta($id);
-        
+
         $costoTotal = 0.0;
         foreach ($ingredientes as $ingrediente) {
             $costoTotal += $ingrediente->cantidad * $costoUnitario;
         }
-        
+
         return [
             'costo_ingredientes' => $costoTotal,
             'margen_sugerido_pct' => $this->calcularMargen($costoTotal),
@@ -285,10 +291,12 @@ final class CalcularCostoPlato
 **Implementación**: `PedidoObserver`
 
 **Eventos**:
+
 - `created`: Cambia mesa a Ocupado, crea solicitud de limpieza
 - `updated`: Si estado = Pagado/Cancelado, cambia mesa a Limpieza
 
 **Ejemplo**:
+
 ```php
 class PedidoObserver
 {
@@ -307,18 +315,20 @@ class PedidoObserver
 **Propósito**: Definir estados y tipos con type safety.
 
 **Características**:
+
 - Backed enums de Laravel
 - Implementan interfaces de Filament
 - Métodos para label, color, icon
 - Evitan magic numbers
 
 **Ejemplo**:
+
 ```php
 enum EstadoPedido: string implements HasColor, HasLabel
 {
     case ABIERTO = 'abierto';
     case PAGADO = 'pagado';
-    
+
     public function getLabel(): string
     {
         return match ($this) {
@@ -332,26 +342,31 @@ enum EstadoPedido: string implements HasColor, HasLabel
 ## Separación de Responsabilidades
 
 ### Filament (Presentación)
+
 - **Responsabilidad**: Capturar datos, mostrar información
 - **NO**: Lógica de negocio, queries directas, cálculos complejos
 - **Ejemplo**: `GestionMesas` page muestra mapa, ejecuta interactors
 
 ### Interactors (Casos de Uso)
+
 - **Responsabilidad**: Coordinar acciones completas
 - **NO**: HTML, Filament, queries complejas
 - **Ejemplo**: `AbrirPedidoMesa` valida, crea pedido, actualiza mesa
 
 ### BusinessLogic (Reglas)
+
 - **Responsabilidad**: Reglas de negocio puras
 - **NO**: HTTP, Filament, persistencia directa
 - **Ejemplo**: `CalcularCostoPlato` calcula costos desde stock
 
 ### Repository (Datos)
+
 - **Responsabilidad**: Acceso a datos
 - **NO**: Lógica de negocio
 - **Ejemplo**: `RestauranteRepositorio` abstrae queries Eloquent
 
 ### Models (Dominio)
+
 - **Responsabilidad**: Entidades, relaciones, casts
 - **NO**: Procesos complejos, flujos completos
 - **Ejemplo**: `Pedido` define relaciones con mesa, items, mesero
@@ -392,21 +407,25 @@ return DB::transaction(function () use ($params) {
 ## Eventos y Listeners
 
 ### Eventos
+
 - `PedidoCreado`: Al crear un pedido
 - `PedidoEnviadoACocina`: Al enviar a cocina
 - `ProcesoCocinaRegistrado`: Al registrar proceso de cocina
 
 ### Listeners
+
 - `CrearProcesosCocina`: Crea procesos de cocina al enviar pedido
 - `NotificarCocina`: Envía notificación a cocina
 
 ## Auditoría
 
 ### Registro Automático (OwenIt\Auditing)
+
 - Todos los modelos principales usan trait `Auditable`
 - Cambios en modelos se registran automáticamente
 
 ### Auditoría Manual (AccionAuditoriaRestaurante)
+
 - Acciones críticas se registran manualmente
 - Usa `RegistrarAuditoriaRestaurante` (BusinessLogic)
 - Registra: acción, mesa, pedido, usuario, IP, detalles
@@ -414,10 +433,12 @@ return DB::transaction(function () use ($params) {
 ## Testing
 
 ### Feature Tests
+
 - `FlujoRestauranteTest`: Flujo completo de restaurante
 - `RestauranteLandingTest`: Página pública
 
 ### Unit Tests
+
 - BusinessLogic de Restaurante
 - Cálculos de costos
 - Validaciones
@@ -442,20 +463,24 @@ $restaurante->meta_datos = [
 ## Integración con Otros Módulos
 
 ### Inventario
+
 - Stock en "Cocina Restaurante"
 - ProductoKit para recetas
 - Lotes para costos
 - Movimientos tipo CONSUMO
 
 ### Espacios
+
 - Mesas (tipo 'mesa')
 - Ambientes
 - Estados de espacio
 
 ### Limpieza
+
 - SolicitudLimpieza automática
 - Prioridades: Normal/Urgente
 
 ### Habitaciones
+
 - Carga de pedidos a cuenta
 - Estado CARGADO_A_HABITACION

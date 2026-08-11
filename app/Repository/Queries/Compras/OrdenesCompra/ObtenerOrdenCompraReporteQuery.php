@@ -15,14 +15,20 @@ use App\BusinessLogic\Compras\Data\Shared\ProveedorReporteData;
 use App\BusinessLogic\Compras\Data\Shared\ValorReporteData;
 use App\BusinessLogic\Compras\Data\Shared\VarianteReporteData;
 use App\BusinessLogic\Compras\Data\Solicitudes\SolicitudReporteData;
+use App\Repository\Models\Compras\Cotizacion;
 use App\Repository\Models\Compras\OrdenCompra;
+use App\Repository\Models\Compras\OrdenCompraItem;
+use App\Repository\Models\Compras\Proveedor;
+use App\Repository\Models\Compras\Solicitud;
 
 final class ObtenerOrdenCompraReporteQuery
 {
     public function ejecutar(int $id): ?OrdenCompraReporteData
     {
         $orden = OrdenCompra::with([
-            'proveedor.persona',
+            'condicionPago',
+            'proveedor.persona.personaJuridica',
+            'proveedor.persona.personaNatural',
             'proveedor.contactoPrincipal',
             'items.producto',
             'items.variante',
@@ -35,82 +41,12 @@ final class ObtenerOrdenCompraReporteQuery
             return null;
         }
 
-        $provPersona = null;
-        if ($orden->proveedor?->persona) {
-            $razStr = $orden->proveedor->persona->personaJuridica->razon_social ?? $orden->proveedor->persona->nombre_completo;
-            $provPersona = new PersonaReporteData(
-                primer_nombre: $orden->proveedor->persona->primer_nombre,
-                primer_apellido: $orden->proveedor->persona->personaNatural?->primer_apellido,
-                nombre_completo: $orden->proveedor->persona->nombre_completo,
-                razon_social: $razStr
-            );
-        }
-        $proveedor = new ProveedorReporteData(
-            persona: $provPersona,
-            contacto_nombre: $orden->proveedor?->contactoPrincipal?->nombre
-        );
-
         $condPago = $orden->condicionPago ? new ValorReporteData(valor: $orden->condicionPago->nombre) : null;
-
-        $solicitud = null;
-        if ($orden->solicitud) {
-            $solicitud = new SolicitudReporteData(
-                id: $orden->solicitud->id,
-                codigo: $orden->solicitud->codigo,
-                fecha_solicitud: $orden->solicitud->fecha_solicitud,
-                fecha_necesita: $orden->solicitud->fecha_necesita,
-                motivo: $orden->solicitud->motivo,
-                notas: $orden->solicitud->notas,
-                colaborador: null,
-                departamentoSolicitante: null,
-                estado: null,
-                items: collect(),
-                cotizaciones: collect()
-            );
-        }
-
-        $cotizacion = null;
-        if ($orden->cotizacion) {
-            $moneda = $orden->cotizacion->moneda ? new MonedaReporteData(codigo: $orden->cotizacion->moneda->codigo, simbolo: $orden->cotizacion->moneda->simbolo) : null;
-            $cotizacion = new CotizacionReporteData(
-                id: $orden->cotizacion->id,
-                solicitud_id: (int) $orden->cotizacion->solicitud_id,
-                proveedor_id: (int) $orden->cotizacion->proveedor_id,
-                proveedor: null,
-                moneda: $moneda,
-                total: (float) $orden->cotizacion->total,
-                tiempo_entrega_dias: (int) $orden->cotizacion->dias_entrega,
-                dias_entrega: (int) $orden->cotizacion->dias_entrega,
-                fecha_cotizacion: $orden->cotizacion->fecha_cotizacion,
-                es_elegida: (bool) $orden->cotizacion->es_elegida,
-                tasa_cambio: (float) ($orden->cotizacion->tasa_cambio ?: 1.0),
-                observaciones: $orden->cotizacion->observaciones,
-                solicitud: null,
-                items: collect()
-            );
-        }
 
         $estado = new EstadoReporteData(
             value: $orden->estado->value,
             label: $orden->estado->label()
         );
-
-        $items = collect();
-        foreach ($orden->items as $item) {
-            $producto = $item->producto ? new ProductoReporteData(nombre: $item->producto->nombre) : null;
-            $variante = $item->variante ? new VarianteReporteData(codigo: $item->variante->codigo, nombre_variante: $item->variante->nombre_variante) : null;
-            $uMedida = $item->unidadMedida ? new ValorReporteData(valor: $item->unidadMedida->nombre) : null;
-
-            $items->push(new OrdenCompraItemReporteData(
-                id: $item->id,
-                producto: $producto,
-                variante: $variante,
-                unidadMedida: $uMedida,
-                cantidad: (float) $item->cantidad,
-                precio_unitario: (float) $item->precio_unitario,
-                subtotal: (float) $item->subtotal
-            ));
-        }
 
         return new OrdenCompraReporteData(
             id: $orden->id,
@@ -121,12 +57,95 @@ final class ObtenerOrdenCompraReporteQuery
             subtotal: (float) $orden->subtotal,
             impuestos: (float) $orden->impuestos,
             tasa_cambio: (float) ($orden->tasa_cambio ?: 1.0),
-            proveedor: $proveedor,
+            proveedor: $this->mapearProveedor($orden->proveedor),
             condicionPago: $condPago,
-            solicitud: $solicitud,
-            cotizacion: $cotizacion,
+            solicitud: $this->mapearSolicitud($orden->solicitud),
+            cotizacion: $this->mapearCotizacion($orden->cotizacion),
             estado: $estado,
-            items: $items
+            items: $orden->items->map(fn ($item) => $this->mapearItem($item))
+        );
+    }
+
+    private function mapearProveedor(?Proveedor $proveedor): ProveedorReporteData
+    {
+        $provPersona = null;
+        if ($proveedor?->persona) {
+            $razStr = $proveedor->persona->personaJuridica->razon_social ?? $proveedor->persona->nombre_completo;
+            $provPersona = new PersonaReporteData(
+                primer_nombre: $proveedor->persona->primer_nombre,
+                primer_apellido: $proveedor->persona->personaNatural?->primer_apellido,
+                nombre_completo: $proveedor->persona->nombre_completo,
+                razon_social: $razStr
+            );
+        }
+
+        return new ProveedorReporteData(
+            persona: $provPersona,
+            contacto_nombre: $proveedor?->contactoPrincipal?->nombre
+        );
+    }
+
+    private function mapearSolicitud(?Solicitud $solicitud): ?SolicitudReporteData
+    {
+        if (! $solicitud) {
+            return null;
+        }
+
+        return new SolicitudReporteData(
+            id: $solicitud->id,
+            codigo: $solicitud->codigo,
+            fecha_solicitud: $solicitud->fecha_solicitud,
+            fecha_necesita: $solicitud->fecha_necesita,
+            motivo: $solicitud->motivo,
+            notas: $solicitud->notas,
+            colaborador: null,
+            departamentoSolicitante: null,
+            estado: null,
+            items: collect(),
+            cotizaciones: collect()
+        );
+    }
+
+    private function mapearCotizacion(?Cotizacion $cotizacion): ?CotizacionReporteData
+    {
+        if (! $cotizacion) {
+            return null;
+        }
+
+        $moneda = $cotizacion->moneda ? new MonedaReporteData(codigo: $cotizacion->moneda->codigo, simbolo: $cotizacion->moneda->simbolo) : null;
+
+        return new CotizacionReporteData(
+            id: $cotizacion->id,
+            solicitud_id: (int) $cotizacion->solicitud_id,
+            proveedor_id: (int) $cotizacion->proveedor_id,
+            proveedor: null,
+            moneda: $moneda,
+            total: (float) $cotizacion->total,
+            tiempo_entrega_dias: (int) $cotizacion->dias_entrega,
+            dias_entrega: (int) $cotizacion->dias_entrega,
+            fecha_cotizacion: $cotizacion->fecha_cotizacion,
+            es_elegida: (bool) $cotizacion->es_elegida,
+            tasa_cambio: (float) ($cotizacion->tasa_cambio ?: 1.0),
+            observaciones: $cotizacion->observaciones,
+            solicitud: null,
+            items: collect()
+        );
+    }
+
+    private function mapearItem(OrdenCompraItem $item): OrdenCompraItemReporteData
+    {
+        $producto = $item->producto ? new ProductoReporteData(nombre: $item->producto->nombre) : null;
+        $variante = $item->variante ? new VarianteReporteData(codigo: $item->variante->codigo, nombre_variante: $item->variante->nombre_variante) : null;
+        $uMedida = $item->unidadMedida ? new ValorReporteData(valor: $item->unidadMedida->nombre) : null;
+
+        return new OrdenCompraItemReporteData(
+            id: $item->id,
+            producto: $producto,
+            variante: $variante,
+            unidadMedida: $uMedida,
+            cantidad: (float) $item->cantidad,
+            precio_unitario: (float) $item->precio_unitario,
+            subtotal: (float) $item->subtotal
         );
     }
 }

@@ -19,6 +19,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
+use App\Support\MonedaHelper;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -39,6 +40,16 @@ final class CobrarCuentaAction
     public static function make(): Action
     {
         return self::crearAccion(
+            resolverCuenta: fn (mixed $record): ?Cuenta => $record instanceof Cuenta ? $record : null
+        );
+    }
+
+    /**
+     * Para uso en tablas (recordActions en RelationManagers y Resources).
+     */
+    public static function makeTableAction(): Action
+    {
+        return self::crearAccionTabla(
             resolverCuenta: fn (mixed $record): ?Cuenta => $record instanceof Cuenta ? $record : null
         );
     }
@@ -147,8 +158,8 @@ final class CobrarCuentaAction
                 $montoRecibido = (float) ($data['monto_recibido'] ?? 0);
                 $monedaVueltoId = (int) ($data['moneda_vuelto_id'] ?? 0);
                 $monedaVuelto = Moneda::find($monedaVueltoId);
-                $codVuelto = $monedaVuelto->codigo ?? 'NIO';
-                $simboloVuelto = $monedaVuelto->simbolo ?? ($codVuelto === 'USD' ? '$' : 'C$');
+                $codVuelto = MonedaHelper::codigo($monedaVuelto);
+                $simboloVuelto = MonedaHelper::simbolo($monedaVuelto);
 
                 $vueltoTexto = '';
                 $saldoCuenta = (float) $cuenta->saldo;
@@ -157,15 +168,15 @@ final class CobrarCuentaAction
 
                 if ($pagaCon > $montoBaseCobro) {
                     $diff = $pagaCon - $montoBaseCobro;
-                    $tasa = TasaCambio::obtenerTasa(now(), 'USD', 'NIO');
                     $monedaPagoId = (int) ($data['moneda_pago_id'] ?? 0);
                     $monedaPago = Moneda::find($monedaPagoId);
-                    $codPago = $monedaPago->codigo ?? 'NIO';
+                    $codPago = MonedaHelper::codigo($monedaPago);
+                    $tasa = TasaCambio::obtenerTasa(now(), $codPago, $codVuelto);
 
                     if ($codPago === $codVuelto) {
                         $vueltoFinal = $diff;
-                    } elseif ($codPago === 'USD' && $codVuelto === 'NIO') {
-                        $vueltoFinal = $diff * $tasa;
+                    } elseif ($codPago === 'USD' && $codVuelto !== 'USD') {
+                        $vueltoFinal = $diff * ($tasa > 0 ? $tasa : 1);
                     } else {
                         $vueltoFinal = $tasa > 0 ? $diff / $tasa : $diff;
                     }
@@ -205,7 +216,7 @@ final class CobrarCuentaAction
                             ->success()
                             ->send();
                     } else {
-                        $simboloCuenta = $resultado['cuenta']->moneda instanceof Moneda ? ($resultado['cuenta']->moneda->simbolo ?? 'C$') : 'C$';
+                        $simboloCuenta = MonedaHelper::simbolo($resultado['cuenta']->moneda);
                         Notification::make()
                             ->title('Abono registrado')
                             ->body("Saldo restante: {$simboloCuenta} ".number_format($resultado['saldo'], 2))
@@ -238,5 +249,171 @@ final class CobrarCuentaAction
         }
 
         return null;
+    }
+
+    private static function crearAccionTabla(\Closure $resolverCuenta, ?\Closure $onSuccess = null): Action
+    {
+        return Action::make('cobrar_cuenta')
+            ->label('Cobrar Cuenta')
+            ->icon('heroicon-o-banknotes')
+            ->color('success')
+            ->modalWidth('2xl')
+            ->visible(function (mixed $record = null) use ($resolverCuenta): bool {
+                $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
+
+                if (! $cuenta instanceof Cuenta) {
+                    return false;
+                }
+
+                return in_array(
+                    $cuenta->estado,
+                    [EstadoCuenta::ABIERTA, EstadoCuenta::PENDIENTE_PAGO, EstadoCuenta::BLOQUEADA],
+                    strict: true
+                ) && (float) $cuenta->saldo > 0;
+            })
+            ->fillForm(function (mixed $record = null) use ($resolverCuenta): array {
+                $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
+
+                if (! $cuenta instanceof Cuenta) {
+                    return [];
+                }
+
+                $clienteId = $cuenta->cliente_id;
+                if ($clienteId === null) {
+                    $pedido = app(CuentaRepositorioInterface::class)->pedidoClienteDeCuenta($cuenta->id);
+
+                    if ($pedido !== null) {
+                        $clienteId = $pedido->cliente_id;
+                    }
+                }
+
+                $monedaDefaultId = app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar()?->id;
+
+                return [
+                    'cliente_id' => $clienteId,
+                    'tipo_comprobante' => 'voucher',
+                    'forma_pago' => MetodoPago::EFECTIVO->value,
+                    'moneda_pago_id' => $monedaDefaultId,
+                    'monto' => (float) $cuenta->saldo > 0 ? (float) $cuenta->saldo : 0.0,
+                    'propina' => 0.0,
+                    'referencia_transaccion' => null,
+                    'observaciones' => null,
+                ];
+            })
+            ->schema(function (mixed $record = null) use ($resolverCuenta): array {
+                $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
+
+                return [
+                    Tabs::make('modal_cobro_tabs')
+                        ->tabs([
+                            Tab::make('Cobro')
+                                ->icon('heroicon-o-banknotes')
+                                ->schema([
+                                    ResumenCuentaInfolist::makeHeader($cuenta),
+                                    CamposCobroPagoForm::make(),
+                                ]),
+
+                            Tab::make('Consumos')
+                                ->icon('heroicon-o-document-text')
+                                ->schema([
+                                    ResumenCuentaInfolist::make($cuenta),
+                                ]),
+
+                            Tab::make('Facturación')
+                                ->icon('heroicon-o-user')
+                                ->schema([
+                                    SeccionClienteFacturacionForm::make(),
+                                ]),
+                        ]),
+                ];
+            })
+            ->action(function (array $data, mixed $record = null) use ($resolverCuenta, $onSuccess): void {
+                $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
+
+                if (! $cuenta instanceof Cuenta) {
+                    return;
+                }
+
+                $montoCobrar = (float) ($data['monto'] ?? 0);
+                $montoRecibido = (float) ($data['monto_recibido'] ?? 0);
+                $monedaVueltoId = (int) ($data['moneda_vuelto_id'] ?? 0);
+                $monedaVuelto = Moneda::find($monedaVueltoId);
+                $codVuelto = MonedaHelper::codigo($monedaVuelto);
+                $simboloVuelto = MonedaHelper::simbolo($monedaVuelto);
+
+                $vueltoTexto = '';
+                $saldoCuenta = (float) $cuenta->saldo;
+                $pagaCon = $montoRecibido > 0 ? $montoRecibido : $montoCobrar;
+                $montoBaseCobro = $saldoCuenta > 0 ? min($montoCobrar, $saldoCuenta) : $montoCobrar;
+
+                if ($pagaCon > $montoBaseCobro) {
+                    $diff = $pagaCon - $montoBaseCobro;
+                    $monedaPagoId = (int) ($data['moneda_pago_id'] ?? 0);
+                    $monedaPago = Moneda::find($monedaPagoId);
+                    $codPago = MonedaHelper::codigo($monedaPago);
+                    $tasa = TasaCambio::obtenerTasa(now(), $codPago, $codVuelto);
+
+                    if ($codPago === $codVuelto) {
+                        $vueltoFinal = $diff;
+                    } elseif ($codPago === 'USD' && $codVuelto !== 'USD') {
+                        $vueltoFinal = $diff * ($tasa > 0 ? $tasa : 1);
+                    } else {
+                        $vueltoFinal = $tasa > 0 ? $diff / $tasa : $diff;
+                    }
+
+                    $vueltoTexto = "Vuelto entregado: {$simboloVuelto} ".number_format($vueltoFinal, 2)." ({$codVuelto})";
+                    $obsActual = trim((string) ($data['observaciones'] ?? ''));
+                    $data['observaciones'] = $obsActual !== '' ? "{$obsActual} | {$vueltoTexto}" : $vueltoTexto;
+                }
+
+                $userId = auth()->id() !== null ? (int) auth()->id() : null;
+
+                try {
+                    $resultado = app(ProcesarCobroCuenta::class)->ejecutar($cuenta, $userId, $data);
+
+                    if ($resultado['cerrada']) {
+                        $tipoLabel = ($data['tipo_comprobante'] ?? '') === 'factura_empresarial' ? 'Factura Empresarial' : 'Voucher';
+                        $bodyMsg = "Cuenta #{$resultado['cuenta']->numero_cuenta} — Se generó {$tipoLabel} automáticamente.";
+                        if ($vueltoTexto !== '') {
+                            $bodyMsg .= " {$vueltoTexto}.";
+                        }
+
+                        $mesa = self::resolverMesaDeCuenta($resultado['cuenta']);
+
+                        if ($mesa instanceof Espacio && $mesa->estado === EstadoEspacio::Ocupado) {
+                            app(CambiarEstadoMesa::class)->ejecutar($mesa->id, EstadoEspacio::Sucio);
+                            app(RegistrarSolicitudLimpieza::class)->execute(
+                                limpiable: $mesa,
+                                prioridad: 'alta',
+                                notas: 'Limpieza solicitada automáticamente tras cobro de comanda.'
+                            );
+                            $bodyMsg .= " La mesa {$mesa->nombre} pasó a estado Pendiente de Limpieza.";
+                        }
+
+                        Notification::make()
+                            ->title('Cuenta saldada y cerrada')
+                            ->body($bodyMsg)
+                            ->success()
+                            ->send();
+                    } else {
+                        $simboloCuenta = MonedaHelper::simbolo($resultado['cuenta']->moneda);
+                        Notification::make()
+                            ->title('Abono registrado')
+                            ->body("Saldo restante: {$simboloCuenta} ".number_format($resultado['saldo'], 2))
+                            ->warning()
+                            ->send();
+                    }
+
+                    if ($onSuccess !== null) {
+                        $onSuccess($resultado['cuenta']);
+                    }
+                } catch (DomainException $e) {
+                    Notification::make()
+                        ->title('Error al procesar el pago')
+                        ->body($e->getMessage())
+                        ->danger()
+                        ->send();
+                }
+            });
     }
 }

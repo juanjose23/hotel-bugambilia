@@ -32,8 +32,8 @@ El abastecimiento de cocina se integra con Compras e Inventario:
 3. La solicitud queda en Compras como `Pendiente`.
 4. Compras/Bodega autoriza desde `Compras > Solicitudes > Aprobar`.
 5. Con la solicitud `Aprobada`, un usuario con permiso `Inventario:ResolverAbastecimientoCocina` puede resolverla de dos formas:
-   - `Resolver con Inventario`: busca stock disponible en bodegas internas, incluso en varias ubicaciones, y traslada automáticamente hacia cocina.
-   - `Despachar a Cocina`: permite seleccionar manualmente una bodega origen específica.
+    - `Resolver con Inventario`: busca stock disponible en bodegas internas, incluso en varias ubicaciones, y traslada automáticamente hacia cocina.
+    - `Despachar a Cocina`: permite seleccionar manualmente una bodega origen específica.
 6. Si el inventario interno no alcanza, la solicitud debe seguir el flujo normal de compras: cotización, orden de compra y recepción.
 7. El despacho interno descuenta origen, suma cocina y registra movimiento `TRASLADO`.
 8. Si lo despachado es material bruto, Cocina entra a `Materia Prima` desde el Centro de Cocina para transformar, registrar materia prima obtenida y registrar merma.
@@ -83,14 +83,14 @@ PlatoResource/
 - **Tabla**: Muestra código, nombre, categoría (badge), estado (badge), visibilidad web (ícono), fecha de creación
 - **Filtros**: Por categoría, visibilidad web, estado
 - **Formulario**:
-  - Código auto-generado (PLT-XXXX)
-  - Nombre, categoría, receta asociada
-  - Descripción, tiempo de preparación
-  - Toggle de visibilidad web
-  - Galería de imágenes (máximo 3, reordenable)
+    - Código auto-generado (PLT-XXXX)
+    - Nombre, categoría, receta asociada
+    - Descripción, tiempo de preparación
+    - Toggle de visibilidad web
+    - Galería de imágenes (máximo 3, reordenable)
 - **Relation Managers**:
-  - `PreciosRelationManager`: Precios polimórficos
-  - `PoliticasRelationManager`: Políticas polimórficas
+    - `PreciosRelationManager`: Precios polimórficos
+    - `PoliticasRelationManager`: Políticas polimórficas
 
 #### Acciones
 
@@ -133,13 +133,13 @@ PedidoResource/
 - **Tabla**: Muestra código, mesa, mesero, estado (badge), total, fecha
 - **Filtros**: Por estado, mesa, mesero, rango de fechas
 - **Formulario**:
-  - Código auto-generado (PED-YYYYMMDD-XXXX)
-  - Mesa (select de espacios tipo 'mesa')
-  - Mesero (select de colaboradores)
-  - Estado (select enum EstadoPedido)
-  - Total (auto-calculado, deshabilitado)
-  - Notas
-  - Repeater de items (plato, cantidad, precio unitario, notas)
+    - Código auto-generado (PED-YYYYMMDD-XXXX)
+    - Mesa (select de espacios tipo 'mesa')
+    - Mesero (select de colaboradores)
+    - Estado (select enum EstadoPedido)
+    - Total (auto-calculado, deshabilitado)
+    - Notas
+    - Repeater de items (plato, cantidad, precio unitario, notas)
 
 #### Acciones
 
@@ -184,11 +184,11 @@ ProcesoCocinaResource/
 - **Tabla**: Muestra código, nombre del plato, cantidad de platos, costo total, realizado por, fecha
 - **Filtros**: Por plato, rango de fechas
 - **Formulario**:
-  - Código
-  - Plato (select, solo platos con receta)
-  - Cantidad de platos a producir
-  - Observaciones
-  - Sección de ingredientes (repeater, auto-generado desde receta)
+    - Código
+    - Plato (select, solo platos con receta)
+    - Cantidad de platos a producir
+    - Observaciones
+    - Sección de ingredientes (repeater, auto-generado desde receta)
 
 #### Acciones
 
@@ -243,12 +243,12 @@ AuditoriaRestauranteResource/
 - **Mapa de mesas**: Visualización gráfica de mesas por ambientes
 - **Estados visuales**: Colores según estado (Disponible, Ocupado, Limpieza, Reservado, Mantenimiento)
 - **Acciones por mesa**:
-  - Cambiar estado manualmente
-  - Ver pedido activo
-  - Abrir nuevo pedido
-  - Mover cuenta a otra mesa
-  - Aplicar descuento
-  - Imprimir/reimprimir comanda
+    - Cambiar estado manualmente
+    - Ver pedido activo
+    - Abrir nuevo pedido
+    - Mover cuenta a otra mesa
+    - Aplicar descuento
+    - Imprimir/reimprimir comanda
 - **Unión de mesas**: Seleccionar mesa principal y mesas secundarias
 - **Separación de mesas**: Desvincular mesas unidas
 - **Reservas**: Mostrar reservas del restaurante
@@ -287,14 +287,14 @@ AuditoriaRestauranteResource/
 #### Características
 
 - **Formulario**:
-  - Propina sugerida (%)
-  - Impuesto porcentaje (%)
-  - Impresora cocina (nombre)
-  - Impresora bar (nombre)
-  - Impresora postres (nombre)
-  - Impresora parrilla (nombre)
-  - Impresión automática (toggle)
-  - Copias de ticket (número)
+    - Propina sugerida (%)
+    - Impuesto porcentaje (%)
+    - Impresora cocina (nombre)
+    - Impresora bar (nombre)
+    - Impresora postres (nombre)
+    - Impresora parrilla (nombre)
+    - Impresión automática (toggle)
+    - Copias de ticket (número)
 
 #### Almacenamiento
 
@@ -320,10 +320,10 @@ AuditoriaRestauranteResource/
 
 - **Selector de rango de fechas**
 - **KPIs**:
-  - Total de pedidos
-  - Total facturado
-  - Pedidos pagados
-  - Pedidos pendientes
+    - Total de pedidos
+    - Total facturado
+    - Pedidos pagados
+    - Pedidos pendientes
 - **Ranking Top 10**: Platos más vendidos
 - **Ingresos por categoría**: Barras de progreso por categoría
 - **Tabla de pedidos**: Listado completo con polling cada 30 segundos
@@ -353,14 +353,14 @@ AuditoriaRestauranteResource/
 - **Visualización de pedidos activos**: Agrupados por área de cocina
 - **Estados de items**: Pendiente, En preparación, Listo
 - **Acciones**:
-  - Marcar item como listo
-  - Marcar pedido como servido
-  - Solicitar abastecimiento
-  - Registrar merma diaria
-  - Abrir conciliación de recetas
-  - Abrir transformación de materia prima
-  - Abrir trazabilidad de procesos
-  - Abrir pantalla de turnos
+    - Marcar item como listo
+    - Marcar pedido como servido
+    - Solicitar abastecimiento
+    - Registrar merma diaria
+    - Abrir conciliación de recetas
+    - Abrir transformación de materia prima
+    - Abrir trazabilidad de procesos
+    - Abrir pantalla de turnos
 - **Filtros**: Por área de cocina (Cocina, Bar, Postres, Parrilla)
 - **Polling**: Actualización automática cada 10 segundos
 
@@ -478,12 +478,14 @@ No se muestra en el menú administrativo principal. Se abre desde el Centro de C
 ### Separación de Responsabilidades
 
 **Filament NO debe contener**:
+
 - Lógica de negocio compleja
 - Queries directas a base de datos
 - Cálculos complejos
 - Reglas de aprobación
 
 **Filament DEBE**:
+
 - Capturar datos del usuario
 - Mostrar información
 - Ejecutar Interactors
@@ -554,6 +556,7 @@ FileUpload::make('imagenes')
 **Descripción**: Ticket térmico de 80mm para impresión de comandas.
 
 **Características**:
+
 - Formato para impresora térmica
 - Auto-imprime al cargar (`window.print()`)
 - Muestra: código, mesa, fecha/hora, items, total

@@ -11,12 +11,21 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Queries\Cuentas\ObtenerCuentaReservaQuery;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class ViewReserva extends ViewRecord
 {
     protected static string $resource = ReservaResource::class;
 
     protected static ?string $title = 'Detalle de Reserva';
+
+    protected function resolveRecord(int|string $key): Model
+    {
+        $record = parent::resolveRecord($key);
+        $record->loadMissing(['moneda', 'cliente', 'cuentas.moneda', 'estancias.cuenta.moneda', 'detalles.reservable']);
+
+        return $record;
+    }
 
     protected function getHeaderActions(): array
     {
