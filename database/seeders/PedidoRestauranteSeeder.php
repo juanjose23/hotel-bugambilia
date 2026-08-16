@@ -9,10 +9,10 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Interactors\Restaurante\Pedidos\AbrirPedidoMesa;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
+use App\Interactors\Restaurante\Pedidos\RegistrarClienteRapido;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Personas\Persona;
-use App\Repository\Models\Personas\PersonaNatural;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\Plato;
@@ -72,29 +72,22 @@ class PedidoRestauranteSeeder extends Seeder
         Pedido::query()->whereIn('id', $pedidoIds)->forceDelete();
     }
 
-    private function clienteDemo(): Persona
+    private function clienteDemo(): Cliente
     {
-        /** @var Persona|null $cliente */
-        $cliente = Persona::query()->where('telefono', '+505 8888 8888')->first();
+        /** @var Cliente|null $cliente */
+        $cliente = Cliente::query()
+            ->whereHas('persona', static fn ($query) => $query->where('telefono', '+505 8888 8888'))
+            ->first();
 
-        if ($cliente instanceof Persona) {
+        if ($cliente instanceof Cliente) {
             return $cliente;
         }
 
-        /** @var Persona $persona */
-        $persona = Persona::query()->create([
+        return app(RegistrarClienteRapido::class)->ejecutar([
             'primer_nombre' => 'María',
-            'segundo_nombre' => 'Sánchez',
-            'tipo_persona' => 'natural',
+            'primer_apellido' => 'Sánchez',
             'telefono' => '+505 8888 8888',
         ]);
-
-        PersonaNatural::query()->create([
-            'persona_id' => $persona->id,
-            'primer_apellido' => 'Sánchez',
-        ]);
-
-        return $persona;
     }
 
     /**
@@ -133,7 +126,7 @@ class PedidoRestauranteSeeder extends Seeder
     }
 
     /** @param Collection<int, Plato> $platos */
-    private function crearPedidoAbierto(?Espacio $mesa, ?Colaborador $mesero, Persona $cliente, Collection $platos): void
+    private function crearPedidoAbierto(?Espacio $mesa, ?Colaborador $mesero, Cliente $cliente, Collection $platos): void
     {
         if (! $mesa instanceof Espacio) {
             return;
@@ -156,7 +149,7 @@ class PedidoRestauranteSeeder extends Seeder
     }
 
     /** @param Collection<int, Plato> $platos */
-    private function crearPedidoEnPreparacion(?Espacio $mesa, ?Colaborador $mesero, Persona $cliente, Collection $platos): void
+    private function crearPedidoEnPreparacion(?Espacio $mesa, ?Colaborador $mesero, Cliente $cliente, Collection $platos): void
     {
         if (! $mesa instanceof Espacio) {
             return;
@@ -181,7 +174,7 @@ class PedidoRestauranteSeeder extends Seeder
     }
 
     /** @param Collection<int, Plato> $platos */
-    private function crearPedidoHistoricoPagado(?Espacio $mesa, ?Colaborador $mesero, Persona $cliente, Collection $platos): void
+    private function crearPedidoHistoricoPagado(?Espacio $mesa, ?Colaborador $mesero, Cliente $cliente, Collection $platos): void
     {
         $fecha = Carbon::now()->subDays(2)->setTime(19, 30);
 

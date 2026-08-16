@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('codigo', 50)->unique()->comment('Folio correlativo único de comanda en restaurante');
             $table->foreignId('mesa_id')->nullable()->comment('FK a la mesa (espacio) asignada, nullable para room service')->constrained('espacios')->nullOnDelete();
             $table->foreignId('mesero_id')->nullable()->comment('FK al mesero que atiende la comanda')->constrained('colaboradores')->nullOnDelete();
-            $table->foreignId('cliente_id')->nullable()->comment('FK al cliente o huésped asignado')->constrained('personas')->nullOnDelete();
+            $table->foreignId('cliente_id')->nullable()->comment('FK al cliente o huésped asignado')->constrained('clientes')->nullOnDelete();
             $table->unsignedBigInteger('cuenta_id')->nullable()->comment('FK lógica a la cuenta de cargo (sin FK constraint por orden de migración)');
             $table->unsignedSmallInteger('estado')->default(1)->comment('EstadoPedido: 1=Abierto, 2=EnPreparacion, 3=Listo, 4=Servido, 5=Pagado, 6=CargadoAHabitacion, 7=Cancelado');
             $table->decimal('subtotal', 10, 2)->default(0)->comment('Subtotal operativo de la comanda (suma de items no anulados)');

@@ -48,7 +48,7 @@ enum TipoCargo: int implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Impuesto => 'heroicon-o-document-text',
-            self::Servicio => 'heroicon-o-sparkles',
+            self::Servicio => 'heroicon-o-check-badge',
             self::Propina => 'heroicon-o-currency-dollar',
             self::Descuento => 'heroicon-o-tag',
             self::Recargo => 'heroicon-o-exclamation-triangle',

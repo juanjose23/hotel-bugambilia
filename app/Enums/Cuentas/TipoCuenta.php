@@ -40,7 +40,7 @@ enum TipoCuenta: int implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::ESTANCIA => 'heroicon-o-home-modern',
             self::RESTAURANTE_DIRECTO => 'heroicon-o-shopping-bag',
-            self::SERVICIO => 'heroicon-o-sparkles',
+            self::SERVICIO => 'heroicon-o-check-badge',
         };
     }
 }

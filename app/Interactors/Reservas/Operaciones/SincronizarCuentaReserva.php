@@ -6,7 +6,6 @@ namespace App\Interactors\Reservas\Operaciones;
 
 use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Enums\Cuentas\BaseCalculo;
-use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
 use App\Enums\Cuentas\TipoCuenta;
@@ -42,17 +41,13 @@ final class SincronizarCuentaReserva
             $cuenta = $this->abrirCuenta->ejecutar(
                 tipo: $tipoCuenta,
                 reserva: $reserva,
-                cliente: $reserva->cliente?->persona,
+                cliente: $reserva->cliente,
                 monedaId: $reserva->moneda_id,
                 usuarioId: $usuarioId,
             );
         }
 
-        $cuentasCerradas = Cuenta::query()
-            ->where('reserva_id', $reserva->id)
-            ->where('id', '!=', $cuenta->id)
-            ->where('estado', EstadoCuenta::CERRADA)
-            ->get();
+        $cuentasCerradas = $this->cuentas->cuentasCerradasDeReservaExcluyendo((int) $reserva->id, (int) $cuenta->id);
 
         $subtotalCerradoBase = $this->sumaFlotante($cuentasCerradas, 'subtotal');
         $descuentoCerradoBase = $this->sumaFlotante($cuentasCerradas, 'descuento_total');

@@ -24,15 +24,16 @@ enum MetodoPago: int implements HasColor, HasIcon, HasLabel
     case TRANSFERENCIA = 4;
     case DEPOSITO = 5;
     case PAGO_QR = 6;
+    case CHEQUE = 7;
 
     /** Consumo cargado a la cuenta de la estancia del huésped */
-    case CARGO_HABITACION = 7;
-
-    /** Cortesía o invitación sin cobro al cliente */
-    case CORTESIA = 8;
+    case CARGO_HABITACION = 8;
 
     case CREDITO_CORPORATIVO = 9;
     case PUNTOS_LEALTAD = 10;
+
+    /** Cortesía o invitación sin cobro al cliente */
+    case CORTESIA = 11;
 
     public function getLabel(): string
     {
@@ -43,6 +44,7 @@ enum MetodoPago: int implements HasColor, HasIcon, HasLabel
             self::TRANSFERENCIA => 'Transferencia Bancaria',
             self::DEPOSITO => 'Depósito Bancario',
             self::PAGO_QR => 'Pago QR',
+            self::CHEQUE => 'Cheque',
             self::CARGO_HABITACION => 'Cargo a Habitación',
             self::CORTESIA => 'Cortesía',
             self::CREDITO_CORPORATIVO => 'Crédito Corporativo',
@@ -57,7 +59,7 @@ enum MetodoPago: int implements HasColor, HasIcon, HasLabel
             self::EFECTIVO => 'success',
             self::TARJETA_CREDITO, self::TARJETA_DEBITO, self::CREDITO_CORPORATIVO => 'info',
             self::TRANSFERENCIA, self::DEPOSITO => 'primary',
-            self::PAGO_QR, self::PUNTOS_LEALTAD => 'warning',
+            self::PAGO_QR, self::PUNTOS_LEALTAD, self::CHEQUE => 'warning',
             self::CARGO_HABITACION => 'purple',
             self::CORTESIA => 'gray',
         };
@@ -71,6 +73,7 @@ enum MetodoPago: int implements HasColor, HasIcon, HasLabel
             self::TRANSFERENCIA => 'heroicon-o-building-library',
             self::DEPOSITO => 'heroicon-o-document-check',
             self::PAGO_QR => 'heroicon-o-qr-code',
+            self::CHEQUE => 'heroicon-o-document-text',
             self::CARGO_HABITACION => 'heroicon-o-home-modern',
             self::CORTESIA => 'heroicon-o-gift',
             self::CREDITO_CORPORATIVO => 'heroicon-o-briefcase',

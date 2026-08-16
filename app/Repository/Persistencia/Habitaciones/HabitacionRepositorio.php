@@ -31,6 +31,25 @@ final class HabitacionRepositorio implements HabitacionRepositorioInterface
         return Habitacion::find($id);
     }
 
+    public function buscarPorIdConLock(int $id): Habitacion
+    {
+        /** @var Habitacion $habitacion */
+        $habitacion = Habitacion::query()->where('id', $id)->lockForUpdate()->firstOrFail();
+
+        return $habitacion;
+    }
+
+    public function buscarPorRecursoReservableIdConLock(int $recursoReservableId): ?Habitacion
+    {
+        /** @var Habitacion|null $habitacion */
+        $habitacion = Habitacion::query()
+            ->where('reservable_id', $recursoReservableId)
+            ->lockForUpdate()
+            ->first();
+
+        return $habitacion;
+    }
+
     public function actualizarEstado(Habitacion $habitacion, EstadoEspacio $estado): void
     {
         $habitacion->update(['estado' => $estado]);

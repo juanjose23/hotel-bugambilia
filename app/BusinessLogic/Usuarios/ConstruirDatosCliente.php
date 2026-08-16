@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Usuarios;
 
+use App\Repository\Queries\Catalogos\ObtenerCatalogoClienteRegularQuery;
+
 final readonly class ConstruirDatosCliente
 {
+    public function __construct(
+        private ObtenerCatalogoClienteRegularQuery $catalogoRegular,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $datos
      * @return array<string, mixed>
      */
     public function construir(array $datos, string $tipoPersona): array
     {
+        $catalogo = $this->catalogoRegular->obtener();
+
         $cliente = [
             'tipo_persona' => $tipoPersona,
-            'catalogo_id' => 1,
+            'catalogo_id' => $catalogo->id ?? 1,
             'primer_nombre' => $datos['primer_nombre'] ?? $datos['razon_social'] ?? '',
             'email' => $datos['email'],
             'telefono' => $datos['phone'] ?? '',

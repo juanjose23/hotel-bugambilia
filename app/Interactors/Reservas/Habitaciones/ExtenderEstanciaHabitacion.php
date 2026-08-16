@@ -10,6 +10,7 @@ use App\BusinessLogic\Reservas\ValidarDisponibilidadHabitacion;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Events\Reservas\EstanciaHabitacionExtendida;
 use App\Repository\Models\Estancias\Estancia;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -18,21 +19,22 @@ final readonly class ExtenderEstanciaHabitacion
     public function __construct(
         private ValidarDisponibilidadHabitacion $validarDisponibilidad,
         private RecalcularTotalesReservaHabitacion $recalcularTotales,
+        private ReservaRepositorioInterface $reservas,
     ) {}
 
     public function ejecutar(ExtenderEstanciaData $data): Estancia
     {
         return DB::transaction(function () use ($data): Estancia {
-            $estancia = Estancia::query()
-                ->where('id', $data->estanciaId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $estancia = $this->reservas->estanciaConLock($data->estanciaId);
 
             if (! in_array($estancia->estado, [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA], true)) {
                 throw new DomainException("La estancia #{$estancia->id} no se encuentra activa para ser extendida.");
             }
 
-            $detalle = $estancia->reservaDetalle()->lockForUpdate()->firstOrFail();
+            $detalle = $this->reservas->obtenerDetalleDeEstanciaConLock($estancia);
+            if ($detalle === null) {
+                throw new DomainException("La estancia #{$estancia->id} no tiene un detalle de reserva asociado.");
+            }
 
             if ($detalle->fecha_fin === null) {
                 throw new DomainException('La estancia no tiene una fecha de salida programada.');
@@ -54,11 +56,11 @@ final readonly class ExtenderEstanciaHabitacion
                 excluirDetalleId: $detalle->id,
             );
 
-            $detalle->update([
+            $this->reservas->actualizarDetalle($detalle, [
                 'fecha_fin' => $data->nuevaFechaSalida,
             ]);
 
-            $estancia->update([
+            $this->reservas->actualizarEstancia($estancia, [
                 'fecha_salida_programada' => $data->nuevaFechaSalida,
                 'estado' => EstadoEstancia::EXTENDIDA,
                 'observaciones_salida' => $data->observaciones,

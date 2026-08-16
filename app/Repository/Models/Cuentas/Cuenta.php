@@ -6,9 +6,11 @@ namespace App\Repository\Models\Cuentas;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Estancias\Estancia;
+use App\Repository\Models\Facturacion\Factura;
+use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Models\Monedas\Moneda;
-use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\User;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
@@ -46,7 +48,7 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property Carbon|null $cerrada_at
  * @property int|null $abierta_por
  * @property int|null $cerrada_por
- * @property Persona|null $cliente
+ * @property Cliente|null $cliente
  * @property Estancia|null $estancia
  * @property Reserva|null $reserva
  */
@@ -94,10 +96,10 @@ final class Cuenta extends Model implements AuditableContract
 
     // ─── Relaciones ──────────────────────────────────────────────
 
-    /** @return BelongsTo<Persona, $this> */
+    /** @return BelongsTo<Cliente, $this> */
     public function cliente(): BelongsTo
     {
-        return $this->belongsTo(Persona::class, 'cliente_id');
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
     /** @return BelongsTo<Estancia, $this> */
@@ -152,6 +154,18 @@ final class Cuenta extends Model implements AuditableContract
     public function ventas(): HasMany
     {
         return $this->hasMany(Venta::class);
+    }
+
+    /** @return HasMany<Factura, $this> */
+    public function facturas(): HasMany
+    {
+        return $this->hasMany(Factura::class);
+    }
+
+    /** @return HasMany<PagoTransaccion, $this> */
+    public function transaccionesPasarela(): HasMany
+    {
+        return $this->hasMany(PagoTransaccion::class);
     }
 
     // ─── Métodos de Dominio ───────────────────────────────────────

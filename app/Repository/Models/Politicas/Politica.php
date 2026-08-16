@@ -7,6 +7,7 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Promociones\Promocion;
 use App\Repository\Models\Servicios\Servicio;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
@@ -22,7 +23,16 @@ class Politica extends Model implements AuditableContract
 
     protected $casts = [
         'estado' => EstadoGeneral::class,
+        'aplica_penalizacion' => 'boolean',
     ];
+
+    /**
+     * @return HasMany<PoliticaPenalizacion, $this>
+     */
+    public function penalizaciones(): HasMany
+    {
+        return $this->hasMany(PoliticaPenalizacion::class, 'politica_id')->orderBy('orden');
+    }
 
     /**
      * @return MorphToMany<Habitacion, $this>

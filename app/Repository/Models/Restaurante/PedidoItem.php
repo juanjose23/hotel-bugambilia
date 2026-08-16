@@ -9,6 +9,8 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * @property int $id
@@ -26,8 +28,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Plato|null $plato
  * @property Pedido|null $pedido
  */
-final class PedidoItem extends Model
+final class PedidoItem extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'pedido_items';
 
     protected $guarded = ['id'];

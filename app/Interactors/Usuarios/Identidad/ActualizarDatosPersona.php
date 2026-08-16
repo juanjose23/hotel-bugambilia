@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Interactors\Usuarios\Identidad;
 
 use App\Repository\Models\Personas\Persona;
-use App\Repository\Models\Personas\PersonaJuridica;
-use App\Repository\Models\Personas\PersonaNatural;
+use App\Repository\Persistencia\Usuarios\PersonaPersistencia;
 use Illuminate\Support\Facades\DB;
 
-final class ActualizarDatosPersona
+final readonly class ActualizarDatosPersona
 {
+    public function __construct(
+        private PersonaPersistencia $personas,
+    ) {}
+
     /**
      * Actualiza datos de contacto de una Persona existente.
      *
@@ -20,46 +23,13 @@ final class ActualizarDatosPersona
     {
         return DB::transaction(function () use ($persona, $datos): Persona {
             $tipoPersona = $datos['tipo_persona'] ?? $persona->tipo_persona ?? 'natural';
-            $cambiosPersona = [];
 
-            $camposPersona = ['primer_nombre', 'segundo_nombre', 'telefono', 'direccion', 'pais_id', 'tipo_persona'];
-            foreach ($camposPersona as $campo) {
-                if (array_key_exists($campo, $datos)) {
-                    $cambiosPersona[$campo] = $datos[$campo];
-                }
-            }
-
-            if ($cambiosPersona !== []) {
-                $persona->update($cambiosPersona);
-            }
+            $this->personas->actualizarDatosBasicos($persona, $datos);
 
             if ($tipoPersona === 'juridica') {
-                $personaJuridica = $persona->personaJuridica;
-                $datosJuridica = [
-                    'razon_social' => $datos['razon_social'] ?? $datos['primer_nombre'] ?? '',
-                    'tipo_identificacion' => $datos['tipo_identificacion'] ?? null,
-                    'numero_identificacion' => $datos['numero_identificacion'] ?? null,
-                    'fecha_constitucion' => $datos['fecha_nacimiento'] ?? null,
-                ];
-                if ($personaJuridica !== null) {
-                    $personaJuridica->update($datosJuridica);
-                } else {
-                    PersonaJuridica::create(array_merge(['persona_id' => $persona->id], $datosJuridica));
-                }
+                $this->personas->guardarPersonaJuridica($persona, $datos);
             } else {
-                $personaNatural = $persona->personaNatural;
-                $datosNatural = [
-                    'primer_apellido' => $datos['primer_apellido'] ?? '',
-                    'segundo_apellido' => $datos['segundo_apellido'] ?? null,
-                    'tipo_identificacion' => $datos['tipo_identificacion'] ?? null,
-                    'numero_identificacion' => $datos['numero_identificacion'] ?? null,
-                    'fecha_nacimiento' => $datos['fecha_nacimiento'] ?? null,
-                ];
-                if ($personaNatural !== null) {
-                    $personaNatural->update($datosNatural);
-                } else {
-                    PersonaNatural::create(array_merge(['persona_id' => $persona->id], $datosNatural));
-                }
+                $this->personas->guardarPersonaNatural($persona, $datos);
             }
 
             $refrescada = $persona->fresh();

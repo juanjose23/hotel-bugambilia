@@ -535,7 +535,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     {
         /** @var Cuenta|null $cuenta */
         $cuenta = Cuenta::query()
-            ->with(['cliente.personaNatural', 'moneda'])
+            ->with(['cliente.persona.personaNatural', 'cliente.persona.personaJuridica', 'moneda'])
             ->find($cuentaId);
 
         return $cuenta;
@@ -574,12 +574,20 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
         return $persona;
     }
 
+    public function obtenerClientePorId(int $id): ?Cliente
+    {
+        /** @var Cliente|null $cliente */
+        $cliente = Cliente::query()->with('persona')->find($id);
+
+        return $cliente;
+    }
+
     /** @return Collection<int, Cuenta> */
     public function obtenerCuentasActivas(): Collection
     {
         return Cuenta::query()
             ->where('estado', 2) // EstadoCuenta::ABIERTA
-            ->with(['cliente', 'detalles', 'pagos'])
+            ->with(['cliente.persona', 'detalles', 'pagos'])
             ->get();
     }
 
