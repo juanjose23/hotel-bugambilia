@@ -6,10 +6,10 @@ namespace App\Repository\Models\Restaurante;
 
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Personas\Persona;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -66,10 +66,10 @@ final class Pedido extends Model implements AuditableContract
         return $this->belongsTo(Colaborador::class, 'mesero_id');
     }
 
-    /** @return BelongsTo<Persona, $this> */
+    /** @return BelongsTo<Cliente, $this> */
     public function cliente(): BelongsTo
     {
-        return $this->belongsTo(Persona::class, 'cliente_id');
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
     /** @return BelongsTo<Cuenta, $this> */

@@ -62,6 +62,8 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Persistencia\Servicios\ServicioRepositorio;
 use App\Repository\Persistencia\Servicios\ServicioRepositorioInterface;
+use App\Repository\Persistencia\Ventas\VentaRepositorio;
+use App\Repository\Persistencia\Ventas\VentaRepositorioInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -180,6 +182,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             CuentaRepositorioInterface::class,
             CuentaRepositorio::class
+        );
+
+        $this->app->bind(
+            VentaRepositorioInterface::class,
+            VentaRepositorio::class
         );
 
         $this->app->bind(

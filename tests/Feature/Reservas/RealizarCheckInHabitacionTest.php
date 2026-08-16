@@ -9,7 +9,7 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoRecursoReservable;
 use App\Enums\Reservas\TipoReserva;
-use App\Events\Reservas\CheckInHabitacionRealizado;
+use App\Events\Reservas\CheckInRegistrado;
 use App\Interactors\Reservas\Habitaciones\RealizarCheckInHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\RecursoReservable;
@@ -64,5 +64,5 @@ test('realizar check-in por detalle crea estancia activa, cambia habitacion a oc
     expect($habitacion->fresh()->estado)->toBe(EstadoEspacio::Ocupado);
     expect($reserva->fresh()->estado)->toBe(EstadoReserva::CHECKED_IN);
 
-    Event::assertDispatched(CheckInHabitacionRealizado::class);
+    Event::assertDispatched(CheckInRegistrado::class);
 });

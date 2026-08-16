@@ -93,6 +93,12 @@ class Promocion extends Model implements AuditableContract
         return $this->hasMany(PromocionItem::class, 'promocion_id');
     }
 
+    /** @return HasMany<PromocionBeneficio, $this> */
+    public function beneficios(): HasMany
+    {
+        return $this->hasMany(PromocionBeneficio::class, 'promocion_id');
+    }
+
     /** @return MorphToMany<Politica, $this> */
     public function politicas(): MorphToMany
     {

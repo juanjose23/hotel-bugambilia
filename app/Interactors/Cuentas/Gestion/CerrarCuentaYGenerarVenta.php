@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Interactors\Cuentas\Gestion;
 
+use App\Actions\Ventas\GenerarNumeroVenta;
+use App\BusinessLogic\Ventas\ConstruirFotografiaVenta;
 use App\Enums\Cuentas\EstadoCuenta;
-use App\Enums\Cuentas\EstadoVenta;
+use App\Enums\Facturacion\TipoFactura;
+use App\Interactors\Facturacion\EmitirFacturaDesdeVenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\Venta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Ventas\VentaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -21,6 +25,10 @@ final class CerrarCuentaYGenerarVenta
     public function __construct(
         private readonly RecalcularCuenta $recalcularCuenta,
         private readonly CuentaRepositorioInterface $cuentas,
+        private readonly VentaRepositorioInterface $ventas,
+        private readonly GenerarNumeroVenta $generarNumeroVenta,
+        private readonly ConstruirFotografiaVenta $fotografiaVenta,
+        private readonly EmitirFacturaDesdeVenta $emitirFacturaDesdeVenta,
     ) {}
 
     /**
@@ -48,42 +56,16 @@ final class CerrarCuentaYGenerarVenta
             }
 
             // Generar número de venta
-            $numeroVenta = sprintf('VTA-%s-%06d', now()->format('Ymd'), $cuenta->id);
+            $numeroVenta = $this->generarNumeroVenta->ejecutar($cuenta->id);
 
             // Crear la venta con fotografía histórica
-            $venta = $this->cuentas->crearVenta([
-                'numero_venta' => $numeroVenta,
-                'cuenta_id' => $cuenta->id,
-                'cliente_id' => $cuenta->cliente_id,
-                'moneda_id' => $cuenta->moneda_id,
-                'subtotal' => $cuenta->subtotal,
-                'descuento_total' => $cuenta->descuento_total,
-                'impuesto_total' => $cuenta->impuesto_total,
-                'servicio_total' => $cuenta->cargo_servicio_total,
-                'propina_total' => $cuenta->propina_total,
-                'recargo_total' => $cuenta->recargo_total,
-                'total' => $cuenta->total,
-                'estado' => EstadoVenta::Emitida,
-                'datos_fiscales' => $datosFiscales,
-                'creada_por' => $usuarioId,
-            ]);
+            $venta = $this->ventas->crear(
+                $this->fotografiaVenta->cabecera($cuenta, $numeroVenta, $usuarioId, $datosFiscales),
+            );
 
             // Generar los detalles de la venta (fotografía de cada consumo)
             foreach ($this->cuentas->detallesActivos($cuenta) as $detalle) {
-                $this->cuentas->crearVentaDetalle($venta, [
-                    'concepto' => $detalle->concepto,
-                    'cantidad' => $detalle->cantidad,
-                    'precio_unitario' => $detalle->precio_unitario,
-                    'subtotal' => $detalle->subtotal,
-                    'descuento' => 0,
-                    'impuesto' => 0,
-                    'servicio' => 0,
-                    'propina' => 0,
-                    'recargo' => 0,
-                    'total_linea' => $detalle->subtotal,
-                    'origen_type' => $detalle->origen_type,
-                    'origen_id' => $detalle->origen_id,
-                ]);
+                $this->ventas->crearDetalle($venta, $this->fotografiaVenta->detalle($detalle));
             }
 
             // Cerrar la cuenta
@@ -94,7 +76,22 @@ final class CerrarCuentaYGenerarVenta
                 'actualizado_por' => $usuarioId,
             ]);
 
-            return $venta;
+            if (($datosFiscales['emitir_factura'] ?? false) === true) {
+                $tipoFacturaValor = $datosFiscales['tipo_factura'] ?? null;
+                $tipoFactura = is_numeric($tipoFacturaValor)
+                    ? TipoFactura::tryFrom((int) $tipoFacturaValor)
+                    : null;
+
+                $this->emitirFacturaDesdeVenta->ejecutar(
+                    venta: $venta,
+                    serieId: is_numeric($datosFiscales['factura_serie_id'] ?? null) ? (int) $datosFiscales['factura_serie_id'] : null,
+                    tipo: $tipoFactura ?? TipoFactura::Contado,
+                    datosReceptor: is_array($datosFiscales['receptor'] ?? null) ? $datosFiscales['receptor'] : $datosFiscales,
+                    usuarioId: $usuarioId,
+                );
+            }
+
+            return $venta->refresh()->load('facturas.detalles');
         });
     }
 }

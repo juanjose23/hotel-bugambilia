@@ -15,8 +15,6 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\CuentaCargo;
 use App\Repository\Models\Cuentas\CuentaDetalle;
 use App\Repository\Models\Cuentas\PagoCuenta;
-use App\Repository\Models\Cuentas\Venta;
-use App\Repository\Models\Cuentas\VentaDetalle;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Restaurante\Pedido;
 use Illuminate\Support\Collection;
@@ -175,6 +173,30 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
         return $pago;
     }
 
+    public function actualizarPago(PagoCuenta $pago, array $datos): PagoCuenta
+    {
+        $pago->update($datos);
+
+        return $pago->refresh();
+    }
+
+    /**
+     * @param  list<int>|null  $pagoCuentaIds
+     * @return Collection<int, PagoCuenta>
+     */
+    public function pagosAplicadosDeCuenta(Cuenta $cuenta, ?array $pagoCuentaIds = null): Collection
+    {
+        $query = $cuenta->pagos()
+            ->where('estado', EstadoPago::APLICADO->value)
+            ->orderBy('id');
+
+        if (is_array($pagoCuentaIds) && $pagoCuentaIds !== []) {
+            $query->whereIn('id', $pagoCuentaIds);
+        }
+
+        return $query->get();
+    }
+
     /**
      * Asegura que cada cargo/detalle quede asociado a una moneda.
      * Si la cuenta no la define, se usa la moneda predeterminada del sistema.
@@ -219,19 +241,6 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
         return $cuenta->detalles()
             ->where('estado', EstadoGeneral::Activo->value)
             ->get();
-    }
-
-    public function crearVenta(array $datos): Venta
-    {
-        return Venta::query()->create($datos);
-    }
-
-    public function crearVentaDetalle(Venta $venta, array $datos): VentaDetalle
-    {
-        /** @var VentaDetalle $detalle */
-        $detalle = $venta->detalles()->create($datos);
-
-        return $detalle;
     }
 
     public function cargarPedidoEnCuenta(Pedido $pedido, int $cuentaId): void
@@ -291,5 +300,57 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
             ->where('reserva_id', $reservaId)
             ->where('estado', EstadoCuenta::ABIERTA)
             ->get();
+    }
+
+    public function cuentaDeEstanciaOReservaConLock(int $estanciaId, int $reservaId): ?Cuenta
+    {
+        /** @var Cuenta|null $cuenta */
+        $cuenta = Cuenta::query()
+            ->where('estancia_id', $estanciaId)
+            ->orWhere('reserva_id', $reservaId)
+            ->lockForUpdate()
+            ->first();
+
+        return $cuenta;
+    }
+
+    /** @return Collection<int, Cuenta> */
+    public function cuentasCerradasDeReservaExcluyendo(int $reservaId, int $cuentaExcluidaId): Collection
+    {
+        return Cuenta::query()
+            ->where('reserva_id', $reservaId)
+            ->where('id', '!=', $cuentaExcluidaId)
+            ->where('estado', EstadoCuenta::CERRADA)
+            ->get();
+    }
+
+    public function primeraCuentaDeReserva(int $reservaId): ?Cuenta
+    {
+        /** @var Cuenta|null $cuenta */
+        $cuenta = Cuenta::query()
+            ->where('reserva_id', $reservaId)
+            ->first();
+
+        return $cuenta;
+    }
+
+    /** @return Collection<int, int> */
+    public function cargosFacturacionVigentesIds(Cuenta $cuenta): Collection
+    {
+        /** @var Collection<int, int> $ids */
+        $ids = $cuenta->cargos()
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->whereNotNull('cargo_id')
+            ->pluck('cargo_id');
+
+        return $ids;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $registros
+     */
+    public function insertarCuentaCargos(Cuenta $cuenta, array $registros): void
+    {
+        $cuenta->cargos()->insert($registros);
     }
 }

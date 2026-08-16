@@ -70,6 +70,8 @@ interface RestauranteRepositorioInterface
 
     public function obtenerPersonaPorId(int $id): ?Persona;
 
+    public function obtenerClientePorId(int $id): ?Cliente;
+
     // ============================================================
     // Lectura - Platos
     // ============================================================

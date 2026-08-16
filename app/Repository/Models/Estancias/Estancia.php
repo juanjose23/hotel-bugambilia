@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * @property int $id
@@ -36,8 +38,10 @@ use Illuminate\Support\Carbon;
  * @property Reserva|null $reserva
  * @property Habitacion|null $habitacion
  */
-final class Estancia extends Model
+final class Estancia extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'estancias';
 
     protected $fillable = [

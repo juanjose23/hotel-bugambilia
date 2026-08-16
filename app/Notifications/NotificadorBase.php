@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Enums\Notifications\CanalNotificacion;
+use App\Mail\NotificacionSistema;
 use App\Repository\Models\User;
 use Filament\Notifications\DatabaseNotification;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 
 abstract class NotificadorBase
 {
@@ -58,7 +60,24 @@ abstract class NotificadorBase
         }
     }
 
-    protected function enviarCorreo(User $user, DatosNotificacion $data): void {}
+    protected function enviarCorreo(User $user, DatosNotificacion $data): void
+    {
+        if (! is_string($user->email)) {
+            return;
+        }
+
+        $this->enviarCorreoA($user->email, $data);
+    }
+
+    protected function enviarCorreoA(string $email, DatosNotificacion $data): void
+    {
+        $email = trim($email);
+        if ($email === '') {
+            return;
+        }
+
+        Mail::to($email)->send(new NotificacionSistema($data));
+    }
 
     protected function enviarBroadcast(User $user, DatosNotificacion $data): void {}
 }

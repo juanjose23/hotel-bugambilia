@@ -5,20 +5,18 @@ declare(strict_types=1);
 namespace App\Interactors\Usuarios\Clientes;
 
 use App\BusinessLogic\Usuarios\ResolverIdentidadPersona;
-use App\Enums\Usuarios\EstadoConflictoIdentidad;
 use App\Enums\Usuarios\TipoConflictoIdentidad;
+use App\Enums\Usuarios\TipoResolucionIdentidad;
 use App\Events\Usuarios\ClienteRegistrado;
 use App\Events\Usuarios\PersonaConflictoIdentidad;
 use App\Exceptions\YaTieneCuentaException;
-use App\Interactors\Usuarios\Identidad\ActualizarDatosPersona;
-use App\Interactors\Usuarios\Identidad\VincularPersonaExistenteAUser;
+use App\Interactors\Usuarios\Identidad\VincularPersonaAUser;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\User;
-use App\Repository\Models\Usuarios\ConflictoIdentidad;
-use Illuminate\Support\Facades\Auth;
+use App\Repository\Persistencia\Usuarios\ClientePersistencia;
+use App\Repository\Persistencia\Usuarios\ConflictoIdentidadPersistencia;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -27,27 +25,37 @@ final readonly class RegistrarCliente
     public function __construct(
         private ResolverIdentidadPersona $resolver,
         private RegistrarClienteNuevo $registrarNuevo,
-        private VincularPersonaExistenteAUser $vincularExistente,
+        private VincularPersonaAUser $vincularAUser,
+        private ClientePersistencia $clientes,
+        private ConflictoIdentidadPersistencia $conflictos,
     ) {}
 
     /**
      * Orquestador principal para registrar un cliente.
      *
      * @param  array<string, mixed>  $datos
+     * @param  int|null  $usuarioId  Usuario autenticado que ejecuta la acción (auditoría).
      * @return array{cliente: Cliente, persona: Persona, user: User, es_nuevo: bool}
      *
-     * @throws YaTieneCuentaException|Throwable
+     * @throws YaTieneCuentaException|RuntimeException
      */
-    public function ejecutar(array $datos): array
+    public function ejecutar(array $datos, ?int $usuarioId = null): array
     {
         $resultado = $this->resolver->resolver($datos);
 
         return match ($resultado['tipo']) {
-            'crear_nueva' => $this->crearNuevo($datos),
-            'vincular_directo' => $this->vincularDirecto($this->assertPersona($resultado['persona']), $datos),
-            'actualizar_contacto' => $this->actualizarYVincular($this->assertPersona($resultado['persona']), $datos),
-            'conflicto_identidad' => $this->crearConflicto($this->assertPersona($resultado['persona']), $datos, $resultado['tipo_conflicto']),
-            default => throw new InvalidArgumentException("Tipo de resolución desconocido: {$resultado['tipo']}"),
+            TipoResolucionIdentidad::CrearNueva => $this->crearNuevo($datos),
+            TipoResolucionIdentidad::VincularDirecto,
+            TipoResolucionIdentidad::ActualizarContacto => $this->vincularPersona(
+                $this->assertPersona($resultado['persona']),
+                $datos,
+            ),
+            TipoResolucionIdentidad::ConflictoIdentidad => $this->crearConflicto(
+                $this->assertPersona($resultado['persona']),
+                $datos,
+                $resultado['tipo_conflicto'],
+                $usuarioId,
+            ),
         };
     }
 
@@ -83,58 +91,19 @@ final readonly class RegistrarCliente
     }
 
     /**
+     * Vincula una persona existente reutilizando su cliente y cuenta de usuario.
+     *
      * @param  array<string, mixed>  $datos
      * @return array{cliente: Cliente, persona: Persona, user: User, es_nuevo: bool}
      *
      * @throws Throwable
      */
-    private function vincularDirecto(Persona $persona, array $datos): array
+    private function vincularPersona(Persona $persona, array $datos): array
     {
         return DB::transaction(function () use ($persona, $datos): array {
-            $cliente = Cliente::create([
-                'persona_id' => $persona->id,
-                'catalogo_id' => $datos['catalogo_id'],
-                'estado' => 1,
-            ]);
+            $cliente = $this->clientes->crearORecuperarDesdePersona($persona, $datos);
 
-            $user = $this->vincularExistente->ejecutar($persona, $datos);
-
-            ClienteRegistrado::dispatch($cliente, $persona, false);
-
-            $refrescada = $persona->fresh();
-
-            if (! $refrescada instanceof Persona) {
-                throw new RuntimeException('No se pudo refrescar la persona.');
-            }
-
-            return [
-                'cliente' => $cliente,
-                'persona' => $refrescada,
-                'user' => $user,
-                'es_nuevo' => false,
-            ];
-        });
-    }
-
-    /**
-     * @param  array<string, mixed>  $datos
-     * @return array{cliente: Cliente, persona: Persona, user: User, es_nuevo: bool}
-     *
-     * @throws Throwable
-     */
-    private function actualizarYVincular(Persona $persona, array $datos): array
-    {
-        return DB::transaction(function () use ($persona, $datos): array {
-            $actualizador = app(ActualizarDatosPersona::class);
-            $actualizador->ejecutar($persona, $datos);
-
-            $cliente = Cliente::create([
-                'persona_id' => $persona->id,
-                'catalogo_id' => $datos['catalogo_id'],
-                'estado' => 1,
-            ]);
-
-            $user = $this->vincularExistente->ejecutar($persona, $datos);
+            $user = $this->vincularAUser->ejecutar($persona, $datos);
 
             ClienteRegistrado::dispatch($cliente, $persona, false);
 
@@ -162,19 +131,19 @@ final readonly class RegistrarCliente
     private function crearConflicto(
         Persona $persona,
         array $datos,
-        ?TipoConflictoIdentidad $tipoConflicto
+        ?TipoConflictoIdentidad $tipoConflicto,
+        ?int $usuarioId,
     ): array {
         $tipoResuelto = $tipoConflicto ?? TipoConflictoIdentidad::Homonimia;
         $datosExistentes = $this->datosExistentesPersona($persona);
 
-        $conflicto = ConflictoIdentidad::create([
-            'persona_id' => $persona->id,
-            'tipo_conflicto' => $tipoResuelto,
-            'datos_providos' => $datos,
-            'datos_existentes' => $datosExistentes,
-            'estado' => EstadoConflictoIdentidad::Pendiente,
-            'creado_por' => Auth::id(),
-        ]);
+        $conflicto = $this->conflictos->crearPendiente(
+            $persona,
+            $tipoResuelto,
+            $datos,
+            $datosExistentes,
+            $usuarioId,
+        );
 
         PersonaConflictoIdentidad::dispatch(
             $conflicto,

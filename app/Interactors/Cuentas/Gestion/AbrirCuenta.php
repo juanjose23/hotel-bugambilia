@@ -8,10 +8,10 @@ use App\BusinessLogic\Cuentas\ValidarCuenta;
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Events\Cuentas\CuentaAbierta;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Monedas\Moneda;
-use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\User;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
@@ -34,7 +34,7 @@ final class AbrirCuenta
         ?Cuenta $cuentaExistente = null,
         ?Reserva $reserva = null,
         ?Estancia $estancia = null,
-        ?Persona $cliente = null,
+        ?Cliente $cliente = null,
         ?float $limite = null,
         ?int $monedaId = null,
         ?int $usuarioId = null,
@@ -93,7 +93,7 @@ final class AbrirCuenta
 
     private function resolverClienteId(
         ?Cuenta $cuentaExistente,
-        ?Persona $cliente,
+        ?Cliente $cliente,
         ?Reserva $reserva,
         ?Estancia $estancia,
     ): ?int {

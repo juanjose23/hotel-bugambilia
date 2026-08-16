@@ -12,6 +12,8 @@ use App\Events\Reservas\HabitacionPendienteDeLimpieza;
 use App\Events\Reservas\HuespedCambiadoDeHabitacion;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -19,34 +21,29 @@ final readonly class CambiarHabitacionEstancia
 {
     public function __construct(
         private ValidarDisponibilidadHabitacion $validarDisponibilidad,
+        private ReservaRepositorioInterface $reservas,
+        private HabitacionRepositorioInterface $habitaciones,
     ) {}
 
     public function ejecutar(CambiarHabitacionData $data): Estancia
     {
         return DB::transaction(function () use ($data): Estancia {
-            $estancia = Estancia::query()
-                ->where('id', $data->estanciaId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $estancia = $this->reservas->estanciaConLock($data->estanciaId);
 
             if (! in_array($estancia->estado, [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA], true)) {
                 throw new DomainException("La estancia #{$estancia->id} no se encuentra activa para realizar un cambio de habitación.");
             }
 
             /** @var Habitacion $habitacionAnterior */
-            $habitacionAnterior = $estancia->habitacion()->lockForUpdate()->firstOrFail();
+            $habitacionAnterior = $this->habitaciones->buscarPorIdConLock((int) $estancia->habitacion_id);
 
-            /** @var Habitacion $habitacionNueva */
-            $habitacionNueva = Habitacion::query()
-                ->where('id', $data->nuevaHabitacionId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $habitacionNueva = $this->habitaciones->buscarPorIdConLock($data->nuevaHabitacionId);
 
             if (! in_array($habitacionNueva->estado, [EstadoEspacio::Disponible, EstadoEspacio::Reservado], true)) {
                 throw new DomainException("La nueva habitación {$habitacionNueva->nombre} (N° {$habitacionNueva->numero}) no está limpia y disponible para ocupar.");
             }
 
-            $detalle = $estancia->reservaDetalle()->lockForUpdate()->first();
+            $detalle = $this->reservas->obtenerDetalleDeEstanciaConLock($estancia);
             if ($detalle) {
                 if ($detalle->fecha_fin === null) {
                     throw new DomainException("La estancia #{$estancia->id} no tiene una fecha de salida programada.");
@@ -62,19 +59,19 @@ final readonly class CambiarHabitacionEstancia
                     excluirDetalleId: $detalle->id,
                 );
 
-                $detalle->update([
+                $this->reservas->actualizarDetalle($detalle, [
                     'reservable_id' => $data->nuevoRecursoReservableId,
                 ]);
             }
 
             // Move estancia to new room
-            $estancia->update([
+            $this->reservas->actualizarEstancia($estancia, [
                 'habitacion_id' => $habitacionNueva->id,
             ]);
 
             // Set old room to dirty, new room to occupied
-            $habitacionAnterior->update(['estado' => EstadoEspacio::Sucio]);
-            $habitacionNueva->update(['estado' => EstadoEspacio::Ocupado]);
+            $this->habitaciones->actualizarEstado($habitacionAnterior, EstadoEspacio::Sucio);
+            $this->habitaciones->actualizarEstado($habitacionNueva, EstadoEspacio::Ocupado);
 
             HabitacionPendienteDeLimpieza::dispatch($habitacionAnterior, "Cambio de habitación por motivo: {$data->motivo}");
             HuespedCambiadoDeHabitacion::dispatch($estancia, $habitacionAnterior, $habitacionNueva, $data->motivo);

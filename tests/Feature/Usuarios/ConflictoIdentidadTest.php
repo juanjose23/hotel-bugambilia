@@ -61,18 +61,25 @@ it('vincula persona y crea cliente al resolver conflicto', function () {
     $conflicto = crearConflicto();
     $catalogo = crearCatalogo();
 
+    $admin = User::create([
+        'name' => 'Admin',
+        'email' => 'admin@test.com',
+        'password' => 'password',
+    ]);
+
     $interactor = app(ResolverConflictoIdentidad::class);
     $resultado = $interactor->vincular($conflicto, [
         'catalogo_id' => $catalogo->id,
         'email' => 'juan@test.com',
         'password' => 'password123',
-    ]);
+    ], $admin->id);
 
     expect($resultado['cliente'])->toBeInstanceOf(Cliente::class);
     expect($resultado['user'])->toBeInstanceOf(User::class);
 
     $conflicto->refresh();
     expect($conflicto->estado)->toBe(EstadoConflictoIdentidad::Resuelto);
+    expect($conflicto->resuelto_por)->toBe($admin->id);
     expect($conflicto->resuelto_en)->not->toBeNull();
 
     Event::assertDispatched(ClienteRegistrado::class);

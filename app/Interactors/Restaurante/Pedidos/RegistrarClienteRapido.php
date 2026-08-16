@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Pedidos;
 
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Personas\PersonaJuridica;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
@@ -22,9 +23,9 @@ final class RegistrarClienteRapido
      *
      * @param  array{primer_nombre: string, primer_apellido?: string|null, razon_social?: string|null, tipo_persona?: string|null, tipo_identificacion?: string|null, identificacion?: string|null, telefono?: string|null}  $datos
      */
-    public function ejecutar(array $datos): Persona
+    public function ejecutar(array $datos): Cliente
     {
-        return DB::transaction(function () use ($datos): Persona {
+        return DB::transaction(function () use ($datos): Cliente {
             $catalogoId = $this->obtenerCatalogoClienteDefault();
             $tipoPersona = ($datos['tipo_persona'] ?? 'natural') === 'juridica' ? 'juridica' : 'natural';
 
@@ -52,7 +53,6 @@ final class RegistrarClienteRapido
 
                 $naturalData = [
                     'persona_id' => $persona->id,
-                    'primer_nombre' => $datos['primer_nombre'],
                     'primer_apellido' => $datos['primer_apellido'] ?? '',
                 ];
 
@@ -64,13 +64,13 @@ final class RegistrarClienteRapido
                 $this->repositorio->crearPersonaNatural($naturalData);
             }
 
-            $this->repositorio->crearCliente([
+            $cliente = $this->repositorio->crearCliente([
                 'persona_id' => $persona->id,
                 'catalogo_id' => $catalogoId,
                 'estado' => 1,
             ]);
 
-            return $persona->fresh() ?? $persona;
+            return $cliente->fresh(['persona']) ?? $cliente;
         });
     }
 

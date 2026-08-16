@@ -7,7 +7,7 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoRecursoReservable;
-use App\Events\Reservas\ReservaHabitacionCreada;
+use App\Events\Reservas\ReservaCreada;
 use App\Interactors\Reservas\Habitaciones\CrearReservaHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\RecursoReservable;
@@ -49,5 +49,5 @@ test('crear reserva de habitacion crea cabecera, detalles y dispara evento sin c
     // Habitación física debe permanecer sin cambio
     expect($habitacion->fresh()->estado)->toBe(EstadoEspacio::Disponible);
 
-    Event::assertDispatched(ReservaHabitacionCreada::class);
+    Event::assertDispatched(ReservaCreada::class);
 });

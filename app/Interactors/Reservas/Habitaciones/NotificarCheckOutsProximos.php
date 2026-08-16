@@ -4,30 +4,23 @@ declare(strict_types=1);
 
 namespace App\Interactors\Reservas\Habitaciones;
 
-use App\Enums\Estancias\EstadoEstancia;
 use App\Notifications\Reservas\NotificadorReservas;
-use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Queries\Reservas\ObtenerDestinatariosRecordatorioReservaQuery;
-use Illuminate\Database\Eloquent\Collection;
+use App\Repository\Queries\Reservas\ObtenerEstanciasProximasCheckOutQuery;
 
 final readonly class NotificarCheckOutsProximos
 {
     public function __construct(
         private ObtenerDestinatariosRecordatorioReservaQuery $obtenerDestinatarios,
         private NotificadorReservas $notificador,
+        private ObtenerEstanciasProximasCheckOutQuery $estanciasProximas,
     ) {}
 
     public function ejecutar(): int
     {
         $limiteHorizonte = now()->addHours(2);
 
-        /** @var Collection<int, Estancia> $estanciasProximas */
-        $estanciasProximas = Estancia::query()
-            ->with(['reserva', 'habitacion'])
-            ->where('estado', EstadoEstancia::ACTIVA)
-            ->whereNull('fecha_check_out_real')
-            ->where('fecha_salida_programada', '<=', $limiteHorizonte)
-            ->get();
+        $estanciasProximas = $this->estanciasProximas->ejecutar($limiteHorizonte);
 
         $notificados = 0;
 

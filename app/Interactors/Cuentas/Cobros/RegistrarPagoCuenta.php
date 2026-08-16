@@ -43,7 +43,14 @@ final class RegistrarPagoCuenta
             throw new DomainException('El monto del pago debe ser mayor a cero.');
         }
 
-        if (! $cuenta->estado->permiteNuevosCargos() && $cuenta->estado !== EstadoCuenta::PENDIENTE_PAGO) {
+        $estadosQueAceptanPagos = [
+            EstadoCuenta::SOLICITADA,
+            EstadoCuenta::ABIERTA,
+            EstadoCuenta::BLOQUEADA,
+            EstadoCuenta::PENDIENTE_PAGO,
+        ];
+
+        if (! in_array($cuenta->estado, $estadosQueAceptanPagos, true)) {
             throw new DomainException(
                 "La cuenta {$cuenta->numero_cuenta} está en estado '{$cuenta->estado->getLabel()}' y no acepta pagos.",
             );

@@ -47,13 +47,25 @@ class ConsultarHabitacionesDisponibles
         return RecursoReservable::query()
             ->where('tipo', TipoRecursoReservable::HABITACION)
             ->where('estado', EstadoRecursoReservable::ACTIVO)
-            ->where('capacidad', '>=', $totalPersonas)
-            ->whereHas('habitacion', function (Builder $query) use ($categoriaHabitacionId): void {
+            ->whereHas('habitacion', function (Builder $query) use ($categoriaHabitacionId, $totalPersonas): void {
                 $query->whereNull('deleted_at');
 
                 if ($categoriaHabitacionId !== null) {
                     $query->where('categoria_id', $categoriaHabitacionId);
                 }
+
+                $query->where(function (Builder $capacidadQuery) use ($totalPersonas): void {
+                    $capacidadQuery->whereDoesntHave('detalle')
+                        ->orWhereHas('detalle', function (Builder $detalleQuery) use ($totalPersonas): void {
+                            $detalleQuery
+                                ->where(function (Builder $sinCapacidadDefinida): void {
+                                    $sinCapacidadDefinida
+                                        ->whereNull('capacidad_adultos')
+                                        ->whereNull('capacidad_ninos');
+                                })
+                                ->orWhereRaw('(COALESCE(capacidad_adultos, 0) + COALESCE(capacidad_ninos, 0)) >= ?', [$totalPersonas]);
+                        });
+                });
             })
             ->whereDoesntHave('detalles', function (Builder $query) use ($fechaCheckIn, $fechaCheckOut, $excluirDetalleId): void {
                 $query->whereNull('deleted_at')
@@ -74,7 +86,7 @@ class ConsultarHabitacionesDisponibles
                     $query->where('id', '!=', $excluirDetalleId);
                 }
             })
-            ->with(['habitacion.categoria', 'habitacion.ubicacion'])
+            ->with(['habitacion.categoria', 'habitacion.ubicacion', 'habitacion.reservable'])
             ->get();
     }
 }

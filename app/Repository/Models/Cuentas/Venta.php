@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Repository\Models\Cuentas;
 
 use App\Enums\Cuentas\EstadoVenta;
+use App\Repository\Models\Clientes\Cliente;
+use App\Repository\Models\Facturacion\Factura;
+use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Models\Monedas\Moneda;
-use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * Documento de venta definitivo generado al cerrar una cuenta.
@@ -35,8 +39,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $anulada_por
  * @property Carbon|null $anulada_en
  */
-final class Venta extends Model
+final class Venta extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'ventas';
 
     protected $guarded = ['id'];
@@ -63,10 +69,10 @@ final class Venta extends Model
         return $this->belongsTo(Cuenta::class);
     }
 
-    /** @return BelongsTo<Persona, $this> */
+    /** @return BelongsTo<Cliente, $this> */
     public function cliente(): BelongsTo
     {
-        return $this->belongsTo(Persona::class);
+        return $this->belongsTo(Cliente::class);
     }
 
     /** @return BelongsTo<Moneda, $this> */
@@ -85,5 +91,17 @@ final class Venta extends Model
     public function detalles(): HasMany
     {
         return $this->hasMany(VentaDetalle::class);
+    }
+
+    /** @return HasMany<Factura, $this> */
+    public function facturas(): HasMany
+    {
+        return $this->hasMany(Factura::class);
+    }
+
+    /** @return HasMany<PagoTransaccion, $this> */
+    public function transaccionesPasarela(): HasMany
+    {
+        return $this->hasMany(PagoTransaccion::class);
     }
 }

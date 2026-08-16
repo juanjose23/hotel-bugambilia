@@ -11,7 +11,7 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoRecursoReservable;
 use App\Enums\Reservas\TipoReserva;
-use App\Events\Reservas\CheckOutHabitacionRealizado;
+use App\Events\Reservas\CheckOutRegistrado;
 use App\Events\Reservas\HabitacionPendienteDeLimpieza;
 use App\Interactors\Reservas\Habitaciones\RealizarCheckOutHabitacion;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -74,7 +74,7 @@ test('realizar check-out completa estancia y detalle, marca habitacion sucia y e
     expect($habitacion->fresh()->estado)->toBe(EstadoEspacio::Sucio);
     expect($reserva->fresh()->estado)->toBe(EstadoReserva::CHECKED_OUT);
 
-    Event::assertDispatched(CheckOutHabitacionRealizado::class);
+    Event::assertDispatched(CheckOutRegistrado::class);
     Event::assertDispatched(HabitacionPendienteDeLimpieza::class);
 });
 

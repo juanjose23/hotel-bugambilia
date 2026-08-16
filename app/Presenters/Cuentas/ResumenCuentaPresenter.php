@@ -120,8 +120,8 @@ final class ResumenCuentaPresenter
     private function resolverNombreCliente(Cuenta $cuenta): string
     {
         // 1. Cliente directo de la cuenta
-        if ($cuenta->cliente !== null) {
-            $nombre = $this->nombrePersona->ejecutar($cuenta->cliente);
+        if ($cuenta->cliente !== null && $cuenta->cliente->persona !== null) {
+            $nombre = $this->nombrePersona->ejecutar($cuenta->cliente->persona);
             if (! empty($nombre)) {
                 return $nombre;
             }
@@ -130,8 +130,8 @@ final class ResumenCuentaPresenter
         // 2. Si es cuenta de restaurante, buscar cliente asignado a la comanda
         $pedido = $this->cuentas->pedidoClienteDeCuenta($cuenta->id);
 
-        if ($pedido !== null && $pedido->cliente !== null) {
-            $nombre = $this->nombrePersona->ejecutar($pedido->cliente);
+        if ($pedido !== null && $pedido->cliente !== null && $pedido->cliente->persona !== null) {
+            $nombre = $this->nombrePersona->ejecutar($pedido->cliente->persona);
             if (! empty($nombre)) {
                 return $nombre;
             }
@@ -150,11 +150,8 @@ final class ResumenCuentaPresenter
 
     private function resolverTelefonoCliente(Cuenta $cuenta): ?string
     {
-        if ($cuenta->cliente?->personaNatural !== null) {
-            /** @var object{telefono?: string|null} $natural */
-            $natural = $cuenta->cliente->personaNatural;
-
-            return property_exists($natural, 'telefono') ? $natural->telefono : null;
+        if ($cuenta->cliente !== null && filled($cuenta->cliente->telefono)) {
+            return $cuenta->cliente->telefono;
         }
 
         if ($cuenta->tipo_cuenta === TipoCuenta::ESTANCIA) {
