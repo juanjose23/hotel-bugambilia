@@ -4,6 +4,7 @@ use App\Http\Controllers\Activos\ReporteActivoController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Compras\ReporteCompraController;
 use App\Http\Controllers\Espacios\EspacioController;
+use App\Http\Controllers\Financiero\ReporteFinancieroController;
 use App\Http\Controllers\Habitaciones\HabitacionController;
 use App\Http\Controllers\Inventario\ReporteInventarioController;
 use App\Http\Controllers\LandingController;
@@ -13,11 +14,14 @@ use App\Http\Controllers\Publico\FavoritosController;
 use App\Http\Controllers\Publico\PagoController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\Reservas\MisReservasController;
+use App\Http\Controllers\Reservas\ReporteReservaController;
 use App\Http\Controllers\Restaurante\ComandaController;
 use App\Http\Controllers\Restaurante\RestauranteController;
 use App\Http\Controllers\Restaurante\VoucherRestauranteController;
 use App\Http\Controllers\Servicios\ServicioController;
 use App\Http\Controllers\Servicios\ServicioReportController;
+use App\Http\Controllers\WebServices\Reservas\CancelarReservaWebServiceController;
+use App\Http\Controllers\WebServices\Stripe\StripeReservaPaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,11 +37,21 @@ Route::get('/servicios/{slug}', [ServicioController::class, 'show'])->name('serv
 Route::get('/acerca-de', AcercaDeController::class)->name('acerca-de');
 Route::get('/contacto', ContactoController::class)->name('contacto');
 Route::get('/pago', PagoController::class)->name('pago');
+Route::get('/reservas/{reserva}/pago', [PagoController::class, 'reserva'])
+    ->name('reservas.pago');
+Route::post('/pagos/stripe/reservas/intento', [StripeReservaPaymentController::class, 'crearIntento'])
+    ->name('pagos.stripe.reservas.intento');
+Route::post('/pagos/stripe/reservas/confirmar', [StripeReservaPaymentController::class, 'confirmarCliente'])
+    ->name('pagos.stripe.reservas.confirmar');
+Route::post('/stripe/webhook', [StripeReservaPaymentController::class, 'webhook'])
+    ->name('stripe.webhook');
 Route::get('/favoritos', FavoritosController::class)->name('favoritos');
 Route::get('/restaurante', RestauranteController::class)->name('restaurante');
 Route::get('/pantalla-turnos', [ComandaController::class, 'pantallaTurnosPublica'])->name('pantalla-turnos');
 Route::get('/habitaciones', [HabitacionController::class, 'index'])->name('habitaciones');
 Route::get('/habitaciones/{slug}', [HabitacionController::class, 'show'])->name('habitacion-detalle');
+Route::get('/habitaciones/{slug}/disponibilidad', [HabitacionController::class, 'disponibilidad'])->name('habitaciones.disponibilidad');
+Route::get('/habitaciones/{slug}/dias-agotados', [HabitacionController::class, 'diasAgotados'])->name('habitaciones.dias-agotados');
 Route::get('/habitaciones/{slug}/reservar', [HabitacionController::class, 'mostrarReserva'])->name('habitaciones.reservar');
 Route::get('/espacios', [EspacioController::class, 'index'])->name('espacios');
 Route::get('/espacios/{slug}', [EspacioController::class, 'show'])->name('espacio-detalle');
@@ -51,6 +65,7 @@ Route::get('/espacios/{slug}/reservar', [EspacioController::class, 'mostrarReser
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'mostrarLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'iniciarSesion'])->middleware('throttle:auth');
+    Route::post('/iniciar-sesion', [AuthController::class, 'iniciarSesion'])->middleware('throttle:auth');
     Route::get('/registro', [AuthController::class, 'mostrarRegistro'])->name('registro');
     Route::post('/registro', [AuthController::class, 'registrar'])->middleware('throttle:auth');
 });
@@ -59,8 +74,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'cerrarSesion'])->middleware(['auth', 'throttle:logout'])->name('logout');
     Route::get('/cambiar-contrasena', [AuthController::class, 'mostrarCambiarContrasena'])->name('cambiar-contrasena');
     Route::post('/cambiar-contrasena', [AuthController::class, 'cambiarContrasena']);
-    Route::get('/mis-reservas', MisReservasController::class)->name('mis-reservas');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Portal de Huéspedes (Subdominio Dedicado)
+|--------------------------------------------------------------------------
+*/
+$portalDomain = config('app.portal_domain');
+if (is_string($portalDomain) && $portalDomain !== '') {
+    Route::domain($portalDomain)->group(function (): void {
+        Route::get('/', MisReservasController::class)->name('portal.inicio');
+        Route::get('/mis-reservas', MisReservasController::class)->name('portal.mis-reservas');
+    });
+}
+
+Route::get('/mis-reservas', MisReservasController::class)->name('mis-reservas');
+Route::get('/reservas/mis-reservas', MisReservasController::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +101,9 @@ Route::post('/reservas', [ReservaController::class, 'crear'])->name('reservas.cr
 Route::post('/reservas/{reserva}/cancelar', [ReservaController::class, 'cancelar'])
     ->middleware('auth')
     ->name('reservas.cancelar');
+Route::post('/web-services/reservas/{reserva}/cancelar', CancelarReservaWebServiceController::class)
+    ->middleware('auth')
+    ->name('web-services.reservas.cancelar');
 Route::get('/reservas/{reserva}/voucher', [ReservaController::class, 'voucher'])
     ->middleware('auth')
     ->name('reservas.voucher');
@@ -81,6 +114,22 @@ Route::get('/reservas/{reserva}/voucher', [ReservaController::class, 'voucher'])
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Financiero, Cuentas & Facturación
+    Route::prefix('financiero/reportes')->name('financiero.reportes.')->group(function () {
+        Route::get('/cuentas-cobrar/pdf', [ReporteFinancieroController::class, 'cuentasCobrarPdf'])->name('cuentas-cobrar.pdf');
+        Route::get('/facturacion-ventas/pdf', [ReporteFinancieroController::class, 'facturacionVentasPdf'])->name('facturacion-ventas.pdf');
+        Route::get('/resumen-ejecutivo/pdf', [ReporteFinancieroController::class, 'resumenEjecutivoPdf'])->name('resumen-ejecutivo.pdf');
+    });
+
+    // Reservas & Ventas
+    Route::prefix('reservas/reportes')->name('reservas.reportes.')->group(function () {
+        Route::get('/ocupacion/pdf', [ReporteReservaController::class, 'ocupacionPdf'])->name('ocupacion.pdf');
+        Route::get('/ventas-ingresos/pdf', [ReporteReservaController::class, 'ventasIngresosPdf'])->name('ventas-ingresos.pdf');
+        Route::get('/reservas-estado/pdf', [ReporteReservaController::class, 'reservasEstadoPdf'])->name('reservas-estado.pdf');
+        Route::get('/huespedes/pdf', [ReporteReservaController::class, 'huespedesPdf'])->name('huespedes.pdf');
+        Route::get('/rendimiento-habitaciones/pdf', [ReporteReservaController::class, 'rendimientoHabitacionesPdf'])->name('rendimiento-habitaciones.pdf');
+    });
 
     // Restaurante
     Route::get('/restaurante/pedidos/{pedido}/comanda', [ComandaController::class, 'imprimir'])

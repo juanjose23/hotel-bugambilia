@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
-import SeccionHabitaciones from '@/modules/rooms/components/SeccionHabitaciones';
-import type { RoomItem } from '@/modules/rooms/components/TarjetaHabitacion';
-import type { DatosPaginacion } from '@/modules/shared/types';
+import type { DatosPaginacion } from '@/modulos/compartido/types';
+import SeccionHabitaciones from '@/modulos/habitaciones/componentes/SeccionHabitaciones';
+import type { RoomItem } from '@/modulos/habitaciones/componentes/TarjetaHabitacion';
 interface HabitacionesProps {
     rooms?: RoomItem[];
     categorias?: string[];

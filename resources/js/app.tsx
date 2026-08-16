@@ -1,9 +1,11 @@
 import { createInertiaApp } from '@inertiajs/react';
 import type { ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
-import { LayoutPublico } from '@/modules/shared/components/layouts/LayoutPublico';
-import { LimitadorErrores } from '@/modules/shared/components/LimitadorErrores';
-import { ProveedorTema } from '@/modules/shared/hooks/useTema';
+import { Toaster } from 'sonner';
+import { LayoutPublico } from '@/modulos/compartido/componentes/layouts/LayoutPublico';
+import { LimitadorErrores } from '@/modulos/compartido/componentes/LimitadorErrores';
+import { ProveedorTema } from '@/modulos/compartido/hooks/useTema';
+import 'sonner/dist/styles.css';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 void createInertiaApp({
     strictMode: true,
@@ -28,6 +30,7 @@ void createInertiaApp({
             <ProveedorTema>
                 <LimitadorErrores>
                     <App {...props} />
+                    <Toaster richColors position="top-right" />
                 </LimitadorErrores>
             </ProveedorTema>
         );

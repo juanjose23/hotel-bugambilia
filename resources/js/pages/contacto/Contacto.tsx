@@ -1,31 +1,30 @@
 import { Head } from '@inertiajs/react';
-import FormularioContacto from '@/modules/contact/components/FormularioContacto';
-import InformacionContacto from '@/modules/contact/components/InformacionContacto';
-import PortadaContacto from '@/modules/contact/components/PortadaContacto';
-const Contacto = () => {
+import { SeccionContacto } from '@/modulos/contacto/componentes/SeccionContacto';
+
+interface PropiedadesPaginaContacto {
+    hotel?: {
+        name?: string;
+        telefono?: string;
+        email?: string;
+        direccion?: string;
+    };
+}
+
+export const PaginaContacto = ({ hotel }: PropiedadesPaginaContacto) => {
     return (
         <>
             <Head>
-                <title>Contacto — Hotel Bugambilias</title>
+                <title>
+                    Contacto Directo & Recepción 24/7 — Hotel Bugambilias Estelí
+                </title>
                 <meta
                     name="description"
-                    content="Contacta al Hotel Bugambilias Estelí — Reservaciones, ubicación y atención al cliente. Estamos para servirte."
+                    content="Contacte directamente con la recepción de Hotel Bugambilias Estelí. Asistencia 24/7, atención telefónica, WhatsApp y reservación directa sin intermediarios."
                 />
             </Head>
-            <PortadaContacto />
-            <section className="bg-background py-16 md:py-24">
-                <div className="container mx-auto px-4 sm:px-6">
-                    <div className="grid gap-8 lg:grid-cols-5 lg:gap-12">
-                        <div className="lg:col-span-3">
-                            <FormularioContacto />
-                        </div>
-                        <div className="lg:col-span-2">
-                            <InformacionContacto />
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <SeccionContacto hotelInfo={hotel} />
         </>
     );
 };
-export default Contacto;
+
+export default PaginaContacto;

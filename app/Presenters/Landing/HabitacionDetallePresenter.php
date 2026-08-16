@@ -27,6 +27,8 @@ final class HabitacionDetallePresenter
 
         return [
             'id' => $habitacion->id,
+            'categoria_id' => $habitacion->categoria_id,
+            'ubicacion_id' => $habitacion->ubicacion_id,
             'codigo' => $habitacion->codigo,
             'numero' => $habitacion->numero,
             'slug' => Str::slug($nombre).'-'.$habitacion->id,
