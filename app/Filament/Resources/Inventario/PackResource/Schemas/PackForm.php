@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Inventario\PackResource\Schemas;
 
+use App\BusinessLogic\Inventario\Data\Pack\VarianteData;
 use App\Enums\Catalogos\CatalogoTipo;
+use App\Filament\Shared\Forms\CategoriaSelect;
 use App\Repository\Queries\Inventario\Pack\ObtenerVariantesParaPackQuery;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -14,7 +16,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Builder;
 
 readonly class PackForm
 {
@@ -29,8 +30,10 @@ readonly class PackForm
 
     private function doConfigure(Schema $schema): Schema
     {
-        $variantes = $this->obtenerVariantes->ejecutar()
-            ->mapWithKeys(fn (object $v) => [$v->id => $v->label]);
+        /** @var array<int, string> $variantesMap */
+        $variantesMap = $this->obtenerVariantes->ejecutar()
+            ->mapWithKeys(fn (VarianteData $v) => [(int) $v->id => (string) $v->label])
+            ->toArray();
 
         return $schema
             ->components([
@@ -44,48 +47,23 @@ readonly class PackForm
                             ->maxLength(255)
                             ->prefixIcon(Heroicon::Cube),
 
-                        Select::make('categoria_id')
-                            ->label('Categoría')
-                            ->relationship(
-                                name: 'categoria',
-                                titleAttribute: 'nombre',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                                    'catalogoTipo',
-                                    fn (Builder $q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value)
-                                )
-                            )
-                            ->searchable()
-                            ->preload()
+                        CategoriaSelect::make(CatalogoTipo::CATEGORIA_PRODUCTO)
                             ->required()
                             ->prefixIcon(Heroicon::Folder),
 
-                        Select::make('marca_id')
-                            ->label('Marca')
-                            ->relationship(
-                                name: 'marca',
-                                titleAttribute: 'nombre',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                                    'catalogoTipo',
-                                    fn (Builder $q) => $q->where('codigo', CatalogoTipo::MARCA->value)
-                                )
-                            )
-                            ->searchable()
-                            ->preload()
+                        CategoriaSelect::make(
+                            tipo: CatalogoTipo::MARCA,
+                            column: 'marca_id',
+                            label: 'Marca',
+                        )
                             ->nullable()
                             ->prefixIcon(Heroicon::Tag),
 
-                        Select::make('unidad_medida_id')
-                            ->label('Unidad de Medida')
-                            ->relationship(
-                                name: 'unidadMedida',
-                                titleAttribute: 'nombre',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                                    'catalogoTipo',
-                                    fn (Builder $q) => $q->where('codigo', CatalogoTipo::UNIDAD_MEDIDA->value)
-                                )
-                            )
-                            ->searchable()
-                            ->preload()
+                        CategoriaSelect::make(
+                            tipo: CatalogoTipo::UNIDAD_MEDIDA,
+                            column: 'unidad_medida_id',
+                            label: 'Unidad de Medida',
+                        )
                             ->required()
                             ->prefixIcon(Heroicon::Scale),
 
@@ -111,7 +89,10 @@ readonly class PackForm
                             ->schema([
                                 Select::make('producto_variante_id')
                                     ->label('Producto / Variante')
-                                    ->options(fn () => $variantes)
+                                    ->options($variantesMap)
+                                    ->getOptionLabelUsing(fn (mixed $value): ?string => is_numeric($value)
+                                        ? ($variantesMap[(int) $value] ?? (string) $value)
+                                        : null)
                                     ->searchable()
                                     ->preload()
                                     ->required()
@@ -135,9 +116,15 @@ readonly class PackForm
                             ->columns(5)
                             ->defaultItems(0)
                             ->collapsible()
-                            ->itemLabel(fn (array $state): string => isset($state['producto_variante_id'])
-                                ? ($variantes->get($state['producto_variante_id']) ?? 'Item')
-                                : 'Nuevo Item'),
+                            ->itemLabel(function (array $state) use ($variantesMap): string {
+                                $varianteId = $state['producto_variante_id'] ?? null;
+
+                                if (! is_numeric($varianteId)) {
+                                    return 'Nuevo Item';
+                                }
+
+                                return $variantesMap[(int) $varianteId] ?? 'Item #'.$varianteId;
+                            }),
                     ]),
             ]);
     }

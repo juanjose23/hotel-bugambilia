@@ -9,15 +9,14 @@ use App\BusinessLogic\Inventario\VerificarDisponibilidadPack;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
+use App\Filament\Shared\Filters\FiltroCategoria;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 readonly class PackTable
 {
@@ -85,18 +84,7 @@ readonly class PackTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                SelectFilter::make('categoria_id')
-                    ->label('Categoría')
-                    ->relationship(
-                        name: 'categoria',
-                        titleAttribute: 'nombre',
-                        modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                            'catalogoTipo',
-                            fn (Builder $q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value)
-                        ),
-                    )
-                    ->searchable()
-                    ->preload(),
+                FiltroCategoria::make(CatalogoTipo::CATEGORIA_PRODUCTO),
             ])
             ->recordActions([
                 ActionGroup::make([

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Restaurante\PlatoResource\Tables;
 
 use App\BusinessLogic\Restaurante\Platos\CalcularCostoPlato;
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Repository\Models\Restaurante\Plato;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -21,7 +23,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
@@ -72,9 +73,7 @@ final class PlatoTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('categoria_id')
-                    ->label('Categoria')
-                    ->relationship('categoria', 'nombre'),
+                FiltroCategoria::make(CatalogoTipo::CATEGORIA_SERVICIO),
                 TernaryFilter::make('web')
                     ->label('Visible en Web'),
             ])

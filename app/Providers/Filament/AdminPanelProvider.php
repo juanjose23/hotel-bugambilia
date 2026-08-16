@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\RequerirAdmin;
@@ -37,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->plugin(FilamentShieldPlugin::make()->navigationGroup('Seguridad'))
+            ->plugin(FilamentShieldPlugin::make()->navigationGroup('Clientes & Usuarios'))
             ->path('admin')
             ->login()
             ->defaultThemeMode(ThemeMode::Dark)
@@ -59,6 +61,20 @@ class AdminPanelProvider extends PanelProvider
             ->breadcrumbs()
             ->maxContentWidth('full')
             ->collapsibleNavigationGroups()
+            ->navigationGroups([
+                'Analítica & Reportes',
+                'Gestión de Reservas',
+                'Habitaciones & Espacios',
+                'Facturación & Finanzas',
+                'Restaurante & Cocina',
+                'Inventario & Bodegas',
+                'Compras & Proveedores',
+                'Activos Fijos',
+                'Limpieza & Housekeeping',
+                'Servicios & Promociones',
+                'Clientes & Usuarios',
+                'Configuración & Auditoría',
+            ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->databaseNotifications()
             ->databaseNotificationsPolling('15s')

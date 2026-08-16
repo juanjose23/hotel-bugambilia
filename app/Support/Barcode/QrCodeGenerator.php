@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Barcode;
 
+use Illuminate\Support\Facades\Http;
+
 final class QrCodeGenerator
 {
     public function base64(string $text, int $size = 150): string
@@ -11,16 +13,10 @@ final class QrCodeGenerator
         $url = 'https://quickchart.io/qr?text='.urlencode($text).'&size='.$size.'&margin=1';
 
         try {
-            $context = stream_context_create([
-                'http' => [
-                    'timeout' => 3,
-                ],
-            ]);
+            $response = Http::timeout(3)->get($url);
 
-            $png = @file_get_contents($url, false, $context);
-
-            if ($png !== false && $png !== '') {
-                return 'data:image/png;base64,'.base64_encode($png);
+            if ($response->successful() && $response->body() !== '') {
+                return 'data:image/png;base64,'.base64_encode($response->body());
             }
         } catch (\Throwable) {
             // Fallback

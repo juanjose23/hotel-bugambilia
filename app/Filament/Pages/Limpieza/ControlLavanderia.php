@@ -46,7 +46,7 @@ class ControlLavanderia extends Page implements HasForms, HasTable
 
     protected static ?string $slug = 'limpieza/control-lavanderia';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::Sparkles;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::CheckBadge;
 
     protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
 

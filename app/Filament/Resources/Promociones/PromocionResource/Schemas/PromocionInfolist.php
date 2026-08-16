@@ -33,7 +33,7 @@ class PromocionInfolist
                         TextEntry::make('nombre')
                             ->label('Nombre del Paquete Promocional')
                             ->placeholder('-')
-                            ->icon(Heroicon::Sparkles)
+                            ->icon(Heroicon::CheckBadge)
                             ->weight('bold'),
 
                         TextEntry::make('tipo.nombre')

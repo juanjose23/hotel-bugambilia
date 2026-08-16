@@ -32,7 +32,7 @@ class HabitacionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::HomeModern;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Habitaciones y Ambientes';
+    protected static string|UnitEnum|null $navigationGroup = 'Habitaciones & Espacios';
 
     protected static ?string $modelLabel = 'Habitación';
 

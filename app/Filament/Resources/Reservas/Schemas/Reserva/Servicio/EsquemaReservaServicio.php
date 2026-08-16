@@ -22,7 +22,7 @@ class EsquemaReservaServicio
         return [
             Section::make('Horario y Detalles del Servicio Especial')
                 ->columnSpanFull()
-                ->icon(Heroicon::Sparkles)
+                ->icon(Heroicon::CheckBadge)
                 ->columns(['default' => 1, 'sm' => 2, 'md' => 3])
                 ->visible(fn ($get): bool => in_array($get('tipo_reserva'), [TipoReserva::SERVICIO->value, TipoReserva::PAQUETE->value], true))
                 ->schema([
@@ -61,7 +61,7 @@ class EsquemaReservaServicio
 
             Section::make('Servicio Asignado')
                 ->columnSpanFull()
-                ->icon(Heroicon::Sparkles)
+                ->icon(Heroicon::CheckBadge)
                 ->columns(2)
                 ->visible(fn ($get): bool => in_array($get('tipo_reserva'), [TipoReserva::SERVICIO->value, TipoReserva::PAQUETE->value], true))
                 ->schema([

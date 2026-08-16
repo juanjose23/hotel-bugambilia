@@ -51,7 +51,7 @@ enum TipoEspacio: string implements HasIcon, HasLabel
             self::MESA => 'heroicon-o-users',
             self::GYM => 'heroicon-o-wrench-screwdriver',
             self::SALON => 'heroicon-o-star',
-            self::SPA => 'heroicon-o-sparkles',
+            self::SPA => 'heroicon-o-check-badge',
             self::PISCINA => 'heroicon-o-circle-stack',
             self::CANCHA => 'heroicon-o-map',
             self::OTRO => 'heroicon-o-question-mark-circle',

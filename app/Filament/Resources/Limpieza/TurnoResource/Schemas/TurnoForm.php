@@ -29,7 +29,7 @@ class TurnoForm
                             ->placeholder('Ej: Turno Mañana A')
                             ->required()
                             ->maxLength(100)
-                            ->prefixIcon(Heroicon::Sparkles),
+                            ->prefixIcon(Heroicon::CheckBadge),
 
                         Toggle::make('estado')
                             ->label('Turno Activo')

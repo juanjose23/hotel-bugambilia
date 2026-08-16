@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Tables;
 
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Filament\Resources\Habitaciones\HabitacionResource\HabitacionResource;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Interactors\Habitaciones\ClonarHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
@@ -19,7 +21,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -89,10 +90,7 @@ class HabitacionTable
             ->defaultSort('codigo')
             ->filters([
                 FiltroEstado::make(EstadoEspacio::class),
-                SelectFilter::make('categoria_id')
-                    ->label('Categoría')
-                    ->relationship('categoria', 'nombre'),
-            ])
+                FiltroCategoria::make(CatalogoTipo::CATEGORIA_HABITACION)])
             ->recordActions([
                 ActionGroup::make([
                     Action::make('ver')

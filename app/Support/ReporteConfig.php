@@ -22,6 +22,66 @@ final readonly class ReporteConfig
     public static function getReportes(): array
     {
         return [
+            'financiero' => [
+                'cuentas_cobrar' => [
+                    'codigo' => 'HTB-FIN-001',
+                    'titulo' => 'Reporte de Cuentas por Cobrar',
+                    'descripcion' => 'Informe detallado de saldos pendientes de reservaciones y cuentas corporativas por cobrar.',
+                    'ruta_pdf' => 'admin.financiero.reportes.cuentas-cobrar.pdf',
+                    'ruta_excel' => null,
+                ],
+                'facturacion_ventas' => [
+                    'codigo' => 'HTB-FIN-002',
+                    'titulo' => 'Reporte de Facturación Fiscal y Ventas',
+                    'descripcion' => 'Recaudación total de ventas con desglose subtotal e impuestos fiscales.',
+                    'ruta_pdf' => 'admin.financiero.reportes.facturacion-ventas.pdf',
+                    'ruta_excel' => null,
+                ],
+                'resumen_ejecutivo' => [
+                    'codigo' => 'HTB-FIN-003',
+                    'titulo' => 'Resumen Ejecutivo y Estado de Resultados',
+                    'descripcion' => 'Informe consolidado de ingresos brutos, recaudaciones y facturación para la toma de decisiones.',
+                    'ruta_pdf' => 'admin.financiero.reportes.resumen-ejecutivo.pdf',
+                    'ruta_excel' => null,
+                ],
+            ],
+            'reservas' => [
+                'ocupacion' => [
+                    'codigo' => 'HTB-RES-001',
+                    'titulo' => 'Reporte de Ocupación y Estadías',
+                    'descripcion' => 'Informe detallado de porcentaje de ocupación, check-in, check-out y noches reservadas por rango de fecha.',
+                    'ruta_pdf' => 'admin.reservas.reportes.ocupacion.pdf',
+                    'ruta_excel' => null,
+                ],
+                'ventas_ingresos' => [
+                    'codigo' => 'HTB-RES-002',
+                    'titulo' => 'Ventas e Ingresos por Canal de Pago',
+                    'descripcion' => 'Recaudación total de ventas desglosada por pasarela (Stripe, Transferencia, Efectivo) y saldos cobrados.',
+                    'ruta_pdf' => 'admin.reservas.reportes.ventas-ingresos.pdf',
+                    'ruta_excel' => null,
+                ],
+                'reservas_estado' => [
+                    'codigo' => 'HTB-RES-003',
+                    'titulo' => 'Reservas Agrupadas por Estado',
+                    'descripcion' => 'Listado y totales acumulados de reservas clasificadas por estado (Confirmada, Pendiente, Cancelada, Finalizada).',
+                    'ruta_pdf' => 'admin.reservas.reportes.reservas-estado.pdf',
+                    'ruta_excel' => null,
+                ],
+                'huespedes' => [
+                    'codigo' => 'HTB-RES-004',
+                    'titulo' => 'Listado y Fichas de Huéspedes',
+                    'descripcion' => 'Directorio de clientes titulares, historial de reservas y montos acumulados de estadía.',
+                    'ruta_pdf' => 'admin.reservas.reportes.huespedes.pdf',
+                    'ruta_excel' => null,
+                ],
+                'rendimiento_habitaciones' => [
+                    'codigo' => 'HTB-RES-005',
+                    'titulo' => 'Rendimiento por Categoría de Habitación',
+                    'descripcion' => 'Estadísticas de demanda, ingresos promedio por noche (ADR) y categoría más reservada.',
+                    'ruta_pdf' => 'admin.reservas.reportes.rendimiento-habitaciones.pdf',
+                    'ruta_excel' => null,
+                ],
+            ],
             'compras' => [
                 'solicitudes_estado' => [
                     'codigo' => 'HTB-COM-010',

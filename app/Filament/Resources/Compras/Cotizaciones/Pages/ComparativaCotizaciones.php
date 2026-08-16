@@ -231,7 +231,7 @@ class ComparativaCotizaciones extends Page
         return [
             Action::make('aplicar')
                 ->label('Aplicar Recomendación')
-                ->icon(Heroicon::Sparkles)
+                ->icon(Heroicon::CheckBadge)
                 ->color('success')
                 ->requiresConfirmation()
                 ->action(fn () => $this->aplicarRecomendacion())

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Usuarios\Users;
 
 use App\Filament\Resources\Usuarios\Users\Pages\ManageUsers;
@@ -25,7 +27,7 @@ class UserResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'email';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
+    protected static string|UnitEnum|null $navigationGroup = 'Clientes & Usuarios';
 
     protected static ?int $navigationSort = 1;
 

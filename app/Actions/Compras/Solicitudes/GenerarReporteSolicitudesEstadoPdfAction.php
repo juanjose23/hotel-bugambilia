@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Compras\Solicitudes;
 
 use App\BusinessLogic\Compras\Data\Reportes\SolicitudesEstadoReporteData;
+use App\Repository\Models\Compras\Solicitud;
 use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
 use App\Support\Pdf\LayoutPdf;
@@ -60,8 +61,8 @@ final class GenerarReporteSolicitudesEstadoPdfAction
     }
 
     /**
-     * @param  array<string, int>  $data
-     * @return array<int, Collection<string, int>>
+     * @param  array<int, Solicitud>  $data
+     * @return array<int, Collection<int, Solicitud>>
      */
     private function paginarDatos(array $data, LayoutPdf $layout): array
     {

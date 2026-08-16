@@ -31,7 +31,7 @@ class PromocionResource extends Resource
 
     protected static ?string $slug = 'promociones/promociones';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Promociones';
+    protected static string|UnitEnum|null $navigationGroup = 'Servicios & Promociones';
 
     protected static ?string $navigationLabel = 'Promociones';
 

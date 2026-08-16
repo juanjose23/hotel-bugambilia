@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Catalogos\Ubicaciones;
 
 use App\Filament\Resources\Catalogos\Ubicaciones\Pages\ArbolUbicacion;
@@ -30,7 +32,7 @@ class UbicacionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Ubicaciones';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
 
     protected static ?int $navigationSort = 3;
 
