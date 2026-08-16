@@ -1,0 +1,85 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\BusinessLogic\Reservas;
+
+use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
+
+final readonly class ConstruirMetaDatosReserva
+{
+    public function __construct(
+        private LeerDatoReserva $leerDato,
+        private ObtenerDatosPedidoFormQuery $datosPedidoForm,
+    ) {}
+
+    /**
+     * @param  array<string, mixed>  $datos
+     * @param  array<string, mixed>|null  $resumenRestaurante
+     * @return array<string, mixed>
+     */
+    public function paraCreacion(array $datos, ?array $resumenRestaurante): array
+    {
+        return [
+            'platos_preordenados' => $this->platosPreordenados($datos),
+            'resumen_restaurante' => $resumenRestaurante,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $datos
+     * @return array<string, mixed>
+     */
+    public function paraActualizacion(Reserva $reserva, array $datos): array
+    {
+        $meta = is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
+        $meta['platos_preordenados'] = $this->platosPreordenados($datos);
+
+        return $meta;
+    }
+
+    /**
+     * @param  array<string, mixed>  $datos
+     * @return array<int, array{plato_id: int, nombre: string, cantidad: int, precio_unitario: float, subtotal: float, observaciones: string|null}>
+     */
+    private function platosPreordenados(array $datos): array
+    {
+        $rawPreorden = $this->leerDato->arreglo($datos, 'items_preorden');
+        $platoIds = array_values(array_unique(array_filter(
+            array_map(
+                static fn (mixed $item): int => (is_array($item) && is_numeric($item['plato_id'] ?? null)) ? (int) $item['plato_id'] : 0,
+                $rawPreorden,
+            ),
+            static fn (int $id): bool => $id > 0,
+        )));
+        $platosPorId = $this->datosPedidoForm->platosParaPreorden($platoIds);
+        $platosPreordenados = [];
+
+        foreach ($rawPreorden as $item) {
+            if (! is_array($item) || ! is_numeric($item['plato_id'] ?? null)) {
+                continue;
+            }
+
+            $platoId = (int) $item['plato_id'];
+            $precioValor = $item['precio_unitario'] ?? null;
+            $precio = is_numeric($precioValor) && (float) $precioValor > 0
+                ? (float) $precioValor
+                : ($this->datosPedidoForm->precioActualDePlato($platoId) ?? 0.0);
+            $cantidad = max(1, is_numeric($item['cantidad'] ?? null) ? (int) $item['cantidad'] : 1);
+            $plato = $platosPorId->get($platoId);
+            $nombrePlato = $plato !== null ? $plato->nombre : "Platillo #{$platoId}";
+
+            $platosPreordenados[] = [
+                'plato_id' => $platoId,
+                'nombre' => $nombrePlato,
+                'cantidad' => $cantidad,
+                'precio_unitario' => $precio,
+                'subtotal' => round($precio * $cantidad, 2),
+                'observaciones' => is_string($item['observaciones'] ?? null) ? trim($item['observaciones']) : null,
+            ];
+        }
+
+        return $platosPreordenados;
+    }
+}

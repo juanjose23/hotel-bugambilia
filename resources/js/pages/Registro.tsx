@@ -1,4 +1,4 @@
-import FormularioRegistro from '@/modules/auth/components/FormularioRegistro';
+import FormularioRegistro from '@/modulos/autenticacion/componentes/FormularioRegistro';
 const Registro = () => {
     return (
         <>

@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Habitaciones;
 use App\Http\Controllers\Controller;
 use App\Interactors\Landing\ObtenerHabitacionDetalleLanding;
 use App\Interactors\Landing\ObtenerHabitacionesLanding;
-use App\Repository\Queries\Reservas\ObtenerOpcionesReservaPublicaQuery;
+use App\Interactors\Landing\ObtenerHabitacionReservaLanding;
 use App\Support\Utilidades\FormatearPaginacion;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -43,14 +45,41 @@ final class HabitacionController extends Controller
 
     public function mostrarReserva(
         string $slug,
-        ObtenerHabitacionDetalleLanding $interactor,
-        ObtenerOpcionesReservaPublicaQuery $opcionesQuery,
+        ObtenerHabitacionReservaLanding $interactor,
     ): Response {
-        $data = $interactor->ejecutar($slug);
+        return Inertia::render('habitaciones/HabitacionReservar', $interactor->ejecutar($slug));
+    }
 
-        return Inertia::render('habitaciones/HabitacionReservar', [
-            'room' => $data['room'],
-            'opcionesReserva' => $opcionesQuery->obtener(),
+    public function disponibilidad(
+        string $slug,
+        Request $request,
+        ObtenerHabitacionReservaLanding $interactor,
+    ): JsonResponse {
+        $validated = $request->validate([
+            'fecha_check_in' => ['required', 'date'],
+            'fecha_check_out' => ['required', 'date', 'after:fecha_check_in'],
+            'adultos' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'ninos' => ['nullable', 'integer', 'min:0', 'max:20'],
         ]);
+
+        return response()->json($interactor->recomendarDisponibilidad(
+            slug: $slug,
+            checkIn: CarbonImmutable::parse((string) $validated['fecha_check_in']),
+            checkOut: CarbonImmutable::parse((string) $validated['fecha_check_out']),
+            adultos: is_numeric($validated['adultos'] ?? null) ? (int) $validated['adultos'] : 1,
+            ninos: is_numeric($validated['ninos'] ?? null) ? (int) $validated['ninos'] : 0,
+        ));
+    }
+
+    public function diasAgotados(
+        string $slug,
+        Request $request,
+        ObtenerHabitacionReservaLanding $interactor,
+    ): JsonResponse {
+        $meses = is_numeric($request->query('meses'))
+            ? min(18, max(1, (int) $request->query('meses')))
+            : 12;
+
+        return response()->json($interactor->calendarioDisponibilidad($slug, $meses));
     }
 }

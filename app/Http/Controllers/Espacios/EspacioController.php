@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Interactors\Landing\ObtenerEspacioDetalleLanding;
 use App\Interactors\Landing\ObtenerEspaciosLanding;
 use App\Interactors\Landing\ObtenerOpcionesReservaLanding;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -29,9 +30,15 @@ final class EspacioController extends Controller
         string|int $slug,
         ObtenerEspacioDetalleLanding $interactor,
         ObtenerOpcionesReservaLanding $opciones,
-    ): Response {
+    ): Response|RedirectResponse {
         $detalle = $interactor->ejecutar($slug);
-        $rawId = $detalle['space']['id'] ?? null;
+        $space = $detalle['space'];
+
+        if (! empty($space['es_restaurante']) || (is_string($space['tipo'] ?? null) && strtolower($space['tipo']) === 'restaurante') || $slug === 'restaurante') {
+            return to_route('restaurante');
+        }
+
+        $rawId = $space['id'] ?? null;
         $espacioId = is_numeric($rawId) ? (int) $rawId : 0;
 
         return Inertia::render('espacios/EspacioDetalle', [
@@ -44,9 +51,15 @@ final class EspacioController extends Controller
         string|int $slug,
         ObtenerEspacioDetalleLanding $interactor,
         ObtenerOpcionesReservaLanding $opciones,
-    ): Response {
+    ): Response|RedirectResponse {
         $detalle = $interactor->ejecutar($slug);
-        $rawId = $detalle['space']['id'] ?? null;
+        $space = $detalle['space'];
+
+        if (! empty($space['es_restaurante']) || (is_string($space['tipo'] ?? null) && strtolower($space['tipo']) === 'restaurante') || $slug === 'restaurante') {
+            return to_route('restaurante');
+        }
+
+        $rawId = $space['id'] ?? null;
         $espacioId = is_numeric($rawId) ? (int) $rawId : 0;
 
         return Inertia::render('espacios/EspacioReservar', [

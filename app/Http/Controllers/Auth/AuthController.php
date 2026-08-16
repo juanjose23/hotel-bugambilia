@@ -12,6 +12,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegistroRequest;
 use App\Interactors\Usuarios\Clientes\RegistrarCliente;
 use App\Interactors\Usuarios\Credenciales\CambiarContrasena;
+use App\Support\UsuarioAutenticado;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,7 +64,7 @@ final class AuthController extends Controller
         $datosCliente = $this->construirDatosCliente->construir($datosValidados, $tipoPersona);
 
         try {
-            $resultado = $this->registrarCliente->ejecutar($datosCliente);
+            $resultado = $this->registrarCliente->ejecutar($datosCliente, UsuarioAutenticado::id());
             Auth::login($resultado['user']);
             $request->session()->regenerate();
 

@@ -229,6 +229,16 @@
         letter-spacing: -0.02em;
         font-weight: 800;
     }
+
+    /* Corrección de autofill de Chrome/Edge en modo oscuro y claro */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        -webkit-text-fill-color: var(--foreground) !important;
+        -webkit-box-shadow: 0 0 0px 1000px var(--card) inset !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
 }
 
 @layer components {

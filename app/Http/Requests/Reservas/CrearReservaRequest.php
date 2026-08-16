@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Reservas;
 
+use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -35,6 +36,10 @@ final class CrearReservaRequest extends FormRequest
             'ninos' => ['nullable', 'integer', 'min:0', 'max:20'],
             'solicita_cuenta' => ['nullable', 'boolean'],
             'limite_cuenta_solicitado' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
+            'tipo_pago_reserva' => ['nullable', Rule::enum(TipoPagoReserva::class)],
+            'canal_pago_reserva' => ['nullable', 'string', Rule::in(['manual', 'stripe', 'transferencia', 'sin_pago'])],
+            'origen_pago_reserva' => ['nullable', 'string', Rule::in(['publico', 'admin'])],
+            'metodo_pago_reserva' => ['nullable', 'integer'],
             'notas' => ['nullable', 'string', 'max:2000'],
             'acompanantes' => ['nullable', 'array', 'max:20'],
             'acompanantes.*.nombre' => ['required_with:acompanantes', 'string', 'max:150'],
