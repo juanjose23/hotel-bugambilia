@@ -1,17 +1,17 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
-import AmbientesRestaurante from '@/modules/restaurant/components/AmbientesRestaurante';
-import HorariosRestaurante from '@/modules/restaurant/components/HorariosRestaurante';
-import MenuRestaurante from '@/modules/restaurant/components/MenuRestaurante';
-import PortadaRestaurante from '@/modules/restaurant/components/PortadaRestaurante';
-import SeccionReservaRestaurante from '@/modules/restaurant/components/SeccionReservaRestaurante';
+import { useHotel } from '@/modulos/compartido/hooks/useHotel';
+import AmbientesRestaurante from '@/modulos/restaurante/componentes/AmbientesRestaurante';
+import HorariosRestaurante from '@/modulos/restaurante/componentes/HorariosRestaurante';
+import MenuRestaurante from '@/modulos/restaurante/componentes/MenuRestaurante';
+import PortadaRestaurante from '@/modulos/restaurante/componentes/PortadaRestaurante';
+import SeccionReservaRestaurante from '@/modulos/restaurante/componentes/SeccionReservaRestaurante';
 import type {
     RestauranteData,
     AmbienteData,
     MesaData,
     MenuItemData,
-} from '@/modules/restaurant/types';
-import { useHotel } from '@/modules/shared/hooks/useHotel';
+} from '@/modulos/restaurante/types';
 interface Props {
     restaurante?: RestauranteData | null;
     ambientes?: AmbienteData[];

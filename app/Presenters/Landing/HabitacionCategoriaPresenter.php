@@ -141,6 +141,7 @@ final class HabitacionCategoriaPresenter
             'nombre' => $grupo['categoria'],
             'descripcion' => $grupo['descripcion'],
             'categoria' => $grupo['categoria'],
+            'precio' => $precioMin,
             'precio_desde' => $precioMin,
             'moneda' => $simboloMoneda,
             'imagen' => $imagen,

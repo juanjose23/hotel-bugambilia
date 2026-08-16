@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Landing;
 
+use App\Enums\Reservas\EstadoReserva;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,6 +41,7 @@ final class ObtenerReservasClienteLanding
         $user = Auth::user();
         /** @var Builder<Reserva> $query */
         $query = Reserva::with([
+            'cliente.persona',
             'habitacion.categoria',
             'espacio',
             'servicio',
@@ -52,12 +54,20 @@ final class ObtenerReservasClienteLanding
 
         if ($user) {
             $clienteId = $user->persona?->cliente?->id;
+            $emailUser = $user->email;
 
-            if ($clienteId === null) {
-                return $query->whereRaw('1 = 0');
-            }
-
-            return $query->where('cliente_id', $clienteId);
+            return $query->where(function (Builder $q) use ($clienteId, $emailUser): void {
+                if ($clienteId !== null) {
+                    $q->where('cliente_id', $clienteId);
+                }
+                if (is_string($emailUser) && trim($emailUser) !== '') {
+                    if ($clienteId !== null) {
+                        $q->orWhere('email_cliente', trim($emailUser));
+                    } else {
+                        $q->where('email_cliente', trim($emailUser));
+                    }
+                }
+            });
         }
 
         if ($emailOrCode !== null && trim($emailOrCode) !== '') {
@@ -83,12 +93,13 @@ final class ObtenerReservasClienteLanding
         return [
             'id' => $r->id,
             'codigo_reserva' => $r->codigo_reserva,
-            'nombre_cliente' => $r->nombre_cliente,
+            'nombre_cliente' => $this->resolverNombreCliente($r),
             'tipo_reserva' => $r->tipo_reserva->value,
             'tipo_reserva_label' => $r->tipo_reserva->getLabel(),
             'estado' => $r->estado->value,
             'estado_label' => $r->estado->getLabel(),
             'estado_color' => $r->estado->getColor(),
+            'can_generar_voucher' => $this->puedeGenerarVoucher($r),
             'fecha_check_in' => $r->fecha_check_in?->format('Y-m-d'),
             'fecha_check_out' => $r->fecha_check_out?->format('Y-m-d'),
             'hora_reserva' => $r->hora_reserva,
@@ -101,6 +112,25 @@ final class ObtenerReservasClienteLanding
             'servicios_adicionales' => $this->mapearServiciosAdicionales($r),
             'items' => $this->mapearItems($r),
         ];
+    }
+
+    private function puedeGenerarVoucher(Reserva $reserva): bool
+    {
+        return ! in_array($reserva->estado, [
+            EstadoReserva::CANCELADA,
+            EstadoReserva::NO_SHOW,
+        ], true);
+    }
+
+    private function resolverNombreCliente(Reserva $reserva): ?string
+    {
+        $nombreCliente = $reserva->cliente?->nombre_completo;
+
+        if (is_string($nombreCliente) && trim($nombreCliente) !== '') {
+            return $nombreCliente;
+        }
+
+        return $reserva->nombre_cliente;
     }
 
     private function resolverDetallesTexto(Reserva $r): string

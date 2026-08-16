@@ -1,7 +1,8 @@
 import { Head } from '@inertiajs/react';
-import { SeccionServicios } from '@/modules/services/components/SeccionServicios';
-import type { ItemServicio, DatosPaginacion } from '@/modules/shared/types';
-interface ServiciosProps {
+import type { ItemServicio, DatosPaginacion } from '@/modulos/compartido/types';
+import { SeccionServicios } from '@/modulos/servicios/componentes/SeccionServicios';
+
+interface PropiedadesPaginaServicios {
     services: ItemServicio[];
     categorias?: string[];
     categoriaMasPopular?: string | null;
@@ -9,27 +10,26 @@ interface ServiciosProps {
     searchQuery?: string;
     pagination?: DatosPaginacion;
 }
-const PaginaServicios = ({
+
+export const PaginaServicios = ({
     services,
     categorias = [],
-    categoriaMasPopular = null,
     selectedCategory = null,
     searchQuery = '',
     pagination,
-}: ServiciosProps) => {
+}: PropiedadesPaginaServicios) => {
     return (
         <>
             <Head>
-                <title>Servicios — Hotel Bugambilias</title>
+                <title>Servicios Exclusivos — Hotel Bugambilias Estelí</title>
                 <meta
                     name="description"
-                    content="Servicios premium del Hotel Bugambilias — Restaurante, piscina, gym y transporte. Descubre todo lo que ofrecemos en Estelí."
+                    content="Servicios premium del Hotel Bugambilias en Estelí — Restaurante gourmet, piscina, gym, atención 24/7 y transporte ejecutivo."
                 />
             </Head>
             <SeccionServicios
                 services={services}
                 categorias={categorias}
-                categoriaMasPopular={categoriaMasPopular}
                 selectedCategory={selectedCategory}
                 searchQuery={searchQuery}
                 pagination={pagination}
@@ -37,4 +37,5 @@ const PaginaServicios = ({
         </>
     );
 };
+
 export default PaginaServicios;
