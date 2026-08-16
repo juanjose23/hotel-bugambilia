@@ -7,6 +7,7 @@ namespace App\Interactors\Cuentas\Cobros;
 use App\BusinessLogic\Cuentas\ValidarPagoCobroCuenta;
 use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Enums\Cuentas\MetodoPago;
+use App\Interactors\Cuentas\Beneficios\AplicarBeneficioClienteCuenta;
 use App\Interactors\Cuentas\Gestion\CerrarCuentaYGenerarVenta;
 use App\Interactors\Restaurante\Pedidos\RegistrarClienteRapido;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -29,6 +30,7 @@ final readonly class ProcesarCobroCuenta
         private ValidarPagoCobroCuenta $validarPago,
         private ConvertirMoneda $convertirMoneda,
         private CuentaRepositorioInterface $cuentas,
+        private AplicarBeneficioClienteCuenta $aplicarBeneficioCliente,
     ) {}
 
     /**
@@ -41,6 +43,8 @@ final readonly class ProcesarCobroCuenta
     {
         return DB::transaction(function () use ($cuenta, $usuarioId, $data): array {
             $cuenta = $this->asignarCliente($cuenta, $data);
+            $this->aplicarBeneficioCliente->aplicar($cuenta, $usuarioId);
+            $cuenta = $this->cuentas->refrescar($cuenta);
 
             $formaPago = $data['forma_pago'] ?? null;
             $formaPagoVal = is_numeric($formaPago) ? (int) $formaPago : (is_string($formaPago) ? $formaPago : 1);
@@ -92,6 +96,7 @@ final readonly class ProcesarCobroCuenta
 
                 $venta = $this->cerrarCuenta->ejecutar($cuenta, $usuarioId, $datosFiscales);
                 $cuenta = $this->cuentas->refrescar($cuenta);
+                $this->aplicarBeneficioCliente->registrarUso($cuenta, $venta);
             }
 
             return [
@@ -128,9 +133,9 @@ final readonly class ProcesarCobroCuenta
                 $datosCliente['identificacion'] = is_string($data['nuevo_cliente_identificacion'] ?? null) ? $data['nuevo_cliente_identificacion'] : null;
             }
 
-            $nuevaPersona = $this->registrarCliente->ejecutar($datosCliente);
+            $nuevoCliente = $this->registrarCliente->ejecutar($datosCliente);
 
-            return $this->cuentas->actualizar($cuenta, ['cliente_id' => $nuevaPersona->id]);
+            return $this->cuentas->actualizar($cuenta, ['cliente_id' => $nuevoCliente->id]);
         }
 
         if (isset($data['cliente_id']) && is_numeric($data['cliente_id'])) {

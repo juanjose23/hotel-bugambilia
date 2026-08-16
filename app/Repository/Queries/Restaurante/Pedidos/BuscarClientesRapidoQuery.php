@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Restaurante\Pedidos;
 
-use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Clientes\Cliente;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 final class BuscarClientesRapidoQuery
 {
     /**
-     * Busca personas con cliente asociado por nombre, teléfono o identificación.
+     * Busca clientes por nombre, teléfono o identificación de su persona asociada.
      *
-     * @return Collection<int, Persona>
+     * @return Collection<int, Cliente>
      */
     public function ejecutar(string $busqueda): Collection
     {
@@ -23,10 +23,9 @@ final class BuscarClientesRapidoQuery
             return collect();
         }
 
-        return Persona::query()
-            ->whereHas('cliente')
-            ->where(function (Builder $q) use ($termino): void {
-                $q->where('primer_nombre', 'LIKE', "%{$termino}%")
+        return Cliente::query()
+            ->whereHas('persona', function (Builder $persona) use ($termino): void {
+                $persona->where('primer_nombre', 'LIKE', "%{$termino}%")
                     ->orWhere('segundo_nombre', 'LIKE', "%{$termino}%")
                     ->orWhere('telefono', 'LIKE', "%{$termino}%")
                     ->orWhereHas('personaNatural', function (Builder $pn) use ($termino): void {
@@ -39,7 +38,7 @@ final class BuscarClientesRapidoQuery
                             ->orWhere('numero_identificacion', 'LIKE', "%{$termino}%");
                     });
             })
-            ->with(['personaNatural', 'personaJuridica', 'cliente'])
+            ->with(['persona.personaNatural', 'persona.personaJuridica'])
             ->limit(15)
             ->get();
     }

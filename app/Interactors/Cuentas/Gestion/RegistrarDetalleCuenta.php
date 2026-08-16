@@ -40,8 +40,8 @@ final class RegistrarDetalleCuenta
         float $precioUnitario,
         float $cantidad = 1.0,
         ?Model $origen = null,
-        ?int $espacioId = null,
-        ?int $creadorId = null,
+        int|string|null $espacioId = null,
+        int|string|null $creadorId = null,
         ?string $descripcion = null,
         ?int $tipoDetalle = null,
         ?array $metadatos = null,
@@ -52,19 +52,24 @@ final class RegistrarDetalleCuenta
 
         $this->validarCuenta->validarLimiteAutorizado($cuenta, $subtotal);
 
+        $espacioIdResuelto = $this->enteroOpcional($espacioId);
+        $creadorIdResuelto = $this->enteroOpcional($creadorId);
+
         return DB::transaction(function () use (
             $cuenta, $concepto, $precioUnitario,
-            $cantidad, $subtotal, $origen, $espacioId, $creadorId,
+            $cantidad, $subtotal, $origen, $espacioIdResuelto, $creadorIdResuelto,
             $descripcion, $tipoDetalle, $metadatos
         ): CuentaDetalle {
-            $creadorIdResuelto = ($creadorId !== null && User::query()->where('id', $creadorId)->exists()) ? $creadorId : null;
+            $creadorIdFinal = ($creadorIdResuelto !== null && User::query()->where('id', $creadorIdResuelto)->exists())
+                ? $creadorIdResuelto
+                : null;
 
             $detalle = $this->cuentas->crearDetalle($cuenta, [
                 'moneda_id' => $cuenta->moneda_id,
                 'origen_type' => $origen?->getMorphClass(),
                 'origen_id' => $origen?->getKey(),
                 'tipo_detalle' => $tipoDetalle,
-                'espacio_id' => $espacioId,
+                'espacio_id' => $espacioIdResuelto,
                 'concepto' => $concepto,
                 'descripcion' => $descripcion,
                 'cantidad' => $cantidad,
@@ -73,14 +78,29 @@ final class RegistrarDetalleCuenta
                 'total' => $subtotal,
                 'estado' => EstadoGeneral::Activo->value,
                 'metadatos' => $metadatos,
-                'creador_id' => $creadorIdResuelto,
+                'creador_id' => $creadorIdFinal,
             ]);
 
-            $this->recalcularCuenta->ejecutar($cuenta, $creadorIdResuelto);
+            $this->recalcularCuenta->ejecutar($cuenta, $creadorIdFinal);
 
             DetalleCuentaRegistrado::dispatch($detalle);
 
             return $detalle;
         });
+    }
+
+    private function enteroOpcional(mixed $valor): ?int
+    {
+        if (is_int($valor)) {
+            return $valor > 0 ? $valor : null;
+        }
+
+        if (is_string($valor) && ctype_digit($valor)) {
+            $entero = (int) $valor;
+
+            return $entero > 0 ? $entero : null;
+        }
+
+        return null;
     }
 }

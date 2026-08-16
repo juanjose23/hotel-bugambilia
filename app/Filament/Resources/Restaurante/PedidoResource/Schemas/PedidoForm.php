@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Restaurante\PedidoResource\Schemas;
 
 use App\Enums\Restaurante\EstadoPedido;
 use App\Filament\Shared\Forms\SelectorCuenta;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
@@ -95,8 +96,10 @@ final class PedidoForm
                             ->searchable()
                             ->getSearchResultsUsing(fn (string $search): array => app(BuscarClientesRapidoQuery::class)
                                 ->ejecutar($search)
-                                ->mapWithKeys(fn (Persona $p) => [
-                                    $p->id => trim(($p->nombre_completo ?? $p->primer_nombre).' — '.($p->telefono ?? 'S/T')),
+                                ->mapWithKeys(fn (Cliente $cliente): array => [
+                                    $cliente->id => trim(
+                                        ($cliente->persona->nombre_completo ?? 'Cliente #'.$cliente->id).' — '.($cliente->telefono ?? 'S/T')
+                                    ),
                                 ])
                                 ->toArray())
                             ->getOptionLabelUsing(function ($value): ?string {

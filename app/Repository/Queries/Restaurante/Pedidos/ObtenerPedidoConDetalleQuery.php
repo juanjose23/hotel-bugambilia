@@ -14,8 +14,8 @@ final class ObtenerPedidoConDetalleQuery
         $pedido = Pedido::query()
             ->with([
                 'items.plato',
-                'cliente.personaNatural',
-                'cliente.personaJuridica',
+                'cliente.persona.personaNatural',
+                'cliente.persona.personaJuridica',
                 'mesero.persona',
                 'mesa',
                 'cuenta.pagos',

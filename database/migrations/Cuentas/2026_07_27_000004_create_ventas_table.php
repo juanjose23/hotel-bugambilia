@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('numero_venta', 50)->unique();
             $table->foreignId('cuenta_id')->nullable()->constrained('cuentas')->nullOnDelete();
-            $table->foreignId('cliente_id')->nullable()->constrained('personas')->nullOnDelete();
+            $table->foreignId('cliente_id')->nullable()->constrained('clientes')->nullOnDelete();
             $table->foreignId('moneda_id')->nullable()->constrained('monedas')->nullOnDelete();
 
             // Totales congelados (fotografía histórica)

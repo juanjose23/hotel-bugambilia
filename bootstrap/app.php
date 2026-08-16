@@ -35,6 +35,11 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             RequerirCambioContrasena::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
+            'webhooks/stripe',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('numero_cuenta', 50)->unique();
             $table->unsignedTinyInteger('tipo_cuenta')->default(1);
             $table->unsignedTinyInteger('estado')->default(2)->index();
-            $table->foreignId('cliente_id')->nullable()->constrained('personas')->nullOnDelete();
+            $table->foreignId('cliente_id')->nullable()->constrained('clientes')->nullOnDelete();
             $table->unsignedBigInteger('estancia_id')->nullable()->comment('FK lógica a estancia (sin constraint por orden de migración)');
             $table->foreignId('reserva_id')->nullable()->constrained('reservas')->nullOnDelete();
             $table->foreignId('moneda_id')->nullable()->constrained('monedas')->nullOnDelete();

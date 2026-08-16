@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace App\Repository\Queries\Reservas;
 
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 final class ObtenerCalendarioReservasQuery
 {
+    public function __construct(
+        private readonly ObtenerDiasAgotadosHabitacionQuery $diasAgotadosHabitacion = new ObtenerDiasAgotadosHabitacionQuery,
+    ) {}
+
     /**
      * @return array{
      *     days: array<int, int|null>,
@@ -20,6 +26,7 @@ final class ObtenerCalendarioReservasQuery
      *     month: int,
      *     categorias_habitacion: array<int, string>,
      *     reservasPorDia: Collection<int, Collection<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float, day_check_in: int, es_llegada: bool, es_salida: bool}>>,
+     *     disponibilidadHabitaciones: array{total_habitaciones: int, dias_agotados: array<int, string>, ocupacion_por_dia: array<string, array{ocupadas: int, total: int, disponibles: int, agotado: bool}>}|null,
      *     totalReservas: int,
      *     totalMonto: float
      * }
@@ -49,6 +56,7 @@ final class ObtenerCalendarioReservasQuery
 
         $inicioMes = $firstDayOfMonth->copy()->startOfMonth();
         $finMes = $firstDayOfMonth->copy()->endOfMonth();
+        $disponibilidadHabitaciones = null;
 
         /** @var array<int, string> $categoriasHabitacion */
         $categoriasHabitacion = Catalogo::query()
@@ -68,18 +76,48 @@ final class ObtenerCalendarioReservasQuery
             })
             ->whereNull('deleted_at');
 
-        if ($tipoRecurso === 'habitaciones') {
+        if ($tipoRecurso === 'habitaciones' || $tipoRecurso === TipoReserva::HABITACION->value) {
             $reservaQuery->whereNotNull('habitacion_id');
-        } elseif ($tipoRecurso === 'espacios') {
+        } elseif ($tipoRecurso === 'espacios' || $tipoRecurso === TipoReserva::RESTAURANTE->value) {
             $reservaQuery->whereNotNull('espacio_id');
+        } elseif ($tipoRecurso === TipoReserva::SERVICIO->value) {
+            $reservaQuery->whereNotNull('servicio_id');
+        } elseif ($tipoRecurso === TipoReserva::PAQUETE->value) {
+            $reservaQuery->where('tipo_reserva', TipoReserva::PAQUETE->value);
         }
 
         if ($estadoId !== null && $estadoId > 0) {
             $reservaQuery->where('estado', $estadoId);
+        } elseif ($estadoId === null || $estadoId === 0) {
+            $reservaQuery->where('estado', '!=', EstadoReserva::CANCELADA->value);
         }
 
-        if ($categoria !== null && trim($categoria) !== '') {
-            $reservaQuery->whereHas('habitacion.categoria', fn ($q) => $q->where('nombre', trim($categoria)));
+        if ($categoria !== null && trim((string) $categoria) !== '') {
+            $catVal = trim((string) $categoria);
+            if (is_numeric($catVal)) {
+                $catId = (int) $catVal;
+                $reservaQuery->whereHas('habitacion', fn ($q) => $q->where('categoria_id', $catId));
+
+                $disponibilidadHabitaciones = $this->diasAgotadosHabitacion->porCategoria(
+                    categoriaId: $catId,
+                    inicio: $inicioMes,
+                    fin: $finMes->copy()->addDay(),
+                );
+            } else {
+                $reservaQuery->whereHas('habitacion.categoria', fn ($q) => $q->where('nombre', $catVal));
+
+                $categoriaId = Habitacion::query()
+                    ->whereHas('categoria', fn ($q) => $q->where('nombre', $catVal))
+                    ->value('categoria_id');
+
+                if (is_numeric($categoriaId)) {
+                    $disponibilidadHabitaciones = $this->diasAgotadosHabitacion->porCategoria(
+                        categoriaId: (int) $categoriaId,
+                        inicio: $inicioMes,
+                        fin: $finMes->copy()->addDay(),
+                    );
+                }
+            }
         }
 
         if ($buscar !== null && trim($buscar) !== '') {
@@ -159,6 +197,7 @@ final class ObtenerCalendarioReservasQuery
             'month' => $month,
             'categorias_habitacion' => $categoriasHabitacion,
             'reservasPorDia' => $reservasPorDia,
+            'disponibilidadHabitaciones' => $disponibilidadHabitaciones,
             'totalReservas' => $totalReservas,
             'totalMonto' => $totalMonto,
         ];

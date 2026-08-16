@@ -3,6 +3,7 @@
 namespace App\Repository\Models\Catalogos;
 
 use App\Enums\Shared\EstadoGeneral;
+use App\Repository\Models\Habitaciones\Habitacion;
 use Carbon\Carbon;
 use Database\Factories\CatalogoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -68,6 +69,12 @@ class Catalogo extends Model implements AuditableContract
     public function productoCategoria(): HasMany
     {
         return $this->hasMany(Producto::class, 'categoria_id');
+    }
+
+    /** @return HasMany<Habitacion, $this> */
+    public function habitaciones(): HasMany
+    {
+        return $this->hasMany(Habitacion::class, 'categoria_id');
     }
 
     /** @return HasMany<Producto, $this> */

@@ -7,9 +7,13 @@ namespace App\Repository\Models\Reservas;
 use App\Repository\Models\Servicios\Servicio;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
-final class ReservaServicio extends Model
+final class ReservaServicio extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'reserva_servicios';
 
     protected $guarded = ['id'];

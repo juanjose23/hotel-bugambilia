@@ -9,9 +9,13 @@ use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
-final class ProcesoItem extends Model
+final class ProcesoItem extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'proceso_items';
 
     protected $guarded = ['id'];

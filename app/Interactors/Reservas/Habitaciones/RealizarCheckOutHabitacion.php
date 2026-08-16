@@ -11,13 +11,12 @@ use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReservaDetalle;
-use App\Events\Reservas\CheckOutHabitacionRealizado;
+use App\Events\Reservas\CheckOutRegistrado;
 use App\Events\Reservas\HabitacionPendienteDeLimpieza;
-use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
-use App\Repository\Models\Habitaciones\Habitacion;
-use App\Repository\Models\Reservas\ReservaDetalle;
-use App\Repository\Models\Reservas\ReservaEstadoHistorial;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -25,30 +24,29 @@ final readonly class RealizarCheckOutHabitacion
 {
     public function __construct(
         private RecalcularEstadoReservaHabitacion $recalcularEstado,
+        private ReservaRepositorioInterface $reservas,
+        private HabitacionRepositorioInterface $habitaciones,
+        private CuentaRepositorioInterface $cuentas,
         private ValidarRequisitosCheckOut $validarRequisitos = new ValidarRequisitosCheckOut,
     ) {}
 
     public function ejecutar(RealizarCheckOutData $data): Estancia
     {
         return DB::transaction(function () use ($data): Estancia {
-            $estancia = Estancia::query()
-                ->where('id', $data->estanciaId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $estancia = $this->reservas->estanciaConLock($data->estanciaId);
 
             if ($estancia->estado !== EstadoEstancia::ACTIVA && $estancia->estado !== EstadoEstancia::EXTENDIDA) {
                 throw new DomainException("La estancia #{$estancia->id} no se encuentra activa para Check-Out.");
             }
 
-            $detalle = $estancia->reservaDetalle()->lockForUpdate()->first();
+            $detalle = $this->reservas->obtenerDetalleDeEstanciaConLock($estancia);
             if (! $detalle) {
-                $detalle = ReservaDetalle::query()->where('reserva_id', $estancia->reserva_id)->firstOrFail();
+                $detalle = $this->reservas->obtenerDetalleDeReservaConLock((int) $estancia->reserva_id);
             }
 
-            $reserva = $estancia->reserva()->lockForUpdate()->firstOrFail();
+            $reserva = $this->reservas->obtenerReservaDeEstanciaConLock($estancia);
 
-            /** @var Habitacion $habitacion */
-            $habitacion = $estancia->habitacion()->lockForUpdate()->firstOrFail();
+            $habitacion = $this->habitaciones->buscarPorIdConLock((int) $estancia->habitacion_id);
 
             $this->validarRequisitos->validar($estancia, [
                 'credito_autorizado' => $data->autorizarSaldoPendiente,
@@ -56,25 +54,21 @@ final readonly class RealizarCheckOutHabitacion
                 'autorizar_llaves_pendientes' => $data->autorizarLlavesPendientes,
             ]);
 
-            $cuenta = Cuenta::query()
-                ->where('estancia_id', $estancia->id)
-                ->orWhere('reserva_id', $reserva->id)
-                ->lockForUpdate()
-                ->first();
+            $cuenta = $this->cuentas->cuentaDeEstanciaOReservaConLock((int) $estancia->id, (int) $reserva->id);
 
             if ($cuenta && (float) $cuenta->saldo > 0.0 && ! $data->autorizarSaldoPendiente) {
-                throw new DomainException("No se puede realizar Check-Out: La cuenta #{$cuenta->numero_cuenta} tiene un saldo pendiente de ${$cuenta->saldo} sin autorizar.");
+                throw new DomainException("No se puede realizar Check-Out: La cuenta #{$cuenta->numero_cuenta} tiene un saldo pendiente de {$cuenta->saldo} sin autorizar.");
             }
 
             if ($cuenta) {
-                $cuenta->update([
+                $this->cuentas->actualizar($cuenta, [
                     'estado' => EstadoCuenta::CERRADA,
                     'cerrada_at' => now(),
                     'cerrada_por' => $data->usuarioId,
                 ]);
             }
 
-            $estancia->update([
+            $this->reservas->actualizarEstancia($estancia, [
                 'estado' => EstadoEstancia::FINALIZADA,
                 'check_out_at' => now(),
                 'fecha_check_out_real' => now(),
@@ -82,26 +76,24 @@ final readonly class RealizarCheckOutHabitacion
                 'observaciones_salida' => $data->observaciones,
             ]);
 
-            $detalle->update([
+            $this->reservas->actualizarDetalle($detalle, [
                 'estado' => EstadoReservaDetalle::COMPLETADO,
             ]);
 
-            $habitacion->update([
-                'estado' => EstadoEspacio::Sucio,
-            ]);
+            $this->habitaciones->actualizarEstado($habitacion, EstadoEspacio::Sucio);
 
             $estadoAnterior = $reserva->estado;
             $nuevoEstado = $this->recalcularEstado->ejecutar($reserva);
 
-            ReservaEstadoHistorial::query()->create([
-                'reserva_id' => $reserva->id,
-                'estado_anterior' => $estadoAnterior,
-                'estado_nuevo' => $nuevoEstado,
-                'motivo' => "Check-out realizado para la habitación {$habitacion->numero} (Estancia #{$estancia->id})",
-                'usuario_id' => $data->usuarioId,
-            ]);
+            $this->reservas->registrarHistorial(
+                $reserva,
+                $estadoAnterior,
+                $nuevoEstado,
+                "Check-out realizado para la habitación {$habitacion->numero} (Estancia #{$estancia->id})",
+                $data->usuarioId,
+            );
 
-            CheckOutHabitacionRealizado::dispatch($estancia, $detalle);
+            CheckOutRegistrado::dispatch($estancia);
             HabitacionPendienteDeLimpieza::dispatch($habitacion, "Habitacion {$habitacion->numero} dejada libre por Check-Out");
 
             return $estancia->refresh();

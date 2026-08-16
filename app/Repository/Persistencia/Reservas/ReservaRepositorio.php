@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Persistencia\Reservas;
 
+use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\Reservas\ControlDisponibilidad;
 use App\Enums\Reservas\EstadoRecursoReservable;
 use App\Enums\Reservas\EstadoReserva;
@@ -21,6 +22,7 @@ use App\Repository\Models\Reservas\ReservaEstadoHistorial;
 use App\Repository\Models\Reservas\ReservaHuesped;
 use App\Repository\Models\Servicios\Servicio;
 use DateTimeImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -32,6 +34,129 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         $reserva = Reserva::query()->find($id);
 
         return $reserva;
+    }
+
+    public function obtenerPorIdConLock(int $id): Reserva
+    {
+        /** @var Reserva $reserva */
+        $reserva = Reserva::query()->where('id', $id)->lockForUpdate()->firstOrFail();
+
+        return $reserva;
+    }
+
+    public function obtenerDetalleConLock(int $detalleId): ReservaDetalle
+    {
+        /** @var ReservaDetalle $detalle */
+        $detalle = ReservaDetalle::query()->where('id', $detalleId)->lockForUpdate()->firstOrFail();
+
+        return $detalle;
+    }
+
+    public function obtenerReservaDeDetalleConLock(ReservaDetalle $detalle): Reserva
+    {
+        /** @var Reserva $reserva */
+        $reserva = Reserva::query()->where('id', $detalle->reserva_id)->lockForUpdate()->firstOrFail();
+
+        return $reserva;
+    }
+
+    public function obtenerReservaDeEstanciaConLock(Estancia $estancia): Reserva
+    {
+        /** @var Reserva $reserva */
+        $reserva = Reserva::query()->where('id', $estancia->reserva_id)->lockForUpdate()->firstOrFail();
+
+        return $reserva;
+    }
+
+    public function obtenerDetalleDeEstanciaConLock(Estancia $estancia): ?ReservaDetalle
+    {
+        /** @var ReservaDetalle|null $detalle */
+        $detalle = ReservaDetalle::query()
+            ->where('id', $estancia->reserva_detalle_id)
+            ->lockForUpdate()
+            ->first();
+
+        return $detalle;
+    }
+
+    public function obtenerDetalleDeReservaConLock(int $reservaId): ReservaDetalle
+    {
+        /** @var ReservaDetalle $detalle */
+        $detalle = ReservaDetalle::query()->where('reserva_id', $reservaId)->lockForUpdate()->firstOrFail();
+
+        return $detalle;
+    }
+
+    public function estanciaConLock(int $estanciaId): Estancia
+    {
+        /** @var Estancia $estancia */
+        $estancia = Estancia::query()->where('id', $estanciaId)->lockForUpdate()->firstOrFail();
+
+        return $estancia;
+    }
+
+    public function existeEstanciaActivaParaDetalle(int $detalleId): bool
+    {
+        return Estancia::query()
+            ->where('reserva_detalle_id', $detalleId)
+            ->where('estado', EstadoEstancia::ACTIVA)
+            ->exists();
+    }
+
+    public function tieneEstanciaActiva(Reserva $reserva): bool
+    {
+        return $reserva->estancias()
+            ->where('estado', EstadoEstancia::ACTIVA)
+            ->exists();
+    }
+
+    public function obtenerRecursoConLock(int $recursoId): RecursoReservable
+    {
+        /** @var RecursoReservable $recurso */
+        $recurso = RecursoReservable::query()
+            ->with('habitacion')
+            ->where('id', $recursoId)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return $recurso;
+    }
+
+    /** @return Collection<int, ReservaDetalle> */
+    public function detallesDe(Reserva $reserva): Collection
+    {
+        return $reserva->detalles()->get();
+    }
+
+    /** @return Collection<int, ReservaDetalle> */
+    public function detallesPrincipalesDe(Reserva $reserva): Collection
+    {
+        return $reserva->detalles()->whereNull('parent_id')->get();
+    }
+
+    public function registrarHistorial(
+        Reserva $reserva,
+        ?EstadoReserva $anterior,
+        EstadoReserva $nuevo,
+        ?string $motivo = null,
+        ?int $usuarioId = null,
+    ): void {
+        ReservaEstadoHistorial::query()->create([
+            'reserva_id' => $reserva->id,
+            'estado_anterior' => $anterior,
+            'estado_nuevo' => $nuevo,
+            'motivo' => $motivo,
+            'usuario_id' => $usuarioId,
+        ]);
+    }
+
+    /** @param array<int, int> $ids */
+    public function bloquearRecursosReservables(array $ids): void
+    {
+        RecursoReservable::query()
+            ->whereIn('id', $ids)
+            ->lockForUpdate()
+            ->get();
     }
 
     public function crear(array $datos): Reserva

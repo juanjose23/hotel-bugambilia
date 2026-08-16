@@ -6,10 +6,12 @@ namespace App\Repository\Models\Cuentas;
 
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
+use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use OwenIt\Auditing\Auditable;
@@ -79,6 +81,12 @@ final class PagoCuenta extends Model implements AuditableContract
     public function venta(): BelongsTo
     {
         return $this->belongsTo(Venta::class);
+    }
+
+    /** @return HasMany<PagoTransaccion, $this> */
+    public function transaccionesPasarela(): HasMany
+    {
+        return $this->hasMany(PagoTransaccion::class);
     }
 
     // ─── Métodos de Dominio ───────────────────────────────────────

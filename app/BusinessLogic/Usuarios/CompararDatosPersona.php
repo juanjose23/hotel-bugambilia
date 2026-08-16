@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\BusinessLogic\Usuarios;
 
 use App\Enums\Usuarios\TipoConflictoIdentidad;
+use App\Enums\Usuarios\TipoResolucionIdentidad;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Personas\PersonaNatural;
 
@@ -14,7 +15,7 @@ final class CompararDatosPersona
      * Compara datos provistos vs existentes y clasifica la diferencia.
      *
      * @param  array<string, mixed>  $datosProvidos
-     * @return array{tipo: string, tipo_conflicto: TipoConflictoIdentidad|null}
+     * @return array{tipo: TipoResolucionIdentidad, tipo_conflicto: TipoConflictoIdentidad|null}
      */
     public function comparar(Persona $persona, array $datosProvidos): array
     {
@@ -22,7 +23,7 @@ final class CompararDatosPersona
 
         if (! $personaNatural instanceof PersonaNatural) {
             return [
-                'tipo' => 'conflicto_identidad',
+                'tipo' => TipoResolucionIdentidad::ConflictoIdentidad,
                 'tipo_conflicto' => TipoConflictoIdentidad::IdentidadDudosa,
             ];
         }
@@ -47,19 +48,19 @@ final class CompararDatosPersona
 
             if ($contactoDifiere) {
                 return [
-                    'tipo' => 'actualizar_contacto',
+                    'tipo' => TipoResolucionIdentidad::ActualizarContacto,
                     'tipo_conflicto' => null,
                 ];
             }
 
             return [
-                'tipo' => 'vincular_directo',
+                'tipo' => TipoResolucionIdentidad::VincularDirecto,
                 'tipo_conflicto' => null,
             ];
         }
 
         return [
-            'tipo' => 'conflicto_identidad',
+            'tipo' => TipoResolucionIdentidad::ConflictoIdentidad,
             'tipo_conflicto' => TipoConflictoIdentidad::Homonimia,
         ];
     }

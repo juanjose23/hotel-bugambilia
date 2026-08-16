@@ -11,5 +11,7 @@ final readonly class CancelarReservaHabitacionData
         public string $motivo,
         public ?float $montoPenalizacion = null,
         public ?int $usuarioId = null,
+        public bool $reembolsoStripeEstricto = false,
+        public bool $marcarReembolsoPendiente = false,
     ) {}
 }

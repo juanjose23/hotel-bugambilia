@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Actions\Restaurante;
 
 use App\Interactors\Restaurante\Pedidos\RegistrarClienteRapido;
-use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Clientes\Cliente;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -16,7 +16,7 @@ final class RegistrarClienteRapidoAction
     /**
      * Acción reutilizable para registrar un cliente con datos mínimos desde el módulo de restaurante.
      *
-     * @param  \Closure(Persona $persona): void  $onClienteRegistrado
+     * @param  \Closure(Cliente $cliente): void  $onClienteRegistrado
      */
     public static function make(?\Closure $onClienteRegistrado = null): Action
     {
@@ -47,7 +47,7 @@ final class RegistrarClienteRapidoAction
                     ->placeholder('Ej. +505 8888 8888'),
             ])
             ->action(function (array $data) use ($onClienteRegistrado): void {
-                $persona = app(RegistrarClienteRapido::class)->ejecutar([
+                $cliente = app(RegistrarClienteRapido::class)->ejecutar([
                     'primer_nombre' => $data['nombre'],
                     'primer_apellido' => $data['apellido'] ?? '',
                     'identificacion' => $data['identificacion'] ?? null,
@@ -55,12 +55,12 @@ final class RegistrarClienteRapidoAction
                 ]);
 
                 if ($onClienteRegistrado !== null) {
-                    $onClienteRegistrado($persona);
+                    $onClienteRegistrado($cliente);
                 }
 
                 Notification::make()
                     ->title('Cliente registrado')
-                    ->body($persona->nombre_completo ?? $persona->primer_nombre)
+                    ->body($cliente->persona->nombre_completo ?? 'Cliente registrado')
                     ->success()
                     ->send();
             });

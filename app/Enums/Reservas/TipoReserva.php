@@ -43,7 +43,7 @@ enum TipoReserva: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::HABITACION => 'heroicon-o-home',
             self::RESTAURANTE => 'heroicon-o-building-storefront',
-            self::SERVICIO => 'heroicon-o-sparkles',
+            self::SERVICIO => 'heroicon-o-check-badge',
             self::PAQUETE => 'heroicon-o-gift',
         };
     }

@@ -20,7 +20,9 @@ class ReservaPolicy
 
     public function view(AuthUser $authUser, Reserva $reserva): bool
     {
-        return $authUser->can('View:Reserva');
+        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
+
+        return ($clienteId !== null && $clienteId === $reserva->cliente_id) || $authUser->can('View:Reserva');
     }
 
     public function create(AuthUser $authUser): bool

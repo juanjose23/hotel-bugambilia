@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interactors\Reservas\Operaciones;
 
+use App\Notifications\Reservas\NotificadorHuesped;
 use App\Notifications\Reservas\NotificadorReservas;
+use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Reservas\ObtenerDestinatariosRecordatorioReservaQuery;
 use App\Repository\Queries\Reservas\ObtenerReservasProximasQuery;
 use Carbon\CarbonInterface;
@@ -16,6 +18,7 @@ final readonly class EnviarRecordatoriosReservas
         private ObtenerReservasProximasQuery $reservas,
         private ObtenerDestinatariosRecordatorioReservaQuery $destinatarios,
         private NotificadorReservas $notificador,
+        private NotificadorHuesped $notificadorHuesped,
     ) {}
 
     public function ejecutar(): int
@@ -45,16 +48,26 @@ final readonly class EnviarRecordatoriosReservas
             }
 
             $usuarios = $this->destinatarios->ejecutar($reserva);
-            if ($usuarios->isEmpty()) {
+            if ($usuarios->isEmpty() && ! $this->huespedTieneEmail($reserva)) {
                 Cache::forget($clave);
 
                 continue;
             }
 
-            $this->notificador->recordatorio($reserva, $inicio, $usuarios);
-            $enviados += $usuarios->count();
+            if ($usuarios->isNotEmpty()) {
+                $this->notificador->recordatorio($reserva, $inicio, $usuarios);
+                $enviados += $usuarios->count();
+            }
+
+            $this->notificadorHuesped->recordatorio($reserva, $inicio);
+            $enviados++;
         }
 
         return $enviados;
+    }
+
+    private function huespedTieneEmail(Reserva $reserva): bool
+    {
+        return is_string($reserva->email_cliente) && trim($reserva->email_cliente) !== '';
     }
 }

@@ -10,8 +10,6 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\CuentaCargo;
 use App\Repository\Models\Cuentas\CuentaDetalle;
 use App\Repository\Models\Cuentas\PagoCuenta;
-use App\Repository\Models\Cuentas\Venta;
-use App\Repository\Models\Cuentas\VentaDetalle;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Restaurante\Pedido;
 use Illuminate\Support\Collection;
@@ -65,16 +63,19 @@ interface CuentaRepositorioInterface
     /** @param array<string, mixed> $datos */
     public function crearPago(Cuenta $cuenta, array $datos): PagoCuenta;
 
+    /** @param array<string, mixed> $datos */
+    public function actualizarPago(PagoCuenta $pago, array $datos): PagoCuenta;
+
+    /**
+     * @param  list<int>|null  $pagoCuentaIds
+     * @return Collection<int, PagoCuenta>
+     */
+    public function pagosAplicadosDeCuenta(Cuenta $cuenta, ?array $pagoCuentaIds = null): Collection;
+
     public function existeDetalleConOrigen(Cuenta $cuenta, string $origenType, int $origenId): bool;
 
     /** @return Collection<int, CuentaDetalle> */
     public function detallesActivos(Cuenta $cuenta): Collection;
-
-    /** @param array<string, mixed> $datos */
-    public function crearVenta(array $datos): Venta;
-
-    /** @param array<string, mixed> $datos */
-    public function crearVentaDetalle(Venta $venta, array $datos): VentaDetalle;
 
     public function cargarPedidoEnCuenta(Pedido $pedido, int $cuentaId): void;
 
@@ -91,4 +92,17 @@ interface CuentaRepositorioInterface
 
     /** @return Collection<int, Cuenta> */
     public function cuentasAbiertasDeReserva(int $reservaId): Collection;
+
+    public function cuentaDeEstanciaOReservaConLock(int $estanciaId, int $reservaId): ?Cuenta;
+
+    /** @return Collection<int, Cuenta> */
+    public function cuentasCerradasDeReservaExcluyendo(int $reservaId, int $cuentaExcluidaId): Collection;
+
+    public function primeraCuentaDeReserva(int $reservaId): ?Cuenta;
+
+    /** @return Collection<int, int> */
+    public function cargosFacturacionVigentesIds(Cuenta $cuenta): Collection;
+
+    /** @param array<int, array<string, mixed>> $registros */
+    public function insertarCuentaCargos(Cuenta $cuenta, array $registros): void;
 }

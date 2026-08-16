@@ -84,7 +84,7 @@ enum CategoriaConsumo: int implements HasColor, HasIcon, HasLabel
             self::RESTAURANTE => 'heroicon-o-shopping-bag',
             self::BAR => 'heroicon-o-beaker',
             self::MINIBAR => 'heroicon-o-archive-box',
-            self::LAVANDERIA => 'heroicon-o-sparkles',
+            self::LAVANDERIA => 'heroicon-o-check-badge',
             self::TRANSPORTE => 'heroicon-o-truck',
             self::SERVICIO_HABITACION => 'heroicon-o-bell',
             self::SPA => 'heroicon-o-heart',

@@ -170,7 +170,7 @@ final class CerrarPedidoMesa
         if (! $cuenta instanceof Cuenta) {
             $cuenta = $this->abrirCuenta->ejecutar(
                 tipo: TipoCuenta::RESTAURANTE_DIRECTO,
-                cliente: $clienteId !== null ? $this->repositorio->obtenerPersonaPorId($clienteId) : null,
+                cliente: $clienteId !== null ? $this->repositorio->obtenerClientePorId($clienteId) : null,
                 monedaId: $monedaResuelta,
                 usuarioId: $usuarioId,
             );

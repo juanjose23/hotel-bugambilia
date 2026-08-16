@@ -135,4 +135,6 @@ return [
 
     'email_domain' => env('APP_EMAIL_DOMAIN', 'hotel.com'),
 
+    'portal_domain' => env('PORTAL_DOMAIN', 'portal.localhost'),
+
 ];
