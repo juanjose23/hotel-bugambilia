@@ -37,10 +37,10 @@ final class CreatePedido extends CreateRecord
     {
         return [
             RegistrarClienteRapidoAction::make(
-                onClienteRegistrado: function ($persona): void {
+                onClienteRegistrado: function ($cliente): void {
                     $this->form->fill([
                         ...(array) $this->form->getRawState(),
-                        'cliente_id' => $persona->id,
+                        'cliente_id' => $cliente->id,
                     ]);
                 }
             ),

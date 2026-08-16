@@ -43,7 +43,7 @@ enum AreaCocina: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::COCINA => 'heroicon-o-cog-6-tooth',
             self::BAR => 'heroicon-o-beaker',
-            self::POSTRES => 'heroicon-o-sparkles',
+            self::POSTRES => 'heroicon-o-check-badge',
             self::PARRILLA => 'heroicon-o-fire',
         };
     }

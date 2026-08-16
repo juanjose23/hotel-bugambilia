@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Catalogos\Moneda;
 
 use App\Filament\Resources\Catalogos\Moneda\Pages\CreateMoneda;
@@ -23,7 +25,7 @@ class MonedaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Banknotes;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
 
     protected static ?string $navigationLabel = 'Monedas';
 

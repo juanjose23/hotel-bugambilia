@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Servicios\Servicios;
 
 use App\Filament\Resources\Servicios\Servicios\Pages\CreateServicio;
@@ -30,7 +32,7 @@ class ServicioResource extends Resource
 
     protected static ?string $slug = 'servicios/servicios';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Servicios';
+    protected static string|UnitEnum|null $navigationGroup = 'Servicios & Promociones';
 
     protected static ?string $navigationLabel = 'Servicios';
 

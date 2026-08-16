@@ -41,7 +41,8 @@ class HabitacionSeeder extends Seeder
         $politicasData = [
             [
                 'titulo' => 'Política de Cancelación',
-                'descripcion' => 'Cancelación gratuita hasta 24 horas antes de la llegada. En caso de no presentarse o cancelar fuera de este plazo, se penalizará con el cobro de la primera noche de estancia.',
+                'descripcion' => 'Cancelación gratuita hasta 24 horas antes de la llegada. En caso de no presentarse o cancelar fuera de este plazo, se penalizará con el 100% de la estancia.',
+                'aplica_penalizacion' => true,
                 'estado' => 1,
             ],
             [
@@ -68,6 +69,35 @@ class HabitacionSeeder extends Seeder
                 $pData
             );
         }
+
+        $politicaCancelacion = $politicasModelos['Política de Cancelación'];
+        $politicaCancelacion->penalizaciones()->delete();
+        $politicaCancelacion->penalizaciones()->createMany([
+            [
+                'min_unidades' => 1,
+                'max_unidades' => null,
+                'unidad' => 1,
+                'porcentaje' => 0.00,
+                'aplica_no_show' => false,
+                'orden' => 1,
+            ],
+            [
+                'min_unidades' => 0,
+                'max_unidades' => 0,
+                'unidad' => 1,
+                'porcentaje' => 100.00,
+                'aplica_no_show' => false,
+                'orden' => 2,
+            ],
+            [
+                'min_unidades' => null,
+                'max_unidades' => null,
+                'unidad' => 1,
+                'porcentaje' => 100.00,
+                'aplica_no_show' => true,
+                'orden' => 3,
+            ],
+        ]);
 
         // 3. Datos de las 12 habitaciones premium
         $roomsData = [

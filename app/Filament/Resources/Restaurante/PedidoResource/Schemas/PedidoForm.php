@@ -107,7 +107,10 @@ final class PedidoForm
                                     return null;
                                 }
 
-                                $persona = Persona::with(['personaNatural', 'personaJuridica'])->find((int) $value);
+                                $cliente = Cliente::query()
+                                    ->with(['persona.personaNatural', 'persona.personaJuridica'])
+                                    ->find((int) $value);
+                                $persona = $cliente?->persona;
 
                                 return $persona instanceof Persona ? ($persona->nombre_completo ?? 'Cliente #'.$value) : 'Cliente #'.$value;
                             })

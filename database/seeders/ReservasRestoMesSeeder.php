@@ -11,12 +11,14 @@ use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Interactors\Reservas\Gestion\CambiarEstadoReserva;
 use App\Interactors\Reservas\Gestion\CrearReserva;
+use App\Interactors\Restaurante\Pedidos\RegistrarClienteRapido;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -29,11 +31,13 @@ final class ReservasRestoMesSeeder extends Seeder
 
     public function run(): void
     {
+        Mail::fake();
+
         $habitaciones = Habitacion::activas()->get();
         $espacios = Espacio::activosWeb()
             ->where('tipo', TipoEspacio::MESA)
             ->get();
-        $cliente = User::query()->first();
+        $cliente = $this->clienteDemo();
 
         $nombresDemo = [
             'Ana María Rodríguez',
@@ -67,7 +71,7 @@ final class ReservasRestoMesSeeder extends Seeder
 
                 try {
                     $reserva = $this->crearReserva->ejecutar([
-                        'cliente_id' => $cliente?->id,
+                        'cliente_id' => $cliente->id,
                         'nombre_cliente' => $nombre,
                         'telefono_cliente' => '+505 88'.rand(10, 99).' '.rand(1000, 9999),
                         'email_cliente' => Str::slug($nombre).'@ejemplo.com',
@@ -124,7 +128,7 @@ final class ReservasRestoMesSeeder extends Seeder
 
                 try {
                     $reserva = $this->crearReserva->ejecutar([
-                        'cliente_id' => $cliente?->id,
+                        'cliente_id' => $cliente->id,
                         'nombre_cliente' => $nombre,
                         'telefono_cliente' => '+505 87'.rand(10, 99).' '.rand(1000, 9999),
                         'email_cliente' => Str::slug($nombre).'@ejemplo.com',
@@ -154,5 +158,21 @@ final class ReservasRestoMesSeeder extends Seeder
                 }
             }
         }
+    }
+
+    private function clienteDemo(): Cliente
+    {
+        /** @var Cliente|null $cliente */
+        $cliente = Cliente::query()->first();
+
+        if ($cliente instanceof Cliente) {
+            return $cliente;
+        }
+
+        return app(RegistrarClienteRapido::class)->ejecutar([
+            'primer_nombre' => 'María',
+            'primer_apellido' => 'Sánchez',
+            'telefono' => '+505 8888 8888',
+        ]);
     }
 }

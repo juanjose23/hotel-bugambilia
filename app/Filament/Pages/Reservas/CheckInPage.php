@@ -235,7 +235,7 @@ final class CheckInPage extends Page implements HasForms, HasTable
 
                     // ── PASO 3: Estado de la Habitación ────────────────────────
                     Step::make('Estado')
-                        ->icon('heroicon-o-sparkles')
+                        ->icon('heroicon-o-check-badge')
                         ->description('Verifique las condiciones operativas de la habitación')
                         ->schema([
                             Section::make('Readiness de la Habitación')

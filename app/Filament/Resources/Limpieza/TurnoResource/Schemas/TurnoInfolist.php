@@ -21,7 +21,7 @@ class TurnoInfolist
         return $schema
             ->components([
                 Section::make('Información Principal del Turno')
-                    ->icon(Heroicon::Sparkles)
+                    ->icon(Heroicon::CheckBadge)
                     ->description('Datos generales e identificación del turno de limpieza.')
                     ->columns([
                         'default' => 1,

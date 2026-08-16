@@ -166,7 +166,7 @@ enum TipoNotificacion: int implements HasColor, HasIcon, HasLabel
             self::MaintenanceOverdueNotification => Heroicon::ExclamationCircle,
             self::MaintenanceInProgress => Heroicon::WrenchScrewdriver,
             self::WarrantyExpiring => Heroicon::ShieldCheck,
-            self::CleaningRequestCreated => Heroicon::Sparkles,
+            self::CleaningRequestCreated => Heroicon::CheckBadge,
             self::CleaningStaffAssigned => Heroicon::UserGroup,
             self::CleaningSuppliesMissing => Heroicon::ExclamationTriangle,
             self::CleaningReminder => Heroicon::Clock,

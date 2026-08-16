@@ -26,7 +26,7 @@ class LimpiezaEjecucionResource extends Resource
 
     protected static ?string $slug = 'limpieza/ejecuciones';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::Sparkles;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::CheckBadge;
 
     protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
 

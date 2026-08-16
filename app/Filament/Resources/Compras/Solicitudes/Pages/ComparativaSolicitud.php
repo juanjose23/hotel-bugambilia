@@ -110,7 +110,7 @@ class ComparativaSolicitud extends Page
         return [
             Action::make('analizar')
                 ->label('Analizar Mejor Opción')
-                ->icon(Heroicon::Sparkles)
+                ->icon(Heroicon::CheckBadge)
                 ->color('warning')
                 ->action('analizarMejorOpcion'),
 
