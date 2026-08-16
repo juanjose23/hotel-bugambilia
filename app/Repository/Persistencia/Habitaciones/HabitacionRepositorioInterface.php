@@ -16,5 +16,9 @@ interface HabitacionRepositorioInterface
 
     public function buscarPorId(int $id): ?Habitacion;
 
+    public function buscarPorIdConLock(int $id): Habitacion;
+
+    public function buscarPorRecursoReservableIdConLock(int $recursoReservableId): ?Habitacion;
+
     public function actualizarEstado(Habitacion $habitacion, EstadoEspacio $estado): void;
 }

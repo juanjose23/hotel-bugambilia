@@ -10,10 +10,9 @@ use App\BusinessLogic\Reservas\ValidarDisponibilidadHabitacion;
 use App\BusinessLogic\Reservas\ValidarPoliticaPagoReserva;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
-use App\Events\Reservas\ReservaHabitacionConfirmada;
+use App\Events\Reservas\ReservaConfirmada;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\Reservas\ReservaDetalle;
-use App\Repository\Models\Reservas\ReservaEstadoHistorial;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -22,13 +21,14 @@ final readonly class ConfirmarReservaHabitacion
     public function __construct(
         private ValidarDisponibilidadHabitacion $validarDisponibilidad,
         private RecalcularEstadoReservaHabitacion $recalcularEstado,
+        private ReservaRepositorioInterface $reservas,
         private ValidarPoliticaPagoReserva $validarPoliticaPago = new ValidarPoliticaPagoReserva,
     ) {}
 
     public function ejecutar(ConfirmarReservaHabitacionData $data): Reserva
     {
         return DB::transaction(function () use ($data): Reserva {
-            $reserva = Reserva::query()->where('id', $data->reservaId)->lockForUpdate()->firstOrFail();
+            $reserva = $this->reservas->obtenerPorIdConLock($data->reservaId);
 
             if ($reserva->estado !== EstadoReserva::PENDIENTE) {
                 throw new DomainException("La reserva #{$reserva->codigo_reserva} no se encuentra en estado pendiente.");
@@ -37,7 +37,7 @@ final readonly class ConfirmarReservaHabitacion
             // Validar política de pago (e.g. 50% abono / 100% pago completo)
             $this->validarPoliticaPago->validarMontoParaConfirmacion($reserva);
 
-            $detallesPrincipales = $reserva->detalles()->whereNull('parent_id')->get();
+            $detallesPrincipales = $this->reservas->detallesPrincipalesDe($reserva);
             $recursosIds = $detallesPrincipales->pluck('reservable_id')
                 ->map(static fn (mixed $id): int => is_numeric($id) ? (int) $id : 0)
                 ->all();
@@ -62,8 +62,7 @@ final readonly class ConfirmarReservaHabitacion
             $estadoAnterior = $reserva->estado;
 
             foreach ($detallesPrincipales as $detalle) {
-                /** @var ReservaDetalle $detalle */
-                $detalle->update([
+                $this->reservas->actualizarDetalle($detalle, [
                     'estado' => EstadoReservaDetalle::CONFIRMADO,
                     'confirmado_at' => now(),
                 ]);
@@ -71,15 +70,15 @@ final readonly class ConfirmarReservaHabitacion
 
             $nuevoEstado = $this->recalcularEstado->ejecutar($reserva);
 
-            ReservaEstadoHistorial::query()->create([
-                'reserva_id' => $reserva->id,
-                'estado_anterior' => $estadoAnterior,
-                'estado_nuevo' => $nuevoEstado,
-                'motivo' => $data->observaciones ?? 'Confirmación de reserva de habitación',
-                'usuario_id' => $data->usuarioId,
-            ]);
+            $this->reservas->registrarHistorial(
+                $reserva,
+                $estadoAnterior,
+                $nuevoEstado,
+                $data->observaciones ?? 'Confirmación de reserva de habitación',
+                $data->usuarioId,
+            );
 
-            ReservaHabitacionConfirmada::dispatch($reserva);
+            ReservaConfirmada::dispatch($reserva);
 
             return $reserva->refresh();
         });

@@ -21,16 +21,18 @@ uses(LazilyRefreshDatabase::class);
 
 function crearCatalogoTipoCliente(): Catalogo
 {
-    $tipo = CatalogoTipo::create([
-        'codigo' => 'tipo_cliente',
-        'nombre' => 'Tipo de Cliente',
-    ]);
+    $tipo = CatalogoTipo::firstOrCreate(
+        ['codigo' => 'tipo_cliente'],
+        ['nombre' => 'Tipo de Cliente'],
+    );
 
-    return Catalogo::create([
-        'codigo' => 'cliente_regular',
-        'nombre' => 'Cliente Regular',
-        'catalogo_tipo_id' => $tipo->id,
-    ]);
+    return Catalogo::firstOrCreate(
+        ['codigo' => 'cliente_regular'],
+        [
+            'nombre' => 'Cliente Regular',
+            'catalogo_tipo_id' => $tipo->id,
+        ],
+    );
 }
 
 function datosClienteBase(): array
@@ -197,4 +199,110 @@ it('crea cliente correctamente sin correo electrónico', function () {
     expect($resultado['es_nuevo'])->toBeTrue();
     expect($resultado['user']->email)->toBeNull();
     expect($resultado['cliente'])->toBeInstanceOf(Cliente::class);
+});
+
+it('reutiliza cliente existente sin usuario y crea la cuenta (acompañante)', function () {
+    Event::fake([ClienteRegistrado::class]);
+
+    $persona = Persona::create([
+        'primer_nombre' => 'María',
+        'tipo_persona' => 'natural',
+        'telefono' => '88888888',
+        'direccion' => 'Managua',
+    ]);
+
+    PersonaNatural::create([
+        'persona_id' => $persona->id,
+        'primer_apellido' => 'González',
+        'tipo_identificacion' => 'cedula',
+        'numero_identificacion' => '987654321',
+    ]);
+
+    $cliente = Cliente::create([
+        'persona_id' => $persona->id,
+        'catalogo_id' => datosClienteBase()['catalogo_id'],
+        'estado' => 1,
+    ]);
+
+    $interactor = app(RegistrarCliente::class);
+    $resultado = $interactor->ejecutar(datosClienteBase());
+
+    expect($resultado['es_nuevo'])->toBeFalse();
+    expect($resultado['cliente']->id)->toBe($cliente->id);
+    expect($resultado['persona']->id)->toBe($persona->id);
+    expect($resultado['user']->persona_id)->toBe($persona->id);
+
+    expect(Cliente::count())->toBe(1);
+    expect(User::count())->toBe(1);
+
+    Event::assertDispatched(ClienteRegistrado::class, function ($event) {
+        return $event->esNuevo === false;
+    });
+});
+
+it('actualiza contacto de cliente existente sin usuario al crear la cuenta', function () {
+    Event::fake([ClienteRegistrado::class]);
+
+    $persona = Persona::create([
+        'primer_nombre' => 'María',
+        'tipo_persona' => 'natural',
+        'telefono' => '11111111',
+        'direccion' => 'León',
+    ]);
+
+    PersonaNatural::create([
+        'persona_id' => $persona->id,
+        'primer_apellido' => 'González',
+        'tipo_identificacion' => 'cedula',
+        'numero_identificacion' => '987654321',
+    ]);
+
+    Cliente::create([
+        'persona_id' => $persona->id,
+        'catalogo_id' => datosClienteBase()['catalogo_id'],
+        'estado' => 1,
+    ]);
+
+    $interactor = app(RegistrarCliente::class);
+    $resultado = $interactor->ejecutar(datosClienteBase());
+
+    expect($resultado['persona']->telefono)->toBe('88888888');
+    expect($resultado['persona']->direccion)->toBe('Managua');
+    expect($resultado['es_nuevo'])->toBeFalse();
+});
+
+it('no reutiliza un usuario de otra persona con el mismo correo', function () {
+    Event::fake([ClienteRegistrado::class]);
+
+    $otraPersona = Persona::create([
+        'primer_nombre' => 'Laura',
+        'tipo_persona' => 'natural',
+    ]);
+
+    User::create([
+        'persona_id' => $otraPersona->id,
+        'name' => 'Laura Ruiz',
+        'email' => 'maria@test.com',
+        'password' => 'password',
+    ]);
+
+    $persona = Persona::create([
+        'primer_nombre' => 'María',
+        'tipo_persona' => 'natural',
+    ]);
+
+    PersonaNatural::create([
+        'persona_id' => $persona->id,
+        'primer_apellido' => 'González',
+        'tipo_identificacion' => 'cedula',
+        'numero_identificacion' => '987654321',
+    ]);
+
+    $interactor = app(RegistrarCliente::class);
+
+    expect(fn () => $interactor->ejecutar(datosClienteBase()))
+        ->toThrow(YaTieneCuentaException::class);
+
+    expect(User::count())->toBe(1);
+    expect(Cliente::count())->toBe(0);
 });

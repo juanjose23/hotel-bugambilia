@@ -15,4 +15,12 @@ final class ObtenerTasaCambioQuery
     ): float {
         return TasaCambio::obtenerTasa($fecha, $origenCodigo, $destinoCodigo);
     }
+
+    public function ejecutarRegistro(
+        \DateTimeInterface|string $fecha,
+        string $origenCodigo = 'USD',
+        string $destinoCodigo = 'NIO',
+    ): ?TasaCambio {
+        return TasaCambio::resolverTasa($fecha, $origenCodigo, $destinoCodigo);
+    }
 }

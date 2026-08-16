@@ -62,7 +62,7 @@ final class RegistrarCobroInicialReserva
         $cuenta = $this->abrirCuenta->ejecutar(
             tipo: $this->tipoCuenta($reserva->tipo_reserva),
             reserva: $reserva,
-            cliente: $reserva->cliente?->persona,
+            cliente: $reserva->cliente,
             monedaId: $monedaId,
             usuarioId: $usuarioId,
         );
@@ -72,7 +72,7 @@ final class RegistrarCobroInicialReserva
             concepto: "Reserva {$reserva->codigo_reserva}",
             precioUnitario: $subtotalReserva,
             origen: $reserva,
-            espacioId: $reserva->espacio_id,
+            espacioId: $this->enteroOpcional($reserva->espacio_id),
             creadorId: $usuarioId,
             descripcion: $reserva->tipo_reserva->getLabel(),
             metadatos: ['tipo' => 'reserva', 'codigo_reserva' => $reserva->codigo_reserva],
@@ -99,11 +99,7 @@ final class RegistrarCobroInicialReserva
         }
 
         $idsSeleccionados = array_map('intval', $cargosFacturacionIds);
-        $cargosVigentesIds = $cuenta->cargos()
-            ->where('estado', EstadoGeneral::Activo->value)
-            ->whereNotNull('cargo_id')
-            ->pluck('cargo_id')
-            ->flip();
+        $cargosVigentesIds = $this->cuentas->cargosFacturacionVigentesIds($cuenta)->flip();
 
         $nuevosCargos = [];
         foreach ($this->cuentas->cargosFacturacionActivos() as $cargo) {
@@ -136,7 +132,7 @@ final class RegistrarCobroInicialReserva
 
         // INSERT masivo: una sola query para todos los cargos nuevos
         if ($nuevosCargos !== []) {
-            $cuenta->cargos()->insert($nuevosCargos);
+            $this->cuentas->insertarCuentaCargos($cuenta, $nuevosCargos);
         }
 
         $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
@@ -201,5 +197,20 @@ final class RegistrarCobroInicialReserva
             TipoReserva::RESTAURANTE => TipoCuenta::RESTAURANTE_DIRECTO,
             TipoReserva::SERVICIO, TipoReserva::PAQUETE => TipoCuenta::SERVICIO,
         };
+    }
+
+    private function enteroOpcional(mixed $valor): ?int
+    {
+        if (is_int($valor)) {
+            return $valor > 0 ? $valor : null;
+        }
+
+        if (is_string($valor) && ctype_digit($valor)) {
+            $entero = (int) $valor;
+
+            return $entero > 0 ? $entero : null;
+        }
+
+        return null;
     }
 }

@@ -11,12 +11,9 @@ use App\BusinessLogic\Reservas\ValidarDisponibilidadHabitacion;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoReserva;
-use App\Events\Reservas\ReservaHabitacionCreada;
-use App\Repository\Models\Reservas\RecursoReservable;
+use App\Events\Reservas\ReservaCreada;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\Reservas\ReservaDetalle;
-use App\Repository\Models\Reservas\ReservaEstadoHistorial;
-use App\Repository\Models\Reservas\ReservaHuesped;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -25,16 +22,14 @@ final readonly class CrearReservaHabitacion
     public function __construct(
         private ValidarDisponibilidadHabitacion $validarDisponibilidad,
         private RecalcularTotalesReservaHabitacion $recalcularTotales,
+        private ReservaRepositorioInterface $reservas,
     ) {}
 
     public function ejecutar(CrearReservaHabitacionData $data, ?int $usuarioId = null): Reserva
     {
-        return DB::transaction(function () use ($data, $usuarioId): Reserva {
+        return DB::transaction(function () use ($data): Reserva {
             // Lock room resources for update
-            RecursoReservable::query()
-                ->whereIn('id', $data->recursosReservablesIds)
-                ->lockForUpdate()
-                ->get();
+            $this->reservas->bloquearRecursosReservables($data->recursosReservablesIds);
 
             // Re-validate availability
             $this->validarDisponibilidad->validarDisponibilidad(
@@ -50,7 +45,7 @@ final readonly class CrearReservaHabitacion
                 ? now()->addMinutes($data->holdExpiresMinutes)
                 : null;
 
-            $reserva = Reserva::query()->create([
+            $reserva = $this->reservas->crear([
                 'codigo_reserva' => $codigoReserva,
                 'cliente_id' => $data->clienteId,
                 'nombre_cliente' => $data->nombreCliente,
@@ -75,14 +70,12 @@ final readonly class CrearReservaHabitacion
             ]);
 
             foreach ($data->recursosReservablesIds as $index => $recursoId) {
-                $recurso = RecursoReservable::query()->with('habitacion')->findOrFail($recursoId);
+                $recurso = $this->reservas->obtenerRecursoConLock($recursoId);
                 $precioNoche = (float) ($recurso->habitacion?->precios()->first()->precio ?? 0.0);
                 $dias = max(1, (int) $data->fechaCheckIn->diffInDays($data->fechaCheckOut));
                 $subtotal = $precioNoche * $dias;
 
-                $detalle = ReservaDetalle::query()->create([
-                    'reserva_id' => $reserva->id,
-                    'reservable_id' => $recursoId,
+                $detalle = $this->reservas->crearDetalle($reserva, $recurso, [
                     'estado' => EstadoReservaDetalle::PENDIENTE,
                     'fecha_inicio' => $data->fechaCheckIn,
                     'fecha_fin' => $data->fechaCheckOut,
@@ -97,8 +90,7 @@ final readonly class CrearReservaHabitacion
                 $huespedesInput = $data->huespedesPorHabitacion[$index] ?? $data->huespedesPorHabitacion[$recursoId] ?? [];
                 foreach ($huespedesInput as $huespedData) {
                     /** @var RegistrarHuespedData $huespedData */
-                    ReservaHuesped::query()->create([
-                        'reserva_detalle_id' => $detalle->id,
+                    $this->reservas->crearHuesped($detalle, [
                         'nombre' => $huespedData->nombre,
                         'apellido' => $huespedData->apellido,
                         'numero_documento' => $huespedData->numeroDocumento,
@@ -112,15 +104,7 @@ final readonly class CrearReservaHabitacion
 
             $this->recalcularTotales->ejecutar($reserva);
 
-            ReservaEstadoHistorial::query()->create([
-                'reserva_id' => $reserva->id,
-                'estado_anterior' => EstadoReserva::PENDIENTE,
-                'estado_nuevo' => EstadoReserva::PENDIENTE,
-                'motivo' => 'Creación inicial de reserva de habitación',
-                'usuario_id' => $usuarioId,
-            ]);
-
-            ReservaHabitacionCreada::dispatch($reserva);
+            ReservaCreada::dispatch($reserva);
 
             return $reserva->refresh();
         });

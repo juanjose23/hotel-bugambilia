@@ -12,13 +12,11 @@ use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReservaDetalle;
-use App\Events\Reservas\CheckInHabitacionRealizado;
-use App\Repository\Models\Cuentas\Cuenta;
+use App\Events\Reservas\CheckInRegistrado;
 use App\Repository\Models\Estancias\Estancia;
-use App\Repository\Models\Habitaciones\Habitacion;
-use App\Repository\Models\Reservas\ReservaDetalle;
-use App\Repository\Models\Reservas\ReservaEstadoHistorial;
-use App\Repository\Models\Reservas\ReservaHuesped;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -27,18 +25,18 @@ final readonly class RealizarCheckInHabitacion
 {
     public function __construct(
         private RecalcularEstadoReservaHabitacion $recalcularEstado,
+        private ReservaRepositorioInterface $reservas,
+        private HabitacionRepositorioInterface $habitaciones,
+        private CuentaRepositorioInterface $cuentas,
         private ValidarRequisitosCheckIn $validarRequisitos = new ValidarRequisitosCheckIn,
     ) {}
 
     public function ejecutar(RealizarCheckInData $data): Estancia
     {
         return DB::transaction(function () use ($data): Estancia {
-            $detalle = ReservaDetalle::query()
-                ->where('id', $data->reservaDetalleId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $detalle = $this->reservas->obtenerDetalleConLock($data->reservaDetalleId);
 
-            $reserva = $detalle->reserva()->lockForUpdate()->firstOrFail();
+            $reserva = $this->reservas->obtenerReservaDeDetalleConLock($detalle);
 
             if (! in_array($detalle->estado, [EstadoReservaDetalle::CONFIRMADO, EstadoReservaDetalle::PENDIENTE], true)) {
                 throw new DomainException("El detalle de reserva #{$detalle->id} no está en estado confirmado o pendiente para Check-In.");
@@ -49,10 +47,7 @@ final readonly class RealizarCheckInHabitacion
                 throw new DomainException("El detalle de reserva #{$detalle->id} no tiene un recurso reservable asociado.");
             }
 
-            $habitacion = Habitacion::query()
-                ->where('reservable_id', $recurso->id)
-                ->lockForUpdate()
-                ->first();
+            $habitacion = $this->habitaciones->buscarPorRecursoReservableIdConLock((int) $recurso->id);
 
             if (! $habitacion) {
                 throw new DomainException("No se encontró una habitación física asociada al recurso reservable #{$recurso->id}.");
@@ -63,16 +58,10 @@ final readonly class RealizarCheckInHabitacion
             }
 
             if ($reserva->habitacion_id === null) {
-                $reserva->update(['habitacion_id' => $habitacion->id]);
+                $this->reservas->actualizar($reserva, ['habitacion_id' => $habitacion->id]);
             }
 
-            // Check if estancia active already exists
-            $estanciaExistente = Estancia::query()
-                ->where('reserva_detalle_id', $detalle->id)
-                ->where('estado', EstadoEstancia::ACTIVA)
-                ->exists();
-
-            if ($estanciaExistente) {
+            if ($this->reservas->existeEstanciaActivaParaDetalle((int) $detalle->id)) {
                 throw new DomainException("Ya existe una estancia activa para el detalle de reserva #{$detalle->id}.");
             }
 
@@ -80,8 +69,7 @@ final readonly class RealizarCheckInHabitacion
             if (! empty($data->huespedes)) {
                 foreach ($data->huespedes as $huespedData) {
                     $nombreCompleto = trim($huespedData->nombre.' '.($huespedData->apellido ?? ''));
-                    ReservaHuesped::query()->create([
-                        'reserva_detalle_id' => $detalle->id,
+                    $this->reservas->crearHuesped($detalle, [
                         'nombre' => $nombreCompleto !== '' ? $nombreCompleto : $huespedData->nombre,
                         'identificacion' => $huespedData->numeroDocumento,
                         'email' => $huespedData->email,
@@ -96,7 +84,7 @@ final readonly class RealizarCheckInHabitacion
 
             $this->validarRequisitos->validar($reserva, $detalle);
 
-            $estancia = Estancia::query()->create([
+            $estancia = $this->reservas->crearEstancia([
                 'reserva_id' => $reserva->id,
                 'reserva_detalle_id' => $detalle->id,
                 'habitacion_id' => $habitacion->id,
@@ -110,11 +98,11 @@ final readonly class RealizarCheckInHabitacion
                 'observaciones_entrada' => $data->observaciones,
             ]);
 
-            $detalle->update(['estado' => EstadoReservaDetalle::EN_USO]);
-            $habitacion->update(['estado' => EstadoEspacio::Ocupado]);
+            $this->reservas->actualizarDetalle($detalle, ['estado' => EstadoReservaDetalle::EN_USO]);
+            $this->habitaciones->actualizarEstado($habitacion, EstadoEspacio::Ocupado);
 
             // Create account if not present or activate requested account
-            Cuenta::query()->create([
+            $this->cuentas->crear([
                 'numero_cuenta' => 'CTA-EST-'.strtoupper(Str::random(8)),
                 'tipo_cuenta' => TipoCuenta::ESTANCIA,
                 'estado' => EstadoCuenta::ABIERTA,
@@ -139,15 +127,15 @@ final readonly class RealizarCheckInHabitacion
             $estadoAnterior = $reserva->estado;
             $nuevoEstado = $this->recalcularEstado->ejecutar($reserva);
 
-            ReservaEstadoHistorial::query()->create([
-                'reserva_id' => $reserva->id,
-                'estado_anterior' => $estadoAnterior,
-                'estado_nuevo' => $nuevoEstado,
-                'motivo' => "Check-in realizado para la habitación {$habitacion->numero} (Detalle #{$detalle->id})",
-                'usuario_id' => $data->usuarioId,
-            ]);
+            $this->reservas->registrarHistorial(
+                $reserva,
+                $estadoAnterior,
+                $nuevoEstado,
+                "Check-in realizado para la habitación {$habitacion->numero} (Detalle #{$detalle->id})",
+                $data->usuarioId,
+            );
 
-            CheckInHabitacionRealizado::dispatch($detalle, $estancia);
+            CheckInRegistrado::dispatch($estancia);
 
             return $estancia->refresh();
         });

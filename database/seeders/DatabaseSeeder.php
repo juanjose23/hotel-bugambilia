@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call(CatalogoSeeder::class);
         $this->call(UbicacionSeeder::class);
         $this->call(TasaCambioSeeder::class);
+        $this->call(PasarelaPagoSeeder::class);
 
         // Colaboradores
         $this->call(ColaboradorBaseSeeder::class);

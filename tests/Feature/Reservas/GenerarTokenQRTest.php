@@ -6,8 +6,13 @@ use App\Actions\CodigoQR\GenerarTokenQR;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Reservas\Reserva;
 use App\Support\Barcode\QrCodeGenerator;
+use Illuminate\Support\Facades\Http;
 
 test('generarTokenQR produce una firma HMAC valida y un QR Base64', function (): void {
+    Http::fake([
+        'quickchart.io/*' => Http::response('fake-png-bytes', 200, ['Content-Type' => 'image/png']),
+    ]);
+
     $reserva = Reserva::query()->create([
         'codigo_reserva' => 'RES-QR-999',
         'nombre_cliente' => 'Cliente Token QR',
@@ -21,5 +26,5 @@ test('generarTokenQR produce una firma HMAC valida y un QR Base64', function ():
 
     expect($resultado)->toHaveKeys(['token', 'qrBase64'])
         ->and($resultado['token'])->toBeString()->not->toBeEmpty()
-        ->and($resultado['qrBase64'])->toBeString()->toStartWith('data:image/');
+        ->and($resultado['qrBase64'])->toBeString()->toStartWith('data:image/png;base64,');
 });

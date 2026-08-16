@@ -12,6 +12,8 @@ use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * Instancia concreta de un cargo aplicado a una cuenta.
@@ -37,8 +39,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property int|null $anulado_por
  * @property Moneda|null $moneda
  */
-final class CuentaCargo extends Model
+final class CuentaCargo extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'cuenta_cargos';
 
     protected $guarded = ['id'];

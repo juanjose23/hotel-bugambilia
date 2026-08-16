@@ -7,7 +7,7 @@ namespace App\BusinessLogic\Restaurante\Cocina;
 final class CalcularCostoProcesoCocina
 {
     /**
-     * @param  array<int, array<string, mixed>>  $itemsData
+     * @param  array<int, array<string, mixed>>|list<array<mixed, mixed>>  $itemsData
      * @return array{costo_total: float, costo_por_plato: float}
      */
     public function calcularDesdeArray(int $cantidadPlatos, array $itemsData): array

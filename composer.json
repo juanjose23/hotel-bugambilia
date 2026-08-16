@@ -29,7 +29,8 @@
         "laravel/tinker": "^3.0",
         "owen-it/laravel-auditing": "^14.0",
         "picqer/php-barcode-generator": "^3.2",
-        "qalainau/filament-univer-sheet": "^1.1"
+        "qalainau/filament-univer-sheet": "^1.1",
+        "stripe/stripe-php": "^21.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

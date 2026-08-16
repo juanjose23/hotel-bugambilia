@@ -8,6 +8,7 @@ use App\Enums\Cuentas\EstadoPago;
 use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\PagoCuenta;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,7 @@ final class AnularPagoCuenta
 {
     public function __construct(
         private readonly RecalcularCuenta $recalcularCuenta,
+        private readonly CuentaRepositorioInterface $cuentas,
     ) {}
 
     /**
@@ -38,7 +40,7 @@ final class AnularPagoCuenta
         return DB::transaction(function () use ($pago, $motivo, $usuarioId): Cuenta {
             $cuenta = $pago->cuenta;
 
-            $pago->update([
+            $this->cuentas->actualizarPago($pago, [
                 'estado' => EstadoPago::ANULADO,
                 'observaciones' => trim($pago->observaciones." [ANULADO por: {$motivo}]"),
                 'usuario_id' => $usuarioId ?? $pago->usuario_id,

@@ -67,6 +67,47 @@ class TasaCambio extends Model implements AuditableContract
         return $this->belongsTo(Moneda::class, 'moneda_destino_id');
     }
 
+    public static function resolverTasa(\DateTimeInterface|string $fecha, string $origenCodigo = 'USD', string $destinoCodigo = 'NIO'): ?self
+    {
+        $fechaString = $fecha instanceof \DateTimeInterface ? $fecha->format('Y-m-d') : $fecha;
+
+        $origen = Moneda::where('codigo', $origenCodigo)->first();
+        $destino = Moneda::where('codigo', $destinoCodigo)->first();
+
+        if (! $origen || ! $destino) {
+            return null;
+        }
+
+        // 1. Buscar tasa exacta para la fecha
+        $exacta = self::where('fecha', $fechaString)
+            ->where('moneda_origen_id', $origen->id)
+            ->where('moneda_destino_id', $destino->id)
+            ->first();
+
+        if ($exacta !== null) {
+            return $exacta;
+        }
+
+        // 2. Buscar tasa fija de respaldo (es_fija = true)
+        $fija = self::where('moneda_origen_id', $origen->id)
+            ->where('moneda_destino_id', $destino->id)
+            ->where('es_fija', true)
+            ->orderBy('fecha', 'desc')
+            ->first();
+
+        if ($fija !== null) {
+            return $fija;
+        }
+
+        // 3. Fallback a la última registrada
+        $ultima = self::where('moneda_origen_id', $origen->id)
+            ->where('moneda_destino_id', $destino->id)
+            ->orderBy('fecha', 'desc')
+            ->first();
+
+        return $ultima;
+    }
+
     public static function obtenerTasa(\DateTimeInterface|string $fecha, string $origenCodigo = 'USD', string $destinoCodigo = 'NIO'): float
     {
         $fechaString = $fecha instanceof \DateTimeInterface ? $fecha->format('Y-m-d') : $fecha;
@@ -74,47 +115,7 @@ class TasaCambio extends Model implements AuditableContract
         return Cache::remember(
             "tasa_cambio_{$fechaString}_{$origenCodigo}_{$destinoCodigo}",
             now()->addHours(12),
-            function () use ($fechaString, $origenCodigo, $destinoCodigo) {
-                $origen = Moneda::where('codigo', $origenCodigo)->first();
-                $destino = Moneda::where('codigo', $destinoCodigo)->first();
-
-                if (! $origen || ! $destino) {
-                    return 1.0;
-                }
-
-                // 1. Buscar tasa exacta para la fecha
-                $exacta = self::where('fecha', $fechaString)
-                    ->where('moneda_origen_id', $origen->id)
-                    ->where('moneda_destino_id', $destino->id)
-                    ->first();
-
-                if ($exacta) {
-                    return (float) $exacta->tasa;
-                }
-
-                // 2. Buscar tasa fija de respaldo (es_fija = true)
-                $fija = self::where('moneda_origen_id', $origen->id)
-                    ->where('moneda_destino_id', $destino->id)
-                    ->where('es_fija', true)
-                    ->orderBy('fecha', 'desc')
-                    ->first();
-
-                if ($fija) {
-                    return (float) $fija->tasa;
-                }
-
-                // 3. Fallback a la última registrada
-                $ultima = self::where('moneda_origen_id', $origen->id)
-                    ->where('moneda_destino_id', $destino->id)
-                    ->orderBy('fecha', 'desc')
-                    ->first();
-
-                if ($ultima) {
-                    return (float) $ultima->tasa;
-                }
-
-                return 1.0;
-            }
+            fn (): float => (float) (self::resolverTasa($fechaString, $origenCodigo, $destinoCodigo)->tasa ?? 1.0)
         );
     }
 }

@@ -10,6 +10,8 @@ use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * Renglón de consumo puro dentro de una Cuenta.
@@ -40,8 +42,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string|null $anulado_en
  * @property Moneda|null $moneda
  */
-final class CuentaDetalle extends Model
+final class CuentaDetalle extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'cuenta_detalles';
 
     protected $fillable = [

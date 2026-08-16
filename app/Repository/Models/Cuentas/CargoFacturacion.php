@@ -9,6 +9,8 @@ use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * Catálogo de cargos fiscales y comerciales aplicables a cuentas.
@@ -28,8 +30,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $fecha_fin
  * @property int $estado
  */
-final class CargoFacturacion extends Model
+final class CargoFacturacion extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'cargos_facturacion';
 
     protected $guarded = ['id'];

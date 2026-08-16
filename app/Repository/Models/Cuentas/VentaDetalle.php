@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Repository\Models\Cuentas;
 
+use App\Repository\Models\Facturacion\FacturaDetalle;
 use App\Repository\Models\Monedas\Moneda;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
 /**
  * Renglón de una venta. Fotografía histórica inmutable.
@@ -29,8 +33,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property int $moneda_id
  * @property Moneda|null $moneda
  */
-final class VentaDetalle extends Model
+final class VentaDetalle extends Model implements AuditableContract
 {
+    use Auditable;
+
     protected $table = 'venta_detalles';
 
     protected $guarded = ['id'];
@@ -60,6 +66,12 @@ final class VentaDetalle extends Model
     public function moneda(): BelongsTo
     {
         return $this->belongsTo(Moneda::class);
+    }
+
+    /** @return HasMany<FacturaDetalle, $this> */
+    public function facturaDetalles(): HasMany
+    {
+        return $this->hasMany(FacturaDetalle::class);
     }
 
     /**
