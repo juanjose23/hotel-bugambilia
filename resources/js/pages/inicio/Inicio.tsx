@@ -1,19 +1,19 @@
 import { Head } from '@inertiajs/react';
 import React, { Suspense } from 'react';
-import SeccionPortada from '@/modules/home/components/SeccionPortada';
-import type { PropiedadesPaginaInicio } from '@/modules/home/types/inicio';
+import SeccionPortada from '@/modulos/inicio/componentes/SeccionPortada';
+import type { PropiedadesPaginaInicio } from '@/modulos/inicio/interfaces/inicio';
 
 const HabitacionesDestacadas = React.lazy(
-    () => import('@/modules/rooms/components/HabitacionesDestacadas'),
+    () => import('@/modulos/habitaciones/componentes/HabitacionesDestacadas'),
 );
 const SeccionPromociones = React.lazy(
-    () => import('@/modules/home/components/SeccionPromociones'),
+    () => import('@/modulos/inicio/componentes/SeccionPromociones'),
 );
 const ResumenAcercaDe = React.lazy(
-    () => import('@/modules/about/components/ResumenAcercaDe'),
+    () => import('@/modulos/acerca-de/componentes/ResumenAcercaDe'),
 );
 const SeccionTestimonios = React.lazy(
-    () => import('@/modules/home/components/SeccionTestimonios'),
+    () => import('@/modulos/inicio/componentes/SeccionTestimonios'),
 );
 
 const FallbackCargando = () => (

@@ -3,6 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <link rel="icon" href="/images/hotel-icon.webp" type="image/webp">
         <link rel="icon" href="/images/hotel-icon.png" type="image/png">

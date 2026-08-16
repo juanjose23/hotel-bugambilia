@@ -1,4 +1,4 @@
-import FormularioInicioSesion from '@/modules/auth/components/FormularioInicioSesion';
+import FormularioInicioSesion from '@/modulos/autenticacion/componentes/FormularioInicioSesion';
 const IniciarSesion = () => {
     return (
         <>

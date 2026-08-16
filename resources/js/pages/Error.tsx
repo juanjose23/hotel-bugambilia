@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
     Clock,
@@ -123,7 +123,7 @@ export default function Error({ status = 500, message }: PropiedadesError) {
         if (window.history.length > 1) {
             window.history.back();
         } else {
-            window.location.href = '/';
+            router.visit('/');
         }
     };
 

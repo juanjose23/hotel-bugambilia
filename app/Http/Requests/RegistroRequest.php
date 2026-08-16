@@ -31,14 +31,14 @@ final class RegistroRequest extends FormRequest
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     $user = User::where('email', $value)->first();
                     if ($user instanceof User && $user->persona && $user->persona->cliente()->exists()) {
-                        $fail('Este correo electrónico ya está registrado con una cuenta ');
+                        $fail('Este correo electrónico ya está registrado con una cuenta existente. Por favor inicie sesión.');
                     }
                 },
             ],
             'phone' => [$tipoPersona === 'juridica' ? 'required' : 'nullable', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'tipo_identificacion' => ['nullable', 'string', 'max:30'],
-            'numero_identificacion' => ['nullable', 'string', 'max:50'],
+            'tipo_identificacion' => ['nullable', 'string', 'max:30', 'required_with:numero_identificacion'],
+            'numero_identificacion' => ['nullable', 'string', 'max:50', 'required_with:tipo_identificacion'],
         ];
 
         if ($tipoPersona === 'juridica') {
@@ -68,6 +68,8 @@ final class RegistroRequest extends FormRequest
             'razon_social.required' => 'La razón social es obligatoria.',
             'primer_nombre.required' => 'El nombre es obligatorio.',
             'primer_apellido.required' => 'El apellido es obligatorio.',
+            'tipo_identificacion.required_with' => 'Debe seleccionar el tipo de identificación.',
+            'numero_identificacion.required_with' => 'Debe ingresar el número de identificación.',
         ];
     }
 }

@@ -22,7 +22,7 @@ final class ServicioController extends Controller
         $categoriasConConteo = $interactor->categoriasConConteo();
         $categoriaMasPopular = $categoriasConConteo[0]['nombre'] ?? null;
 
-        $categoriaSeleccionada = is_string($categoria) ? $categoria : $categoriaMasPopular;
+        $categoriaSeleccionada = is_string($categoria) && trim($categoria) !== '' ? trim($categoria) : null;
 
         $paginator = $interactor->ejecutar(
             categoria: $categoriaSeleccionada,
