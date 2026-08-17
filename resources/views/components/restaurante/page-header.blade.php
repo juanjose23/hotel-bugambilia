@@ -1,5 +1,5 @@
 @props([
-    'icon' => 'heroicon-o-sparkles',
+    'icon' => 'heroicon-o-check-badge',
     'titulo' => '',
     'subtitulo' => null,
 ])
@@ -44,7 +44,7 @@
             @else
 
                 <x-filament::icon
-                    icon="heroicon-o-sparkles"
+                    icon="heroicon-o-check-badge"
                     class="h-7 w-7"
                 />
             @endif

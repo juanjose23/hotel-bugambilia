@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Catalogos\Politicas;
 
 use App\Filament\Resources\Catalogos\Politicas\Pages\CreatePoliticas;
@@ -23,7 +25,7 @@ class PoliticasResource extends Resource
 {
     protected static ?string $model = Politica::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAdjustmentsVertical;
 

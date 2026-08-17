@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Reservas;
 
+use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoReserva;
+use App\Filament\Shared\Forms\CategoriaSelect;
 use App\Repository\Queries\Reservas\ObtenerCalendarioReservasQuery;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -90,35 +94,34 @@ final class CalendarioReservas extends Page implements HasForms
                         ])
                             ->schema([
                                 Select::make('filtroTipo')
-                                    ->label('Tipo de reserva')
-                                    ->options([
-                                        'habitaciones' => 'Habitaciones',
-                                        'espacios' => 'Espacios / áreas comunes',
-                                        'todos' => 'Todos los recursos',
-                                    ])
+                                    ->label('Tipo de Reserva')
+                                    ->options(array_merge(
+                                        ['todos' => 'Todos los recursos'],
+                                        TipoReserva::options(),
+                                    ))
                                     ->native(false)
                                     ->live()
                                     ->afterStateUpdated(fn ($state) => $this->updatedFiltroTipoState((string) $state)),
 
-                                Select::make('categoriaFiltro')
-                                    ->label('Categoría / Modelo')
+                                CategoriaSelect::make(
+                                    tipo: CatalogoTipo::CATEGORIA_HABITACION,
+                                    column: 'categoriaFiltro',
+                                    label: 'Categoría de Habitación',
+                                )
                                     ->placeholder('Todas las Categorías')
-                                    ->options(fn (): array => $this->getAvailableCategorias())
-                                    ->searchable()
-                                    ->native(false)
+                                    ->nullable()
                                     ->live()
                                     ->afterStateUpdated(fn () => $this->cargarCalendario()),
 
                                 Select::make('estadoFiltro')
                                     ->label('Estado de Reserva')
-                                    ->options([
-                                        0 => 'Todos los Estados',
-                                        1 => 'Pendiente',
-                                        2 => 'Confirmada',
-                                        3 => 'Checked In',
-                                        4 => 'Checked Out',
-                                        5 => 'Cancelada',
-                                    ])
+                                    ->options(array_merge(
+                                        [
+                                            0 => 'Activas (Excl. Canceladas)',
+                                            -1 => 'Todas (Incl. Canceladas)',
+                                        ],
+                                        EstadoReserva::options(),
+                                    ))
                                     ->native(false)
                                     ->live()
                                     ->afterStateUpdated(fn () => $this->cargarCalendario()),
@@ -134,31 +137,9 @@ final class CalendarioReservas extends Page implements HasForms
             ->statePath('filterData');
     }
 
-    /**
-     * @return array<string, string>
-     */
-    private function getAvailableCategorias(): array
-    {
-        /** @var array<int, mixed> $cats */
-        $cats = is_array($this->calendarioData['categorias_habitacion'] ?? null)
-            ? $this->calendarioData['categorias_habitacion']
-            : [];
-
-        $assoc = [];
-        foreach ($cats as $c) {
-            if (is_string($c) && $c !== '') {
-                $assoc[$c] = $c;
-            }
-        }
-
-        return $assoc;
-    }
-
     private function updatedFiltroTipoState(string $tipo): void
     {
-        if ($tipo === 'habitaciones' || $tipo === 'espacios' || $tipo === 'todos') {
-            $this->tabActiva = $tipo;
-        }
+        $this->tabActiva = $tipo;
         $this->cargarCalendario();
     }
 

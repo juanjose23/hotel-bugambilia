@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Catalogos\Pais;
 
 use App\Filament\Resources\Catalogos\Pais\Pages\ListPais;
@@ -18,7 +20,7 @@ class PaisResource extends Resource
 {
     protected static ?string $model = Pais::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Catálogos';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::GlobeAmericas;
 

@@ -20,9 +20,11 @@
                 ['color' => 'bg-sky-500', 'label' => 'En Estancia (Checked In / Out)'],
                 ['color' => 'bg-amber-500', 'label' => 'Pendiente'],
                 ['color' => 'bg-rose-500', 'label' => 'Cancelada'],
+                ['color' => 'bg-rose-200', 'label' => 'Categoría agotada'],
             ]"
             item-count-label="res."
             item-view="filament.resources.reservas.partials.calendar-reserva-card"
+            :availability-by-day="$calendarioData['disponibilidadHabitaciones']['ocupacion_por_dia'] ?? []"
         />
 
     </div>

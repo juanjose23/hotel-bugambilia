@@ -24,7 +24,7 @@ final class SolicitudLimpiezaResource extends Resource
 {
     protected static ?string $model = SolicitudLimpieza::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::Sparkles;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::CheckBadge;
 
     protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
 

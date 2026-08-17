@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Usuarios\Clientes\Pages;
 use App\Exceptions\YaTieneCuentaException;
 use App\Filament\Resources\Usuarios\Clientes\ClienteResource;
 use App\Interactors\Usuarios\Clientes\RegistrarCliente;
+use App\Support\UsuarioAutenticado;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +20,7 @@ class CreateCliente extends CreateRecord
     {
         try {
             $interactor = app(RegistrarCliente::class);
-            $resultado = $interactor->ejecutar($data);
+            $resultado = $interactor->ejecutar($data, UsuarioAutenticado::id());
 
             Notification::make()
                 ->title('Cliente registrado exitosamente')

@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Catalogos\Productos\Tables;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Catalogos\TipoProducto;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -15,9 +18,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class ProductosTable
 {
@@ -48,47 +49,19 @@ class ProductosTable
             ])
             ->filters([
                 FiltroEliminados::make(),
-                SelectFilter::make('categoria_id')
-                    ->label('Categoría')
-                    ->relationship(
-                        name: 'categoria',
-                        titleAttribute: 'nombre',
-                        modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                            'catalogoTipo',
-                            fn (Builder $q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value)
-                        )
-                    )
-                    ->multiple()
-                    ->searchable()
-                    ->preload(),
-
-                SelectFilter::make('marca_id')
-                    ->label('Marca')
-                    ->relationship(
-                        name: 'marca',
-                        titleAttribute: 'nombre',
-                        modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                            'catalogoTipo',
-                            fn (Builder $q) => $q->where('codigo', CatalogoTipo::MARCA->value)
-                        )
-                    )
-                    ->multiple()
-                    ->searchable()
-                    ->preload(),
-
-                SelectFilter::make('unidad_medida_id')
-                    ->label('Unidad de Medida')
-                    ->relationship(
-                        name: 'unidadMedida',
-                        titleAttribute: 'nombre',
-                        modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                            'catalogoTipo',
-                            fn (Builder $q) => $q->where('codigo', CatalogoTipo::UNIDAD_MEDIDA->value)
-                        )
-                    )
-                    ->multiple()
-                    ->searchable()
-                    ->preload(),
+                FiltroCategoria::make(CatalogoTipo::CATEGORIA_PRODUCTO),
+                FiltroCategoria::make(
+                    tipo: CatalogoTipo::MARCA,
+                    column: 'marca_id',
+                    label: 'Marca',
+                    relationship: 'marca',
+                ),
+                FiltroCategoria::make(
+                    tipo: CatalogoTipo::UNIDAD_MEDIDA,
+                    column: 'unidad_medida_id',
+                    label: 'Unidad de Medida',
+                    relationship: 'unidadMedida',
+                ),
             ])
             ->recordActions([
                 ViewAction::make(),

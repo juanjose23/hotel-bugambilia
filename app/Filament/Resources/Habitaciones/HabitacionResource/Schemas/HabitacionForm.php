@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Habitaciones\HabitacionResource\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Filament\Shared\Forms\CategoriaSelect;
 use App\Interactors\Habitaciones\GenerarCodigoHabitacion;
 use App\Interactors\Habitaciones\GenerarSlugHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
@@ -73,12 +74,8 @@ class HabitacionForm
                     ->columns(3)
                     ->columnSpanFull()
                     ->schema([
-                        Select::make('categoria_id')
-                            ->label('Categoría')
+                        CategoriaSelect::make(CatalogoTipo::CATEGORIA_HABITACION)
                             ->required()
-                            ->options(CachedOptions::catalogos(CatalogoTipo::CATEGORIA_HABITACION->value))
-                            ->searchable()
-                            ->preload()
                             ->prefixIcon(Heroicon::Tag),
 
                         Select::make('ubicacion_id')

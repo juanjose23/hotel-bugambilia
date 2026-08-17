@@ -51,9 +51,38 @@ class EspacioSeeder extends Seeder
             ['titulo' => 'Política de Cancelación de Espacios Comerciales'],
             [
                 'descripcion' => 'Cancelación sin penalización hasta 48 horas antes del evento. Cancelaciones dentro de las 48 horas previas incurrirán en el cargo del 50% del precio base de reserva.',
+                'aplica_penalizacion' => true,
                 'estado' => 1,
             ]
         );
+
+        $politicaReserva->penalizaciones()->delete();
+        $politicaReserva->penalizaciones()->createMany([
+            [
+                'min_unidades' => 2,
+                'max_unidades' => null,
+                'unidad' => 1,
+                'porcentaje' => 0.00,
+                'aplica_no_show' => false,
+                'orden' => 1,
+            ],
+            [
+                'min_unidades' => 0,
+                'max_unidades' => 1,
+                'unidad' => 1,
+                'porcentaje' => 50.00,
+                'aplica_no_show' => false,
+                'orden' => 2,
+            ],
+            [
+                'min_unidades' => null,
+                'max_unidades' => null,
+                'unidad' => 1,
+                'porcentaje' => 100.00,
+                'aplica_no_show' => true,
+                'orden' => 3,
+            ],
+        ]);
 
         $politicaGimnasio = Politica::updateOrCreate(
             ['titulo' => 'Reglamento Interno del Gimnasio'],

@@ -66,7 +66,7 @@ class LimpiezaEjecucionInfolist
                     ]),
 
                 Section::make('Detalles de la Ejecución')
-                    ->icon(Heroicon::Sparkles)
+                    ->icon(Heroicon::CheckBadge)
                     ->description('Estado actual y tiempos de realización de la limpieza.')
                     ->columns([
                         'default' => 1,

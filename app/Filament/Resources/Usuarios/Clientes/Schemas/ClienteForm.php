@@ -119,12 +119,14 @@ class ClienteForm
                                     ->label('Tipo de Documento')
                                     ->options(TipoIdentificacion::class)
                                     ->prefixIcon(Heroicon::DocumentText)
+                                    ->requiredWith('numero_identificacion')
                                     ->native(false),
 
                                 TextInput::make('numero_identificacion')
                                     ->label('Número de Identificación / RUC')
                                     ->placeholder('ej. 001-123456-0000X o RUC J03100000123')
                                     ->prefixIcon(Heroicon::Hashtag)
+                                    ->requiredWith('tipo_identificacion')
                                     ->maxLength(30),
 
                                 Select::make('pais_id')

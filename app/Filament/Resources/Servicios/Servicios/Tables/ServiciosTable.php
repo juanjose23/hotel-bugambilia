@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Servicios\Servicios\Tables;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\ActionGroup;
@@ -17,10 +20,8 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class ServiciosTable
 {
@@ -46,7 +47,7 @@ class ServiciosTable
                     ->icon(function ($record): string {
                         $st = $record->icono;
                         if (! $st) {
-                            return 'heroicon-o-sparkles';
+                            return 'heroicon-o-check-badge';
                         }
                         if (str_starts_with($st, 'heroicon-')) {
                             return $st;
@@ -58,7 +59,6 @@ class ServiciosTable
                             'utensils', 'restaurant' => 'heroicon-o-building-storefront',
                             'bar' => 'heroicon-o-cake',
                             'pool', 'swimming' => 'heroicon-o-lifebuoy',
-                            'sparkles' => 'heroicon-o-sparkles',
                             'car', 'parking' => 'heroicon-o-truck',
                             'gym' => 'heroicon-o-trophy',
                             'laundry', 'shirt' => 'heroicon-o-scissors',
@@ -79,7 +79,7 @@ class ServiciosTable
                             'plane' => 'heroicon-o-paper-airplane',
                             'briefcase' => 'heroicon-o-briefcase',
                             'map' => 'heroicon-o-map',
-                            default => 'heroicon-o-sparkles',
+                            default => 'heroicon-o-check-badge',
                         };
                     }),
 
@@ -121,20 +121,7 @@ class ServiciosTable
             ])
             ->filters([
                 FiltroEstado::make(EstadoGeneral::class),
-
-                SelectFilter::make('categoria_id')
-                    ->label('Categoría')
-                    ->relationship(
-                        name: 'categoria',
-                        titleAttribute: 'nombre',
-                        modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                            'catalogoTipo',
-                            fn (Builder $q) => $q->where('codigo', CatalogoTipo::CATEGORIA_SERVICIO->value)
-                        )
-                    )
-                    ->searchable()
-                    ->preload(),
-
+                FiltroCategoria::make(CatalogoTipo::CATEGORIA_SERVICIO),
                 FiltroEliminados::make(),
                 TernaryFilter::make('web')
                     ->label('Mostrar en Web'),

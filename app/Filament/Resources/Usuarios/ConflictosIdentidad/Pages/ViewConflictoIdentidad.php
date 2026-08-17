@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Usuarios\ConflictosIdentidad\Pages;
 
 use App\Enums\Usuarios\EstadoConflictoIdentidad;
+use App\Exceptions\YaTieneCuentaException;
 use App\Filament\Resources\Usuarios\ConflictosIdentidad\ConflictoIdentidadResource;
 use App\Interactors\Usuarios\Identidad\ResolverConflictoIdentidad;
 use App\Repository\Models\Usuarios\ConflictoIdentidad;
 use App\Support\CachedOptions;
+use App\Support\UsuarioAutenticado;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -57,7 +59,7 @@ class ViewConflictoIdentidad extends ViewRecord
                     $interactor = app(ResolverConflictoIdentidad::class);
 
                     try {
-                        $resultado = $interactor->vincular($record, $data);
+                        $interactor->vincular($record, $data, UsuarioAutenticado::id());
 
                         Notification::make()
                             ->title('Conflicto resuelto')
@@ -66,12 +68,22 @@ class ViewConflictoIdentidad extends ViewRecord
                             ->send();
 
                         $this->redirect(ConflictoIdentidadResource::getUrl());
-                    } catch (\Throwable $e) {
+                    } catch (YaTieneCuentaException $e) {
                         Notification::make()
-                            ->title('Error al vincular')
+                            ->title('Este correo ya tiene una cuenta')
+                            ->body('El correo electrónico ingresado ya está vinculado a una cuenta existente. Verifique los datos.')
+                            ->warning()
+                            ->send();
+
+                        $this->halt();
+                    } catch (\RuntimeException $e) {
+                        Notification::make()
+                            ->title('No se pudo resolver el conflicto')
                             ->body($e->getMessage())
                             ->danger()
                             ->send();
+
+                        $this->halt();
                     }
                 }),
 
@@ -91,14 +103,25 @@ class ViewConflictoIdentidad extends ViewRecord
                 ])
                 ->action(function (array $data) use ($record): void {
                     $interactor = app(ResolverConflictoIdentidad::class);
-                    $interactor->rechazar($record, is_string($data['notas']) ? $data['notas'] : '');
 
-                    Notification::make()
-                        ->title('Conflicto rechazado')
-                        ->success()
-                        ->send();
+                    try {
+                        $interactor->rechazar($record, is_string($data['notas']) ? $data['notas'] : '', UsuarioAutenticado::id());
 
-                    $this->redirect(ConflictoIdentidadResource::getUrl());
+                        Notification::make()
+                            ->title('Conflicto rechazado')
+                            ->success()
+                            ->send();
+
+                        $this->redirect(ConflictoIdentidadResource::getUrl());
+                    } catch (\RuntimeException $e) {
+                        Notification::make()
+                            ->title('No se pudo rechazar el conflicto')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+
+                        $this->halt();
+                    }
                 }),
         ];
     }

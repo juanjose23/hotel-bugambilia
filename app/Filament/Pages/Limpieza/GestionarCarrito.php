@@ -341,7 +341,7 @@ class GestionarCarrito extends Page implements HasForms, HasTable
                                 ->label('Cantidad')
                                 ->numeric()
                                 ->required()
-                                ->prefixIcon(Heroicon::Sparkles)
+                                ->prefixIcon(Heroicon::CheckBadge)
                                 ->minValue(0.01)
                                 ->maxValue(fn (Get $get): float => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 999999.0),
 

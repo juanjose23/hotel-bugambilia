@@ -42,7 +42,7 @@
                         @if($cot['es_recomendada'] && !$cot['es_ganadora'])
                             <div class="absolute top-0 left-0 p-2 transform -translate-x-2 -translate-y-2">
                                 <span class="flex items-center gap-1 px-3 py-1 text-xs font-bold text-white uppercase bg-amber-500 rounded-full shadow-md animate-bounce">
-                                    <x-heroicon-s-sparkles class="w-4 h-4" /> RECOMENDADA
+                                    <x-heroicon-s-check-badge class="w-4 h-4" /> RECOMENDADA
                                 </span>
                             </div>
                         @endif
@@ -122,7 +122,7 @@
                                     </a>
                                 @else
                                     <div class="flex flex-col items-center justify-center p-2 text-sm font-bold text-primary-600 bg-primary-50 dark:bg-primary-900/20 rounded-xl">
-                                        <x-heroicon-m-sparkles class="w-5 h-5 mb-1" /> Oferta Seleccionada
+                                        <x-heroicon-m-check-badge class="w-5 h-5 mb-1" /> Oferta Seleccionada
                                         <p class="text-[10px] text-gray-400 uppercase font-normal">Listo para generar Orden</p>
                                         <a href="{{ \App\Filament\Resources\Compras\Cotizaciones\CotizacionResource::getUrl('index', ['tableFilters' => ['solicitud_id' => ['value' => $record->id]]]) }}" class="mt-2 text-[11px] underline hover:text-primary-700">Ver Detalles</a>
                                     </div>

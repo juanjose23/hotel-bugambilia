@@ -28,7 +28,7 @@ class ConflictoIdentidadResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Conflictos de Identidad';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
+    protected static string|UnitEnum|null $navigationGroup = 'Clientes & Usuarios';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ExclamationTriangle;
 

@@ -42,7 +42,7 @@ class ServiciosRelationManager extends RelationManager
                     ->searchable()
                     ->rules([$this->getUniqueServicioRule()])
                     ->live()
-                    ->prefixIcon(Heroicon::Sparkles),
+                    ->prefixIcon(Heroicon::CheckBadge),
 
                 Toggle::make('incluido')
                     ->label('Incluido')

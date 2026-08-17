@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Auditoria\Audits;
 
 use App\Filament\Resources\Auditoria\Audits\Pages\ListAudits;
@@ -24,7 +26,7 @@ class AuditResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShieldCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Auditoria';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
 
     public static function infolist(Schema $schema): Schema
     {

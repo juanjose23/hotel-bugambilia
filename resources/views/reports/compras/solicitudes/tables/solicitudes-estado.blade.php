@@ -6,10 +6,10 @@
         @forelse($items as $row)
         <tr>
             <td><strong>{{ $row->codigo }}</strong></td>
-            <td>{{ $row->estado }}</td>
-            <td>{{ $row->departamento ?? '—' }}</td>
-            <td>{{ $row->solicitante }}</td>
-            <td style="text-align:center;">{{ \Carbon\Carbon::parse($row->fecha_solicitud)->format('d/m/Y') }}</td>
+            <td>{{ $row->estado?->label() }}</td>
+            <td>{{ $row->departamentoSolicitante?->nombre ?? '—' }}</td>
+            <td>{{ $row->colaborador?->persona?->nombre_completo }}</td>
+            <td style="text-align:center;">{{ $row->fecha_solicitud?->format('d/m/Y') ?? '—' }}</td>
             <td style="font-size:9px;color:#555;">{{ $row->motivo ?? '—' }}</td>
         </tr>
         @empty

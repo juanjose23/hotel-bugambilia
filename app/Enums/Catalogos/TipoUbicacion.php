@@ -67,9 +67,9 @@ enum TipoUbicacion: string implements HasColor, HasIcon, HasLabel
             self::POSICION => Heroicon::MapPin,
             self::HABITACION => Heroicon::Home,
             self::ESPACIO => Heroicon::Cube,
-            self::LAVANDERIA => Heroicon::Sparkles,
+            self::LAVANDERIA => Heroicon::CheckBadge,
             self::BLANCOS_SUCIOS => Heroicon::Trash,
-            self::BLANCOS_LIMPIOS => Heroicon::Sparkles,
+            self::BLANCOS_LIMPIOS => Heroicon::CheckBadge,
             self::MERMA => Heroicon::ArchiveBoxXMark,
             self::CARRITO => Heroicon::ShoppingCart,
         };

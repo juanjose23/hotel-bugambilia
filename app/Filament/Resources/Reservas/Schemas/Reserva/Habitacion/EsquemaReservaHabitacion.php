@@ -216,6 +216,7 @@ class EsquemaReservaHabitacion
         $fechaCheckOut = self::carbonoOpcional($get('fecha_check_out'));
         $adultos = self::enteroOpcional($get('adultos'), 1);
         $ninos = self::enteroOpcional($get('ninos'), 0);
+        $habitacionSeleccionadaId = self::enteroOpcional($get('habitacion_id'));
 
         if ($fechaCheckIn !== null && $fechaCheckOut !== null && $fechaCheckOut->greaterThan($fechaCheckIn)) {
             $data = new ConsultarDisponibilidadHabitacionData(
@@ -233,7 +234,7 @@ class EsquemaReservaHabitacion
                 );
             }
 
-            return $habitaciones
+            $opciones = $habitaciones
                 ->mapWithKeys(static function (RecursoReservable $recurso): array {
                     $habitacion = $recurso->habitacion;
 
@@ -244,6 +245,8 @@ class EsquemaReservaHabitacion
                     return [$habitacion->id => self::etiquetaHabitacion($habitacion, $recurso)];
                 })
                 ->all();
+
+            return self::agregarHabitacionSeleccionada($opciones, $habitacionSeleccionadaId);
         }
 
         $query = Habitacion::query()
@@ -254,7 +257,7 @@ class EsquemaReservaHabitacion
             $query->where('id', '!=', $excluirHabitacionId);
         }
 
-        return $query
+        $opciones = $query
             ->orderBy('categoria_id')
             ->orderBy('nombre')
             ->get()
@@ -262,6 +265,29 @@ class EsquemaReservaHabitacion
                 return [$habitacion->id => self::etiquetaHabitacion($habitacion)];
             })
             ->all();
+
+        return self::agregarHabitacionSeleccionada($opciones, $habitacionSeleccionadaId);
+    }
+
+    /**
+     * @param  array<int, string>  $opciones
+     * @return array<int, string>
+     */
+    private static function agregarHabitacionSeleccionada(array $opciones, int $habitacionId): array
+    {
+        if ($habitacionId <= 0 || array_key_exists($habitacionId, $opciones)) {
+            return $opciones;
+        }
+
+        $habitacion = Habitacion::query()
+            ->with(['categoria', 'reservable'])
+            ->find($habitacionId);
+
+        if (! $habitacion instanceof Habitacion) {
+            return $opciones;
+        }
+
+        return [$habitacion->id => self::etiquetaHabitacion($habitacion).' · Seleccionada'] + $opciones;
     }
 
     private static function etiquetaHabitacion(Habitacion $habitacion, ?RecursoReservable $recurso = null): string

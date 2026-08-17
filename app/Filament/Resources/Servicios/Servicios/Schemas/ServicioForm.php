@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Servicios\Servicios\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Forms\CategoriaSelect;
 use App\Interactors\Servicios\GenerarCodigoServicio;
 use App\Interactors\Servicios\SincronizarGaleriaImagenes;
 use App\Repository\Models\Servicios\Servicio;
@@ -16,7 +19,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Builder;
 use Stringable;
 
 class ServicioForm
@@ -51,19 +53,8 @@ class ServicioForm
                             ->prefixIcon(Heroicon::Tag)
                             ->placeholder('Ej. Masaje Relajante'),
 
-                        Select::make('categoria_id')
-                            ->label('Categoría')
+                        CategoriaSelect::make(CatalogoTipo::CATEGORIA_SERVICIO)
                             ->placeholder('Seleccionar categoría')
-                            ->relationship(
-                                name: 'categoria',
-                                titleAttribute: 'nombre',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                                    'catalogoTipo',
-                                    fn (Builder $q) => $q->where('codigo', CatalogoTipo::CATEGORIA_SERVICIO->value)
-                                )
-                            )
-                            ->searchable()
-                            ->preload()
                             ->required()
                             ->prefixIcon(Heroicon::ArchiveBox)
                             ->helperText('Categoría a la que pertenece el servicio.'),
@@ -89,7 +80,7 @@ class ServicioForm
                             ->live()
                             ->prefixIcon(function (?string $state): string {
                                 if (! $state) {
-                                    return 'heroicon-o-sparkles';
+                                    return 'heroicon-o-check-badge';
                                 }
                                 if (str_starts_with($state, 'heroicon-')) {
                                     return $state;
@@ -101,7 +92,6 @@ class ServicioForm
                                     'utensils', 'restaurant' => 'heroicon-o-building-storefront',
                                     'bar' => 'heroicon-o-cake',
                                     'pool', 'swimming' => 'heroicon-o-lifebuoy',
-                                    'sparkles' => 'heroicon-o-sparkles',
                                     'car', 'parking' => 'heroicon-o-truck',
                                     'gym' => 'heroicon-o-trophy',
                                     'laundry', 'shirt' => 'heroicon-o-scissors',
@@ -122,7 +112,7 @@ class ServicioForm
                                     'plane' => 'heroicon-o-paper-airplane',
                                     'briefcase' => 'heroicon-o-briefcase',
                                     'map' => 'heroicon-o-map',
-                                    default => 'heroicon-o-sparkles',
+                                    default => 'heroicon-o-check-badge',
                                 };
                             })
                             ->placeholder('Selecciona un icono emblemático para la página web')
