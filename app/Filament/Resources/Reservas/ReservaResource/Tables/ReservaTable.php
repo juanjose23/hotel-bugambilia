@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\ReservaResource\Tables;
 
+use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Filament\Resources\Reservas\Schemas\Reserva\AccionesReserva;
 use App\Filament\Resources\Reservas\Schemas\Reserva\InsigniaEstadoReserva;
+use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Reservas\Reserva;
 use App\Support\MonedaHelper;
@@ -136,6 +138,12 @@ class ReservaTable
             ->filters([
                 FiltroEstado::make(TipoReserva::class, 'tipo_reserva'),
                 FiltroEstado::make(EstadoReserva::class),
+                FiltroCategoria::make(
+                    tipo: CatalogoTipo::CATEGORIA_HABITACION,
+                    column: 'categoria_id',
+                    label: 'Categoría de Habitación',
+                    relationship: 'habitacion.categoria',
+                ),
             ])
             ->recordUrl(fn (Reserva $record): string => ReservaResource::getUrl('view', ['record' => $record]))
             ->recordActions([

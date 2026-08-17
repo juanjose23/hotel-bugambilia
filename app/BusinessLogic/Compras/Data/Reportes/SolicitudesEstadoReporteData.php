@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Compras\Data\Reportes;
 
+use App\Repository\Models\Compras\Solicitud;
+
 final readonly class SolicitudesEstadoReporteData
 {
     /**
-     * @param  array<string, int>  $data
+     * @param  array<int, Solicitud>  $data
      */
     public function __construct(
         public array $data,
@@ -17,7 +19,7 @@ final readonly class SolicitudesEstadoReporteData
     ) {}
 
     /**
-     * @return array{data: array<string, int>, fechaInicio: string, fechaFin: string, estado: string|null}
+     * @return array{data: array<int, Solicitud>, fechaInicio: string, fechaFin: string, estado: string|null}
      */
     public function toArray(): array
     {

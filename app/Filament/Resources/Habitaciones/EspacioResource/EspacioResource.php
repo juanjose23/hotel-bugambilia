@@ -33,7 +33,7 @@ class EspacioResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Home;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Habitaciones y Ambientes';
+    protected static string|UnitEnum|null $navigationGroup = 'Habitaciones & Espacios';
 
     protected static ?string $modelLabel = 'Ambiente / Espacio';
 

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Usuarios\Clientes\Pages;
 
+use App\Exceptions\YaTieneCuentaException;
 use App\Filament\Resources\Usuarios\Clientes\ClienteResource;
 use App\Interactors\Usuarios\Clientes\ActualizarCliente;
-use App\Interactors\Usuarios\Identidad\VincularPersonaExistenteAUser;
+use App\Interactors\Usuarios\Identidad\VincularPersonaAUser;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Personas\Persona;
 use Filament\Actions\Action;
@@ -43,11 +44,27 @@ class EditCliente extends EditRecord
                     $persona = $this->getRecord();
                     $password = Str::random(12);
 
-                    $vincular = app(VincularPersonaExistenteAUser::class);
-                    $user = $vincular->ejecutar($persona, [
-                        'email' => $data['email'],
-                        'password' => $password,
-                    ]);
+                    $vincular = app(VincularPersonaAUser::class);
+                    $user = null;
+
+                    try {
+                        $user = $vincular->ejecutar($persona, [
+                            'email' => $data['email'],
+                            'password' => $password,
+                        ]);
+                    } catch (YaTieneCuentaException $e) {
+                        Notification::make()
+                            ->title('Este correo ya tiene una cuenta')
+                            ->body('El correo electrónico ingresado ya está vinculado a una cuenta existente.')
+                            ->warning()
+                            ->send();
+
+                        $this->halt();
+                    }
+
+                    if ($user === null) {
+                        throw new \RuntimeException('No se pudo crear la cuenta de acceso.');
+                    }
 
                     $user->update(['password_change_required' => true]);
 

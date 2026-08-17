@@ -15,11 +15,19 @@ class ObtenerVariantesParaPackQuery
     {
         return ProductoVariante::query()
             ->with('producto')
-            ->whereHas('producto', fn ($q) => $q->whereIn('tipo', [1, 2]))
+            ->whereHas('producto')
             ->get()
-            ->map(fn (ProductoVariante $v) => new VarianteData(
-                id: $v->id,
-                label: ($v->producto->nombre ?? '?').' — '.($v->nombre_variante ?? $v->codigo),
-            ));
+            ->map(function (ProductoVariante $v) {
+                $nombreProducto = $v->producto->nombre ?? 'Producto #'.$v->producto_id;
+                $detalleVariante = $v->nombre_variante ?: ($v->codigo ?: null);
+                $label = $detalleVariante
+                    ? "{$nombreProducto} — {$detalleVariante}"
+                    : $nombreProducto;
+
+                return new VarianteData(
+                    id: (int) $v->id,
+                    label: $label,
+                );
+            });
     }
 }

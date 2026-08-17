@@ -332,7 +332,7 @@ class EspacioForm
                                         'belleza' => 'Cabina de Belleza / Estética',
                                     ])
                                     ->native(false)
-                                    ->prefixIcon(Heroicon::Sparkles),
+                                    ->prefixIcon(Heroicon::CheckBadge),
 
                                 TextInput::make('meta_datos.capacidad_simultanea')
                                     ->label('Capacidad Simultánea')

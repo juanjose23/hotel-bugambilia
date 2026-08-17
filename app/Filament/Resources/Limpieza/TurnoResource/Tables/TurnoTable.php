@@ -27,7 +27,7 @@ class TurnoTable
                     ->label('Nombre del Turno')
                     ->sortable()
                     ->searchable()
-                    ->icon(Heroicon::Sparkles),
+                    ->icon(Heroicon::CheckBadge),
 
                 TextColumn::make('lider')
                     ->label('Líder')

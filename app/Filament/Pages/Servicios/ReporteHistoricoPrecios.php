@@ -25,7 +25,7 @@ class ReporteHistoricoPrecios extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CurrencyDollar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Servicios';
+    protected static string|UnitEnum|null $navigationGroup = 'Servicios & Promociones';
 
     protected static ?string $navigationLabel = 'Histórico de Precios';
 

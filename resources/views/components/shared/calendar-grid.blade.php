@@ -9,6 +9,7 @@
     'legend' => [],
     'itemCountLabel' => '',
     'itemView' => '',
+    'availabilityByDay' => [],
 ])
 
 @php
@@ -30,6 +31,7 @@
      * ]
      */
     $itemsByDay = $calendarItems;
+    $availability = is_array($availabilityByDay) ? $availabilityByDay : [];
 @endphp
 
 <div class="w-full">
@@ -38,7 +40,7 @@
          CABECERA
     ========================================================== --}}
     <div
-        class="mb-5 rounded-xl border border-gray-200 bg-white shadow-sm
+        class="mb-5 rounded-lg border border-gray-200 bg-white shadow-sm
                dark:border-gray-700 dark:bg-gray-900"
     >
 
@@ -87,7 +89,7 @@
                 <div class="flex items-center gap-1">
                     <select
                         wire:model.live="month"
-                        class="rounded-lg border-gray-300 bg-white text-xs font-medium text-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        class="rounded-md border-gray-300 bg-white text-xs font-medium text-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                     >
                         <option value="1">Enero</option>
                         <option value="2">Febrero</option>
@@ -105,7 +107,7 @@
 
                     <select
                         wire:model.live="year"
-                        class="rounded-lg border-gray-300 bg-white text-xs font-medium text-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        class="rounded-md border-gray-300 bg-white text-xs font-medium text-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                     >
                         @foreach (range(now()->year - 2, now()->year + 3) as $y)
                             <option value="{{ $y }}">{{ $y }}</option>
@@ -154,7 +156,7 @@
             @foreach ($legend as $entry)
 
                 <div
-                    class="flex items-center gap-2 rounded-lg
+                    class="flex items-center gap-2 rounded-md
                            border border-gray-200 bg-white
                            px-3 py-1.5 text-xs
                            dark:border-gray-700 dark:bg-gray-900"
@@ -190,14 +192,14 @@
          cambie la estructura.
     ========================================================== --}}
     <div
-        class="w-full overflow-x-auto rounded-xl
-               border border-gray-300 shadow-sm
-               dark:border-gray-700"
+        class="w-full overflow-x-auto rounded-lg
+               border border-gray-200 bg-white shadow-sm ring-1 ring-gray-950/5
+               dark:border-gray-700 dark:bg-gray-900 dark:ring-white/5"
     >
 
         <div
             style="
-                min-width: 900px;
+                min-width: 980px;
                 width: 100%;
             "
         >
@@ -211,10 +213,10 @@
                     grid-template-columns: repeat(7, minmax(0, 1fr));
                     width: 100%;
                 "
-                class="border-b border-gray-300
-                       bg-gray-50
+                class="border-b border-gray-200
+                       bg-gray-50/80
                        dark:border-gray-700
-                       dark:bg-gray-900"
+                       dark:bg-gray-900/80"
             >
 
                 @foreach ([
@@ -230,7 +232,7 @@
                     <div
                         style="
                             min-width: 0;
-                            height: 42px;
+                            height: 38px;
                             display: flex;
                             align-items: center;
                             justify-content: center;
@@ -240,7 +242,6 @@
                             text-[11px]
                             font-semibold
                             uppercase
-                            tracking-wide
                             text-gray-500
 
                             last:border-r-0
@@ -271,11 +272,9 @@
                     display: grid;
                     grid-template-columns: repeat(7, minmax(0, 1fr));
                     width: 100%;
-                    gap: 1px;
-                    background-color: rgb(209 213 219);
                 "
 
-                class="dark:bg-gray-700"
+                class="divide-x divide-y divide-gray-200 dark:divide-gray-700"
             >
 
                 @foreach ($days as $index => $day)
@@ -294,6 +293,23 @@
                         $dayItems = !$esFueraDelMes
                             ? ($itemsByDay->get((int) $day) ?? collect())
                             : collect();
+
+                        $dateKey = !$esFueraDelMes
+                            ? sprintf('%04d-%02d-%02d', (int) $year, (int) $month, (int) $day)
+                            : null;
+
+                        $dayAvailability = $dateKey !== null && isset($availability[$dateKey])
+                            ? $availability[$dateKey]
+                            : null;
+
+                        $isSoldOut = is_array($dayAvailability) && (bool) ($dayAvailability['agotado'] ?? false);
+                        $totalHabitaciones = is_array($dayAvailability)
+                            ? max(1, (int) ($dayAvailability['total'] ?? 1))
+                            : 1;
+                        $ocupadas = is_array($dayAvailability)
+                            ? max(0, (int) ($dayAvailability['ocupadas'] ?? 0))
+                            : 0;
+                        $porcentajeOcupacion = min(100, (int) round(($ocupadas / $totalHabitaciones) * 100));
                     @endphp
 
 
@@ -307,10 +323,10 @@
 
                             style="
                                 min-width: 0;
-                                min-height: 175px;
+                                min-height: 150px;
                             "
 
-                            class="bg-gray-100/50 dark:bg-gray-950/80"
+                            class="bg-gray-50/70 dark:bg-gray-950/50"
                         ></div>
 
                     @else
@@ -324,7 +340,7 @@
 
                             style="
                                 min-width: 0;
-                                min-height: 175px;
+                                min-height: 150px;
                                 display: flex;
                                 flex-direction: column;
                             "
@@ -332,24 +348,39 @@
                             class="
                                 group
                                 relative
-                                p-2
+                                overflow-hidden
+                                p-2.5
 
-                                {{ $esFinDeSemana
-                                    ? 'bg-gray-50 dark:bg-gray-900'
-                                    : 'bg-white dark:bg-gray-900'
+                                {{ $isSoldOut
+                                    ? 'bg-rose-50/80 dark:bg-rose-950/20'
+                                    : ($esFinDeSemana
+                                    ? 'bg-gray-50/80 dark:bg-gray-900'
+                                    : 'bg-white dark:bg-gray-900')
                                 }}
 
-                                hover:bg-primary-50/30
-                                dark:hover:bg-primary-950/20
+                                {{ $isSoldOut
+                                    ? 'hover:bg-rose-50 dark:hover:bg-rose-950/30'
+                                    : 'hover:bg-primary-50/40 dark:hover:bg-primary-950/20'
+                                }}
                             "
                         >
+                            @if (is_array($dayAvailability))
+                                <div
+                                    class="absolute inset-x-0 top-0 h-1 bg-gray-100 dark:bg-gray-800"
+                                >
+                                    <div
+                                        class="h-full {{ $isSoldOut ? 'bg-rose-500' : 'bg-emerald-500' }}"
+                                        style="width: {{ $porcentajeOcupacion }}%;"
+                                    ></div>
+                                </div>
+                            @endif
 
                             {{-- =====================================
                                  NÚMERO DEL DÍA
                             ====================================== --}}
                             <div
-                                class="mb-2 flex items-center
-                                       justify-between"
+                                class="mb-2.5 flex items-start
+                                       justify-between gap-2"
                             >
 
                                 @if ($esHoy)
@@ -358,7 +389,7 @@
                                         class="flex h-8 w-8
                                                items-center
                                                justify-center
-                                               rounded-full
+                                               rounded-md
                                                bg-primary-600
                                                text-sm
                                                font-semibold
@@ -375,10 +406,10 @@
                                             flex h-8 w-8
                                             items-center
                                             justify-center
-                                            rounded-full
+                                            rounded-md
 
                                             text-sm
-                                            font-medium
+                                            font-semibold
 
                                             {{ $esFinDeSemana
                                                 ? 'text-gray-500 dark:text-gray-400'
@@ -392,8 +423,44 @@
                                 @endif
 
 
-                                {{-- Cantidad --}}
-                                @if (
+                                @if ($isSoldOut)
+                                    <span
+                                        class="
+                                            inline-flex items-center gap-1 rounded-md
+                                            bg-rose-100
+                                            px-2
+                                            py-1
+                                            text-[10px]
+                                            font-semibold
+                                            text-rose-700
+
+                                            dark:bg-rose-900/40
+                                            dark:text-rose-300
+                                        "
+                                    >
+                                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                        Agotado
+                                    </span>
+                                @elseif (is_array($dayAvailability))
+                                    <span
+                                        class="
+                                            inline-flex items-center gap-1 rounded-md
+                                            bg-emerald-100
+                                            px-2
+                                            py-1
+                                            text-[10px]
+                                            font-semibold
+                                            text-emerald-700
+
+                                            dark:bg-emerald-900/40
+                                            dark:text-emerald-300
+                                        "
+                                    >
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                        {{ $dayAvailability['disponibles'] ?? 0 }}
+                                        disp.
+                                    </span>
+                                @elseif (
                                     $itemCountLabel !== ''
                                     && count($dayItems) > 0
                                 )
@@ -429,7 +496,7 @@
                                     min-width: 0;
                                     display: flex;
                                     flex-direction: column;
-                                    gap: 4px;
+                                    gap: 6px;
                                 "
                             >
 
@@ -454,6 +521,15 @@
                                 @endforeach
 
                             </div>
+
+                            @if (is_array($dayAvailability))
+                                <div class="mt-auto pt-2">
+                                    <div class="flex items-center justify-between text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                                        <span>{{ $ocupadas }} ocupadas</span>
+                                        <span>{{ $totalHabitaciones }} total</span>
+                                    </div>
+                                </div>
+                            @endif
 
                         </div>
 

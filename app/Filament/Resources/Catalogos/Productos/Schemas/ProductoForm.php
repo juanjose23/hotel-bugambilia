@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Catalogos\Productos\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Catalogos\TipoProducto;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Forms\CategoriaSelect;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,7 +15,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Builder;
 
 class ProductoForm
 {
@@ -32,52 +34,28 @@ class ProductoForm
                             ->required()
                             ->prefixIcon('heroicon-o-tag')
                             ->helperText('Nombre único dentro de la categoría seleccionada.'),
-                        Select::make('categoria_id')
-                            ->label('Categoría')
+                        CategoriaSelect::make(CatalogoTipo::CATEGORIA_PRODUCTO)
                             ->placeholder('Seleccionar categoría')
-                            ->relationship(
-                                name: 'categoria',
-                                titleAttribute: 'nombre',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                                    'catalogoTipo',
-                                    fn (Builder $q) => $q->where('codigo', CatalogoTipo::CATEGORIA_PRODUCTO->value)
-                                )
-                            )
-                            ->searchable()
-                            ->preload()
                             ->required()
                             ->prefixIcon(Heroicon::ArchiveBox)
                             ->helperText('Categoría a la que pertenece el producto.'),
-                        Select::make('marca_id')
-                            ->label('Marca')
+
+                        CategoriaSelect::make(
+                            tipo: CatalogoTipo::MARCA,
+                            column: 'marca_id',
+                            label: 'Marca',
+                        )
                             ->placeholder('Seleccionar marca')
-                            ->relationship(
-                                name: 'marca',
-                                titleAttribute: 'nombre',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                                    'catalogoTipo',
-                                    fn (Builder $q) => $q->where('codigo', CatalogoTipo::MARCA->value)
-                                )
-                            )
-                            ->searchable()
-                            ->preload()
                             ->nullable()
                             ->prefixIcon(Heroicon::ShoppingBag)
                             ->helperText('Marca del producto (opcional).'),
 
-                        Select::make('unidad_medida_id')
-                            ->label('Unidad de Medida')
+                        CategoriaSelect::make(
+                            tipo: CatalogoTipo::UNIDAD_MEDIDA,
+                            column: 'unidad_medida_id',
+                            label: 'Unidad de Medida',
+                        )
                             ->placeholder('Seleccionar unidad')
-                            ->relationship(
-                                name: 'unidadMedida',
-                                titleAttribute: 'nombre',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
-                                    'catalogoTipo',
-                                    fn (Builder $q) => $q->where('codigo', CatalogoTipo::UNIDAD_MEDIDA->value)
-                                )
-                            )
-                            ->searchable()
-                            ->preload()
                             ->nullable()
                             ->prefixIcon(Heroicon::Scale)
                             ->helperText('Unidad de medida base (ej. Unidad, Litro, Kg).'),

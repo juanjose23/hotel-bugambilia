@@ -17,15 +17,8 @@ final class ObtenerSolicitudesPorEstadoQuery
         [$fechaInicio, $fechaFin] = $this->resolverRangoFechas($fechaInicioStr, $fechaFinStr);
         $solicitudes = $this->consultarSolicitudes($fechaInicio, $fechaFin, $estado);
 
-        $data = [
-            'total_solicitudes' => $solicitudes->count(),
-            'aprobadas' => $solicitudes->where('estado', 'aprobada')->count(),
-            'rechazadas' => $solicitudes->where('estado', 'rechazada')->count(),
-            'pendientes' => $solicitudes->where('estado', 'pendiente')->count(),
-        ];
-
         return new SolicitudesEstadoReporteData(
-            data: $data,
+            data: $solicitudes->values()->all(),
             fechaInicio: $fechaInicio->format('d/m/Y'),
             fechaFin: $fechaFin->format('d/m/Y'),
         );

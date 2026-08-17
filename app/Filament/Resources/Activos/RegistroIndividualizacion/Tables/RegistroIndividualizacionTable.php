@@ -67,7 +67,7 @@ readonly class RegistroIndividualizacionTable
             ->actions([
                 Action::make('individualizar')
                     ->label('Individualizar')
-                    ->icon(Heroicon::Sparkles)
+                    ->icon(Heroicon::CheckBadge)
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalHeading('Individualizar Unidades Físicas')

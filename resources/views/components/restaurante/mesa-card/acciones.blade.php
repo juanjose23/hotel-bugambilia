@@ -125,7 +125,7 @@
                 type="button"
                 wire:click="marcarMesaLimpia({{ $mesa->id }})"
                 color="gray"
-                icon="heroicon-o-sparkles"
+                icon="heroicon-o-check-badge"
                 size="sm"
             >
                 Finalizar

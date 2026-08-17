@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Servicios\Servicios\Schemas;
 
 use App\Enums\Shared\EstadoGeneral;
@@ -42,13 +44,13 @@ class ServicioInfolist
                             ->placeholder('Ninguno')
                             ->icon(function (?string $state): string {
                                 if (! $state) {
-                                    return 'heroicon-o-sparkles';
+                                    return 'heroicon-o-check-badge';
                                 }
                                 if (str_starts_with($state, 'heroicon-')) {
                                     return $state;
                                 }
 
-                                return 'heroicon-o-sparkles';
+                                return 'heroicon-o-check-badge';
                             })
                             ->formatStateUsing(fn (?string $state): string => $state ? ucwords(str_replace(['heroicon-o-', '-'], ['', ' '], $state)) : 'Ninguno'),
 

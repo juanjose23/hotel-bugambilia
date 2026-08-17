@@ -22,7 +22,7 @@ final class VentaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentCurrencyDollar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Cuentas';
+    protected static string|UnitEnum|null $navigationGroup = 'Facturación & Finanzas';
 
     protected static ?string $navigationLabel = 'Ventas';
 

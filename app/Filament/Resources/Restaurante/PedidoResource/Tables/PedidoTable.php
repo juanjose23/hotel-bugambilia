@@ -252,11 +252,16 @@ final class PedidoTable
                                         $cuentas->whereNull('cliente_id')
                                             ->orWhere('cliente_id', $record->cliente_id);
                                     }))
-                                    ->with('cliente', 'estancia.habitacion')
+                                    ->with('cliente.persona', 'estancia.habitacion')
                                     ->get()
                                     ->mapWithKeys(function (Cuenta $c): array {
                                         $habNombre = $c->estancia?->habitacion !== null ? $c->estancia->habitacion->nombre : 'Sin Habitación';
-                                        $cliNombre = $c->cliente !== null ? $c->cliente->nombre_completo : 'Cliente';
+                                        $cliNombre = 'Cliente';
+                                        if ($c->cliente !== null) {
+                                            $cliNombre = $c->cliente->nombre_completo
+                                                ?? $c->cliente->primer_nombre
+                                                ?? 'Cliente';
+                                        }
 
                                         return [$c->id => "Cuenta #{$c->numero_cuenta} — {$habNombre} — {$cliNombre}"];
                                     })

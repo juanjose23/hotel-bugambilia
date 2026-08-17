@@ -50,10 +50,10 @@ final class EditPedido extends EditRecord
 
         return [
             RegistrarClienteRapidoAction::make(
-                onClienteRegistrado: function ($persona): void {
+                onClienteRegistrado: function ($cliente): void {
                     $this->form->fill([
                         ...(array) $this->form->getRawState(),
-                        'cliente_id' => $persona->id,
+                        'cliente_id' => $cliente->id,
                     ]);
                 }
             ),

@@ -30,7 +30,7 @@ final readonly class ReportePaginador
         Collection $items,
         TiposReporte $tipo,
         ?CalculadorAltura $calculador = null,
-        int $altoExtraPrimeraPaginaMm = 0,
+        int $altoExtraPrimeraPaginaMm = 30,
     ): array {
         $config = $tipo->configuracion();
 
@@ -48,7 +48,7 @@ final readonly class ReportePaginador
             return $this->paginarEtiquetas($items, $config);
         }
 
-        return $this->chunkParaPdf($items, $config->altoFilaMm);
+        return $this->chunkParaPdf($items, $config->altoFilaMm, $altoExtraPrimeraPaginaMm);
     }
 
     public function filasPorPagina(
@@ -81,7 +81,7 @@ final readonly class ReportePaginador
     public function chunkParaPdf(
         Collection $items,
         int $altoFilaMm = 7,
-        int $altoExtraPrimeraPaginaMm = 0,
+        int $altoExtraPrimeraPaginaMm = 30,
     ): array {
         $filasTotales = $this->filasPorPagina(altoFilaMm: $altoFilaMm);
 
@@ -162,7 +162,7 @@ final readonly class ReportePaginador
         int $altoBase,
         CalculadorAltura $calculador,
         int $altoEncabezadoMm = 9,
-        int $altoExtraPrimeraPaginaMm = 0,
+        int $altoExtraPrimeraPaginaMm = 30,
     ): array {
         $disponible = max(1, $this->layout->areaUtilMm - $altoEncabezadoMm);
         $paginas = [];
