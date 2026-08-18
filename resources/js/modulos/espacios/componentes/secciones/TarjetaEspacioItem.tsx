@@ -55,7 +55,7 @@ export const TarjetaEspacioItem = ({
     };
 
     return (
-        <Card className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/60 bg-card p-0 font-sans shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-bugambilia-500/50 hover:shadow-xl">
+        <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-border/60 bg-card p-0 font-sans shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-bugambilia-500/50 hover:shadow-xl">
             {/* Cabecera Estilo Airbnb con Carrusel en Móvil y Escritorio */}
             <div className="relative aspect-16/10 w-full overflow-hidden bg-muted">
                 <img
@@ -187,7 +187,7 @@ export const TarjetaEspacioItem = ({
                     )}
                 </div>
 
-                <div className="flex flex-col gap-3 pt-2">
+                <div className="mt-auto flex flex-col gap-3 pt-2">
                     {/* Equipamiento Incluido */}
                     {espacio.meta_datos?.equipamiento_incluido && (
                         <div className="flex flex-wrap items-center gap-1.5 border-t border-border/40 pt-2.5 text-[11px] font-semibold text-muted-foreground">

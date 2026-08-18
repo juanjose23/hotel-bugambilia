@@ -32,9 +32,7 @@
     @php
         $simbolo = $reserva->moneda?->simbolo ?? 'C$';
         $esRestaurante = $reserva->tipo_reserva === \App\Enums\Reservas\TipoReserva::RESTAURANTE;
-        $resumenRestaurante = is_array($reserva->meta_datos['resumen_restaurante'] ?? null)
-            ? $reserva->meta_datos['resumen_restaurante']
-            : [];
+        $resumenRestaurante = $reserva->ultimaEntradaBitacora('resumen_restaurante') ?? [];
         $costoMesa = $esRestaurante
             ? (float) ($resumenRestaurante['costo_mesas'] ?? 0)
             : (float) $reserva->subtotal;

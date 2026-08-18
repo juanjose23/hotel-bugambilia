@@ -74,4 +74,15 @@ class Cliente extends Model implements AuditableContract
     {
         return $this->hasMany(Reserva::class, 'cliente_id');
     }
+
+    /** @return HasMany<TarjetaCliente, $this> */
+    public function tarjetas(): HasMany
+    {
+        return $this->hasMany(TarjetaCliente::class, 'cliente_id');
+    }
+
+    public function stripeCustomerId(): ?string
+    {
+        return $this->stripe_customer_id;
+    }
 }

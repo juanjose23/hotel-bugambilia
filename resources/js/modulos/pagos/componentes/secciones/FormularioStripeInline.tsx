@@ -48,10 +48,12 @@ export function FormularioStripeInline({
                 elementsRef.current = elements;
                 setStripeMontado(true);
                 onReady?.();
-            } catch (err: any) {
-                setMensajeError(
-                    err?.message || 'Error al montar la pasarela Stripe.',
-                );
+            } catch (err: unknown) {
+                const msg =
+                    err instanceof Error
+                        ? err.message
+                        : 'Error al montar la pasarela Stripe.';
+                setMensajeError(msg);
             }
         };
 

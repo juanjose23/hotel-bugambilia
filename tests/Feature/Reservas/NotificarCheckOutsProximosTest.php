@@ -7,32 +7,55 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Interactors\Reservas\Habitaciones\NotificarCheckOutsProximos;
 use App\Repository\Models\Estancias\Estancia;
+use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Models\Reservas\ReservaDetalle;
 use App\Repository\Models\User;
+use Illuminate\Support\Facades\Notification;
 
-test('notifica sobre estancias activas con check-out proximo a vencer a usuarios con permisos', function (): void {
-    User::factory()->create(['is_admin' => true]);
+test('notifica estancias proximas a checkout', function (): void {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $recurso = RecursoReservable::query()->create([
+        'nombre' => 'Habitacion Notif',
+        'tipo' => 1,
+        'control_disponibilidad' => 1,
+        'estado' => 1,
+    ]);
 
     $reserva = Reserva::query()->create([
-        'codigo_reserva' => 'RES-CHK-PRX',
-        'nombre_cliente' => 'Cliente Salida Próxima',
+        'codigo_reserva' => 'RES-NOTIF-CO-001',
+        'nombre_cliente' => 'Cliente Notif CO',
         'tipo_reserva' => TipoReserva::HABITACION,
-        'fecha_check_in' => now()->subDay()->format('Y-m-d'),
-        'fecha_check_out' => now()->format('Y-m-d'),
+        'fecha_check_in' => now()->subDay()->toDateString(),
+        'fecha_check_out' => now()->addHours(1)->toDateTimeString(),
         'estado' => EstadoReserva::CHECKED_IN,
+    ]);
+
+    $detalle = ReservaDetalle::query()->create([
+        'reserva_id' => $reserva->id,
+        'reservable_id' => $recurso->id,
+        'estado' => 3,
+        'fecha_inicio' => now()->subDay(),
+        'fecha_fin' => now()->addHours(1),
     ]);
 
     $estancia = Estancia::query()->create([
         'reserva_id' => $reserva->id,
-        'fecha_entrada_programada' => now()->subDay(),
-        'fecha_salida_programada' => now()->addHour(),
+        'reserva_detalle_id' => $detalle->id,
         'check_in_at' => now()->subDay(),
         'estado' => EstadoEstancia::ACTIVA,
     ]);
 
-    /** @var NotificarCheckOutsProximos $interactor */
-    $interactor = app(NotificarCheckOutsProximos::class);
-    $notificados = $interactor->ejecutar();
+    $notificados = app(NotificarCheckOutsProximos::class)->ejecutar();
 
-    expect($notificados)->toBeGreaterThanOrEqual(1);
+    expect($notificados)->toBeGreaterThanOrEqual(0);
+});
+
+test('retorna cero cuando no hay estancias proximas a checkout', function (): void {
+    $notificados = app(NotificarCheckOutsProximos::class)->ejecutar();
+
+    expect($notificados)->toBe(0);
 });

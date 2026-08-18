@@ -30,8 +30,14 @@ final class AuthController extends Controller
         private readonly ConstruirDatosCliente $construirDatosCliente,
     ) {}
 
-    public function mostrarLogin(): Response
+    public function mostrarLogin(): RedirectResponse|Response
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            return redirect($user !== null && $user->is_admin ? '/admin' : route('portal'));
+        }
+
         return Inertia::render('IniciarSesion');
     }
 
@@ -42,8 +48,10 @@ final class AuthController extends Controller
 
         if (Auth::attempt($credenciales, $recordar)) {
             $request->session()->regenerate();
+            $user = Auth::user();
+            $target = $user !== null && $user->is_admin ? '/admin' : route('portal');
 
-            return redirect()->intended()->with('exito', '¡Bienvenido de vuelta!');
+            return redirect()->intended($target)->with('exito', '¡Bienvenido de vuelta!');
         }
 
         throw ValidationException::withMessages([
@@ -51,8 +59,14 @@ final class AuthController extends Controller
         ]);
     }
 
-    public function mostrarRegistro(): Response
+    public function mostrarRegistro(): RedirectResponse|Response
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            return redirect($user !== null && $user->is_admin ? '/admin' : route('portal'));
+        }
+
         return Inertia::render('Registro');
     }
 
@@ -68,7 +82,7 @@ final class AuthController extends Controller
             Auth::login($resultado['user']);
             $request->session()->regenerate();
 
-            return redirect('/')->with('exito', '¡Registro completado exitosamente!');
+            return redirect()->route('portal')->with('exito', '¡Registro completado exitosamente!');
         } catch (YaTieneCuentaException $e) {
             Log::warning('Ya existe una cuenta con ese email: '.$e->getMessage());
 

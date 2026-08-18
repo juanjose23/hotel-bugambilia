@@ -66,10 +66,8 @@ final readonly class AsegurarPasarelaDesdeConfig
                     $codigo->clavesRequeridas(),
                 ),
             ],
-            'meta_datos' => [
-                'proveedor' => $codigo->value,
-                'gestion' => 'sistema',
-            ],
+            'proveedor' => $codigo->value,
+            'gestion' => 'sistema',
         ]);
     }
 }

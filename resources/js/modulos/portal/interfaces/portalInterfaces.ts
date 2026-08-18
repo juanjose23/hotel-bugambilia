@@ -8,4 +8,10 @@ export interface PropiedadesPortalMisReservas {
     codigoBusqueda?: string;
 }
 
-export type TabPortal = 'overview' | 'activas' | 'historial' | 'servicios';
+export type TabPortal =
+    | 'overview'
+    | 'activas'
+    | 'historial'
+    | 'servicios'
+    | 'cuenta'
+    | 'favoritas';

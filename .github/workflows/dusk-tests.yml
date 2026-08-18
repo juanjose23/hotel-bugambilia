@@ -32,17 +32,18 @@ jobs:
           --health-retries 5
 
       selenium:
-        image: selenium/standalone-${{ matrix.browser }}
+        image: selenium/standalone-${{ matrix.browser }}:4.25.0
         ports:
           - 4444:4444
         options: >-
           --shm-size=2gb
-          --add-host host.docker.internal:host-gateway
-          --health-cmd /opt/bin/check-status.sh
-          --health-interval 10s
-          --health-timeout 10s
-          --health-start-period 20s
-          --health-retries 12
+          --ipc=host
+          --add-host=host.docker.internal:host-gateway
+          --health-cmd "curl -s -f http://localhost:4444/status || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-start-period 10s
+          --health-retries 15
 
     steps:
       - name: Checkout Code

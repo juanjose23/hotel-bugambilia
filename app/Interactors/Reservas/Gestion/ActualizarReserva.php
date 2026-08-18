@@ -6,9 +6,10 @@ namespace App\Interactors\Reservas\Gestion;
 
 use App\BusinessLogic\Reservas\CalcularPeriodoReserva;
 use App\BusinessLogic\Reservas\CalcularResumenRestauranteLogica;
-use App\BusinessLogic\Reservas\ConstruirMetaDatosReserva;
+use App\BusinessLogic\Reservas\ConstruirBitacoraReserva;
 use App\BusinessLogic\Reservas\LeerDatoReserva;
 use App\BusinessLogic\Reservas\ResolverIdEntidadPrincipal;
+use App\BusinessLogic\Reservas\ValidarDisponibilidadRecursoLote;
 use App\BusinessLogic\Reservas\ValidarFechasReserva;
 use App\BusinessLogic\Reservas\ValidarSeleccionAdicionales;
 use App\Enums\Cuentas\TipoCuenta;
@@ -19,6 +20,7 @@ use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Interactors\Cuentas\Gestion\AbrirCuenta;
 use App\Interactors\Reservas\Operaciones\SincronizarCuentaReserva;
+use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
@@ -46,7 +48,8 @@ final class ActualizarReserva
         private readonly CalcularPeriodoReserva $calcularPeriodo,
         private readonly ResolverIdEntidadPrincipal $resolverIdEntidad,
         private readonly LeerDatoReserva $leerDato,
-        private readonly ConstruirMetaDatosReserva $construirMetaDatosReserva,
+        private readonly ConstruirBitacoraReserva $construirBitacoraReserva,
+        private readonly ValidarDisponibilidadRecursoLote $validarLote,
     ) {}
 
     /** @param array<string, mixed> $datos */
@@ -59,157 +62,197 @@ final class ActualizarReserva
         return DB::transaction(function () use ($reserva, $datos): Reserva {
             $datosRecalculo = $this->datosParaRecalculo($reserva, $datos);
             $datosRecalculo['reserva_id'] = $reserva->id;
-            $tipoRaw = $datosRecalculo['tipo_reserva'] ?? TipoReserva::HABITACION;
-            $tipoStr = is_string($tipoRaw) ? $tipoRaw : ($tipoRaw instanceof TipoReserva ? $tipoRaw->value : TipoReserva::HABITACION->value);
-            $tipo = TipoReserva::from($tipoStr);
-            $entidadPrincipalId = $this->resolverIdEntidad->resolver($tipo, $datosRecalculo);
-            $espaciosSolicitados = $this->leerDato->arreglo($datos, 'espacios_adicionales');
 
-            if ($tipo === TipoReserva::RESTAURANTE) {
-                $espaciosSolicitados = $this->calcularResumenRestauranteLogica->completarEspaciosSugeridos(
-                    $entidadPrincipalId,
-                    $datosRecalculo,
-                    $espaciosSolicitados,
-                    $this->leerDato->arreglo($datosRecalculo, 'items_preorden'),
-                );
-                $datosRecalculo['espacios_adicionales'] = $espaciosSolicitados;
-            }
+            [$tipo, $entidadPrincipalId, $espaciosSolicitados] = $this->resolverTipoYEntidad($datosRecalculo, $datos);
 
-            $servicios = $this->validarAdicionales->resolverServicios(
-                $this->leerDato->arreglo($datos, 'servicios_adicionales'),
-            );
-            $espacios = $this->validarAdicionales->resolverEspacios(
-                $espaciosSolicitados,
-            );
-            $habitaciones = $this->validarAdicionales->resolverHabitaciones(
-                $this->leerDato->arreglo($datos, 'habitaciones_adicionales'),
-                $tipo === TipoReserva::HABITACION ? $entidadPrincipalId : null,
+            [$servicios, $espacios, $habitaciones] = $this->resolverAdicionales(
+                $tipo, $entidadPrincipalId, $datos, $espaciosSolicitados,
             );
 
             $principal = $this->reservas->detallePrincipalDe($reserva);
-            $checkInStr = is_string($datosRecalculo['fecha_check_in'] ?? null)
-                ? (string) $datosRecalculo['fecha_check_in']
-                : ($datosRecalculo['fecha_check_in'] instanceof DateTimeImmutable ? $datosRecalculo['fecha_check_in']->format('Y-m-d') : 'today');
-            $checkIn = new DateTimeImmutable($checkInStr);
-            $checkOut = is_string($datosRecalculo['fecha_check_out'] ?? null)
-                ? new DateTimeImmutable((string) $datosRecalculo['fecha_check_out'])
-                : null;
-            $horaReserva = is_string($datosRecalculo['hora_reserva'] ?? null)
-                ? trim((string) $datosRecalculo['hora_reserva'])
-                : null;
+            [$checkIn, $checkOut, $horaReserva] = $this->parsearFechas($datosRecalculo);
 
             $this->validarFechas->validar($checkIn, $horaReserva);
             $recursoPrincipal = $this->reservas->resolverRecurso($tipo, $entidadPrincipalId);
             [$inicio, $fin] = $this->calcularPeriodo->calcular($checkIn, $checkOut, $datosRecalculo, $recursoPrincipal->duracion_minutos);
 
-            $this->validarDisponibilidadAdicionales($reserva, $inicio, $fin, $servicios, $espacios, $habitaciones);
-            $this->validarDisponibilidadPrincipal($reserva, $recursoPrincipal->id, $inicio, $fin);
+            $this->validarLote->ejecutar($habitaciones, $servicios, $espacios, $inicio, $fin, $reserva->id);
+            $this->validarDisponibilidadPrincipal($reserva, $recursoPrincipal, $inicio, $fin);
 
             $resumen = $this->calcularVistaPrevia->ejecutar($datosRecalculo);
-
             $principal = $this->actualizarDetallePrincipal($tipo, $principal, $recursoPrincipal->id, $inicio, $fin, $datosRecalculo, $resumen);
             $this->reservas->reemplazarAdicionales($reserva, $principal, $servicios, $espacios, $habitaciones);
+
             $total = (float) $resumen['total'];
             $totalPagado = (float) $reserva->total_pagado;
             $saldo = round(max(0.0, $total - $totalPagado), 2);
 
-            $reserva = $this->reservas->actualizar($reserva, [
-                'cliente_id' => is_numeric($datos['cliente_id'] ?? null) ? (int) $datos['cliente_id'] : null,
-                'nombre_cliente' => $datos['nombre_cliente'],
-                'telefono_cliente' => $datos['telefono_cliente'] ?? null,
-                'email_cliente' => $datos['email_cliente'] ?? null,
-                'tipo_reserva' => $tipo,
-                'habitacion_id' => $tipo === TipoReserva::HABITACION ? $entidadPrincipalId : null,
-                'espacio_id' => $tipo === TipoReserva::RESTAURANTE ? $entidadPrincipalId : null,
-                'servicio_id' => $tipo === TipoReserva::SERVICIO ? $entidadPrincipalId : null,
-                'promocion_id' => is_numeric($datosRecalculo['promocion_id'] ?? null) ? (int) $datosRecalculo['promocion_id'] : null,
-                'fecha_check_in' => $checkIn->format('Y-m-d'),
-                'fecha_check_out' => $checkOut?->format('Y-m-d'),
-                'hora_reserva' => $horaReserva,
-                'adultos' => $this->leerDato->enteroOpcional($datosRecalculo, 'adultos', 1),
-                'ninos' => $this->leerDato->enteroOpcional($datosRecalculo, 'ninos', 0),
-                'solicita_cuenta' => (bool) ($datos['solicita_cuenta'] ?? false),
-                'limite_cuenta_solicitado' => is_numeric($datos['limite_cuenta_solicitado'] ?? null)
-                    ? (float) $datos['limite_cuenta_solicitado']
-                    : null,
-                'notas' => $datos['notas'] ?? null,
-                'acompanantes' => $datos['acompanantes'] ?? null,
-                'subtotal' => $resumen['subtotal'],
-                'descuento' => $resumen['descuento'],
-                'total' => $total,
-                'tipo_pago' => $this->tipoPagoActualizado($totalPagado, $saldo),
-                'saldo' => $saldo,
-                'meta_datos' => $this->construirMetaDatosReserva->paraActualizacion($reserva, $datosRecalculo),
-            ]);
+            $reserva = $this->reservas->actualizar($reserva, $this->construirAtributosActualizacion(
+                $datos, $datosRecalculo, $tipo, $entidadPrincipalId,
+                $checkIn, $checkOut, $horaReserva, $resumen, $totalPagado, $saldo,
+            ));
 
-            $cuenta = $this->obtenerCuentaReserva->ejecutar((int) $reserva->id);
+            $entradaBitacora = $this->construirBitacoraReserva->paraActualizacion($reserva, $datosRecalculo);
+            $reserva->actualizarOCrearEntradaBitacora($entradaBitacora['tipo'], $entradaBitacora['datos']);
 
-            if ($cuenta === null || ! $cuenta->estado->permiteNuevosCargos()) {
-                $tipoCuenta = match ($tipo) {
-                    TipoReserva::HABITACION => TipoCuenta::ESTANCIA,
-                    TipoReserva::RESTAURANTE => TipoCuenta::RESTAURANTE_DIRECTO,
-                    TipoReserva::SERVICIO, TipoReserva::PAQUETE => TipoCuenta::SERVICIO,
-                };
-
-                $cuenta = $this->abrirCuenta->ejecutar(
-                    tipo: $tipoCuenta,
-                    reserva: $reserva,
-                    cliente: $reserva->cliente,
-                    monedaId: $reserva->moneda_id,
-                    usuarioId: is_numeric($datos['usuario_id'] ?? null) ? (int) $datos['usuario_id'] : null,
-                );
-            }
-
-            return $this->sincronizarCuentaReserva->ejecutar(
-                reserva: $reserva,
-                cuenta: $cuenta,
-                usuarioId: is_numeric($datos['usuario_id'] ?? null) ? (int) $datos['usuario_id'] : null,
-            );
+            return $this->sincronizarCuentaPostActualizacion($reserva, $tipo, $datos);
         });
     }
 
     /**
-     * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
-     * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
-     * @param  array<int, array{habitacion_id: int, cantidad: int, precio: float}>  $habitaciones
+     * Resuelve el tipo de reserva, entidad principal y espacios solicitados.
+     *
+     * @param  array<string, mixed>  $datosRecalculo
+     * @param  array<string, mixed>  $datos
+     * @return array{0: TipoReserva, 1: int, 2: array<int, mixed>}
      */
-    private function validarDisponibilidadAdicionales(
-        Reserva $reserva,
-        DateTimeImmutable $inicio,
-        DateTimeImmutable $fin,
-        array $servicios,
-        array $espacios,
-        array $habitaciones = [],
-    ): void {
-        foreach ($habitaciones as $hab) {
-            $recurso = $this->reservas->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
-            $this->disponibilidadRecursos->bloquear($recurso->id);
+    private function resolverTipoYEntidad(array $datosRecalculo, array $datos): array
+    {
+        $tipoRaw = $datosRecalculo['tipo_reserva'] ?? TipoReserva::HABITACION;
+        $tipoStr = is_string($tipoRaw) ? $tipoRaw : ($tipoRaw instanceof TipoReserva ? $tipoRaw->value : TipoReserva::HABITACION->value);
+        $tipo = TipoReserva::from($tipoStr);
+        $entidadPrincipalId = $this->resolverIdEntidad->resolver($tipo, $datosRecalculo);
+        $espaciosSolicitados = $this->leerDato->arreglo($datos, 'espacios_adicionales');
 
-            if ($recurso->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
-                && $this->disponibilidadRecursos->existeConflicto($recurso->id, $inicio, $fin, $reserva->id)) {
-                throw new InvalidArgumentException("La habitación adicional {$recurso->nombre} no está disponible en las fechas indicadas.");
-            }
+        if ($tipo === TipoReserva::RESTAURANTE) {
+            $espaciosSolicitados = $this->calcularResumenRestauranteLogica->completarEspaciosSugeridos(
+                $entidadPrincipalId, $datosRecalculo, $espaciosSolicitados,
+                $this->leerDato->arreglo($datosRecalculo, 'items_preorden'),
+            );
+            $datosRecalculo['espacios_adicionales'] = $espaciosSolicitados;
         }
 
-        foreach ($servicios as $servicio) {
-            $recurso = $this->reservas->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
-            $this->disponibilidadRecursos->bloquear($recurso->id);
+        return [$tipo, $entidadPrincipalId, $espaciosSolicitados];
+    }
 
-            if ($recurso->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
-                && $this->disponibilidadRecursos->existeConflicto($recurso->id, $inicio, $fin, $reserva->id)) {
-                throw new InvalidArgumentException("El servicio {$recurso->nombre} no está disponible en el horario especificado.");
-            }
+    /**
+     * Resuelve servicios, espacios y habitaciones adicionales.
+     *
+     * @param  array<string, mixed>  $datos
+     * @param  array<int, mixed>  $espaciosSolicitados
+     * @return array{0: array<int, array{servicio_id: int, cantidad: int, precio: float}>, 1: array<int, array{espacio_id: int, cantidad: int, precio: float}>, 2: array<int, array{habitacion_id: int, cantidad: int, precio: float}>}
+     */
+    private function resolverAdicionales(
+        TipoReserva $tipo,
+        int $entidadPrincipalId,
+        array $datos,
+        array $espaciosSolicitados,
+    ): array {
+        $servicios = $this->validarAdicionales->resolverServicios(
+            $this->leerDato->arreglo($datos, 'servicios_adicionales'),
+        );
+        $espacios = $this->validarAdicionales->resolverEspacios($espaciosSolicitados);
+        $habitaciones = $this->validarAdicionales->resolverHabitaciones(
+            $this->leerDato->arreglo($datos, 'habitaciones_adicionales'),
+            $tipo === TipoReserva::HABITACION ? $entidadPrincipalId : null,
+        );
+
+        return [$servicios, $espacios, $habitaciones];
+    }
+
+    /**
+     * Parsea las fechas del payload de recálculo.
+     *
+     * @param  array<string, mixed>  $datosRecalculo
+     * @return array{0: DateTimeImmutable, 1: DateTimeImmutable|null, 2: string|null}
+     */
+    private function parsearFechas(array $datosRecalculo): array
+    {
+        $checkInStr = is_string($datosRecalculo['fecha_check_in'] ?? null)
+            ? (string) $datosRecalculo['fecha_check_in']
+            : ($datosRecalculo['fecha_check_in'] instanceof DateTimeImmutable ? $datosRecalculo['fecha_check_in']->format('Y-m-d') : 'today');
+        $checkIn = new DateTimeImmutable($checkInStr);
+        $checkOut = is_string($datosRecalculo['fecha_check_out'] ?? null)
+            ? new DateTimeImmutable((string) $datosRecalculo['fecha_check_out'])
+            : null;
+        $horaReserva = is_string($datosRecalculo['hora_reserva'] ?? null)
+            ? trim((string) $datosRecalculo['hora_reserva'])
+            : null;
+
+        return [$checkIn, $checkOut, $horaReserva];
+    }
+
+    /**
+     * Construye el arreglo de atributos para actualizar la reserva.
+     *
+     * @param  array<string, mixed>  $datos
+     * @param  array<string, mixed>  $datosRecalculo
+     * @param  array{subtotal: float, descuento: float, total: float}  $resumen
+     * @return array<string, mixed>
+     */
+    private function construirAtributosActualizacion(
+        array $datos,
+        array $datosRecalculo,
+        TipoReserva $tipo,
+        int $entidadPrincipalId,
+        DateTimeImmutable $checkIn,
+        ?DateTimeImmutable $checkOut,
+        ?string $horaReserva,
+        array $resumen,
+        float $totalPagado,
+        float $saldo,
+    ): array {
+        $total = (float) $resumen['total'];
+
+        return [
+            'cliente_id' => is_numeric($datos['cliente_id'] ?? null) ? (int) $datos['cliente_id'] : null,
+            'nombre_cliente' => $datos['nombre_cliente'],
+            'telefono_cliente' => $datos['telefono_cliente'] ?? null,
+            'email_cliente' => $datos['email_cliente'] ?? null,
+            'tipo_reserva' => $tipo,
+            'habitacion_id' => $tipo === TipoReserva::HABITACION ? $entidadPrincipalId : null,
+            'espacio_id' => $tipo === TipoReserva::RESTAURANTE ? $entidadPrincipalId : null,
+            'servicio_id' => $tipo === TipoReserva::SERVICIO ? $entidadPrincipalId : null,
+            'promocion_id' => is_numeric($datosRecalculo['promocion_id'] ?? null) ? (int) $datosRecalculo['promocion_id'] : null,
+            'fecha_check_in' => $checkIn->format('Y-m-d'),
+            'fecha_check_out' => $checkOut?->format('Y-m-d'),
+            'hora_reserva' => $horaReserva,
+            'adultos' => $this->leerDato->enteroOpcional($datosRecalculo, 'adultos', 1),
+            'ninos' => $this->leerDato->enteroOpcional($datosRecalculo, 'ninos', 0),
+            'solicita_cuenta' => (bool) ($datos['solicita_cuenta'] ?? false),
+            'limite_cuenta_solicitado' => is_numeric($datos['limite_cuenta_solicitado'] ?? null)
+                ? (float) $datos['limite_cuenta_solicitado']
+                : null,
+            'notas' => $datos['notas'] ?? null,
+            'acompanantes' => $datos['acompanantes'] ?? null,
+            'subtotal' => $resumen['subtotal'],
+            'descuento' => $resumen['descuento'],
+            'total' => $total,
+            'tipo_pago' => $this->tipoPagoActualizado($totalPagado, $saldo),
+            'saldo' => $saldo,
+        ];
+    }
+
+    /**
+     * Sincroniza la cuenta después de la actualización (abrir si no existe o no permite cargos).
+     *
+     * @param  array<string, mixed>  $datos
+     */
+    private function sincronizarCuentaPostActualizacion(Reserva $reserva, TipoReserva $tipo, array $datos): Reserva
+    {
+        $cuenta = $this->obtenerCuentaReserva->ejecutar((int) $reserva->id);
+
+        if ($cuenta === null || ! $cuenta->estado->permiteNuevosCargos()) {
+            $tipoCuenta = match ($tipo) {
+                TipoReserva::HABITACION => TipoCuenta::ESTANCIA,
+                TipoReserva::RESTAURANTE => TipoCuenta::RESTAURANTE_DIRECTO,
+                TipoReserva::SERVICIO, TipoReserva::PAQUETE => TipoCuenta::SERVICIO,
+            };
+
+            $cuenta = $this->abrirCuenta->ejecutar(
+                tipo: $tipoCuenta,
+                reserva: $reserva,
+                cliente: $reserva->cliente,
+                monedaId: $reserva->moneda_id,
+                usuarioId: is_numeric($datos['usuario_id'] ?? null) ? (int) $datos['usuario_id'] : null,
+            );
         }
 
-        foreach ($espacios as $espacio) {
-            $recurso = $this->reservas->resolverRecurso(TipoReserva::RESTAURANTE, $espacio['espacio_id']);
-            $this->disponibilidadRecursos->bloquear($recurso->id);
-
-            if ($recurso->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
-                && $this->disponibilidadRecursos->existeConflicto($recurso->id, $inicio, $fin, $reserva->id)) {
-                throw new InvalidArgumentException("El espacio {$recurso->nombre} no está disponible en el periodo solicitado.");
-            }
-        }
+        return $this->sincronizarCuentaReserva->ejecutar(
+            reserva: $reserva,
+            cuenta: $cuenta,
+            usuarioId: is_numeric($datos['usuario_id'] ?? null) ? (int) $datos['usuario_id'] : null,
+        );
     }
 
     /**
@@ -228,7 +271,7 @@ final class ActualizarReserva
             'fecha_check_in' => $datos['fecha_check_in'] ?? $reserva->fecha_check_in?->format('Y-m-d'),
             'fecha_check_out' => $datos['fecha_check_out'] ?? $reserva->fecha_check_out?->format('Y-m-d'),
             'hora_reserva' => $datos['hora_reserva'] ?? $reserva->hora_reserva,
-            'duracion_horas' => $datos['duracion_horas'] ?? $this->duracionHorasActual($reserva),
+            'duracion_horas' => $datos['duracion_horas'] ?? $this->reservas->duracionHorasActual($reserva),
             'adultos' => $datos['adultos'] ?? $reserva->adultos,
             'ninos' => $datos['ninos'] ?? $reserva->ninos,
             'servicios_adicionales' => $this->leerDato->arreglo($datos, 'servicios_adicionales'),
@@ -319,11 +362,12 @@ final class ActualizarReserva
         return 1;
     }
 
-    private function validarDisponibilidadPrincipal(Reserva $reserva, int $recursoId, DateTimeImmutable $inicio, DateTimeImmutable $fin): void
+    private function validarDisponibilidadPrincipal(Reserva $reserva, RecursoReservable $recurso, DateTimeImmutable $inicio, DateTimeImmutable $fin): void
     {
-        $this->disponibilidadRecursos->bloquear($recursoId);
+        $this->disponibilidadRecursos->bloquear($recurso->id);
 
-        if ($this->disponibilidadRecursos->existeConflicto($recursoId, $inicio, $fin, $reserva->id)) {
+        if ($recurso->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
+            && $this->disponibilidadRecursos->existeConflicto($recurso->id, $inicio, $fin, $reserva->id)) {
             throw new InvalidArgumentException('El recurso principal seleccionado no está disponible en el periodo indicado.');
         }
     }
@@ -337,22 +381,11 @@ final class ActualizarReserva
         return $saldo <= 0 ? TipoPagoReserva::PAGO_COMPLETO : TipoPagoReserva::ABONO_50;
     }
 
-    private function duracionHorasActual(Reserva $reserva): ?int
-    {
-        $principal = $reserva->detalles()->whereNull('parent_id')->first();
-
-        if ($principal === null || $principal->fecha_fin === null) {
-            return null;
-        }
-
-        return max(1, (int) ceil(($principal->fecha_fin->getTimestamp() - $principal->fecha_inicio->getTimestamp()) / 3600));
-    }
-
     /** @return array<int, mixed> */
     private function itemsPreordenActuales(Reserva $reserva): array
     {
-        $meta = is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
-        $items = $meta['platos_preordenados'] ?? [];
+        $datos = $reserva->ultimaEntradaBitacora('preorden');
+        $items = $datos['items'] ?? [];
 
         return is_array($items) ? array_values($items) : [];
     }

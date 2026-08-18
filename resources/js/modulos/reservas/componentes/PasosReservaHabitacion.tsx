@@ -223,7 +223,7 @@ export function PasosReservaHabitacion({
             preparandoStripe={preparandoStripe}
             errorStripe={errorStripe}
             onCanalPagoChange={(canal) =>
-                setData((prev: any) => ({
+                setData((prev: DatosBorradorHabitacion) => ({
                     ...prev,
                     canal_pago_reserva: canal,
                     metodo_pago_reserva: canal === 'transferencia' ? 4 : null,

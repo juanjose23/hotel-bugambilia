@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\ReservaResource\Schemas;
 
+use App\Enums\Reservas\TipoPagoReserva;
 use App\Filament\Resources\Reservas\Schemas\Reserva\Comun\DatosClienteSeccion;
 use App\Filament\Resources\Reservas\Schemas\Reserva\Comun\InformacionGeneralSeccion;
 use App\Filament\Resources\Reservas\Schemas\Reserva\Comun\NotasReservaSeccion;
@@ -34,7 +35,7 @@ class ReservaForm
                     ->description('Esta reserva aún no está pagada. Tiene que abonar el 50 % del total antes de confirmar la reserva.')
                     ->warning()
                     ->visibleOn('edit')
-                    ->visible(fn ($record): bool => $record !== null && (float) $record->saldo > 0),
+                    ->visible(fn ($record): bool => $record !== null && $record->tipo_pago !== TipoPagoReserva::PAGO_COMPLETO && (float) $record->total_pagado < $record->tipo_pago->monto((float) $record->total)),
 
                 Grid::make(['default' => 1, 'xl' => 3])
                     ->visibleOn('create')
