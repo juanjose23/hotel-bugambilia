@@ -59,150 +59,65 @@
 
 ## Code Smells
 
-- ⚠️ **N+1 Query** in `catalogos:generar-codigos-barras {--producto-id= : ID específico del producto}`
-- ⚠️ **N+1 Query** in `limpieza:enviar-recordatorios`
-- ⚠️ **N+1 Query** in `limpieza:materializar-ejecuciones {fecha?}`
-- ⚠️ **N+1 Query** in `ObtenerActivosPorUbicacionUseCase::ejecutar`
-- ⚠️ **N+1 Query** in `ObtenerHistorialMovimientosUseCase::ejecutar`
-- ⚠️ **N+1 Query** in `ObtenerCotizacionReporteQuery@ejecutar`
-- ⚠️ **N+1 Query** in `ObtenerOrdenCompraReporteQuery@ejecutar`
-- ⚠️ **N+1 Query** in `ObtenerRecepcionReporteQuery@ejecutar`
-- ⚠️ **N+1 Query** in `ObtenerDevolucionReporteQuery@ejecutar`
-- ⚠️ **N+1 Query** in `ObtenerComparativaReporteQuery@ejecutar`
-- ⚠️ **N+1 Query** in `afterCreate`
-- ⚠️ **N+1 Query** in `afterSave`
-- ⚠️ **N+1 Query** in `mutateFormDataBeforeFill`
-- ⚠️ **N+1 Query** in `afterCreate`
-- ⚠️ **N+1 Query** in `afterSave`
-- ⚠️ **N+1 Query** in `ObtenerEspaciosLanding@tiposDisponibles`
-- ⚠️ **N+1 Query** in `ObtenerHabitacionesLanding@ejecutar`
-- ⚠️ **N+1 Query** in `ObtenerDatosLanding@ejecutar`
-- ⚠️ **N+1 Query** in `CrearReserva@ejecutar`
-- 🧱 **Fat Method** `catalogos:generar-codigos-barras {--producto-id= : ID específico del producto}`
-- 🧱 **Fat Method** `dev:crear-usuario
-  {--email=admin@hotel.com}
-  {--password=12345678}
-  {--nombre=Admin}
-  {--telefono= : Telefono opcional}`
-- 🧱 **Fat Method** `limpieza:enviar-recordatorios`
-- 🧱 **Fat Method** `limpieza:materializar-ejecuciones {fecha?}`
-- 🧱 **Fat Method** `handleRecordCreation`
-- 🧱 **Fat Method** `handleRecordCreation`
-- 🧱 **Fat Method** `ReportePaginador@chunkParaPdf`
-- 🧱 **Fat Method** `GenerarReporteActivoUseCase@execute`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `GenerarReporteCompraUseCase@execute`
-- 🧱 **Fat Method** `GenerarReporteSolicitudPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerSolicitudReporteQuery@mapearCotizacion`
-- 🧱 **Fat Method** `GenerarReporteCotizacionPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerCotizacionReporteQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteOrdenCompraPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerOrdenCompraReporteQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteRecepcionPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerRecepcionReporteQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteDevolucionPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerDevolucionReporteQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteComparativaPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerComparativaReporteQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteResumenDepartamentosPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerResumenDepartamentosCompras@ejecutar`
-- 🧱 **Fat Method** `ReportePaginador@paginar`
-- 🧱 **Fat Method** `ReportePaginador@paginarConAlturaVariable`
-- 🧱 **Fat Method** `ObtenerRotacionComprasQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteRotacionPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerTiemposEntregaQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteTiemposEntregaPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerSolicitudesPorEstadoQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteSolicitudesEstadoPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerSeguimientoOrdenesCompraQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteSeguimientoOcPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerRecepcionesPorProveedorQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteRecepcionesPorProveedorPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerAnalisisPrecioHistoricoQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteAnalisisPrecioPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerValorizacionPorCategoriaQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteValorizacionPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerRankingProveedoresQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteRankingProveedoresPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerDevolucionesPorProveedorQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteDevolucionesPdfAction@ejecutar`
-- 🧱 **Fat Method** `ObtenerTrazabilidadCompletaQuery@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteTrazabilidadCompletaPdfAction@ejecutar`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `form`
-- 🧱 **Fat Method** `ObtenerStockPorProducto@ejecutar`
-- 🧱 **Fat Method** `ObtenerMovimientosInventario@ejecutar`
-- 🧱 **Fat Method** `ObtenerValorizacionInventario@ejecutar`
-- 🧱 **Fat Method** `ObtenerStockMinimo@ejecutar`
-- 🧱 **Fat Method** `ObtenerAjustesInventario@ejecutar`
-- 🧱 **Fat Method** `ObtenerAnalisisCostoVentas@ejecutar`
-- 🧱 **Fat Method** `GenerarReporteInventario@executeExcel`
-- 🧱 **Fat Method** `GeneradorExcel@escribirFilas`
-- 🧱 **Fat Method** `GenerarReporteInventario@execute`
-- 🧱 **Fat Method** `ObtenerRotacionInventario@ejecutar`
-- 🧱 **Fat Method** `TrazabilidadLoteHaciaAdelante@ejecutar`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `table`
-- 🧱 **Fat Method** `getForms`
-- 🧱 **Fat Method** `submitConsumir`
-- 🧱 **Fat Method** `submitReabastecer`
-- 🧱 **Fat Method** `ConsumirStock@execute`
-- 🧱 **Fat Method** `ServicioConsumos@ejecutarConsumoDeStock`
-- 🧱 **Fat Method** `ReabastecerUbicacion@execute`
-- 🧱 **Fat Method** `getForms`
-- 🧱 **Fat Method** `submitAbastecer`
-- 🧱 **Fat Method** `submitDevolver`
-- 🧱 **Fat Method** `submitTraspasar`
-- 🧱 **Fat Method** `TrasladarEntreBodegas@execute`
-- 🧱 **Fat Method** `ServicioTraslados@ejecutarTrasladoEntreBodegas`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getForms`
-- 🧱 **Fat Method** `descargarReporte`
-- 🧱 **Fat Method** `buscarTrazabilidad`
-- 🧱 **Fat Method** `table`
-- 🧱 **Fat Method** `getForms`
-- 🧱 **Fat Method** `descargarReporte`
-- 🧱 **Fat Method** `descargarExcel`
-- 🧱 **Fat Method** `canAccess`
-- 🧱 **Fat Method** `recargarMesas`
-- 🧱 **Fat Method** `GestionMesas@recargarMesas`
-- 🧱 **Fat Method** `cargarReportes`
-- 🧱 **Fat Method** `ReportesRestaurante@cargarReportes`
-- 🧱 **Fat Method** `ObtenerHistoricoServiciosPrecios@ejecutar`
-- 🧱 **Fat Method** `form`
-- 🧱 **Fat Method** `confirmStart`
-- 🧱 **Fat Method** `openCompleteModal`
-- 🧱 **Fat Method** `completeExecution`
-- 🧱 **Fat Method** `IniciarLimpieza@execute`
-- 🧱 **Fat Method** `handleRecordCreation`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getHeaderActions`
-- 🧱 **Fat Method** `getData`
-- 🧱 **Fat Method** `ObtenerEspacioDetalleLanding@ejecutar`
-- 🧱 **Fat Method** `ObtenerEspacioDetalleLanding@resolverServicios`
-- 🧱 **Fat Method** `ObtenerEspacioDetalleLanding@resolverSimilares`
-- 🧱 **Fat Method** `ObtenerEspaciosLanding@ejecutar`
-- 🧱 **Fat Method** `ObtenerHabitacionDetalleLanding@ejecutar`
-- 🧱 **Fat Method** `ObtenerHabitacionesLanding@ejecutar`
-- 🧱 **Fat Method** `ObtenerReservasClienteLanding@ejecutar`
-- 🧱 **Fat Method** `ObtenerRestauranteLanding@ejecutar`
-- 🧱 **Fat Method** `ObtenerServiciosLanding@ejecutar`
-- 🧱 **Fat Method** `ObtenerDatosLanding@ejecutar`
-- 🧱 **Fat Method** `AutenticacionController@cambiarContrasena`
-- 🧱 **Fat Method** `ResolverIdentidadPersona@resolver`
-- 🧱 **Fat Method** `RegistrarCliente@crearConflicto`
-- 🧱 **Fat Method** `ReservaController@crear`
-- 🧱 **Fat Method** `CrearReserva@ejecutar`
-- 🏗️ **Fat Class** `PublicPageController`
-- 🏗️ **Fat Class** `ReporteActivoController`
-- 🏗️ **Fat Class** `ReporteCompraController`
-- 🏗️ **Fat Class** `ReporteInventarioController`
+- ✅ **N+1 Query warnings (18)** — reviewed and confirmed **all false positives** (all use `with()`, `load()`, `loadMissing()`, or are write-only loops)
+
+### TRUE FAT (refactoring needed)
+
+#### Limpieza
+- 🧱 `getForms` — GestionarCarrito (204L) — 4 forms con queries inline en closures
+- 🧱 `getForms` — ControlLavanderia (153L) — 2 forms con Repeater + Eloquent inline
+- 🧱 `IniciarLimpieza@execute` (95L) — DB::transaction con validación, updates y redirect
+- 🧱 `TableroLimpieza::completeExecution` (62L) — formateo checklist + notificación
+- 🧱 `TableroLimpieza::confirmStart` (59L) — validación colid + carrito + notificación
+- 🧱 `ControlLavanderia@submitReabastecer` (56L) — mapping manual de items + interactor
+
+#### Inventario
+- 🧱 `ConsumirStock@execute` (79L) — FEFO + validación + loop de consumo
+- 🧱 `ServicioTraslados@ejecutarTrasladoEntreBodegas` (68L) — validar + descontar + crear stock
+- 🧱 `ReabastecerUbicacion@execute` (65L) — resolver destino + transacción por item
+- 🧱 `ServicioConsumos@ejecutarConsumoDeStock` (59L) — actualizar stock + lote + movimiento
+
+#### Restaurante
+- 🧱 `ConciliacionRecetasCocina@getHeaderActions` (91L) — form schema + DB insert en header action
+
+#### Filament Forms
+- 🧱 `MateriaPrimaCocina@form` (164L) — 3 tabs anidados
+- 🧱 `CheckInPage@form` (169L) — 5-step Wizard
+
+#### Filament Creación
+- 🧱 `CreateActivo@handleRecordCreation` (54L) — extracción manual de 11 campos
+
+### BORDERLINE (monitored)
+
+#### Inventario
+- 🧱 `ControlLavanderia@submitConsumir` (42L)
+- 🧱 `GestionarCarrito@submitAbastecer` (47L)
+- 🧱 `TrasladarEntreBodegas@execute` (35L)
+- 🧱 `GeneradorExcel@escribirFilas` (36L)
+- 🧱 `ObtenerRotacionInventario@ejecutar` (35L)
+
+#### Reportes PDF (13 acciones con patrón repetitivo 38-50L)
+- 🧱 `GenerarReporteOrdenCompraPdfAction@ejecutar` (50L)
+- 🧱 `GenerarReporteSeguimientoOcPdfAction@ejecutar` (45L)
+- 🧱 `GenerarReporteDevolucionesPdfAction@ejecutar` (45L)
+- 🧱 `GenerarReporteValorizacionPdfAction@ejecutar` (45L)
+- 🧱 `GenerarReporteAnalisisPrecioPdfAction@ejecutar` (46L)
+- 🧱 `GenerarReporteRankingProveedoresPdfAction@ejecutar` (44L)
+- 🧱 `GenerarReporteRotacionPdfAction@ejecutar` (44L)
+- 🧱 `GenerarReporteTiemposEntregaPdfAction@ejecutar` (44L)
+- 🧱 `GenerarReporteRecepcionesPorProveedorPdfAction@ejecutar` (44L)
+- 🧱 `GenerarReporteResumenDepartamentosPdfAction@ejecutar` (48L)
+- 🧱 `GenerarReporteDevolucionPdfAction@ejecutar` (42L)
+- 🧱 `GenerarReporteCotizacionPdfAction@ejecutar` (42L)
+- 🧱 `GenerarReporteSolicitudPdfAction@ejecutar` (31L)
+
+#### Restaurante/Landing
+- 🧱 `ObtenerHistoricoServiciosPrecios@ejecutar` (50L)
+- 🧱 `ObtenerServiciosLanding@ejecutar` (30L)
+
+#### Compras
+- 🧱 `ObtenerOrdenCompraReporteQuery@ejecutar` (42L)
+- 🧱 `ReportesCompras@buscarTrazabilidad` (50L)
 
 ## Backend Packages
 

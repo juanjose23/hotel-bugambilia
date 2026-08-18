@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Facturacion\Stripe;
 
 use App\Enums\Facturacion\EstadoTransaccionPago;
+use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Persistencia\Facturacion\PagoTransaccionPersistencia;
 use App\Repository\Queries\Facturacion\PagoTransaccionQuery;
 
@@ -18,12 +19,12 @@ final readonly class MarcarPagoStripeFallido
     /**
      * @param  array<string, mixed>  $webhookPayload
      */
-    public function ejecutar(string $paymentIntentId, array $webhookPayload): void
+    public function ejecutar(string $paymentIntentId, array $webhookPayload): ?PagoTransaccion
     {
         $transaccion = $this->pagoTransaccionQuery->porReferenciaPasarela($paymentIntentId);
 
         if ($transaccion === null) {
-            return;
+            return null;
         }
 
         $this->pagoTransaccionPersistencia->actualizar($transaccion, [
@@ -31,5 +32,7 @@ final readonly class MarcarPagoStripeFallido
             'fallida_at' => now(),
             'webhook_payload' => $webhookPayload,
         ]);
+
+        return $transaccion;
     }
 }

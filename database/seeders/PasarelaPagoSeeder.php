@@ -25,12 +25,8 @@ class PasarelaPagoSeeder extends Seeder
                     'webhook_secret_config_key' => 'services.stripe.webhook_secret',
                     'mode_config_key' => 'services.stripe.mode',
                 ],
-                'meta_datos' => [
-                    'proveedor' => 'stripe',
-                    'gestion' => 'sistema',
-                    'uso' => 'payment_element_embebido',
-                    'moneda' => 'definida_por_cuenta_venta_o_factura',
-                ],
+                'proveedor' => 'stripe',
+                'gestion' => 'sistema',
             ]
         );
 

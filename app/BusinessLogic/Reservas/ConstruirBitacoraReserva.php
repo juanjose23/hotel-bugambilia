@@ -7,7 +7,7 @@ namespace App\BusinessLogic\Reservas;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
 
-final readonly class ConstruirMetaDatosReserva
+final readonly class ConstruirBitacoraReserva
 {
     public function __construct(
         private LeerDatoReserva $leerDato,
@@ -15,28 +15,40 @@ final readonly class ConstruirMetaDatosReserva
     ) {}
 
     /**
+     * Construye las entradas iniciales de bitácora para una reserva nueva.
+     *
      * @param  array<string, mixed>  $datos
      * @param  array<string, mixed>|null  $resumenRestaurante
-     * @return array<string, mixed>
+     * @return list<array{tipo: string, datos: array<string, mixed>}>
      */
     public function paraCreacion(array $datos, ?array $resumenRestaurante): array
     {
-        return [
-            'platos_preordenados' => $this->platosPreordenados($datos),
-            'resumen_restaurante' => $resumenRestaurante,
-        ];
+        $entradas = [];
+
+        $platos = $this->platosPreordenados($datos);
+
+        if ($platos !== []) {
+            $entradas[] = ['tipo' => 'preorden', 'datos' => ['items' => $platos]];
+        }
+
+        if ($resumenRestaurante !== null) {
+            $entradas[] = ['tipo' => 'resumen_restaurante', 'datos' => $resumenRestaurante];
+        }
+
+        return $entradas;
     }
 
     /**
+     * Construye la entrada actualizada de preorden para una reserva existente.
+     *
      * @param  array<string, mixed>  $datos
-     * @return array<string, mixed>
+     * @return array{tipo: string, datos: array<string, mixed>}
      */
     public function paraActualizacion(Reserva $reserva, array $datos): array
     {
-        $meta = is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
-        $meta['platos_preordenados'] = $this->platosPreordenados($datos);
+        $platos = $this->platosPreordenados($datos);
 
-        return $meta;
+        return ['tipo' => 'preorden', 'datos' => ['items' => $platos]];
     }
 
     /**

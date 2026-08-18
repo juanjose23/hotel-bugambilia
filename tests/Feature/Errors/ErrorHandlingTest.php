@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 
+beforeEach(function (): void {
+    config(['app.debug' => false]);
+});
+
 test('los errores de servidor devuelven la página 500 amigable en web', function (): void {
     Route::get('/_test-error-500', fn () => throw new RuntimeException('Error simulado'));
 

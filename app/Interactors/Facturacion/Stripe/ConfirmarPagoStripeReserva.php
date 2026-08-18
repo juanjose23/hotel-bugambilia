@@ -74,22 +74,24 @@ final readonly class ConfirmarPagoStripeReserva
                 ? $cuenta->total_pagado
                 : ((float) $reserva->total_pagado + (float) $transaccion->monto)), 2);
             $saldo = round(max(0.0, (float) $reserva->total - $totalPagado), 2);
-            $metaDatos = is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
-            $metaDatos['politica_pago'] = array_merge(
-                is_array($metaDatos['politica_pago'] ?? null) ? $metaDatos['politica_pago'] : [],
+
+            $politicaActual = $reserva->ultimaEntradaBitacora('politica_pago') ?? [];
+            $reserva->actualizarOCrearEntradaBitacora('politica_pago', array_merge(
+                $politicaActual,
                 ['estado' => $saldo <= 0.0 ? 'pagado' : 'abono_capturado'],
-            );
-            $metaDatos['stripe'] = array_merge(
-                is_array($metaDatos['stripe'] ?? null) ? $metaDatos['stripe'] : [],
+            ));
+
+            $stripeActual = $reserva->ultimaEntradaBitacora('stripe') ?? [];
+            $reserva->actualizarOCrearEntradaBitacora('stripe', array_merge(
+                $stripeActual,
                 $this->resumenPaymentIntent($webhookPayload),
-            );
+            ));
 
             $this->reservaRepositorio->actualizar($reserva, [
                 'total_pagado' => $totalPagado,
                 'saldo' => $saldo,
                 'tipo_pago' => $saldo <= 0.0 ? TipoPagoReserva::PAGO_COMPLETO : TipoPagoReserva::ABONO_50,
                 'estado' => EstadoReserva::CONFIRMADA,
-                'meta_datos' => $metaDatos,
             ]);
 
             return $transaccion->refresh()->load('reserva');

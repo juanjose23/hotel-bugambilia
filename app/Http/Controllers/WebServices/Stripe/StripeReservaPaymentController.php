@@ -14,6 +14,7 @@ use App\Interactors\Facturacion\Stripe\CrearIntentoPagoStripeReserva;
 use App\Interactors\Facturacion\Stripe\MarcarPagoStripeFallido;
 use App\Interactors\Facturacion\Stripe\ProcesarReembolsoStripeWebhook;
 use App\Interactors\Facturacion\Stripe\ResolverReservaPagoStripe;
+use App\Interactors\Reservas\Gestion\CancelarReservaPorPagoFallido;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -131,6 +132,7 @@ final class StripeReservaPaymentController extends Controller
         ConfirmarPagoStripeReserva $confirmarPago,
         MarcarPagoStripeFallido $marcarPagoFallido,
         ProcesarReembolsoStripeWebhook $procesarReembolso,
+        CancelarReservaPorPagoFallido $cancelarPorPagoFallido,
     ): JsonResponse {
         $payload = $request->getContent();
         $webhookSecret = config('services.stripe.webhook_secret');
@@ -178,7 +180,11 @@ final class StripeReservaPaymentController extends Controller
 
         if ($tipoEvento !== EventoWebhookStripe::PaymentIntentSucceeded) {
             if ($tipoEvento?->esDeFallo() === true) {
-                $marcarPagoFallido->ejecutar($paymentIntentId, $evento);
+                $transaccion = $marcarPagoFallido->ejecutar($paymentIntentId, $evento);
+
+                if ($transaccion !== null) {
+                    $cancelarPorPagoFallido->ejecutar($transaccion);
+                }
             }
 
             return response()->json([

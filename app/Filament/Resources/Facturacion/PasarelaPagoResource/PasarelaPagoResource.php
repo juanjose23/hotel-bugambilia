@@ -9,6 +9,7 @@ use BackedEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -45,7 +46,12 @@ final class PasarelaPagoResource extends Resource
                     Toggle::make('activa')->default(true),
                     Toggle::make('modo_prueba')->label('Modo prueba')->default(true),
                     KeyValue::make('configuracion')->label('Configuracion segura')->columnSpanFull(),
-                    KeyValue::make('meta_datos')->label('Metadatos')->columnSpanFull(),
+                    Select::make('proveedor')
+                        ->options(['stripe' => 'Stripe', 'paypal' => 'PayPal'])
+                        ->nullable(),
+                    Select::make('gestion')
+                        ->options(['sistema' => 'Sistema', 'manual' => 'Manual'])
+                        ->nullable(),
                 ]),
         ]);
     }

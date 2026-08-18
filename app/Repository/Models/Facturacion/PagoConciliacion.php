@@ -37,7 +37,7 @@ final class PagoConciliacion extends Model implements AuditableContract
             'monto_recibido' => 'decimal:2',
             'diferencia' => 'decimal:2',
             'conciliada_at' => 'datetime',
-            'meta_datos' => 'array',
+            'reembolsada_at' => 'datetime',
         ];
     }
 

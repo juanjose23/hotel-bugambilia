@@ -16,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 final class FacturaResource extends Resource
@@ -44,6 +45,7 @@ final class FacturaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['cliente.persona', 'serie', 'moneda']))
             ->defaultSort('fecha_emision', 'desc')
             ->columns([
                 TextColumn::make('numero')->label('Factura')->searchable()->sortable()->copyable()->weight('bold'),

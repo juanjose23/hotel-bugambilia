@@ -84,8 +84,8 @@ test('Stripe caido: reintenta tres veces y luego cancela avisando contactar a ad
 
     expect($escenario['reserva']->fresh()?->estado)->toBe(EstadoReserva::CANCELADA);
 
-    $metaDatos = $escenario['reserva']->fresh()?->meta_datos ?? [];
-    $pendientes = $metaDatos['cancelacion']['reembolsos_pendientes_administracion'] ?? [];
+    $metaDatos = $escenario['reserva']->fresh()?->ultimaEntradaBitacora('cancelacion') ?? [];
+    $pendientes = $metaDatos['reembolsos_pendientes_administracion'] ?? [];
     expect($pendientes)
         ->toHaveCount(1)
         ->and((float) ($pendientes[0]['monto'] ?? 0))->toBe(100.0);

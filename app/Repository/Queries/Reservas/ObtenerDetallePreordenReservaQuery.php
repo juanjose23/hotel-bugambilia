@@ -14,10 +14,8 @@ final class ObtenerDetallePreordenReservaQuery
      */
     public function ejecutar(Reserva $reserva): array
     {
-        $metaDatos = $reserva->meta_datos ?? [];
-        $items = is_array($metaDatos['platos_preordenados'] ?? null)
-            ? $metaDatos['platos_preordenados']
-            : (is_array($metaDatos['items_preorden'] ?? null) ? $metaDatos['items_preorden'] : []);
+        $datos = $reserva->ultimaEntradaBitacora('preorden');
+        $items = is_array($datos['items'] ?? null) ? $datos['items'] : [];
         $platoIds = collect($items)
             ->filter(fn (mixed $item): bool => is_array($item) && is_numeric($item['plato_id'] ?? null))
             ->map(fn (array $item): int => (int) $item['plato_id'])

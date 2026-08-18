@@ -67,7 +67,7 @@ it('permite registrarse cuando la identificación está completa', function () {
 
     $response = $this->post('/registro', datosRegistroNatural());
 
-    $response->assertRedirect('/');
+    $response->assertRedirect(route('portal'));
     $response->assertSessionHas('exito');
 
     expect(Persona::count())->toBe(1);

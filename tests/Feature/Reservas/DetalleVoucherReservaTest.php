@@ -19,15 +19,14 @@ test('prepara los valores de cada platillo y el código de barras del voucher', 
         'subtotal' => 500,
         'descuento' => 0,
         'total' => 575,
-        'meta_datos' => [
-            'platos_preordenados' => [[
-                'plato_id' => 99999,
-                'cantidad' => 2,
-                'precio_unitario' => 125,
-                'observaciones' => 'Sin cebolla',
-            ]],
-        ],
     ]);
+
+    $reserva->crearEntradaBitacora('preorden', ['items' => [[
+        'plato_id' => 99999,
+        'cantidad' => 2,
+        'precio_unitario' => 125,
+        'observaciones' => 'Sin cebolla',
+    ]]]);
 
     $detalle = app(ObtenerDetallePreordenReservaQuery::class)->ejecutar($reserva);
     $barcode = app(BarcodeGenerator::class)->base64($reserva->codigo_reserva);

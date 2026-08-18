@@ -29,7 +29,43 @@ final class Factura extends Model implements AuditableContract
 
     protected $table = 'facturas';
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'factura_serie_id',
+        'factura_autorizacion_dgi_id',
+        'numero_autorizacion_dgi',
+        'rango_autorizado_desde',
+        'rango_autorizado_hasta',
+        'venta_id',
+        'cuenta_id',
+        'cliente_id',
+        'tipo',
+        'estado',
+        'numero',
+        'numero_correlativo',
+        'fecha_emision',
+        'fecha_vencimiento',
+        'moneda_id',
+        'moneda_base_id',
+        'tasa_cambio_id',
+        'tasa_cambio',
+        'subtotal',
+        'descuento_total',
+        'iva_total',
+        'servicio_total',
+        'propina_total',
+        'recargo_total',
+        'total',
+        'subtotal_base',
+        'iva_total_base',
+        'total_base',
+        'datos_receptor',
+        'pdf_path',
+        'hash_documento',
+        'motivo_anulacion',
+        'anulada_at',
+        'emitida_por',
+        'anulada_por',
+    ];
 
     protected $attributes = [
         'tipo' => 1,
@@ -66,7 +102,8 @@ final class Factura extends Model implements AuditableContract
             'iva_total_base' => 'decimal:2',
             'total_base' => 'decimal:2',
             'datos_receptor' => 'array',
-            'meta_datos' => 'array',
+            'rango_autorizado_desde' => 'integer',
+            'rango_autorizado_hasta' => 'integer',
             'anulada_at' => 'datetime',
         ];
     }

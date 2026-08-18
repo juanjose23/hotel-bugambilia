@@ -11,6 +11,7 @@ use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
 use App\Repository\Models\Reservas\ReservaHuesped;
+use DateTimeImmutable;
 use Illuminate\Support\Collection;
 
 interface ReservaRepositorioInterface
@@ -68,6 +69,14 @@ interface ReservaRepositorioInterface
 
     public function resolverRecurso(TipoReserva $tipo, int $entidadId): RecursoReservable;
 
+    /**
+     * Resuelve múltiples recursos en lote, ejecutando una sola query por tipo de entidad.
+     *
+     * @param  array<int, array{tipo: TipoReserva, entidad_id: int}>  $solicitudes
+     * @return array<int, RecursoReservable> Indexed by original array key
+     */
+    public function resolverRecursosLote(array $solicitudes): array;
+
     /** @param array<string, mixed> $datos */
     public function crearDetalle(Reserva $reserva, RecursoReservable $recurso, array $datos): ReservaDetalle;
 
@@ -116,4 +125,36 @@ interface ReservaRepositorioInterface
 
     /** @param array<string, mixed> $datos */
     public function actualizarEstancia(Estancia $estancia, array $datos): Estancia;
+
+    /**
+     * Calcula la duración actual en horas de la reserva basándose en el detalle principal.
+     *
+     * Retorna null si no existe detalle principal o si no tiene fecha_fin definida.
+     * El valor mínimo retornado es 1 hora.
+     */
+    public function duracionHorasActual(Reserva $reserva): ?int;
+
+    /**
+     * Crea detalles de habitaciones, servicios y espacios adicionales a partir de recursos resueltos.
+     *
+     * Optimizado para usar recursos pre-resueltos por ValidarDisponibilidadRecursoLote,
+     * evitando queries adicionales de resolución.
+     *
+     * @param  array<int, RecursoReservable>  $recursos  Recursos resueltos en orden global
+     * @param  array<int, array{habitacion_id: int, precio: float}>  $habitaciones
+     * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
+     * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
+     */
+    public function crearDetallesAdicionales(
+        Reserva $reserva,
+        ReservaDetalle $principal,
+        array $recursos,
+        array $habitaciones,
+        array $servicios,
+        array $espacios,
+        DateTimeImmutable $inicio,
+        DateTimeImmutable $fin,
+        int $unidades,
+        ?float $horasVal,
+    ): void;
 }

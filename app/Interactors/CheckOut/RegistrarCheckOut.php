@@ -13,13 +13,9 @@ use App\Events\Reservas\CheckOutRegistrado;
 use App\Interactors\Reservas\Gestion\CambiarEstadoReserva;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Persistencia\Cuentas\CuentaRepositorio;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
-use App\Repository\Persistencia\Habitaciones\HabitacionRepositorio;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
-use App\Repository\Persistencia\Reservas\ReservaRepositorio;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
-use App\Repository\Persistencia\Restaurante\RestauranteRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -27,11 +23,11 @@ final class RegistrarCheckOut
 {
     public function __construct(
         private readonly CambiarEstadoReserva $cambiarEstado,
-        private readonly ValidarRequisitosCheckOut $validarCheckOut = new ValidarRequisitosCheckOut,
-        private readonly ReservaRepositorioInterface $reservas = new ReservaRepositorio,
-        private readonly CuentaRepositorioInterface $cuentas = new CuentaRepositorio,
-        private readonly HabitacionRepositorioInterface $habitaciones = new HabitacionRepositorio,
-        private readonly RestauranteRepositorioInterface $restaurante = new RestauranteRepositorio,
+        private readonly ValidarRequisitosCheckOut $validarCheckOut,
+        private readonly ReservaRepositorioInterface $reservas,
+        private readonly CuentaRepositorioInterface $cuentas,
+        private readonly HabitacionRepositorioInterface $habitaciones,
+        private readonly RestauranteRepositorioInterface $restaurante,
     ) {}
 
     /** @param array<string, mixed> $datos */

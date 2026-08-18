@@ -19,6 +19,7 @@ use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Interactors\Cuentas\Gestion\AbrirCuenta;
 use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
@@ -72,32 +73,72 @@ final class RegistrarCobroInicialReserva
             concepto: "Reserva {$reserva->codigo_reserva}",
             precioUnitario: $subtotalReserva,
             origen: $reserva,
-            espacioId: $this->enteroOpcional($reserva->espacio_id),
+            espacioId: is_numeric($reserva->espacio_id) && (int) $reserva->espacio_id > 0 ? (int) $reserva->espacio_id : null,
             creadorId: $usuarioId,
             descripcion: $reserva->tipo_reserva->getLabel(),
             metadatos: ['tipo' => 'reserva', 'codigo_reserva' => $reserva->codigo_reserva],
         );
 
         $cuenta->refresh();
-        if ($descuentoReserva > 0) {
-            $this->cuentas->crearCuentaCargo($cuenta, [
-                'moneda_id' => $cuenta->moneda_id,
-                'cargo_id' => null,
-                'tipo' => TipoCargo::Descuento->value,
-                'codigo' => "PROMO-RES-{$reserva->id}",
-                'nombre' => 'Descuento de reserva',
-                'modo_calculo' => ModoCargo::MontoFijo->value,
-                'valor' => $descuentoReserva,
-                'base_calculo' => BaseCalculo::SubtotalBruto->value,
-                'base_monto' => $subtotalReserva,
-                'monto' => $descuentoReserva,
-                'aplicado_por' => $usuarioId,
-                'estado' => EstadoGeneral::Activo->value,
-                'observaciones' => 'Descuento aplicado al crear la reserva',
-            ]);
-            $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
+        $this->aplicarDescuentoSiAplica($cuenta, $reserva, $descuentoReserva, $subtotalReserva, $usuarioId);
+        $this->aplicarCargosFacturacion($cuenta, $cargosFacturacionIds, $usuarioId);
+
+        $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
+        $totalCuenta = (float) $cuenta->total;
+
+        $this->validarYRegistrarPago($reserva, $cuenta, $tipoPago, $metodoPago, $referencia, $monedaId, $usuarioId, $montoSolicitado, $totalCuenta);
+
+        $cuenta->refresh();
+
+        return $this->reservas->actualizar($reserva, [
+            'moneda_id' => $monedaId,
+            'tipo_pago' => $tipoPago,
+            'subtotal' => $cuenta->subtotal,
+            'total' => $cuenta->total,
+            'total_pagado' => $cuenta->total_pagado,
+            'saldo' => $cuenta->saldo,
+            'estado' => $tipoPago === TipoPagoReserva::SIN_PAGO
+                ? EstadoReserva::PENDIENTE
+                : EstadoReserva::CONFIRMADA,
+        ]);
+    }
+
+    private function aplicarDescuentoSiAplica(
+        Cuenta $cuenta,
+        Reserva $reserva,
+        float $descuentoReserva,
+        float $subtotalReserva,
+        ?int $usuarioId,
+    ): void {
+        if ($descuentoReserva <= 0) {
+            return;
         }
 
+        $this->cuentas->crearCuentaCargo($cuenta, [
+            'moneda_id' => $cuenta->moneda_id,
+            'cargo_id' => null,
+            'tipo' => TipoCargo::Descuento->value,
+            'codigo' => "PROMO-RES-{$reserva->id}",
+            'nombre' => 'Descuento de reserva',
+            'modo_calculo' => ModoCargo::MontoFijo->value,
+            'valor' => $descuentoReserva,
+            'base_calculo' => BaseCalculo::SubtotalBruto->value,
+            'base_monto' => $subtotalReserva,
+            'monto' => $descuentoReserva,
+            'aplicado_por' => $usuarioId,
+            'estado' => EstadoGeneral::Activo->value,
+            'observaciones' => 'Descuento aplicado al crear la reserva',
+        ]);
+        $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
+    }
+
+    /**
+     * Aplica cargos de facturación seleccionados u obligatorios.
+     *
+     * @param  array<int, int|string>  $cargosFacturacionIds
+     */
+    private function aplicarCargosFacturacion(Cuenta $cuenta, array $cargosFacturacionIds, ?int $usuarioId): void
+    {
         $idsSeleccionados = array_map('intval', $cargosFacturacionIds);
         $cargosVigentesIds = $this->cuentas->cargosFacturacionVigentesIds($cuenta)->flip();
 
@@ -130,13 +171,25 @@ final class RegistrarCobroInicialReserva
             ];
         }
 
-        // INSERT masivo: una sola query para todos los cargos nuevos
         if ($nuevosCargos !== []) {
             $this->cuentas->insertarCuentaCargos($cuenta, $nuevosCargos);
         }
+    }
 
-        $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
-        $totalCuenta = (float) $cuenta->total;
+    /**
+     * Valida el monto de pago y registra el pago si corresponde.
+     */
+    private function validarYRegistrarPago(
+        Reserva $reserva,
+        Cuenta $cuenta,
+        TipoPagoReserva &$tipoPago,
+        ?MetodoPago $metodoPago,
+        ?string $referencia,
+        int $monedaId,
+        ?int $usuarioId,
+        ?float $montoSolicitado,
+        float $totalCuenta,
+    ): void {
         $montoPago = $tipoPago === TipoPagoReserva::SIN_PAGO
             ? 0.0
             : round($montoSolicitado ?? $tipoPago->monto($totalCuenta), 2);
@@ -174,20 +227,6 @@ final class RegistrarCobroInicialReserva
                 usuarioId: $usuarioId,
             );
         }
-
-        $cuenta->refresh();
-
-        return $this->reservas->actualizar($reserva, [
-            'moneda_id' => $monedaId,
-            'tipo_pago' => $tipoPago,
-            'subtotal' => $cuenta->subtotal,
-            'total' => $cuenta->total,
-            'total_pagado' => $cuenta->total_pagado,
-            'saldo' => $cuenta->saldo,
-            'estado' => $tipoPago === TipoPagoReserva::SIN_PAGO
-                ? EstadoReserva::PENDIENTE
-                : EstadoReserva::CONFIRMADA,
-        ]);
     }
 
     private function tipoCuenta(TipoReserva $tipoReserva): TipoCuenta
@@ -197,20 +236,5 @@ final class RegistrarCobroInicialReserva
             TipoReserva::RESTAURANTE => TipoCuenta::RESTAURANTE_DIRECTO,
             TipoReserva::SERVICIO, TipoReserva::PAQUETE => TipoCuenta::SERVICIO,
         };
-    }
-
-    private function enteroOpcional(mixed $valor): ?int
-    {
-        if (is_int($valor)) {
-            return $valor > 0 ? $valor : null;
-        }
-
-        if (is_string($valor) && ctype_digit($valor)) {
-            $entero = (int) $valor;
-
-            return $entero > 0 ? $entero : null;
-        }
-
-        return null;
     }
 }

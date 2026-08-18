@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Activos\ReporteActivoController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Clientes\CuentaClienteController;
 use App\Http\Controllers\Compras\ReporteCompraController;
 use App\Http\Controllers\Espacios\EspacioController;
 use App\Http\Controllers\Financiero\ReporteFinancieroController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Publico\ContactoController;
 use App\Http\Controllers\Publico\FavoritosController;
 use App\Http\Controllers\Publico\PagoController;
 use App\Http\Controllers\ReservaController;
+use App\Http\Controllers\Reservas\DetalleReservaPortalController;
 use App\Http\Controllers\Reservas\MisReservasController;
 use App\Http\Controllers\Reservas\ReporteReservaController;
 use App\Http\Controllers\Restaurante\ComandaController;
@@ -89,8 +91,11 @@ if (is_string($portalDomain) && $portalDomain !== '') {
     });
 }
 
+Route::get('/portal', MisReservasController::class)->name('portal');
 Route::get('/mis-reservas', MisReservasController::class)->name('mis-reservas');
 Route::get('/reservas/mis-reservas', MisReservasController::class);
+Route::get('/portal/reserva/{id}', [DetalleReservaPortalController::class, 'show'])->name('portal.reserva-detalle');
+Route::get('/portal/cuenta', [CuentaClienteController::class, 'show'])->name('portal.cuenta');
 
 /*
 |--------------------------------------------------------------------------
@@ -105,7 +110,6 @@ Route::post('/web-services/reservas/{reserva}/cancelar', CancelarReservaWebServi
     ->middleware('auth')
     ->name('web-services.reservas.cancelar');
 Route::get('/reservas/{reserva}/voucher', [ReservaController::class, 'voucher'])
-    ->middleware('auth')
     ->name('reservas.voucher');
 
 /*

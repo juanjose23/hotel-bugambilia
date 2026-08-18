@@ -99,7 +99,10 @@ export const SeccionAutoCheckIn = ({
                                     titularTelefono={form.data.titularTelefono}
                                     titularEmail={form.data.titularEmail}
                                     onUpdate={(field, val) =>
-                                        form.setData(field as any, val)
+                                        form.setData(
+                                            field as keyof typeof form.data,
+                                            val,
+                                        )
                                     }
                                 />
                             )}

@@ -25,7 +25,10 @@ export type StripeElementsInstance = {
 };
 
 export type StripeInstance = {
-    elements: (opciones: { clientSecret: string }) => StripeElementsInstance;
+    elements: (opciones: {
+        clientSecret: string;
+        appearance?: Record<string, unknown>;
+    }) => StripeElementsInstance;
     confirmPayment: (opciones: {
         elements: StripeElementsInstance;
         confirmParams: { return_url: string };
