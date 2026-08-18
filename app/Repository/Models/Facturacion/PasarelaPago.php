@@ -16,7 +16,15 @@ final class PasarelaPago extends Model implements AuditableContract
 
     protected $table = 'pasarelas_pago';
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'codigo',
+        'nombre',
+        'activa',
+        'modo_prueba',
+        'configuracion',
+        'proveedor',
+        'gestion',
+    ];
 
     protected $attributes = [
         'activa' => true,
@@ -29,7 +37,6 @@ final class PasarelaPago extends Model implements AuditableContract
             'activa' => 'boolean',
             'modo_prueba' => 'boolean',
             'configuracion' => 'array',
-            'meta_datos' => 'array',
         ];
     }
 

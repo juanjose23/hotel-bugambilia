@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, AlertDescription } from '@/modulos/compartido/ui/alerta';
+import type { StripeElementsInstance } from '@/modulos/pagos/interfaces/pago';
 
 interface PropiedadesFormularioTarjetaStripe {
     publishableKey?: string | null;
@@ -20,17 +21,17 @@ export function FormularioTarjetaStripe({
     const [cargando, setCargando] = useState(true);
     const [stripeMontado, setStripeMontado] = useState(false);
     const [errorMensaje, setErrorMensaje] = useState<string | null>(null);
-    const elementsRef = useRef<any>(null);
+    const elementsRef = useRef<StripeElementsInstance | null>(null);
 
     useEffect(() => {
         const key =
             publishableKey ||
-            (window as any).STRIPE_PUBLISHABLE_KEY ||
+            (window as unknown as Record<string, string>).STRIPE_PUBLISHABLE_KEY ||
             'pk_test_sample';
         const secret = clientSecret || 'sample_secret';
 
         const montarStripe = () => {
-            if (!(window as any).Stripe) {
+            if (!window.Stripe) {
                 setErrorMensaje('Esperando carga del módulo de pago seguro...');
                 setCargando(false);
 
@@ -38,7 +39,7 @@ export function FormularioTarjetaStripe({
             }
 
             try {
-                const stripe = (window as any).Stripe(key);
+                const stripe = window.Stripe(key);
                 const elements = stripe.elements({
                     clientSecret: secret,
                     appearance: {
@@ -65,7 +66,7 @@ export function FormularioTarjetaStripe({
             }
         };
 
-        if ((window as any).Stripe) {
+        if (window.Stripe) {
             montarStripe();
 
             return;

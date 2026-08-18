@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Interactors\Facturacion\Stripe;
 
 use App\Actions\Facturacion\StripeMontoMenorUnidad;
+use App\Enums\Facturacion\EstadoConciliacionPago;
 use App\Enums\Facturacion\EstadoTransaccionPago;
 use App\Enums\Facturacion\PasarelaCodigo;
 use App\Exceptions\StripeApiException;
+use App\Repository\Models\Facturacion\PagoConciliacion;
 use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Persistencia\Facturacion\PagoConciliacionPersistencia;
 use App\Repository\Persistencia\Facturacion\PagoTransaccionPersistencia;
 use App\Repository\Queries\Facturacion\PagoTransaccionQuery;
 use App\WebServices\Stripe\StripePaymentIntentClient;
@@ -21,6 +24,7 @@ final readonly class ReembolsarPagoStripeReserva
         private PagoTransaccionQuery $pagoTransaccionQuery,
         private PagoTransaccionPersistencia $pagoTransaccionPersistencia,
         private StripeMontoMenorUnidad $montoMenorUnidad,
+        private PagoConciliacionPersistencia $pagoConciliacionPersistencia,
     ) {}
 
     /**
@@ -54,15 +58,14 @@ final readonly class ReembolsarPagoStripeReserva
             $transacciones = $this->pagoTransaccionQuery->porReservaConReferenciaPasarela($reserva);
         }
 
-        $metaDatos = is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
-        $stripeData = is_array($metaDatos['stripe'] ?? null) ? $metaDatos['stripe'] : [];
+        $stripeData = $reserva->ultimaEntradaBitacora('stripe') ?? [];
         $paymentIntentFallback = is_string($stripeData['payment_intent_id'] ?? null)
             ? $stripeData['payment_intent_id']
-            : (is_string($metaDatos['payment_intent_id'] ?? null) ? $metaDatos['payment_intent_id'] : null);
+            : null;
 
         if ($paymentIntentFallback === null) {
-            $metaJson = json_encode($metaDatos);
-            if (is_string($metaJson) && preg_match('/(pi_[a-zA-Z0-9]+)/', $metaJson, $matches)) {
+            $bitacoras = $reserva->bitacora()->pluck('datos')->filter()->map(fn ($d) => json_encode($d))->implode(' ');
+            if (preg_match('/(pi_[a-zA-Z0-9]+)/', $bitacoras, $matches)) {
                 $paymentIntentFallback = $matches[1];
             }
         }
@@ -197,6 +200,9 @@ final readonly class ReembolsarPagoStripeReserva
             }
 
             $this->pagoTransaccionPersistencia->actualizar($transaccion, $datosActualizar);
+
+            $this->actualizarConciliacion($transaccion, $montoAReembolsar, $montoTransaccion, $usuarioId);
+
             $reembolsos[] = [
                 'pago_cuenta_id' => $transaccion->pago_cuenta_id,
                 'pago_transaccion_id' => $transaccion->id,
@@ -207,5 +213,46 @@ final readonly class ReembolsarPagoStripeReserva
         }
 
         return $reembolsos;
+    }
+
+    private function actualizarConciliacion(
+        PagoTransaccion $transaccion,
+        float $montoReembolsado,
+        float $montoTransaccion,
+        ?int $usuarioId,
+    ): void {
+        $conciliacion = PagoConciliacion::query()
+            ->where('pago_transaccion_id', $transaccion->id)
+            ->first();
+
+        if ($conciliacion === null) {
+            return;
+        }
+
+        $montoRecibidoOriginal = (float) $conciliacion->monto_recibido;
+        $nuevoMontoRecibido = max(0.0, round($montoRecibidoOriginal - $montoReembolsado, 2));
+
+        if ($montoReembolsado >= $montoTransaccion) {
+            $this->pagoConciliacionPersistencia->actualizarOCrear(
+                ['pago_transaccion_id' => $transaccion->id],
+                [
+                    'estado' => EstadoConciliacionPago::Reembolsada,
+                    'monto_recibido' => 0.0,
+                    'diferencia' => round(0.0 - (float) $conciliacion->monto_esperado, 2),
+                    'conciliada_at' => now(),
+                    'conciliada_por' => $usuarioId,
+                    'reembolsada_at' => now(),
+                ],
+            );
+        } else {
+            $this->pagoConciliacionPersistencia->actualizarOCrear(
+                ['pago_transaccion_id' => $transaccion->id],
+                [
+                    'estado' => EstadoConciliacionPago::Diferencia,
+                    'monto_recibido' => $nuevoMontoRecibido,
+                    'diferencia' => round($nuevoMontoRecibido - (float) $conciliacion->monto_esperado, 2),
+                ],
+            );
+        }
     }
 }

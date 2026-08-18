@@ -202,7 +202,7 @@ final class CuentaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['moneda', 'cliente', 'estancia.habitacion']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['moneda', 'cliente.persona', 'estancia.habitacion']))
             ->columns([
                 TextColumn::make('numero_cuenta')
                     ->label('Número de Cuenta')

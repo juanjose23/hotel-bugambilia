@@ -22,12 +22,16 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class RealizarCheckOutHabitacion
 {
+    /**
+     * Todos los dependencies se inyectan explícitamente (sin valores por defecto `new`)
+     * para facilitar testing con mocks y respetar el principio de inversión de dependencias.
+     */
     public function __construct(
         private RecalcularEstadoReservaHabitacion $recalcularEstado,
         private ReservaRepositorioInterface $reservas,
         private HabitacionRepositorioInterface $habitaciones,
         private CuentaRepositorioInterface $cuentas,
-        private ValidarRequisitosCheckOut $validarRequisitos = new ValidarRequisitosCheckOut,
+        private ValidarRequisitosCheckOut $validarRequisitos,
     ) {}
 
     public function ejecutar(RealizarCheckOutData $data): Estancia

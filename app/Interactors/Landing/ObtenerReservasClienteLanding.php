@@ -43,9 +43,16 @@ final class ObtenerReservasClienteLanding
         $query = Reserva::with([
             'cliente.persona',
             'habitacion.categoria',
+            'habitacion.detalle',
+            'habitacion.inventarioFijo.activo.producto',
+            'habitacion.servicioAsignaciones.servicio',
             'espacio',
             'servicio',
             'serviciosAdicionales',
+            'cuentas.cargos',
+            'cuentas.pagos',
+            'estancia.cuenta.cargos',
+            'estancia.cuenta.pagos',
             'detalles.reservable.habitacion.categoria',
             'detalles.reservable.espacio',
             'detalles.reservable.servicio',
@@ -110,6 +117,9 @@ final class ObtenerReservasClienteLanding
             'detalles' => $this->resolverDetallesTexto($r),
             'notas' => $r->notas,
             'servicios_adicionales' => $this->mapearServiciosAdicionales($r),
+            'activos_habitacion' => $this->mapearActivosHabitacion($r),
+            'servicios_habitacion' => $this->mapearServiciosHabitacion($r),
+            'estado_cuenta' => $this->mapearEstadoCuenta($r),
             'items' => $this->mapearItems($r),
         ];
     }
@@ -235,5 +245,140 @@ final class ObtenerReservasClienteLanding
                 'es_titular' => $huesped->es_titular,
             ])
             ->all();
+    }
+
+    // -------------------------------------------------------------------------
+    // Activos de la Habitación
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapearActivosHabitacion(Reserva $r): array
+    {
+        $habitacion = $r->habitacion;
+        if ($habitacion === null) {
+            return [];
+        }
+
+        return $habitacion->inventarioFijo
+            ->map(function ($asignacion): ?array {
+                $activo = $asignacion->activo;
+                if ($activo === null) {
+                    return null;
+                }
+
+                $producto = $activo->producto;
+                $productoNombre = $producto !== null ? $producto->nombre : 'Equipamiento';
+                $categoriaNombre = ($producto !== null && $producto->categoria !== null) ? $producto->categoria->nombre : 'Amenidades';
+                $estadoLabel = $activo->estado->getLabel();
+
+                return [
+                    'id' => $activo->id,
+                    'codigo' => $activo->codigo ?? "ACT-{$activo->id}",
+                    'nombre' => $productoNombre,
+                    'descripcion' => $activo->descripcion ?? 'Equipamiento disponible en la habitación',
+                    'categoria' => $categoriaNombre,
+                    'estado' => $estadoLabel,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    // -------------------------------------------------------------------------
+    // Servicios Incluidos en la Habitación
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapearServiciosHabitacion(Reserva $r): array
+    {
+        $habitacion = $r->habitacion;
+        if ($habitacion === null) {
+            return [];
+        }
+
+        return $habitacion->servicioAsignaciones
+            ->map(function ($asignacion): ?array {
+                $servicio = $asignacion->servicio;
+                if ($servicio === null) {
+                    return null;
+                }
+
+                return [
+                    'id' => $servicio->id,
+                    'nombre' => $servicio->nombre,
+                    'descripcion' => $servicio->descripcion ?? 'Servicio incluido para su estancia',
+                    'incluido' => true,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    // -------------------------------------------------------------------------
+    // Estado de Cuenta Financiero
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapearEstadoCuenta(Reserva $r): array
+    {
+        $cargos = [];
+        $totalCargos = 0.0;
+        $totalPagado = 0.0;
+
+        // Cuentas vinculadas a la reserva o a la estancia
+        $cuentas = $r->cuentas;
+
+        foreach ($cuentas as $cuenta) {
+            foreach ($cuenta->cargos as $cargo) {
+                $monto = (float) $cargo->monto;
+                $totalCargos += $monto;
+                $cargos[] = [
+                    'id' => $cargo->id,
+                    'fecha' => $cargo->created_at?->format('d/m/Y H:i') ?? now()->format('d/m/Y'),
+                    'descripcion' => $cargo->concepto ?? 'Cargo de consumo',
+                    'monto' => $monto,
+                    'categoria' => $cargo->categoria ?? 'Hospedaje',
+                ];
+            }
+
+            foreach ($cuenta->pagos as $pago) {
+                $totalPagado += (float) $pago->monto;
+            }
+        }
+
+        // Si no hay cargos específicos registrados en cuenta, usar tarifa base de reserva
+        if ($cargos === []) {
+            $montoBase = (float) $r->total;
+            $cargos[] = [
+                'id' => 1,
+                'fecha' => $r->created_at?->format('d/m/Y') ?? now()->format('d/m/Y'),
+                'descripcion' => "Estancia Base — {$r->detalles}",
+                'monto' => $montoBase,
+                'categoria' => 'Hospedaje',
+            ];
+            $totalCargos = $montoBase;
+            $totalPagado = $montoBase; // Asumir pagado en confirmación de reserva
+        }
+
+        $subtotal = round($totalCargos / 1.15, 2);
+        $impuestos = round($totalCargos - $subtotal, 2);
+        $saldoPendiente = max(0.0, round($totalCargos - $totalPagado, 2));
+
+        return [
+            'cargos' => $cargos,
+            'subtotal' => $subtotal,
+            'impuestos' => $impuestos,
+            'total' => $totalCargos,
+            'total_pagado' => $totalPagado,
+            'saldo_pendiente' => $saldoPendiente,
+        ];
     }
 }

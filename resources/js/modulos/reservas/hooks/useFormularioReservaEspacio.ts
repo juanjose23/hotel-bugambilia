@@ -109,7 +109,13 @@ export function useFormularioReservaEspacio(space: EspacioReservable) {
     );
 
     const actualizarDataSincrona = useCallback(
-        (keyOrDataOrFn: any, value?: any) => {
+        <K extends keyof DatosBorradorEspacio>(
+            keyOrDataOrFn:
+                | K
+                | Partial<DatosBorradorEspacio>
+                | ((prev: DatosBorradorEspacio) => DatosBorradorEspacio),
+            value?: DatosBorradorEspacio[K],
+        ) => {
             if (typeof keyOrDataOrFn === 'string') {
                 formulario.setData((prev: DatosBorradorEspacio) => {
                     const siguiente = { ...prev, [keyOrDataOrFn]: value };

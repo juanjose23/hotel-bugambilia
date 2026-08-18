@@ -21,6 +21,7 @@ use App\Repository\Models\Reservas\ReservaDetalle;
 use App\Repository\Models\Reservas\ReservaEstadoHistorial;
 use App\Repository\Models\Reservas\ReservaHuesped;
 use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Queries\Reservas\ObtenerTarifasReservaQuery;
 use DateTimeImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,10 @@ use InvalidArgumentException;
 
 final class ReservaRepositorio implements ReservaRepositorioInterface
 {
+    public function __construct(
+        private readonly ObtenerTarifasReservaQuery $tarifas,
+    ) {}
+
     public function obtenerPorId(int $id): ?Reserva
     {
         /** @var Reserva|null $reserva */
@@ -228,6 +233,131 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         return $recurso;
     }
 
+    /**
+     * Resuelve múltiples recursos reservables en lote, optimizando queries y locks.
+     *
+     * Estrategia:
+     * 1. Agrupa entidades por tipo y ejecuta una query por tipo (Habitación, Espacio, Servicio)
+     * 2. Para entidades existentes, obtiene el recurso asociado
+     * 3. Para entidades nuevas, crea el recurso dentro de la misma transacción
+     * 4. Utiliza bloqueo SELECT FOR UPDATE para prevenir condiciones de carrera
+     *
+     * @param  array<int, array{tipo: TipoReserva, entidad_id: int}>  $solicitudes
+     * @return array<int, RecursoReservable> Indexadas por la clave original del array de entrada
+     */
+    public function resolverRecursosLote(array $solicitudes): array
+    {
+        if ($solicitudes === []) {
+            return [];
+        }
+
+        $porTipo = [
+            TipoReserva::HABITACION->value => [],
+            TipoReserva::RESTAURANTE->value => [],
+            TipoReserva::SERVICIO->value => [],
+        ];
+
+        foreach ($solicitudes as $idx => $solicitud) {
+            $porTipo[$solicitud['tipo']->value][$idx] = $solicitud['entidad_id'];
+        }
+
+        $entidadesPorTipo = [];
+        if ($porTipo[TipoReserva::HABITACION->value] !== []) {
+            $ids = array_values($porTipo[TipoReserva::HABITACION->value]);
+            $entidadesPorTipo[TipoReserva::HABITACION->value] = Habitacion::query()
+                ->whereIn('id', $ids)
+                ->get()
+                ->keyBy('id');
+        }
+        if ($porTipo[TipoReserva::RESTAURANTE->value] !== []) {
+            $ids = array_values($porTipo[TipoReserva::RESTAURANTE->value]);
+            $entidadesPorTipo[TipoReserva::RESTAURANTE->value] = Espacio::query()
+                ->whereIn('id', $ids)
+                ->get()
+                ->keyBy('id');
+        }
+        if ($porTipo[TipoReserva::SERVICIO->value] !== []) {
+            $ids = array_values($porTipo[TipoReserva::SERVICIO->value]);
+            $entidadesPorTipo[TipoReserva::SERVICIO->value] = Servicio::query()
+                ->whereIn('id', $ids)
+                ->get()
+                ->keyBy('id');
+        }
+
+        $recursoIds = [];
+        $entidadesIndexadas = [];
+
+        foreach ($solicitudes as $idx => $solicitud) {
+            $tipo = $solicitud['tipo'];
+            $entidadId = $solicitud['entidad_id'];
+            $entidad = $entidadesPorTipo[$tipo->value][$entidadId] ?? null;
+
+            if ($entidad === null) {
+                $modelo = match ($tipo) {
+                    TipoReserva::HABITACION => new Habitacion,
+                    TipoReserva::RESTAURANTE => new Espacio,
+                    default => new Servicio,
+                };
+                $entidad = $modelo->newQuery()->lockForUpdate()->findOrFail($entidadId);
+            }
+
+            $entidadesIndexadas[$idx] = $entidad;
+
+            if ($entidad->reservable_id !== null) {
+                $recursoIds[$idx] = (int) $entidad->reservable_id;
+            }
+        }
+
+        $recursosExistentes = $recursoIds !== []
+            ? RecursoReservable::query()
+                ->whereIn('id', array_values($recursoIds))
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id')
+            : collect();
+
+        $resultados = [];
+        $nuevosRecursos = [];
+
+        foreach ($solicitudes as $idx => $solicitud) {
+            $tipo = $solicitud['tipo'];
+            $entidad = $entidadesIndexadas[$idx];
+
+            if (isset($recursoIds[$idx])) {
+                $resultados[$idx] = $recursosExistentes[$recursoIds[$idx]];
+            } else {
+                [$tipoRecurso, $control, $nombre, $capacidad] = match ($tipo) {
+                    TipoReserva::HABITACION => [TipoRecursoReservable::HABITACION, ControlDisponibilidad::FECHAS, (string) $entidad->nombre, null],
+                    TipoReserva::RESTAURANTE => [TipoRecursoReservable::ESPACIO, ControlDisponibilidad::HORARIO, (string) $entidad->nombre, $entidad instanceof Espacio ? (int) $entidad->capacidad_personas : null],
+                    default => [TipoRecursoReservable::SERVICIO, ControlDisponibilidad::SIN_BLOQUEO, (string) $entidad->nombre, null],
+                };
+
+                $nuevosRecursos[$idx] = [
+                    'tipo' => $tipoRecurso,
+                    'nombre' => $nombre,
+                    'capacidad' => $capacidad,
+                    'control_disponibilidad' => $control,
+                    'estado' => EstadoRecursoReservable::ACTIVO,
+                    'entidad' => $entidad,
+                ];
+            }
+        }
+
+        foreach ($nuevosRecursos as $idx => $data) {
+            $recurso = RecursoReservable::query()->create([
+                'tipo' => $data['tipo'],
+                'nombre' => $data['nombre'],
+                'capacidad' => $data['capacidad'],
+                'control_disponibilidad' => $data['control_disponibilidad'],
+                'estado' => $data['estado'],
+            ]);
+            $data['entidad']->update(['reservable_id' => $recurso->id]);
+            $resultados[$idx] = $recurso;
+        }
+
+        return $resultados;
+    }
+
     public function crearDetalle(Reserva $reserva, RecursoReservable $recurso, array $datos): ReservaDetalle
     {
         return $reserva->detalles()->create([
@@ -300,8 +430,23 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         $inicio = $principal->fecha_inicio;
         $fin = $principal->fecha_fin ?? $inicio;
 
+        $todasLasSolicitudes = [];
         foreach ($habitaciones as $hab) {
-            $recurso = $this->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
+            $todasLasSolicitudes[] = ['tipo' => TipoReserva::HABITACION, 'entidad_id' => $hab['habitacion_id']];
+        }
+        foreach ($servicios as $servicio) {
+            $todasLasSolicitudes[] = ['tipo' => TipoReserva::SERVICIO, 'entidad_id' => $servicio['servicio_id']];
+        }
+        foreach ($espacios as $espacio) {
+            $todasLasSolicitudes[] = ['tipo' => TipoReserva::RESTAURANTE, 'entidad_id' => $espacio['espacio_id']];
+        }
+
+        $recursos = $todasLasSolicitudes !== [] ? $this->resolverRecursosLote($todasLasSolicitudes) : [];
+
+        $idx = 0;
+
+        foreach ($habitaciones as $hab) {
+            $recurso = $recursos[$idx++] ?? $this->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
 
             $this->crearDetalle($reserva, $recurso, [
                 'parent_id' => $principal->id,
@@ -315,7 +460,7 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         }
 
         foreach ($servicios as $servicio) {
-            $recurso = $this->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
+            $recurso = $recursos[$idx++] ?? $this->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
 
             $this->crearDetalle($reserva, $recurso, [
                 'parent_id' => $principal->id,
@@ -329,7 +474,10 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         }
 
         foreach ($espacios as $espacio) {
-            $recurso = $this->resolverRecurso(TipoReserva::RESTAURANTE, $espacio['espacio_id']);
+            $recurso = $recursos[$idx++] ?? $this->resolverRecurso(TipoReserva::RESTAURANTE, $espacio['espacio_id']);
+
+            $horasVal = max(1, (int) $principal->cantidad);
+            $mult = $this->tarifas->espacioEsPorHora($espacio['espacio_id']) ? $horasVal : 1;
 
             $this->crearDetalle($reserva, $recurso, [
                 'parent_id' => $principal->id,
@@ -338,7 +486,74 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
                 'fecha_fin' => $fin,
                 'cantidad' => $espacio['cantidad'],
                 'precio_unitario' => $espacio['precio'],
-                'subtotal' => round($espacio['precio'] * $espacio['cantidad'], 2),
+                'subtotal' => round($espacio['precio'] * $espacio['cantidad'] * $mult, 2),
+            ]);
+        }
+    }
+
+    /**
+     * Crea detalles de habitaciones, servicios y espacios adicionales a partir de recursos resueltos.
+     *
+     * @param  array<int, RecursoReservable>  $recursos  Recursos resueltos en orden global
+     * @param  array<int, array{habitacion_id: int, precio: float}>  $habitaciones
+     * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
+     * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
+     */
+    public function crearDetallesAdicionales(
+        Reserva $reserva,
+        ReservaDetalle $principal,
+        array $recursos,
+        array $habitaciones,
+        array $servicios,
+        array $espacios,
+        DateTimeImmutable $inicio,
+        DateTimeImmutable $fin,
+        int $unidades,
+        ?float $horasVal,
+    ): void {
+        $idx = 0;
+
+        foreach ($habitaciones as $hab) {
+            $recurso = $recursos[$idx++] ?? $this->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
+
+            $this->crearDetalle($reserva, $recurso, [
+                'parent_id' => $principal->id,
+                'estado' => EstadoReservaDetalle::CONFIRMADO,
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
+                'cantidad' => 1,
+                'precio_unitario' => $hab['precio'],
+                'subtotal' => round($hab['precio'] * $unidades, 2),
+            ]);
+        }
+
+        foreach ($servicios as $servicio) {
+            $recurso = $recursos[$idx++] ?? $this->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
+
+            $this->crearDetalle($reserva, $recurso, [
+                'parent_id' => $principal->id,
+                'estado' => EstadoReservaDetalle::PENDIENTE,
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
+                'cantidad' => $servicio['cantidad'],
+                'precio_unitario' => $servicio['precio'],
+                'subtotal' => round($servicio['precio'] * $servicio['cantidad'], 2),
+            ]);
+        }
+
+        foreach ($espacios as $espacio) {
+            $recurso = $recursos[$idx++] ?? $this->resolverRecurso(TipoReserva::RESTAURANTE, $espacio['espacio_id']);
+
+            $mult = $this->tarifas->espacioEsPorHora($espacio['espacio_id']) ? max(1, (int) $horasVal) : 1;
+
+            $this->crearDetalle($reserva, $recurso, [
+                'parent_id' => $principal->id,
+                'estado' => EstadoReservaDetalle::CONFIRMADO,
+                'fecha_inicio' => $inicio,
+                'fecha_fin' => $fin,
+                'cantidad' => $espacio['cantidad'],
+                'precio_unitario' => $espacio['precio'],
+                'subtotal' => round($espacio['precio'] * $espacio['cantidad'] * $mult, 2),
             ]);
         }
     }
@@ -557,5 +772,34 @@ final class ReservaRepositorio implements ReservaRepositorioInterface
         }
 
         return [$inicio, $fin];
+    }
+
+    /**
+     * Calcula la duración actual en horas de la reserva basándose en el detalle principal.
+     *
+     * Utiliza detallesPrincipalesDe() que NO crea registros al no encontrar detalle principal,
+     * a diferencia de detallePrincipalDe() que sí crea uno.
+     *
+     * @return int|null Horas de duración (mínimo 1) o null si no hay detalle o fechas definidas
+     */
+    public function duracionHorasActual(Reserva $reserva): ?int
+    {
+        $detalles = $this->detallesPrincipalesDe($reserva);
+        $principal = $detalles->first();
+
+        if ($principal === null) {
+            return null;
+        }
+
+        $fechaFin = $principal->fecha_fin;
+        $fechaInicio = $principal->fecha_inicio;
+
+        if ($fechaFin === null || $fechaInicio === null) { // @phpstan-ignore identical.alwaysFalse
+            return null;
+        }
+
+        $horas = (int) ceil(($fechaFin->getTimestamp() - $fechaInicio->getTimestamp()) / 3600);
+
+        return $horas > 0 ? $horas : 1;
     }
 }

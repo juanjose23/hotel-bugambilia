@@ -5,6 +5,39 @@ export interface AcompananteCliente {
     tipo?: string;
 }
 
+export interface ActivoHabitacion {
+    id: number;
+    codigo: string;
+    nombre: string;
+    descripcion: string;
+    categoria: string;
+    estado: string;
+}
+
+export interface ServicioHabitacion {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    incluido: boolean;
+}
+
+export interface CargoEstadoCuenta {
+    id: number;
+    fecha: string;
+    descripcion: string;
+    monto: number;
+    categoria: string;
+}
+
+export interface EstadoCuentaDomain {
+    cargos: CargoEstadoCuenta[];
+    subtotal: number;
+    impuestos: number;
+    total: number;
+    total_pagado: number;
+    saldo_pendiente: number;
+}
+
 export interface ReservaClienteDomain {
     id: number;
     codigo_reserva: string;
@@ -27,6 +60,9 @@ export interface ReservaClienteDomain {
     huespedes_count?: number;
     can_generar_voucher?: boolean;
     acompanantes?: AcompananteCliente[];
+    activos_habitacion?: ActivoHabitacion[];
+    servicios_habitacion?: ServicioHabitacion[];
+    estado_cuenta?: EstadoCuentaDomain;
 }
 
 export interface ClienteDomain {

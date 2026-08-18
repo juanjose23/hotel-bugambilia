@@ -23,6 +23,18 @@ export const usePortalMisReservas = (
 
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [portalTab, setPortalTab] = useState<TabPortal>('overview');
+    const [paginaActual, setPaginaActual] = useState<number>(1);
+    const itemsPorPagina = 4;
+
+    const cambiarBusqueda = (term: string) => {
+        setSearchTerm(term);
+        setPaginaActual(1);
+    };
+
+    const cambiarPestana = (tab: TabPortal) => {
+        setPortalTab(tab);
+        setPaginaActual(1);
+    };
 
     const [reservaACancelar, setReservaACancelar] =
         useState<ReservaClienteDomain | null>(null);
@@ -81,7 +93,7 @@ export const usePortalMisReservas = (
             const timeout = window.setTimeout(() => controlador.abort(), 15000);
 
             try {
-                const url = `/api/reservas/${encodeURIComponent(reserva.codigo_reserva)}/cancelar`;
+                const url = `/web-services/reservas/${reserva.id}/cancelar`;
 
                 const respuesta = await fetch(url, {
                     method: 'POST',
@@ -154,9 +166,12 @@ export const usePortalMisReservas = (
 
     return {
         searchTerm,
-        setSearchTerm,
+        setSearchTerm: cambiarBusqueda,
         portalTab,
-        setPortalTab,
+        setPortalTab: cambiarPestana,
+        paginaActual,
+        setPaginaActual,
+        itemsPorPagina,
         reservasFiltradas,
         reservasActivas,
         reservasPasadas,

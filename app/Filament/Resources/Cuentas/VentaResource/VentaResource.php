@@ -37,6 +37,7 @@ final class VentaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['cliente.persona', 'moneda']))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('numero_venta')->label('N° Venta')->searchable()->sortable(),

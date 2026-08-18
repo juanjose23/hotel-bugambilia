@@ -163,8 +163,8 @@ test('crea reservación de restaurante con cliente asignado, mesas unidas y preo
         ->and((float) $reserva->saldo)->toBe(287.50);
 
     // Verificar metadatos enriquecidos de preorden
-    $meta = $reserva->meta_datos;
-    $platos = is_array($meta['platos_preordenados'] ?? null) ? $meta['platos_preordenados'] : [];
+    $bitacora = $reserva->ultimaEntradaBitacora('preorden');
+    $platos = $bitacora['items'] ?? [];
     $primerPlato = is_array($platos[0] ?? null) ? $platos[0] : [];
     $subtotalPlatoVal = $primerPlato['subtotal'] ?? 0;
     $subtotalPlato = is_numeric($subtotalPlatoVal) ? (float) $subtotalPlatoVal : 0.0;

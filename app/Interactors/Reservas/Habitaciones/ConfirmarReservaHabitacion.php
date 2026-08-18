@@ -18,11 +18,15 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class ConfirmarReservaHabitacion
 {
+    /**
+     * Todos los dependencies se inyectan explícitamente (sin valores por defecto `new`)
+     * para facilitar testing con mocks y respetar el principio de inversión de dependencias.
+     */
     public function __construct(
         private ValidarDisponibilidadHabitacion $validarDisponibilidad,
         private RecalcularEstadoReservaHabitacion $recalcularEstado,
         private ReservaRepositorioInterface $reservas,
-        private ValidarPoliticaPagoReserva $validarPoliticaPago = new ValidarPoliticaPagoReserva,
+        private ValidarPoliticaPagoReserva $validarPoliticaPago,
     ) {}
 
     public function ejecutar(ConfirmarReservaHabitacionData $data): Reserva

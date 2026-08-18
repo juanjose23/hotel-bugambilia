@@ -37,7 +37,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property float|null $limite_cuenta_solicitado
  * @property Carbon|null $fecha_check_in
  * @property Carbon|null $fecha_check_out
- * @property array<string, mixed>|null $meta_datos
  */
 final class Reserva extends Model implements AuditableContract
 {
@@ -77,7 +76,6 @@ final class Reserva extends Model implements AuditableContract
         'saldo',
         'notas',
         'acompanantes',
-        'meta_datos',
     ];
 
     protected $casts = [
@@ -97,7 +95,6 @@ final class Reserva extends Model implements AuditableContract
         'total_pagado' => 'decimal:2',
         'saldo' => 'decimal:2',
         'acompanantes' => 'array',
-        'meta_datos' => 'array',
     ];
 
     /**
@@ -190,6 +187,66 @@ final class Reserva extends Model implements AuditableContract
     public function cuentas(): HasMany
     {
         return $this->hasMany(Cuenta::class);
+    }
+
+    /** @return HasMany<ReservaBitacora, $this> */
+    public function bitacora(): HasMany
+    {
+        return $this->hasMany(ReservaBitacora::class);
+    }
+
+    /**
+     * Obtiene la entrada más reciente de un tipo específico de bitácora.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function ultimaEntradaBitacora(string $tipo): ?array
+    {
+        /** @var ReservaBitacora|null $entrada */
+        $entrada = $this->bitacora()
+            ->where('tipo', $tipo)
+            ->latest()
+            ->first();
+
+        if ($entrada === null) {
+            return null;
+        }
+
+        /** @var array<string, mixed>|null $datos */
+        $datos = $entrada->datos;
+
+        return $datos;
+    }
+
+    /**
+     * Crea una entrada en la bitácora.
+     *
+     * @param  array<string, mixed>  $datos
+     */
+    public function crearEntradaBitacora(string $tipo, array $datos): ReservaBitacora
+    {
+        return $this->bitacora()->create([
+            'tipo' => $tipo,
+            'datos' => $datos,
+        ]);
+    }
+
+    /**
+     * Actualiza la entrada más reciente de un tipo, o crea una nueva si no existe.
+     *
+     * @param  array<string, mixed>  $datos
+     */
+    public function actualizarOCrearEntradaBitacora(string $tipo, array $datos): ReservaBitacora
+    {
+        $entrada = $this->bitacora()->where('tipo', $tipo)->latest()->first();
+
+        if ($entrada !== null) {
+            $entrada->update(['datos' => $datos]);
+
+            return $entrada;
+        }
+
+        return $this->crearEntradaBitacora($tipo, $datos);
     }
 
     /** @return HasManyThrough<ReservaHuesped, ReservaDetalle, $this> */

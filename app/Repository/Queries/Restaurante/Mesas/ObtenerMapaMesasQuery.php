@@ -63,10 +63,9 @@ final class ObtenerMapaMesasQuery
             if ($pedidos->isEmpty() && $reserva instanceof Reserva
                 && in_array($mesa->estado, [EstadoEspacio::Disponible, EstadoEspacio::Reservado], true)) {
                 $meta = is_array($mesa->meta_datos) ? $mesa->meta_datos : [];
-                $reservaMeta = is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
-                $platosPreordenados = is_array($reservaMeta['platos_preordenados'] ?? null)
-                    ? $reservaMeta['platos_preordenados']
-                    : (is_array($reservaMeta['items_preorden'] ?? null) ? $reservaMeta['items_preorden'] : []);
+                $preordenDatos = $reserva->ultimaEntradaBitacora('preorden');
+                /** @var list<array<string, mixed>> $platosPreordenados */
+                $platosPreordenados = is_array($preordenDatos['items'] ?? null) ? $preordenDatos['items'] : [];
 
                 $mesa->setAttribute('estado', EstadoEspacio::Reservado);
                 $mesa->setAttribute('meta_datos', [

@@ -16,7 +16,22 @@ final class FacturaDetalle extends Model implements AuditableContract
 
     protected $table = 'factura_detalles';
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'factura_id',
+        'venta_detalle_id',
+        'origen_type',
+        'origen_id',
+        'codigo',
+        'concepto',
+        'unidad_medida',
+        'cantidad',
+        'precio_unitario',
+        'subtotal',
+        'descuento',
+        'iva_porcentaje',
+        'iva',
+        'total_linea',
+    ];
 
     protected $attributes = [
         'cantidad' => 1,
@@ -38,7 +53,7 @@ final class FacturaDetalle extends Model implements AuditableContract
             'iva_porcentaje' => 'decimal:4',
             'iva' => 'decimal:2',
             'total_linea' => 'decimal:2',
-            'meta_datos' => 'array',
+            'origen_id' => 'integer',
         ];
     }
 

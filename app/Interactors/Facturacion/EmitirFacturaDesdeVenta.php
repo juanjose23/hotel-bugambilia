@@ -36,17 +36,15 @@ final readonly class EmitirFacturaDesdeVenta
 
     /**
      * @param  array<string, mixed>  $datosReceptor
-     * @param  array<string, mixed>  $metaDatos
      */
     public function ejecutar(
         Venta $venta,
         ?int $serieId = null,
         TipoFactura $tipo = TipoFactura::Contado,
         array $datosReceptor = [],
-        array $metaDatos = [],
         ?int $usuarioId = null,
     ): Factura {
-        return DB::transaction(function () use ($venta, $serieId, $tipo, $datosReceptor, $metaDatos, $usuarioId): Factura {
+        return DB::transaction(function () use ($venta, $serieId, $tipo, $datosReceptor, $usuarioId): Factura {
             $venta = $this->facturaQuery->ventaParaFacturaConLock($venta);
 
             if ($this->facturaQuery->yaEmitidaParaVenta($venta->id)) {
@@ -91,14 +89,9 @@ final readonly class EmitirFacturaDesdeVenta
                 'iva_total_base' => round((float) $venta->impuesto_total * $tasa, 2),
                 'total_base' => round((float) $venta->total * $tasa, 2),
                 'datos_receptor' => $datosReceptor !== [] ? $datosReceptor : ($venta->datos_fiscales ?? null),
-                'meta_datos' => $metaDatos + [
-                    'numero_autorizacion_dgi' => $autorizacion->numero_autorizacion,
-                    'rango_autorizado' => [
-                        'desde' => $autorizacion->rango_desde,
-                        'hasta' => $autorizacion->rango_hasta,
-                    ],
-                    'venta_numero' => $venta->numero_venta,
-                ],
+                'numero_autorizacion_dgi' => $autorizacion->numero_autorizacion,
+                'rango_autorizado_desde' => $autorizacion->rango_desde,
+                'rango_autorizado_hasta' => $autorizacion->rango_hasta,
                 'hash_documento' => hash('sha256', $folio->numero.'|'.$venta->id.'|'.now()->toISOString().'|'.Str::uuid()->toString()),
                 'emitida_por' => $usuarioId,
             ]);
@@ -182,10 +175,8 @@ final readonly class EmitirFacturaDesdeVenta
                 'iva_porcentaje' => (float) $detalle->subtotal > 0 ? round(($iva / (float) $detalle->subtotal) * 100, 4) : 0,
                 'iva' => $iva,
                 'total_linea' => $totalLinea,
-                'meta_datos' => [
-                    'origen_type' => $detalle->origen_type,
-                    'origen_id' => $detalle->origen_id,
-                ],
+                'origen_type' => $detalle->origen_type,
+                'origen_id' => $detalle->origen_id,
             ]);
         });
     }
