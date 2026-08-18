@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
 import { LayoutPortalCliente } from '@/modulos/portal/componentes/layouts/LayoutPortalCliente';
 import { SeccionPortalMisReservas } from '@/modulos/portal/componentes/SeccionPortalMisReservas';
@@ -17,7 +18,7 @@ export const PaginaMisReservas = ({
     );
 
     return (
-        <LayoutPortalCliente>
+        <>
             <Head>
                 <title>Portal de Huéspedes — Hotel Bugambilias Estelí</title>
                 <meta
@@ -26,8 +27,12 @@ export const PaginaMisReservas = ({
                 />
             </Head>
             <SeccionPortalMisReservas reservas={reservasMapped} />
-        </LayoutPortalCliente>
+        </>
     );
 };
+
+PaginaMisReservas.layout = (page: ReactNode) => (
+    <LayoutPortalCliente>{page}</LayoutPortalCliente>
+);
 
 export default PaginaMisReservas;

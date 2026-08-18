@@ -32,7 +32,6 @@ final class FacturaFolio extends Model implements AuditableContract
             'emitido_at' => 'datetime',
             'anulado_at' => 'datetime',
             'fallido_at' => 'datetime',
-            'meta_datos' => 'array',
         ];
     }
 

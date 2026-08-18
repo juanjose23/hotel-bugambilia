@@ -9,13 +9,14 @@ use App\BusinessLogic\Reservas\AplicarPromocionReserva;
 use App\BusinessLogic\Reservas\CalcularPeriodoReserva;
 use App\BusinessLogic\Reservas\CalcularResumenRestauranteLogica;
 use App\BusinessLogic\Reservas\CalcularUnidadesReserva;
-use App\BusinessLogic\Reservas\ConstruirMetaDatosReserva;
+use App\BusinessLogic\Reservas\ConstruirBitacoraReserva;
 use App\BusinessLogic\Reservas\LeerDatoReserva;
 use App\BusinessLogic\Reservas\ParsearPayloadReserva;
 use App\BusinessLogic\Reservas\ResolverHabitacionDisponibleLogica;
 use App\BusinessLogic\Reservas\ResolverIdEntidadPrincipal;
 use App\BusinessLogic\Reservas\ResolverTipoPagoReserva;
 use App\BusinessLogic\Reservas\ValidarDisponibilidadHabitacion;
+use App\BusinessLogic\Reservas\ValidarDisponibilidadRecursoLote;
 use App\BusinessLogic\Reservas\ValidarFechasReserva;
 use App\BusinessLogic\Reservas\ValidarSeleccionAdicionales;
 use App\Enums\Cuentas\MetodoPago;
@@ -63,8 +64,9 @@ final readonly class CrearReserva
         private ValidarFechasReserva $validarFechas,
         private CalcularResumenRestauranteLogica $calcularResumenRestauranteLogica,
         private LeerDatoReserva $leerDato,
-        private ConstruirMetaDatosReserva $construirMetaDatosReserva,
+        private ConstruirBitacoraReserva $construirBitacoraReserva,
         private ObtenerMonedaPredeterminadaQuery $obtenerMonedaPredeterminada,
+        private ValidarDisponibilidadRecursoLote $validarLote,
     ) {}
 
     /**
@@ -96,17 +98,12 @@ final readonly class CrearReserva
                 itemsPreorden: $entrada['itemsPreorden'],
             );
 
-            $servicios = $this->validarAdicionales->resolverServicios(
-                $serviciosAdicionales,
-                $entrada['tipo'] === TipoReserva::SERVICIO ? $entidadId : null,
-            );
-            $espacios = $this->validarAdicionales->resolverEspacios(
-                $espaciosAdicionales,
-                $entrada['tipo'] === TipoReserva::RESTAURANTE ? $entidadId : null,
-            );
-            $habitaciones = $this->validarAdicionales->resolverHabitaciones(
-                $habitacionesAdicionales,
-                $entrada['tipo'] === TipoReserva::HABITACION ? $entidadId : null,
+            [$servicios, $espacios, $habitaciones] = $this->resolverAdicionales(
+                tipo: $entrada['tipo'],
+                entidadId: $entidadId,
+                serviciosAdicionales: $serviciosAdicionales,
+                espaciosAdicionales: $espaciosAdicionales,
+                habitacionesAdicionales: $habitacionesAdicionales,
             );
 
             $recursoPrincipal = $this->reservas->resolverRecurso($entrada['tipo'], $entidadId);
@@ -129,8 +126,6 @@ final readonly class CrearReserva
             );
 
             [$totales, $promocionId] = $this->calcularTotalesConPromocion($datos, $subtotal);
-            /** @var array<string, mixed> $metaDatos */
-            $metaDatos = $this->construirMetaDatosReserva->paraCreacion($datos, $resumenRestaurante);
 
             $reserva = $this->reservas->crear(
                 $this->construirAtributosReserva(
@@ -140,10 +135,11 @@ final readonly class CrearReserva
                     checkOut: $entrada['checkOut'],
                     horaReserva: $entrada['horaReserva'],
                     totales: $totales,
-                    metaDatos: $metaDatos,
                     promocionId: $promocionId,
                 )
             );
+
+            $this->registrarBitacora($reserva, $datos, $resumenRestaurante);
 
             $detallePrincipal = $this->crearDetallePrincipal(
                 reserva: $reserva,
@@ -157,9 +153,7 @@ final readonly class CrearReserva
                 datos: $datos,
             );
 
-            $this->crearDetallesHabitaciones($reserva, $detallePrincipal, $habitaciones, $inicio, $fin, $unidades);
-            $this->crearDetallesServicios($reserva, $detallePrincipal, $servicios, $inicio, $fin);
-            $this->crearDetallesEspacios($reserva, $detallePrincipal, $espacios, $inicio, $fin, $entrada['tipo'], $resumenRestaurante);
+            $this->validarYCrearDetallesAdicionales($reserva, $detallePrincipal, $habitaciones, $servicios, $espacios, $inicio, $fin, $unidades, $resumenRestaurante);
 
             $reserva = $this->procesarPago($reserva, $datos);
 
@@ -217,6 +211,77 @@ final readonly class CrearReserva
         }
 
         return [$entidadId, $datos, $espaciosAdicionales];
+    }
+
+    /**
+     * Resuelve los adicionales (servicios, espacios, habitaciones) según el tipo de reserva.
+     *
+     * @param  array<int, mixed>  $serviciosAdicionales
+     * @param  array<int, mixed>  $espaciosAdicionales
+     * @param  array<int, mixed>  $habitacionesAdicionales
+     * @return array{0: array<int, array{servicio_id: int, cantidad: int, precio: float}>, 1: array<int, array{espacio_id: int, cantidad: int, precio: float}>, 2: array<int, array{habitacion_id: int, cantidad: int, precio: float}>}
+     */
+    private function resolverAdicionales(
+        TipoReserva $tipo,
+        int $entidadId,
+        array $serviciosAdicionales,
+        array $espaciosAdicionales,
+        array $habitacionesAdicionales,
+    ): array {
+        $servicios = $this->validarAdicionales->resolverServicios(
+            $serviciosAdicionales,
+            $tipo === TipoReserva::SERVICIO ? $entidadId : null,
+        );
+        $espacios = $this->validarAdicionales->resolverEspacios(
+            $espaciosAdicionales,
+            $tipo === TipoReserva::RESTAURANTE ? $entidadId : null,
+        );
+        $habitaciones = $this->validarAdicionales->resolverHabitaciones(
+            $habitacionesAdicionales,
+            $tipo === TipoReserva::HABITACION ? $entidadId : null,
+        );
+
+        return [$servicios, $espacios, $habitaciones];
+    }
+
+    /**
+     * Registra las entradas de bitácora de creación de la reserva.
+     *
+     * @param  array<string, mixed>  $datos
+     * @param  array<string, mixed>|null  $resumenRestaurante
+     */
+    private function registrarBitacora(Reserva $reserva, array $datos, ?array $resumenRestaurante): void
+    {
+        /** @var list<array{tipo: string, datos: array<string, mixed>}> $entradasBitacora */
+        $entradasBitacora = $this->construirBitacoraReserva->paraCreacion($datos, $resumenRestaurante);
+
+        foreach ($entradasBitacora as $entradaBitacora) {
+            $reserva->crearEntradaBitacora($entradaBitacora['tipo'], $entradaBitacora['datos']);
+        }
+    }
+
+    /**
+     * Valida disponibilidad por lote y crea los detalles adicionales de la reserva.
+     *
+     * @param  array<int, array{habitacion_id: int, precio: float}>  $habitaciones
+     * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
+     * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
+     * @param  array<string, mixed>|null  $resumenRestaurante
+     */
+    private function validarYCrearDetallesAdicionales(
+        Reserva $reserva,
+        ReservaDetalle $detallePrincipal,
+        array $habitaciones,
+        array $servicios,
+        array $espacios,
+        DateTimeImmutable $inicio,
+        DateTimeImmutable $fin,
+        int $unidades,
+        ?array $resumenRestaurante,
+    ): void {
+        $recursos = $this->validarLote->ejecutar($habitaciones, $servicios, $espacios, $inicio, $fin);
+        $horasVal = is_numeric($resumenRestaurante['horas'] ?? null) ? (float) $resumenRestaurante['horas'] : null;
+        $this->reservas->crearDetallesAdicionales($reserva, $detallePrincipal, $recursos, $habitaciones, $servicios, $espacios, $inicio, $fin, $unidades, $horasVal);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -296,7 +361,6 @@ final readonly class CrearReserva
      *
      * @param  array<string, mixed>  $datos
      * @param  array{subtotal: float, descuento: float, total: float}  $totales
-     * @param  array<string, mixed>  $metaDatos
      * @return array<string, mixed>
      */
     private function construirAtributosReserva(
@@ -306,7 +370,6 @@ final readonly class CrearReserva
         ?DateTimeImmutable $checkOut,
         ?string $horaReserva,
         array $totales,
-        array $metaDatos,
         ?int $promocionId,
     ): array {
         $clienteIdVal = $datos['cliente_id'] ?? null;
@@ -339,7 +402,6 @@ final readonly class CrearReserva
             'estado' => EstadoReserva::CONFIRMADA,
             'notas' => $datos['notas'] ?? $datos['observaciones'] ?? null,
             'acompanantes' => $datos['acompanantes'] ?? null,
-            'meta_datos' => $metaDatos,
         ];
     }
 
@@ -412,113 +474,6 @@ final readonly class CrearReserva
         }
     }
 
-    /**
-     * Crea detalles hijos para cada habitación adicional, verificando disponibilidad.
-     *
-     * @param  array<int, array{habitacion_id: int, precio: float}>  $habitaciones
-     */
-    private function crearDetallesHabitaciones(
-        Reserva $reserva,
-        ReservaDetalle $detallePrincipal,
-        array $habitaciones,
-        DateTimeImmutable $inicio,
-        DateTimeImmutable $fin,
-        int $unidades,
-    ): void {
-        foreach ($habitaciones as $hab) {
-            $recursoHab = $this->reservas->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
-            $this->disponibilidadRecursos->bloquear($recursoHab->id);
-
-            if ($recursoHab->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
-                && $this->disponibilidadRecursos->existeConflicto($recursoHab->id, $inicio, $fin)) {
-                throw new InvalidArgumentException("La habitación adicional {$recursoHab->nombre} no está disponible en las fechas indicadas.");
-            }
-
-            $this->reservas->crearDetalle($reserva, $recursoHab, [
-                'parent_id' => $detallePrincipal->id,
-                'estado' => EstadoReservaDetalle::CONFIRMADO,
-                'fecha_inicio' => $inicio,
-                'fecha_fin' => $fin,
-                'cantidad' => 1,
-                'precio_unitario' => $hab['precio'],
-                'subtotal' => round($hab['precio'] * $unidades, 2),
-            ]);
-        }
-    }
-
-    /**
-     * Crea detalles hijos para cada servicio adicional, verificando disponibilidad.
-     *
-     * @param  array<int, array{servicio_id: int, cantidad: int, precio: float}>  $servicios
-     */
-    private function crearDetallesServicios(
-        Reserva $reserva,
-        ReservaDetalle $detallePrincipal,
-        array $servicios,
-        DateTimeImmutable $inicio,
-        DateTimeImmutable $fin,
-    ): void {
-        foreach ($servicios as $servicio) {
-            $recursoServicio = $this->reservas->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
-            $this->disponibilidadRecursos->bloquear($recursoServicio->id);
-
-            if ($recursoServicio->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
-                && $this->disponibilidadRecursos->existeConflicto($recursoServicio->id, $inicio, $fin)) {
-                throw new InvalidArgumentException("El servicio {$recursoServicio->nombre} no está disponible en el horario especificado.");
-            }
-
-            $this->reservas->crearDetalle($reserva, $recursoServicio, [
-                'parent_id' => $detallePrincipal->id,
-                'estado' => EstadoReservaDetalle::PENDIENTE,
-                'fecha_inicio' => $inicio,
-                'fecha_fin' => $fin,
-                'cantidad' => $servicio['cantidad'],
-                'precio_unitario' => $servicio['precio'],
-                'subtotal' => round($servicio['precio'] * $servicio['cantidad'], 2),
-            ]);
-        }
-    }
-
-    /**
-     * Crea detalles hijos para cada espacio adicional, verificando disponibilidad.
-     * Aplica multiplicador de horas cuando el espacio cotiza por hora.
-     *
-     * @param  array<int, array{espacio_id: int, cantidad: int, precio: float}>  $espacios
-     * @param  array<string, mixed>|null  $resumenRestaurante
-     */
-    private function crearDetallesEspacios(
-        Reserva $reserva,
-        ReservaDetalle $detallePrincipal,
-        array $espacios,
-        DateTimeImmutable $inicio,
-        DateTimeImmutable $fin,
-        TipoReserva $tipo,
-        ?array $resumenRestaurante,
-    ): void {
-        foreach ($espacios as $espacio) {
-            $recursoEspacio = $this->reservas->resolverRecurso(TipoReserva::RESTAURANTE, $espacio['espacio_id']);
-            $this->disponibilidadRecursos->bloquear($recursoEspacio->id);
-
-            if ($recursoEspacio->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO
-                && $this->disponibilidadRecursos->existeConflicto($recursoEspacio->id, $inicio, $fin)) {
-                throw new InvalidArgumentException("El espacio {$recursoEspacio->nombre} no está disponible en el periodo solicitado.");
-            }
-
-            $horasVal = is_numeric($resumenRestaurante['horas'] ?? null) ? (int) $resumenRestaurante['horas'] : 1;
-            $mult = ($tipo === TipoReserva::RESTAURANTE && $this->tarifas->espacioEsPorHora($espacio['espacio_id'])) ? $horasVal : 1;
-
-            $this->reservas->crearDetalle($reserva, $recursoEspacio, [
-                'parent_id' => $detallePrincipal->id,
-                'estado' => EstadoReservaDetalle::CONFIRMADO,
-                'fecha_inicio' => $inicio,
-                'fecha_fin' => $fin,
-                'cantidad' => $espacio['cantidad'],
-                'precio_unitario' => $espacio['precio'],
-                'subtotal' => round($espacio['precio'] * $espacio['cantidad'] * $mult, 2),
-            ]);
-        }
-    }
-
     // ─────────────────────────────────────────────────────────────────────────
     // Pago
     // ─────────────────────────────────────────────────────────────────────────
@@ -563,9 +518,8 @@ final readonly class CrearReserva
                 cargosFacturacionIds: $cargosIds,
             );
 
-            $metaDatos = is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
             $tipoPagoPolitica = $this->resolverTipoPago->resolver($datos);
-            $metaDatos['politica_pago'] = [
+            $reserva->crearEntradaBitacora('politica_pago', [
                 'canal' => 'sistema_publico',
                 'pasarela' => 'stripe',
                 'tipo_cliente' => is_string($datos['tipo_cliente_pago'] ?? null) ? trim($datos['tipo_cliente_pago']) : 'publico',
@@ -573,14 +527,13 @@ final readonly class CrearReserva
                 'porcentaje_requerido' => 50,
                 'opciones_disponibles' => ['stripe', 'transferencia'],
                 'estado' => 'pendiente_pasarela',
-            ];
+            ]);
 
             return $this->reservas->actualizar($reserva, [
                 'tipo_pago' => $tipoPagoPolitica,
                 'total_pagado' => 0,
                 'saldo' => (float) $reserva->total,
                 'estado' => EstadoReserva::PENDIENTE,
-                'meta_datos' => $metaDatos,
             ]);
         }
 

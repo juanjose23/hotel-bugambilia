@@ -1,4 +1,6 @@
 import { Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
+import { LayoutPortalCliente } from '@/modulos/portal/componentes/layouts/LayoutPortalCliente';
 import { SeccionAutoCheckIn } from '@/modulos/reservas/componentes/SeccionAutoCheckIn';
 import type { ReservaAutoCheckInProps } from '@/modulos/reservas/interfaces/autoCheckInInterfaces';
 
@@ -24,5 +26,9 @@ export const PaginaAutoCheckIn = ({
         </>
     );
 };
+
+PaginaAutoCheckIn.layout = (page: ReactNode) => (
+    <LayoutPortalCliente>{page}</LayoutPortalCliente>
+);
 
 export default PaginaAutoCheckIn;

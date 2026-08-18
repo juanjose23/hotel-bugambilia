@@ -59,10 +59,10 @@ final readonly class ConfirmarLlegadaReservaMesa
             $reserva = $reservaId !== null ? $this->reservas->obtenerPorId($reservaId) : null;
             $clienteId = $reserva?->cliente_id;
             $nombreCliente = $reserva instanceof Reserva ? $reserva->nombre_cliente : (is_string($meta['nombre_cliente'] ?? null) ? $meta['nombre_cliente'] : null);
-            $reservaMeta = $reserva instanceof Reserva && is_array($reserva->meta_datos) ? $reserva->meta_datos : [];
+            $preordenDatos = $reserva instanceof Reserva ? $reserva->ultimaEntradaBitacora('preorden') : null;
             $platosPreordenados = is_array($meta['platos_preordenados'] ?? null)
                 ? $meta['platos_preordenados']
-                : $this->itemsPreordenDesdeMeta($reservaMeta);
+                : ($preordenDatos['items'] ?? []);
 
             $itemsPreorden = $this->normalizarItemsPreorden($platosPreordenados);
 
@@ -120,17 +120,6 @@ final readonly class ConfirmarLlegadaReservaMesa
 
             return $pedido->refresh();
         });
-    }
-
-    /**
-     * @param  array<string, mixed>  $meta
-     * @return array<int, mixed>
-     */
-    private function itemsPreordenDesdeMeta(array $meta): array
-    {
-        $items = $meta['platos_preordenados'] ?? $meta['items_preorden'] ?? [];
-
-        return is_array($items) ? $items : [];
     }
 
     /**

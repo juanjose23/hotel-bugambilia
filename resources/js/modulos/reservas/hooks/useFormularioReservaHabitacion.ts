@@ -102,7 +102,13 @@ export function useFormularioReservaHabitacion(room: HabitacionReservable) {
     );
 
     const actualizarDataSincrona = useCallback(
-        (keyOrDataOrFn: any, value?: any) => {
+        <K extends keyof DatosBorradorHabitacion>(
+            keyOrDataOrFn:
+                | K
+                | Partial<DatosBorradorHabitacion>
+                | ((prev: DatosBorradorHabitacion) => DatosBorradorHabitacion),
+            value?: DatosBorradorHabitacion[K],
+        ) => {
             if (typeof keyOrDataOrFn === 'string') {
                 formulario.setData((prev: DatosBorradorHabitacion) => {
                     const siguiente = { ...prev, [keyOrDataOrFn]: value };

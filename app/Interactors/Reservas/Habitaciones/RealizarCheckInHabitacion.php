@@ -23,12 +23,16 @@ use Illuminate\Support\Str;
 
 final readonly class RealizarCheckInHabitacion
 {
+    /**
+     * Todos los dependencies se inyectan explícitamente (sin valores por defecto `new`)
+     * para facilitar testing con mocks y respetar el principio de inversión de dependencias.
+     */
     public function __construct(
         private RecalcularEstadoReservaHabitacion $recalcularEstado,
         private ReservaRepositorioInterface $reservas,
         private HabitacionRepositorioInterface $habitaciones,
         private CuentaRepositorioInterface $cuentas,
-        private ValidarRequisitosCheckIn $validarRequisitos = new ValidarRequisitosCheckIn,
+        private ValidarRequisitosCheckIn $validarRequisitos,
     ) {}
 
     public function ejecutar(RealizarCheckInData $data): Estancia

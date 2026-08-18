@@ -124,8 +124,8 @@ class EditReserva extends EditRecord
             $data['duracion_horas'] = max(1, (int) ceil(($principal->fecha_fin->getTimestamp() - $principal->fecha_inicio->getTimestamp()) / 3600));
         }
 
-        $meta = is_array($record->meta_datos) ? $record->meta_datos : [];
-        $preorden = $meta['platos_preordenados'] ?? [];
+        $preordenDatos = $record->ultimaEntradaBitacora('preorden');
+        $preorden = $preordenDatos['items'] ?? [];
         if (is_array($preorden)) {
             $data['items_preorden'] = array_values(array_map(static fn (array $item): array => [
                 'plato_id' => $item['plato_id'] ?? null,

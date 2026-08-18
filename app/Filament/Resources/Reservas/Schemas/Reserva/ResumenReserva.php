@@ -166,8 +166,8 @@ class ResumenReserva
                     ->icon(Heroicon::BuildingStorefront)
                     ->collapsible()
                     ->visible(function (Reserva $record): bool {
-                        $meta = $record->meta_datos;
-                        $platos = is_array($meta['platos_preordenados'] ?? null) ? $meta['platos_preordenados'] : [];
+                        $datos = $record->ultimaEntradaBitacora('preorden');
+                        $platos = is_array($datos['items'] ?? null) ? $datos['items'] : [];
 
                         return $platos !== [] || $record->tipo_reserva === TipoReserva::RESTAURANTE;
                     })
@@ -175,8 +175,8 @@ class ResumenReserva
                         TextEntry::make('platos_preordenados_display')
                             ->hiddenLabel()
                             ->state(function (Reserva $record): HtmlString {
-                                $meta = $record->meta_datos;
-                                $platos = is_array($meta['platos_preordenados'] ?? null) ? $meta['platos_preordenados'] : [];
+                                $datos = $record->ultimaEntradaBitacora('preorden');
+                                $platos = is_array($datos['items'] ?? null) ? $datos['items'] : [];
 
                                 if ($platos === []) {
                                     return new HtmlString('<p class="text-xs italic text-gray-500 dark:text-gray-400">No se registran platillos preordenados para esta reservación.</p>');

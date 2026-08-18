@@ -16,6 +16,7 @@ enum EstadoConciliacionPago: int implements HasColor, HasLabel
     case Conciliada = 2;
     case Diferencia = 3;
     case Ignorada = 4;
+    case Reembolsada = 5;
 
     public function getLabel(): string
     {
@@ -24,6 +25,7 @@ enum EstadoConciliacionPago: int implements HasColor, HasLabel
             self::Conciliada => 'Conciliada',
             self::Diferencia => 'Con diferencia',
             self::Ignorada => 'Ignorada',
+            self::Reembolsada => 'Reembolsada',
         };
     }
 
@@ -34,6 +36,7 @@ enum EstadoConciliacionPago: int implements HasColor, HasLabel
             self::Conciliada => 'success',
             self::Diferencia => 'warning',
             self::Ignorada => 'gray',
+            self::Reembolsada => 'danger',
         };
     }
 }
