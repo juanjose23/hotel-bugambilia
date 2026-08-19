@@ -26,7 +26,7 @@ final class AutoPedido extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static ?string $navigationLabel = 'Toma Rápida';
 

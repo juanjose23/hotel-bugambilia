@@ -91,7 +91,7 @@ class TableroLimpieza extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QueueList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
+    protected static string|UnitEnum|null $navigationGroup = 'Limpieza & Lavandería';
 
     protected static ?string $navigationLabel = 'Tablero de Control';
 

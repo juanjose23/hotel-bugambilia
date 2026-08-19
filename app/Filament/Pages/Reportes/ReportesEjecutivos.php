@@ -39,7 +39,7 @@ class ReportesEjecutivos extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ChartPie;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Analítica & Reportes';
+    protected static string|UnitEnum|null $navigationGroup = 'Inicio & Análisis';
 
     protected static ?string $navigationLabel = 'Tablero Ejecutivo & Financiero';
 

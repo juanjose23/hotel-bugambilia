@@ -31,7 +31,7 @@ class CotizacionResource extends Resource
 
     public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return 'Compras';
+        return 'Compras & Proveedores';
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null

@@ -22,7 +22,7 @@ final class ReportesRestaurante extends Page implements HasTable
 {
     use HasPageShield, InteractsWithTable;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Restaurante';
+    protected static UnitEnum|string|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 

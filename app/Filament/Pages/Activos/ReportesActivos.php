@@ -47,7 +47,7 @@ class ReportesActivos extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Activos Fijos';
+    protected static string|UnitEnum|null $navigationGroup = 'Activos & Mantenimiento';
 
     protected static ?string $navigationLabel = 'Reportes de Activos';
 

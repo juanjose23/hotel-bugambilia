@@ -32,7 +32,7 @@ class UbicacionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Ubicaciones';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración';
 
     protected static ?int $navigationSort = 3;
 

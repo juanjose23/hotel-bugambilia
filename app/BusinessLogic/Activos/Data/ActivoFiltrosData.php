@@ -11,7 +11,7 @@ final readonly class ActivoFiltrosData
         public ?int $productoId,
         public ?int $estado,
         public ?string $ubicacionTipo,
-        public ?int $tipoPagina,
+        public ?string $tipoPagina,
     ) {}
 
     /**
@@ -24,7 +24,7 @@ final readonly class ActivoFiltrosData
             productoId: self::toInt($input['producto_id'] ?? null),
             estado: self::toInt($input['estado'] ?? null),
             ubicacionTipo: is_string($input['ubicacion_tipo'] ?? null) ? $input['ubicacion_tipo'] : null,
-            tipoPagina: self::toInt($input['tipo_pagina'] ?? null),
+            tipoPagina: is_string($input['tipo_pagina'] ?? null) ? $input['tipo_pagina'] : null,
         );
     }
 

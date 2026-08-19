@@ -108,16 +108,13 @@
 @section('content')
     @foreach($paginas as $i => $labelsChunk)
         <div class="pagina">
-            <div class="report-header">
-                @include('reports.layout.partials.header', [
-                    'logo_base64' => $datosHotel['logo_base64'] ?? null,
-                    'hotelInfo'   => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
-                ])
-            </div>
+            @if($i > 0)
+                <div class="page-top-spacer"></div>
+            @endif
 
             <div class="report-content">
                 @if($i === 0 && !empty($filtrosResueltos))
-                    <div class="filtros-info">
+                    <div class="filtros-box">
                         @foreach($filtrosResueltos as $j => $f)
                             <strong style="font-weight:bold;color:#8B1A4B;text-transform:uppercase;font-size:8px;">{{ $f['label'] }}:</strong>
                             <span style="font-size:8px;color:#374151;">{{ $f['valor'] }}</span>
@@ -176,14 +173,6 @@
                         </tr>
                     @endforelse
                 </table>
-            </div>
-
-            <div class="report-footer">
-                @include('reports.layout.partials.footer', [
-                    'generadoEn'     => now()->format('d/m/Y H:i'),
-                    'usuario'        => auth()->user()?->name ?? 'Sistema',
-                    'totalRegistros' => $totalRegistros,
-                ])
             </div>
         </div>
 

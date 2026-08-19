@@ -25,7 +25,7 @@ class PoliticasResource extends Resource
 {
     protected static ?string $model = Politica::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAdjustmentsVertical;
 

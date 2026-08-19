@@ -41,6 +41,7 @@ final class GenerarEtiquetasCodigosBarrasActivosAction
             orientacion: $orientacion,
             margenSuperiorMm: 8,
             margenInferiorMm: 10,
+            altoPieMm: 0,
         );
 
         $activos = $this->obtenerActivos($filtros);
@@ -50,9 +51,14 @@ final class GenerarEtiquetasCodigosBarrasActivosAction
             fn (EtiquetaProductoData $etiqueta) => $etiqueta->toArray()
         );
 
-        $paginas = (new ReportePaginador($layout))->paginar(
-            items: $etiquetasArray,
-            tipo: TiposReporte::ETIQUETA,
+        $columnas = TiposReporte::ETIQUETA->configuracion()->columnas ?? 3;
+        $filtrosResueltos = $this->prepararFiltros($filtros);
+
+        $paginas = $this->paginarEtiquetas(
+            etiquetas: $etiquetasArray,
+            paginador: new ReportePaginador($layout),
+            columnas: $columnas,
+            reservarFilaFiltros: $filtrosResueltos !== [],
         );
 
         $pdf = Pdf::loadView('reports.activos.etiquetas', [
@@ -61,12 +67,16 @@ final class GenerarEtiquetasCodigosBarrasActivosAction
             'datosHotel' => HotelInfo::getBaseData(),
             'codigoReporte' => self::CODIGO_REPORTE,
             'nombreReporte' => 'Etiquetas de Códigos de Barras de Activos',
-            'filtrosResueltos' => $this->prepararFiltros($filtros),
-            'columnas' => TiposReporte::ETIQUETA->configuracion()->columnas ?? 4,
+            'filtrosResueltos' => $filtrosResueltos,
+            'columnas' => $columnas,
+            'pageSize' => $tamanoPapel->cssName(),
+            'orientation' => $orientacion->cssName(),
             'pageMarginTop' => $layout->margenSuperiorMm,
             'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
             'pageMarginLeft' => $layout->margenLateralMm,
+            'pageContentHeight' => $layout->altoContenidoMm(),
+            'pageContentWidth' => $layout->anchoContenidoMm(),
         ])->setPaper(
             $tamanoPapel->dompdfName(),
             $orientacion->dompdfName(),
@@ -127,5 +137,41 @@ final class GenerarEtiquetasCodigosBarrasActivosAction
         return $query
             ->orderBy('codigo_inventario')
             ->get();
+    }
+
+    /**
+     * @param  Collection<int, array<string, mixed>>  $etiquetas
+     * @return array<int, Collection<int, array<string, mixed>>>
+     */
+    private function paginarEtiquetas(
+        Collection $etiquetas,
+        ReportePaginador $paginador,
+        int $columnas,
+        bool $reservarFilaFiltros,
+    ): array {
+        $config = TiposReporte::ETIQUETA->configuracion();
+        $porPagina = $paginador->etiquetasPorPagina(
+            altoEtiquetaMm: $config->altoFilaMm,
+            columnas: $columnas,
+        );
+
+        $primeraPagina = $reservarFilaFiltros
+            ? max($columnas, $porPagina - $columnas)
+            : $porPagina;
+
+        if ($etiquetas->count() <= $primeraPagina) {
+            return [$etiquetas->values()];
+        }
+
+        return array_merge(
+            [$etiquetas->take($primeraPagina)->values()],
+            $etiquetas
+                ->slice($primeraPagina)
+                ->values()
+                ->chunk($porPagina)
+                ->map(fn (Collection $pagina): Collection => $pagina->values())
+                ->values()
+                ->all(),
+        );
     }
 }

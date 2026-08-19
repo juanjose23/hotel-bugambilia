@@ -43,7 +43,7 @@ class ReportesReservas extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Reservas';
+    protected static string|UnitEnum|null $navigationGroup = 'Recepción & Reservas';
 
     protected static ?string $navigationLabel = 'Reportes & Ventas';
 

@@ -20,13 +20,13 @@ class AuditResource extends Resource
 {
     protected static ?string $model = Audit::class;
 
-    protected static ?string $navigationLabel = 'Auditoria';
+    protected static ?string $navigationLabel = 'Auditoría';
 
     protected static ?string $pluralModelLabel = 'Auditoría de cambios';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShieldCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Auditoría';
 
     public static function infolist(Schema $schema): Schema
     {

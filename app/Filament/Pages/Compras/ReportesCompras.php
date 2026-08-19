@@ -47,7 +47,7 @@ class ReportesCompras extends Page implements HasForms, HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Compras';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras & Proveedores';
 
     protected static ?string $navigationLabel = 'Reportes de Compras';
 

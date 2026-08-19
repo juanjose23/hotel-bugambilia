@@ -46,7 +46,7 @@ final class GestionMesas extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'hugeicons-restaurant-table';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static ?string $navigationLabel = 'Gestión de Mesas';
 

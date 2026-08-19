@@ -22,7 +22,7 @@ class MovimientoStockResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ArrowPath;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventario';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventario & Productos';
 
     protected static ?string $navigationLabel = 'Movimientos de Stock';
 

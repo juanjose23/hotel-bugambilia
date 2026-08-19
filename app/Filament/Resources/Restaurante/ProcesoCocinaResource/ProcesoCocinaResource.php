@@ -26,7 +26,7 @@ final class ProcesoCocinaResource extends Resource
 
     protected static ?string $slug = 'restaurante/procesos-cocina';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static ?string $navigationLabel = 'Procesos Cocina';
 

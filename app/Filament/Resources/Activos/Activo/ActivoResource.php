@@ -27,7 +27,7 @@ class ActivoResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::CpuChip;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Activos Fijos';
+    protected static UnitEnum|string|null $navigationGroup = 'Activos & Mantenimiento';
 
     protected static ?string $navigationLabel = 'Inventario de Activos';
 
