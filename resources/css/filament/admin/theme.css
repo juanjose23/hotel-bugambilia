@@ -2,6 +2,30 @@
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
+@source '../../../../resources/views/components/**/*';
+
+/* ============================================
+   LAYOUT REPORTES — Grid de 2 Columnas
+   Fuerza el layout 7/5 en desktop ya que
+   Filament compila su CSS por separado y
+   las clases del componente shared pueden
+   no ser escaneadas por el scanner de Tailwind.
+   ============================================ */
+@media (min-width: 1024px) {
+    .reportes-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1.5rem;
+        align-items: start;
+    }
+    .reportes-col-form {
+        grid-column: span 7 / span 7;
+    }
+    .reportes-col-sidebar {
+        grid-column: span 5 / span 5;
+    }
+}
+
 
 /* ============================================
    MODO CLARO — Hotel Bugambilias

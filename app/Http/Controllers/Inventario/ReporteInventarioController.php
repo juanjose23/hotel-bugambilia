@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\ReporteController;
-use App\Repository\Queries\Inventario\Reportes\GenerarReporteInventario;
+use App\Interactors\Inventario\Reportes\GenerarReporteInventario;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -134,7 +134,7 @@ final class ReporteInventarioController extends ReporteController
             return $this->despacharEnSegundoPlano('trazabilidad_lote', array_merge($request->all(), ['lote_id' => $loteId]));
         }
 
-        $pdf = $this->generarReporteInventario->execute('trazabilidadLotePdf', ['lote_id' => $loteId]);
+        $pdf = $this->generarReporteInventario->execute('trazabilidadLotePdf', array_merge($request->all(), ['lote_id' => $loteId]));
 
         return $this->streamPdf($pdf, "HTB-INV-011-Trazabilidad-Lote-{$loteId}.pdf");
     }
@@ -157,7 +157,7 @@ final class ReporteInventarioController extends ReporteController
 
     public function mermasTotalesExcel(Request $request): StreamedResponse
     {
-        return $this->generarReporteInventario->executeExcel('mermasTotalesExcel', $request->all());
+        return $this->generarReporteInventario->executeExcel('mermasExcel', $request->all());
     }
 
     public function stockMinimoPdf(Request $request): StreamedResponse|RedirectResponse

@@ -6,7 +6,7 @@ namespace App\Repository\Queries\Activos;
 
 use App\Repository\Models\Activos\Activo;
 
-class ObtenerActivosConGarantiaPorVencer
+final class ObtenerActivosConGarantiaPorVencer
 {
     public function ejecutar(int $diasLimite, callable $callback): void
     {

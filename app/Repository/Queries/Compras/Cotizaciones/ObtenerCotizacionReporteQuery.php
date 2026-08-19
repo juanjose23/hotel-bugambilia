@@ -45,24 +45,18 @@ final class ObtenerCotizacionReporteQuery
 
     private function construirReporte(Cotizacion $cotizacion): CotizacionReporteData
     {
-        /** @var int $cotId */
-        $cotId = $cotizacion->getAttribute('id');
-        /** @var int $solId */
-        $solId = $cotizacion->getAttribute('solicitud_id');
-        /** @var int $provId */
-        $provId = $cotizacion->getAttribute('proveedor_id');
-        /** @var float $total */
-        $total = $cotizacion->getAttribute('total');
-        /** @var int $diasEntrega */
-        $diasEntrega = $cotizacion->getAttribute('dias_entrega');
+        $cotId = $this->toInt($cotizacion->getAttribute('id'));
+        $solId = $this->toInt($cotizacion->getAttribute('solicitud_id'));
+        $provId = $this->toInt($cotizacion->getAttribute('proveedor_id'));
+        $total = $this->toFloat($cotizacion->getAttribute('total'));
+        $diasEntrega = $this->toInt($cotizacion->getAttribute('dias_entrega'));
         /** @var CarbonInterface|null $fechaCotizacion */
         $fechaCotizacion = $cotizacion->getAttribute('fecha_cotizacion');
-        /** @var bool $esElegida */
-        $esElegida = $cotizacion->getAttribute('es_elegida');
-        /** @var float $tasaCambio */
-        $tasaCambio = $cotizacion->getAttribute('tasa_cambio') ?: 1.0;
-        /** @var string|null $obsCotizacion */
-        $obsCotizacion = $cotizacion->getAttribute('observaciones');
+        $esElegida = (bool) $cotizacion->getAttribute('es_elegida');
+        $tasaCambioVal = $cotizacion->getAttribute('tasa_cambio');
+        $tasaCambio = is_numeric($tasaCambioVal) ? (float) $tasaCambioVal : 1.0;
+        $obsVal = $cotizacion->getAttribute('observaciones');
+        $obsCotizacion = is_string($obsVal) ? $obsVal : null;
 
         return new CotizacionReporteData(
             id: $cotId,
@@ -94,8 +88,8 @@ final class ObtenerCotizacionReporteQuery
         /** @var Model|null $contactoPrincipal */
         $contactoPrincipal = $proveedor->relationLoaded('contactoPrincipal') ? $proveedor->getRelation('contactoPrincipal') : null;
 
-        /** @var string|null $contactoNombre */
-        $contactoNombre = $contactoPrincipal?->getAttribute('nombre');
+        $cNombreVal = $contactoPrincipal?->getAttribute('nombre');
+        $contactoNombre = is_string($cNombreVal) ? $cNombreVal : null;
 
         return new ProveedorReporteData(
             persona: $this->mapearPersona($persona),
@@ -114,16 +108,14 @@ final class ObtenerCotizacionReporteQuery
         /** @var Model|null $personaNatural */
         $personaNatural = $persona->relationLoaded('personaNatural') ? $persona->getRelation('personaNatural') : null;
 
-        /** @var string|null $razonSocialJuridica */
-        $razonSocialJuridica = $personaJuridica?->getAttribute('razon_social');
-        /** @var string $nombreCompleto */
-        $nombreCompleto = $persona->getAttribute('nombre_completo');
+        $razVal = $personaJuridica?->getAttribute('razon_social');
+        $razonSocialJuridica = is_string($razVal) ? $razVal : null;
+        $nombreCompleto = $this->toString($persona->getAttribute('nombre_completo'));
         $razStr = $razonSocialJuridica ?? $nombreCompleto;
 
-        /** @var string $primerNombre */
-        $primerNombre = $persona->getAttribute('primer_nombre');
-        /** @var string|null $primerApellido */
-        $primerApellido = $personaNatural?->getAttribute('primer_apellido');
+        $primerNombre = $this->toString($persona->getAttribute('primer_nombre'));
+        $pApeVal = $personaNatural?->getAttribute('primer_apellido');
+        $primerApellido = is_string($pApeVal) ? $pApeVal : null;
 
         return new PersonaReporteData(
             primer_nombre: $primerNombre,
@@ -139,10 +131,8 @@ final class ObtenerCotizacionReporteQuery
             return null;
         }
 
-        /** @var string $codigo */
-        $codigo = $moneda->getAttribute('codigo');
-        /** @var string $simbolo */
-        $simbolo = $moneda->getAttribute('simbolo');
+        $codigo = $this->toString($moneda->getAttribute('codigo'));
+        $simbolo = $this->toString($moneda->getAttribute('simbolo'));
 
         return new MonedaReporteData(
             codigo: $codigo,
@@ -156,18 +146,16 @@ final class ObtenerCotizacionReporteQuery
             return null;
         }
 
-        /** @var int $solId */
-        $solId = $solicitud->getAttribute('id');
-        /** @var string $codigo */
-        $codigo = $solicitud->getAttribute('codigo');
+        $solId = $this->toInt($solicitud->getAttribute('id'));
+        $codigo = $this->toString($solicitud->getAttribute('codigo'));
         /** @var CarbonInterface|null $fechaSolicitud */
         $fechaSolicitud = $solicitud->getAttribute('fecha_solicitud');
         /** @var CarbonInterface|null $fechaNecesita */
         $fechaNecesita = $solicitud->getAttribute('fecha_necesita');
-        /** @var string|null $motivo */
-        $motivo = $solicitud->getAttribute('motivo');
-        /** @var string|null $notas */
-        $notas = $solicitud->getAttribute('notas');
+        $motVal = $solicitud->getAttribute('motivo');
+        $motivo = is_string($motVal) ? $motVal : null;
+        $notVal = $solicitud->getAttribute('notas');
+        $notas = is_string($notVal) ? $notVal : null;
 
         return new SolicitudReporteData(
             id: $solId,
@@ -200,18 +188,12 @@ final class ObtenerCotizacionReporteQuery
         /** @var Model|null $variante */
         $variante = $item->relationLoaded('variante') ? $item->getRelation('variante') : null;
 
-        /** @var int $itemId */
-        $itemId = $item->getAttribute('id');
-        /** @var int $productoId */
-        $productoId = $item->getAttribute('producto_id');
-        /** @var float $cantidad */
-        $cantidad = $item->getAttribute('cantidad');
-        /** @var float $precioUnitario */
-        $precioUnitario = $item->getAttribute('precio_unitario');
-        /** @var float $subtotal */
-        $subtotal = $item->getAttribute('subtotal');
-        /** @var bool $esElegido */
-        $esElegido = $item->getAttribute('es_elegido');
+        $itemId = $this->toInt($item->getAttribute('id'));
+        $productoId = $this->toInt($item->getAttribute('producto_id'));
+        $cantidad = $this->toFloat($item->getAttribute('cantidad'));
+        $precioUnitario = $this->toFloat($item->getAttribute('precio_unitario'));
+        $subtotal = $this->toFloat($item->getAttribute('subtotal'));
+        $esElegido = (bool) $item->getAttribute('es_elegido');
 
         return new CotizacionItemReporteData(
             id: $itemId,
@@ -231,8 +213,7 @@ final class ObtenerCotizacionReporteQuery
             return null;
         }
 
-        /** @var string $prodNombre */
-        $prodNombre = $producto->getAttribute('nombre');
+        $prodNombre = $this->toString($producto->getAttribute('nombre'));
 
         return new ProductoReporteData(nombre: $prodNombre);
     }
@@ -243,14 +224,27 @@ final class ObtenerCotizacionReporteQuery
             return null;
         }
 
-        /** @var string $varCodigo */
-        $varCodigo = $variante->getAttribute('codigo');
-        /** @var string $varNombre */
-        $varNombre = $variante->getAttribute('nombre_variante');
+        $varCodigo = $this->toString($variante->getAttribute('codigo'));
+        $varNombre = $this->toString($variante->getAttribute('nombre_variante'));
 
         return new VarianteReporteData(
             codigo: $varCodigo,
             nombre_variante: $varNombre
         );
+    }
+
+    private function toFloat(mixed $val): float
+    {
+        return is_numeric($val) ? (float) $val : 0.0;
+    }
+
+    private function toInt(mixed $val): int
+    {
+        return is_numeric($val) ? (int) $val : 0;
+    }
+
+    private function toString(mixed $val): string
+    {
+        return is_scalar($val) ? (string) $val : '';
     }
 }

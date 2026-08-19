@@ -11,6 +11,8 @@ use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Reservas\RecursoReservable;
+use Illuminate\Support\Carbon;
 
 test('impide crear reservaciones para fechas pasadas', function (): void {
     $crearReserva = app(CrearReserva::class);
@@ -30,11 +32,21 @@ test('impide crear reservaciones para fechas pasadas', function (): void {
 });
 
 test('impide crear reservaciones para horas pasadas el mismo día', function (): void {
+    Carbon::setTestNow(now()->setTime(12, 0, 0));
     $crearReserva = app(CrearReserva::class);
+    $recurso = RecursoReservable::query()->create([
+        'nombre' => 'Mesa Hoy Recurso',
+        'tipo' => 2,
+        'control_disponibilidad' => 2,
+        'estado' => 1,
+    ]);
+
     $mesa = Espacio::query()->create([
         'codigo' => 'MESA-HOY-2',
         'nombre' => 'Mesa Hoy 2',
         'tipo' => TipoEspacio::MESA->value,
+        'capacidad_personas' => 4,
+        'reservable_id' => $recurso->id,
         'estado' => EstadoEspacio::Disponible->value,
     ]);
 

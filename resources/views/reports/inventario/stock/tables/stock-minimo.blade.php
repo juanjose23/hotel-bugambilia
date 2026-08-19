@@ -42,4 +42,15 @@
             </tr>
         @endforelse
     </tbody>
+    @if(($esUltimaPagina ?? false) && count($items) > 0)
+        <tfoot>
+            <tr style="background:#f1f5f9;">
+                <td colspan="3" style="text-align:right; font-weight:bold; text-transform:uppercase; padding:10px;">Total General:</td>
+                <td style="text-align:right; font-weight:bold; padding:10px;">{{ number_format($totalStockActual ?? 0, 2) }}</td>
+                <td></td>
+                <td style="text-align:right; font-weight:bold; color:#711C37; padding:10px;">{{ number_format($totalPendiente ?? 0, 2) }}</td>
+                <td style="text-align:center; font-weight:bold; padding:10px;">{{ $totalCriticos ?? count($items) }} ítems</td>
+            </tr>
+        </tfoot>
+    @endif
 </table>

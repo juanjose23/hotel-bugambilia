@@ -9,6 +9,7 @@ use App\Repository\Queries\Compras\Recepciones\ObtenerRecepcionReporteQuery;
 use App\Support\Barcode\BarcodeGenerator;
 use App\Support\HotelInfo;
 use App\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocumento;
 
@@ -34,16 +35,18 @@ final class GenerarReporteRecepcionPdfAction
             widthFactor: 4,
         );
 
+        $layout = new LayoutPdf;
+
         $pdf = Pdf::loadView('reports.compras.recepciones.recepcion', [
             'record' => $recepcionConRelaciones,
             'codigoReporte' => $codigoReporte,
             'nombreReporte' => $nombreReporte,
             'barcodeBase64' => $barcodeBase64,
             'datosHotel' => $datosHotel,
-            'pageMarginTop' => 8,
-            'pageMarginRight' => 6,
-            'pageMarginBottom' => 10,
-            'pageMarginLeft' => 6,
+            'pageMarginTop' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
+            'pageMarginBottom' => $layout->margenInferiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
         ])->setPaper('letter');
 
         $this->guardarAuditoria(

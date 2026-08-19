@@ -266,6 +266,10 @@ return [
         'Activos:ReporteMantenimientosVencidos',
         'Activos:ReporteHojaHabitacion',
 
+        // Módulo de Analítica & Reportes
+        'Reportes:InteligenciaNegocio',
+        'page_TableroInteligenciaNegocio',
+
         // Módulo de Limpieza (Páginas y Acciones)
         'liberar-carrito',
         'asignar-carrito-limpieza',

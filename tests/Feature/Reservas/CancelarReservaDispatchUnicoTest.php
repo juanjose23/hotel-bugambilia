@@ -24,7 +24,7 @@ test('cancelar reserva por gestion dispara el evento ReservaCancelada una sola v
     $tipo = CatalogoTipo::query()->create(['codigo' => 'TIPO_DISPATCH', 'nombre' => 'Tipo Dispatch', 'estado' => 1]);
     $cat = Catalogo::query()->create(['codigo' => 'CAT_DISPATCH', 'nombre' => 'Cat Dispatch', 'estado' => 1, 'catalogo_tipo_id' => $tipo->id]);
     $cliente = Cliente::query()->create(['persona_id' => $persona->id, 'catalogo_id' => $cat->id, 'codigo_cliente' => 'CLI-DISPATCH', 'estado' => 1]);
-    $moneda = Moneda::query()->create(['codigo' => 'USDD', 'nombre' => 'Dólar Dispatch', 'simbolo' => '$', 'es_predeterminada' => true]);
+    $moneda = Moneda::query()->create(['codigo' => 'USD', 'nombre' => 'Dólar Dispatch', 'simbolo' => '$', 'es_predeterminada' => true]);
 
     $politica = Politica::query()->create([
         'titulo' => 'Política Dispatch',

@@ -5,19 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Activos;
 
 use App\Http\Controllers\ReporteController;
+use App\Interactors\Activos\Reportes\GenerarReporteActivo;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoMantenimiento;
-use App\Repository\Queries\Activos\GenerarReporteActivoUseCase;
 use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReporteActivoController extends ReporteController
 {
     public function __construct(
-        private readonly GenerarReporteActivoUseCase $generarReporteActivo,
+        private readonly GenerarReporteActivo $generarReporteActivo,
     ) {}
 
     public function inventarioGeneralPdf(Request $request): StreamedResponse|RedirectResponse
@@ -31,7 +30,7 @@ final class ReporteActivoController extends ReporteController
         return $this->streamPdf($pdf, 'HTB-ACT-001-Inventario-General.pdf');
     }
 
-    public function inventarioGeneralExcel(Request $request): BinaryFileResponse|RedirectResponse
+    public function inventarioGeneralExcel(Request $request): StreamedResponse|RedirectResponse
     {
         if ($request->boolean('background')) {
             return $this->despacharEnSegundoPlano('inventario_general_excel', $request->all());
@@ -39,7 +38,7 @@ final class ReporteActivoController extends ReporteController
 
         $result = $this->generarReporteActivo->execute('inventarioGeneralExcel', $request->all());
 
-        if (! $result instanceof BinaryFileResponse) {
+        if (! $result instanceof StreamedResponse) {
             throw new \UnexpectedValueException("El reporte 'inventarioGeneralExcel' no generó un archivo Excel.");
         }
 
@@ -103,7 +102,7 @@ final class ReporteActivoController extends ReporteController
             return $this->despacharEnSegundoPlano('en_mantenimiento', $request->all());
         }
 
-        $pdf = $this->generarPdf('enMantenimientoPdf');
+        $pdf = $this->generarPdf('enMantenimientoPdf', $request->all());
 
         return $this->streamPdf($pdf, 'HTB-ACT-007-Activos-en-Mantenimiento.pdf');
     }
@@ -125,7 +124,7 @@ final class ReporteActivoController extends ReporteController
             return $this->despacharEnSegundoPlano('bajas', $request->all());
         }
 
-        $pdf = $this->generarPdf('dadosDeBajaPdf');
+        $pdf = $this->generarPdf('dadosDeBajaPdf', $request->all());
 
         return $this->streamPdf($pdf, 'HTB-ACT-009-Activos-Dados-de-Baja.pdf');
     }
@@ -136,7 +135,7 @@ final class ReporteActivoController extends ReporteController
             return $this->despacharEnSegundoPlano('extraviados', $request->all());
         }
 
-        $pdf = $this->generarPdf('extraviadosPdf');
+        $pdf = $this->generarPdf('extraviadosPdf', $request->all());
 
         return $this->streamPdf($pdf, 'HTB-ACT-010-Activos-Extraviados.pdf');
     }
@@ -147,7 +146,7 @@ final class ReporteActivoController extends ReporteController
             return $this->despacharEnSegundoPlano('sin_asignacion', $request->all());
         }
 
-        $pdf = $this->generarPdf('sinAsignacionPdf');
+        $pdf = $this->generarPdf('sinAsignacionPdf', $request->all());
 
         return $this->streamPdf($pdf, 'HTB-ACT-011-Activos-Sin-Asignacion.pdf');
     }
@@ -158,18 +157,29 @@ final class ReporteActivoController extends ReporteController
             return $this->despacharEnSegundoPlano('manttos_vencidos', $request->all());
         }
 
-        $pdf = $this->generarPdf('mantenimientosVencidosPdf');
+        $pdf = $this->generarPdf('mantenimientosVencidosPdf', $request->all());
 
         return $this->streamPdf($pdf, 'HTB-ACT-012-Mantenimientos-Vencidos.pdf');
     }
 
-    public function hojaHabitacionPdf(Request $request): StreamedResponse|RedirectResponse
+    public function hojaHabitacionPdf(Request $request, string $tipo = 'habitacion', int $id = 0): StreamedResponse|RedirectResponse
     {
+        $routeTipo = $request->route('tipo');
+        $routeId = $request->route('id');
+
+        $resolvedTipo = $tipo !== '' ? $tipo : (is_string($routeTipo) ? $routeTipo : 'habitacion');
+        $resolvedId = $id > 0 ? $id : (is_numeric($routeId) ? (int) $routeId : 0);
+
+        $params = array_merge($request->all(), [
+            'tipo' => $resolvedTipo,
+            'id' => $resolvedId,
+        ]);
+
         if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('hoja_habitacion', $request->all());
+            return $this->despacharEnSegundoPlano('hoja_habitacion', $params);
         }
 
-        $pdf = $this->generarPdf('hojaHabitacionPdf', $request->all());
+        $pdf = $this->generarPdf('hojaHabitacionPdf', $params);
 
         return $this->streamPdf($pdf, 'HTB-ACT-013-Hoja-Habitacion.pdf');
     }

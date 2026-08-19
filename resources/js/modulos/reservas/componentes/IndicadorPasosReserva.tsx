@@ -1,4 +1,11 @@
-import { CheckCircle2, Calendar, Users, Sparkles, CreditCard, LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import {
+    CheckCircle2,
+    Calendar,
+    Users,
+    Sparkles,
+    CreditCard,
+} from 'lucide-react';
 
 export interface PasoReserva {
     id: number;
@@ -29,15 +36,16 @@ export const IndicadorPasosReserva = ({
     return (
         <div className="mb-6 rounded-3xl border border-border/80 bg-card p-4 shadow-2xs md:p-5">
             {/* Indicador Móvil Compacto */}
-            <div className="flex items-center justify-between sm:hidden px-1">
-                <span className="text-xs font-black uppercase text-bugambilia-600 dark:text-bugambilia-400">
-                    Paso {pasoActual} de {pasos.length}: {pasos[pasoActual - 1]?.titulo}
+            <div className="flex items-center justify-between px-1 sm:hidden">
+                <span className="text-xs font-black text-bugambilia-600 uppercase dark:text-bugambilia-400">
+                    Paso {pasoActual} de {pasos.length}:{' '}
+                    {pasos[pasoActual - 1]?.titulo}
                 </span>
                 <span className="font-mono text-xs font-bold text-muted-foreground">
                     {Math.round((pasoActual / pasos.length) * 100)}%
                 </span>
             </div>
-            <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden sm:hidden">
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted sm:hidden">
                 <div
                     className="h-full bg-gradient-to-r from-bugambilia-600 to-bugambilia-500 transition-all duration-500"
                     style={{ width: `${(pasoActual / pasos.length) * 100}%` }}
@@ -45,7 +53,7 @@ export const IndicadorPasosReserva = ({
             </div>
 
             {/* Indicador Desktop & Tablet Completo */}
-            <div className="relative mx-auto hidden sm:flex max-w-2xl items-center justify-between">
+            <div className="relative mx-auto hidden max-w-2xl items-center justify-between sm:flex">
                 <div className="absolute top-5 right-6 left-6 -z-0 h-1 -translate-y-1/2 rounded-full bg-muted" />
                 <div
                     className="absolute top-5 left-6 -z-0 h-1 -translate-y-1/2 rounded-full bg-gradient-to-r from-bugambilia-600 to-emerald-500 transition-all duration-500"
@@ -77,7 +85,7 @@ export const IndicadorPasosReserva = ({
                                     completado
                                         ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
                                         : activo
-                                          ? 'scale-110 bg-bugambilia-600 text-white shadow-lg shadow-bugambilia-600/30 ring-4 ring-bugambilia-500/20'
+                                          ? 'scale-110 bg-bugambilia-600 text-white shadow-lg ring-4 shadow-bugambilia-600/30 ring-bugambilia-500/20'
                                           : 'border border-border/80 bg-background text-muted-foreground'
                                 }`}
                             >
@@ -90,10 +98,10 @@ export const IndicadorPasosReserva = ({
                             <span
                                 className={`text-[11px] font-extrabold tracking-tight ${
                                     activo
-                                        ? 'text-bugambilia-600 dark:text-bugambilia-400 font-black'
+                                        ? 'font-black text-bugambilia-600 dark:text-bugambilia-400'
                                         : completado
-                                          ? 'text-foreground font-bold'
-                                          : 'text-muted-foreground font-medium'
+                                          ? 'font-bold text-foreground'
+                                          : 'font-medium text-muted-foreground'
                                 }`}
                             >
                                 {paso.titulo}
@@ -105,4 +113,3 @@ export const IndicadorPasosReserva = ({
         </div>
     );
 };
-

@@ -236,7 +236,7 @@
 
 <header class="ticket-header">
     <h1 class="hotel-name">
-        Hotel Bugambilias
+        {{ config('hotel.name', 'Hotel Bugambilias') }}
     </h1>
 
     <h2 class="ticket-title">
@@ -317,7 +317,7 @@
 </section>
 
 <footer class="ticket-footer">
-    <p>HOTEL BUGAMBILIAS - Comprobante de Pago</p>
+    <p>{{ strtoupper(config('hotel.name', 'Hotel Bugambilias')) }} - Comprobante de Pago</p>
     <p>{{ now()->format('d/m/Y H:i:s') }}</p>
 </footer>
 

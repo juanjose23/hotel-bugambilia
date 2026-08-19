@@ -10,7 +10,7 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
-class ObtenerHojaHabitacionEspacioUseCase
+final class ObtenerHojaHabitacionEspacioUseCase
 {
     /**
      * @return array{entidad: Model, activos: Collection<int, ActivoAsignacion>}

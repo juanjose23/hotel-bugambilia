@@ -48,7 +48,7 @@ class PoliticasInfolist
                 ->visible(fn ($record) => (bool) $record?->aplica_penalizacion)
                 ->schema([
                     RepeatableEntry::make('penalizaciones')
-                        ->label('')
+                        ->hiddenLabel()
                         ->columns(5)
                         ->schema([
                             TextEntry::make('min_unidades')

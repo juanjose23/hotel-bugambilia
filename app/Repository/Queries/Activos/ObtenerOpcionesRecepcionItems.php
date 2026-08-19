@@ -12,7 +12,7 @@ use App\Repository\Queries\Shared\ObtenerNombrePersona;
  * Construye el array de opciones para el Select de RecepcionItem en ActivoForm.
  * Solo incluye ítems de productos tipo=3 (Activo Fijo) que aún no tienen un Activo asignado.
  */
-class ObtenerOpcionesRecepcionItems
+final class ObtenerOpcionesRecepcionItems
 {
     /**
      * @return array<int, string>

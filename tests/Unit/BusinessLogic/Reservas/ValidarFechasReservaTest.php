@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\BusinessLogic\Reservas\ValidarFechasReserva;
+use Illuminate\Support\Carbon;
+
+beforeEach(function (): void {
+    Carbon::setTestNow(now()->setTime(12, 0, 0));
+});
 
 test('lanza excepcion si la fecha de check in es pasada', function (): void {
     $validator = new ValidarFechasReserva;

@@ -48,7 +48,7 @@ class PoliticasForm
                             ->label('Aplica Reglas Ejecutables de Penalización')
                             ->helperText('Active esta opción si esta política calcula penalizaciones financieras por cancelación o no-show.')
                             ->default(false)
-                            ->reactive()
+                            ->live()
                             ->columnSpanFull(),
                     ]),
 

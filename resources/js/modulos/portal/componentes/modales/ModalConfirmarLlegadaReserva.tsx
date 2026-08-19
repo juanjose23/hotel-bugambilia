@@ -1,10 +1,10 @@
+import { Clock, CheckCircle2, X, Car, UserPlus } from 'lucide-react';
 import { useState } from 'react';
-import { Clock, CheckCircle2, X, Car, Calendar, UserPlus } from 'lucide-react';
+import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
 import { Button } from '@/modulos/compartido/ui/boton';
 import { Input } from '@/modulos/compartido/ui/entrada';
 import { Label } from '@/modulos/compartido/ui/etiqueta';
 import { Badge } from '@/modulos/compartido/ui/insignia';
-import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
 
 interface PropiedadesModalConfirmarLlegadaReserva {
     reserva: ReservaClienteDomain | null;
@@ -42,7 +42,7 @@ export const ModalConfirmarLlegadaReserva = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-200">
             <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-border/80 bg-card p-6 font-sans shadow-2xl md:p-8">
                 {/* Botón de cierre */}
                 <button
@@ -54,7 +54,7 @@ export const ModalConfirmarLlegadaReserva = ({
                 </button>
 
                 {confirmado ? (
-                    <div className="space-y-4 text-center py-6">
+                    <div className="space-y-4 py-6 text-center">
                         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                             <CheckCircle2 className="size-8" />
                         </div>
@@ -62,7 +62,13 @@ export const ModalConfirmarLlegadaReserva = ({
                             ¡Llegada Confirmada!
                         </h3>
                         <p className="text-xs font-medium text-muted-foreground">
-                            Su hora estimada de arribo ({horaEstimada} hrs) para la reserva <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">{reserva.codigo_reserva}</span> ha sido notificada a recepción. Su habitación estará lista a su arribo.
+                            Su hora estimada de arribo ({horaEstimada} hrs) para
+                            la reserva{' '}
+                            <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">
+                                {reserva.codigo_reserva}
+                            </span>{' '}
+                            ha sido notificada a recepción. Su habitación estará
+                            lista a su arribo.
                         </p>
                         <div className="pt-2">
                             <Button
@@ -84,18 +90,25 @@ export const ModalConfirmarLlegadaReserva = ({
                                 Confirmar Hora de Llegada
                             </h2>
                             <p className="text-xs font-medium text-muted-foreground">
-                                {reserva.detalles} — Check-in programado: <span className="font-bold text-foreground">{reserva.fecha_check_in}</span>
+                                {reserva.detalles} — Check-in programado:{' '}
+                                <span className="font-bold text-foreground">
+                                    {reserva.fecha_check_in}
+                                </span>
                             </p>
                         </div>
 
                         <div className="space-y-3">
                             <div className="space-y-1">
-                                <Label className="text-xs font-bold text-foreground">Hora Estimada de Llegada al Hotel</Label>
+                                <Label className="text-xs font-bold text-foreground">
+                                    Hora Estimada de Llegada al Hotel
+                                </Label>
                                 <Input
                                     type="time"
                                     value={horaEstimada}
-                                    onChange={(e) => setHoraEstimada(e.target.value)}
-                                    className="rounded-xl border-border/80 text-xs font-mono font-bold"
+                                    onChange={(e) =>
+                                        setHoraEstimada(e.target.value)
+                                    }
+                                    className="rounded-xl border-border/80 font-mono text-xs font-bold"
                                 />
                             </div>
 
@@ -106,34 +119,41 @@ export const ModalConfirmarLlegadaReserva = ({
                                         ¿Requiere espacio de Parqueo Privado?
                                     </span>
                                     <span className="block text-[11px] font-medium text-muted-foreground">
-                                        Estacionamiento vigilado 24/7 sin costo adicional.
+                                        Estacionamiento vigilado 24/7 sin costo
+                                        adicional.
                                     </span>
                                 </div>
                                 <input
                                     type="checkbox"
                                     checked={requiereParqueo}
-                                    onChange={(e) => setRequiereParqueo(e.target.checked)}
+                                    onChange={(e) =>
+                                        setRequiereParqueo(e.target.checked)
+                                    }
                                     className="size-4 cursor-pointer accent-bugambilia-600"
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <Label className="text-xs font-bold text-foreground">Indicaciones de Arribo o Notas de Recepción</Label>
+                                <Label className="text-xs font-bold text-foreground">
+                                    Indicaciones de Arribo o Notas de Recepción
+                                </Label>
                                 <Input
                                     value={notasLlegada}
-                                    onChange={(e) => setNotasLlegada(e.target.value)}
+                                    onChange={(e) =>
+                                        setNotasLlegada(e.target.value)
+                                    }
                                     placeholder="Ej: Llego en vuelo nocturno, requiero apoyo con equipaje"
                                     className="rounded-xl border-border/80 text-xs"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 pt-2 border-t border-border/60">
+                        <div className="flex items-center gap-2 border-t border-border/60 pt-2">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={resetearYcerrar}
-                                className="flex-1 rounded-full font-bold text-xs"
+                                className="flex-1 rounded-full text-xs font-bold"
                             >
                                 Cancelar
                             </Button>
@@ -143,7 +163,9 @@ export const ModalConfirmarLlegadaReserva = ({
                                 className="flex-1 rounded-full bg-bugambilia-600 text-xs font-extrabold text-white hover:bg-bugambilia-700 dark:bg-bugambilia-500"
                             >
                                 <UserPlus className="mr-1 size-3.5" />
-                                {cargando ? 'Notificando...' : 'Confirmar Arribo'}
+                                {cargando
+                                    ? 'Notificando...'
+                                    : 'Confirmar Arribo'}
                             </Button>
                         </div>
                     </form>

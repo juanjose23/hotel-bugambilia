@@ -17,7 +17,7 @@ export const NavegacionReserva = ({
     const esUltimoPaso = pasoActual === totalPasos;
 
     return (
-        <div className="flex items-center justify-between gap-4 pt-4 border-t border-border/60">
+        <div className="flex items-center justify-between gap-4 border-t border-border/60 pt-4">
             {pasoActual > 1 ? (
                 <Button
                     type="button"
@@ -38,8 +38,10 @@ export const NavegacionReserva = ({
             <Button
                 type="submit"
                 disabled={procesando}
-                className={`ml-auto cursor-pointer rounded-full bg-bugambilia-600 px-7 font-black text-white shadow-md hover:bg-bugambilia-700 transition-all ${
-                    esUltimoPaso ? 'py-3.5 text-xs sm:text-sm bg-gradient-to-r from-bugambilia-700 to-bugambilia-600 shadow-lg' : 'py-2.5 text-xs'
+                className={`ml-auto cursor-pointer rounded-full bg-bugambilia-600 px-7 font-black text-white shadow-md transition-all hover:bg-bugambilia-700 ${
+                    esUltimoPaso
+                        ? 'bg-gradient-to-r from-bugambilia-700 to-bugambilia-600 py-3.5 text-xs shadow-lg sm:text-sm'
+                        : 'py-2.5 text-xs'
                 }`}
             >
                 {esUltimoPaso ? (
@@ -59,4 +61,3 @@ export const NavegacionReserva = ({
         </div>
     );
 };
-

@@ -26,7 +26,8 @@ export function FormularioTarjetaStripe({
     useEffect(() => {
         const key =
             publishableKey ||
-            (window as unknown as Record<string, string>).STRIPE_PUBLISHABLE_KEY ||
+            (window as unknown as Record<string, string>)
+                .STRIPE_PUBLISHABLE_KEY ||
             'pk_test_sample';
         const secret = clientSecret || 'sample_secret';
 
