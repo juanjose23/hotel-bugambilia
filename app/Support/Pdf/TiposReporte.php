@@ -17,11 +17,13 @@ enum TiposReporte: string
         return match ($this) {
             self::TABLA_SIMPLE => new ConfiguracionPagina(
                 filas: 40,
-                altoFilaMm: 6,
+                altoFilaMm: 11,
+                altoEncabezadoMm: 10,
             ),
             self::TABLA_DETALLE => new ConfiguracionPagina(
                 filas: 40,
-                altoFilaMm: 6,
+                altoFilaMm: 11,
+                altoEncabezadoMm: 10,
             ),
             self::TABLA_MAESTRO_DETALLE => new ConfiguracionPagina(
                 filas: 12,

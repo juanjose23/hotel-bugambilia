@@ -23,11 +23,15 @@ final class GenerarReporteProductosAction
 {
     use FiltrosProducto, GuardaReporte;
 
+    public function __construct(
+        private readonly TipoPaginaResolver $tipoPaginaResolver,
+    ) {}
+
     public function ejecutar(
         ProductoFiltrosData $filtros,
         bool $incluirVariantes = true,
     ): PdfDocumento {
-        [$tamanoPapel, $orientacion] = app(TipoPaginaResolver::class)
+        [$tamanoPapel, $orientacion] = $this->tipoPaginaResolver
             ->resolver($filtros->tipoPagina);
 
         $productos = $this->obtenerProductos($filtros, $incluirVariantes);
@@ -36,9 +40,6 @@ final class GenerarReporteProductosAction
         $layout = new LayoutPdf(
             tamano: $tamanoPapel,
             orientacion: $orientacion,
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
         );
 
         $paginador = new ReportePaginador($layout);
@@ -70,10 +71,14 @@ final class GenerarReporteProductosAction
             'datosHotel' => $datosHotel,
             'totalRegistros' => $productos->count(),
             'filtrosResueltos' => $filtrosResueltos,
+            'pageSize' => $tamanoPapel->cssName(),
+            'orientation' => $orientacion->cssName(),
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
+            'pageContentHeight' => $layout->altoContenidoMm(),
+            'pageContentWidth' => $layout->anchoContenidoMm(),
         ])->setPaper(
             $tamanoPapel->dompdfName(),
             $orientacion->dompdfName(),

@@ -7,14 +7,33 @@ namespace App\BusinessLogic\Shared\Reportes;
 use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
 use App\Actions\Catalogos\GenerarReporteProductosAction;
 use App\BusinessLogic\Catalogos\Data\ProductoFiltrosData;
+use App\Interactors\Activos\Reportes\GenerarReporteActivo;
 use App\Interactors\Compras\Reportes\GenerarReporteCompra;
-use App\Repository\Queries\Activos\GenerarReporteActivoUseCase;
-use App\Repository\Queries\Inventario\Reportes\GenerarReporteInventario;
+use App\Interactors\Inventario\Reportes\GenerarReporteInventario;
+use App\Interactors\Reportes\Financiero\GenerarReporteFinanciero;
+use App\Interactors\Reportes\Reservas\GenerarReporteReserva;
+use App\Interactors\Servicios\Reportes\GenerarReporteServicio;
 use Barryvdh\DomPDF\PDF;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReporteDispatcher
 {
+    private const FINANCIERO_MAP = [
+        'cuentas_cobrar' => 'cuentasCobrarPdf',
+        'facturacion_ventas' => 'facturacionVentasPdf',
+        'resumen_ejecutivo' => 'resumenEjecutivoPdf',
+    ];
+
+    private const RESERVAS_MAP = [
+        'ocupacion' => 'ocupacionPdf',
+        'ventas_ingresos' => 'ventasIngresosPdf',
+        'reservas_estado' => 'reservasEstadoPdf',
+        'huespedes' => 'huespedesPdf',
+        'rendimiento_habitaciones' => 'rendimientoHabitacionesPdf',
+    ];
+
     private const COMPRAS_MAP = [
         'rotacion' => 'rotacion_compras',
         'tiempos_entrega' => 'tiempos_entrega',
@@ -59,16 +78,56 @@ final class ReporteDispatcher
         'sin_asignacion' => 'sinAsignacionPdf',
     ];
 
+    private const SERVICIOS_MAP = [
+        'historico_precios' => 'historicoPreciosPdf',
+    ];
+
+    public function __construct(
+        private GenerarReporteFinanciero $financiero,
+        private GenerarReporteReserva $reservas,
+        private GenerarReporteCompra $compras,
+        private GenerarReporteInventario $inventario,
+        private GenerarReporteActivo $activos,
+        private GenerarReporteServicio $servicios,
+    ) {}
+
     /** @param array<string, mixed> $params */
-    public function generar(string $codigo, array $params = []): PDF
+    public function generar(string $codigo, array $params = []): PDF|Response|StreamedResponse
     {
         return match (true) {
+            str_starts_with($codigo, 'HTB-FIN') => $this->generarFinanciero($codigo, $params),
+            str_starts_with($codigo, 'HTB-RES') => $this->generarReservas($codigo, $params),
             str_starts_with($codigo, 'HTB-CP') => $this->generarCatalogos($codigo, $params),
             str_starts_with($codigo, 'HTB-COM') => $this->generarCompras($codigo, $params),
             str_starts_with($codigo, 'HTB-INV') => $this->generarInventario($codigo, $params),
             str_starts_with($codigo, 'HTB-ACT') => $this->generarActivos($codigo, $params),
-            default => $this->generarPorClave($codigo, $params),
+            str_starts_with($codigo, 'HTB-SER') => $this->generarServicios($codigo, $params),
+            default => throw new InvalidArgumentException("Reporte '{$codigo}' no soportado."),
         };
+    }
+
+    /** @param array<string, mixed> $params */
+    private function generarFinanciero(string $codigo, array $params): Response
+    {
+        $internalName = self::FINANCIERO_MAP[$codigo] ?? null;
+
+        if ($internalName === null) {
+            throw new InvalidArgumentException("Reporte Financiero '{$codigo}' no soportado.");
+        }
+
+        return $this->financiero->ejecutar($internalName, $params);
+    }
+
+    /** @param array<string, mixed> $params */
+    private function generarReservas(string $codigo, array $params): Response
+    {
+        $internalName = self::RESERVAS_MAP[$codigo] ?? null;
+
+        if ($internalName === null) {
+            throw new InvalidArgumentException("Reporte Reservas '{$codigo}' no soportado.");
+        }
+
+        return $this->reservas->ejecutar($internalName, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -93,9 +152,7 @@ final class ReporteDispatcher
             throw new InvalidArgumentException("Reporte Compras '{$codigo}' no soportado.");
         }
 
-        $useCase = app(GenerarReporteCompra::class);
-
-        return $useCase->execute($internalName, $params);
+        return $this->compras->ejecutar($internalName, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -107,9 +164,7 @@ final class ReporteDispatcher
             throw new InvalidArgumentException("Reporte Inventario '{$codigo}' no soportado.");
         }
 
-        $useCase = app(GenerarReporteInventario::class);
-
-        return $useCase->execute($internalName, $params);
+        return $this->inventario->ejecutar($internalName, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -121,9 +176,7 @@ final class ReporteDispatcher
             throw new InvalidArgumentException("Reporte Activos '{$codigo}' no soportado.");
         }
 
-        $useCase = app(GenerarReporteActivoUseCase::class);
-
-        $result = $useCase->execute($internalName, $params);
+        $result = $this->activos->ejecutar($internalName, $params);
 
         if (! $result instanceof PDF) {
             throw new \UnexpectedValueException("El reporte '{$codigo}' no generó un PDF.");
@@ -133,27 +186,33 @@ final class ReporteDispatcher
     }
 
     /** @param array<string, mixed> $params */
-    private function generarPorClave(string $clave, array $params): PDF
+    private function generarServicios(string $codigo, array $params): Response|StreamedResponse
     {
-        if (isset(self::COMPRAS_MAP[$clave])) {
-            return $this->generarCompras($clave, $params);
+        $internalName = self::SERVICIOS_MAP[$codigo] ?? null;
+
+        if ($internalName === null) {
+            throw new InvalidArgumentException("Reporte Servicios '{$codigo}' no soportado.");
         }
 
-        if (isset(self::INVENTARIO_MAP[$clave])) {
-            return $this->generarInventario($clave, $params);
-        }
-
-        if (isset(self::ACTIVOS_MAP[$clave])) {
-            return $this->generarActivos($clave, $params);
-        }
-
-        throw new InvalidArgumentException("Reporte '{$clave}' no soportado.");
+        return $this->servicios->ejecutar($internalName, $params);
     }
 
     /** @return array<string, array<string, string>> */
     public static function opcionesFiltro(): array
     {
         return [
+            'Financiero' => [
+                'HTB-FIN-001' => 'Cuentas por Cobrar',
+                'HTB-FIN-002' => 'Facturación y Ventas',
+                'HTB-FIN-003' => 'Resumen Ejecutivo',
+            ],
+            'Reservas' => [
+                'HTB-RES-001' => 'Ocupación y Estadías',
+                'HTB-RES-002' => 'Ventas por Canal de Pago',
+                'HTB-RES-003' => 'Reservas por Estado',
+                'HTB-RES-004' => 'Huéspedes',
+                'HTB-RES-005' => 'Rendimiento por Categoría',
+            ],
             'Catálogos' => [
                 'HTB-CP001' => 'Reporte Simple',
                 'HTB-CP002' => 'Reporte Detallado',
@@ -199,6 +258,9 @@ final class ReporteDispatcher
                 'bajas' => 'Bajas',
                 'extraviados' => 'Extraviados',
                 'sin_asignacion' => 'Sin asignación',
+            ],
+            'Servicios' => [
+                'HTB-SER-001' => 'Histórico de Precios',
             ],
         ];
     }

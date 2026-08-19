@@ -28,8 +28,9 @@ final class CuentasCobrarQuery
      */
     public function cuentasPendientes(): Collection
     {
-        return Cuenta::query()
+        return Cuenta::with(['cliente.persona'])
             ->where('saldo', '>', 0)
+            ->orderBy('saldo', 'desc')
             ->get();
     }
 }

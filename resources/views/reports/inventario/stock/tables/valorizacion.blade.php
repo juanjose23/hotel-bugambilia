@@ -5,8 +5,8 @@
             <th>Categoría</th>
             <th>Ubicación / Bodega</th>
             <th style="text-align: right;">Stock Total</th>
-            <th style="text-align: right;">Costo Promedio ({{ $simboloMoneda ?? 'C$' }})</th>
-            <th style="text-align: right;">Valor Total ({{ $simboloMoneda ?? 'C$' }})</th>
+            <th style="text-align: right;">Costo Promedio ({{ $monedaSimbolo ?? 'C$' }})</th>
+            <th style="text-align: right;">Valor Total ({{ $monedaSimbolo ?? 'C$' }})</th>
         </tr>
     </thead>
     <tbody>
@@ -25,4 +25,14 @@
             </tr>
         @endforelse
     </tbody>
+    @if(($esUltimaPagina ?? false) && count($items) > 0)
+        <tfoot>
+            <tr style="background:#f1f5f9;">
+                <td colspan="3" style="text-align:right; font-weight:bold; text-transform:uppercase; padding:10px;">Total General:</td>
+                <td style="text-align:right; font-weight:bold; padding:10px;">{{ number_format($totalStock ?? 0, 2) }}</td>
+                <td></td>
+                <td style="text-align:right; font-weight:bold; color:#711C37; font-size:14px; padding:10px;">{{ $monedaSimbolo ?? 'C$' }} {{ number_format($valorTotal ?? 0, 2) }}</td>
+            </tr>
+        </tfoot>
+    @endif
 </table>

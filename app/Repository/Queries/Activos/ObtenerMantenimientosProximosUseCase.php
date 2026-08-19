@@ -8,7 +8,7 @@ use App\Enums\Activos\EstadoMantenimiento;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use Illuminate\Database\Eloquent\Collection;
 
-class ObtenerMantenimientosProximosUseCase
+final class ObtenerMantenimientosProximosUseCase
 {
     /**
      * @return Collection<int, ActivoMantenimiento>

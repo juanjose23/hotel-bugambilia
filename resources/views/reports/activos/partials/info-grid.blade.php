@@ -11,7 +11,7 @@
                     @php $idx = $row + $col; @endphp
                     @if($idx < $colCount)
                         @php $campo = $cols[$idx]; @endphp
-                        <td style="width:{{ $colWidth }}%;border:none;padding:4px 0;font-size:9px;{{ $col === 2 ? 'colspan="' . (3 - $colCount + $row + $col) . '"' : '' }}">
+                        <td style="width:{{ $colWidth }}%;border:none;padding:4px 0;font-size:9px;">
                             <strong style="color:#711C37;text-transform:uppercase;">{{ $campo['label'] }}:</strong><br>
                             @if(isset($campo['isCosto']) && $campo['isCosto'])
                                 <span style="font-size:12px;font-weight:bold;color:#711C37;">

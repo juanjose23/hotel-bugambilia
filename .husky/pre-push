@@ -19,4 +19,7 @@ echo "[pre-push] Ejecutando suite de pruebas Pest..."
 php artisan test
 
 echo "[pre-push] Verificando build del frontend..."
+npm run lint
+
+echo "[pre-push] Verificando build del frontend..."
 npm run build

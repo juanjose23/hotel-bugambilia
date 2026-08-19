@@ -6,6 +6,7 @@ namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\Restaurante\EstadoPedido;
+use App\Interactors\Restaurante\Reportes\GenerarReporteRestaurante;
 use App\Repository\Models\User;
 use App\Repository\Queries\Restaurante\Reportes\ObtenerReportesRestauranteQuery;
 use BackedEnum;
@@ -19,7 +20,7 @@ use UnitEnum;
 
 final class ReportesRestaurante extends Page implements HasTable
 {
-    use HasPageShield,InteractsWithTable;
+    use HasPageShield, InteractsWithTable;
 
     protected static UnitEnum|string|null $navigationGroup = 'Restaurante';
 
@@ -52,9 +53,14 @@ final class ReportesRestaurante extends Page implements HasTable
 
     private ObtenerReportesRestauranteQuery $reportesQuery;
 
-    public function boot(ObtenerReportesRestauranteQuery $reportesQuery): void
-    {
+    private GenerarReporteRestaurante $generarReporte;
+
+    public function boot(
+        ObtenerReportesRestauranteQuery $reportesQuery,
+        GenerarReporteRestaurante $generarReporte,
+    ): void {
         $this->reportesQuery = $reportesQuery;
+        $this->generarReporte = $generarReporte;
     }
 
     public function mount(): void
@@ -66,7 +72,7 @@ final class ReportesRestaurante extends Page implements HasTable
 
     public function cargarReportes(): void
     {
-        $datos = $this->reportesQuery->ejecutar($this->fechaInicio, $this->fechaFin);
+        $datos = $this->generarReporte->ejecutar($this->fechaInicio, $this->fechaFin);
 
         $this->resumen = $datos['resumen'];
         $this->topPlatos = $datos['topPlatos'];

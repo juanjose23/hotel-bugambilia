@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Jobs\GenerarReporteJob;
 use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 abstract class ReporteController extends Controller
@@ -29,5 +30,19 @@ abstract class ReporteController extends Controller
         );
 
         return back()->with('status', 'El reporte se esta generando. Recibiras una notificacion cuando este listo.');
+    }
+
+    protected function fechaRequest(Request $request, string $campo, string $porDefecto): string
+    {
+        $valor = $request->input($campo);
+
+        return is_string($valor) && $valor !== '' ? $valor : $porDefecto;
+    }
+
+    protected function textoRequest(Request $request, string $campo): ?string
+    {
+        $valor = $request->input($campo);
+
+        return is_string($valor) && $valor !== '' ? $valor : null;
     }
 }

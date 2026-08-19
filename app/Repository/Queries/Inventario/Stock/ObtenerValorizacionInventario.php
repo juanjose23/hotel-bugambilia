@@ -78,8 +78,8 @@ class ObtenerValorizacionInventario
                 'cat.nombre as categoria',
                 'u.nombre as ubicacion',
                 DB::raw('SUM(l.cantidad_disponible) as stock_total'),
-                DB::raw('AVG(COALESCE(oci.precio_unitario * COALESCE(oc.tasa_cambio, 1.0), l.costo_unitario, 0)) as costo_promedio'),
-                DB::raw('SUM(l.cantidad_disponible * COALESCE(oci.precio_unitario * COALESCE(oc.tasa_cambio, 1.0), l.costo_unitario, 0)) as valor_total'),
+                DB::raw('AVG(COALESCE(l.costo_unitario, 0)) as costo_promedio'),
+                DB::raw('SUM(l.cantidad_disponible * COALESCE(l.costo_unitario, 0)) as valor_total'),
             ])
             ->groupBy('p.id', 'p.nombre', 'cat.nombre', 'u.nombre')
             ->orderBy('valor_total', 'desc');

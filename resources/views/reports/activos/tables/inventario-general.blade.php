@@ -10,9 +10,7 @@
         </tr>
     </thead>
     <tbody>
-        @php $totalCosto = 0; @endphp
         @forelse($items as $activo)
-            @php $totalCosto += (float) ($activo->costo_adquisicion ?? 0); @endphp
             <tr>
                 <td>@include('reports.activos.partials.sku', ['codigo' => $activo->codigo_inventario])</td>
                 <td>
@@ -34,12 +32,13 @@
             @include('reports.activos.partials.empty-state', ['colspan' => 6, 'mensaje' => 'No se encontraron activos con los filtros aplicados.'])
         @endforelse
     </tbody>
-    @if(count($items) > 0)
+    @if(($esUltimaPagina ?? false) && count($items) > 0)
         @include('reports.activos.partials.table-total', [
             'labelColspan' => 4,
             'label' => 'Total General:',
-            'total' => $totalCosto,
-            'count' => count($items) . ' activos',
+            'total' => $totalCosto ?? 0,
+            'monedaSimbolo' => 'C$',
+            'count' => ($totalRegistros ?? count($items)) . ' activos',
         ])
     @endif
 </table>

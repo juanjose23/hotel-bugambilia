@@ -7,7 +7,7 @@ namespace App\Repository\Queries\Activos;
 use App\Enums\Activos\EstadoMantenimiento;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 
-class ObtenerMantenimientosCompletados
+final class ObtenerMantenimientosCompletados
 {
     public function ejecutar(callable $callback): void
     {

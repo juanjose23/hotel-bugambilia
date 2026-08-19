@@ -5,19 +5,23 @@ declare(strict_types=1);
 namespace App\BusinessLogic\Restaurante\Reportes;
 
 use App\Enums\Restaurante\EstadoPedido;
-use App\Repository\Models\Restaurante\Pedido;
-use App\Repository\Models\Restaurante\PedidoItem;
 use Illuminate\Support\Collection;
+use stdClass;
 
 final class CalcularReportesRestaurante
 {
     /**
-     * @param  Collection<int, Pedido>  $pedidos
-     * @param  Collection<int, PedidoItem>  $pedidoItems
+     * @param  Collection<int, stdClass>  $pedidos
+     * @param  Collection<int, stdClass>  $pedidoItems
      * @return array{
-     *     resumen: array<string, mixed>,
-     *     topPlatos: array<int, mixed>,
-     *     porCategoria: array<int, mixed>,
+     *     resumen: array{
+     *         total_pedidos: int,
+     *         total_facturado: float,
+     *         pedidos_pagados: int,
+     *         pedidos_pendientes: int
+     *     },
+     *     topPlatos: array<int, array{plato: string, cantidad: float, total: float}>,
+     *     porCategoria: array<int, array{categoria: string, cantidad: float, total: float}>,
      *     totalPedidos: int
      * }
      */
@@ -26,8 +30,13 @@ final class CalcularReportesRestaurante
         $totalPedidos = $pedidos->count();
         $sumTotal = $pedidos->sum('subtotal');
         $totalFacturado = is_numeric($sumTotal) ? (float) $sumTotal : 0.0;
-        $pedidosPagados = $pedidos->where('estado', EstadoPedido::PAGADO)->count();
-        $pedidosPendientes = $pedidos->whereIn('estado', [EstadoPedido::ABIERTO, EstadoPedido::EN_PREPARACION])->count();
+
+        $pedidosPagados = $pedidos->filter(fn ($p) => ($p->estado instanceof EstadoPedido ? $p->estado->value : $p->estado) === EstadoPedido::PAGADO->value)->count();
+        $pedidosPendientes = $pedidos->filter(function ($p) {
+            $estadoVal = $p->estado instanceof EstadoPedido ? $p->estado->value : $p->estado;
+
+            return in_array($estadoVal, [EstadoPedido::ABIERTO->value, EstadoPedido::EN_PREPARACION->value], true);
+        })->count();
 
         $resumen = [
             'total_pedidos' => $totalPedidos,
@@ -36,11 +45,12 @@ final class CalcularReportesRestaurante
             'pedidos_pendientes' => $pedidosPendientes,
         ];
 
+        /** @var array<int, array{plato: string, cantidad: float, total: float}> $topPlatos */
         $topPlatos = $pedidoItems
             ->groupBy('plato_id')
-            ->map(function ($grupo) {
+            ->map(function (Collection $grupo): array {
                 $first = $grupo->first();
-                $nombre = ($first instanceof PedidoItem && $first->plato) ? $first->plato->nombre : 'Desconocido';
+                $nombre = is_object($first) && isset($first->plato_nombre) ? (string) $first->plato_nombre : 'Desconocido';
 
                 $cantSum = $grupo->sum('cantidad');
                 $totSum = $grupo->sum('subtotal');
@@ -54,13 +64,12 @@ final class CalcularReportesRestaurante
             ->sortByDesc('cantidad')
             ->take(10)
             ->values()
-            ->toArray();
+            ->all();
 
+        /** @var array<int, array{categoria: string, cantidad: float, total: float}> $porCategoria */
         $porCategoria = $pedidoItems
-            ->groupBy(function (PedidoItem $item) {
-                return $item->plato?->categoria->nombre ?? 'Sin categoría';
-            })
-            ->map(function ($grupo, $cat) {
+            ->groupBy(fn (stdClass $item): string => (string) ($item->categoria_nombre ?? 'Sin categoría'))
+            ->map(function (Collection $grupo, string|int $cat): array {
                 $cantSum = $grupo->sum('cantidad');
                 $totSum = $grupo->sum('subtotal');
 
@@ -72,7 +81,7 @@ final class CalcularReportesRestaurante
             })
             ->sortByDesc('total')
             ->values()
-            ->toArray();
+            ->all();
 
         return [
             'resumen' => $resumen,

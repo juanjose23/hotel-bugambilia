@@ -17,13 +17,15 @@ uses(TestCase::class, LazilyRefreshDatabase::class);
 
 function crearMonedaPredeterminada(): Moneda
 {
-    return Moneda::query()->create([
-        'codigo' => 'USD-VAL-'.Str::random(4),
-        'nombre' => 'Dolar Val',
-        'simbolo' => '$',
-        'es_predeterminada' => true,
-        'estado' => EstadoGeneral::Activo->value,
-    ]);
+    return Moneda::query()->firstOrCreate(
+        ['codigo' => 'USD'],
+        [
+            'nombre' => 'Dolar Val',
+            'simbolo' => '$',
+            'es_predeterminada' => true,
+            'estado' => EstadoGeneral::Activo->value,
+        ]
+    );
 }
 
 test('resuelve servicios adicionales correctamente', function (): void {

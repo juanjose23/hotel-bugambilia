@@ -1,8 +1,8 @@
+import { Link } from '@inertiajs/react';
 import { Flame, BedDouble, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from '@inertiajs/react';
-import { Button } from '@/modulos/compartido/ui/boton';
 import { usePropiedadesPagina } from '@/modulos/compartido/hooks/usePropiedadesPagina';
+import { Button } from '@/modulos/compartido/ui/boton';
 import {
     Tabs,
     TabsList,
@@ -50,6 +50,7 @@ export const SeccionPortalMisReservas = ({
 
     const obtenerItemsPagina = <T,>(lista: T[]): T[] => {
         const inicio = (paginaActual - 1) * itemsPorPagina;
+
         return lista.slice(inicio, inicio + itemsPorPagina);
     };
 
@@ -68,39 +69,49 @@ export const SeccionPortalMisReservas = ({
 
                 {/* Banner Dashboard de Gestión Administrativa del Huésped */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-                    <div className="rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
-                        <span className="block text-[9px] sm:text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider truncate">
+                    <div className="rounded-2xl border border-border/80 bg-card p-3 shadow-2xs sm:p-4">
+                        <span className="block truncate text-[9px] font-extrabold tracking-wider text-muted-foreground uppercase sm:text-[10px]">
                             Reservas Activas
                         </span>
-                        <span className="font-mono text-lg sm:text-xl font-black text-bugambilia-600 dark:text-bugambilia-400">
+                        <span className="font-mono text-lg font-black text-bugambilia-600 sm:text-xl dark:text-bugambilia-400">
                             {reservasActivas.length}
                         </span>
                     </div>
 
-                    <div className="rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
-                        <span className="block text-[9px] sm:text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider truncate">
+                    <div className="rounded-2xl border border-border/80 bg-card p-3 shadow-2xs sm:p-4">
+                        <span className="block truncate text-[9px] font-extrabold tracking-wider text-muted-foreground uppercase sm:text-[10px]">
                             Huéspedes Registrados
                         </span>
-                        <span className="font-mono text-lg sm:text-xl font-black text-foreground">
-                            {reservas.reduce((acc, r) => acc + (r.adultos || 1) + (r.ninos || 0), 0)}
+                        <span className="font-mono text-lg font-black text-foreground sm:text-xl">
+                            {reservas.reduce(
+                                (acc, r) =>
+                                    acc + (r.adultos || 1) + (r.ninos || 0),
+                                0,
+                            )}
                         </span>
                     </div>
 
-                    <div className="rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
-                        <span className="block text-[9px] sm:text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider truncate">
+                    <div className="rounded-2xl border border-border/80 bg-card p-3 shadow-2xs sm:p-4">
+                        <span className="block truncate text-[9px] font-extrabold tracking-wider text-muted-foreground uppercase sm:text-[10px]">
                             Servicios Estancia
                         </span>
-                        <span className="font-mono text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
+                        <span className="font-mono text-lg font-black text-emerald-600 sm:text-xl dark:text-emerald-400">
                             Activo
                         </span>
                     </div>
 
-                    <div className="rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
-                        <span className="block text-[9px] sm:text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider truncate">
+                    <div className="rounded-2xl border border-border/80 bg-card p-3 shadow-2xs sm:p-4">
+                        <span className="block truncate text-[9px] font-extrabold tracking-wider text-muted-foreground uppercase sm:text-[10px]">
                             Saldo Pendiente
                         </span>
-                        <span className="font-mono text-lg sm:text-xl font-black text-foreground">
-                            ${reservas.reduce((acc, r) => acc + (r.estado_cuenta?.saldo_pendiente || 0), 0)}
+                        <span className="font-mono text-lg font-black text-foreground sm:text-xl">
+                            $
+                            {reservas.reduce(
+                                (acc, r) =>
+                                    acc +
+                                    (r.estado_cuenta?.saldo_pendiente || 0),
+                                0,
+                            )}
                         </span>
                     </div>
                 </div>
@@ -121,22 +132,22 @@ export const SeccionPortalMisReservas = ({
                     onValueChange={(val) => setPortalTab(val as TabPortal)}
                     className="w-full"
                 >
-                    <TabsList className="mb-6 flex w-full max-w-md gap-1 rounded-2xl border border-border/80 bg-card p-1 shadow-2xs overflow-x-auto no-scrollbar">
+                    <TabsList className="no-scrollbar mb-6 flex w-full max-w-md gap-1 overflow-x-auto rounded-2xl border border-border/80 bg-card p-1 shadow-2xs">
                         <TabsTrigger
                             value="overview"
-                            className="flex-1 min-w-0 rounded-xl px-2 py-1.5 text-[11px] sm:text-xs font-bold truncate data-[state=active]:bg-bugambilia-600 data-[state=active]:text-white"
+                            className="min-w-0 flex-1 truncate rounded-xl px-2 py-1.5 text-[11px] font-bold data-[state=active]:bg-bugambilia-600 data-[state=active]:text-white sm:text-xs"
                         >
                             Todas ({reservasFiltradas.length})
                         </TabsTrigger>
                         <TabsTrigger
                             value="activas"
-                            className="flex-1 min-w-0 rounded-xl px-2 py-1.5 text-[11px] sm:text-xs font-bold truncate data-[state=active]:bg-bugambilia-600 data-[state=active]:text-white"
+                            className="min-w-0 flex-1 truncate rounded-xl px-2 py-1.5 text-[11px] font-bold data-[state=active]:bg-bugambilia-600 data-[state=active]:text-white sm:text-xs"
                         >
                             Activas ({reservasActivas.length})
                         </TabsTrigger>
                         <TabsTrigger
                             value="historial"
-                            className="flex-1 min-w-0 rounded-xl px-2 py-1.5 text-[11px] sm:text-xs font-bold truncate data-[state=active]:bg-bugambilia-600 data-[state=active]:text-white"
+                            className="min-w-0 flex-1 truncate rounded-xl px-2 py-1.5 text-[11px] font-bold data-[state=active]:bg-bugambilia-600 data-[state=active]:text-white sm:text-xs"
                         >
                             Historial ({reservasPasadas.length})
                         </TabsTrigger>
@@ -147,24 +158,32 @@ export const SeccionPortalMisReservas = ({
                         {reservasFiltradas.length > 0 ? (
                             <>
                                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                    {obtenerItemsPagina(reservasFiltradas).map((reserva) => (
-                                        <TarjetaReservaPortalItem
-                                            key={reserva.id}
-                                            reserva={reserva}
-                                            onSolicitarCancelacion={setReservaACancelar}
-                                        />
-                                    ))}
+                                    {obtenerItemsPagina(reservasFiltradas).map(
+                                        (reserva) => (
+                                            <TarjetaReservaPortalItem
+                                                key={reserva.id}
+                                                reserva={reserva}
+                                                onSolicitarCancelacion={
+                                                    setReservaACancelar
+                                                }
+                                            />
+                                        ),
+                                    )}
                                 </div>
                                 <PaginadorLocal
                                     paginaActual={paginaActual}
-                                    totalPaginas={calcularTotalPaginas(reservasFiltradas.length)}
+                                    totalPaginas={calcularTotalPaginas(
+                                        reservasFiltradas.length,
+                                    )}
                                     totalItems={reservasFiltradas.length}
                                     itemsPorPagina={itemsPorPagina}
                                     onPageChange={setPaginaActual}
                                 />
                             </>
                         ) : (
-                            <SinReservasEstado resetSearch={() => setSearchTerm('')} />
+                            <SinReservasEstado
+                                resetSearch={() => setSearchTerm('')}
+                            />
                         )}
                     </TabsContent>
 
@@ -173,24 +192,32 @@ export const SeccionPortalMisReservas = ({
                         {reservasActivas.length > 0 ? (
                             <>
                                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                    {obtenerItemsPagina(reservasActivas).map((reserva) => (
-                                        <TarjetaReservaPortalItem
-                                            key={reserva.id}
-                                            reserva={reserva}
-                                            onSolicitarCancelacion={setReservaACancelar}
-                                        />
-                                    ))}
+                                    {obtenerItemsPagina(reservasActivas).map(
+                                        (reserva) => (
+                                            <TarjetaReservaPortalItem
+                                                key={reserva.id}
+                                                reserva={reserva}
+                                                onSolicitarCancelacion={
+                                                    setReservaACancelar
+                                                }
+                                            />
+                                        ),
+                                    )}
                                 </div>
                                 <PaginadorLocal
                                     paginaActual={paginaActual}
-                                    totalPaginas={calcularTotalPaginas(reservasActivas.length)}
+                                    totalPaginas={calcularTotalPaginas(
+                                        reservasActivas.length,
+                                    )}
                                     totalItems={reservasActivas.length}
                                     itemsPorPagina={itemsPorPagina}
                                     onPageChange={setPaginaActual}
                                 />
                             </>
                         ) : (
-                            <SinReservasEstado resetSearch={() => setSearchTerm('')} />
+                            <SinReservasEstado
+                                resetSearch={() => setSearchTerm('')}
+                            />
                         )}
                     </TabsContent>
 
@@ -199,24 +226,32 @@ export const SeccionPortalMisReservas = ({
                         {reservasPasadas.length > 0 ? (
                             <>
                                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                    {obtenerItemsPagina(reservasPasadas).map((reserva) => (
-                                        <TarjetaReservaPortalItem
-                                            key={reserva.id}
-                                            reserva={reserva}
-                                            onSolicitarCancelacion={setReservaACancelar}
-                                        />
-                                    ))}
+                                    {obtenerItemsPagina(reservasPasadas).map(
+                                        (reserva) => (
+                                            <TarjetaReservaPortalItem
+                                                key={reserva.id}
+                                                reserva={reserva}
+                                                onSolicitarCancelacion={
+                                                    setReservaACancelar
+                                                }
+                                            />
+                                        ),
+                                    )}
                                 </div>
                                 <PaginadorLocal
                                     paginaActual={paginaActual}
-                                    totalPaginas={calcularTotalPaginas(reservasPasadas.length)}
+                                    totalPaginas={calcularTotalPaginas(
+                                        reservasPasadas.length,
+                                    )}
                                     totalItems={reservasPasadas.length}
                                     itemsPorPagina={itemsPorPagina}
                                     onPageChange={setPaginaActual}
                                 />
                             </>
                         ) : (
-                            <SinReservasEstado resetSearch={() => setSearchTerm('')} />
+                            <SinReservasEstado
+                                resetSearch={() => setSearchTerm('')}
+                            />
                         )}
                     </TabsContent>
                 </Tabs>
@@ -253,17 +288,21 @@ const PaginadorLocal = ({
     itemsPorPagina: number;
     onPageChange: (p: number) => void;
 }) => {
-    if (totalPaginas <= 1) return null;
+    if (totalPaginas <= 1) {
+        return null;
+    }
 
     const desde = (paginaActual - 1) * itemsPorPagina + 1;
     const hasta = Math.min(paginaActual * itemsPorPagina, totalItems);
 
     return (
-        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 sm:flex-row font-sans">
+        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 font-sans sm:flex-row">
             <span className="text-xs font-semibold text-muted-foreground">
-                Mostrando <span className="font-bold text-foreground">{desde}</span> a{' '}
+                Mostrando{' '}
+                <span className="font-bold text-foreground">{desde}</span> a{' '}
                 <span className="font-bold text-foreground">{hasta}</span> de{' '}
-                <span className="font-bold text-foreground">{totalItems}</span> reservación(es)
+                <span className="font-bold text-foreground">{totalItems}</span>{' '}
+                reservación(es)
             </span>
 
             <div className="flex items-center gap-1.5 sm:gap-2">

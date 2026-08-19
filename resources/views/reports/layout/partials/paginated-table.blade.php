@@ -1,47 +1,47 @@
-@foreach($paginas as $i => $items)
-    <div class="pagina">
-        <div class="report-header">
-            @include('reports.layout.partials.header', [
-                'logo_base64' => $datosHotel['logo_base64'] ?? null,
-                'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
-            ])
-        </div>
-        <div class="report-content">
-            @if(isset($fechaInicio) && isset($fechaFin))
-                <div style="margin-bottom:16px;background:#f8fafc;padding:12px 15px;border-radius:4px;border:1px solid #e2e8f0;display:flex;gap:24px;">
-                    <div>
-                        <span style="font-size:9px;color:#711C37;font-weight:bold;text-transform:uppercase;">Período:</span>&nbsp;
-                        <span style="font-size:11px;font-weight:bold;">{{ $fechaInicio }} — {{ $fechaFin }}</span>
-                    </div>
-                    @if(isset($extraFilters) && is_array($extraFilters))
-                        @foreach($extraFilters as $label => $val)
-                            @if($val)
-                                <div>
-                                    <span style="font-size:9px;color:#711C37;font-weight:bold;text-transform:uppercase;">{{ $label }}:</span>&nbsp;
-                                    <span style="font-size:11px;font-weight:bold;">{{ $val }}</span>
-                                </div>
-                            @endif
-                        @endforeach
-                    @endif
-                </div>
+@php
+    $paginasList = [];
+    if (isset($paginas) && (is_array($paginas) || $paginas instanceof \Illuminate\Support\Collection)) {
+        foreach ($paginas as $chunk) {
+            if ($chunk instanceof \Illuminate\Support\Collection && $chunk->isNotEmpty()) {
+                $paginasList[] = $chunk;
+            } elseif (is_array($chunk) && !empty($chunk)) {
+                $paginasList[] = collect($chunk);
+            }
+        }
+    } elseif (isset($items)) {
+        $itemsCol = is_array($items) ? collect($items) : $items;
+        if ($itemsCol->isNotEmpty()) {
+            $paginasList[] = $itemsCol;
+        }
+    }
+    if (empty($paginasList)) {
+        $paginasList[] = collect();
+    }
+@endphp
+
+<div class="report-content">
+    @foreach($paginasList as $i => $itemsChunk)
+        <div class="pagina">
+            @if($i > 0)
+                <div class="page-top-spacer"></div>
             @endif
 
-            @include($tableView, ['items' => $items])
-
-            @if(isset($alertMessage) && $loop->last)
-                <div style="margin-top:12px;font-size:9px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;padding:8px;border-radius:4px;">
-                    {{ $alertMessage }}
-                </div>
+            @if($itemsChunk->isNotEmpty())
+                @include($tableView, array_merge($tableData ?? [], [
+                    'items' => $itemsChunk,
+                    'paginaIndex' => $i,
+                    'esUltimaPagina' => $loop->last,
+                ]))
             @endif
         </div>
-        <div class="report-footer">
-            @include('reports.layout.partials.footer', [
-                'generadoEn' => now()->format('d/m/Y H:i'),
-                'usuario' => $usuario ?? 'Sistema',
-            ])
+        @if(!$loop->last)
+            <div class="page-break"></div>
+        @endif
+    @endforeach
+
+    @if(isset($alertMessage))
+        <div style="margin-top:12px; font-size:8pt; color:#92400e; background:#fffbeb; border:1px solid #fde68a; padding:8px 12px; border-radius:4px;" class="avoid-break">
+            {{ $alertMessage }}
         </div>
-    </div>
-    @if(!$loop->last)
-        <div class="page-break"></div>
     @endif
-@endforeach
+</div>

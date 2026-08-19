@@ -23,7 +23,9 @@ void createInertiaApp({
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.tsx`,
-            import.meta.glob<{ default: ComponenteConLayout }>('./pages/**/*.tsx'),
+            import.meta.glob<{ default: ComponenteConLayout }>(
+                './pages/**/*.tsx',
+            ),
         ).then((modulo) => {
             const page = modulo.default as ComponenteConLayout;
             page.layout =

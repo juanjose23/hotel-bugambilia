@@ -124,11 +124,35 @@ class CotizacionInfolist
 
                                 TextEntry::make('precio_unitario')
                                     ->label('Precio Unit.')
-                                    ->money(fn ($record) => $record->cotizacion->moneda->codigo ?? 'USD'),
+                                    ->money(function (mixed $component): string {
+                                        if (is_object($component) && method_exists($component, 'getLivewire')) {
+                                            $livewire = $component->getLivewire();
+                                            if (is_object($livewire) && method_exists($livewire, 'getRecord')) {
+                                                $cotizacion = $livewire->getRecord();
+                                                if ($cotizacion instanceof Cotizacion && $cotizacion->moneda) {
+                                                    return $cotizacion->moneda->codigo;
+                                                }
+                                            }
+                                        }
+
+                                        return 'USD';
+                                    }),
 
                                 TextEntry::make('subtotal')
                                     ->label('Subtotal')
-                                    ->money(fn ($record) => $record->cotizacion->moneda->codigo ?? 'USD')
+                                    ->money(function (mixed $component): string {
+                                        if (is_object($component) && method_exists($component, 'getLivewire')) {
+                                            $livewire = $component->getLivewire();
+                                            if (is_object($livewire) && method_exists($livewire, 'getRecord')) {
+                                                $cotizacion = $livewire->getRecord();
+                                                if ($cotizacion instanceof Cotizacion && $cotizacion->moneda) {
+                                                    return $cotizacion->moneda->codigo;
+                                                }
+                                            }
+                                        }
+
+                                        return 'USD';
+                                    })
                                     ->weight('bold'),
 
                                 TextEntry::make('es_elegido')

@@ -31,4 +31,13 @@
             @include('reports.activos.partials.empty-state', ['colspan' => 7, 'mensaje' => 'No se registran activos dados de baja.'])
         @endforelse
     </tbody>
+    @if(($esUltimaPagina ?? false) && count($items) > 0)
+        @include('reports.activos.partials.table-total', [
+            'labelColspan' => 5,
+            'label' => 'Total Residual:',
+            'total' => $totalValorResidual ?? 0,
+            'monedaSimbolo' => 'C$',
+            'count' => ($totalRegistros ?? count($items)) . ' bajas',
+        ])
+    @endif
 </table>

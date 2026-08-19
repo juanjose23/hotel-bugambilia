@@ -40,7 +40,7 @@ test('crea reserva publica con sin pago y no requiere stripe', function (): void
     $espacio = crearMesaRestaurantePublica();
 
     $moneda = Moneda::query()->create([
-        'codigo' => 'USDP',
+        'codigo' => 'USP',
         'nombre' => 'Dolar Publica',
         'simbolo' => '$',
         'es_predeterminada' => true,
@@ -70,7 +70,7 @@ test('normaliza canal de pago transferencia y no requiere stripe', function (): 
     $espacio = crearMesaRestaurantePublica();
 
     $moneda = Moneda::query()->create([
-        'codigo' => 'USDT',
+        'codigo' => 'UST',
         'nombre' => 'Dolar Transfer',
         'simbolo' => '$',
         'es_predeterminada' => true,

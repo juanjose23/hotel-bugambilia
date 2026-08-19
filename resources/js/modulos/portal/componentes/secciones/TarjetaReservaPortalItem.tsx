@@ -1,5 +1,4 @@
 import { Link } from '@inertiajs/react';
-import { useState } from 'react';
 import {
     Calendar,
     Users,
@@ -16,17 +15,17 @@ import {
     Sparkles,
     Box,
     UserCheck,
-    ChevronRight,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
-import { Badge } from '@/modulos/compartido/ui/insignia';
 import { Button } from '@/modulos/compartido/ui/boton';
+import { Badge } from '@/modulos/compartido/ui/insignia';
 import { Card } from '@/modulos/compartido/ui/tarjeta';
 import { formatearNumero } from '@/modulos/compartido/utilidades/formato';
-import ModalSolicitarServicioHabitacion from '../modales/ModalSolicitarServicioHabitacion';
-import ModalPedidoRestauranteHabitacion from '../modales/ModalPedidoRestauranteHabitacion';
-import ModalGestionHuespedesReserva from '../modales/ModalGestionHuespedesReserva';
 import ModalConfirmarLlegadaReserva from '../modales/ModalConfirmarLlegadaReserva';
+import ModalGestionHuespedesReserva from '../modales/ModalGestionHuespedesReserva';
+import ModalPedidoRestauranteHabitacion from '../modales/ModalPedidoRestauranteHabitacion';
+import ModalSolicitarServicioHabitacion from '../modales/ModalSolicitarServicioHabitacion';
 
 interface PropiedadesTarjetaReservaPortalItem {
     reserva: ReservaClienteDomain;
@@ -42,7 +41,8 @@ export const TarjetaReservaPortalItem = ({
     >('cuenta');
 
     const [modalServicioAbierto, setModalServicioAbierto] = useState(false);
-    const [modalRestauranteAbierto, setModalRestauranteAbierto] = useState(false);
+    const [modalRestauranteAbierto, setModalRestauranteAbierto] =
+        useState(false);
     const [modalHuespedesAbierto, setModalHuespedesAbierto] = useState(false);
     const [modalLlegadaAbierto, setModalLlegadaAbierto] = useState(false);
 
@@ -70,42 +70,45 @@ export const TarjetaReservaPortalItem = ({
         saldo_pendiente: 0,
     };
 
-    const activosHabitacion = reserva.activos_habitacion && reserva.activos_habitacion.length > 0
-        ? reserva.activos_habitacion
-        : [
-              {
-                  id: 1,
-                  codigo: 'ACT-TV-55',
-                  nombre: 'Smart TV 55" UHD 4K',
-                  descripcion: 'Televisor con streaming y cable digital',
-                  categoria: 'Entretenimiento',
-                  estado: 'Excelente',
-              },
-              {
-                  id: 2,
-                  codigo: 'ACT-AC-INV',
-                  nombre: 'Aire Acondicionado Inverter Split',
-                  descripcion: 'Climatización ecológica ultrasilenciosa',
-                  categoria: 'Climatización',
-                  estado: 'Excelente',
-              },
-              {
-                  id: 3,
-                  codigo: 'ACT-MNB-01',
-                  nombre: 'Minibar Ejecutivo Térmico',
-                  descripcion: 'Refrigerador personal para bebidas y aperitivos',
-                  categoria: 'Confort',
-                  estado: 'Excelente',
-              },
-              {
-                  id: 4,
-                  codigo: 'ACT-SAF-DIG',
-                  nombre: 'Caja Fuerte Digital de Alta Seguridad',
-                  descripcion: 'Bóveda electrónica para laptop y objetos de valor',
-                  categoria: 'Seguridad',
-                  estado: 'Excelente',
-              },
-          ];
+    const activosHabitacion =
+        reserva.activos_habitacion && reserva.activos_habitacion.length > 0
+            ? reserva.activos_habitacion
+            : [
+                  {
+                      id: 1,
+                      codigo: 'ACT-TV-55',
+                      nombre: 'Smart TV 55" UHD 4K',
+                      descripcion: 'Televisor con streaming y cable digital',
+                      categoria: 'Entretenimiento',
+                      estado: 'Excelente',
+                  },
+                  {
+                      id: 2,
+                      codigo: 'ACT-AC-INV',
+                      nombre: 'Aire Acondicionado Inverter Split',
+                      descripcion: 'Climatización ecológica ultrasilenciosa',
+                      categoria: 'Climatización',
+                      estado: 'Excelente',
+                  },
+                  {
+                      id: 3,
+                      codigo: 'ACT-MNB-01',
+                      nombre: 'Minibar Ejecutivo Térmico',
+                      descripcion:
+                          'Refrigerador personal para bebidas y aperitivos',
+                      categoria: 'Confort',
+                      estado: 'Excelente',
+                  },
+                  {
+                      id: 4,
+                      codigo: 'ACT-SAF-DIG',
+                      nombre: 'Caja Fuerte Digital de Alta Seguridad',
+                      descripcion:
+                          'Bóveda electrónica para laptop y objetos de valor',
+                      categoria: 'Seguridad',
+                      estado: 'Excelente',
+                  },
+              ];
 
     return (
         <Card className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/80 bg-card p-0 font-sans shadow-xs transition-all duration-300 hover:border-bugambilia-500/40 hover:shadow-lg">
@@ -117,7 +120,7 @@ export const TarjetaReservaPortalItem = ({
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">
+                            <span className="text-[10px] font-extrabold tracking-wider text-muted-foreground uppercase">
                                 Reserva:
                             </span>
                             <Link
@@ -129,7 +132,7 @@ export const TarjetaReservaPortalItem = ({
                         </div>
                         <Link
                             href={`/portal/reserva/${reserva.id}?codigo=${encodeURIComponent(reserva.codigo_reserva)}`}
-                            className="text-sm font-black text-foreground hover:text-bugambilia-600 transition-colors sm:text-base"
+                            className="text-sm font-black text-foreground transition-colors hover:text-bugambilia-600 sm:text-base"
                         >
                             {reserva.detalles}
                         </Link>
@@ -164,11 +167,11 @@ export const TarjetaReservaPortalItem = ({
 
             {/* Pestañas Interactivas del Huésped */}
             <div className="border-b border-border/60 bg-muted/20 px-4 pt-2">
-                <div className="flex space-x-1 overflow-x-auto no-scrollbar scroll-smooth">
+                <div className="no-scrollbar flex space-x-1 overflow-x-auto scroll-smooth">
                     <button
                         type="button"
                         onClick={() => setPestanaActiva('cuenta')}
-                        className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                        className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                             pestanaActiva === 'cuenta'
                                 ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -181,7 +184,7 @@ export const TarjetaReservaPortalItem = ({
                     <button
                         type="button"
                         onClick={() => setPestanaActiva('huespedes')}
-                        className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                        className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                             pestanaActiva === 'huespedes'
                                 ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -194,20 +197,22 @@ export const TarjetaReservaPortalItem = ({
                     <button
                         type="button"
                         onClick={() => setPestanaActiva('activos')}
-                        className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                        className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                             pestanaActiva === 'activos'
                                 ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <Box className="size-3.5" />
-                        <span>Habitación & Activos ({activosHabitacion.length})</span>
+                        <span>
+                            Habitación & Activos ({activosHabitacion.length})
+                        </span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setPestanaActiva('servicios')}
-                        className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                        className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                             pestanaActiva === 'servicios'
                                 ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -220,7 +225,7 @@ export const TarjetaReservaPortalItem = ({
                     <button
                         type="button"
                         onClick={() => setPestanaActiva('restaurante')}
-                        className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                        className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                             pestanaActiva === 'restaurante'
                                 ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -233,7 +238,7 @@ export const TarjetaReservaPortalItem = ({
             </div>
 
             {/* Contenido Según Pestaña Activa */}
-            <div className="p-5 sm:p-6 grow space-y-4">
+            <div className="grow space-y-4 p-5 sm:p-6">
                 {/* 1. PESTAÑA: ESTADO DE CUENTA & CARGOS (ITEMIZED CHARGES) */}
                 {pestanaActiva === 'cuenta' && (
                     <div className="space-y-4">
@@ -262,15 +267,17 @@ export const TarjetaReservaPortalItem = ({
                                     </span>
                                     <span className="text-xs font-extrabold text-foreground">
                                         {reserva.adultos} Adulto(s){' '}
-                                        {reserva.ninos > 0 ? `, ${reserva.ninos} Niño(s)` : ''}
+                                        {reserva.ninos > 0
+                                            ? `, ${reserva.ninos} Niño(s)`
+                                            : ''}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Tabla de Cargos Detallados (Itemized Charges) */}
-                        <div className="rounded-2xl border border-border/80 bg-background overflow-hidden shadow-2xs">
-                            <div className="border-b border-border/60 bg-muted/40 px-4 py-2.5 flex items-center justify-between">
+                        <div className="overflow-hidden rounded-2xl border border-border/80 bg-background shadow-2xs">
+                            <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 py-2.5">
                                 <span className="text-xs font-black text-foreground">
                                     Desglose de Cargos & Consumos
                                 </span>
@@ -290,7 +297,8 @@ export const TarjetaReservaPortalItem = ({
                                                 {cargo.descripcion}
                                             </span>
                                             <span className="block text-[10px] font-medium text-muted-foreground">
-                                                {cargo.fecha} — {cargo.categoria}
+                                                {cargo.fecha} —{' '}
+                                                {cargo.categoria}
                                             </span>
                                         </div>
                                         <span className="font-mono font-black text-foreground">
@@ -301,32 +309,47 @@ export const TarjetaReservaPortalItem = ({
                             </div>
 
                             {/* Resumen Financiero Footer */}
-                            <div className="border-t border-border/80 bg-muted/30 p-4 space-y-1.5 text-xs">
-                                <div className="flex justify-between text-muted-foreground font-medium">
+                            <div className="space-y-1.5 border-t border-border/80 bg-muted/30 p-4 text-xs">
+                                <div className="flex justify-between font-medium text-muted-foreground">
                                     <span>Subtotal:</span>
-                                    <span className="font-mono">${formatearNumero(estadoCuenta.subtotal)}</span>
+                                    <span className="font-mono">
+                                        $
+                                        {formatearNumero(estadoCuenta.subtotal)}
+                                    </span>
                                 </div>
-                                <div className="flex justify-between text-muted-foreground font-medium">
+                                <div className="flex justify-between font-medium text-muted-foreground">
                                     <span>Impuestos & Tasas (15%):</span>
-                                    <span className="font-mono">${formatearNumero(estadoCuenta.impuestos)}</span>
+                                    <span className="font-mono">
+                                        $
+                                        {formatearNumero(
+                                            estadoCuenta.impuestos,
+                                        )}
+                                    </span>
                                 </div>
-                                <div className="flex justify-between font-black text-foreground text-sm pt-1 border-t border-border/50">
+                                <div className="flex justify-between border-t border-border/50 pt-1 text-sm font-black text-foreground">
                                     <span>Monto Total:</span>
-                                    <span className="font-mono text-foreground">${formatearNumero(estadoCuenta.total)}</span>
+                                    <span className="font-mono text-foreground">
+                                        ${formatearNumero(estadoCuenta.total)}
+                                    </span>
                                 </div>
 
                                 {/* Saldo Pendiente Card estilo LuxeStay */}
                                 <div className="mt-3 flex items-center justify-between rounded-2xl bg-slate-900 p-3.5 text-white dark:bg-slate-950">
                                     <div>
-                                        <span className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                                        <span className="block text-[10px] font-extrabold tracking-wider text-slate-400 uppercase">
                                             Saldo Pendiente
                                         </span>
                                         <span className="text-[11px] font-medium text-emerald-400">
-                                            {estadoCuenta.saldo_pendiente > 0 ? 'Pago pendiente en recepción' : '¡Totalmente Cancelado!'}
+                                            {estadoCuenta.saldo_pendiente > 0
+                                                ? 'Pago pendiente en recepción'
+                                                : '¡Totalmente Cancelado!'}
                                         </span>
                                     </div>
                                     <span className="font-mono text-lg font-black text-white">
-                                        ${formatearNumero(estadoCuenta.saldo_pendiente)}
+                                        $
+                                        {formatearNumero(
+                                            estadoCuenta.saldo_pendiente,
+                                        )}
                                     </span>
                                 </div>
                             </div>
@@ -345,7 +368,9 @@ export const TarjetaReservaPortalItem = ({
                                 </h4>
                             </div>
                             <p className="mt-1 text-xs font-medium text-muted-foreground">
-                                Administre los datos e identificaciones de los huéspedes acompañantes para agilizar el registro en recepción.
+                                Administre los datos e identificaciones de los
+                                huéspedes acompañantes para agilizar el registro
+                                en recepción.
                             </p>
                         </div>
 
@@ -361,7 +386,7 @@ export const TarjetaReservaPortalItem = ({
                             <Button
                                 variant="outline"
                                 onClick={() => setModalLlegadaAbierto(true)}
-                                className="rounded-full font-extrabold text-foreground border-border hover:bg-muted"
+                                className="rounded-full border-border font-extrabold text-foreground hover:bg-muted"
                             >
                                 <UserCheck className="mr-1.5 size-4 text-emerald-600 dark:text-emerald-400" />
                                 Confirmar Hora de Llegada
@@ -374,7 +399,7 @@ export const TarjetaReservaPortalItem = ({
                 {pestanaActiva === 'activos' && (
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <h4 className="text-xs font-black text-foreground uppercase tracking-wider">
+                            <h4 className="text-xs font-black tracking-wider text-foreground uppercase">
                                 Equipamiento e Inventario Fijo Incluido
                             </h4>
                             <Badge variant="outline" className="text-[10px]">
@@ -400,7 +425,7 @@ export const TarjetaReservaPortalItem = ({
                                                 {activo.codigo}
                                             </span>
                                         </div>
-                                        <p className="text-[11px] font-medium text-muted-foreground line-clamp-1">
+                                        <p className="line-clamp-1 text-[11px] font-medium text-muted-foreground">
                                             {activo.descripcion}
                                         </p>
                                         <div className="flex items-center gap-2 pt-1">
@@ -429,7 +454,9 @@ export const TarjetaReservaPortalItem = ({
                                 </h4>
                             </div>
                             <p className="mt-1 text-xs font-medium text-muted-foreground">
-                                Solicite toallas adicionales, servicio de limpieza, lavandería o asistencia técnica de forma inmediata.
+                                Solicite toallas adicionales, servicio de
+                                limpieza, lavandería o asistencia técnica de
+                                forma inmediata.
                             </p>
                         </div>
 
@@ -456,7 +483,9 @@ export const TarjetaReservaPortalItem = ({
                                 </h4>
                             </div>
                             <p className="mt-1 text-xs font-medium text-muted-foreground">
-                                Disfrute del menú exclusivo del restaurante Hotel Bugambilias directo en la comodidad de su estancia.
+                                Disfrute del menú exclusivo del restaurante
+                                Hotel Bugambilias directo en la comodidad de su
+                                estancia.
                             </p>
                         </div>
 
@@ -495,7 +524,10 @@ export const TarjetaReservaPortalItem = ({
                         className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground transition-colors hover:bg-muted"
                     >
                         <FileText className="size-3.5 text-bugambilia-600 dark:text-bugambilia-400" />
-                        <span><span className="hidden sm:inline">Invoice / </span>Voucher PDF</span>
+                        <span>
+                            <span className="hidden sm:inline">Invoice / </span>
+                            Voucher PDF
+                        </span>
                     </a>
                 </div>
 
@@ -540,4 +572,3 @@ export const TarjetaReservaPortalItem = ({
 };
 
 export default TarjetaReservaPortalItem;
-

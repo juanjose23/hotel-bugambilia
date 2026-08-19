@@ -10,7 +10,7 @@ use App\Repository\Models\Activos\ActivoBaja;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use Illuminate\Support\Collection;
 
-class ObtenerHistorialMovimientosUseCase
+final class ObtenerHistorialMovimientosUseCase
 {
     /**
      * @return array{activo: Activo|null, lineaTiempo: Collection<int, array<string, mixed>>}

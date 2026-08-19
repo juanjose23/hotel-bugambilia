@@ -183,9 +183,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/mermas/excel', [ReporteInventarioController::class, 'mermasExcel'])->middleware('can:Inventario:ReporteMermas')->name('mermas.excel');
         Route::get('/valorizacion/pdf', [ReporteInventarioController::class, 'valorizacionPdf'])->middleware('can:Inventario:ReporteValorizacion')->name('valorizacion.pdf');
         Route::get('/valorizacion/excel', [ReporteInventarioController::class, 'valorizacionExcel'])->middleware('can:Inventario:ReporteValorizacion')->name('valorizacion.excel');
+        Route::get('/rotacion/pdf', [ReporteInventarioController::class, 'rotacionPdf'])->middleware('can:Inventario:ReporteRotacion')->name('rotacion.pdf');
         Route::get('/rotacion/excel', [ReporteInventarioController::class, 'rotacionExcel'])->middleware('can:Inventario:ReporteRotacion')->name('rotacion.excel');
         Route::get('/mermas-totales/excel', [ReporteInventarioController::class, 'mermasTotalesExcel'])->middleware('can:Inventario:ReporteMermasTotales')->name('mermas-totales.excel');
         Route::get('/trazabilidad/{loteId}/pdf', [ReporteInventarioController::class, 'trazabilidadLotePdf'])->middleware('can:Inventario:ReporteTrazabilidad')->name('trazabilidad.pdf');
+        Route::get('/stock-minimo/pdf', [ReporteInventarioController::class, 'stockMinimoPdf'])->middleware('can:Inventario:ReporteStockMinimo')->name('stock-minimo.pdf');
+        Route::get('/stock-minimo/excel', [ReporteInventarioController::class, 'stockMinimoExcel'])->middleware('can:Inventario:ReporteStockMinimo')->name('stock-minimo.excel');
+        Route::get('/ajustes/pdf', [ReporteInventarioController::class, 'ajustesPdf'])->middleware('can:Inventario:ReporteAjustes')->name('ajustes.pdf');
+        Route::get('/ajustes/excel', [ReporteInventarioController::class, 'ajustesExcel'])->middleware('can:Inventario:ReporteAjustes')->name('ajustes.excel');
+        Route::get('/costo-ventas/pdf', [ReporteInventarioController::class, 'costoVentasPdf'])->middleware('can:Inventario:ReporteCostoVentas')->name('costo-ventas.pdf');
+        Route::get('/costo-ventas/excel', [ReporteInventarioController::class, 'costoVentasExcel'])->middleware('can:Inventario:ReporteCostoVentas')->name('costo-ventas.excel');
     });
 
     // Servicios

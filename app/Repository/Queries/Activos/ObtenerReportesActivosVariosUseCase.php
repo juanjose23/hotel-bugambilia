@@ -9,7 +9,7 @@ use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoBaja;
 use Illuminate\Database\Eloquent\Collection;
 
-class ObtenerReportesActivosVariosUseCase
+final class ObtenerReportesActivosVariosUseCase
 {
     /**
      * @param  array<string, mixed>  $filtros
@@ -63,7 +63,7 @@ class ObtenerReportesActivosVariosUseCase
     public function dadosDeBaja(): Collection
     {
         return ActivoBaja::with([
-            'activo',
+            'activo.producto',
             'creadoPor',
         ])
             ->orderBy('fecha_baja', 'desc')

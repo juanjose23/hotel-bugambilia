@@ -11,7 +11,7 @@ use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoBaja;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 
-class ObtenerEstadisticasReportesUseCase
+final class ObtenerEstadisticasReportesUseCase
 {
     public function __construct(
         private readonly CalcularDepreciacionActivo $calcularDepreciacion,
@@ -43,13 +43,16 @@ class ObtenerEstadisticasReportesUseCase
 
         $totalBajas = ActivoBaja::count();
 
-        $valorTotalNeto = Activo::where('estado', '!=', EstadoActivo::DadoDeBaja->value)
-            ->get()
-            ->sum(fn (Activo $a) => $this->calcularDepreciacion->ejecutar(
+        $valorTotalNeto = 0.0;
+        foreach (Activo::where('estado', '!=', EstadoActivo::DadoDeBaja->value)
+            ->select(['id', 'costo_adquisicion', 'vida_util_meses', 'fecha_adquisicion'])
+            ->cursor() as $a) {
+            $valorTotalNeto += $this->calcularDepreciacion->ejecutar(
                 costoAdquisicion: $a->costo_adquisicion !== null ? (float) $a->costo_adquisicion : null,
                 vidaUtilMeses: $a->vida_util_meses !== null ? (int) $a->vida_util_meses : null,
                 fechaAdquisicion: $a->fecha_adquisicion,
-            )['valor_libros'] ?? 0.0);
+            )['valor_libros'] ?? 0.0;
+        }
 
         return [
             'totalActivos' => $totalActivos,

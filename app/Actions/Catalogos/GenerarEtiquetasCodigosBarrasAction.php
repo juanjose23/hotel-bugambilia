@@ -30,11 +30,12 @@ final class GenerarEtiquetasCodigosBarrasAction
 
     public function __construct(
         private readonly BarcodeGenerator $barcodeGenerator,
+        private readonly TipoPaginaResolver $tipoPaginaResolver,
     ) {}
 
     public function ejecutar(ProductoFiltrosData $filtros): PdfDocumento
     {
-        [$tamanoPapel, $orientacion] = app(TipoPaginaResolver::class)
+        [$tamanoPapel, $orientacion] = $this->tipoPaginaResolver
             ->resolver($filtros->tipoPagina);
 
         $layout = new LayoutPdf(
@@ -66,9 +67,9 @@ final class GenerarEtiquetasCodigosBarrasAction
             'filtrosResueltos' => $this->prepararFiltros($filtros),
             'columnas' => TiposReporte::ETIQUETA->configuracion()->columnas ?? 4,
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
         ])->setPaper(
             $tamanoPapel->dompdfName(),
             $orientacion->dompdfName(),

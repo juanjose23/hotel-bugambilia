@@ -14,7 +14,7 @@ use App\Repository\Models\Reservas\Reserva;
 
 test('sincroniza totales de cuenta desde reserva', function (): void {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USD-SYNC',
+        'codigo' => 'USY',
         'nombre' => 'Dolar Sync',
         'simbolo' => '$',
         'es_predeterminada' => true,

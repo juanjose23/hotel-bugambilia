@@ -19,6 +19,6 @@
     $valor = $estado?->value ?? null;
     $colores = $mapa[$valor] ?? ['color' => '#6b7280', 'bg' => '#f3f4f6'];
 @endphp
-<span class="badge" @isset($cssClass) class="{{ $cssClass }}" @endisset style="background:{{ $colores['bg'] }};color:{{ $colores['color'] }};border:1px solid {{ $colores['color'] }};{{ $style ?? '' }}">
+<span class="badge{{ isset($cssClass) ? ' ' . $cssClass : '' }}" style="background:{{ $colores['bg'] }};color:{{ $colores['color'] }};border:1px solid {{ $colores['color'] }};{{ $style ?? '' }}">
     {{ $estado?->label() ?? '—' }}
 </span>

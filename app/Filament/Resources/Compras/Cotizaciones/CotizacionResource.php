@@ -64,6 +64,9 @@ class CotizacionResource extends Resource
                 'creadaPor',
                 'elegidaPor',
                 'ordenCompra',
+                'moneda',
+                'items.producto',
+                'items.variante',
             ])
             ->withCount([
                 'items as items_elegidos_count' => fn ($q) => $q->where('es_elegido', true),

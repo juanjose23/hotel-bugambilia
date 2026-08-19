@@ -41,11 +41,7 @@ final class GenerarReporteOrdenCompraPdfAction
         $codigoReporte = 'HTB-COM-003';
         $nombreReporte = 'Orden de Compra';
 
-        $layout = new LayoutPdf(
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
-        );
+        $layout = new LayoutPdf;
 
         $pdf = Pdf::loadView('reports.compras.ordenes_compra.orden-compra', [
             'ordenCompra' => $ordenCompraConRelaciones,
@@ -56,9 +52,9 @@ final class GenerarReporteOrdenCompraPdfAction
             'simboloMoneda' => $simboloMoneda,
             'datosHotel' => $datosHotel,
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
         ])->setPaper('letter', 'portrait');
 
         $this->guardarAuditoria(

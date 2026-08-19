@@ -21,11 +21,7 @@ final class GenerarReporteTrazabilidadCompletaPdfAction
         $nombreReporte = 'Trazabilidad Completa del Proceso de Compra';
         $datosHotel = HotelInfo::getBaseData();
 
-        $layout = new LayoutPdf(
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
-        );
+        $layout = new LayoutPdf;
 
         $pdf = Pdf::loadView('reports.compras.analisis.trazabilidad-completa', [
             'solicitud' => $reportData->solicitud,
@@ -36,10 +32,15 @@ final class GenerarReporteTrazabilidadCompletaPdfAction
             'nombreReporte' => $nombreReporte,
             'datosHotel' => $datosHotel,
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
-        ])->setPaper('letter', 'portrait');
+            'pageMarginLeft' => $layout->margenLateralMm,
+            'pageContentHeight' => $layout->altoContenidoMm(),
+            'pageContentWidth' => $layout->anchoContenidoMm(),
+        ])->setPaper(
+            $layout->tamano->dompdfName(),
+            $layout->orientacion->dompdfName(),
+        );
 
         $solicitudCodigo = isset($reportData->solicitud->codigo)
             ? $reportData->solicitud->codigo

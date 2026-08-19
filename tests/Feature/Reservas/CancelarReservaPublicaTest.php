@@ -12,7 +12,7 @@ use App\Repository\Models\Reservas\Reserva;
 
 test('cancela reserva publica y retorna estado cancelado', function (): void {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USDC',
+        'codigo' => 'USC',
         'nombre' => 'Dolar Cancel',
         'simbolo' => '$',
         'es_predeterminada' => true,
