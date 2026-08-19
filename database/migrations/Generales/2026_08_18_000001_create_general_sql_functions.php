@@ -14,8 +14,8 @@ return new class extends Migration
         }
 
         $pdo = DB::connection()->getPdo();
-        $pdo->exec($this->sql('funciones/General/TipoObtenerNombre.sql'));
-        $pdo->exec($this->sql('funciones/General/FuncionObtenerNombre.sql'));
+        $pdo->exec($this->sql('General/TipoObtenerNombre.sql'));
+        $pdo->exec($this->sql('General/FuncionObtenerNombre.sql'));
     }
 
     public function down(): void
