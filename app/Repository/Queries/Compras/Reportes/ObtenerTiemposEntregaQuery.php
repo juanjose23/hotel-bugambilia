@@ -52,7 +52,7 @@ final class ObtenerTiemposEntregaQuery
             ->join('proveedores as prov', 'oc.proveedor_id', '=', 'prov.id')
             ->select(
                 'prov.id as proveedor_id',
-                DB::raw("coalesce(obtener_nombre_completo(prov.persona_id), 'Sin Proveedor') as proveedor_nombre"),
+                DB::raw("coalesce(obtener_nombre_completo(prov.persona_id::int), 'Sin Proveedor') as proveedor_nombre"),
                 'oc.fecha_orden',
                 'rc.fecha_recepcion'
             )

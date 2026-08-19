@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Activos;
 
+use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoAsignacion;
 use App\Repository\Models\Espacios\Espacio;
@@ -11,8 +12,12 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
-class ObtenerActivosPorUbicacionUseCase
+final class ObtenerActivosPorUbicacionUseCase
 {
+    public function __construct(
+        private readonly ConvertirMoneda $convertirMoneda
+    ) {}
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -58,14 +63,14 @@ class ObtenerActivosPorUbicacionUseCase
     private function construirEntradaUbicacion(ActivoAsignacion $first, Collection $items): array
     {
         $activosFiltrados = $items->pluck('activo')->filter()->values();
-        $subtotal = $activosFiltrados->sum(fn ($a) => (float) (($a instanceof Activo ? $a->costo_adquisicion : 0) ?? 0));
+        $subtotal = $activosFiltrados->sum(fn ($a) => (float) ($a instanceof Activo ? $this->convertirMoneda->aBase((float) ($a->costo_adquisicion ?? 0), $a->moneda_id) : 0));
 
         return [
             'tipo' => $this->etiquetaTipo($first->asignable_type),
             'nombre' => $first->destinoLabel(),
             'activos' => $activosFiltrados,
             'subtotal' => $subtotal,
-            'moneda' => $this->simboloMoneda($activosFiltrados->first()),
+            'moneda' => 'C$',
         ];
     }
 
@@ -76,10 +81,5 @@ class ObtenerActivosPorUbicacionUseCase
             Espacio::class => 'Espacio',
             default => 'Ubicación',
         };
-    }
-
-    private function simboloMoneda(mixed $primerActivo): string
-    {
-        return $primerActivo instanceof Activo ? ($primerActivo->moneda->simbolo ?? '$') : '$';
     }
 }

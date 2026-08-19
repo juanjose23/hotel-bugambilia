@@ -8,7 +8,7 @@ use App\Enums\Activos\EstadoPlanMantenimiento;
 use App\Repository\Models\Activos\ActPlanMantenimiento;
 use Illuminate\Support\Collection;
 
-class ObtenerPlanesMantenimientoPreventivosActivos
+final class ObtenerPlanesMantenimientoPreventivosActivos
 {
     /** @return Collection<int, ActPlanMantenimiento> */
     public function ejecutar(): Collection

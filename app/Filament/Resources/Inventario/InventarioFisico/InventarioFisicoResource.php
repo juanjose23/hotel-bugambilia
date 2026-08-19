@@ -27,7 +27,7 @@ class InventarioFisicoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ClipboardDocumentCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventario';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventario & Productos';
 
     protected static ?string $navigationLabel = 'Tomas de Inventario';
 

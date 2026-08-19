@@ -105,7 +105,7 @@ final readonly class ReporteConfig
                     'ruta_excel' => null,
                 ],
                 'resumen_departamentos' => [
-                    'codigo' => 'HTB-COM-005',
+                    'codigo' => 'HTB-COM-017',
                     'titulo' => 'Resumen por Departamento',
                     'descripcion' => 'Resumen acumulado del gasto en compras por departamento solicitante.',
                     'ruta_pdf' => 'admin.compras.reportes.resumen-departamentos',
@@ -162,15 +162,22 @@ final readonly class ReporteConfig
                     'ruta_pdf' => 'admin.inventario.reportes.stock-producto.pdf',
                     'ruta_excel' => 'admin.inventario.reportes.stock-producto.excel',
                 ],
-                'vencidos' => [
+                'movimientos' => [
                     'codigo' => 'HTB-INV-002',
+                    'titulo' => 'Movimientos de Inventario',
+                    'descripcion' => 'Historial de todos los movimientos de entradas, salidas, traslados y devoluciones.',
+                    'ruta_pdf' => 'admin.inventario.reportes.movimientos.pdf',
+                    'ruta_excel' => 'admin.inventario.reportes.movimientos.excel',
+                ],
+                'vencidos' => [
+                    'codigo' => 'HTB-INV-012',
                     'titulo' => 'Productos Vencidos',
                     'descripcion' => 'Descarga la lista de lotes cuya fecha de vencimiento ya expiró.',
                     'ruta_pdf' => 'admin.inventario.reportes.vencidos.pdf',
                     'ruta_excel' => 'admin.inventario.reportes.vencidos.excel',
                 ],
                 'proximos_vencer' => [
-                    'codigo' => 'HTB-INV-003',
+                    'codigo' => 'HTB-INV-005',
                     'titulo' => 'Próximos Vencimientos',
                     'descripcion' => 'Filtra los productos que expiran en los siguientes días.',
                     'ruta_pdf' => 'admin.inventario.reportes.proximos-vencer.pdf',
@@ -184,42 +191,42 @@ final readonly class ReporteConfig
                     'ruta_excel' => 'admin.inventario.reportes.cuarentena.excel',
                 ],
                 'valorizacion' => [
-                    'codigo' => 'HTB-INV-005',
+                    'codigo' => 'HTB-INV-007',
                     'titulo' => 'Valorización de Almacén',
                     'descripcion' => 'Genera el costo acumulado de todo el stock activo en Córdobas.',
                     'ruta_pdf' => 'admin.inventario.reportes.valorizacion.pdf',
                     'ruta_excel' => 'admin.inventario.reportes.valorizacion.excel',
                 ],
                 'rotacion' => [
-                    'codigo' => 'HTB-INV-006',
+                    'codigo' => 'HTB-INV-008',
                     'titulo' => 'Rotación de Inventario',
                     'descripcion' => 'Analiza el movimiento promedio mensual de tus artículos.',
-                    'ruta_pdf' => null,
+                    'ruta_pdf' => 'admin.inventario.reportes.rotacion.pdf',
                     'ruta_excel' => 'admin.inventario.reportes.rotacion.excel',
                 ],
                 'mermas' => [
-                    'codigo' => 'HTB-INV-007',
+                    'codigo' => 'HTB-INV-006',
                     'titulo' => 'Mermas y Pérdidas',
                     'descripcion' => 'Filtra los productos desechados o perdidos en un rango de fechas.',
                     'ruta_pdf' => 'admin.inventario.reportes.mermas.pdf',
                     'ruta_excel' => 'admin.inventario.reportes.mermas.excel',
                 ],
                 'stock_minimo' => [
-                    'codigo' => 'HTB-INV-008',
+                    'codigo' => 'HTB-INV-009',
                     'titulo' => 'Stock Mínimo y Punto de Pedido',
                     'descripcion' => 'Visualiza qué productos se encuentran bajo los límites mínimos operativos.',
                     'ruta_pdf' => 'admin.inventario.reportes.stock-minimo.pdf',
                     'ruta_excel' => 'admin.inventario.reportes.stock-minimo.excel',
                 ],
                 'ajustes' => [
-                    'codigo' => 'HTB-INV-009',
+                    'codigo' => 'HTB-INV-010',
                     'titulo' => 'Ajustes de Inventario',
                     'descripcion' => 'Historial completo de ajustes de stock, pérdidas o diferencias.',
                     'ruta_pdf' => 'admin.inventario.reportes.ajustes.pdf',
                     'ruta_excel' => 'admin.inventario.reportes.ajustes.excel',
                 ],
                 'costo_ventas' => [
-                    'codigo' => 'HTB-INV-010',
+                    'codigo' => 'HTB-INV-013',
                     'titulo' => 'Análisis de Costo de Ventas',
                     'descripcion' => 'Comparativa entre compras de insumos y consumos del servicio de limpieza.',
                     'ruta_pdf' => 'admin.inventario.reportes.costo-ventas.pdf',
@@ -235,42 +242,42 @@ final readonly class ReporteConfig
                     'ruta_excel' => 'admin.activos.reportes.inventario-general.excel',
                 ],
                 'por_ubicacion' => [
-                    'codigo' => 'HTB-ACT-002',
+                    'codigo' => 'HTB-ACT-005',
                     'titulo' => 'Activos por Ubicación',
                     'descripcion' => 'Agrupa los activos según su asignación actual (habitaciones, áreas comunes, bodegas).',
                     'ruta_pdf' => 'admin.activos.reportes.por-ubicacion.pdf',
                     'ruta_excel' => null,
                 ],
                 'hoja_habitacion' => [
-                    'codigo' => 'HTB-ACT-003',
+                    'codigo' => 'HTB-ACT-013',
                     'titulo' => 'Hoja de Habitación o Espacio',
                     'descripcion' => 'Genera el inventario de activos fijos asignados a una habitación o espacio en particular.',
                     'ruta_pdf' => 'admin.activos.reportes.hoja-habitacion.pdf',
                     'ruta_excel' => null,
                 ],
                 'espacios_asignados' => [
-                    'codigo' => 'HTB-ACT-004',
+                    'codigo' => 'HTB-ACT-015',
                     'titulo' => 'Activos por Espacio',
                     'descripcion' => 'Lista todos los activos fijos asignados a cada espacio o área común (restaurante, salones, gimnasio, spa, etc.).',
                     'ruta_pdf' => 'admin.activos.reportes.por-ubicacion.pdf',
                     'ruta_excel' => null,
                 ],
                 'ficha_espacio' => [
-                    'codigo' => 'HTB-ACT-005',
+                    'codigo' => 'HTB-ACT-014',
                     'titulo' => 'Ficha de Espacio',
                     'descripcion' => 'Genera la hoja de inventario detallada de un espacio específico con todos sus activos asignados y firmas de control.',
                     'ruta_pdf' => 'admin.activos.reportes.hoja-habitacion.pdf',
                     'ruta_excel' => null,
                 ],
                 'en_mantenimiento' => [
-                    'codigo' => 'HTB-ACT-006',
+                    'codigo' => 'HTB-ACT-007',
                     'titulo' => 'Activos en Mantenimiento',
                     'descripcion' => 'Lista todos los activos que se encuentran actualmente en reparación o mantenimiento.',
                     'ruta_pdf' => 'admin.activos.reportes.en-mantenimiento.pdf',
                     'ruta_excel' => null,
                 ],
                 'manttos_vencidos' => [
-                    'codigo' => 'HTB-ACT-007',
+                    'codigo' => 'HTB-ACT-012',
                     'titulo' => 'Mantenimientos Vencidos',
                     'descripcion' => 'Reporte de todos los mantenimientos cuya fecha programada ya pasó y siguen pendientes.',
                     'ruta_pdf' => 'admin.activos.reportes.mantenimientos-vencidos.pdf',
@@ -284,28 +291,28 @@ final readonly class ReporteConfig
                     'ruta_excel' => null,
                 ],
                 'historial' => [
-                    'codigo' => 'HTB-ACT-009',
+                    'codigo' => 'HTB-ACT-006',
                     'titulo' => 'Historial de Movimientos de un Activo',
                     'descripcion' => 'Línea de tiempo completa de asignaciones, mantenimientos y bajas de un activo específico.',
                     'ruta_pdf' => 'admin.activos.reportes.historial-movimientos.pdf',
                     'ruta_excel' => null,
                 ],
                 'bajas' => [
-                    'codigo' => 'HTB-ACT-010',
+                    'codigo' => 'HTB-ACT-009',
                     'titulo' => 'Activos Dados de Baja',
                     'descripcion' => 'Listado histórico de todos los activos fijos que han sido dados de baja en el hotel.',
                     'ruta_pdf' => 'admin.activos.reportes.dados-de-baja.pdf',
                     'ruta_excel' => null,
                 ],
                 'extraviados' => [
-                    'codigo' => 'HTB-ACT-011',
+                    'codigo' => 'HTB-ACT-010',
                     'titulo' => 'Activos Extraviados',
                     'descripcion' => 'Reportes rápidos para localizar activos marcados como extraviados.',
                     'ruta_pdf' => 'admin.activos.reportes.extraviados.pdf',
                     'ruta_excel' => null,
                 ],
                 'sin_asignacion' => [
-                    'codigo' => 'HTB-ACT-012',
+                    'codigo' => 'HTB-ACT-011',
                     'titulo' => 'Activos Sin Asignar',
                     'descripcion' => 'Reportes rápidos para localizar activos que no tienen ninguna asignación vigente.',
                     'ruta_pdf' => 'admin.activos.reportes.sin-asignacion.pdf',
@@ -372,6 +379,34 @@ final readonly class ReporteConfig
         }
 
         return $ruta;
+    }
+
+    /**
+     * Verifica si un reporte soporta exportación a Excel.
+     */
+    public static function tieneFormatoExcel(string $modulo, ?string $key): bool
+    {
+        if ($key === null) {
+            return false;
+        }
+
+        return ! empty(self::getReportes()[$modulo][$key]['ruta_excel'] ?? null);
+    }
+
+    /**
+     * Retorna los formatos disponibles ('pdf', 'excel') para un reporte.
+     *
+     * @return array<string, string>
+     */
+    public static function getFormatosDisponibles(string $modulo, ?string $key): array
+    {
+        $formatos = ['pdf' => 'Documento PDF (.pdf)'];
+
+        if (self::tieneFormatoExcel($modulo, $key)) {
+            $formatos['excel'] = 'Hoja de Cálculo Excel (.xlsx)';
+        }
+
+        return $formatos;
     }
 
     /**

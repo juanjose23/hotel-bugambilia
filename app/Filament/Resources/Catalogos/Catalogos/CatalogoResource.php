@@ -21,7 +21,7 @@ class CatalogoResource extends Resource
 
     public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return 'Gestión de Catálogos';
+        return 'Configuración';
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null

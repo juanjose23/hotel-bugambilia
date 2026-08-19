@@ -44,13 +44,13 @@ final class ObtenerRotacionComprasQuery
      */
     private function consultarRotacion(CarbonInterface $fechaInicio, CarbonInterface $fechaFin): array
     {
-        $data = DB::table('ordenes_compra_items as oci')
+        $data = DB::table('orden_compra_items as oci')
             ->join('ordenes_compra as oc', 'oci.orden_compra_id', '=', 'oc.id')
             ->join('productos as p', 'oci.producto_id', '=', 'p.id')
-            ->leftJoin('producto_variantes as pv', 'oci.variante_id', '=', 'pv.id')
+            ->leftJoin('producto_variantes as pv', 'oci.producto_variante_id', '=', 'pv.id')
             ->select(
                 'p.nombre as producto_nombre',
-                'pv.sku as variante_codigo',
+                'pv.codigo as variante_codigo',
                 DB::raw('sum(oci.cantidad) as total_cantidad'),
                 DB::raw('sum(oci.subtotal) as total_costo')
             )

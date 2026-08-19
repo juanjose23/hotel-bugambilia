@@ -30,7 +30,7 @@ class ReservaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CalendarDays;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Reservaciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Recepción & Reservas';
 
     protected static ?string $modelLabel = 'Reservación';
 

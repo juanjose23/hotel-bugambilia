@@ -49,7 +49,7 @@ final class CheckOutPage extends Page implements HasForms, HasTable
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-right-on-rectangle';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Reservaciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Recepción & Reservas';
 
     protected static ?string $navigationLabel = 'Check-Out';
 

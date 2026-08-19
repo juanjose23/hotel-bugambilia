@@ -72,9 +72,9 @@ final class GenerarVoucherPDF
             'tokenQr' => $qrResult['token'],
             'fechaEmision' => now()->format('d/m/Y H:i'),
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
         ])->setPaper('letter', 'portrait');
 
         $this->guardarAuditoria(

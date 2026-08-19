@@ -26,7 +26,7 @@ class DevolucionCompraResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ArrowTurnDownLeft;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Compras';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras & Proveedores';
 
     protected static ?string $navigationLabel = 'Devoluciones';
 

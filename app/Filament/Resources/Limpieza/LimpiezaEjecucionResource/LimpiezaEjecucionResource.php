@@ -28,7 +28,7 @@ class LimpiezaEjecucionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CheckBadge;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
+    protected static string|UnitEnum|null $navigationGroup = 'Limpieza & Lavandería';
 
     protected static ?string $modelLabel = 'Ejecución de Limpieza';
 

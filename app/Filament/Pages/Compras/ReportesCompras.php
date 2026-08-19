@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Compras;
 
+use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Filament\Shared\Forms\ReporteFiltros;
-use App\Repository\Models\Compras\Cotizacion;
-use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Models\User;
+use App\Repository\Queries\Compras\Reportes\BuscarTrazabilidadPorCodigoQuery;
+use App\Repository\Queries\Compras\Reportes\ObtenerSolicitudParaReporteQuery;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\Action;
@@ -31,7 +32,14 @@ use UnitEnum;
  */
 class ReportesCompras extends Page implements HasForms, HasTable
 {
-    use HasPageShield, InteractsWithForms, InteractsWithTable;
+    use HasPageShield, InteractsWithForms, InteractsWithTable, ManejaPaginaReporte;
+
+    protected ObtenerSolicitudParaReporteQuery $solicitudQuery;
+
+    public function getModuloReportes(): string
+    {
+        return 'compras';
+    }
 
     protected string $view = 'filament.resources.compras.reportes-compras';
 
@@ -39,7 +47,7 @@ class ReportesCompras extends Page implements HasForms, HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Compras';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras & Proveedores';
 
     protected static ?string $navigationLabel = 'Reportes de Compras';
 
@@ -56,6 +64,11 @@ class ReportesCompras extends Page implements HasForms, HasTable
     public ?int $selectedSolicitudId = null;
 
     public ?string $selectedCodigo = null;
+
+    public function boot(ObtenerSolicitudParaReporteQuery $solicitudQuery): void
+    {
+        $this->solicitudQuery = $solicitudQuery;
+    }
 
     public function mount(): void
     {
@@ -94,13 +107,15 @@ class ReportesCompras extends Page implements HasForms, HasTable
     public function descargarReporte(): null
     {
         $data = $this->reportForm->getState();
+        $data['pageSize'] = $this->pageSize;
+        $data['orientation'] = $this->orientation;
         $url = ReporteFiltros::getUrlReporte($data);
         $this->dispatch('open-new-tab', url: $url);
 
         return null;
     }
 
-    public function buscarTrazabilidad(): null
+    public function buscarTrazabilidad(BuscarTrazabilidadPorCodigoQuery $query): null
     {
         $data = $this->searchForm->getState();
         $codigoValue = $data['codigo'] ?? null;
@@ -110,24 +125,7 @@ class ReportesCompras extends Page implements HasForms, HasTable
             return null;
         }
 
-        // 1. Buscar en Solicitud directamente
-        $solicitud = Solicitud::where('codigo', $codigo)->first();
-
-        // 2. Si no es, buscar en Cotización
-        if (! $solicitud) {
-            $cotizacion = Cotizacion::where('codigo', $codigo)->first();
-            if ($cotizacion) {
-                $solicitud = $cotizacion->solicitud;
-            }
-        }
-
-        // 3. Si no es, buscar en Orden de Compra
-        if (! $solicitud) {
-            $oc = OrdenCompra::where('codigo', $codigo)->first();
-            if ($oc) {
-                $solicitud = $oc->solicitud;
-            }
-        }
+        $solicitud = $query->ejecutar($codigo);
 
         if (! $solicitud) {
             Notification::make()
@@ -230,15 +228,8 @@ class ReportesCompras extends Page implements HasForms, HasTable
     {
         $solicitud = null;
         if ($this->selectedSolicitudId) {
-            $solicitud = Solicitud::with([
-                'items.producto',
-                'cotizaciones.proveedor',
-                'cotizaciones.items.solicitudItem.producto',
-                'ordenesCompra.proveedor',
-                'ordenesCompra.items',
-                'ordenesCompra.recepciones.items',
-                'ordenesCompra.recepciones.creador.persona',
-            ])->find($this->selectedSolicitudId);
+            $solicitud = $this->solicitudQuery
+                ->ejecutar($this->selectedSolicitudId);
         }
 
         return [

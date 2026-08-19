@@ -8,7 +8,7 @@ use App\Enums\Activos\EstadoMantenimiento;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use Illuminate\Database\Eloquent\Collection;
 
-class ObtenerMantenimientosVencidosUseCase
+final class ObtenerMantenimientosVencidosUseCase
 {
     /**
      * @return Collection<int, ActivoMantenimiento>

@@ -142,7 +142,7 @@ test('webhook charge.refunded procesa y marca la transacción y el pago como ree
 });
 
 test('cancelar reserva con pago Stripe procesa reembolso real', function () {
-    $moneda = Moneda::query()->create(['codigo' => 'USD2', 'nombre' => 'Dólar 2', 'simbolo' => '$', 'es_predeterminada' => true]);
+    $moneda = Moneda::query()->create(['codigo' => 'US2', 'nombre' => 'Dólar 2', 'simbolo' => '$', 'es_predeterminada' => true]);
     $persona = Persona::factory()->create();
     $tipo = CatalogoTipo::query()->create(['codigo' => 'TIPO_TEST_R2', 'nombre' => 'Tipo R2', 'estado' => 1]);
     $cat = Catalogo::query()->create(['codigo' => 'CAT_TEST_R2', 'nombre' => 'Cat R2', 'estado' => 1, 'catalogo_tipo_id' => $tipo->id]);

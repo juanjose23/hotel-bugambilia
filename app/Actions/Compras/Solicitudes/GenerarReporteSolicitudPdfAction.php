@@ -71,11 +71,7 @@ final class GenerarReporteSolicitudPdfAction
 
     private function construirLayout(): LayoutPdf
     {
-        return new LayoutPdf(
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
-        );
+        return new LayoutPdf;
     }
 
     /**
@@ -89,9 +85,9 @@ final class GenerarReporteSolicitudPdfAction
             'nombreReporte' => $nombreReporte,
             'datosHotel' => HotelInfo::getBaseData(),
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
         ], $extra);
     }
 }

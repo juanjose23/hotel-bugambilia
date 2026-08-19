@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Reservas;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ReporteController;
 use App\Interactors\Reportes\Reservas\GenerarReporteReserva;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-final class ReporteReservaController extends Controller
+final class ReporteReservaController extends ReporteController
 {
     public function ocupacionPdf(Request $request, GenerarReporteReserva $reporte): Response
     {
@@ -17,6 +17,7 @@ final class ReporteReservaController extends Controller
             fechaInicio: $this->fechaRequest($request, 'fecha_inicio', now()->startOfMonth()->format('Y-m-d')),
             fechaFin: $this->fechaRequest($request, 'fecha_fin', now()->format('Y-m-d')),
             estado: $this->textoRequest($request, 'estado'),
+            formatoPagina: $this->textoRequest($request, 'formato_pagina'),
         );
     }
 
@@ -26,6 +27,7 @@ final class ReporteReservaController extends Controller
             fechaInicio: $this->fechaRequest($request, 'fecha_inicio', now()->startOfMonth()->format('Y-m-d')),
             fechaFin: $this->fechaRequest($request, 'fecha_fin', now()->format('Y-m-d')),
             tipoPago: $this->textoRequest($request, 'tipo_pago'),
+            formatoPagina: $this->textoRequest($request, 'formato_pagina'),
         );
     }
 
@@ -35,30 +37,21 @@ final class ReporteReservaController extends Controller
             fechaInicio: $this->fechaRequest($request, 'fecha_inicio', now()->startOfMonth()->format('Y-m-d')),
             fechaFin: $this->fechaRequest($request, 'fecha_fin', now()->format('Y-m-d')),
             estado: $this->textoRequest($request, 'estado'),
+            formatoPagina: $this->textoRequest($request, 'formato_pagina'),
         );
     }
 
-    public function huespedesPdf(GenerarReporteReserva $reporte): Response
+    public function huespedesPdf(Request $request, GenerarReporteReserva $reporte): Response
     {
-        return $reporte->huespedesPdf();
+        return $reporte->huespedesPdf(
+            formatoPagina: $this->textoRequest($request, 'formato_pagina'),
+        );
     }
 
-    public function rendimientoHabitacionesPdf(GenerarReporteReserva $reporte): Response
+    public function rendimientoHabitacionesPdf(Request $request, GenerarReporteReserva $reporte): Response
     {
-        return $reporte->rendimientoHabitacionesPdf();
-    }
-
-    private function fechaRequest(Request $request, string $campo, string $porDefecto): string
-    {
-        $valor = $request->input($campo);
-
-        return is_string($valor) && $valor !== '' ? $valor : $porDefecto;
-    }
-
-    private function textoRequest(Request $request, string $campo): ?string
-    {
-        $valor = $request->input($campo);
-
-        return is_string($valor) && $valor !== '' ? $valor : null;
+        return $reporte->rendimientoHabitacionesPdf(
+            formatoPagina: $this->textoRequest($request, 'formato_pagina'),
+        );
     }
 }

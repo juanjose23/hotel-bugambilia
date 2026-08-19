@@ -31,7 +31,7 @@ class CotizacionResource extends Resource
 
     public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return 'Compras';
+        return 'Compras & Proveedores';
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null
@@ -64,6 +64,9 @@ class CotizacionResource extends Resource
                 'creadaPor',
                 'elegidaPor',
                 'ordenCompra',
+                'moneda',
+                'items.producto',
+                'items.variante',
             ])
             ->withCount([
                 'items as items_elegidos_count' => fn ($q) => $q->where('es_elegido', true),

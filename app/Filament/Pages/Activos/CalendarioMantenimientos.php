@@ -22,7 +22,7 @@ class CalendarioMantenimientos extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CalendarDays;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Activos Fijos';
+    protected static string|UnitEnum|null $navigationGroup = 'Activos & Mantenimiento';
 
     protected static ?string $navigationLabel = 'Calendario de Mantenimiento';
 

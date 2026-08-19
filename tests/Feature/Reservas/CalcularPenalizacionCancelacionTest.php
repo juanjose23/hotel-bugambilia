@@ -21,7 +21,7 @@ test('calcula penalización gratuita cuando la cancelación se realiza con sufic
     $tipo = CatalogoTipo::query()->create(['codigo' => 'TIPO_TEST_1', 'nombre' => 'Tipo Test 1', 'estado' => 1]);
     $cat = Catalogo::query()->create(['codigo' => 'CAT_TEST_1', 'nombre' => 'Cat Test 1', 'estado' => 1, 'catalogo_tipo_id' => $tipo->id]);
     $cliente = Cliente::query()->create(['persona_id' => $persona->id, 'catalogo_id' => $cat->id, 'codigo_cliente' => 'CLI-TEST-1', 'estado' => 1]);
-    $moneda = Moneda::query()->create(['codigo' => 'USD1', 'nombre' => 'Dólar 1', 'simbolo' => '$', 'es_predeterminada' => true]);
+    $moneda = Moneda::query()->create(['codigo' => 'US1', 'nombre' => 'Dólar 1', 'simbolo' => '$', 'es_predeterminada' => true]);
 
     /** @var Politica $politica */
     $politica = Politica::query()->create([
@@ -91,7 +91,7 @@ test('calcula 100% de penalización cuando la cancelación es el mismo día o no
     $tipo = CatalogoTipo::query()->create(['codigo' => 'TIPO_TEST_2', 'nombre' => 'Tipo Test 2', 'estado' => 1]);
     $cat = Catalogo::query()->create(['codigo' => 'CAT_TEST_2', 'nombre' => 'Cat Test 2', 'estado' => 1, 'catalogo_tipo_id' => $tipo->id]);
     $cliente = Cliente::query()->create(['persona_id' => $persona->id, 'catalogo_id' => $cat->id, 'codigo_cliente' => 'CLI-TEST-2', 'estado' => 1]);
-    $moneda = Moneda::query()->create(['codigo' => 'USD2', 'nombre' => 'Dólar 2', 'simbolo' => '$', 'es_predeterminada' => true]);
+    $moneda = Moneda::query()->create(['codigo' => 'US2', 'nombre' => 'Dólar 2', 'simbolo' => '$', 'es_predeterminada' => true]);
 
     /** @var Politica $politica */
     $politica = Politica::query()->create([

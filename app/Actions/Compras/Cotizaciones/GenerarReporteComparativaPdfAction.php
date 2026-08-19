@@ -28,11 +28,7 @@ final class GenerarReporteComparativaPdfAction
         $nombreReporte = 'Cuadro Comparativo de Cotizaciones';
         $datosHotel = HotelInfo::getBaseData();
 
-        $layout = new LayoutPdf(
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
-        );
+        $layout = new LayoutPdf;
 
         $pdf = Pdf::loadView('reports.compras.cotizaciones.comparativa', [
             'record' => $solicitudConRelaciones,
@@ -40,9 +36,9 @@ final class GenerarReporteComparativaPdfAction
             'nombreReporte' => $nombreReporte,
             'datosHotel' => $datosHotel,
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
         ])->setPaper('letter');
 
         $this->guardarAuditoria(

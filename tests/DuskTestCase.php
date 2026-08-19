@@ -52,7 +52,10 @@ abstract class DuskTestCase extends BaseTestCase
      */
     protected static function usingSeleniumGrid(): bool
     {
-        return isset($_ENV['BROWSER']) || isset($_ENV['DUSK_DRIVER_URL']);
+        return isset($_ENV['BROWSER'])
+            || isset($_ENV['DUSK_DRIVER_URL'])
+            || getenv('BROWSER') !== false
+            || getenv('DUSK_DRIVER_URL') !== false;
     }
 
     /**

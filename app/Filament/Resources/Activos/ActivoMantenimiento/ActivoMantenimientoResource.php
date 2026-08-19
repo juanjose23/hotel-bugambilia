@@ -27,7 +27,7 @@ class ActivoMantenimientoResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::WrenchScrewdriver;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Activos Fijos';
+    protected static UnitEnum|string|null $navigationGroup = 'Activos & Mantenimiento';
 
     protected static ?string $navigationLabel = 'Mantenimiento';
 

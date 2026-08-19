@@ -1,12 +1,19 @@
 import { Head, Link } from '@inertiajs/react';
+import {
+    User,
+    Lock,
+    Calendar,
+    Receipt,
+    CreditCard,
+    ShieldCheck,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
-import { User, Lock, Calendar, Receipt, CreditCard, ShieldCheck } from 'lucide-react';
-import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
-import { LayoutPortalCliente } from '@/modulos/portal/componentes/layouts/LayoutPortalCliente';
-import { Card } from '@/modulos/compartido/ui/tarjeta';
-import { Badge } from '@/modulos/compartido/ui/insignia';
-import { usePropiedadesPagina } from '@/modulos/compartido/hooks/usePropiedadesPagina';
 import { FormularioCambiarContrasena } from '@/modulos/autenticacion/componentes/FormularioCambiarContrasena';
+import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
+import { usePropiedadesPagina } from '@/modulos/compartido/hooks/usePropiedadesPagina';
+import { Badge } from '@/modulos/compartido/ui/insignia';
+import { Card } from '@/modulos/compartido/ui/tarjeta';
+import { LayoutPortalCliente } from '@/modulos/portal/componentes/layouts/LayoutPortalCliente';
 
 interface PropiedadesCuentaCliente {
     reservas?: ReservaClienteDomain[];
@@ -41,7 +48,8 @@ export const CuentaCliente = ({ reservas = [] }: PropiedadesCuentaCliente) => {
                             </div>
                             <div>
                                 <h1 className="text-xl font-black text-foreground sm:text-2xl">
-                                    {usuario?.name || 'Huésped Hotel Bugambilias'}
+                                    {usuario?.name ||
+                                        'Huésped Hotel Bugambilias'}
                                 </h1>
                                 <p className="text-xs font-medium text-muted-foreground">
                                     {usuario?.email || 'Cuenta de usuario'}
@@ -51,7 +59,7 @@ export const CuentaCliente = ({ reservas = [] }: PropiedadesCuentaCliente) => {
 
                         <Badge
                             variant="outline"
-                            className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 self-start sm:self-center"
+                            className="self-start border-emerald-500/40 bg-emerald-500/10 text-emerald-600 sm:self-center dark:text-emerald-400"
                         >
                             <ShieldCheck className="mr-1 size-3.5" />
                             Huésped Autenticado
@@ -60,7 +68,7 @@ export const CuentaCliente = ({ reservas = [] }: PropiedadesCuentaCliente) => {
 
                     {/* Resumen de Estadísticas de Cuenta */}
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <Card className="p-4 flex items-center gap-3">
+                        <Card className="flex items-center gap-3 p-4">
                             <div className="flex size-10 items-center justify-center rounded-xl bg-bugambilia-500/10 text-bugambilia-600 dark:text-bugambilia-400">
                                 <Calendar className="size-5" />
                             </div>
@@ -74,7 +82,7 @@ export const CuentaCliente = ({ reservas = [] }: PropiedadesCuentaCliente) => {
                             </div>
                         </Card>
 
-                        <Card className="p-4 flex items-center gap-3">
+                        <Card className="flex items-center gap-3 p-4">
                             <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                                 <Receipt className="size-5" />
                             </div>
@@ -88,7 +96,7 @@ export const CuentaCliente = ({ reservas = [] }: PropiedadesCuentaCliente) => {
                             </div>
                         </Card>
 
-                        <Card className="p-4 flex items-center gap-3">
+                        <Card className="flex items-center gap-3 p-4">
                             <div className="flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
                                 <CreditCard className="size-5" />
                             </div>
@@ -104,10 +112,10 @@ export const CuentaCliente = ({ reservas = [] }: PropiedadesCuentaCliente) => {
                     </div>
 
                     {/* Formulario de Cambio de Contraseña & Seguridad */}
-                    <Card className="p-6 space-y-4">
+                    <Card className="space-y-4 p-6">
                         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
                             <Lock className="size-4 text-bugambilia-600 dark:text-bugambilia-400" />
-                            <h2 className="text-sm font-black text-foreground uppercase tracking-wider">
+                            <h2 className="text-sm font-black tracking-wider text-foreground uppercase">
                                 Seguridad & Cambio de Contraseña
                             </h2>
                         </div>

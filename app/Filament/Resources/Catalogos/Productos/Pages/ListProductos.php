@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Catalogos\Productos\Pages;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
-use App\Interactors\Catalogos\Productos\ExportarProductos;
 use App\Interactors\Catalogos\Productos\GenerarReporteProductos;
 use App\Interactors\Catalogos\Productos\ImportarProductos;
 use App\Jobs\GenerarReporteJob;
@@ -109,11 +108,17 @@ class ListProductos extends ListRecords
                 ->label('Excel')
                 ->icon(Heroicon::TableCells)
                 ->color('success')
-                ->schema($sharedFilters())
+                ->schema([
+                    ...$sharedFilters(),
+                    Checkbox::make('incluir_variantes')
+                        ->label('Incluir variantes')
+                        ->default(false),
+                ])
                 ->action(function (array $data) {
-                    $path = app(ExportarProductos::class)->ejecutar($data);
-
-                    return response()->download($path);
+                    return app(GenerarReporteProductos::class)->excel(
+                        $data,
+                        ! empty($data['incluir_variantes'])
+                    );
                 }),
 
             ActionGroup::make([

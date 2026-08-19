@@ -12,6 +12,8 @@ use Illuminate\Support\Collection;
 
 final readonly class ReportePaginador
 {
+    private const int MARGEN_SEGURIDAD_MM = 6;
+
     private LayoutPdf $layout;
 
     public function __construct(?LayoutPdf $layout = null)
@@ -30,7 +32,7 @@ final readonly class ReportePaginador
         Collection $items,
         TiposReporte $tipo,
         ?CalculadorAltura $calculador = null,
-        int $altoExtraPrimeraPaginaMm = 30,
+        int $altoExtraPrimeraPaginaMm = 0,
     ): array {
         $config = $tipo->configuracion();
 
@@ -48,15 +50,20 @@ final readonly class ReportePaginador
             return $this->paginarEtiquetas($items, $config);
         }
 
-        return $this->chunkParaPdf($items, $config->altoFilaMm, $altoExtraPrimeraPaginaMm);
+        return $this->chunkParaPdf(
+            items: $items,
+            altoFilaMm: $config->altoFilaMm,
+            altoExtraPrimeraPaginaMm: $altoExtraPrimeraPaginaMm,
+            altoEncabezadoMm: $config->altoEncabezadoMm,
+        );
     }
 
     public function filasPorPagina(
         int $altoFilaMm = 7,
         int $altoEncabezadoMm = 5,
-        int $margenSeguridad = 0,
+        int $margenSeguridad = 2,
     ): int {
-        $disponible = $this->layout->areaUtilMm - $altoEncabezadoMm;
+        $disponible = $this->altoDisponibleTabla($altoEncabezadoMm) - $this->layout->altoEncabezadoMm;
         $filas = (int) floor($disponible / max(1, $altoFilaMm)) - $margenSeguridad;
 
         return max(1, $filas);
@@ -81,17 +88,22 @@ final readonly class ReportePaginador
     public function chunkParaPdf(
         Collection $items,
         int $altoFilaMm = 7,
-        int $altoExtraPrimeraPaginaMm = 30,
+        int $altoExtraPrimeraPaginaMm = 0,
+        int $altoEncabezadoMm = 9,
     ): array {
-        $filasTotales = $this->filasPorPagina(altoFilaMm: $altoFilaMm);
+        $filasTotales = $this->filasPorPagina(
+            altoFilaMm: $altoFilaMm,
+            altoEncabezadoMm: $altoEncabezadoMm,
+            margenSeguridad: 2,
+        );
 
         if ($altoExtraPrimeraPaginaMm <= 0 || $filasTotales <= 1) {
             return $this->dividirEnPaginas($items, $filasTotales);
         }
 
         $altoFila = max(1, $altoFilaMm);
-        $disponible = $this->layout->areaUtilMm - 5;
-        $filasPrimeraPagina = max(1, (int) floor(($disponible - $altoExtraPrimeraPaginaMm) / $altoFila));
+        $disponible = $this->altoDisponibleTabla($altoEncabezadoMm);
+        $filasPrimeraPagina = max(0, (int) floor(($disponible - $altoExtraPrimeraPaginaMm) / $altoFila) - 2);
 
         if ($items->count() <= $filasPrimeraPagina) {
             return [$items->values()];
@@ -162,9 +174,9 @@ final readonly class ReportePaginador
         int $altoBase,
         CalculadorAltura $calculador,
         int $altoEncabezadoMm = 9,
-        int $altoExtraPrimeraPaginaMm = 30,
+        int $altoExtraPrimeraPaginaMm = 0,
     ): array {
-        $disponible = max(1, $this->layout->areaUtilMm - $altoEncabezadoMm);
+        $disponible = $this->altoDisponibleTabla($altoEncabezadoMm);
         $paginas = [];
         $paginaActual = [];
         $acumulado = 0;
@@ -178,6 +190,12 @@ final readonly class ReportePaginador
                 $altoExtraPrimeraPaginaMm,
                 $esPrimeraPagina,
             );
+
+            if ($disponibleActual <= 0 && $esPrimeraPagina) {
+                $paginas[] = collect();
+                $esPrimeraPagina = false;
+                $disponibleActual = $disponible;
+            }
 
             if ($acumulado + $alto > $disponibleActual && ! empty($paginaActual)) {
                 $paginas[] = collect($paginaActual);
@@ -204,7 +222,12 @@ final readonly class ReportePaginador
     private function disponibleActual(int $disponible, int $altoExtraPrimeraPaginaMm, bool $esPrimeraPagina): int
     {
         return $esPrimeraPagina
-            ? max(1, $disponible - $altoExtraPrimeraPaginaMm)
-            : $disponible;
+            ? $disponible - $altoExtraPrimeraPaginaMm
+            : $disponible - $this->layout->altoEncabezadoMm;
+    }
+
+    private function altoDisponibleTabla(int $altoEncabezadoMm = 5): int
+    {
+        return max(1, $this->layout->areaUtilMm - $altoEncabezadoMm - self::MARGEN_SEGURIDAD_MM);
     }
 }

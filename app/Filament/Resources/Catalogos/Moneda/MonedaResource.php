@@ -25,7 +25,7 @@ class MonedaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Banknotes;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración';
 
     protected static ?string $navigationLabel = 'Monedas';
 

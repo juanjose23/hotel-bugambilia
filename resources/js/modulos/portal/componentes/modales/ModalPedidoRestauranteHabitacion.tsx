@@ -1,11 +1,18 @@
+import {
+    Utensils,
+    CheckCircle2,
+    ShoppingBag,
+    X,
+    Plus,
+    Minus,
+} from 'lucide-react';
 import { useState } from 'react';
-import { Utensils, CheckCircle2, ShoppingBag, X, Plus, Minus } from 'lucide-react';
+import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
 import { Button } from '@/modulos/compartido/ui/boton';
 import { Input } from '@/modulos/compartido/ui/entrada';
 import { Label } from '@/modulos/compartido/ui/etiqueta';
 import { Badge } from '@/modulos/compartido/ui/insignia';
 import { formatearNumero } from '@/modulos/compartido/utilidades/formato';
-import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
 
 interface PropiedadesModalPedidoRestauranteHabitacion {
     reserva: ReservaClienteDomain | null;
@@ -26,7 +33,8 @@ const MENU_ROOM_SERVICE: ItemMenu[] = [
     {
         id: 1,
         nombre: 'Desayuno Típico Nica Bugambilias',
-        descripcion: 'Huevos al gusto, gallopinto tradicional, queso frito, plátanos y tortillas de maíz.',
+        descripcion:
+            'Huevos al gusto, gallopinto tradicional, queso frito, plátanos y tortillas de maíz.',
         precio: 9.5,
         categoria: 'Desayunos',
         emoji: '🍳',
@@ -34,7 +42,8 @@ const MENU_ROOM_SERVICE: ItemMenu[] = [
     {
         id: 2,
         nombre: 'Filete Mignon en Salsa de Champiñones',
-        descripcion: 'Corte magro a la parrilla con reducción de vino tinto, vegetales salteados y puré de papa.',
+        descripcion:
+            'Corte magro a la parrilla con reducción de vino tinto, vegetales salteados y puré de papa.',
         precio: 18.0,
         categoria: 'Platos Fuertes',
         emoji: '🥩',
@@ -42,7 +51,8 @@ const MENU_ROOM_SERVICE: ItemMenu[] = [
     {
         id: 3,
         nombre: 'Club Sándwich Bugambilias & Papas Fritas',
-        descripcion: 'Pollo desmenuzado, jamón, tocino crocante, queso fundido, lechuga y tomate fresco.',
+        descripcion:
+            'Pollo desmenuzado, jamón, tocino crocante, queso fundido, lechuga y tomate fresco.',
         precio: 11.0,
         categoria: 'Snacks & Sándwiches',
         emoji: '🥪',
@@ -50,7 +60,8 @@ const MENU_ROOM_SERVICE: ItemMenu[] = [
     {
         id: 4,
         nombre: 'Café Gourmet Esteliano',
-        descripcion: 'Café de estricta altura de Matagalpa/Estelí, recién molido.',
+        descripcion:
+            'Café de estricta altura de Matagalpa/Estelí, recién molido.',
         precio: 3.0,
         categoria: 'Bebidas',
         emoji: '☕',
@@ -58,7 +69,8 @@ const MENU_ROOM_SERVICE: ItemMenu[] = [
     {
         id: 5,
         nombre: 'Limonada de Coco Helada',
-        descripcion: 'Bebida refrescante de limón criollo con crema de coco orgánico.',
+        descripcion:
+            'Bebida refrescante de limón criollo con crema de coco orgánico.',
         precio: 4.5,
         categoria: 'Bebidas',
         emoji: '🍹',
@@ -83,17 +95,21 @@ export const ModalPedidoRestauranteHabitacion = ({
         setCarrito((prev) => {
             const actual = prev[itemId] || 0;
             const nueva = Math.max(0, actual + delta);
+
             if (nueva === 0) {
                 const copia = { ...prev };
                 delete copia[itemId];
+
                 return copia;
             }
+
             return { ...prev, [itemId]: nueva };
         });
     };
 
     const totalCalculado = MENU_ROOM_SERVICE.reduce((acc, item) => {
         const cant = carrito[item.id] || 0;
+
         return acc + item.precio * cant;
     }, 0);
 
@@ -101,7 +117,10 @@ export const ModalPedidoRestauranteHabitacion = ({
 
     const manejarPedido = (e: React.FormEvent) => {
         e.preventDefault();
-        if (totalItems === 0) return;
+
+        if (totalItems === 0) {
+            return;
+        }
 
         setCargando(true);
         setTimeout(() => {
@@ -118,7 +137,7 @@ export const ModalPedidoRestauranteHabitacion = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-200">
             <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-border/80 bg-card p-6 font-sans shadow-2xl md:p-8">
                 {/* Botón de cierre */}
                 <button
@@ -130,7 +149,7 @@ export const ModalPedidoRestauranteHabitacion = ({
                 </button>
 
                 {enviado ? (
-                    <div className="space-y-4 text-center py-6">
+                    <div className="space-y-4 py-6 text-center">
                         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                             <CheckCircle2 className="size-8" />
                         </div>
@@ -138,19 +157,40 @@ export const ModalPedidoRestauranteHabitacion = ({
                             ¡Comanda de Restaurante Enviada!
                         </h3>
                         <p className="text-xs font-medium text-muted-foreground">
-                            Su pedido para la reserva <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">{reserva.codigo_reserva}</span> ha sido enviado a la cocina del restaurante. Se cargará a su estado de cuenta.
+                            Su pedido para la reserva{' '}
+                            <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">
+                                {reserva.codigo_reserva}
+                            </span>{' '}
+                            ha sido enviado a la cocina del restaurante. Se
+                            cargará a su estado de cuenta.
                         </p>
-                        <div className="rounded-2xl border border-border/60 bg-muted/30 p-4 text-left space-y-1 text-xs">
-                            <p className="font-bold text-foreground">Resumen del Pedido:</p>
-                            {MENU_ROOM_SERVICE.filter(i => (carrito[i.id] || 0) > 0).map(i => (
-                                <div key={i.id} className="flex justify-between text-muted-foreground">
-                                    <span>{carrito[i.id]}x {i.nombre}</span>
-                                    <span className="font-mono font-bold">${formatearNumero(i.precio * carrito[i.id])}</span>
+                        <div className="space-y-1 rounded-2xl border border-border/60 bg-muted/30 p-4 text-left text-xs">
+                            <p className="font-bold text-foreground">
+                                Resumen del Pedido:
+                            </p>
+                            {MENU_ROOM_SERVICE.filter(
+                                (i) => (carrito[i.id] || 0) > 0,
+                            ).map((i) => (
+                                <div
+                                    key={i.id}
+                                    className="flex justify-between text-muted-foreground"
+                                >
+                                    <span>
+                                        {carrito[i.id]}x {i.nombre}
+                                    </span>
+                                    <span className="font-mono font-bold">
+                                        $
+                                        {formatearNumero(
+                                            i.precio * carrito[i.id],
+                                        )}
+                                    </span>
                                 </div>
                             ))}
-                            <div className="border-t border-border/60 pt-2 flex justify-between font-black text-foreground text-sm">
+                            <div className="flex justify-between border-t border-border/60 pt-2 text-sm font-black text-foreground">
                                 <span>Total a Cargar:</span>
-                                <span className="text-bugambilia-600 dark:text-bugambilia-400">${formatearNumero(totalCalculado)}</span>
+                                <span className="text-bugambilia-600 dark:text-bugambilia-400">
+                                    ${formatearNumero(totalCalculado)}
+                                </span>
                             </div>
                         </div>
                         <div className="pt-2">
@@ -173,39 +213,50 @@ export const ModalPedidoRestauranteHabitacion = ({
                                 Ordenar al Restaurante
                             </h2>
                             <p className="text-xs font-medium text-muted-foreground">
-                                Entrega directa en {reserva.detalles} — Reserva: <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">{reserva.codigo_reserva}</span>
+                                Entrega directa en {reserva.detalles} — Reserva:{' '}
+                                <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">
+                                    {reserva.codigo_reserva}
+                                </span>
                             </p>
                         </div>
 
                         {/* Lista del Menú */}
-                        <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                        <div className="max-h-64 space-y-2.5 overflow-y-auto pr-1">
                             {MENU_ROOM_SERVICE.map((item) => {
                                 const cantidad = carrito[item.id] || 0;
+
                                 return (
                                     <div
                                         key={item.id}
                                         className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background p-3 shadow-2xs"
                                     >
-                                        <div className="flex items-start gap-2.5 grow">
-                                            <span className="text-2xl">{item.emoji}</span>
+                                        <div className="flex grow items-start gap-2.5">
+                                            <span className="text-2xl">
+                                                {item.emoji}
+                                            </span>
                                             <div>
                                                 <span className="block text-xs font-black text-foreground">
                                                     {item.nombre}
                                                 </span>
-                                                <span className="block text-[10px] font-medium text-muted-foreground line-clamp-1">
+                                                <span className="line-clamp-1 block text-[10px] font-medium text-muted-foreground">
                                                     {item.descripcion}
                                                 </span>
                                                 <span className="mt-0.5 inline-block font-mono text-xs font-extrabold text-bugambilia-600 dark:text-bugambilia-400">
-                                                    ${formatearNumero(item.precio)}
+                                                    $
+                                                    {formatearNumero(
+                                                        item.precio,
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Controles de cantidad */}
-                                        <div className="flex items-center gap-1.5 shrink-0 rounded-full border border-border/80 bg-muted/40 p-1">
+                                        <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/80 bg-muted/40 p-1">
                                             <button
                                                 type="button"
-                                                onClick={() => cambiarCantidad(item.id, -1)}
+                                                onClick={() =>
+                                                    cambiarCantidad(item.id, -1)
+                                                }
                                                 className="flex size-7 cursor-pointer items-center justify-center rounded-full bg-background text-foreground transition-colors hover:bg-muted"
                                             >
                                                 <Minus className="size-3" />
@@ -215,7 +266,9 @@ export const ModalPedidoRestauranteHabitacion = ({
                                             </span>
                                             <button
                                                 type="button"
-                                                onClick={() => cambiarCantidad(item.id, 1)}
+                                                onClick={() =>
+                                                    cambiarCantidad(item.id, 1)
+                                                }
                                                 className="flex size-7 cursor-pointer items-center justify-center rounded-full bg-bugambilia-600 text-white transition-colors hover:bg-bugambilia-700 dark:bg-bugambilia-500"
                                             >
                                                 <Plus className="size-3" />
@@ -233,7 +286,9 @@ export const ModalPedidoRestauranteHabitacion = ({
                             </Label>
                             <Input
                                 value={instrucciones}
-                                onChange={(e) => setInstrucciones(e.target.value)}
+                                onChange={(e) =>
+                                    setInstrucciones(e.target.value)
+                                }
                                 placeholder="Ej: Sin cebolla, entregar con servilletas adicionales"
                                 className="rounded-xl border-border/80 text-xs"
                             />
@@ -255,17 +310,19 @@ export const ModalPedidoRestauranteHabitacion = ({
                                     type="button"
                                     variant="outline"
                                     onClick={resetearYcerrar}
-                                    className="rounded-full font-bold text-xs"
+                                    className="rounded-full text-xs font-bold"
                                 >
                                     Cancelar
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={totalItems === 0 || cargando}
-                                    className="rounded-full bg-bugambilia-600 px-5 text-xs font-extrabold text-white hover:bg-bugambilia-700 dark:bg-bugambilia-500 disabled:opacity-50"
+                                    className="rounded-full bg-bugambilia-600 px-5 text-xs font-extrabold text-white hover:bg-bugambilia-700 disabled:opacity-50 dark:bg-bugambilia-500"
                                 >
                                     <ShoppingBag className="mr-1.5 size-3.5" />
-                                    {cargando ? 'Procesando...' : 'Confirmar Pedido'}
+                                    {cargando
+                                        ? 'Procesando...'
+                                        : 'Confirmar Pedido'}
                                 </Button>
                             </div>
                         </div>

@@ -21,7 +21,7 @@ class StockResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CircleStack;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventario';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventario & Productos';
 
     protected static ?string $navigationLabel = 'Stock en Bodegas';
 

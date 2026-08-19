@@ -1,6 +1,4 @@
 import { Head, Link } from '@inertiajs/react';
-import type { ReactNode } from 'react';
-import { useState } from 'react';
 import {
     ArrowLeft,
     Receipt,
@@ -19,16 +17,18 @@ import {
     Sparkles,
     UserCheck,
 } from 'lucide-react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
-import { LayoutPortalCliente } from '@/modulos/portal/componentes/layouts/LayoutPortalCliente';
-import { Badge } from '@/modulos/compartido/ui/insignia';
 import { Button } from '@/modulos/compartido/ui/boton';
+import { Badge } from '@/modulos/compartido/ui/insignia';
 import { Card } from '@/modulos/compartido/ui/tarjeta';
 import { formatearNumero } from '@/modulos/compartido/utilidades/formato';
-import ModalSolicitarServicioHabitacion from '@/modulos/portal/componentes/modales/ModalSolicitarServicioHabitacion';
-import ModalPedidoRestauranteHabitacion from '@/modulos/portal/componentes/modales/ModalPedidoRestauranteHabitacion';
-import ModalGestionHuespedesReserva from '@/modulos/portal/componentes/modales/ModalGestionHuespedesReserva';
+import { LayoutPortalCliente } from '@/modulos/portal/componentes/layouts/LayoutPortalCliente';
 import ModalConfirmarLlegadaReserva from '@/modulos/portal/componentes/modales/ModalConfirmarLlegadaReserva';
+import ModalGestionHuespedesReserva from '@/modulos/portal/componentes/modales/ModalGestionHuespedesReserva';
+import ModalPedidoRestauranteHabitacion from '@/modulos/portal/componentes/modales/ModalPedidoRestauranteHabitacion';
+import ModalSolicitarServicioHabitacion from '@/modulos/portal/componentes/modales/ModalSolicitarServicioHabitacion';
 import ModalCancelarReserva from '@/modulos/portal/componentes/secciones/ModalCancelarReserva';
 import { usePortalMisReservas } from '@/modulos/portal/hooks/usePortalMisReservas';
 
@@ -69,7 +69,8 @@ export const DetalleReservaPortal = ({
                     Reservación no encontrada
                 </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                    La reservación solicitada no existe o no se encuentra asociada a su cuenta.
+                    La reservación solicitada no existe o no se encuentra
+                    asociada a su cuenta.
                 </p>
                 <Link
                     href="/portal"
@@ -129,7 +130,7 @@ export const DetalleReservaPortal = ({
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">
+                                        <span className="text-[10px] font-extrabold tracking-wider text-muted-foreground uppercase">
                                             Reserva:
                                         </span>
                                         <span className="font-mono text-xs font-black text-bugambilia-600 dark:text-bugambilia-400">
@@ -170,11 +171,11 @@ export const DetalleReservaPortal = ({
 
                         {/* Navegación Pestañas */}
                         <div className="border-b border-border/60 bg-muted/20 px-4 pt-2">
-                            <div className="flex space-x-1 overflow-x-auto no-scrollbar scroll-smooth">
+                            <div className="no-scrollbar flex space-x-1 overflow-x-auto scroll-smooth">
                                 <button
                                     type="button"
                                     onClick={() => setPestanaActiva('cuenta')}
-                                    className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                                    className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                                         pestanaActiva === 'cuenta'
                                             ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                             : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -186,8 +187,10 @@ export const DetalleReservaPortal = ({
 
                                 <button
                                     type="button"
-                                    onClick={() => setPestanaActiva('huespedes')}
-                                    className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                                    onClick={() =>
+                                        setPestanaActiva('huespedes')
+                                    }
+                                    className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                                         pestanaActiva === 'huespedes'
                                             ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                             : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -200,20 +203,25 @@ export const DetalleReservaPortal = ({
                                 <button
                                     type="button"
                                     onClick={() => setPestanaActiva('activos')}
-                                    className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                                    className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                                         pestanaActiva === 'activos'
                                             ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                             : 'border-transparent text-muted-foreground hover:text-foreground'
                                     }`}
                                 >
                                     <Box className="size-3.5" />
-                                    <span>Habitación & Activos ({activosHabitacion.length})</span>
+                                    <span>
+                                        Habitación & Activos (
+                                        {activosHabitacion.length})
+                                    </span>
                                 </button>
 
                                 <button
                                     type="button"
-                                    onClick={() => setPestanaActiva('servicios')}
-                                    className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                                    onClick={() =>
+                                        setPestanaActiva('servicios')
+                                    }
+                                    className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                                         pestanaActiva === 'servicios'
                                             ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                             : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -225,8 +233,10 @@ export const DetalleReservaPortal = ({
 
                                 <button
                                     type="button"
-                                    onClick={() => setPestanaActiva('restaurante')}
-                                    className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all cursor-pointer ${
+                                    onClick={() =>
+                                        setPestanaActiva('restaurante')
+                                    }
+                                    className={`flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 px-3.5 py-2.5 text-xs font-extrabold transition-all ${
                                         pestanaActiva === 'restaurante'
                                             ? 'border-bugambilia-600 text-bugambilia-600 dark:border-bugambilia-400 dark:text-bugambilia-400'
                                             : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -239,7 +249,7 @@ export const DetalleReservaPortal = ({
                         </div>
 
                         {/* Contenido Pestañas */}
-                        <div className="p-5 sm:p-6 space-y-4">
+                        <div className="space-y-4 p-5 sm:p-6">
                             {pestanaActiva === 'cuenta' && (
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -266,15 +276,17 @@ export const DetalleReservaPortal = ({
                                                 </span>
                                                 <span className="text-xs font-extrabold text-foreground">
                                                     {reserva.adultos} Adulto(s){' '}
-                                                    {reserva.ninos > 0 ? `, ${reserva.ninos} Niño(s)` : ''}
+                                                    {reserva.ninos > 0
+                                                        ? `, ${reserva.ninos} Niño(s)`
+                                                        : ''}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Tabla Desglose de Cargos */}
-                                    <div className="rounded-2xl border border-border/80 bg-background overflow-hidden shadow-2xs">
-                                        <div className="border-b border-border/60 bg-muted/40 px-4 py-2.5 flex items-center justify-between">
+                                    <div className="overflow-hidden rounded-2xl border border-border/80 bg-background shadow-2xs">
+                                        <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 py-2.5">
                                             <span className="text-xs font-black text-foreground">
                                                 Desglose de Cargos & Consumos
                                             </span>
@@ -284,51 +296,84 @@ export const DetalleReservaPortal = ({
                                         </div>
 
                                         <div className="divide-y divide-border/60 text-xs">
-                                            {estadoCuenta.cargos.map((cargo) => (
-                                                <div
-                                                    key={cargo.id}
-                                                    className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/20"
-                                                >
-                                                    <div>
-                                                        <span className="block font-bold text-foreground">
-                                                            {cargo.descripcion}
-                                                        </span>
-                                                        <span className="block text-[10px] font-medium text-muted-foreground">
-                                                            {cargo.fecha} — {cargo.categoria}
+                                            {estadoCuenta.cargos.map(
+                                                (cargo) => (
+                                                    <div
+                                                        key={cargo.id}
+                                                        className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/20"
+                                                    >
+                                                        <div>
+                                                            <span className="block font-bold text-foreground">
+                                                                {
+                                                                    cargo.descripcion
+                                                                }
+                                                            </span>
+                                                            <span className="block text-[10px] font-medium text-muted-foreground">
+                                                                {cargo.fecha} —{' '}
+                                                                {
+                                                                    cargo.categoria
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                        <span className="font-mono font-black text-foreground">
+                                                            $
+                                                            {formatearNumero(
+                                                                cargo.monto,
+                                                            )}
                                                         </span>
                                                     </div>
-                                                    <span className="font-mono font-black text-foreground">
-                                                        ${formatearNumero(cargo.monto)}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                ),
+                                            )}
                                         </div>
 
-                                        <div className="border-t border-border/80 bg-muted/30 p-4 space-y-1.5 text-xs">
-                                            <div className="flex justify-between text-muted-foreground font-medium">
+                                        <div className="space-y-1.5 border-t border-border/80 bg-muted/30 p-4 text-xs">
+                                            <div className="flex justify-between font-medium text-muted-foreground">
                                                 <span>Subtotal:</span>
-                                                <span className="font-mono">${formatearNumero(estadoCuenta.subtotal)}</span>
+                                                <span className="font-mono">
+                                                    $
+                                                    {formatearNumero(
+                                                        estadoCuenta.subtotal,
+                                                    )}
+                                                </span>
                                             </div>
-                                            <div className="flex justify-between text-muted-foreground font-medium">
-                                                <span>Impuestos & Tasas (15%):</span>
-                                                <span className="font-mono">${formatearNumero(estadoCuenta.impuestos)}</span>
+                                            <div className="flex justify-between font-medium text-muted-foreground">
+                                                <span>
+                                                    Impuestos & Tasas (15%):
+                                                </span>
+                                                <span className="font-mono">
+                                                    $
+                                                    {formatearNumero(
+                                                        estadoCuenta.impuestos,
+                                                    )}
+                                                </span>
                                             </div>
-                                            <div className="flex justify-between font-black text-foreground text-sm pt-1 border-t border-border/50">
+                                            <div className="flex justify-between border-t border-border/50 pt-1 text-sm font-black text-foreground">
                                                 <span>Monto Total:</span>
-                                                <span className="font-mono text-foreground">${formatearNumero(estadoCuenta.total)}</span>
+                                                <span className="font-mono text-foreground">
+                                                    $
+                                                    {formatearNumero(
+                                                        estadoCuenta.total,
+                                                    )}
+                                                </span>
                                             </div>
 
                                             <div className="mt-3 flex items-center justify-between rounded-2xl bg-slate-900 p-3.5 text-white dark:bg-slate-950">
                                                 <div>
-                                                    <span className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                                                    <span className="block text-[10px] font-extrabold tracking-wider text-slate-400 uppercase">
                                                         Saldo Pendiente
                                                     </span>
                                                     <span className="text-[11px] font-medium text-emerald-400">
-                                                        {estadoCuenta.saldo_pendiente > 0 ? 'Pago pendiente en recepción' : '¡Totalmente Cancelado!'}
+                                                        {estadoCuenta.saldo_pendiente >
+                                                        0
+                                                            ? 'Pago pendiente en recepción'
+                                                            : '¡Totalmente Cancelado!'}
                                                     </span>
                                                 </div>
                                                 <span className="font-mono text-lg font-black text-white">
-                                                    ${formatearNumero(estadoCuenta.saldo_pendiente)}
+                                                    $
+                                                    {formatearNumero(
+                                                        estadoCuenta.saldo_pendiente,
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -342,17 +387,23 @@ export const DetalleReservaPortal = ({
                                         <div className="flex items-center gap-2">
                                             <Users className="size-4 text-bugambilia-600 dark:text-bugambilia-400" />
                                             <h4 className="text-xs font-black text-bugambilia-700 dark:text-bugambilia-300">
-                                                Nómina de Acompañantes Autorizada
+                                                Nómina de Acompañantes
+                                                Autorizada
                                             </h4>
                                         </div>
                                         <p className="mt-1 text-xs font-medium text-muted-foreground">
-                                            Administre los datos e identificaciones de los huéspedes acompañantes para agilizar el registro en recepción.
+                                            Administre los datos e
+                                            identificaciones de los huéspedes
+                                            acompañantes para agilizar el
+                                            registro en recepción.
                                         </p>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-3">
                                         <Button
-                                            onClick={() => setModalActivo('huespedes')}
+                                            onClick={() =>
+                                                setModalActivo('huespedes')
+                                            }
                                             className="rounded-full bg-bugambilia-600 font-extrabold text-white hover:bg-bugambilia-700 dark:bg-bugambilia-500"
                                         >
                                             <Users className="mr-1.5 size-4" />
@@ -361,8 +412,10 @@ export const DetalleReservaPortal = ({
 
                                         <Button
                                             variant="outline"
-                                            onClick={() => setModalActivo('llegada')}
-                                            className="rounded-full font-extrabold text-foreground border-border hover:bg-muted"
+                                            onClick={() =>
+                                                setModalActivo('llegada')
+                                            }
+                                            className="rounded-full border-border font-extrabold text-foreground hover:bg-muted"
                                         >
                                             <UserCheck className="mr-1.5 size-4 text-emerald-600 dark:text-emerald-400" />
                                             Confirmar Hora de Llegada
@@ -374,10 +427,14 @@ export const DetalleReservaPortal = ({
                             {pestanaActiva === 'activos' && (
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="text-xs font-black text-foreground uppercase tracking-wider">
-                                            Equipamiento e Inventario Fijo Incluido
+                                        <h4 className="text-xs font-black tracking-wider text-foreground uppercase">
+                                            Equipamiento e Inventario Fijo
+                                            Incluido
                                         </h4>
-                                        <Badge variant="outline" className="text-[10px]">
+                                        <Badge
+                                            variant="outline"
+                                            className="text-[10px]"
+                                        >
                                             Verificado por Recepción
                                         </Badge>
                                     </div>
@@ -391,21 +448,22 @@ export const DetalleReservaPortal = ({
                                                 <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-bugambilia-500/10 text-bugambilia-600 dark:text-bugambilia-400">
                                                     <Tv className="size-4.5" />
                                                 </div>
-                                                <div className="grow space-y-0.5 min-w-0">
+                                                <div className="min-w-0 grow space-y-0.5">
                                                     <div className="flex items-center justify-between gap-1">
-                                                        <span className="text-xs font-black text-foreground truncate">
+                                                        <span className="truncate text-xs font-black text-foreground">
                                                             {activo.nombre}
                                                         </span>
-                                                        <span className="font-mono text-[9px] font-bold text-muted-foreground shrink-0">
+                                                        <span className="shrink-0 font-mono text-[9px] font-bold text-muted-foreground">
                                                             {activo.codigo}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[11px] font-medium text-muted-foreground line-clamp-1">
+                                                    <p className="line-clamp-1 text-[11px] font-medium text-muted-foreground">
                                                         {activo.descripcion}
                                                     </p>
                                                     <div className="flex items-center gap-2 pt-1">
                                                         <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
-                                                            Estado: {activo.estado}
+                                                            Estado:{' '}
+                                                            {activo.estado}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -421,17 +479,23 @@ export const DetalleReservaPortal = ({
                                         <div className="flex items-center gap-2">
                                             <Sparkles className="size-4 text-bugambilia-600 dark:text-bugambilia-400" />
                                             <h4 className="text-xs font-black text-bugambilia-700 dark:text-bugambilia-300">
-                                                Atención Directa & Mucama Express
+                                                Atención Directa & Mucama
+                                                Express
                                             </h4>
                                         </div>
                                         <p className="mt-1 text-xs font-medium text-muted-foreground">
-                                            Solicite toallas adicionales, servicio de limpieza, lavandería o asistencia técnica de forma inmediata.
+                                            Solicite toallas adicionales,
+                                            servicio de limpieza, lavandería o
+                                            asistencia técnica de forma
+                                            inmediata.
                                         </p>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-3">
                                         <Button
-                                            onClick={() => setModalActivo('servicio')}
+                                            onClick={() =>
+                                                setModalActivo('servicio')
+                                            }
                                             className="rounded-full bg-bugambilia-600 font-extrabold text-white hover:bg-bugambilia-700 dark:bg-bugambilia-500"
                                         >
                                             <Bell className="mr-1.5 size-4" />
@@ -451,13 +515,18 @@ export const DetalleReservaPortal = ({
                                             </h4>
                                         </div>
                                         <p className="mt-1 text-xs font-medium text-muted-foreground">
-                                            Disfrute del menú exclusivo del restaurante Hotel Bugambilias directo en la comodidad de su estancia.
+                                            Disfrute del menú exclusivo del
+                                            restaurante Hotel Bugambilias
+                                            directo en la comodidad de su
+                                            estancia.
                                         </p>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-3">
                                         <Button
-                                            onClick={() => setModalActivo('restaurante')}
+                                            onClick={() =>
+                                                setModalActivo('restaurante')
+                                            }
                                             className="rounded-full bg-amber-600 font-extrabold text-white hover:bg-amber-700 dark:bg-amber-500"
                                         >
                                             <Utensils className="mr-1.5 size-4" />

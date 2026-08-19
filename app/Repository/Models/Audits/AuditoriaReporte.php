@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository\Models\Audits;
 
 use App\Repository\Models\User;
@@ -16,8 +18,9 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property string $tipo_reporte
  * @property array<string, mixed>|null $parametros
  * @property string|null $ruta_archivo
- * @property int $conteo_descargas
- * @property Carbon|null $ultima_descarga_en
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  */
 class AuditoriaReporte extends Model implements AuditableContract
 {
@@ -29,7 +32,6 @@ class AuditoriaReporte extends Model implements AuditableContract
 
     protected $casts = [
         'parametros' => 'array',
-        'ultima_descarga_en' => 'datetime',
     ];
 
     /** @return BelongsTo<User, $this> */

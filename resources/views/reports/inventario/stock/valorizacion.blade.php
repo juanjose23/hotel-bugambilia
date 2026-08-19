@@ -9,8 +9,10 @@
         'datosHotel' => $datosHotel,
         'fechaInicio' => now()->toDateString(),
         'fechaFin' => now()->toDateString(),
-        'extraFilters' => [
-            'Valor Total General' => ($simboloMoneda ?? 'C$') . ' ' . number_format($totalGeneral, 2),
+        'tableData' => [
+            'totalStock' => $totalStock ?? 0,
+            'valorTotal' => $valorTotal ?? 0,
+            'monedaSimbolo' => $monedaSimbolo ?? 'C$',
         ],
         'tableView' => 'reports.inventario.stock.tables.valorizacion',
     ])

@@ -14,6 +14,8 @@ final class HuespedesQuery
      */
     public function todosConReservas(): Collection
     {
-        return Cliente::with(['persona', 'reservas'])->get();
+        return Cliente::with('persona')
+            ->withCount('reservas')
+            ->get();
     }
 }

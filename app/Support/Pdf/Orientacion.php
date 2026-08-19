@@ -37,4 +37,12 @@ enum Orientacion
             self::Horizontal => 'Horizontal',
         };
     }
+
+    public static function fromRequest(?string $orientacion): self
+    {
+        return match (strtolower((string) $orientacion)) {
+            'horizontal', 'landscape' => self::Horizontal,
+            default => self::Vertical,
+        };
+    }
 }

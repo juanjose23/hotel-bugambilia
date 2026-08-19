@@ -67,7 +67,7 @@ test('no cancela reserva que ya esta cancelada cuando pago stripe falla', functi
 
 test('cancela reserva pendiente sin cuenta abierta', function (): void {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USD-SIN-CTA',
+        'codigo' => 'USN',
         'nombre' => 'Dolar Sin Cta',
         'simbolo' => '$',
         'es_predeterminada' => true,
@@ -163,7 +163,7 @@ test('cancela reserva y crea entrada en bitacora', function (): void {
 
 test('transaccion sin reserva no causa error', function (): void {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USD-NO-RES',
+        'codigo' => 'USR',
         'nombre' => 'Dolar Sin Reserva',
         'simbolo' => '$',
         'es_predeterminada' => true,
@@ -312,7 +312,7 @@ function escenarioReservaPendiente(): array
 function escenarioReservaConfirmada(): array
 {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USD-CONF',
+        'codigo' => 'USC',
         'nombre' => 'Dólar Confirmada',
         'simbolo' => '$',
         'es_predeterminada' => true,
@@ -405,7 +405,7 @@ function escenarioReservaConfirmada(): array
 function escenarioReservaYaCancelada(): array
 {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USD-CANC',
+        'codigo' => 'USX',
         'nombre' => 'Dólar Cancelada',
         'simbolo' => '$',
         'es_predeterminada' => true,

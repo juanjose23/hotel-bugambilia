@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Reportes;
 
-use App\Repository\Models\Cuentas\Cuenta;
-use App\Repository\Models\Facturacion\Factura;
-use App\Repository\Models\Reservas\Reserva;
+use App\Filament\Shared\Concerns\ManejaPaginaReporte;
+use App\Repository\Queries\Reportes\ObtenerMetricasEjecutivasQuery;
 use App\Support\ReporteConfig;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -25,7 +24,14 @@ use UnitEnum;
  */
 class ReportesEjecutivos extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+
+    protected ObtenerMetricasEjecutivasQuery $metricasQuery;
+
+    public function getModuloReportes(): string
+    {
+        return 'financiero';
+    }
 
     protected string $view = 'filament.pages.reportes.reportes-ejecutivos';
 
@@ -33,7 +39,7 @@ class ReportesEjecutivos extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ChartPie;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Analítica & Reportes';
+    protected static string|UnitEnum|null $navigationGroup = 'Inicio & Análisis';
 
     protected static ?string $navigationLabel = 'Tablero Ejecutivo & Financiero';
 
@@ -54,6 +60,11 @@ class ReportesEjecutivos extends Page implements HasForms
 
     public int $cantidadReservas = 0;
 
+    public function boot(ObtenerMetricasEjecutivasQuery $metricasQuery): void
+    {
+        $this->metricasQuery = $metricasQuery;
+    }
+
     public function mount(): void
     {
         $this->reportData = [
@@ -65,19 +76,23 @@ class ReportesEjecutivos extends Page implements HasForms
         $this->cargarMetricas();
     }
 
-    public function cargarMetricas(): void
+    public function cargarMetricas(?ObtenerMetricasEjecutivasQuery $metricasQuery = null): void
     {
-        $fechaInicio = $this->reportData['fecha_inicio'] ?? now()->startOfMonth()->format('Y-m-d');
-        $fechaFin = $this->reportData['fecha_fin'] ?? now()->format('Y-m-d');
+        $query = $metricasQuery ?? $this->metricasQuery;
 
-        $queryReserva = Reserva::whereBetween('created_at', [$fechaInicio, $fechaFin]);
-        $this->totalIngresosReservas = (float) $queryReserva->sum('total');
-        $this->totalRecaudado = (float) $queryReserva->sum('total_pagado');
-        $this->cantidadReservas = $queryReserva->count();
+        $rawFechaInicio = $this->reportData['fecha_inicio'] ?? null;
+        $fechaInicio = is_string($rawFechaInicio) ? $rawFechaInicio : now()->startOfMonth()->format('Y-m-d');
 
-        $this->totalCuentasPorCobrar = (float) (Reserva::sum('saldo') + Cuenta::sum('saldo'));
+        $rawFechaFin = $this->reportData['fecha_fin'] ?? null;
+        $fechaFin = is_string($rawFechaFin) ? $rawFechaFin : now()->format('Y-m-d');
 
-        $this->totalFacturadoFiscal = (float) Factura::whereBetween('fecha_emision', [$fechaInicio, $fechaFin])->sum('total');
+        $metricas = $query->ejecutar($fechaInicio, $fechaFin);
+
+        $this->totalIngresosReservas = $metricas['totalIngresosReservas'];
+        $this->totalRecaudado = $metricas['totalRecaudado'];
+        $this->cantidadReservas = $metricas['cantidadReservas'];
+        $this->totalCuentasPorCobrar = $metricas['totalCuentasPorCobrar'];
+        $this->totalFacturadoFiscal = $metricas['totalFacturadoFiscal'];
     }
 
     /** @return array<string, mixed> */
@@ -87,13 +102,13 @@ class ReportesEjecutivos extends Page implements HasForms
             'reportForm' => $this->makeSchema()
                 ->schema([
                     Select::make('reporte')
-                        ->label('Seleccionar Reporte Financiero')
+                        ->label('Reporte Financiero')
                         ->options(ReporteConfig::getSelectOptions('financiero'))
                         ->required()
                         ->live()
                         ->native(false)
                         ->searchable()
-                        ->placeholder('Selecciona un reporte financiero...'),
+                        ->placeholder('Selecciona un reporte de la lista...'),
 
                     TextEntry::make('reporte_descripcion')
                         ->hiddenLabel()
@@ -102,19 +117,17 @@ class ReportesEjecutivos extends Page implements HasForms
 
                     DatePicker::make('fecha_inicio')
                         ->label('Fecha Inicio')
-                        ->default(now()->startOfMonth())
+                        ->default(now()->startOfMonth()->format('Y-m-d'))
                         ->required()
                         ->live()
-                        ->afterStateUpdated(fn () => $this->cargarMetricas())
-                        ->native(false),
+                        ->afterStateUpdated(fn () => $this->cargarMetricas()),
 
                     DatePicker::make('fecha_fin')
                         ->label('Fecha Fin')
-                        ->default(now())
+                        ->default(now()->format('Y-m-d'))
                         ->required()
                         ->live()
-                        ->afterStateUpdated(fn () => $this->cargarMetricas())
-                        ->native(false),
+                        ->afterStateUpdated(fn () => $this->cargarMetricas()),
                 ])
                 ->statePath('reportData'),
         ];
@@ -130,8 +143,10 @@ class ReportesEjecutivos extends Page implements HasForms
         }
 
         $params = [
-            'fecha_inicio' => $data['fecha_inicio'] ?? null,
-            'fecha_fin' => $data['fecha_fin'] ?? null,
+            'fecha_inicio' => $data['fecha_inicio'] ?? now()->startOfMonth()->format('Y-m-d'),
+            'fecha_fin' => $data['fecha_fin'] ?? now()->format('Y-m-d'),
+            'pageSize' => $this->pageSize,
+            'orientation' => $this->orientation,
         ];
 
         try {
@@ -154,6 +169,10 @@ class ReportesEjecutivos extends Page implements HasForms
         $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
         $roleName = is_string($superAdminRole) ? $superAdminRole : 'super_admin';
 
-        return $user->hasRole($roleName) || $user->can('Reservas:ReporteOcupacion');
+        return $user->hasRole($roleName)
+            || $user->can('page_ReportesEjecutivos')
+            || $user->can('Financiero:ReporteResumenEjecutivo')
+            || $user->can('Financiero:ReporteCuentasCobrar')
+            || $user->can('Financiero:ReporteFacturacionVentas');
     }
 }

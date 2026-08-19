@@ -413,7 +413,7 @@
 <main class="ticket">
     <header class="ticket-header">
         <h1 class="hotel-name">
-            Hotel Bugambilias
+            {{ config('hotel.name', 'Hotel Bugambilias') }}
         </h1>
 
         <div class="separator-double"></div>
@@ -605,7 +605,7 @@
             </span>
 
         <span class="total-value">
-                C$ {{ number_format(
+                {{ $simboloMoneda ?? ($pedido->moneda?->simbolo ?? '$') }} {{ number_format(
                     (float) $pedido->subtotal,
                     2,
                     '.',
@@ -616,7 +616,7 @@
 
     <footer class="ticket-footer">
         <p class="footer-brand">
-            Hotel Bugambilias
+            {{ config('hotel.name', 'Hotel Bugambilias') }}
         </p>
 
         <p class="footer-description">

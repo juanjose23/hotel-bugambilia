@@ -10,7 +10,7 @@ use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
-class ObtenerMantenimientosReportesUseCase
+final class ObtenerMantenimientosReportesUseCase
 {
     /**
      * @return EloquentCollection<int, Activo>
@@ -36,7 +36,7 @@ class ObtenerMantenimientosReportesUseCase
     public function mantenimientosVencidos(): EloquentCollection
     {
         return ActivoMantenimiento::with([
-            'activo',
+            'activo.producto',
             'plan.proveedor.persona',
         ])
             ->whereIn('estado', [EstadoMantenimiento::Programado->value, EstadoMantenimiento::EnProceso->value])

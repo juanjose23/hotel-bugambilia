@@ -20,7 +20,7 @@ final class PagoTransaccionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ArrowsRightLeft;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Facturación & Finanzas';
+    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
 
     protected static ?string $navigationLabel = 'Transacciones';
 

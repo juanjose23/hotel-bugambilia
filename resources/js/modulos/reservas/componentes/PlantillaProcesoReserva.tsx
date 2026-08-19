@@ -1,12 +1,12 @@
+import { MapPin, BedDouble, Lock } from 'lucide-react';
 import React, { useState } from 'react';
+import { Badge } from '@/modulos/compartido/ui/insignia';
 import { EncabezadoRecursoReserva } from './EncabezadoRecursoReserva';
 import { IndicadorPasosReserva } from './IndicadorPasosReserva';
 import type { PasoReserva } from './IndicadorPasosReserva';
 import { ListadoErroresFormulario } from './ListadoErroresFormulario';
-import { NavegacionReserva } from './NavegacionReserva';
 import { ModalCondicionesPagoCancelacion } from './ModalCondicionesPagoCancelacion';
-import { Calendar, ShieldCheck, MapPin, BedDouble, Info, CheckCircle2, Lock } from 'lucide-react';
-import { Badge } from '@/modulos/compartido/ui/insignia';
+import { NavegacionReserva } from './NavegacionReserva';
 
 interface PropiedadesPlantillaProcesoReserva {
     nombreRecurso: string;
@@ -49,10 +49,11 @@ export function PlantillaProcesoReserva({
     onSubmit,
     children,
 }: PropiedadesPlantillaProcesoReserva) {
-    const [modalCondicionesAbierto, setModalCondicionesAbierto] = useState(false);
+    const [modalCondicionesAbierto, setModalCondicionesAbierto] =
+        useState(false);
 
     return (
-        <div className="min-h-screen bg-background py-6 text-foreground font-sans transition-colors duration-300">
+        <div className="min-h-screen bg-background py-6 font-sans text-foreground transition-colors duration-300">
             <div className="container mx-auto max-w-6xl px-3 sm:px-6">
                 <EncabezadoRecursoReserva
                     nombre={nombreRecurso}
@@ -78,10 +79,16 @@ export function PlantillaProcesoReserva({
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
                     {/* Columna Principal: Contenido del Wizard */}
                     <div className="lg:col-span-8">
-                        <form onSubmit={onSubmit} className="flex flex-col gap-6">
+                        <form
+                            onSubmit={onSubmit}
+                            className="flex flex-col gap-6"
+                        >
                             <ListadoErroresFormulario errores={errores} />
 
-                            <main key={pasoActual} className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300 flex flex-col gap-6">
+                            <main
+                                key={pasoActual}
+                                className="animate-in fade-in-50 slide-in-from-bottom-2 flex flex-col gap-6 duration-300"
+                            >
                                 {children}
                             </main>
 
@@ -95,10 +102,10 @@ export function PlantillaProcesoReserva({
                     </div>
 
                     {/* Columna Lateral Sticky: Tarjeta Barceló-Style "SU SELECCIÓN" */}
-                    <div className="hidden lg:block lg:col-span-4 sticky top-6 space-y-4">
+                    <div className="sticky top-6 hidden space-y-4 lg:col-span-4 lg:block">
                         <div className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-2xs">
-                            <div className="border-b border-border/60 bg-muted/40 px-4 py-3 flex items-center justify-between">
-                                <span className="text-xs font-black uppercase text-foreground tracking-wider">
+                            <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-4 py-3">
+                                <span className="text-xs font-black tracking-wider text-foreground uppercase">
                                     SU SELECCIÓN
                                 </span>
                                 <Badge className="bg-bugambilia-600 text-[10px] font-black text-white">
@@ -113,17 +120,19 @@ export function PlantillaProcesoReserva({
                                     className="h-full w-full object-cover"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
-                                <div className="absolute bottom-2.5 left-3.5 right-3.5">
-                                    <h3 className="text-sm font-black text-white truncate">
+                                <div className="absolute right-3.5 bottom-2.5 left-3.5">
+                                    <h3 className="truncate text-sm font-black text-white">
                                         {nombreRecurso}
                                     </h3>
                                 </div>
                             </div>
 
-                            <div className="p-4 space-y-3 text-xs">
+                            <div className="space-y-3 p-4 text-xs">
                                 <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                                    <span className="text-muted-foreground font-medium">Ubicación:</span>
-                                    <span className="font-extrabold text-foreground flex items-center gap-1">
+                                    <span className="font-medium text-muted-foreground">
+                                        Ubicación:
+                                    </span>
+                                    <span className="flex items-center gap-1 font-extrabold text-foreground">
                                         <MapPin className="size-3 text-bugambilia-600 dark:text-bugambilia-400" />
                                         {ubicacionRecurso || 'Ala Principal'}
                                     </span>
@@ -131,30 +140,36 @@ export function PlantillaProcesoReserva({
 
                                 {camasRecurso && (
                                     <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                                        <span className="text-muted-foreground font-medium">Capacidad:</span>
-                                        <span className="font-extrabold text-foreground flex items-center gap-1">
+                                        <span className="font-medium text-muted-foreground">
+                                            Capacidad:
+                                        </span>
+                                        <span className="flex items-center gap-1 font-extrabold text-foreground">
                                             <BedDouble className="size-3 text-bugambilia-600 dark:text-bugambilia-400" />
                                             {camasRecurso}
                                         </span>
                                     </div>
                                 )}
 
-                                <div className="rounded-2xl border border-bugambilia-500/30 bg-bugambilia-500/10 p-3 space-y-1.5">
+                                <div className="space-y-1.5 rounded-2xl border border-bugambilia-500/30 bg-bugambilia-500/10 p-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[11px] font-extrabold text-bugambilia-700 dark:text-bugambilia-300 flex items-center gap-1">
+                                        <span className="flex items-center gap-1 text-[11px] font-extrabold text-bugambilia-700 dark:text-bugambilia-300">
                                             <Lock className="size-3.5 text-bugambilia-600" />
                                             Garantía Barceló Resort
                                         </span>
                                         <button
                                             type="button"
-                                            onClick={() => setModalCondicionesAbierto(true)}
-                                            className="text-[10px] font-black text-bugambilia-600 underline hover:text-bugambilia-700 cursor-pointer"
+                                            onClick={() =>
+                                                setModalCondicionesAbierto(true)
+                                            }
+                                            className="cursor-pointer text-[10px] font-black text-bugambilia-600 underline hover:text-bugambilia-700"
                                         >
                                             Ver condiciones
                                         </button>
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground leading-tight">
-                                        Sin sorpresas ni cargos ocultos. Cancelación flexible disponible en su Portal.
+                                    <p className="text-[10px] leading-tight text-muted-foreground">
+                                        Sin sorpresas ni cargos ocultos.
+                                        Cancelación flexible disponible en su
+                                        Portal.
                                     </p>
                                 </div>
                             </div>
@@ -171,5 +186,3 @@ export function PlantillaProcesoReserva({
         </div>
     );
 }
-
-

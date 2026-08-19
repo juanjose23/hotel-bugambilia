@@ -6,16 +6,20 @@ namespace App\Support;
 
 final class HotelInfo
 {
+    private static ?string $logoCache = null;
+
+    private static ?string $iconCache = null;
+
     public static function getLogoBase64(): string
     {
-        return self::imageToBase64('images/logo-dark.png');
+        return self::$logoCache ??= self::imageToBase64('images/logo-dark.png');
     }
 
     public static function getIconBase64(): string
     {
         $icon = config('hotel.icon', 'img/hotel-icon.png');
 
-        return self::imageToBase64(is_string($icon) ? $icon : null);
+        return self::$iconCache ??= self::imageToBase64(is_string($icon) ? $icon : null);
     }
 
     private static function imageToBase64(?string $path): string
@@ -55,17 +59,25 @@ final class HotelInfo
      */
     public static function getBaseData(): array
     {
-        $base = [
+        $info = self::getInfo();
+
+        $data = [
             'logo_base64' => self::getLogoBase64(),
             'icon_base64' => self::getIconBase64(),
-            'hotelInfo' => self::getInfo(),
+            'hotelInfo' => $info,
+            'nombre' => $info['nombre'],
+            'telefono' => $info['telefono'],
+            'email' => $info['email'],
+            'direccion' => $info['direccion'],
             'generadoEn' => now()->format('d/m/Y H:i'),
             'fecha' => now()->format('d/m/Y H:i'),
-            'usuario' => auth()->user()->name ?? 'Sistema',
+            'usuario' => auth()->user() !== null ? auth()->user()->name : 'Sistema',
         ];
 
-        $base['datosHotel'] = $base;
+        // Include self-referencing key so views can use $datosHotel directly
+        // (used by paginated-table partial and header partials)
+        $data['datosHotel'] = $data;
 
-        return $base;
+        return $data;
     }
 }

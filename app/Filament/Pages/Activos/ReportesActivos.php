@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Activos;
 
 use App\Enums\Activos\EstadoActivo;
-use App\Filament\Pages\Activos\Widgets\EstadisticasActivosWidget;
-use App\Filament\Pages\Activos\Widgets\MantenimientosVencidosWidget;
-use App\Filament\Pages\Activos\Widgets\ProximosMantenimientosWidget;
-use App\Repository\Models\Activos\Activo;
+use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Queries\Activos\Reportes\ObtenerMetricasReporteActivosQuery;
+use App\Repository\Queries\Activos\Reportes\ObtenerOpcionesReportesActivosQuery;
 use App\Support\ReporteConfig;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -31,7 +30,16 @@ use UnitEnum;
  */
 class ReportesActivos extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+
+    protected ObtenerMetricasReporteActivosQuery $metricasQuery;
+
+    protected ObtenerOpcionesReportesActivosQuery $opcionesQuery;
+
+    public function getModuloReportes(): string
+    {
+        return 'activos';
+    }
 
     protected string $view = 'filament.resources.activos.reportes-activos';
 
@@ -39,7 +47,7 @@ class ReportesActivos extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Activos Fijos';
+    protected static string|UnitEnum|null $navigationGroup = 'Activos & Mantenimiento';
 
     protected static ?string $navigationLabel = 'Reportes de Activos';
 
@@ -50,10 +58,18 @@ class ReportesActivos extends Page implements HasForms
     /** @var array<string, mixed> */
     public ?array $reportData = [];
 
+    public function boot(
+        ObtenerMetricasReporteActivosQuery $metricasQuery,
+        ObtenerOpcionesReportesActivosQuery $opcionesQuery,
+    ): void {
+        $this->metricasQuery = $metricasQuery;
+        $this->opcionesQuery = $opcionesQuery;
+    }
+
     public function mount(): void
     {
         $this->reportData = [
-            'reporte' => null,
+            'reporte' => 'inventario_general',
             'estado' => null,
             'ubicacion_tipo' => null,
             'tipo' => 'habitacion',
@@ -66,13 +82,10 @@ class ReportesActivos extends Page implements HasForms
         ];
     }
 
-    protected function getHeaderWidgets(): array
+    /** @return array<string, mixed> */
+    protected function getViewData(): array
     {
-        return [
-            EstadisticasActivosWidget::class,
-            ProximosMantenimientosWidget::class,
-            MantenimientosVencidosWidget::class,
-        ];
+        return $this->metricasQuery->ejecutar();
     }
 
     /** @return array<string, mixed> */
@@ -82,7 +95,7 @@ class ReportesActivos extends Page implements HasForms
             'reportForm' => $this->makeSchema()
                 ->schema([
                     Select::make('reporte')
-                        ->label('Seleccionar Reporte')
+                        ->label('Reporte Analítico')
                         ->options(ReporteConfig::getSelectOptions('activos'))
                         ->required()
                         ->live()
@@ -113,7 +126,7 @@ class ReportesActivos extends Page implements HasForms
                         ->visible(fn ($get) => $get('reporte') === 'por_ubicacion'),
 
                     Radio::make('tipo')
-                        ->label('Tipo')
+                        ->label('Tipo de Entidad')
                         ->options([
                             'habitacion' => 'Habitación',
                             'espacio' => 'Espacio / Área Común',
@@ -121,13 +134,14 @@ class ReportesActivos extends Page implements HasForms
                         ->default('habitacion')
                         ->required()
                         ->live()
+                        ->inline()
                         ->visible(fn ($get) => $get('reporte') === 'hoja_habitacion'),
 
                     Select::make('entidad_id')
                         ->label('Seleccionar Habitación o Espacio')
                         ->options(fn (callable $get) => $get('tipo') === 'habitacion'
-                            ? Habitacion::pluck('nombre', 'id')
-                            : Espacio::pluck('nombre', 'id')
+                            ? $this->opcionesQuery->opcionesHabitaciones()
+                            : $this->opcionesQuery->opcionesEspacios()
                         )
                         ->searchable()
                         ->required()
@@ -135,10 +149,9 @@ class ReportesActivos extends Page implements HasForms
 
                     Select::make('espacio_id')
                         ->label('Seleccionar Espacio')
-                        ->options(Espacio::orderBy('nombre')->pluck('nombre', 'id'))
+                        ->options(fn () => $this->opcionesQuery->opcionesEspacios())
                         ->searchable()
                         ->required()
-                        ->prefixIcon(Heroicon::BuildingStorefront)
                         ->visible(fn ($get) => $get('reporte') === 'ficha_espacio'),
 
                     TextInput::make('dias')
@@ -150,8 +163,8 @@ class ReportesActivos extends Page implements HasForms
                         ->visible(fn ($get) => $get('reporte') === 'garantias'),
 
                     Select::make('activo_id')
-                        ->label('Seleccionar Activo')
-                        ->options(Activo::pluck('codigo_inventario', 'id'))
+                        ->label('Seleccionar Activo Específico')
+                        ->options(fn () => $this->opcionesQuery->opcionesActivos())
                         ->searchable()
                         ->required()
                         ->visible(fn ($get) => $get('reporte') === 'historial'),
@@ -184,6 +197,8 @@ class ReportesActivos extends Page implements HasForms
         $params = [
             'fecha_inicio' => $data['fecha_inicio'] ?? null,
             'fecha_fin' => $data['fecha_fin'] ?? null,
+            'pageSize' => $this->pageSize,
+            'orientation' => $this->orientation,
         ];
         if ($reporte === 'inventario_general') {
             $params['estado'] = $data['estado'] ?? null;

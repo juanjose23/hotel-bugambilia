@@ -20,11 +20,11 @@ class AuditoriaReporteResource extends Resource
 {
     protected static ?string $model = AuditoriaReporte::class;
 
-    protected static ?string $navigationLabel = 'Auditoria de Reportes';
+    protected static ?string $navigationLabel = 'Auditoría de Reportes';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentDuplicate;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Auditoría';
 
     public static function infolist(Schema $schema): Schema
     {

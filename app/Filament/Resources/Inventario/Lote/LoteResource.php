@@ -26,7 +26,7 @@ class LoteResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Cube;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventario';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventario & Productos';
 
     public static function infolist(Schema $schema): Schema
     {

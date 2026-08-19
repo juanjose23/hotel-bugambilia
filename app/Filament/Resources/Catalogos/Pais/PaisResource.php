@@ -20,7 +20,7 @@ class PaisResource extends Resource
 {
     protected static ?string $model = Pais::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::GlobeAmericas;
 

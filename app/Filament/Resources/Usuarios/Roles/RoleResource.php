@@ -40,14 +40,14 @@ class RoleResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
+    protected static string|UnitEnum|null $navigationGroup = 'Personas & Accesos';
 
     protected static ?string $pluralModelLabel = 'Roles';
 
     #[Override]
     public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return 'Seguridad';
+        return 'Personas & Accesos';
     }
 
     #[Override]

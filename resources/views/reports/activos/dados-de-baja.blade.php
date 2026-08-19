@@ -6,8 +6,10 @@
     @include('reports.layout.partials.paginated-table', [
         'paginas' => $paginas,
         'datosHotel' => $datosHotel,
-        'totalRegistros' => $totalRegistros,
-        'alertMessage' => 'Total valor residual: $' . number_format((float) ($totalValorResidual ?? 0), 2),
+        'tableData' => [
+            'totalValorResidual' => $totalValorResidual ?? 0,
+            'totalRegistros' => $totalRegistros,
+        ],
         'tableView' => 'reports.activos.tables.dados-de-baja',
     ])
 @endsection

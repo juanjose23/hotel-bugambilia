@@ -35,11 +35,7 @@ final class GenerarReporteDevolucionPdfAction
             widthFactor: 4,
         );
 
-        $layout = new LayoutPdf(
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
-        );
+        $layout = new LayoutPdf;
 
         $pdf = Pdf::loadView('reports.compras.devoluciones.devolucion-compra', [
             'record' => $devolucionConRelaciones,
@@ -48,9 +44,9 @@ final class GenerarReporteDevolucionPdfAction
             'barcodeBase64' => $barcodeBase64,
             'datosHotel' => $datosHotel,
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
+            'pageMarginLeft' => $layout->margenLateralMm,
         ])->setPaper('letter', 'portrait');
 
         $this->guardarAuditoria(
