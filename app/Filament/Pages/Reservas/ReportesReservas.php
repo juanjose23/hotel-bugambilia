@@ -7,7 +7,9 @@ namespace App\Filament\Pages\Reservas;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoPagoReserva;
+use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Filament\Shared\Forms\CategoriaSelect;
+use App\Repository\Queries\Reservas\Reportes\ObtenerMetricasReporteReservasQuery;
 use App\Support\ReporteConfig;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -26,7 +28,14 @@ use UnitEnum;
  */
 class ReportesReservas extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+
+    protected ObtenerMetricasReporteReservasQuery $metricasQuery;
+
+    public function getModuloReportes(): string
+    {
+        return 'reservas';
+    }
 
     protected string $view = 'filament.resources.reservas.reportes-reservas';
 
@@ -34,7 +43,7 @@ class ReportesReservas extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión de Reservas';
+    protected static string|UnitEnum|null $navigationGroup = 'Recepción & Reservas';
 
     protected static ?string $navigationLabel = 'Reportes & Ventas';
 
@@ -44,6 +53,11 @@ class ReportesReservas extends Page implements HasForms
 
     /** @var array<string, mixed> */
     public ?array $reportData = [];
+
+    public function boot(ObtenerMetricasReporteReservasQuery $metricasQuery): void
+    {
+        $this->metricasQuery = $metricasQuery;
+    }
 
     public function mount(): void
     {
@@ -58,13 +72,19 @@ class ReportesReservas extends Page implements HasForms
     }
 
     /** @return array<string, mixed> */
+    protected function getViewData(): array
+    {
+        return $this->metricasQuery->ejecutar();
+    }
+
+    /** @return array<string, mixed> */
     protected function getForms(): array
     {
         return [
             'reportForm' => $this->makeSchema()
                 ->schema([
                     Select::make('reporte')
-                        ->label('Seleccionar Reporte de Reservas')
+                        ->label('Reporte Analítico')
                         ->options(ReporteConfig::getSelectOptions('reservas'))
                         ->required()
                         ->live()
@@ -126,6 +146,8 @@ class ReportesReservas extends Page implements HasForms
             'estado' => $data['estado'] ?? null,
             'tipo_pago' => $data['tipo_pago'] ?? null,
             'categoria_id' => $data['categoria_id'] ?? null,
+            'pageSize' => $this->pageSize,
+            'orientation' => $this->orientation,
         ];
 
         try {
@@ -148,6 +170,12 @@ class ReportesReservas extends Page implements HasForms
         $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
         $roleName = is_string($superAdminRole) ? $superAdminRole : 'super_admin';
 
-        return $user->hasRole($roleName) || $user->can('Reservas:ReporteOcupacion');
+        return $user->hasRole($roleName)
+            || $user->can('page_ReportesReservas')
+            || $user->can('Reservas:ReporteOcupacion')
+            || $user->can('Reservas:ReporteVentasIngresos')
+            || $user->can('Reservas:ReporteEstado')
+            || $user->can('Reservas:ReporteHuespedes')
+            || $user->can('Reservas:ReporteRendimiento');
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Inventario;
 
 use App\Enums\Catalogos\CatalogoTipo;
+use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Filament\Shared\Forms\ProductoSelect;
 use App\Repository\Queries\Inventario\Alertas\ObtenerLotesCuarentena;
 use App\Repository\Queries\Inventario\Alertas\ObtenerLotesProximosVencer;
@@ -29,7 +30,6 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Contracts\View\View;
 use InvalidArgumentException;
 use UnitEnum;
 
@@ -38,7 +38,12 @@ use UnitEnum;
  */
 class ReportesInventario extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+
+    public function getModuloReportes(): string
+    {
+        return 'inventario';
+    }
 
     protected string $view = 'filament.resources.inventario.reportes-inventario';
 
@@ -102,7 +107,7 @@ class ReportesInventario extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ChartBar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Inventario';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventario & Productos';
 
     protected static ?string $navigationLabel = 'Reportes de Inventario';
 
@@ -116,13 +121,17 @@ class ReportesInventario extends Page implements HasForms
      */
     public function extracted(mixed $reporte, array $data, array $params, string $routes): null
     {
-        $params['fecha_desde'] = $data['fecha_desde'] ?? null;
-        $params['fecha_hasta'] = $data['fecha_hasta'] ?? null;
+        $fechaInicio = $data['fecha_desde'] ?? $data['fecha_inicio'] ?? null;
+        $fechaFin = $data['fecha_hasta'] ?? $data['fecha_fin'] ?? null;
 
-        if ($reporte === 'mermas') {
-            $params['periodo_desde'] = $data['fecha_desde'] ?? null;
-            $params['periodo_hasta'] = $data['fecha_hasta'] ?? null;
-        }
+        $params['fecha_desde'] = $fechaInicio;
+        $params['fecha_hasta'] = $fechaFin;
+        $params['fecha_inicio'] = $fechaInicio;
+        $params['fecha_fin'] = $fechaFin;
+        $params['periodo_desde'] = $fechaInicio;
+        $params['periodo_hasta'] = $fechaFin;
+        $params['pageSize'] = $this->pageSize;
+        $params['orientation'] = $this->orientation;
 
         $url = route($routes, $params);
         $this->dispatch('open-new-tab', url: $url);
@@ -137,7 +146,7 @@ class ReportesInventario extends Page implements HasForms
             'reportForm' => $this->makeSchema()
                 ->schema([
                     Select::make('reporte')
-                        ->label('Seleccionar Reporte')
+                        ->label('Reporte Analítico')
                         ->options(ReporteConfig::getSelectOptions('inventario'))
                         ->required()
                         ->live()
@@ -153,7 +162,7 @@ class ReportesInventario extends Page implements HasForms
                     ProductoSelect::make()
                         ->label('Filtrar por Producto (Opcional)')
                         ->placeholder('Todos los productos')
-                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])),
+                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])),
 
                     Select::make('categoria_id')
                         ->label('Categoría (Opcional)')
@@ -205,7 +214,7 @@ class ReportesInventario extends Page implements HasForms
         }
 
         $params = [];
-        if (in_array($reporte, ['stock', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])) {
+        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])) {
             $params['producto_id'] = $data['producto_id'] ?? null;
         }
         if ($reporte === 'stock_minimo') {
@@ -243,11 +252,17 @@ class ReportesInventario extends Page implements HasForms
         }
 
         $params = [];
-        if (in_array($reporte, ['stock', 'ajustes'])) {
+        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])) {
             $params['producto_id'] = $data['producto_id'] ?? null;
         }
         if ($reporte === 'stock_minimo') {
             $params['categoria_id'] = $data['categoria_id'] ?? null;
+        }
+        if ($reporte === 'proximos_vencer') {
+            $params['dias'] = $data['dias'] ?? 30;
+        }
+        if ($reporte === 'rotacion') {
+            $params['meses'] = $data['meses'] ?? 3;
         }
 
         try {
@@ -293,15 +308,7 @@ class ReportesInventario extends Page implements HasForms
         ];
     }
 
-    public function getHeader(): ?View
-    {
-        return view('filament.resources.inventario.reportes-header');
-    }
-
-    public function getHeaderActions(): array
-    {
-        return [];
-    }
+    // Trait ManejaPaginaReporte provee getHeaderActions() con 'Configuración de Página'
 
     public static function canAccess(): bool
     {

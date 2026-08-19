@@ -23,11 +23,7 @@ final class GenerarReporteTiemposEntregaPdfAction
         $nombreReporte = 'Reporte de Tiempos de Entrega (Lead Time)';
         $datosHotel = HotelInfo::getBaseData();
 
-        $layout = new LayoutPdf(
-            margenSuperiorMm: 8,
-            margenInferiorMm: 10,
-            altoPieMm: 0,
-        );
+        $layout = new LayoutPdf;
 
         $paginador = new ReportePaginador($layout);
         $items = collect($reportData->data);
@@ -35,6 +31,7 @@ final class GenerarReporteTiemposEntregaPdfAction
         $paginas = $paginador->paginar(
             items: $items,
             tipo: TiposReporte::TABLA_SIMPLE,
+            altoExtraPrimeraPaginaMm: 10,
         );
 
         $pdf = Pdf::loadView('reports.compras.analisis.tiempos-entrega', [
@@ -45,10 +42,15 @@ final class GenerarReporteTiemposEntregaPdfAction
             'fechaInicio' => $reportData->fechaInicio,
             'fechaFin' => $reportData->fechaFin,
             'pageMarginTop' => $layout->margenSuperiorMm,
-            'pageMarginRight' => $layout->margenSuperiorMm,
+            'pageMarginRight' => $layout->margenLateralMm,
             'pageMarginBottom' => $layout->margenInferiorMm,
-            'pageMarginLeft' => $layout->margenSuperiorMm,
-        ])->setPaper('letter', 'portrait');
+            'pageMarginLeft' => $layout->margenLateralMm,
+            'pageContentHeight' => $layout->altoContenidoMm(),
+            'pageContentWidth' => $layout->anchoContenidoMm(),
+        ])->setPaper(
+            $layout->tamano->dompdfName(),
+            $layout->orientacion->dompdfName(),
+        );
 
         $this->guardarAuditoria(
             tipoReporte: $codigoReporte,

@@ -35,4 +35,13 @@
             </tr>
         @endforelse
     </tbody>
+    @if(($esUltimaPagina ?? false) && count($items) > 0)
+        <tfoot>
+            <tr style="background:#f1f5f9;">
+                <td colspan="5" style="text-align:right; font-weight:bold; text-transform:uppercase; padding:10px;">Total General:</td>
+                <td style="text-align:right; font-weight:bold; color:#711C37; padding:10px;">{{ number_format($items->sum(fn ($l) => $l->cantidad_inicial - $l->cantidad_disponible), 2) }}</td>
+                <td colspan="2" style="text-align:right; font-weight:bold; color:#711C37; font-size:14px; padding:10px;">C$ {{ number_format($totalPerdida ?? 0, 2) }}</td>
+            </tr>
+        </tfoot>
+    @endif
 </table>

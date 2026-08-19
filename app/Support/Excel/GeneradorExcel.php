@@ -118,28 +118,32 @@ final class GeneradorExcel
         }
 
         $estiloHeader = $this->crearEstiloHeader();
+        $defaultEstiloNumero = $this->crearEstiloNumero();
 
         $writer->addRow(Row::fromValues(
             array_values(array_map(fn (ColumnaExcel $col) => $col->encabezado, $columnas)),
             $estiloHeader,
         ));
 
-        $estiloNumero = $this->crearEstiloNumero();
-
         foreach ($coleccion as $fila) {
             $valores = [];
+            /** @var array<int, Style> $estilos */
             $estilos = [];
 
-            foreach ($columnas as $col) {
+            foreach ($columnas as $i => $col) {
                 $valor = ($col->accesor)($fila);
                 $valores[] = $this->normalizarValor($valor);
-                $estilos[] = $col->numerica ? $estiloNumero : null;
+                if ($col->formato !== null && $col->formato !== '') {
+                    $estilos[$i] = $this->crearEstiloNumero($col->formato);
+                } elseif ($col->numerica) {
+                    $estilos[$i] = $defaultEstiloNumero;
+                }
             }
 
             $writer->addRow(Row::fromValuesWithStyles(
                 $valores,
                 null,
-                array_values(array_filter($estilos)),
+                $estilos,
             ));
         }
     }
@@ -149,16 +153,17 @@ final class GeneradorExcel
         $estilo = new Style;
         $estilo->setFontBold();
         $estilo->setFontColor(self::COLOR_HEADER_FONT);
-        $estilo->setFontSize(11);
+        $estilo->setFontSize(10);
         $estilo->setBackgroundColor(self::COLOR_HEADER_BG);
 
         return $estilo;
     }
 
-    private function crearEstiloNumero(): Style
+    private function crearEstiloNumero(?string $formato = null): Style
     {
         $estilo = new Style;
-        $estilo->setFormat('#,##0.00');
+        $estilo->setFontSize(10);
+        $estilo->setFormat($formato !== null && $formato !== '' ? $formato : '#,##0.00');
 
         return $estilo;
     }

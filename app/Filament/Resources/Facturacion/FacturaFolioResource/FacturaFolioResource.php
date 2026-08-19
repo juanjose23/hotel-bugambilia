@@ -20,7 +20,7 @@ final class FacturaFolioResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QueueList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración';
 
     protected static ?string $navigationLabel = 'Folios fiscales';
 

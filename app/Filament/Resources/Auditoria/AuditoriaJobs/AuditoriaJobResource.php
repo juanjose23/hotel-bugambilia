@@ -26,7 +26,7 @@ class AuditoriaJobResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Cog;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Auditoría';
 
     protected static ?int $navigationSort = 2;
 

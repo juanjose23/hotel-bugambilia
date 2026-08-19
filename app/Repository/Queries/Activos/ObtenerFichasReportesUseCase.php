@@ -7,7 +7,7 @@ namespace App\Repository\Queries\Activos;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 
-class ObtenerFichasReportesUseCase
+final class ObtenerFichasReportesUseCase
 {
     public function fichaActivo(Activo $activo): Activo
     {

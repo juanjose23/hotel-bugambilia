@@ -25,7 +25,7 @@ class OrdenCompraResource extends Resource
 
     protected static ?string $slug = 'compras/ordenes-compra';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Compras';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras & Proveedores';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShoppingCart;
 

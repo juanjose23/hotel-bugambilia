@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Reportes\TableroInteligenciaNegocio;
 use App\Http\Middleware\RequerirAdmin;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Enums\ThemeMode;
@@ -39,7 +40,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->plugin(FilamentShieldPlugin::make()->navigationGroup('Clientes & Usuarios'))
+            ->plugin(FilamentShieldPlugin::make()->navigationGroup('Personas & Accesos'))
             ->path('admin')
             ->login()
             ->defaultThemeMode(ThemeMode::Dark)
@@ -62,23 +63,25 @@ class AdminPanelProvider extends PanelProvider
             ->maxContentWidth('full')
             ->collapsibleNavigationGroups()
             ->navigationGroups([
-                'Analítica & Reportes',
-                'Gestión de Reservas',
+                'Inicio & Análisis',
+                'Recepción & Reservas',
                 'Habitaciones & Espacios',
-                'Facturación & Finanzas',
+                'Caja & Facturación',
                 'Restaurante & Cocina',
-                'Inventario & Bodegas',
+                'Inventario & Productos',
                 'Compras & Proveedores',
-                'Activos Fijos',
-                'Limpieza & Housekeeping',
+                'Activos & Mantenimiento',
+                'Limpieza & Lavandería',
                 'Servicios & Promociones',
-                'Clientes & Usuarios',
-                'Configuración & Auditoría',
+                'Personas & Accesos',
+                'Configuración',
+                'Auditoría',
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->databaseNotifications()
             ->databaseNotificationsPolling('15s')
             ->pages([
+                TableroInteligenciaNegocio::class,
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')

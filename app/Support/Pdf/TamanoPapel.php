@@ -40,9 +40,18 @@ enum TamanoPapel
     public function cssName(): string
     {
         return match ($this) {
-            self::A4 => 'A4',
+            self::A4 => 'a4',
             self::LETTER => 'letter',
             self::LEGAL => 'legal',
+        };
+    }
+
+    public static function fromRequest(?string $tamano): self
+    {
+        return match (strtolower((string) $tamano)) {
+            'a4' => self::A4,
+            'legal' => self::LEGAL,
+            default => self::LETTER,
         };
     }
 }

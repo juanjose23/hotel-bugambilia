@@ -26,7 +26,7 @@ test('cancela reserva con penalización, reembolsa excedente y anula cuenta form
     $tipo = CatalogoTipo::query()->create(['codigo' => 'TIPO_TEST_3', 'nombre' => 'Tipo Test 3', 'estado' => 1]);
     $cat = Catalogo::query()->create(['codigo' => 'CAT_TEST_3', 'nombre' => 'Cat Test 3', 'estado' => 1, 'catalogo_tipo_id' => $tipo->id]);
     $cliente = Cliente::query()->create(['persona_id' => $persona->id, 'catalogo_id' => $cat->id, 'codigo_cliente' => 'CLI-TEST-3', 'estado' => 1]);
-    $moneda = Moneda::query()->create(['codigo' => 'USD3', 'nombre' => 'Dólar 3', 'simbolo' => '$', 'es_predeterminada' => true]);
+    $moneda = Moneda::query()->create(['codigo' => 'US3', 'nombre' => 'Dólar 3', 'simbolo' => '$', 'es_predeterminada' => true]);
 
     /** @var Politica $politica */
     $politica = Politica::query()->create([

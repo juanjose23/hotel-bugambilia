@@ -7,7 +7,7 @@ namespace App\Repository\Queries\Reportes;
 use App\Interactors\Reportes\RegistrarAuditoriaReporte;
 use App\Support\HotelInfo;
 
-class ObtenerDatosBaseReporte
+final class ObtenerDatosBaseReporte
 {
     public function __construct(
         private readonly RegistrarAuditoriaReporte $auditoria
@@ -25,7 +25,7 @@ class ObtenerDatosBaseReporte
             $params['referencia_id'] = $record->id ?? null;
         }
 
-        $this->auditoria->execute($codigoReporte, $params);
+        $this->auditoria->ejecutar($codigoReporte, $params);
 
         return array_merge(HotelInfo::getBaseData(), [
             'record' => $record,

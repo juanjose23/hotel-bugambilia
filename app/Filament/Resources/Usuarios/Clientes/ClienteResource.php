@@ -32,7 +32,7 @@ class ClienteResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Clientes';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Clientes & Usuarios';
+    protected static string|UnitEnum|null $navigationGroup = 'Personas & Accesos';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::UserPlus;
 

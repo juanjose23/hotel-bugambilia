@@ -39,7 +39,7 @@ class AbastecerCarrito extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShoppingBag;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
+    protected static string|UnitEnum|null $navigationGroup = 'Limpieza & Lavandería';
 
     protected static ?string $navigationLabel = 'Administración de Carritos';
 

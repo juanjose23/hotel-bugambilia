@@ -36,7 +36,7 @@ final class CuentaResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::FolderOpen;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Facturación & Finanzas';
+    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
 
     protected static ?int $navigationSort = 5;
 

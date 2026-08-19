@@ -76,7 +76,7 @@ final readonly class GenerarReporteCompra
     ) {}
 
     /** @param array<string, mixed> $params */
-    public function execute(string $reportName, array $params = []): PDF
+    public function ejecutar(string $reportName, array $params = []): PDF
     {
         return match ($reportName) {
             'solicitud' => $this->solicitud($params),
@@ -98,6 +98,16 @@ final readonly class GenerarReporteCompra
             'trazabilidad_completa' => $this->trazabilidadCompleta($params),
             default => throw new InvalidArgumentException("Reporte '$reportName' no soportado."),
         };
+    }
+
+    /**
+     * Alias for backward compatibility
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function execute(string $reportName, array $params = []): PDF
+    {
+        return $this->ejecutar($reportName, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -161,6 +171,7 @@ final readonly class GenerarReporteCompra
             ->ejecutar(
                 $this->fechaInicio($params),
                 $this->fechaFin($params),
+                $params,
             );
     }
 
@@ -172,7 +183,7 @@ final readonly class GenerarReporteCompra
             $this->fechaFin($params),
         );
 
-        return $this->generarRotacionPdf->ejecutar($reportData);
+        return $this->generarRotacionPdf->ejecutar($reportData, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -195,7 +206,7 @@ final readonly class GenerarReporteCompra
             $this->estado($params),
         );
 
-        return $this->generarSolicitudesEstadoPdf->ejecutar($reportData);
+        return $this->generarSolicitudesEstadoPdf->ejecutar($reportData, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -206,7 +217,7 @@ final readonly class GenerarReporteCompra
             $this->fechaFin($params),
         );
 
-        return $this->generarSeguimientoOcPdf->ejecutar($reportData);
+        return $this->generarSeguimientoOcPdf->ejecutar($reportData, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -217,7 +228,7 @@ final readonly class GenerarReporteCompra
             $this->fechaFin($params),
         );
 
-        return $this->generarRecepcionesPorProveedorPdf->ejecutar($reportData);
+        return $this->generarRecepcionesPorProveedorPdf->ejecutar($reportData, $params);
     }
 
     /** @param array<string, mixed> $params */
@@ -229,7 +240,7 @@ final readonly class GenerarReporteCompra
             $this->meses($params),
         );
 
-        return $this->generarAnalisisPrecioPdf->ejecutar($reportData);
+        return $this->generarAnalisisPrecioPdf->ejecutar($reportData, $params);
     }
 
     /** @param array<string, mixed> $params */

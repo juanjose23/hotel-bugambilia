@@ -60,6 +60,6 @@ test('guarda la persona del cliente en la cuenta creada para la reserva', functi
 
     $cuenta = $reserva->cuentas()->firstOrFail();
 
-    expect($cuenta->cliente_id)->toBe($persona->id)
+    expect($cuenta->cliente_id)->toBe($cliente->id)
         ->and($cuenta->reserva_id)->toBe($reserva->id);
 });

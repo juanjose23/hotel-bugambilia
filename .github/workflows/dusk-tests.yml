@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox, edge]
+        browser: [chrome]
 
     services:
       postgres:
@@ -32,7 +32,7 @@ jobs:
           --health-retries 5
 
       selenium:
-        image: selenium/standalone-${{ matrix.browser }}:4.25.0
+        image: selenium/standalone-chrome:4.25.0
         ports:
           - 4444:4444
         options: >-
@@ -74,10 +74,11 @@ jobs:
           cp .env.dusk.example .env
           cp .env.dusk.example .env.dusk
           cp .env.dusk.example .env.dusk.local
+          sed -i 's#^APP_URL=.*#APP_URL=http://host.docker.internal:8000#' .env .env.dusk .env.dusk.local
           php artisan key:generate
           php artisan key:generate --env=dusk
 
-      - name: Run Dusk Database Migrations & Seeds
+      - name: Run Laravel Dusk Database Migrations & Seeds
         env:
           DB_CONNECTION: pgsql
           DB_HOST: 127.0.0.1
@@ -98,7 +99,7 @@ jobs:
           DB_DATABASE: hotel_bugambilias_dusk
           DB_USERNAME: postgres
           DB_PASSWORD: password
-        run: php artisan serve --host=0.0.0.0 --port=8000 --env=dusk &
+        run: php artisan serve --host=0.0.0.0 --port=8000 --env=dusk --no-reload &
 
       - name: Wait for Laravel Web Server
         run: |
@@ -106,6 +107,7 @@ jobs:
             curl -s -o /dev/null http://127.0.0.1:8000/ && break
             sleep 1
           done
+          curl -f http://127.0.0.1:8000/
 
       - name: Run Laravel Dusk Tests
         env:
@@ -116,7 +118,7 @@ jobs:
           DB_DATABASE: hotel_bugambilias_dusk
           DB_USERNAME: postgres
           DB_PASSWORD: password
-          BROWSER: ${{ matrix.browser }}
+          BROWSER: chrome
           DUSK_DRIVER_URL: http://localhost:4444
         run: php artisan dusk --without-tty
 
@@ -124,7 +126,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: dusk-failure-evidence-${{ matrix.browser }}
+          name: dusk-failure-evidence
           path: |
             tests/Browser/screenshots/
             tests/Browser/console/

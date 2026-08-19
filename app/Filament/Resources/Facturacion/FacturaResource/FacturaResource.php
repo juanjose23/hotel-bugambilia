@@ -25,7 +25,7 @@ final class FacturaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Facturación & Finanzas';
+    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
 
     protected static ?string $navigationLabel = 'Facturas';
 

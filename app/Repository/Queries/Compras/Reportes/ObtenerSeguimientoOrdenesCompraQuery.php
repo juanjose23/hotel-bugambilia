@@ -6,6 +6,7 @@ namespace App\Repository\Queries\Compras\Reportes;
 
 use App\Actions\Shared\ParsearFecha;
 use App\BusinessLogic\Compras\Data\Reportes\SeguimientoOrdenCompraReporteData;
+use App\Enums\Compras\EstadoOrdenCompra;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +57,7 @@ final class ObtenerSeguimientoOrdenesCompraQuery
                 'oc.fecha_orden',
                 'oc.estado',
                 'oc.total as monto_total',
-                DB::raw("coalesce(obtener_nombre_completo(prov.persona_id), 'Sin Proveedor') as proveedor_nombre"),
+                DB::raw("coalesce(obtener_nombre_completo(prov.persona_id::int), 'Sin Proveedor') as proveedor_nombre"),
                 'sc.codigo as solicitud_codigo',
                 'rc.fecha_recepcion'
             )
@@ -86,14 +87,24 @@ final class ObtenerSeguimientoOrdenesCompraQuery
                 ];
             }
             $recepcionCount = $items->where('fecha_recepcion', '!=', null)->count();
+            $estadoLabel = is_int($first->estado) || is_string($first->estado)
+                ? EstadoOrdenCompra::etiquetaPara($first->estado)
+                : '—';
 
             return (object) [
                 'codigo' => $first->codigo,
                 'fecha_orden' => $first->fecha_orden,
-                'estado' => $first->estado,
+                'fecha_entrega_estimada' => null,
+                'departamento' => '—',
+                'estado' => $estadoLabel,
+                'estado_label' => $estadoLabel,
+                'total' => (float) $first->monto_total,
                 'monto_total' => (float) $first->monto_total,
                 'proveedor' => $first->proveedor_nombre,
+                'proveedor_nombre' => $first->proveedor_nombre,
                 'solicitud' => $first->solicitud_codigo,
+                'solicitud_codigo' => $first->solicitud_codigo,
+                'total_recepciones' => $recepcionCount,
                 'recepcion_count' => $recepcionCount,
             ];
         })->values()->toArray();

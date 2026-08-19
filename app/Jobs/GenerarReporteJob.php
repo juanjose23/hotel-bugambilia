@@ -35,11 +35,14 @@ final class GenerarReporteJob implements ShouldQueue
             tipoReporte: $this->codigoReporte,
             parametros: $this->parametros,
             pdf: $pdf,
+            usuarioId: $this->usuarioId,
         );
 
-        $urlDescarga = $rutaArchivo !== null
-            ? Storage::disk('public')->url($rutaArchivo)
-            : null;
+        if ($rutaArchivo === null) {
+            return;
+        }
+
+        $urlDescarga = Storage::disk('public')->url($rutaArchivo);
 
         ReporteGenerado::dispatch(
             $this->usuarioId,

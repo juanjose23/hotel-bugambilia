@@ -49,7 +49,7 @@ final class ObtenerTrazabilidadCompletaQuery
                 'sc.fecha_solicitud',
                 'sc.motivo',
                 'dep.nombre as departamento',
-                DB::raw("coalesce(obtener_nombre_completo(col.persona_id), 'N/A') as solicitante")
+                DB::raw("coalesce(obtener_nombre_completo(col.persona_id::int), 'N/A') as solicitante")
             )
             ->where('sc.id', $solicitud->id)
             ->first();

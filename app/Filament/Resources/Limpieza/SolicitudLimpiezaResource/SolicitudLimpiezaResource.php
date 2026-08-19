@@ -26,7 +26,7 @@ final class SolicitudLimpiezaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CheckBadge;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
+    protected static string|UnitEnum|null $navigationGroup = 'Limpieza & Lavandería';
 
     protected static ?string $navigationLabel = 'Solicitudes de Limpieza';
 

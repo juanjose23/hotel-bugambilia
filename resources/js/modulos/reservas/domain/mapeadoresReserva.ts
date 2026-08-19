@@ -9,7 +9,9 @@ export function mapearReservaClienteDomain(
     const total = Number(dto.total ?? 0);
     const detalles = String(dto.detalles || 'Reserva de Estancia');
     const fechaCheckIn = String(dto.fecha_check_in || '');
-    const acompanantes = Array.isArray(dto.acompanantes) ? dto.acompanantes : [];
+    const acompanantes = Array.isArray(dto.acompanantes)
+        ? dto.acompanantes
+        : [];
     const estadoInfo = obtenerEtiquetaEstadoReserva(estado);
 
     return {
@@ -17,14 +19,20 @@ export function mapearReservaClienteDomain(
         codigo_reserva: String(dto.codigo_reserva || `RES-${id}`),
         nombre_cliente: String(dto.nombre_cliente || 'Cliente General'),
         email_cliente: dto.email_cliente ? String(dto.email_cliente) : null,
-        telefono_cliente: dto.telefono_cliente ? String(dto.telefono_cliente) : null,
+        telefono_cliente: dto.telefono_cliente
+            ? String(dto.telefono_cliente)
+            : null,
         tipo_reserva: String(dto.tipo_reserva ?? 1),
-        tipo_reserva_label: String(dto.tipo_reserva_label || 'Estancia General'),
+        tipo_reserva_label: String(
+            dto.tipo_reserva_label || 'Estancia General',
+        ),
         estado,
         estado_label: String(dto.estado_label || estadoInfo.label),
         estado_color: String(dto.estado_color || 'bg-primary'),
         fecha_check_in: fechaCheckIn,
-        fecha_check_out: dto.fecha_check_out ? String(dto.fecha_check_out) : null,
+        fecha_check_out: dto.fecha_check_out
+            ? String(dto.fecha_check_out)
+            : null,
         hora_reserva: dto.hora_reserva ? String(dto.hora_reserva) : null,
         adultos: Number(dto.adultos ?? 1),
         ninos: Number(dto.ninos ?? 0),
@@ -39,21 +47,22 @@ export function mapearReservaClienteDomain(
         servicios_habitacion: (Array.isArray(dto.servicios_habitacion)
             ? dto.servicios_habitacion
             : []) as ReservaClienteDomain['servicios_habitacion'],
-        estado_cuenta: (dto.estado_cuenta as ReservaClienteDomain['estado_cuenta']) || {
-            cargos: [
-                {
-                    id: 1,
-                    fecha: fechaCheckIn || 'Hoy',
-                    descripcion: `Estancia Base — ${detalles}`,
-                    monto: total,
-                    categoria: 'Hospedaje',
-                },
-            ],
-            subtotal: Math.round(total / 1.15),
-            impuestos: Math.round(total - total / 1.15),
-            total,
-            total_pagado: total,
-            saldo_pendiente: 0,
-        },
+        estado_cuenta:
+            (dto.estado_cuenta as ReservaClienteDomain['estado_cuenta']) || {
+                cargos: [
+                    {
+                        id: 1,
+                        fecha: fechaCheckIn || 'Hoy',
+                        descripcion: `Estancia Base — ${detalles}`,
+                        monto: total,
+                        categoria: 'Hospedaje',
+                    },
+                ],
+                subtotal: Math.round(total / 1.15),
+                impuestos: Math.round(total - total / 1.15),
+                total,
+                total_pagado: total,
+                saldo_pendiente: 0,
+            },
     };
 }

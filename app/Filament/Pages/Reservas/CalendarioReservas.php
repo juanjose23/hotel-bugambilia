@@ -31,7 +31,7 @@ final class CalendarioReservas extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Reservaciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Recepción & Reservas';
 
     protected static ?string $navigationLabel = 'Calendario de Reservas';
 

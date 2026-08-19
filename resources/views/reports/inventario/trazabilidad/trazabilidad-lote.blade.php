@@ -4,9 +4,12 @@
 ])
 
 @section('content')
-    @include('reports.layout.partials.paginated-table', [
-        'paginas' => $paginas,
-        'datosHotel' => $datosHotel,
-        'tableView' => 'reports.inventario.trazabilidad.tables.trazabilidad-lote',
+    @php
+        $lote  = $trazabilidad['lote']  ?? $trazabilidad->lote  ?? null;
+        $items = $trazabilidad['movimientos'] ?? $trazabilidad->movimientos ?? collect();
+    @endphp
+    @include('reports.inventario.trazabilidad.tables.trazabilidad-lote', [
+        'lote'  => $lote,
+        'items' => $items,
     ])
 @endsection

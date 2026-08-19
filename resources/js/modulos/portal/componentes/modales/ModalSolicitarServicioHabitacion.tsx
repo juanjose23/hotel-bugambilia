@@ -1,10 +1,10 @@
+import { CheckCircle2, X, Bell } from 'lucide-react';
 import { useState } from 'react';
-import { Sparkles, CheckCircle2, AlertCircle, X, Bell } from 'lucide-react';
+import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
 import { Button } from '@/modulos/compartido/ui/boton';
 import { Input } from '@/modulos/compartido/ui/entrada';
 import { Label } from '@/modulos/compartido/ui/etiqueta';
 import { Badge } from '@/modulos/compartido/ui/insignia';
-import type { ReservaClienteDomain } from '@/modulos/clientes/interfaces/cliente';
 
 interface PropiedadesModalSolicitarServicioHabitacion {
     reserva: ReservaClienteDomain | null;
@@ -16,25 +16,29 @@ const OPCIONES_SERVICIOS = [
     {
         id: 'limpieza',
         titulo: 'Limpieza Express & Cambio de Sábanas',
-        descripcion: 'Servicio de mucama prioritario para refrescar su habitación.',
+        descripcion:
+            'Servicio de mucama prioritario para refrescar su habitación.',
         icono: '🧹',
     },
     {
         id: 'amenidades',
         titulo: 'Toallas & Amenidades Adicionales',
-        descripcion: 'Solicite juego de toallas extra, champú, jabones o almohadas.',
+        descripcion:
+            'Solicite juego de toallas extra, champú, jabones o almohadas.',
         icono: '🧴',
     },
     {
         id: 'lavanderia',
         titulo: 'Servicio de Lavandería & Planchado',
-        descripcion: 'Recogida de prendas para lavado, secado y planchado express.',
+        descripcion:
+            'Recogida de prendas para lavado, secado y planchado express.',
         icono: '👕',
     },
     {
         id: 'asistencia',
         titulo: 'Soporte Técnico / Conectividad',
-        descripcion: 'Asistencia con Wi-Fi, climatización, Smart TV o caja fuerte.',
+        descripcion:
+            'Asistencia con Wi-Fi, climatización, Smart TV o caja fuerte.',
         icono: '🛠️',
     },
 ];
@@ -44,7 +48,8 @@ export const ModalSolicitarServicioHabitacion = ({
     estaAbierto,
     alCerrar,
 }: PropiedadesModalSolicitarServicioHabitacion) => {
-    const [servicioSeleccionado, setServicioSeleccionado] = useState<string>('limpieza');
+    const [servicioSeleccionado, setServicioSeleccionado] =
+        useState<string>('limpieza');
     const [notas, setNotas] = useState<string>('');
     const [enviado, setEnviado] = useState<boolean>(false);
     const [cargando, setCargando] = useState<boolean>(false);
@@ -71,7 +76,7 @@ export const ModalSolicitarServicioHabitacion = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs duration-200">
             <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-border/80 bg-card p-6 font-sans shadow-2xl md:p-8">
                 {/* Botón de cierre */}
                 <button
@@ -83,7 +88,7 @@ export const ModalSolicitarServicioHabitacion = ({
                 </button>
 
                 {enviado ? (
-                    <div className="space-y-4 text-center py-6">
+                    <div className="space-y-4 py-6 text-center">
                         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                             <CheckCircle2 className="size-8" />
                         </div>
@@ -91,7 +96,12 @@ export const ModalSolicitarServicioHabitacion = ({
                             ¡Solicitud Enviada con Éxito!
                         </h3>
                         <p className="text-xs font-medium text-muted-foreground">
-                            Su solicitud para la reserva <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">{reserva.codigo_reserva}</span> ha sido registrada. Nuestro personal de recepción y ama de llaves se encuentra en camino.
+                            Su solicitud para la reserva{' '}
+                            <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">
+                                {reserva.codigo_reserva}
+                            </span>{' '}
+                            ha sido registrada. Nuestro personal de recepción y
+                            ama de llaves se encuentra en camino.
                         </p>
                         <div className="pt-2">
                             <Button
@@ -113,24 +123,31 @@ export const ModalSolicitarServicioHabitacion = ({
                                 Pedir Servicio a la Habitación
                             </h2>
                             <p className="text-xs font-medium text-muted-foreground">
-                                {reserva.detalles} — Código: <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">{reserva.codigo_reserva}</span>
+                                {reserva.detalles} — Código:{' '}
+                                <span className="font-mono font-bold text-bugambilia-600 dark:text-bugambilia-400">
+                                    {reserva.codigo_reserva}
+                                </span>
                             </p>
                         </div>
 
                         {/* Opciones de servicio */}
-                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
                             {OPCIONES_SERVICIOS.map((opt) => (
                                 <button
                                     key={opt.id}
                                     type="button"
-                                    onClick={() => setServicioSeleccionado(opt.id)}
+                                    onClick={() =>
+                                        setServicioSeleccionado(opt.id)
+                                    }
                                     className={`flex w-full cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-left transition-all ${
                                         servicioSeleccionado === opt.id
                                             ? 'border-bugambilia-600 bg-bugambilia-500/10 shadow-xs dark:border-bugambilia-500'
                                             : 'border-border/70 bg-background hover:border-bugambilia-500/30'
                                     }`}
                                 >
-                                    <span className="text-2xl">{opt.icono}</span>
+                                    <span className="text-2xl">
+                                        {opt.icono}
+                                    </span>
                                     <div className="grow">
                                         <span className="block text-xs font-black text-foreground">
                                             {opt.titulo}
@@ -170,7 +187,9 @@ export const ModalSolicitarServicioHabitacion = ({
                                 disabled={cargando}
                                 className="flex-1 rounded-full bg-bugambilia-600 font-extrabold text-white hover:bg-bugambilia-700 dark:bg-bugambilia-500"
                             >
-                                {cargando ? 'Enviando...' : 'Confirmar Solicitud'}
+                                {cargando
+                                    ? 'Enviando...'
+                                    : 'Confirmar Solicitud'}
                             </Button>
                         </div>
                     </form>

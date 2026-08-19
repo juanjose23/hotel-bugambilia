@@ -249,7 +249,7 @@
 
 <header class="ticket-header">
     <h1 class="hotel-name">
-        Hotel Bugambilias
+        {{ config('hotel.name', 'Hotel Bugambilias') }}
     </h1>
 
     <h2 class="ticket-title">
@@ -353,7 +353,7 @@
 </section>
 
 <footer class="ticket-footer">
-    <p>HOTEL BUGAMBILIAS POS</p>
+    <p>{{ strtoupper(config('hotel.name', 'Hotel Bugambilias')) }} POS</p>
     <p>Impresión Automática por Área</p>
 </footer>
 

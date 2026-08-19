@@ -31,4 +31,13 @@
             @include('reports.activos.partials.empty-state', ['colspan' => 6, 'mensaje' => 'No se registran activos extraviados.'])
         @endforelse
     </tbody>
+    @if(($esUltimaPagina ?? false) && count($items) > 0)
+        @include('reports.activos.partials.table-total', [
+            'labelColspan' => 2,
+            'label' => 'Total Costo Extraviados:',
+            'total' => $totalCosto ?? 0,
+            'monedaSimbolo' => 'C$',
+            'count' => ($totalRegistros ?? count($items)) . ' extraviados',
+        ])
+    @endif
 </table>

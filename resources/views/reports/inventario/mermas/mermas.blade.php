@@ -7,8 +7,12 @@
     @include('reports.layout.partials.paginated-table', [
         'paginas' => $paginas,
         'datosHotel' => $datosHotel,
-        'fechaInicio' => $filtros['periodo_desde'] ?? null,
-        'fechaFin' => $filtros['periodo_hasta'] ?? null,
+        'fechaInicio' => $fechaInicio ?? null,
+        'fechaFin' => $fechaFin ?? null,
+        'tableData' => [
+            'totalPerdida' => $totalPerdida ?? 0,
+            'totalRegistros' => $totalRegistros,
+        ],
         'tableView' => 'reports.inventario.mermas.tables.mermas',
     ])
 @endsection

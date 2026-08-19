@@ -9,10 +9,10 @@ final readonly class ConfiguracionPagina
     public int $totalPorPagina;
 
     public function __construct(
-        public int $filas = 30,
+        public int $filas = 28,
         public ?int $columnas = null,
-        public int $altoFilaMm = 7,
-        public int $altoEncabezadoMm = 5,
+        public int $altoFilaMm = 4,
+        public int $altoEncabezadoMm = 4,
         public int $altoPieMm = 15,
     ) {
         $this->totalPorPagina = $this->columnas

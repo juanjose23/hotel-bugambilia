@@ -1,9 +1,9 @@
+import { Link } from '@inertiajs/react';
 import { LayoutDashboard, KeyRound, PlusCircle } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { usePropiedadesPagina } from '@/modulos/compartido/hooks/usePropiedadesPagina';
 import { Button } from '@/modulos/compartido/ui/boton';
 import { Badge } from '@/modulos/compartido/ui/insignia';
-import { usePropiedadesPagina } from '@/modulos/compartido/hooks/usePropiedadesPagina';
 import { ModalAccesoPortalCliente } from './ModalAccesoPortalCliente';
 
 interface PropiedadesCabeceraPortalCliente {
@@ -55,7 +55,7 @@ export const CabeceraPortalCliente = ({
                     ) : (
                         <Button
                             onClick={() => setModalAccesoAbierto(true)}
-                            className="rounded-full bg-bugambilia-600 font-extrabold text-white shadow-xs hover:bg-bugambilia-700 dark:bg-bugambilia-500 text-xs px-3.5 py-2"
+                            className="rounded-full bg-bugambilia-600 px-3.5 py-2 text-xs font-extrabold text-white shadow-xs hover:bg-bugambilia-700 dark:bg-bugambilia-500"
                         >
                             <KeyRound className="mr-1.5 size-3.5" />
                             Acceso por Código / QR / Login

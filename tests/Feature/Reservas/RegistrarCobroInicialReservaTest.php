@@ -13,7 +13,7 @@ use App\Repository\Models\Reservas\Reserva;
 
 test('registra cobro inicial sin pago dejando reserva pendiente', function (): void {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USD-COBRO1',
+        'codigo' => 'UC1',
         'nombre' => 'Dolar Cobro 1',
         'simbolo' => '$',
         'es_predeterminada' => true,
@@ -46,7 +46,7 @@ test('registra cobro inicial sin pago dejando reserva pendiente', function (): v
 
 test('registra cobro inicial pago completo confirmando reserva', function (): void {
     $moneda = Moneda::query()->create([
-        'codigo' => 'USD-COBRO2',
+        'codigo' => 'UC2',
         'nombre' => 'Dolar Cobro 2',
         'simbolo' => '$',
         'es_predeterminada' => true,

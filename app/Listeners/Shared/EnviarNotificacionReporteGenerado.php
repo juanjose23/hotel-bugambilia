@@ -10,6 +10,10 @@ use App\Repository\Models\User;
 
 final class EnviarNotificacionReporteGenerado
 {
+    public function __construct(
+        private readonly NotificadorReportes $notificador,
+    ) {}
+
     public function handle(ReporteGenerado $event): void
     {
         $usuario = User::find($event->usuarioId);
@@ -18,7 +22,7 @@ final class EnviarNotificacionReporteGenerado
             return;
         }
 
-        app(NotificadorReportes::class)->reporteListo(
+        $this->notificador->reporteListo(
             $usuario,
             $event->codigoReporte,
             $event->urlDescarga,

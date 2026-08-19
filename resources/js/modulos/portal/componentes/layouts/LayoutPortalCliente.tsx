@@ -3,7 +3,6 @@ import {
     BedDouble,
     LogOut,
     ExternalLink,
-    HelpCircle,
     Phone,
     Building2,
     Home,
@@ -98,7 +97,7 @@ export const LayoutPortalCliente = ({
                         {usuario ? (
                             <div className="flex items-center gap-1.5 border-l border-border/60 pl-1.5 sm:gap-2 sm:pl-2">
                                 <div className="hidden text-right lg:block">
-                                    <p className="text-xs font-extrabold text-foreground truncate max-w-[120px]">
+                                    <p className="max-w-[120px] truncate text-xs font-extrabold text-foreground">
                                         {usuario.name}
                                     </p>
                                     <p className="text-[10px] font-medium text-muted-foreground">
@@ -118,7 +117,7 @@ export const LayoutPortalCliente = ({
                         ) : (
                             <Link
                                 href="/login"
-                                className="flex items-center gap-1 rounded-full bg-bugambilia-600/10 px-2.5 py-1 text-[11px] font-extrabold text-bugambilia-600 dark:text-bugambilia-400 sm:px-3 sm:text-xs"
+                                className="flex items-center gap-1 rounded-full bg-bugambilia-600/10 px-2.5 py-1 text-[11px] font-extrabold text-bugambilia-600 sm:px-3 sm:text-xs dark:text-bugambilia-400"
                             >
                                 <User className="size-3.5" />
                                 <span>Ingresar</span>
@@ -129,69 +128,80 @@ export const LayoutPortalCliente = ({
             </header>
 
             {/* ÁREA PRINCIPAL DE CONTENIDO */}
-            <main className="grow w-full max-w-full pb-20 md:pb-0">{children}</main>
+            <main className="w-full max-w-full grow pb-20 md:pb-0">
+                {children}
+            </main>
 
             {/* BARRA DE NAVEGACIÓN INFERIOR ESTILO APP MÓVIL (SOLO MÓVIL, SIEMPRE VISIBLE Y ESTÁTICA) */}
-            <nav className="fixed bottom-0 left-0 right-0 z-[9999] w-full border-t border-border bg-card py-1.5 shadow-2xl md:hidden">
-                <div className="grid grid-cols-5 w-full max-w-lg mx-auto items-center justify-items-center text-center">
+            <nav className="fixed right-0 bottom-0 left-0 z-[9999] w-full border-t border-border bg-card py-1.5 shadow-2xl md:hidden">
+                <div className="mx-auto grid w-full max-w-lg grid-cols-5 items-center justify-items-center text-center">
                     <Link
                         href="/portal"
                         className={`flex w-full flex-col items-center justify-center gap-0.5 py-1 text-center transition-colors ${
                             url === '/portal' || url === '/mis-reservas'
-                                ? 'text-bugambilia-600 dark:text-bugambilia-400 font-black'
-                                : 'text-muted-foreground hover:text-foreground font-semibold'
+                                ? 'font-black text-bugambilia-600 dark:text-bugambilia-400'
+                                : 'font-semibold text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <Home className="size-5 shrink-0" />
-                        <span className="text-[9px] min-[360px]:text-[10px] tracking-tight truncate max-w-full px-0.5">Reservas</span>
+                        <span className="max-w-full truncate px-0.5 text-[9px] tracking-tight min-[360px]:text-[10px]">
+                            Reservas
+                        </span>
                     </Link>
 
                     <Link
                         href="/habitaciones"
                         className={`flex w-full flex-col items-center justify-center gap-0.5 py-1 text-center transition-colors ${
                             url.startsWith('/habitaciones')
-                                ? 'text-bugambilia-600 dark:text-bugambilia-400 font-black'
-                                : 'text-muted-foreground hover:text-foreground font-semibold'
+                                ? 'font-black text-bugambilia-600 dark:text-bugambilia-400'
+                                : 'font-semibold text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <BedDouble className="size-5 shrink-0" />
-                        <span className="text-[9px] min-[360px]:text-[10px] tracking-tight truncate max-w-full px-0.5">Habitaciones</span>
+                        <span className="max-w-full truncate px-0.5 text-[9px] tracking-tight min-[360px]:text-[10px]">
+                            Habitaciones
+                        </span>
                     </Link>
 
                     <Link
                         href="/servicios"
                         className={`flex w-full flex-col items-center justify-center gap-0.5 py-1 text-center transition-colors ${
                             url.startsWith('/servicios')
-                                ? 'text-bugambilia-600 dark:text-bugambilia-400 font-black'
-                                : 'text-muted-foreground hover:text-foreground font-semibold'
+                                ? 'font-black text-bugambilia-600 dark:text-bugambilia-400'
+                                : 'font-semibold text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <Bell className="size-5 shrink-0" />
-                        <span className="text-[9px] min-[360px]:text-[10px] tracking-tight truncate max-w-full px-0.5">Servicios</span>
+                        <span className="max-w-full truncate px-0.5 text-[9px] tracking-tight min-[360px]:text-[10px]">
+                            Servicios
+                        </span>
                     </Link>
 
                     <Link
                         href="/restaurante"
                         className={`flex w-full flex-col items-center justify-center gap-0.5 py-1 text-center transition-colors ${
                             url.startsWith('/restaurante')
-                                ? 'text-bugambilia-600 dark:text-bugambilia-400 font-black'
-                                : 'text-muted-foreground hover:text-foreground font-semibold'
+                                ? 'font-black text-bugambilia-600 dark:text-bugambilia-400'
+                                : 'font-semibold text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <Utensils className="size-5 shrink-0" />
-                        <span className="text-[9px] min-[360px]:text-[10px] tracking-tight truncate max-w-full px-0.5">Restaurante</span>
+                        <span className="max-w-full truncate px-0.5 text-[9px] tracking-tight min-[360px]:text-[10px]">
+                            Restaurante
+                        </span>
                     </Link>
 
                     <Link
                         href={usuario ? '/portal/cuenta' : '/login'}
                         className={`flex w-full flex-col items-center justify-center gap-0.5 py-1 text-center transition-colors ${
-                            url.startsWith('/portal/cuenta') || url.startsWith('/login')
-                                ? 'text-bugambilia-600 dark:text-bugambilia-400 font-black'
-                                : 'text-muted-foreground hover:text-foreground font-semibold'
+                            url.startsWith('/portal/cuenta') ||
+                            url.startsWith('/login')
+                                ? 'font-black text-bugambilia-600 dark:text-bugambilia-400'
+                                : 'font-semibold text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <User className="size-5 shrink-0" />
-                        <span className="text-[9px] min-[360px]:text-[10px] tracking-tight truncate max-w-full px-0.5">
+                        <span className="max-w-full truncate px-0.5 text-[9px] tracking-tight min-[360px]:text-[10px]">
                             {usuario ? 'Mi Cuenta' : 'Ingresar'}
                         </span>
                     </Link>
@@ -199,7 +209,7 @@ export const LayoutPortalCliente = ({
             </nav>
 
             {/* PIE DE PÁGINA LIMPIO DEL PORTAL */}
-            <footer className="border-t border-border/60 bg-card py-6 text-center text-xs font-medium text-muted-foreground mb-16 md:mb-0">
+            <footer className="mb-16 border-t border-border/60 bg-card py-6 text-center text-xs font-medium text-muted-foreground md:mb-0">
                 <div className="container mx-auto px-4">
                     <p>
                         © {new Date().getFullYear()} {nombreHotel} — Sistema de
