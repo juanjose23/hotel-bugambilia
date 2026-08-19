@@ -29,7 +29,7 @@ class TurnoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Clock;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
+    protected static string|UnitEnum|null $navigationGroup = 'Limpieza & Lavandería';
 
     protected static ?string $modelLabel = 'Turno de Limpieza';
 

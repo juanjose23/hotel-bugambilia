@@ -27,7 +27,7 @@ final class EstanciaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Home;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Recepción & Reservas';
 
     protected static ?string $modelLabel = 'Estancia';
 

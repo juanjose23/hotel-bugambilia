@@ -27,7 +27,7 @@ final class PlatoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ClipboardDocumentList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static ?string $navigationLabel = 'Platos';
 

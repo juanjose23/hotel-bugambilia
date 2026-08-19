@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Shared\Reportes;
 
-use App\Actions\Catalogos\GenerarEtiquetasCodigosBarrasAction;
-use App\Actions\Catalogos\GenerarReporteProductosAction;
-use App\BusinessLogic\Catalogos\Data\ProductoFiltrosData;
 use App\Interactors\Activos\Reportes\GenerarReporteActivo;
+use App\Interactors\Catalogos\Productos\GenerarReporteProductos;
 use App\Interactors\Compras\Reportes\GenerarReporteCompra;
 use App\Interactors\Inventario\Reportes\GenerarReporteInventario;
 use App\Interactors\Reportes\Financiero\GenerarReporteFinanciero;
@@ -85,6 +83,7 @@ final class ReporteDispatcher
     public function __construct(
         private GenerarReporteFinanciero $financiero,
         private GenerarReporteReserva $reservas,
+        private GenerarReporteProductos $catalogos,
         private GenerarReporteCompra $compras,
         private GenerarReporteInventario $inventario,
         private GenerarReporteActivo $activos,
@@ -133,12 +132,10 @@ final class ReporteDispatcher
     /** @param array<string, mixed> $params */
     private function generarCatalogos(string $codigo, array $params): PDF
     {
-        $dto = ProductoFiltrosData::fromArray($params);
-
         return match ($codigo) {
-            'HTB-CP001' => app(GenerarReporteProductosAction::class)->ejecutar($dto, false),
-            'HTB-CP002' => app(GenerarReporteProductosAction::class)->ejecutar($dto),
-            'HTB-CP003' => app(GenerarEtiquetasCodigosBarrasAction::class)->ejecutar($dto),
+            'HTB-CP001' => $this->catalogos->simple($params),
+            'HTB-CP002' => $this->catalogos->detallado($params),
+            'HTB-CP003' => $this->catalogos->etiquetas($params),
             default => throw new InvalidArgumentException("Reporte Catalogos '{$codigo}' no soportado."),
         };
     }

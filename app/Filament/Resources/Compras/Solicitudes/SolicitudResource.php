@@ -38,7 +38,7 @@ class SolicitudResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Solicitudes de Compra';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Compras';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras & Proveedores';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentArrowUp;
 

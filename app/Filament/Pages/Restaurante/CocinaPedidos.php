@@ -46,7 +46,7 @@ final class CocinaPedidos extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-fire';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static ?string $navigationLabel = 'Cocina';
 

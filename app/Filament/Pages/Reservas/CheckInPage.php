@@ -58,7 +58,7 @@ final class CheckInPage extends Page implements HasForms, HasTable
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-key';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Reservaciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Recepción & Reservas';
 
     protected static ?string $navigationLabel = 'Check-In';
 

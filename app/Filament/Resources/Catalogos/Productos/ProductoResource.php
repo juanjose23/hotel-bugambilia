@@ -11,7 +11,6 @@ use App\Filament\Resources\Catalogos\Productos\Pages\ViewProducto;
 use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoForm;
 use App\Filament\Resources\Catalogos\Productos\Schemas\ProductoInfolist;
 use App\Filament\Resources\Catalogos\Productos\Tables\ProductosTable;
-use App\Interactors\Catalogos\Productos\ExportarProductos;
 use App\Interactors\Catalogos\Productos\GenerarReporteProductos;
 use App\Repository\Models\Catalogos\Producto;
 use BackedEnum;
@@ -28,7 +27,7 @@ class ProductoResource extends Resource
 {
     protected static ?string $model = Producto::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración & Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventario & Productos';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShoppingBag;
 
@@ -67,9 +66,7 @@ class ProductoResource extends Resource
                 ->icon(Heroicon::TableCells)
                 ->color('success')
                 ->action(function () {
-                    $path = app(ExportarProductos::class)->ejecutar();
-
-                    return response()->download($path);
+                    return app(GenerarReporteProductos::class)->excel([]);
                 }),
 
             Action::make('descargar_reporte_pdf')

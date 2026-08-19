@@ -26,7 +26,7 @@ final class PedidoResource extends Resource
 
     protected static ?string $slug = 'restaurante/pedidos';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static ?string $navigationLabel = 'Pedidos';
 

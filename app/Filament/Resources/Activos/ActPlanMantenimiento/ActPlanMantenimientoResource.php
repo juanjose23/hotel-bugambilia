@@ -35,7 +35,7 @@ class ActPlanMantenimientoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Planes de Mantenimiento';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Activos Fijos';
+    protected static string|UnitEnum|null $navigationGroup = 'Activos & Mantenimiento';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentCheck;
 

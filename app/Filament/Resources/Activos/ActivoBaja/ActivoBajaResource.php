@@ -24,7 +24,7 @@ class ActivoBajaResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::Trash;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Activos Fijos';
+    protected static UnitEnum|string|null $navigationGroup = 'Activos & Mantenimiento';
 
     protected static ?string $navigationLabel = 'Bajas de Activos';
 

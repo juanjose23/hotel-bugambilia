@@ -26,7 +26,7 @@ class RecepcionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ArchiveBox;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Compras';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras & Proveedores';
 
     protected static ?string $navigationLabel = 'Recepciones';
 

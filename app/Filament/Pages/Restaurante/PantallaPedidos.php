@@ -29,7 +29,7 @@ final class PantallaPedidos extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tv';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Restaurante';
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
     protected static ?string $navigationLabel = 'Pantalla Turnos';
 

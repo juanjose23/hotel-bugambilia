@@ -28,7 +28,7 @@ class LimpiezaHorarioResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Calendar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Limpieza';
+    protected static string|UnitEnum|null $navigationGroup = 'Limpieza & Lavandería';
 
     protected static ?string $modelLabel = 'Horario Planificado';
 
