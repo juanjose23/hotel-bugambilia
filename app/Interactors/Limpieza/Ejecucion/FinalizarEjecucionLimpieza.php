@@ -35,7 +35,7 @@ final class FinalizarEjecucionLimpieza
         ]);
 
         if ($ejecucion->carrito_id && ! empty($dto->consumos)) {
-            $this->registrarConsumos($ejecucion, $dto->consumos);
+            $this->registrarConsumos($ejecucion, $dto->consumos, $dto->usuarioId);
         }
     }
 
@@ -52,7 +52,7 @@ final class FinalizarEjecucionLimpieza
     }
 
     /** @param array<int|string, float> $consumos */
-    private function registrarConsumos(LimpiezaEjecucion $ejecucion, array $consumos): void
+    private function registrarConsumos(LimpiezaEjecucion $ejecucion, array $consumos, ?int $usuarioId): void
     {
         $tipoDestino = match ($ejecucion->limpiable_type) {
             Habitacion::class => 'habitacion',
@@ -88,7 +88,7 @@ final class FinalizarEjecucionLimpieza
                     $items
                 ),
                 bodegaOrigenId: (int) $ejecucion->carrito_id,
-                creadoPorId: auth()->id() !== null ? (int) auth()->id() : null,
+                creadoPorId: $usuarioId,
                 notas: "Consumo registrado al completar ejecución de limpieza #{$ejecucion->id}.",
             )
         );

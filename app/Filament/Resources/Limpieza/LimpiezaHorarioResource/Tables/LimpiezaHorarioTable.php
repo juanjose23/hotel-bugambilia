@@ -44,6 +44,12 @@ class LimpiezaHorarioTable
                     ->sortable()
                     ->icon(Heroicon::Clock),
 
+                TextColumn::make('duracion_estimada_minutos')
+                    ->label('Min./destino')
+                    ->suffix(' min')
+                    ->sortable()
+                    ->icon(Heroicon::Clock),
+
                 TextColumn::make('frecuencia')
                     ->label('Frecuencia')
                     ->badge()

@@ -24,7 +24,7 @@ return [
 
     'mtto_notificar_proximos' => env('JOB_MANTENIMIENTO_NOTIFICAR_PROXIMOS_AT', '07:00'),
 
-    'limpieza_materializar' => env('JOB_LIMPIEZA_MATERIALIZAR_AT', 'hourly'),
+    'limpieza_materializar' => env('JOB_LIMPIEZA_MATERIALIZAR_AT', '00:05'),
 
     'limpieza_recordatorio' => env('JOB_LIMPIEZA_RECORDATORIO_AT', '12:00'),
 

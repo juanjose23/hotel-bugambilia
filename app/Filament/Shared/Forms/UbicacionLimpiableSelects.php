@@ -7,7 +7,7 @@ namespace App\Filament\Shared\Forms;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
-use App\Repository\Queries\Limpieza\Ubicacion\ObtenerPathUbicacion;
+use App\Repository\Queries\Limpieza\Ubicacion\ObtenerOpcionesLimpiables;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
@@ -62,26 +62,11 @@ final class UbicacionLimpiableSelects
                     }
                 }
 
-                if ($tipo === Espacio::class) {
-                    if ($soloEspaciosPadre) {
-                        return Espacio::whereNull('padre_id')->pluck('nombre', 'id')->toArray();
-                    }
-
-                    return Espacio::with('padre.padre')
-                        ->get()
-                        ->mapWithKeys(fn (Espacio $e) => [$e->id => $e->getNombreCompleto()])
-                        ->toArray();
+                if ($soloEspaciosPadre) {
+                    return app(ObtenerOpcionesLimpiables::class)->padres($tipo);
                 }
 
-                if ($tipo === Ubicacion::class) {
-                    if ($soloEspaciosPadre) {
-                        return Ubicacion::whereNull('padre_id')->pluck('nombre', 'id')->toArray();
-                    }
-
-                    return app(ObtenerPathUbicacion::class)->ejecutar();
-                }
-
-                return $tipo::pluck('nombre', 'id')->toArray();
+                return app(ObtenerOpcionesLimpiables::class)->execute($tipo);
             })
             ->searchable()
             ->preload()
@@ -121,19 +106,7 @@ final class UbicacionLimpiableSelects
                     }
                 }
 
-                if ($tipo === Espacio::class) {
-                    return Espacio::where('padre_id', $padreIdInt)
-                        ->pluck('nombre', 'id')
-                        ->toArray();
-                }
-
-                if ($tipo === Ubicacion::class) {
-                    return Ubicacion::where('padre_id', $padreIdInt)
-                        ->pluck('nombre', 'id')
-                        ->toArray();
-                }
-
-                return [];
+                return app(ObtenerOpcionesLimpiables::class)->hijos($tipo, $padreIdInt);
             })
             ->searchable()
             ->preload()
@@ -159,15 +132,7 @@ final class UbicacionLimpiableSelects
                     }
                 }
 
-                if ($tipo === Espacio::class) {
-                    return ! Espacio::where('padre_id', $padreIdInt)->exists();
-                }
-
-                if ($tipo === Ubicacion::class) {
-                    return ! Ubicacion::where('padre_id', $padreIdInt)->exists();
-                }
-
-                return true;
+                return ! app(ObtenerOpcionesLimpiables::class)->tieneHijos($tipo, $padreIdInt);
             });
     }
 }

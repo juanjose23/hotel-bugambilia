@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Limpieza\ReportesLimpieza;
 use App\Filament\Pages\Reportes\TableroInteligenciaNegocio;
 use App\Http\Middleware\RequerirAdmin;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -81,6 +82,7 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('15s')
             ->pages([
+                ReportesLimpieza::class,
                 TableroInteligenciaNegocio::class,
                 Dashboard::class,
             ])

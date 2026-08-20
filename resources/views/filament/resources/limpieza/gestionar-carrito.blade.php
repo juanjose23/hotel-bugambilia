@@ -221,9 +221,11 @@
                         </div>
                     @else
                         <x-shared.tab-switcher
-                            activeTab="abastecer"
+                            :activeTab="$activeTab"
                             :tabs="[
                                 ['id' => 'abastecer', 'label' => 'Abastecer', 'icon' => 'plus-circle', 'activeColor' => 'success'],
+                                ['id' => 'uso', 'label' => 'Usado', 'icon' => 'check-circle', 'activeColor' => 'success'],
+                                ['id' => 'merma', 'label' => 'Merma', 'icon' => 'archive-box-x-mark', 'activeColor' => 'danger'],
                                 ['id' => 'devolver', 'label' => 'Devolver', 'icon' => 'arrow-uturn-left', 'activeColor' => 'warning'],
                                 ['id' => 'traspasar', 'label' => 'Traspasar', 'icon' => 'arrows-right-left', 'activeColor' => 'info'],
                             ]"
@@ -242,6 +244,36 @@
                                     <div class="flex flex-col gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
                                         <x-filament::button type="submit" color="success" icon="heroicon-o-plus-circle" class="w-full justify-center">
                                             Cargar Insumos al Carrito
+                                        </x-filament::button>
+                                    </div>
+                                </form>
+                            @elseif($activeTab === 'uso')
+                                <div class="mb-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
+                                    <p class="text-xs text-emerald-700 dark:text-emerald-400">
+                                        <x-heroicon-m-information-circle class="w-4 h-4 inline mr-1" />
+                                        Registre los insumos que se utilizaron durante la limpieza asignada al carrito.
+                                    </p>
+                                </div>
+                                <form wire:submit.prevent="submitUso" class="space-y-4">
+                                    {{ $this->usoForm }}
+                                    <div class="flex flex-col gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
+                                        <x-filament::button type="submit" color="success" icon="heroicon-o-check-circle" class="w-full justify-center">
+                                            Registrar Uso en Limpieza
+                                        </x-filament::button>
+                                    </div>
+                                </form>
+                            @elseif($activeTab === 'merma')
+                                <div class="mb-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900">
+                                    <p class="text-xs text-red-700 dark:text-red-400">
+                                        <x-heroicon-m-information-circle class="w-4 h-4 inline mr-1" />
+                                        Registre pérdidas, daños o insumos descartados directamente desde el carrito.
+                                    </p>
+                                </div>
+                                <form wire:submit.prevent="submitMerma" class="space-y-4">
+                                    {{ $this->mermaForm }}
+                                    <div class="flex flex-col gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
+                                        <x-filament::button type="submit" color="danger" icon="heroicon-o-archive-box-x-mark" class="w-full justify-center">
+                                            Registrar Merma del Carrito
                                         </x-filament::button>
                                     </div>
                                 </form>

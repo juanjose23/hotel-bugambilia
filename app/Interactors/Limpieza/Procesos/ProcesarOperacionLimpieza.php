@@ -30,8 +30,6 @@ class ProcesarOperacionLimpieza
     /** @param array<string, mixed> $data */
     public function ejecutar(int $ejecucionId, array $data, ?int $usuarioId = null): void
     {
-        $usuarioId = $usuarioId ?: (auth()->id() !== null ? (int) auth()->id() : null);
-
         $missingItems = [];
 
         DB::transaction(function () use ($ejecucionId, $data, $usuarioId, &$missingItems) {

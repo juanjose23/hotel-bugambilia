@@ -28,6 +28,7 @@ class LimpiezaHorario extends Model implements AuditableContract
 
     protected $casts = [
         'turno_id' => 'integer',
+        'duracion_estimada_minutos' => 'integer',
         'activo' => EstadoGeneral::class,
         'checklist' => 'array',
     ];

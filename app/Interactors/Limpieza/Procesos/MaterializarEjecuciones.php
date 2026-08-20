@@ -43,6 +43,40 @@ final class MaterializarEjecuciones
 
         $horarios = $this->obtenerHorariosActivos($diaSemanaActual);
 
+        return $this->materializarHorarios($horarios, $fecha, $diaSemanaActual);
+    }
+
+    /**
+     * @return array{fecha: string, dia_semana: string, creados: int}
+     */
+    public function ejecutarHorario(int $horarioId, ?string $fechaInput = null): array
+    {
+        $fecha = $fechaInput ? Carbon::parse($fechaInput) : Carbon::today();
+        $diaSemanaActual = self::DIAS_SEMANA[$fecha->format('l')];
+
+        $horarios = LimpiezaHorario::query()
+            ->whereKey($horarioId)
+            ->where('activo', true)
+            ->whereNotNull('turno_id')
+            ->where(function (Builder $query) use ($diaSemanaActual) {
+                $query->where('frecuencia', 'diaria')
+                    ->orWhere(function (Builder $query) use ($diaSemanaActual) {
+                        $query->where('frecuencia', 'semanal')
+                            ->where('dia_semana', $diaSemanaActual);
+                    });
+            })
+            ->with(['turno', 'detalles'])
+            ->get();
+
+        return $this->materializarHorarios($horarios, $fecha, $diaSemanaActual);
+    }
+
+    /**
+     * @param  Collection<int, LimpiezaHorario>  $horarios
+     * @return array{fecha: string, dia_semana: string, creados: int}
+     */
+    private function materializarHorarios(Collection $horarios, Carbon $fecha, string $diaSemanaActual): array
+    {
         $fechaStr = $fecha->toDateString();
         $ejecucionesExistentes = LimpiezaEjecucion::query()
             ->whereDate('fecha', $fechaStr)
