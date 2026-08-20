@@ -86,7 +86,7 @@ class LimpiezaTurnoSeeder extends Seeder
 
             $horario = LimpiezaHorario::firstOrCreate(
                 ['turno_id' => $turno->id, 'hora_estimada' => $hora, 'frecuencia' => 'diaria'],
-                ['checklist' => $checklistBase, 'activo' => true],
+                ['checklist' => $checklistBase, 'duracion_estimada_minutos' => 30, 'activo' => true],
             );
 
             $horario->detalles()->firstOrCreate([
@@ -104,7 +104,7 @@ class LimpiezaTurnoSeeder extends Seeder
 
             $horario = LimpiezaHorario::firstOrCreate(
                 ['turno_id' => $turno->id, 'hora_estimada' => $hora, 'frecuencia' => 'semanal', 'dia_semana' => $dia],
-                ['checklist' => $checklistBase, 'activo' => true],
+                ['checklist' => $checklistBase, 'duracion_estimada_minutos' => 45, 'activo' => true],
             );
 
             $horario->detalles()->firstOrCreate([

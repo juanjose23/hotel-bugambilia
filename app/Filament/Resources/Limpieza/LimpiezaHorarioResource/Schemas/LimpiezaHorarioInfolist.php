@@ -24,7 +24,7 @@ class LimpiezaHorarioInfolist
             ->components([
                 Section::make('Planificación del Horario')
                     ->icon(Heroicon::Calendar)
-                    ->description('Parámetros de programación, frecuencia y estado del horario.')
+                    ->description('Cada día se ejecuta limpieza:materializar-ejecuciones y crea las limpiezas según los horarios activos diarios o semanales. También puede usar "Generar ejecuciones" para crearlas manualmente.')
                     ->columns([
                         'default' => 1,
                         'sm' => 2,
@@ -39,6 +39,12 @@ class LimpiezaHorarioInfolist
 
                         TextEntry::make('hora_estimada')
                             ->label('Hora Estimada')
+                            ->icon(Heroicon::Clock)
+                            ->weight(FontWeight::Medium),
+
+                        TextEntry::make('duracion_estimada_minutos')
+                            ->label('Minutos por destino')
+                            ->suffix(' min')
                             ->icon(Heroicon::Clock)
                             ->weight(FontWeight::Medium),
 

@@ -20,9 +20,9 @@ final class ReclamarEIniciarLimpieza
         private readonly BloquearCarritoParaLimpieza $bloquearCarrito,
     ) {}
 
-    public function execute(int $ejecucionId, int $colaboradorId, ?int $carritoId): LimpiezaEjecucion
+    public function execute(int $ejecucionId, int $colaboradorId, ?int $carritoId, ?int $usuarioId = null): LimpiezaEjecucion
     {
-        return DB::transaction(function () use ($ejecucionId, $colaboradorId, $carritoId): LimpiezaEjecucion {
+        return DB::transaction(function () use ($ejecucionId, $colaboradorId, $carritoId, $usuarioId): LimpiezaEjecucion {
             if ($carritoId !== null) {
                 $this->bloquearCarrito->execute($carritoId, $ejecucionId, $colaboradorId);
             }
@@ -41,6 +41,7 @@ final class ReclamarEIniciarLimpieza
                 record: $ejecucion,
                 colaboradorOrPersonalId: $colaboradorId,
                 carritoId: $carritoId,
+                usuarioId: $usuarioId,
             ));
 
             return $ejecucion->refresh();

@@ -28,8 +28,9 @@ final class CompletarEjecucionAsignada
         array $checklist,
         string $observaciones,
         array $consumos,
+        ?int $usuarioId = null,
     ): LimpiezaEjecucion {
-        return DB::transaction(function () use ($ejecucionId, $colaboradorId, $checklist, $observaciones, $consumos): LimpiezaEjecucion {
+        return DB::transaction(function () use ($ejecucionId, $colaboradorId, $checklist, $observaciones, $consumos, $usuarioId): LimpiezaEjecucion {
             $ejecucion = $this->obtenerEjecucion->execute($ejecucionId);
 
             if ($ejecucion->estado !== EstadoLimpieza::EnProgreso) {
@@ -45,6 +46,7 @@ final class CompletarEjecucionAsignada
                 checklist: $checklist,
                 observaciones: $observaciones,
                 consumos: $consumos,
+                usuarioId: $usuarioId,
             ));
 
             return $ejecucion->refresh();

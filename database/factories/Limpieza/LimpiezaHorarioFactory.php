@@ -20,6 +20,7 @@ class LimpiezaHorarioFactory extends Factory
         return [
             'turno_id' => Turno::factory(),
             'hora_estimada' => fake()->randomElement(['08:00:00', '09:00:00', '10:00:00', '11:00:00']),
+            'duracion_estimada_minutos' => 30,
             'frecuencia' => fake()->randomElement(['diaria', 'semanal']),
             'dia_semana' => fake()->optional()->randomElement(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']),
             'checklist' => [

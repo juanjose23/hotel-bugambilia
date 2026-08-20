@@ -9,6 +9,7 @@ use App\Http\Controllers\Financiero\ReporteFinancieroController;
 use App\Http\Controllers\Habitaciones\HabitacionController;
 use App\Http\Controllers\Inventario\ReporteInventarioController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\Limpieza\ReporteLimpiezaController;
 use App\Http\Controllers\Publico\AcercaDeController;
 use App\Http\Controllers\Publico\ContactoController;
 use App\Http\Controllers\Publico\FavoritosController;
@@ -193,6 +194,30 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/ajustes/excel', [ReporteInventarioController::class, 'ajustesExcel'])->middleware('can:Inventario:ReporteAjustes')->name('ajustes.excel');
         Route::get('/costo-ventas/pdf', [ReporteInventarioController::class, 'costoVentasPdf'])->middleware('can:Inventario:ReporteCostoVentas')->name('costo-ventas.pdf');
         Route::get('/costo-ventas/excel', [ReporteInventarioController::class, 'costoVentasExcel'])->middleware('can:Inventario:ReporteCostoVentas')->name('costo-ventas.excel');
+    });
+
+    // Limpieza & Lavandería
+    Route::prefix('limpieza/reportes')->name('limpieza.reportes.')->group(function () {
+        Route::get('/operacion-hotelera/preview', [ReporteLimpiezaController::class, 'operacionHoteleraPreview'])
+            ->name('operacion-hotelera.preview');
+        Route::get('/operacion-hotelera/pdf', [ReporteLimpiezaController::class, 'operacionHoteleraPdf'])
+            ->name('operacion-hotelera.pdf');
+        Route::get('/tiempo-promedio/preview', [ReporteLimpiezaController::class, 'tiempoPromedioPreview'])
+            ->name('tiempo-promedio.preview');
+        Route::get('/tiempo-promedio/pdf', [ReporteLimpiezaController::class, 'tiempoPromedioPdf'])
+            ->name('tiempo-promedio.pdf');
+        Route::get('/pendientes-bloqueadas/preview', [ReporteLimpiezaController::class, 'pendientesBloqueadasPreview'])
+            ->name('pendientes-bloqueadas.preview');
+        Route::get('/pendientes-bloqueadas/pdf', [ReporteLimpiezaController::class, 'pendientesBloqueadasPdf'])
+            ->name('pendientes-bloqueadas.pdf');
+        Route::get('/amenities-habitacion/preview', [ReporteLimpiezaController::class, 'amenitiesHabitacionPreview'])
+            ->name('amenities-habitacion.preview');
+        Route::get('/amenities-habitacion/pdf', [ReporteLimpiezaController::class, 'amenitiesHabitacionPdf'])
+            ->name('amenities-habitacion.pdf');
+        Route::get('/productividad/preview', [ReporteLimpiezaController::class, 'productividadPreview'])
+            ->name('productividad.preview');
+        Route::get('/productividad/pdf', [ReporteLimpiezaController::class, 'productividadPdf'])
+            ->name('productividad.pdf');
     });
 
     // Servicios

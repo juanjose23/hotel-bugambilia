@@ -11,11 +11,20 @@ class ObtenerOpcionesStockPorUbicacion
     /**
      * @return array<int, string>
      */
-    public function execute(int $ubicacionId, ?int $excluirStockId = null): array
+    /**
+     * @param  int|array<int>  $ubicacionId
+     * @return array<int, string>
+     */
+    public function execute(int|array $ubicacionId, ?int $excluirStockId = null): array
     {
         $query = Stock::with(['variante.producto', 'lote'])
-            ->where('ubicacion_id', $ubicacionId)
             ->where('cantidad', '>', 0);
+
+        if (is_array($ubicacionId)) {
+            $query->whereIn('ubicacion_id', $ubicacionId);
+        } else {
+            $query->where('ubicacion_id', $ubicacionId);
+        }
 
         if ($excluirStockId !== null) {
             $query->where('id', '!=', $excluirStockId);

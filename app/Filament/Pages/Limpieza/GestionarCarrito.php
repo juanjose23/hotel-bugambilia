@@ -6,14 +6,22 @@ namespace App\Filament\Pages\Limpieza;
 
 use App\BusinessLogic\Limpieza\Data\CarritoEstadisticasData;
 use App\Enums\Limpieza\EstadoLimpieza;
-use App\Interactors\Inventario\TrasladarEntreBodegas;
+use App\Filament\Shared\Forms\Limpieza\BodegaLimpiezaSelect;
+use App\Filament\Shared\Forms\Limpieza\StockUbicacionSelect;
 use App\Interactors\Limpieza\Carrito\AsignarCarritoAEjecucion;
 use App\Interactors\Limpieza\Carrito\LiberarCarritoDeEjecucion;
+use App\Interactors\Limpieza\Carrito\RegistrarSalidaCarrito;
+use App\Interactors\Limpieza\Carrito\TrasladarStockSeleccionadoCarrito;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\MovimientoStock;
 use App\Repository\Models\Inventario\Stock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritoPorId;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerEstadisticasCarrito;
+use App\Repository\Queries\Limpieza\Carrito\ObtenerInventarioCarrito;
+use App\Repository\Queries\Limpieza\Carrito\ObtenerMovimientosRecientesCarrito;
+use App\Repository\Queries\Limpieza\Carrito\ObtenerOpcionesCarritosDestino;
+use App\Repository\Queries\Limpieza\Ejecucion\ObtenerOpcionesEjecucionesPendientesCarrito;
 use App\Repository\Queries\Limpieza\Stock\ObtenerStockPorUbicacion;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\Hidden;
@@ -24,8 +32,8 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -40,6 +48,8 @@ use Livewire\Attributes\Url;
  * @property Schema $abastecerForm
  * @property Schema $devolverForm
  * @property Schema $traspasarForm
+ * @property Schema $usoForm
+ * @property Schema $mermaForm
  * @property Schema $assignForm
  * @property Ubicacion|null $carrito
  * @property bool $bloqueado
@@ -68,16 +78,36 @@ class GestionarCarrito extends Page implements HasForms, HasTable
 
     protected LiberarCarritoDeEjecucion $liberarCarrito;
 
+    protected ObtenerMovimientosRecientesCarrito $movimientosRecientesCarrito;
+
+    protected ObtenerInventarioCarrito $inventarioCarrito;
+
+    protected ObtenerOpcionesCarritosDestino $opcionesCarritosDestino;
+
+    protected ObtenerOpcionesEjecucionesPendientesCarrito $opcionesEjecucionesPendientes;
+
+    protected ?ObtenerCarritoPorId $obtenerCarritoPorId = null;
+
     public function boot(
         ObtenerStockPorUbicacion $stockPorUbicacion,
         ObtenerEstadisticasCarrito $estadisticasQuery,
         AsignarCarritoAEjecucion $asignarCarrito,
         LiberarCarritoDeEjecucion $liberarCarrito,
+        ObtenerMovimientosRecientesCarrito $movimientosRecientesCarrito,
+        ObtenerInventarioCarrito $inventarioCarrito,
+        ObtenerOpcionesCarritosDestino $opcionesCarritosDestino,
+        ObtenerOpcionesEjecucionesPendientesCarrito $opcionesEjecucionesPendientes,
+        ObtenerCarritoPorId $obtenerCarritoPorId,
     ): void {
         $this->stockPorUbicacion = $stockPorUbicacion;
         $this->estadisticasQuery = $estadisticasQuery;
         $this->asignarCarrito = $asignarCarrito;
         $this->liberarCarrito = $liberarCarrito;
+        $this->movimientosRecientesCarrito = $movimientosRecientesCarrito;
+        $this->inventarioCarrito = $inventarioCarrito;
+        $this->opcionesCarritosDestino = $opcionesCarritosDestino;
+        $this->opcionesEjecucionesPendientes = $opcionesEjecucionesPendientes;
+        $this->obtenerCarritoPorId = $obtenerCarritoPorId;
     }
 
     #[Url(as: 'carrito')]
@@ -91,6 +121,12 @@ class GestionarCarrito extends Page implements HasForms, HasTable
 
     /** @var array<string, mixed>|null */
     public ?array $traspasarData = [];
+
+    /** @var array<string, mixed>|null */
+    public ?array $usoData = [];
+
+    /** @var array<string, mixed>|null */
+    public ?array $mermaData = [];
 
     /** @var array<string, mixed>|null */
     public ?array $assignData = [];
@@ -119,12 +155,14 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         $this->abastecerForm->fill();
         $this->devolverForm->fill();
         $this->traspasarForm->fill();
+        $this->usoForm->fill();
+        $this->mermaForm->fill();
         $this->assignForm->fill();
     }
 
     public function getCarritoProperty(): ?Ubicacion
     {
-        return $this->carritoId ? Ubicacion::find($this->carritoId) : null;
+        return app(ObtenerCarritoPorId::class)->execute($this->carritoId);
     }
 
     protected function getEstadisticasData(): CarritoEstadisticasData
@@ -142,7 +180,12 @@ class GestionarCarrito extends Page implements HasForms, HasTable
             );
         }
 
-        return $this->estadisticasQuery->execute($this->carritoId);
+        $colaboradorId = auth()->user()?->persona?->colaborador?->id;
+
+        return $this->estadisticasQuery->execute(
+            $this->carritoId,
+            is_numeric($colaboradorId) ? (int) $colaboradorId : null,
+        );
     }
 
     public function getBloqueadoProperty(): bool
@@ -241,20 +284,13 @@ class GestionarCarrito extends Page implements HasForms, HasTable
 
     public function getTitle(): string|Htmlable
     {
-        return $this->carrito
-            ? "Gestionar Carrito: {$this->carrito->nombre}"
-            : 'Gestionar Carrito';
+        return 'Gestionar Carrito';
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(
-                Stock::query()
-                    ->where('ubicacion_id', $this->carritoId ?? 0)
-                    ->where('cantidad', '>', 0)
-                    ->with(['variante.producto', 'lote'])
-            )
+            ->query($this->inventarioCarrito->execute($this->carritoId ?? 0))
             ->columns([
                 TextColumn::make('variante.producto.nombre')
                     ->label('Insumo')
@@ -283,16 +319,8 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         return [
             'abastecerForm' => $this->makeSchema()
                 ->schema([
-                    Select::make('bodega_origen_id')
-                        ->label('Bodega / Almacén de Origen')
-                        ->placeholder('Seleccione bodega de origen')
-                        ->options(fn (): array => Ubicacion::whereIn('tipo', ['almacen', 'bodega'])
-                            ->where('nombre', 'not like', 'Carrito%')
-                            ->pluck('nombre', 'id')
-                            ->toArray())
-                        ->required()
+                    BodegaLimpiezaSelect::make('bodega_origen_id', 'Bodega / Almacén de Origen')
                         ->live()
-                        ->native(false)
                         ->prefixIcon(Heroicon::Home),
 
                     Repeater::make('items')
@@ -300,42 +328,11 @@ class GestionarCarrito extends Page implements HasForms, HasTable
                         ->columnSpanFull()
                         ->columns(2)
                         ->schema([
-                            Select::make('stock_id')
-                                ->label('Seleccionar Insumo (Lote & Disponible)')
-                                ->placeholder('Seleccione insumo')
-                                ->options(function (Get $get): array {
-                                    $origenId = $get('../../bodega_origen_id');
-                                    if (! $origenId) {
-                                        return [];
-                                    }
-
-                                    return $this->stockPorUbicacion->execute(intval(is_scalar($origenId) ? $origenId : 0))
-                                        ->with(['variante.producto', 'lote'])
-                                        ->get()
-                                        ->mapWithKeys(function ($stock): array {
-                                            $nombre = ($stock->variante?->producto->nombre ?? 'Insumo')
-                                                .($stock->variante?->nombre_variante ? " ({$stock->variante->nombre_variante})" : '')
-                                                .' [Lote: '.($stock->lote->codigo_lote ?? 'N/A').']'
-                                                ." (Disp: {$stock->cantidad})";
-
-                                            return [$stock->id => $nombre];
-                                        })
-                                        ->toArray();
-                                })
-                                ->required()
-                                ->live()
-                                ->native(false)
-                                ->prefixIcon(Heroicon::ListBullet)
-                                ->afterStateUpdated(function (?int $state, Set $set): void {
-                                    if ($state) {
-                                        $stock = Stock::find($state);
-                                        if ($stock) {
-                                            $set('max_qty', (float) $stock->cantidad);
-                                        }
-                                    } else {
-                                        $set('max_qty', 0);
-                                    }
-                                }),
+                            StockUbicacionSelect::make(
+                                column: 'stock_id',
+                                label: 'Seleccionar Insumo (Lote & Disponible)',
+                                ubicacionId: fn (Get $get): mixed => $get('../../bodega_origen_id'),
+                            ),
 
                             TextInput::make('cantidad')
                                 ->label('Cantidad')
@@ -348,50 +345,20 @@ class GestionarCarrito extends Page implements HasForms, HasTable
                             Hidden::make('max_qty')
                                 ->default(0),
                         ])
-                        ->createItemButtonLabel('Agregar insumo'),
+                        ->addActionLabel('Agregar insumo'),
                 ])
                 ->statePath('abastecerData'),
 
             'devolverForm' => $this->makeSchema()
                 ->schema([
-                    Select::make('stock_id')
-                        ->label('Insumo en Carrito')
-                        ->placeholder('Seleccione insumo')
-                        ->options(fn (): array => $this->carritoId ? $this->stockPorUbicacion->execute($this->carritoId)
-                            ->with(['variante.producto', 'lote'])
-                            ->get()
-                            ->mapWithKeys(function ($stock): array {
-                                $nombre = ($stock->variante?->producto->nombre ?? 'Insumo')
-                                    .($stock->variante?->nombre_variante ? " ({$stock->variante->nombre_variante})" : '')
-                                    .' [Lote: '.($stock->lote->codigo_lote ?? 'N/A').']'
-                                    ." (Disp: {$stock->cantidad})";
+                    StockUbicacionSelect::make(
+                        column: 'stock_id',
+                        label: 'Insumo en Carrito',
+                        ubicacionId: fn (Get $get): int => (int) $this->carritoId,
+                        llenarCantidad: true,
+                    ),
 
-                                return [$stock->id => $nombre];
-                            })
-                            ->toArray() : []
-                        )
-                        ->required()
-                        ->live()
-                        ->native(false)
-                        ->afterStateUpdated(function (?int $state, Set $set): void {
-                            if ($state) {
-                                $stock = Stock::find($state);
-                                if ($stock) {
-                                    $set('cantidad', $stock->cantidad);
-                                    $set('max_qty', $stock->cantidad);
-                                }
-                            }
-                        }),
-
-                    Select::make('bodega_destino_id')
-                        ->label('Bodega de Destino')
-                        ->placeholder('Seleccione destino')
-                        ->options(fn (): array => Ubicacion::whereIn('tipo', ['almacen', 'bodega'])
-                            ->where('nombre', 'not like', 'Carrito%')
-                            ->pluck('nombre', 'id')
-                            ->toArray())
-                        ->required()
-                        ->native(false),
+                    BodegaLimpiezaSelect::make('bodega_destino_id', 'Bodega de Destino'),
 
                     TextInput::make('cantidad')
                         ->label('Cantidad a Devolver')
@@ -407,42 +374,17 @@ class GestionarCarrito extends Page implements HasForms, HasTable
 
             'traspasarForm' => $this->makeSchema()
                 ->schema([
-                    Select::make('stock_id')
-                        ->label('Insumo en Carrito')
-                        ->placeholder('Seleccione insumo')
-                        ->options(fn (): array => $this->carritoId ? $this->stockPorUbicacion->execute($this->carritoId)
-                            ->with(['variante.producto', 'lote'])
-                            ->get()
-                            ->mapWithKeys(function ($stock): array {
-                                $nombre = ($stock->variante?->producto->nombre ?? 'Insumo')
-                                    .($stock->variante?->nombre_variante ? " ({$stock->variante->nombre_variante})" : '')
-                                    .' [Lote: '.($stock->lote->codigo_lote ?? 'N/A').']'
-                                    ." (Disp: {$stock->cantidad})";
-
-                                return [$stock->id => $nombre];
-                            })
-                            ->toArray() : []
-                        )
-                        ->required()
-                        ->live()
-                        ->native(false)
-                        ->afterStateUpdated(function (?int $state, Set $set): void {
-                            if ($state) {
-                                $stock = Stock::find($state);
-                                if ($stock) {
-                                    $set('cantidad', $stock->cantidad);
-                                    $set('max_qty', $stock->cantidad);
-                                }
-                            }
-                        }),
+                    StockUbicacionSelect::make(
+                        column: 'stock_id',
+                        label: 'Insumo en Carrito',
+                        ubicacionId: fn (Get $get): int => (int) $this->carritoId,
+                        llenarCantidad: true,
+                    ),
 
                     Select::make('carrito_destino_id')
                         ->label('Carrito de Destino')
                         ->placeholder('Seleccione carrito destino')
-                        ->options(fn (): array => Ubicacion::where('nombre', 'like', 'Carrito%')
-                            ->where('id', '!=', $this->carritoId)
-                            ->pluck('nombre', 'id')
-                            ->toArray())
+                        ->options(fn (): array => $this->opcionesCarritosDestino->execute($this->carritoId))
                         ->required()
                         ->native(false),
 
@@ -458,24 +400,28 @@ class GestionarCarrito extends Page implements HasForms, HasTable
                 ])
                 ->statePath('traspasarData'),
 
+            'usoForm' => $this->makeSchema()
+                ->schema($this->stockSalidaCarritoSchema(
+                    cantidadLabel: 'Cantidad Utilizada',
+                    notasLabel: 'Detalle de Uso',
+                    notasPlaceholder: 'Ej. Reposición en habitación, kit dejado en baño, cambio de toallas...'
+                ))
+                ->statePath('usoData'),
+
+            'mermaForm' => $this->makeSchema()
+                ->schema($this->stockSalidaCarritoSchema(
+                    cantidadLabel: 'Cantidad en Merma',
+                    notasLabel: 'Motivo de Merma',
+                    notasPlaceholder: 'Ej. Producto derramado, dañado, contaminado, roto...'
+                ))
+                ->statePath('mermaData'),
+
             'assignForm' => $this->makeSchema()
                 ->schema([
                     Select::make('limpieza_ejecucion_id')
                         ->label('Tarea de Limpieza Pendiente')
                         ->placeholder('Seleccione una tarea pendiente')
-                        ->options(fn (): array => LimpiezaEjecucion::where('estado', EstadoLimpieza::Pendiente)
-                            ->whereNull('carrito_id')
-                            ->whereDate('fecha', now()->toDateString())
-                            ->with(['limpiable', 'colaborador.persona'])
-                            ->get()
-                            ->mapWithKeys(function ($e): array {
-                                $area = $e->limpiable ? (string) ($e->limpiable->nombre ?? $e->limpiable_type) : 'Área';
-                                $col = $e->colaborador?->persona ? $e->colaborador->persona->primer_nombre : 'Sin asignación';
-
-                                return [$e->id => "Limpieza #{$e->id} - {$area} ({$col})"];
-                            })
-                            ->toArray()
-                        )
+                        ->options(fn (): array => $this->opcionesEjecucionesPendientes->execute())
                         ->required()
                         ->native(false),
                 ])
@@ -483,7 +429,34 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         ];
     }
 
-    public function submitAbastecer(TrasladarEntreBodegas $trasladarEntreBodegas): void
+    /** @return array<int, Component> */
+    private function stockSalidaCarritoSchema(string $cantidadLabel, string $notasLabel, string $notasPlaceholder): array
+    {
+        return [
+            StockUbicacionSelect::make(
+                column: 'stock_id',
+                label: 'Insumo en Carrito',
+                ubicacionId: fn (Get $get): int => (int) $this->carritoId,
+            ),
+
+            TextInput::make('cantidad')
+                ->label($cantidadLabel)
+                ->numeric()
+                ->required()
+                ->minValue(0.01)
+                ->maxValue(fn (Get $get): float => is_numeric($get('max_qty')) ? (float) $get('max_qty') : 99999.0),
+
+            TextInput::make('notas')
+                ->label($notasLabel)
+                ->placeholder($notasPlaceholder)
+                ->columnSpanFull(),
+
+            Hidden::make('max_qty')
+                ->default(0),
+        ];
+    }
+
+    public function submitAbastecer(TrasladarStockSeleccionadoCarrito $trasladarStock): void
     {
         $data = $this->abastecerForm->getState();
         if (empty($data)) {
@@ -503,25 +476,25 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         }
 
         try {
+            $userId = auth()->id();
+
             foreach ($items as $item) {
                 if (! is_array($item)) {
                     continue;
                 }
-                $stock = isset($item['stock_id']) ? Stock::find($item['stock_id']) : null;
-                if ($stock instanceof Stock) {
-                    $cantidad = isset($item['cantidad']) && is_numeric($item['cantidad']) ? (float) $item['cantidad'] : 0.0;
-                    $trasladarEntreBodegas->execute(
-                        productoId: (int) $stock->producto_id,
-                        loteId: (int) $stock->lote_id,
-                        cantidad: $cantidad,
-                        origenId: $origenId,
-                        destinoId: $destinoId,
-                        productoVarianteId: $stock->producto_variante_id ? (int) $stock->producto_variante_id : null,
-                        creadoPorId: (int) auth()->id(),
-                        referencia: "Abastecimiento de Carrito #{$destinoId}",
-                        notas: 'Carga de insumos para carrito de limpieza.'
-                    );
-                }
+
+                $stockId = isset($item['stock_id']) && is_numeric($item['stock_id']) ? (int) $item['stock_id'] : 0;
+                $cantidad = isset($item['cantidad']) && is_numeric($item['cantidad']) ? (float) $item['cantidad'] : 0.0;
+
+                $trasladarStock->execute(
+                    stockId: $stockId,
+                    cantidad: $cantidad,
+                    origenId: $origenId,
+                    destinoId: $destinoId,
+                    creadoPorId: $userId !== null ? (int) $userId : null,
+                    referencia: "Abastecimiento de Carrito #{$destinoId}",
+                    notas: 'Carga de insumos para carrito de limpieza.',
+                );
             }
             Notification::make()->title('Abastecimiento Exitoso')->body('Se cargaron los insumos correctamente al carrito.')->success()->send();
 
@@ -531,30 +504,26 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         }
     }
 
-    public function submitDevolver(TrasladarEntreBodegas $trasladarEntreBodegas): void
+    public function submitDevolver(TrasladarStockSeleccionadoCarrito $trasladarStock): void
     {
         $data = $this->devolverForm->getState();
         if (empty($data)) {
             return;
         }
-        $stock = isset($data['stock_id']) ? Stock::find($data['stock_id']) : null;
-        if (! $stock instanceof Stock) {
-            return;
-        }
-
         try {
+            $stockId = isset($data['stock_id']) && is_numeric($data['stock_id']) ? (int) $data['stock_id'] : 0;
             $cantidad = isset($data['cantidad']) && is_numeric($data['cantidad']) ? (float) $data['cantidad'] : 0.0;
             $destinoId = isset($data['bodega_destino_id']) && is_numeric($data['bodega_destino_id']) ? (int) $data['bodega_destino_id'] : 0;
-            $trasladarEntreBodegas->execute(
-                productoId: (int) $stock->producto_id,
-                loteId: (int) $stock->lote_id,
+            $userId = auth()->id();
+
+            $trasladarStock->execute(
+                stockId: $stockId,
                 cantidad: $cantidad,
                 origenId: (int) $this->carritoId,
                 destinoId: $destinoId,
-                productoVarianteId: $stock->producto_variante_id ? (int) $stock->producto_variante_id : null,
-                creadoPorId: (int) auth()->id(),
+                creadoPorId: $userId !== null ? (int) $userId : null,
                 referencia: "Devolución de Carrito #{$this->carritoId} a Bodega #{$destinoId}",
-                notas: 'Devolución de insumos sobrantes a almacén.'
+                notas: 'Devolución de insumos sobrantes a almacén.',
             );
             Notification::make()->title('Devolución Exitosa')->body('Se devolvió el insumo a la bodega.')->success()->send();
             $this->devolverForm->fill();
@@ -563,33 +532,96 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         }
     }
 
-    public function submitTraspasar(TrasladarEntreBodegas $trasladarEntreBodegas): void
+    public function submitTraspasar(TrasladarStockSeleccionadoCarrito $trasladarStock): void
     {
         $data = $this->traspasarForm->getState();
         if (empty($data)) {
             return;
         }
-        $stock = isset($data['stock_id']) ? Stock::find($data['stock_id']) : null;
-        if (! $stock instanceof Stock) {
+        try {
+            $stockId = isset($data['stock_id']) && is_numeric($data['stock_id']) ? (int) $data['stock_id'] : 0;
+            $cantidad = isset($data['cantidad']) && is_numeric($data['cantidad']) ? (float) $data['cantidad'] : 0.0;
+            $destinoId = isset($data['carrito_destino_id']) && is_numeric($data['carrito_destino_id']) ? (int) $data['carrito_destino_id'] : 0;
+            $userId = auth()->id();
+
+            $trasladarStock->execute(
+                stockId: $stockId,
+                cantidad: $cantidad,
+                origenId: (int) $this->carritoId,
+                destinoId: $destinoId,
+                creadoPorId: $userId !== null ? (int) $userId : null,
+                referencia: "Traspaso de Carrito #{$this->carritoId} a Carrito #{$destinoId}",
+                notas: 'Traspaso de insumos entre carritos de limpieza.',
+            );
+            Notification::make()->title('Traspaso Exitoso')->body('Se traspasó el insumo al otro carrito.')->success()->send();
+            $this->traspasarForm->fill();
+        } catch (\Throwable $e) {
+            Notification::make()->title('Error')->body($e->getMessage())->danger()->send();
+        }
+    }
+
+    public function submitUso(RegistrarSalidaCarrito $registrarSalidaCarrito): void
+    {
+        $this->registrarSalidaDesdeFormulario(
+            formState: $this->usoForm->getState(),
+            tipoSalida: 'uso',
+            registrarSalidaCarrito: $registrarSalidaCarrito,
+            successTitle: 'Uso Registrado',
+            successBody: 'Se registró el insumo utilizado en la limpieza.',
+            resetForm: fn (): mixed => $this->usoForm->fill(),
+        );
+    }
+
+    public function submitMerma(RegistrarSalidaCarrito $registrarSalidaCarrito): void
+    {
+        $this->registrarSalidaDesdeFormulario(
+            formState: $this->mermaForm->getState(),
+            tipoSalida: 'merma',
+            registrarSalidaCarrito: $registrarSalidaCarrito,
+            successTitle: 'Merma Registrada',
+            successBody: 'Se registró la merma del carrito correctamente.',
+            resetForm: fn (): mixed => $this->mermaForm->fill(),
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $formState
+     */
+    private function registrarSalidaDesdeFormulario(
+        array $formState,
+        string $tipoSalida,
+        RegistrarSalidaCarrito $registrarSalidaCarrito,
+        string $successTitle,
+        string $successBody,
+        \Closure $resetForm,
+    ): void {
+        if (empty($formState) || ! $this->carritoId) {
             return;
         }
 
         try {
-            $cantidad = isset($data['cantidad']) && is_numeric($data['cantidad']) ? (float) $data['cantidad'] : 0.0;
-            $destinoId = isset($data['carrito_destino_id']) && is_numeric($data['carrito_destino_id']) ? (int) $data['carrito_destino_id'] : 0;
-            $trasladarEntreBodegas->execute(
-                productoId: (int) $stock->producto_id,
-                loteId: (int) $stock->lote_id,
+            $stockId = isset($formState['stock_id']) && is_numeric($formState['stock_id']) ? (int) $formState['stock_id'] : 0;
+            $cantidad = isset($formState['cantidad']) && is_numeric($formState['cantidad']) ? (float) $formState['cantidad'] : 0.0;
+            $notas = isset($formState['notas']) && is_string($formState['notas']) ? $formState['notas'] : null;
+            $userId = auth()->id();
+
+            $registrarSalidaCarrito->execute(
+                stockId: $stockId,
                 cantidad: $cantidad,
-                origenId: (int) $this->carritoId,
-                destinoId: $destinoId,
-                productoVarianteId: $stock->producto_variante_id ? (int) $stock->producto_variante_id : null,
-                creadoPorId: (int) auth()->id(),
-                referencia: "Traspaso de Carrito #{$this->carritoId} a Carrito #{$destinoId}",
-                notas: 'Traspaso de insumos entre carritos de limpieza.'
+                carritoId: (int) $this->carritoId,
+                tipoSalida: $tipoSalida,
+                ejecucionId: $this->ejecucionActiva?->id,
+                creadoPorId: $userId !== null ? (int) $userId : null,
+                notas: $notas,
             );
-            Notification::make()->title('Traspaso Exitoso')->body('Se traspasó el insumo al otro carrito.')->success()->send();
-            $this->traspasarForm->fill();
+
+            Notification::make()
+                ->title($successTitle)
+                ->body($successBody)
+                ->success()
+                ->send();
+
+            $resetForm();
         } catch (\Throwable $e) {
             Notification::make()->title('Error')->body($e->getMessage())->danger()->send();
         }
@@ -696,13 +728,6 @@ class GestionarCarrito extends Page implements HasForms, HasTable
             return new Collection;
         }
 
-        return MovimientoStock::with(['producto', 'lote', 'ubicacionOrigen', 'ubicacionDestino', 'creadoPor.persona'])
-            ->where(function ($q) {
-                $q->where('ubicacion_origen_id', $this->carritoId)
-                    ->orWhere('ubicacion_destino_id', $this->carritoId);
-            })
-            ->latest()
-            ->take(15)
-            ->get();
+        return $this->movimientosRecientesCarrito->execute($this->carritoId);
     }
 }

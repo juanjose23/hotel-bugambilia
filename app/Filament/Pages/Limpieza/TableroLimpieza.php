@@ -12,16 +12,18 @@ use App\Interactors\Limpieza\Ejecucion\AsignarSolicitudLimpieza;
 use App\Interactors\Limpieza\Ejecucion\CompletarEjecucionAsignada;
 use App\Interactors\Limpieza\Ejecucion\ReclamarEIniciarLimpieza;
 use App\Repository\Models\Colaboradores\Colaborador;
-use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\User;
 use App\Repository\Queries\Colaboradores\ObtenerNombreCompleto;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritoAsignado;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritosDisponibles;
+use App\Repository\Queries\Limpieza\Ejecucion\ObtenerColaboradorAsignadoParaOpciones;
 use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionesConFiltros;
 use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionLimpieza;
+use App\Repository\Queries\Limpieza\Ejecucion\ObtenerSolicitudesPendientesSinEjecucion;
 use App\Repository\Queries\Limpieza\Stock\ObtenerAbastecimientoSugerido;
+use App\Repository\Queries\Limpieza\Stock\ObtenerConsumosDisponiblesCarrito;
 use App\Repository\Queries\Limpieza\Ubicacion\ObtenerChecklistDefecto;
 use App\Repository\Queries\Shared\ObtenerColaboradoresLimpieza;
 use BackedEnum;
@@ -67,6 +69,12 @@ class TableroLimpieza extends Page implements HasForms
 
     protected AsignarSolicitudLimpieza $asignarSolicitud;
 
+    protected ObtenerSolicitudesPendientesSinEjecucion $obtenerSolicitudesPendientes;
+
+    protected ObtenerColaboradorAsignadoParaOpciones $obtenerColaboradorAsignado;
+
+    protected ObtenerConsumosDisponiblesCarrito $obtenerConsumosCarrito;
+
     public function boot(
         ObtenerNombreCompleto $nombreColaborador,
         ObtenerEjecucionLimpieza $obtenerEjecucion,
@@ -75,6 +83,9 @@ class TableroLimpieza extends Page implements HasForms
         ObtenerAbastecimientoSugerido $obtenerAbastecimiento,
         ObtenerChecklistDefecto $obtenerChecklist,
         AsignarSolicitudLimpieza $asignarSolicitud,
+        ObtenerSolicitudesPendientesSinEjecucion $obtenerSolicitudesPendientes,
+        ObtenerColaboradorAsignadoParaOpciones $obtenerColaboradorAsignado,
+        ObtenerConsumosDisponiblesCarrito $obtenerConsumosCarrito,
     ): void {
         $this->nombreColaborador = $nombreColaborador;
         $this->obtenerEjecucion = $obtenerEjecucion;
@@ -83,6 +94,9 @@ class TableroLimpieza extends Page implements HasForms
         $this->obtenerAbastecimiento = $obtenerAbastecimiento;
         $this->obtenerChecklist = $obtenerChecklist;
         $this->asignarSolicitud = $asignarSolicitud;
+        $this->obtenerSolicitudesPendientes = $obtenerSolicitudesPendientes;
+        $this->obtenerColaboradorAsignado = $obtenerColaboradorAsignado;
+        $this->obtenerConsumosCarrito = $obtenerConsumosCarrito;
     }
 
     protected string $view = 'filament.resources.limpieza.tablero-limpieza';
@@ -297,13 +311,7 @@ class TableroLimpieza extends Page implements HasForms
     #[Computed]
     public function solicitudes(): Collection
     {
-        return SolicitudLimpieza::query()
-            ->with(['limpiable', 'personal.persona.colaborador', 'creador', 'ejecuciones'])
-            ->where('estado', EstadoLimpieza::Pendiente)
-            ->whereDoesntHave('ejecuciones')
-            ->orderByRaw("CASE WHEN prioridad = 'alta' THEN 0 WHEN prioridad = 'normal' THEN 1 ELSE 2 END")
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return $this->obtenerSolicitudesPendientes->execute();
     }
 
     /**
@@ -441,6 +449,7 @@ class TableroLimpieza extends Page implements HasForms
                 $this->startingExecutionId,
                 $colaboradorId,
                 $carritoId,
+                auth()->id() !== null ? (int) auth()->id() : null,
             );
 
             $nombreLimpiable = match (true) {
@@ -511,12 +520,7 @@ class TableroLimpieza extends Page implements HasForms
         }
 
         if ($this->startingExecutionId) {
-            $ejecucion = LimpiezaEjecucion::query()
-                ->with(['colaborador.persona.personaNatural', 'solicitud.personal.persona.colaborador.persona.personaNatural'])
-                ->find($this->startingExecutionId);
-
-            $asignado = $ejecucion?->colaborador
-                ?: $ejecucion?->solicitud?->personal?->persona?->colaborador;
+            $asignado = $this->obtenerColaboradorAsignado->execute($this->startingExecutionId);
 
             if ($asignado instanceof Colaborador && ! array_key_exists((int) $asignado->id, $opciones)) {
                 $nombre = $this->nombreColaborador->obtenerNombreCompleto($asignado);
@@ -566,19 +570,7 @@ class TableroLimpieza extends Page implements HasForms
 
         $this->consumos = [];
         if ($execution->carrito_id) {
-            $cartStocks = InventarioStock::with(['variante.producto'])
-                ->where('ubicacion_id', $execution->carrito_id)
-                ->where('cantidad', '>', 0)
-                ->get();
-            foreach ($cartStocks as $cs) {
-                if ($cs->variante) {
-                    $this->consumos[$cs->variante->id] = [
-                        'nombre' => ($cs->variante->producto->nombre ?? '').($cs->variante->nombre_variante ? " ({$cs->variante->nombre_variante})" : ''),
-                        'max' => (float) $cs->cantidad,
-                        'cantidad' => 0,
-                    ];
-                }
-            }
+            $this->consumos = $this->obtenerConsumosCarrito->execute((int) $execution->carrito_id);
         }
     }
 
@@ -597,6 +589,8 @@ class TableroLimpieza extends Page implements HasForms
         }
 
         $colaborador = auth()->user()?->persona?->colaborador;
+        $usuarioId = auth()->id() !== null ? (int) auth()->id() : null;
+
         if (! $colaborador) {
             $this->closeCompleteModal();
 
@@ -625,6 +619,7 @@ class TableroLimpieza extends Page implements HasForms
                 checklist: $formattedChecklist,
                 observaciones: $this->observaciones,
                 consumos: $formattedConsumos,
+                usuarioId: $usuarioId,
             );
         } catch (OperacionLimpiezaNoPermitida $exception) {
             Notification::make()

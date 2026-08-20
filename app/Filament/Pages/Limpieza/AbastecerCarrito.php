@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Limpieza;
 
-use App\Enums\Catalogos\TipoUbicacion;
 use App\Interactors\Limpieza\Carrito\CrearCarrito;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerListadoCarritos;
@@ -50,12 +49,7 @@ class AbastecerCarrito extends Page implements HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query($this->listadoCarritos->execute(Ubicacion::query()->where(function ($q) {
-                $q->where('tipo', TipoUbicacion::CARRITO->value)
-                    ->orWhere('tipo', 'carrito')
-                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carrito%'])
-                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carro%']);
-            })))
+            ->query($this->listadoCarritos->execute())
             ->columns([
                 TextColumn::make('nombre')
                     ->label('Nombre del Carrito')

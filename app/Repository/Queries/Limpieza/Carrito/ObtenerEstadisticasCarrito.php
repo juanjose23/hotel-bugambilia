@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class ObtenerEstadisticasCarrito
 {
-    public function execute(int $carritoId): CarritoEstadisticasData
+    public function execute(int $carritoId, ?int $colaboradorActualId = null): CarritoEstadisticasData
     {
         $ejecucionActiva = LimpiezaEjecucion::with('colaborador.persona.personaNatural')
             ->where('carrito_id', $carritoId)
@@ -54,8 +54,7 @@ class ObtenerEstadisticasCarrito
         $nombreColaborador = null;
 
         if ($ejecucionActiva && $ejecucionActiva->colaborador_id) {
-            $userColaboradorId = auth()->user()?->persona?->colaborador?->id;
-            $esAsignado = $userColaboradorId === $ejecucionActiva->colaborador_id;
+            $esAsignado = $colaboradorActualId === $ejecucionActiva->colaborador_id;
 
             $persona = $ejecucionActiva->colaborador?->persona;
             if ($persona) {
