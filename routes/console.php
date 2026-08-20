@@ -108,8 +108,8 @@ $registerScheduledEvent(new SincronizarEstadoActivoJob, 'jobs.mtto_sincronizar',
 // 5. Advertir garantías de activos a vencer en los siguientes 30 días
 $registerScheduledEvent(new VerificarGarantiasJob, 'jobs.mtto_garantias', '06:15', $timezoneStr);
 
-// 6. Materializar ejecuciones de limpieza
-$registerScheduledEvent('limpieza:materializar-ejecuciones', 'jobs.limpieza_materializar', 'hourly', $timezoneStr);
+// 6. Materializar ejecuciones de limpieza del día según horarios activos
+$registerScheduledEvent('limpieza:materializar-ejecuciones', 'jobs.limpieza_materializar', '00:05', $timezoneStr);
 
 // 7. Enviar recordatorios de limpieza pendientes/vencidos
 $registerScheduledEvent('limpieza:enviar-recordatorios', 'jobs.limpieza_recordatorio', '12:00', $timezoneStr);

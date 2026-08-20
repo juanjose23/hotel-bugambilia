@@ -319,6 +319,43 @@ final readonly class ReporteConfig
                     'ruta_excel' => null,
                 ],
             ],
+            'limpieza' => [
+                'operacion_hotelera' => [
+                    'codigo' => 'HTB-LIM-001',
+                    'titulo' => 'Reporte de Limpieza y Operación Hotelera',
+                    'descripcion' => 'Indicadores de tiempo promedio de limpieza, habitaciones pendientes o bloqueadas, consumo de amenities y productividad por colaborador/turno.',
+                    'ruta_pdf' => 'admin.limpieza.reportes.operacion-hotelera.preview',
+                    'ruta_excel' => null,
+                ],
+                'tiempo_promedio_limpieza' => [
+                    'codigo' => 'HTB-LIM-002',
+                    'titulo' => 'Tiempo Promedio de Limpieza',
+                    'descripcion' => 'Detalle de limpiezas finalizadas con duración por habitación o área y promedio del período.',
+                    'ruta_pdf' => 'admin.limpieza.reportes.tiempo-promedio.preview',
+                    'ruta_excel' => null,
+                ],
+                'habitaciones_pendientes_bloqueadas' => [
+                    'codigo' => 'HTB-LIM-003',
+                    'titulo' => 'Habitaciones Pendientes y Bloqueadas',
+                    'descripcion' => 'Listado operativo de habitaciones pendientes, en proceso o bloqueadas por mantenimiento, limpieza, suciedad o inactividad.',
+                    'ruta_pdf' => 'admin.limpieza.reportes.pendientes-bloqueadas.preview',
+                    'ruta_excel' => null,
+                ],
+                'consumo_amenities_habitacion' => [
+                    'codigo' => 'HTB-LIM-004',
+                    'titulo' => 'Consumo de Amenities por Habitación',
+                    'descripcion' => 'Consumo registrado de amenities, insumos y sustituciones por habitación o área en el período.',
+                    'ruta_pdf' => 'admin.limpieza.reportes.amenities-habitacion.preview',
+                    'ruta_excel' => null,
+                ],
+                'productividad_colaborador_turno' => [
+                    'codigo' => 'HTB-LIM-005',
+                    'titulo' => 'Productividad por Colaborador y Turno',
+                    'descripcion' => 'Resumen de habitaciones asignadas, finalizadas y tiempo promedio por colaborador y turno.',
+                    'ruta_pdf' => 'admin.limpieza.reportes.productividad.preview',
+                    'ruta_excel' => null,
+                ],
+            ],
             'servicios' => [
                 'historico_precios' => [
                     'codigo' => 'HTB-SER-001',

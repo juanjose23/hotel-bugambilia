@@ -67,8 +67,8 @@ test('modulo de limpieza: tablero interactivo de operaciones y estado de habitac
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/tablero-limpieza')
-            ->waitForText('Tablero de Control de Limpieza')
-            ->assertSee('Tablero de Control de Limpieza')
+            ->waitForText('Filtrar por Ubicación')
+            ->assertSee('Disponibles / Pendientes')
             ->pause(1000);
     });
 });
@@ -79,8 +79,8 @@ test('modulo de limpieza: solicitudes y planificacion de horarios', function ():
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/limpieza/solicitudes')
-            ->waitForText('Solicitudes de Limpieza')
-            ->assertSee('Solicitudes de Limpieza')
+            ->waitForText('Solicitudes De Limpieza')
+            ->assertSee('Nueva Solicitud')
             ->pause(1000);
 
         $browser->visit('/admin/limpieza/horarios')
@@ -113,13 +113,13 @@ test('modulo de limpieza: abastecimiento de carritos y control de lavanderia', f
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/limpieza/abastecer-carrito')
-            ->waitForText('Administración de Carritos de Limpieza')
-            ->assertSee('Administración de Carritos de Limpieza')
+            ->waitForText('Administración de Carritos')
+            ->assertSee('Administración de Carritos')
             ->pause(1000);
 
         $browser->visit('/admin/limpieza/control-lavanderia')
-            ->waitForText('Control de Inventario de Lavandería')
-            ->assertSee('Control de Inventario de Lavandería')
+            ->waitForText('Inventario en Lavandería')
+            ->assertSee('Registrar Consumo / Merma')
             ->pause(1000);
     });
 });

@@ -33,8 +33,16 @@ class EnviarALavanderia
                     throw new \InvalidArgumentException("Tipo de stock inválido: {$item->tipo}");
                 }
 
-                $stock = SharedStock::with(['lote', 'variante.producto'])->findOrFail($item->stockId);
+                $stock = SharedStock::with(['lote', 'variante.producto'])
+                    ->whereKey($item->stockId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 $origenNombre = ucfirst($item->tipo)." #{$stock->stockable_id}";
+                $productoId = $stock->variante?->producto_id;
+
+                if ($productoId === null) {
+                    throw new \RuntimeException('El blanco seleccionado no tiene producto asociado.');
+                }
 
                 $cantidadEnviar = min((float) $stock->cantidad_actual, $item->cantidad);
                 if ($cantidadEnviar <= 0) {
@@ -45,18 +53,18 @@ class EnviarALavanderia
                 $stock->save();
 
                 $stockLavanderia = Stock::where([
-                    'producto_id' => $stock->variante->producto_id ?? $stock->producto_variante_id,
+                    'producto_id' => $productoId,
                     'producto_variante_id' => $stock->producto_variante_id,
                     'lote_id' => $stock->lote_id,
                     'ubicacion_id' => $dto->ubicacionLavanderiaId,
-                ])->first();
+                ])->lockForUpdate()->first();
 
                 if ($stockLavanderia) {
                     $stockLavanderia->cantidad += $cantidadEnviar;
                     $stockLavanderia->save();
                 } else {
                     Stock::create([
-                        'producto_id' => $stock->variante->producto_id ?? $stock->producto_variante_id,
+                        'producto_id' => $productoId,
                         'producto_variante_id' => $stock->producto_variante_id,
                         'lote_id' => $stock->lote_id,
                         'ubicacion_id' => $dto->ubicacionLavanderiaId,
@@ -71,7 +79,8 @@ class EnviarALavanderia
 
                 MovimientoStock::create([
                     'tipo' => 'TRASLADO_LAVANDERIA',
-                    'producto_id' => $stock->variante->producto_id ?? 0,
+                    'lote_id' => $stock->lote_id,
+                    'producto_id' => $productoId,
                     'cantidad' => -$cantidadEnviar,
                     'costo_unitario' => $costoUnitarioMov,
                     'costo_total' => $costoTotalMov,
