@@ -247,6 +247,23 @@ vendor/bin/phpstan analyse --level=9 --memory-limit=1G
 vendor/bin/pint --test
 ```
 
+### Dusk local
+
+Las pruebas de navegador usan `.env.dusk.local`, apuntan a `https://hotel-bugambilia.test` y trabajan sobre la base separada `hotel_bugambilias_dusk`.
+
+Antes de correrlas, crea esa base local en PostgreSQL si no existe. Luego prepara datos y ejecuta:
+
+```bash
+composer dusk:local:setup
+composer dusk:local
+```
+
+Para repetir sin TTY, util para ver fallos en consola:
+
+```bash
+composer dusk:fails
+```
+
 ---
 
 ## Modulos del Sistema

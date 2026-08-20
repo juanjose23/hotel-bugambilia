@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Limpieza\Carrito;
 
+use App\Enums\Catalogos\TipoUbicacion;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\Stock;
@@ -18,8 +19,16 @@ class ObtenerListadoCarritos
      * @param  Builder<Ubicacion>  $query
      * @return Builder<Ubicacion>
      */
-    public function execute(Builder $query): Builder
+    public function execute(?Builder $query = null): Builder
     {
+        $query ??= Ubicacion::query()
+            ->where(function ($q): void {
+                $q->where('tipo', TipoUbicacion::CARRITO->value)
+                    ->orWhere('tipo', 'carrito')
+                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carrito%'])
+                    ->orWhereRaw('LOWER(nombre) LIKE ?', ['%carro%']);
+            });
+
         $insumosSub = Stock::selectRaw('COALESCE(COUNT(*), 0)')
             ->whereColumn('ubicacion_id', 'ubicaciones.id')
             ->where('cantidad', '>', 0);

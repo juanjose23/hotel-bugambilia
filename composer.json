@@ -97,14 +97,23 @@
             "@php artisan test"
         ],
         "dusk:setup": [
-            "@php artisan migrate:fresh --env=dusk --ansi",
-            "@php artisan db:seed --class=Database\\Seeders\\DuskSeeder --env=dusk --ansi"
+            "@dusk:local:setup"
+        ],
+        "dusk:local:setup": [
+            "@php artisan optimize:clear --env=dusk.local --ansi",
+            "@php artisan migrate:fresh --env=dusk.local --ansi",
+            "@php artisan db:seed --class=Database\\Seeders\\DuskSeeder --env=dusk.local --ansi"
         ],
         "dusk": [
-            "@php artisan dusk"
+            "@dusk:local"
+        ],
+        "dusk:local": [
+            "@php artisan optimize:clear --env=dusk.local --ansi",
+            "@php artisan dusk --env=local"
         ],
         "dusk:fails": [
-            "@php artisan dusk --without-tty"
+            "@php artisan optimize:clear --env=dusk.local --ansi",
+            "@php artisan dusk --env=local --without-tty"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

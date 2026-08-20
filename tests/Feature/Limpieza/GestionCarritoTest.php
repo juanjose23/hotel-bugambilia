@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\BusinessLogic\Limpieza\Exceptions\OperacionLimpiezaNoPermitida;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Interactors\Limpieza\Carrito\AsignarCarritoAEjecucion;
 use App\Interactors\Limpieza\Carrito\LiberarCarritoDeEjecucion;
@@ -19,6 +20,28 @@ it('asigna un carrito a una ejecución mediante el caso de uso', function (): vo
     app(AsignarCarritoAEjecucion::class)->execute($ejecucion->id, $carrito->id);
 
     expect($ejecucion->refresh()->carrito_id)->toBe($carrito->id);
+});
+
+it('no asigna un carrito bloqueado por otra ejecución activa', function (): void {
+    $carrito = Ubicacion::query()->create([
+        'nombre' => 'Carrito Bloqueado',
+        'tipo' => 'carrito_limpieza',
+        'estado' => 1,
+    ]);
+
+    LimpiezaEjecucion::factory()->pendiente()->create([
+        'carrito_id' => $carrito->id,
+        'fecha' => now()->toDateString(),
+    ]);
+
+    $ejecucion = LimpiezaEjecucion::factory()->pendiente()->create([
+        'fecha' => now()->toDateString(),
+    ]);
+
+    expect(fn () => app(AsignarCarritoAEjecucion::class)->execute($ejecucion->id, $carrito->id))
+        ->toThrow(OperacionLimpiezaNoPermitida::class);
+
+    expect($ejecucion->refresh()->carrito_id)->toBeNull();
 });
 
 it('al liberar un carrito reinicia una ejecución en progreso', function (): void {

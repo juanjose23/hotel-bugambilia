@@ -12,16 +12,22 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
+use App\Repository\Queries\Limpieza\Carrito\BloquearCarritoParaLimpieza;
 use Illuminate\Support\Facades\DB;
 
 class IniciarLimpieza
 {
+    public function __construct(
+        private readonly BloquearCarritoParaLimpieza $bloquearCarrito,
+    ) {}
+
     public function execute(IniciarLimpiezaData $dto): void
     {
         DB::transaction(function () use ($dto) {
             $record = $dto->record;
             $colaboradorOrPersonalId = $dto->colaboradorOrPersonalId;
             $carritoId = $dto->carritoId;
+            $usuarioId = $dto->usuarioId;
 
             $ejecucion = null;
             $solicitud = null;
@@ -33,25 +39,6 @@ class IniciarLimpieza
             } elseif ($record instanceof SolicitudLimpieza) {
                 $solicitud = $record;
                 $ejecucion = LimpiezaEjecucion::where('solicitud_id', $record->id)->first();
-            }
-
-            if ($ejecucion && $carritoId) {
-                $isBlocked = LimpiezaEjecucion::where('carrito_id', $carritoId)
-                    ->where('id', '!=', $ejecucion->id)
-                    ->where(function ($query): void {
-                        $query
-                            ->where('estado', EstadoLimpieza::EnProgreso)
-                            ->orWhere(function ($pendiente): void {
-                                $pendiente
-                                    ->where('estado', EstadoLimpieza::Pendiente)
-                                    ->whereDate('fecha', now()->toDateString());
-                            });
-                    })
-                    ->exists();
-
-                if ($isBlocked) {
-                    throw new \Exception('El carrito seleccionado ya está siendo utilizado en otra limpieza activa.');
-                }
             }
 
             $record->loadMissing('limpiable');
@@ -72,12 +59,16 @@ class IniciarLimpieza
             if ($ejecucion) {
                 $colaboradorId = null;
                 if ($record instanceof LimpiezaEjecucion) {
-                    $colaboradorId = $colaboradorOrPersonalId ?: auth()->user()?->persona?->colaborador?->id;
+                    $colaboradorId = $colaboradorOrPersonalId;
                 } else {
-                    $userId = $colaboradorOrPersonalId ?: auth()->id();
+                    $userId = $colaboradorOrPersonalId ?: $usuarioId;
                     $colaboradorId = Colaborador::whereHas('persona.user', function ($query) use ($userId) {
                         $query->where('id', $userId);
                     })->value('id');
+                }
+
+                if ($carritoId) {
+                    $this->bloquearCarrito->execute((int) $carritoId, (int) $ejecucion->id, is_numeric($colaboradorId) ? (int) $colaboradorId : null);
                 }
 
                 $ejecucion->update([
@@ -92,16 +83,14 @@ class IniciarLimpieza
             if ($solicitud) {
                 $userId = null;
                 if ($record instanceof SolicitudLimpieza) {
-                    $userId = $colaboradorOrPersonalId ?: auth()->id();
+                    $userId = $colaboradorOrPersonalId ?: $usuarioId;
                 } else {
-                    $colabId = $colaboradorOrPersonalId ?: auth()->user()?->persona?->colaborador?->id;
+                    $colabId = $colaboradorOrPersonalId;
                     if ($colabId) {
                         $colaborador = Colaborador::with('persona.user')->find($colabId);
                         $userId = $colaborador?->persona?->user?->id;
                     }
-                    if (! $userId) {
-                        $userId = auth()->id();
-                    }
+                    $userId ??= $usuarioId;
                 }
 
                 $solicitud->update([

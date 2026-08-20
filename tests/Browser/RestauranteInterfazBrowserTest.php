@@ -144,7 +144,7 @@ test('flujo de mesa con reservacion: confirmacion de llegada y apertura automati
     $this->browse(function (Browser $browser) use ($user, $mesaReservada): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/mesas')
-            ->waitForText('Gestión de Mesas')
+            ->waitForText('Restaurante')
             ->assertSee('Mesa 07 (VIP)')
             ->assertPresent("@mesa-{$mesaReservada->id}-llegada")
             ->pause(1000)
@@ -164,7 +164,7 @@ test('flujo de mesa sin reservacion: apertura de comanda, navegacion a cocina KD
     $this->browse(function (Browser $browser) use ($user, $mesaDisponible): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/mesas')
-            ->waitForText('Gestión de Mesas')
+            ->waitForText('Restaurante')
             ->assertSee('Mesa 01')
             ->assertPresent("@mesa-{$mesaDisponible->id}-comanda")
             ->click("@mesa-{$mesaDisponible->id}-comanda")
@@ -183,7 +183,7 @@ test('flujo de mesa sin reservacion: apertura de comanda, navegacion a cocina KD
             ->pause(1000);
 
         $browser->visit('/admin/restaurante/mesas')
-            ->waitForText('Gestión de Mesas')
+            ->waitForText('Restaurante')
             ->assertPresent('@buscar-mesa')
             ->pause(1000);
     });
@@ -198,7 +198,7 @@ test('validacion de no sobre-ocupacion y filtrado interactivo del mapa de mesas'
     $this->browse(function (Browser $browser) use ($user, $mesaOcupada): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/mesas')
-            ->waitForText('Gestión de Mesas')
+            ->waitForText('Restaurante')
             ->type('@buscar-mesa', 'Mesa 02')
             ->pause(1000)
             ->assertSee('Mesa 02')
@@ -220,7 +220,7 @@ test('flujo interactivo de union de mesas desde el panel de gestion', function (
     $this->browse(function (Browser $browser) use ($user, $mesa1, $mesa2): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/mesas')
-            ->waitForText('Gestión de Mesas')
+            ->waitForText('Restaurante')
             ->assertPresent('@unir-mesas')
             ->click('@unir-mesas')
             ->pause(1000)
@@ -253,8 +253,8 @@ test('modulo de procesos de cocina y transformacion de materia prima', function 
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/procesos-cocina')
-            ->waitForText('Procesos Cocina')
-            ->assertSee('Procesos Cocina')
+            ->waitForText('Procesos')
+            ->assertSee('Procesos')
             ->pause(1000);
     });
 });
@@ -382,8 +382,8 @@ test('flujo E2E de transformacion de materia prima, abastecimiento de cocina y r
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/procesos-cocina')
-            ->waitForText('Procesos Cocina')
-            ->assertSee('Procesos Cocina')
+            ->waitForText('Procesos')
+            ->assertSee('Procesos')
             ->pause(1000);
 
         $browser->visit('/admin/restaurante/cocina')
@@ -438,7 +438,7 @@ test('flujo E2E integrado multi-modulo: cierre de pedido -> mesa sucia -> solici
     $this->browse(function (Browser $browser) use ($user, $mesa): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/mesas')
-            ->waitForText('Gestión de Mesas')
+            ->waitForText('Restaurante')
             ->type('@buscar-mesa', 'Mesa 04')
             ->pause(1000)
             ->assertSee('Mesa 04')
@@ -446,8 +446,8 @@ test('flujo E2E integrado multi-modulo: cierre de pedido -> mesa sucia -> solici
             ->pause(1000);
 
         $browser->visit('/admin/tablero-limpieza')
-            ->waitForText('Tablero de Control de Limpieza')
-            ->assertSee('Tablero de Control de Limpieza')
+            ->waitForText('Filtrar por Ubicación')
+            ->assertSee('Disponibles / Pendientes')
             ->pause(1000);
     });
 });

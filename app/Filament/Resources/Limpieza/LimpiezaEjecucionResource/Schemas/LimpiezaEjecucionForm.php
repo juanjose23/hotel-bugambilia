@@ -6,21 +6,22 @@ namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Schemas;
 
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Filament\Shared\Forms\UbicacionLimpiableSelects;
-use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
-use App\Repository\Models\Limpieza\Turno;
-use App\Repository\Models\Shared\Stock;
 use App\Repository\Queries\Limpieza\Carrito\ObtenerCarritosDisponibles;
-use App\Repository\Queries\Shared\ObtenerColaboradoresLimpieza;
-use App\Repository\Queries\Shared\ObtenerNombrePersona;
+use App\Repository\Queries\Limpieza\Colaborador\ObtenerColaboradoresPorTurno;
+use App\Repository\Queries\Limpieza\Colaborador\ObtenerNombreColaborador;
+use App\Repository\Queries\Limpieza\Stock\ObtenerOpcionesInsumosCarrito;
+use App\Repository\Queries\Limpieza\Stock\ObtenerStockIdealLimpiable;
+use App\Repository\Queries\Limpieza\Turno\ObtenerOpcionesTurnosActivos;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -52,7 +53,7 @@ class LimpiezaEjecucionForm
                                 Select::make('turno_id')
                                     ->label('Turno de Trabajo')
                                     ->placeholder('Seleccione el turno')
-                                    ->options(fn () => Turno::where('estado', true)->pluck('nombre', 'id')->toArray())
+                                    ->options(fn (): array => app(ObtenerOpcionesTurnosActivos::class)->execute())
                                     ->searchable()
                                     ->required()
                                     ->live()
@@ -62,59 +63,10 @@ class LimpiezaEjecucionForm
                                 Select::make('colaborador_id')
                                     ->label('Camarista / Colaborador')
                                     ->placeholder('Seleccione el colaborador')
-                                    ->options(function (Get $get) {
-                                        $turnoId = $get('turno_id');
-                                        if (! $turnoId) {
-                                            return ObtenerColaboradoresLimpieza::opciones();
-                                        }
-                                        $turno = Turno::with([
-                                            'lider.persona.personaNatural',
-                                            'apoyo.persona.personaNatural',
-                                        ])->find($turnoId);
-                                        if (! $turno instanceof Turno) {
-                                            return ObtenerColaboradoresLimpieza::opciones();
-                                        }
-
-                                        $colaboradores = collect();
-                                        if ($turno->lider) {
-                                            $colaboradores->push($turno->lider);
-                                        }
-                                        if ($turno->apoyo) {
-                                            $colaboradores->push($turno->apoyo);
-                                        }
-
-                                        if ($colaboradores->isEmpty()) {
-                                            return ObtenerColaboradoresLimpieza::opciones();
-                                        }
-
-                                        return $colaboradores
-                                            ->mapWithKeys(function ($c) {
-                                                $name = $c->persona
-                                                    ? ObtenerNombrePersona::desde($c->persona)
-                                                    : "Colaborador #{$c->id}";
-
-                                                return [$c->id => $name];
-                                            })
-                                            ->toArray();
-                                    })
-                                    ->getOptionLabelUsing(function ($value): string {
-                                        if (! is_numeric($value)) {
-                                            return (string) $value;
-                                        }
-
-                                        $colaborador = Colaborador::query()
-                                            ->with(['persona.personaNatural', 'persona.personaJuridica'])
-                                            ->find((int) $value);
-
-                                        if (! $colaborador) {
-                                            return "Colaborador #{$value}";
-                                        }
-
-                                        return $colaborador->persona
-                                            ? ObtenerNombrePersona::desde($colaborador->persona)
-                                            : "Colaborador #{$colaborador->id}";
-                                    })
+                                    ->options(fn (Get $get): array => app(ObtenerColaboradoresPorTurno::class)->execute($get('turno_id')))
+                                    ->getOptionLabelUsing(fn ($value): string => app(ObtenerNombreColaborador::class)->execute($value))
                                     ->searchable()
+                                    ->live()
                                     ->native(false)
                                     ->prefixIcon(Heroicon::User),
 
@@ -123,8 +75,11 @@ class LimpiezaEjecucionForm
                                     ->placeholder('Seleccione el carrito disponible')
                                     ->options(function (Get $get, ?LimpiezaEjecucion $record) {
                                         $ejecucionId = $record instanceof LimpiezaEjecucion ? $record->id : 0;
+                                        $colaboradorId = is_numeric($get('colaborador_id'))
+                                            ? (int) $get('colaborador_id')
+                                            : null;
 
-                                        return app(ObtenerCarritosDisponibles::class)->execute($ejecucionId);
+                                        return app(ObtenerCarritosDisponibles::class)->execute($ejecucionId, $colaboradorId);
                                     })
                                     ->searchable()
                                     ->native(false)
@@ -149,6 +104,9 @@ class LimpiezaEjecucionForm
 
                                 TimePicker::make('hora_fin')
                                     ->label('Hora de Fin')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->visible(fn (?LimpiezaEjecucion $record): bool => filled($record?->hora_fin))
                                     ->prefixIcon(Heroicon::Clock),
                             ]),
 
@@ -203,10 +161,10 @@ class LimpiezaEjecucionForm
                                             );
                                         }
 
-                                        $roomStocks = Stock::with(['variante.producto'])
-                                            ->where('stockable_type', $stockClass)
-                                            ->where('stockable_id', $limpiable->getKey())
-                                            ->get();
+                                        $roomStocks = app(ObtenerStockIdealLimpiable::class)->execute(
+                                            $stockClass,
+                                            (int) $limpiable->getKey(),
+                                        );
 
                                         if ($roomStocks->isEmpty()) {
                                             $svg = self::svgIcon('heroicon-o-clipboard-document-list', 'text-amber-500');
@@ -217,8 +175,11 @@ class LimpiezaEjecucionForm
                                                 .$svg
                                                 .'<span class="font-semibold text-amber-700 dark:text-amber-300">Sin stock configurado</span>'
                                                 .'</div>'
-                                                .'<span class="text-sm text-amber-600 dark:text-amber-400">'
+                                                .'<span class="block text-sm text-amber-600 dark:text-amber-400">'
                                                 ."<strong>{$nombre}</strong> no tiene productos con stock ideal definido."
+                                                .'</span>'
+                                                .'<span class="block text-xs text-amber-600 dark:text-amber-400 mt-2">'
+                                                .'Puede registrar el kit dejado en la pestaña de consumos; al guardar se creará el stock de esta ubicación.'
                                                 .'</span></div>'
                                             );
                                         }
@@ -278,10 +239,25 @@ class LimpiezaEjecucionForm
                         Tab::make('Checklist de Tareas')
                             ->icon(Heroicon::ClipboardDocumentCheck)
                             ->schema([
-                                KeyValue::make('detalles_checklist')
+                                Repeater::make('detalles_checklist_items')
                                     ->label('Checklist de Tareas')
-                                    ->keyLabel('Tarea')
-                                    ->valueLabel('Completada (Ej: Sí/No)')
+                                    ->schema([
+                                        TextInput::make('tarea')
+                                            ->label('Tarea')
+                                            ->required()
+                                            ->maxLength(255),
+
+                                        Toggle::make('completada')
+                                            ->label('Completada')
+                                            ->default(false)
+                                            ->inline(false)
+                                            ->onColor('success')
+                                            ->offColor('gray'),
+                                    ])
+                                    ->columns(2)
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Añadir tarea')
+                                    ->reorderable(false)
                                     ->columnSpanFull(),
 
                                 Textarea::make('observaciones')
@@ -294,22 +270,46 @@ class LimpiezaEjecucionForm
                         Tab::make('Consumos y Cambios')
                             ->icon(Heroicon::ListBullet)
                             ->schema([
+                                Repeater::make('adicionales')
+                                    ->label('Kit / insumos dejados desde el carrito')
+                                    ->schema([
+                                        Select::make('producto_variante_id')
+                                            ->label('Insumo')
+                                            ->options(fn (Get $get) => self::opcionesInsumosCarrito(
+                                                $get('../../carrito_id') ?? $get('carrito_id')
+                                            ))
+                                            ->searchable()
+                                            ->preload()
+                                            ->native(false)
+                                            ->required(),
+
+                                        TextInput::make('cantidad')
+                                            ->label('Cantidad')
+                                            ->numeric()
+                                            ->minValue(0.01)
+                                            ->step(0.01)
+                                            ->required(),
+                                    ])
+                                    ->columns(2)
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Añadir insumo al kit')
+                                    ->reorderable(false)
+                                    ->columnSpanFull(),
+
                                 TextEntry::make('consumos_resumen')
                                     ->label('Resumen de Insumos Consumidos del Carrito')
-                                    ->state(function ($record) {
+                                    ->state(function (?LimpiezaEjecucion $record) {
                                         if (! $record || empty($record->consumos)) {
                                             return 'No se han registrado consumos para esta ejecución de limpieza.';
                                         }
 
                                         $items = [];
+                                        $opciones = app(ObtenerOpcionesInsumosCarrito::class)->execute($record->carrito_id);
+
                                         foreach ($record->consumos as $varianteId => $cantidad) {
-                                            $variante = ProductoVariante::with('producto')->find($varianteId);
-                                            if ($variante instanceof ProductoVariante) {
-                                                $nombre = ($variante->producto ? $variante->producto->nombre : '').($variante->nombre_variante ? " ({$variante->nombre_variante})" : '');
-                                                $items[] = "- **{$nombre}**: **{$cantidad}** unidades consumidas";
-                                            } else {
-                                                $items[] = "- **Insumo #{$varianteId}**: **{$cantidad}** unidades consumidas";
-                                            }
+                                            $varianteIdEntero = is_numeric($varianteId) ? (int) $varianteId : 0;
+                                            $nombre = $opciones[$varianteIdEntero] ?? "Insumo #{$varianteId}";
+                                            $items[] = "- **{$nombre}**: **{$cantidad}** unidades consumidas";
                                         }
 
                                         return new HtmlString(implode('<br>', $items));
@@ -328,5 +328,19 @@ class LimpiezaEjecucionForm
         }
 
         return $svg;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function opcionesInsumosCarrito(mixed $carritoId): array
+    {
+        $carritoId = is_numeric($carritoId) ? (int) $carritoId : 0;
+
+        if ($carritoId <= 0) {
+            return [];
+        }
+
+        return app(ObtenerOpcionesInsumosCarrito::class)->execute($carritoId);
     }
 }

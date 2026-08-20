@@ -14,5 +14,6 @@ final readonly class IniciarLimpiezaData
         public LimpiezaEjecucion|SolicitudLimpieza|Model $record,
         public ?int $colaboradorOrPersonalId = null,
         public ?int $carritoId = null,
+        public ?int $usuarioId = null,
     ) {}
 }

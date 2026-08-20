@@ -18,5 +18,6 @@ final readonly class TerminarLimpiezaData
         public array $checklist = [],
         public string $observaciones = '',
         public array $consumos = [],
+        public ?int $usuarioId = null,
     ) {}
 }

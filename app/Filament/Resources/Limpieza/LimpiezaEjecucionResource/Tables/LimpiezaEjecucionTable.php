@@ -10,6 +10,7 @@ use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Queries\Limpieza\Ubicacion\AplicarFiltroUbicacionLimpiable;
 use App\Repository\Queries\Limpieza\Ubicacion\ObtenerPathUbicacion;
 use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Actions\ActionGroup;
@@ -91,33 +92,8 @@ class LimpiezaEjecucionTable
                 SelectFilter::make('ubicacion_id')
                     ->label('Ubicación')
                     ->options(fn () => app(ObtenerPathUbicacion::class)->ejecutar())
-                    ->query(function (Builder $query, array $data) {
-                        if (empty($data['value'])) {
-                            return;
-                        }
-                        $selectedId = (int) $data['value'];
-                        $ubicacionIds = Ubicacion::obtenerDescendientesIds($selectedId);
-
-                        $query->where(function (Builder $q) use ($ubicacionIds) {
-                            $q->where(function ($sub) use ($ubicacionIds) {
-                                $sub->where('limpiable_type', Ubicacion::class)
-                                    ->whereIn('limpiable_id', $ubicacionIds);
-                            })->orWhere(function ($sub) use ($ubicacionIds) {
-                                $sub->where('limpiable_type', Habitacion::class)
-                                    ->whereIn('limpiable_id', function ($subQuery) use ($ubicacionIds) {
-                                        $subQuery->select('id')
-                                            ->from('habitaciones')
-                                            ->whereIn('ubicacion_id', $ubicacionIds);
-                                    });
-                            })->orWhere(function ($sub) use ($ubicacionIds) {
-                                $sub->where('limpiable_type', Espacio::class)
-                                    ->whereIn('limpiable_id', function ($subQuery) use ($ubicacionIds) {
-                                        $subQuery->select('id')
-                                            ->from('espacios')
-                                            ->whereIn('ubicacion_id', $ubicacionIds);
-                                    });
-                            });
-                        });
+                    ->query(function (Builder $query, array $data): void {
+                        app(AplicarFiltroUbicacionLimpiable::class)->execute($query, $data['value'] ?? null);
                     }),
             ])
             ->recordActions([

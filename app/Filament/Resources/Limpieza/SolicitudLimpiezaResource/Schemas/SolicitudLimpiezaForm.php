@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Limpieza\SolicitudLimpiezaResource\Schemas;
 
 use App\Enums\Limpieza\EstadoLimpieza;
+use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Queries\Limpieza\Ubicacion\ObtenerOpcionesLimpiables;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Model;
 
 final class SolicitudLimpiezaForm
 {
@@ -26,8 +28,8 @@ final class SolicitudLimpiezaForm
                         Select::make('limpiable_type')
                             ->label('Tipo de Objeto a Limpiar')
                             ->options([
-                                'App\\Repository\\Models\\Habitaciones\\Habitacion' => 'Habitación',
-                                'App\\Repository\\Models\\Espacios\\Espacio' => 'Espacio / Mesa',
+                                Habitacion::class => 'Habitación',
+                                Espacio::class => 'Espacio / Mesa',
                             ])
                             ->required()
                             ->live()
@@ -39,15 +41,8 @@ final class SolicitudLimpiezaForm
                             ->required()
                             ->options(function (Get $get): array {
                                 $type = $get('limpiable_type');
-                                if (! is_string($type) || ! class_exists($type)) {
-                                    return [];
-                                }
 
-                                /** @var class-string<Model> $type */
-                                return $type::query()
-                                    ->orderBy('nombre')
-                                    ->pluck('nombre', 'id')
-                                    ->toArray();
+                                return app(ObtenerOpcionesLimpiables::class)->execute(is_string($type) ? $type : null);
                             }),
 
                         Select::make('prioridad')
