@@ -447,4 +447,20 @@ describe('Nuevas características del Módulo de Limpieza (Equipos, Horarios Nul
 
         Carbon::setTestNow(); // reset
     });
+
+    test('permite crear y consultar turnos dedicados a lavanderia', function (): void {
+        $turnoLavanderia = Turno::create([
+            'nombre' => 'Turno Lavandería Nocturno',
+            'lider_id' => $this->lider->id,
+            'hora_inicio' => '22:00:00',
+            'hora_fin' => '06:00:00',
+            'es_lavanderia' => true,
+        ]);
+
+        expect($turnoLavanderia->es_lavanderia)->toBeTrue();
+
+        $encontrado = Turno::query()->where('es_lavanderia', true)->first();
+        expect($encontrado)->not->toBeNull();
+        expect($encontrado?->nombre)->toBe('Turno Lavandería Nocturno');
+    });
 });

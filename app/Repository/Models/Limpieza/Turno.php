@@ -36,6 +36,7 @@ class Turno extends Model implements AuditableContract
     protected $casts = [
         'lider_id' => 'integer',
         'apoyo_id' => 'integer',
+        'es_lavanderia' => 'boolean',
         'estado' => EstadoGeneral::class,
     ];
 

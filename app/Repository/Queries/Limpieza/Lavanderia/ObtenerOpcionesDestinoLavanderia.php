@@ -32,6 +32,12 @@ final class ObtenerOpcionesDestinoLavanderia
                 ->get(['id', 'nombre'])
                 ->mapWithKeys(fn (Ubicacion $ubicacion): array => [(int) $ubicacion->id => (string) $ubicacion->nombre])
                 ->toArray(),
+            'carrito' => Ubicacion::query()
+                ->where('tipo', 'carrito')
+                ->orderBy('nombre')
+                ->get(['id', 'nombre'])
+                ->mapWithKeys(fn (Ubicacion $ubicacion): array => [(int) $ubicacion->id => (string) $ubicacion->nombre])
+                ->toArray(),
             default => [],
         };
 
