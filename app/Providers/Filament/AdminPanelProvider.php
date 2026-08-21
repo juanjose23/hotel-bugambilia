@@ -31,11 +31,11 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         /** @var string $hotelName */
-        $hotelName = config('hotel.name', '');
+        $hotelName = config('hotel.name', 'Hotel Bugambilias');
         /** @var string $hotelLogo */
-        $hotelLogo = config('hotel.logo', '');
+        $hotelLogo = config('hotel.logo', 'images/logo-horizontal.png');
         /** @var string $hotelIcon */
-        $hotelIcon = config('hotel.icon', '');
+        $hotelIcon = config('hotel.icon', 'images/hotel-icon.png');
 
         return $panel
             ->default()
@@ -53,11 +53,11 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::hex('#F59E0B'),
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->brandName(strval($hotelName))
+            ->brandName(strval($hotelName ?: 'Hotel Bugambilias'))
             ->brandLogo(asset('images/logo-dark.png'))
             ->darkModeBrandLogo(asset('images/logo-claro.png'))
             ->brandLogoHeight('2.5rem')
-            ->favicon(asset(strval($hotelIcon)))
+            ->favicon(asset(strval($hotelIcon ?: 'images/hotel-icon.png')))
             ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->breadcrumbs()
