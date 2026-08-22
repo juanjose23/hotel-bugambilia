@@ -48,6 +48,12 @@ class TurnoInfolist
                                 default => 'Inactivo',
                             }),
 
+                        TextEntry::make('es_lavanderia')
+                            ->label('Área / Tipo')
+                            ->badge()
+                            ->color(fn (bool|int $state): string => (bool) $state ? 'primary' : 'gray')
+                            ->formatStateUsing(fn (bool|int $state): string => (bool) $state ? 'Lavandería Dedicada' : 'Limpieza General'),
+
                         TextEntry::make('hora_inicio')
                             ->label('Hora de Inicio')
                             ->placeholder('-')

@@ -2,8 +2,10 @@
 
 namespace App\Repository\Models\Catalogos;
 
+use App\Repository\Models\Inventario\Lote;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
@@ -44,6 +46,12 @@ class ProductoVariante extends Model implements AuditableContract
     public function unidadMedida(): BelongsTo
     {
         return $this->belongsTo(Catalogo::class, 'unidad_medida_id');
+    }
+
+    /** @return HasMany<Lote, $this> */
+    public function lotes(): HasMany
+    {
+        return $this->hasMany(Lote::class, 'producto_variante_id');
     }
 
     public function setPrecioCompraAttribute(mixed $value): void {}

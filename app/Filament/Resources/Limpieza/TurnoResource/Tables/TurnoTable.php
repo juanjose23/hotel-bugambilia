@@ -13,6 +13,7 @@ use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -82,6 +83,14 @@ class TurnoTable
                     ->sortable()
                     ->icon(Heroicon::Clock),
 
+                IconColumn::make('es_lavanderia')
+                    ->label('Lavandería')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-sparkles')
+                    ->falseIcon('heroicon-o-minus')
+                    ->trueColor('primary')
+                    ->falseColor('gray'),
+
                 IconColumn::make('estado')
                     ->label('Estado')
                     ->boolean()
@@ -91,6 +100,11 @@ class TurnoTable
                     ->falseColor('danger'),
             ])
             ->filters([
+                TernaryFilter::make('es_lavanderia')
+                    ->label('Tipo de Turno')
+                    ->placeholder('Todos los turnos')
+                    ->trueLabel('Solo Lavandería')
+                    ->falseLabel('Solo Habitaciones / General'),
                 FiltroEliminados::make(),
             ])
             ->recordActions([

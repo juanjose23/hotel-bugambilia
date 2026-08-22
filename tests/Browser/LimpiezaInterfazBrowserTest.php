@@ -118,8 +118,9 @@ test('modulo de limpieza: abastecimiento de carritos y control de lavanderia', f
             ->pause(1000);
 
         $browser->visit('/admin/limpieza/control-lavanderia')
-            ->waitForText('Inventario en Lavandería')
-            ->assertSee('Registrar Consumo / Merma')
+            ->waitForText('Inventario Actual')
+            ->assertSee('Entrada de Insumos')
+            ->assertSee('Consumo por Jornada')
             ->pause(1000);
     });
 });
