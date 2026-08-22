@@ -16,7 +16,7 @@ final class ObtenerInventarioLavanderia
     public function execute(int|array $lavanderiaId): Builder
     {
         $query = Stock::query()
-            ->with(['variante.producto', 'lote'])
+            ->with(['variante.producto.categoria', 'variante.producto.unidadMedida', 'lote'])
             ->where('cantidad', '>', 0);
 
         if (is_array($lavanderiaId)) {

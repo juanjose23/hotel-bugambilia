@@ -36,6 +36,12 @@ class TurnoForm
                             ->default(true)
                             ->inline(false),
 
+                        Toggle::make('es_lavanderia')
+                            ->label('Turno Dedicado a Lavandería')
+                            ->helperText('Marque si este turno opera el lavado de blancos e insumos químicos')
+                            ->default(false)
+                            ->inline(false),
+
                         Select::make('lider_id')
                             ->label('Líder de Turno')
                             ->placeholder('Seleccione el líder')
