@@ -6,6 +6,8 @@ namespace App\Filament\Resources\Servicios\Servicios\Tables;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Filament\Shared\Filters\FiltroEstado;
@@ -89,11 +91,7 @@ class ServiciosTable
                     ->sortable()
                     ->placeholder('-'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state): ?string => is_string($color = EstadoGeneral::colorFor($state)) ? $color : null)
-                    ->formatStateUsing(fn ($state): string => EstadoGeneral::labelFor($state))
+                EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->sortable(),
 
                 IconColumn::make('web')
@@ -101,22 +99,13 @@ class ServiciosTable
                     ->boolean()
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make('updated_at', 'Actualizado')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('deleted_at')
-                    ->label('Eliminado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make('deleted_at', 'Eliminado')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

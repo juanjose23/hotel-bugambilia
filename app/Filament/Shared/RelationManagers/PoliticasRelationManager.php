@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\RelationManagers;
 
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -38,11 +39,7 @@ class PoliticasRelationManager extends RelationManager
                     ->wrap()
                     ->placeholder('-'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state) => $state instanceof EstadoGeneral ? $state->getColor() : EstadoGeneral::tryFrom(intval($state))?->getColor() ?? 'gray')
-                    ->formatStateUsing(fn ($state): string => $state instanceof EstadoGeneral ? $state->getLabel() : EstadoGeneral::tryFrom(intval($state))?->getLabel() ?? ''),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
             ])
             ->headerActions([
                 AttachAction::make()

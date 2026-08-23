@@ -7,6 +7,8 @@ namespace App\Filament\Resources\Restaurante\PlatoResource\Tables;
 use App\BusinessLogic\Restaurante\Platos\CalcularCostoPlato;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Repository\Models\Restaurante\Plato;
 use Filament\Actions\Action;
@@ -55,11 +57,7 @@ final class PlatoTable
                     ->sortable()
                     ->badge(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn (int $state): string => EstadoGeneral::tryFrom($state)?->label() ?? 'Desconocido')
-                    ->color(fn (int $state): string => EstadoGeneral::tryFrom($state)?->getColor() ?? 'gray'),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
 
                 IconColumn::make('web')
                     ->label('Web')
@@ -67,9 +65,7 @@ final class PlatoTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

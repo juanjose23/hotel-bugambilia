@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Usuarios\Clientes\Tables;
 
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Repository\Models\Personas\Persona;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
@@ -39,10 +40,7 @@ class ClientesTable
                     ->label('Tipo')
                     ->badge()
                     ->color('info'),
-                TextColumn::make('created_at')
-                    ->label('Registrado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make('created_at', 'Registrado')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Shared\RelationManagers;
 
 use App\Enums\Activos\EstadoActivo;
+use App\Enums\Activos\EstadoAsignacion;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Concerns\TieneActivoAsignaciones;
 use App\Interactors\Activos\Gestion\AsignarActivo;
 use App\Repository\Models\Activos\Activo;
@@ -105,9 +107,7 @@ class InventarioFijoRelationManager extends RelationManager
                     ->placeholder('Actualmente asignado')
                     ->sortable(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoAsignacion::class),
             ])
             ->defaultSort('fecha_inicio', 'desc')
             ->headerActions([

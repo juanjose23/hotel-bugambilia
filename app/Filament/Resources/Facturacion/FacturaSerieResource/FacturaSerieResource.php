@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Facturacion\FacturaSerieResource;
 
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Repository\Models\Facturacion\FacturaSerie;
 use BackedEnum;
 use Filament\Actions\ActionGroup;
@@ -64,7 +65,8 @@ final class FacturaSerieResource extends Resource
                 TextColumn::make('caja_codigo')->label('Caja')->placeholder('-'),
                 TextColumn::make('siguiente_numero')->label('Siguiente')->numeric()->sortable(),
                 IconColumn::make('activa')->boolean()->label('Activa'),
-                TextColumn::make('created_at')->dateTime()->toggleable(isToggledHiddenByDefault: true),
+                FechaStandardColumn::make()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
                 ActionGroup::make([EditAction::make()])->icon(Heroicon::EllipsisVertical),

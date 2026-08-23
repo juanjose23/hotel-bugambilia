@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Compras;
 
+use App\Enums\Compras\EstadoSolicitud;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Filament\Shared\Forms\ReporteFiltros;
 use App\Repository\Models\Compras\Solicitud;
@@ -166,9 +168,7 @@ class ReportesCompras extends Page implements HasForms, HasTable
                 TextColumn::make('colaborador.persona.nombre_completo')
                     ->label('Solicitante')
                     ->searchable(),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoSolicitud::class),
                 TextColumn::make('fecha_solicitud')
                     ->label('Fecha Solicitud')
                     ->date('d/m/Y')

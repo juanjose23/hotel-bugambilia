@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Filament\Resources\Habitaciones\EspacioResource\Schemas\EspacioForm;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Interactors\Espacios\GenerarCodigoSubEspacio;
 use App\Interactors\Espacios\ValidarCapacidadMesas;
@@ -87,11 +88,7 @@ class SubEspaciosRelationManager extends RelationManager
                     ->sortable()
                     ->suffix(' pers.'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state) => $state?->getColor() ?? 'gray')
-                    ->icon(fn ($state) => $state?->getIcon())
+                EstadoBadgeColumn::make(EstadoEspacio::class)
                     ->sortable(),
             ])
             ->defaultSort('orden')

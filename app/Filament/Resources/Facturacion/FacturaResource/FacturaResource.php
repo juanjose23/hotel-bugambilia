@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\FacturaResource;
 
 use App\Enums\Facturacion\EstadoFactura;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Interactors\Facturacion\AnularFacturaFiscal;
 use App\Repository\Models\Facturacion\Factura;
 use BackedEnum;
@@ -54,15 +57,13 @@ final class FacturaResource extends Resource
                 TextColumn::make('cuenta.numero_cuenta')->label('Cuenta')->searchable()->placeholder('-'),
                 TextColumn::make('cliente.nombre_completo')->label('Cliente')->searchable()->placeholder('-'),
                 TextColumn::make('moneda.codigo')->label('Moneda'),
-                TextColumn::make('iva_total')->label('IVA')->money('NIO')->sortable(),
-                TextColumn::make('total')->money('NIO')->sortable(),
-                TextColumn::make('estado')->badge()
-                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoFactura ? $state->getLabel() : '')
-                    ->color(fn (mixed $state): string => $state instanceof EstadoFactura ? $state->getColor() : 'gray'),
+                MontoMonedaColumn::make('iva_total')->label('IVA'),
+                MontoMonedaColumn::make('total'),
+                EstadoBadgeColumn::make(EstadoFactura::class),
                 TextColumn::make('fecha_emision')->dateTime()->sortable(),
             ])
             ->filters([
-                SelectFilter::make('estado')->options(EstadoFactura::class),
+                FiltroEstado::make(EstadoFactura::class),
                 SelectFilter::make('factura_serie_id')->relationship('serie', 'codigo')->label('Serie'),
             ])
             ->recordActions([

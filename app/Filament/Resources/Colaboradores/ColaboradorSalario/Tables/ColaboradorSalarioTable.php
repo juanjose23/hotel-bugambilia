@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Colaboradores\ColaboradorSalario\Tables;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\ColaboradorNombreColumn;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Repository\Models\Colaboradores\ColaboradorSalario;
 use Filament\Actions\ActionGroup;
@@ -28,10 +29,8 @@ class ColaboradorSalarioTable
             ->recordTitle(fn (ColaboradorSalario $record): string => $record->colaborador->codigo ?? 'Salario')
             ->columns([
                 ColaboradorNombreColumn::make('colaborador.persona.nombre_completo'),
-                TextColumn::make('salario')
-                    ->label('Salario')
-                    ->money('NIO')
-                    ->sortable(),
+                MontoMonedaColumn::make('salario')
+                    ->label('Salario'),
                 TextColumn::make('fecha_inicio')
                     ->label('Inicio')
                     ->date('d/m/Y')

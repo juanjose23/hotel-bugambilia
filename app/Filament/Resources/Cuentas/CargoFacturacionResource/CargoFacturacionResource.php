@@ -7,6 +7,9 @@ namespace App\Filament\Resources\Cuentas\CargoFacturacionResource;
 use App\Enums\Cuentas\BaseCalculo;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
+use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Cuentas\CargoFacturacion;
 use BackedEnum;
 use Filament\Actions\ActionGroup;
@@ -106,16 +109,11 @@ final class CargoFacturacionResource extends Resource
                 TextColumn::make('valor')->label('Valor')->sortable(),
                 TextColumn::make('orden')->label('Orden')->sortable(),
                 IconColumn::make('obligatorio')->label('Obligatorio')->boolean(),
-                TextColumn::make('estado')->label('Estado')->badge()
-                    ->formatStateUsing(fn (int $state): string => $state === 1 ? 'Activo' : 'Inactivo')
-                    ->color(fn (int $state): string => $state === 1 ? 'success' : 'danger'),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
             ])
             ->filters([
                 SelectFilter::make('tipo')->options(TipoCargo::class),
-                SelectFilter::make('estado')->options([
-                    1 => 'Activo',
-                    0 => 'Inactivo',
-                ]),
+                FiltroEstado::make(EstadoGeneral::class),
             ])
             ->recordActions([
                 ActionGroup::make([
