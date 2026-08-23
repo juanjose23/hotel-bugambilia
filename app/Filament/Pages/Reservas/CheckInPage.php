@@ -12,6 +12,7 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoHuesped;
 use App\Filament\Resources\Reservas\ReservaResource;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Interactors\Reservas\Habitaciones\RealizarCheckInHabitacion;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
@@ -339,9 +340,7 @@ final class CheckInPage extends Page implements HasForms, HasTable
                 TextColumn::make('adultos')
                     ->label('Adultos'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoReserva::class),
 
                 IconColumn::make('solicita_cuenta')
                     ->label('Cuenta')

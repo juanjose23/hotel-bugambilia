@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\ReservaResource\RelationManagers;
 
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -27,7 +28,7 @@ final class HistorialEstadosRelationManager extends RelationManager
                 TextColumn::make('estado_nuevo')->label('Estado nuevo')->badge(),
                 TextColumn::make('motivo')->label('Motivo')->wrap()->placeholder('—'),
                 TextColumn::make('usuario.name')->label('Usuario')->placeholder('Sistema'),
-                TextColumn::make('created_at')->label('Fecha')->dateTime('d/m/Y H:i')->sortable(),
+                FechaStandardColumn::make('created_at', 'Fecha'),
             ])
             ->defaultSort('created_at', 'desc');
     }

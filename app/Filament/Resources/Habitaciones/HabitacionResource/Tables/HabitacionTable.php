@@ -8,6 +8,7 @@ use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Filament\Resources\Habitaciones\HabitacionResource\HabitacionResource;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Interactors\Habitaciones\ClonarHabitacion;
@@ -81,10 +82,7 @@ class HabitacionTable
                 EstadoBadgeColumn::make(EstadoEspacio::class)
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('codigo')

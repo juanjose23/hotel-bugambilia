@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\PagoTransaccionResource;
 
 use App\Enums\Facturacion\EstadoTransaccionPago;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Facturacion\PagoTransaccion;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -36,6 +39,7 @@ final class PagoTransaccionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('moneda'))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('referencia_interna')->label('Referencia')->searchable()->copyable()->weight('bold'),
@@ -44,15 +48,13 @@ final class PagoTransaccionResource extends Resource
                 TextColumn::make('cuenta.numero_cuenta')->label('Cuenta')->placeholder('-'),
                 TextColumn::make('factura.numero')->label('Factura')->placeholder('-'),
                 TextColumn::make('moneda.codigo')->label('Moneda'),
-                TextColumn::make('monto')->money('NIO')->sortable(),
-                TextColumn::make('estado')->badge()
-                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoTransaccionPago ? $state->getLabel() : '')
-                    ->color(fn (mixed $state): string => $state instanceof EstadoTransaccionPago ? $state->getColor() : 'gray'),
+                MontoMonedaColumn::make('monto'),
+                EstadoBadgeColumn::make(EstadoTransaccionPago::class),
                 TextColumn::make('referencia_pasarela')->label('Ref. pasarela')->searchable()->placeholder('-'),
                 TextColumn::make('capturada_at')->dateTime()->placeholder('-')->sortable(),
             ])
             ->filters([
-                SelectFilter::make('estado')->options(EstadoTransaccionPago::class),
+                FiltroEstado::make(EstadoTransaccionPago::class),
                 SelectFilter::make('pasarela_pago_id')->relationship('pasarela', 'nombre')->label('Pasarela'),
             ]);
     }

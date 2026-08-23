@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Estancias;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Filament\Resources\Estancias\EstanciaResource\Pages\ListEstancias;
 use App\Filament\Resources\Estancias\EstanciaResource\Pages\ViewEstancia;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Estancias\Estancia;
 use App\Support\MonedaHelper;
@@ -93,9 +94,7 @@ final class EstanciaResource extends Resource
                     ->label('Llaves')
                     ->numeric(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoEstancia::class)
                     ->sortable(),
 
                 TextColumn::make('cuenta.saldo')

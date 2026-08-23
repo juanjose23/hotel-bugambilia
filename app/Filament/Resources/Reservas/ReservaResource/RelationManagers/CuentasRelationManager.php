@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\ReservaResource\RelationManagers;
 
+use App\Enums\Cuentas\EstadoCuenta;
 use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Support\MonedaHelper;
 use Filament\Actions\Action;
@@ -37,9 +39,7 @@ final class CuentasRelationManager extends RelationManager
                 TextColumn::make('tipo_cuenta')
                     ->label('Tipo')
                     ->badge(),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoCuenta::class),
                 TextColumn::make('total')
                     ->label('Total')
                     ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda)),

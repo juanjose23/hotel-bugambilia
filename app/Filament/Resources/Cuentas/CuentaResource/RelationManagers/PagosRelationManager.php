@@ -7,6 +7,8 @@ namespace App\Filament\Resources\Cuentas\CuentaResource\RelationManagers;
 use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
@@ -47,18 +49,13 @@ final class PagosRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('cuenta.moneda'))
             ->columns([
-                TextColumn::make('created_at')
-                    ->label('Fecha')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                FechaStandardColumn::make('created_at', 'Fecha'),
 
                 TextColumn::make('forma_pago')
                     ->label('Forma de Pago')
                     ->badge(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoPago::class),
 
                 TextColumn::make('monto')
                     ->label('Monto aplicado')

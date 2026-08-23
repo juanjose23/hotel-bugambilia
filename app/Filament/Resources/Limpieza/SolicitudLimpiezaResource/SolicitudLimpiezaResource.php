@@ -9,6 +9,9 @@ use App\Filament\Resources\Limpieza\SolicitudLimpiezaResource\Pages\CreateSolici
 use App\Filament\Resources\Limpieza\SolicitudLimpiezaResource\Pages\EditSolicitudLimpieza;
 use App\Filament\Resources\Limpieza\SolicitudLimpiezaResource\Pages\ListSolicitudesLimpieza;
 use App\Filament\Resources\Limpieza\SolicitudLimpiezaResource\Schemas\SolicitudLimpiezaForm;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use BackedEnum;
 use Filament\Resources\Pages\PageRegistration;
@@ -77,34 +80,15 @@ final class SolicitudLimpiezaResource extends Resource
                 TextColumn::make('personal.name')
                     ->label('Personal Asignado')
                     ->placeholder('Sin asignar'),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoLimpieza
-                        ? $state->getLabel()
-                        : (is_numeric($state) ? (EstadoLimpieza::tryFrom((int) $state)?->getLabel() ?? '') : ''))
-                    ->color(fn (mixed $state): string => $state instanceof EstadoLimpieza
-                        ? $state->getColor()
-                        : (is_numeric($state) ? (EstadoLimpieza::tryFrom((int) $state)?->getColor() ?? 'gray') : 'gray')),
+                EstadoBadgeColumn::make(EstadoLimpieza::class),
                 TextColumn::make('creador.name')
                     ->label('Creada por')
                     ->placeholder('Sistema'),
-                TextColumn::make('created_at')
-                    ->label('Creada')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make('created_at', 'Creada')
                     ->toggleable(),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(fn (): array => [
-                        EstadoLimpieza::Pendiente->value => 'Pendiente',
-                        EstadoLimpieza::EnProgreso->value => 'En Progreso',
-                        EstadoLimpieza::Completada->value => 'Completada',
-                        EstadoLimpieza::CompletadaConDiscrepancia->value => 'Con Discrepancia',
-                        EstadoLimpieza::Cancelada->value => 'Cancelada',
-                    ]),
+                FiltroEstado::make(EstadoLimpieza::class),
                 SelectFilter::make('prioridad')
                     ->options([
                         'alta' => 'Alta',

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Auditoria\Audits\Tables;
 
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -38,10 +39,7 @@ class AuditsTable
                         return $user->name;
                     })
                     ->searchable(),
-                TextColumn::make('created_at')
-                    ->label('Fecha')
-                    ->dateTime()
-                    ->sortable(),
+                FechaStandardColumn::make('created_at', 'Fecha'),
             ])
             ->filters([
                 SelectFilter::make('event')

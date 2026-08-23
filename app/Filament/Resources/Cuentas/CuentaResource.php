@@ -10,6 +10,7 @@ use App\Filament\Resources\Cuentas\CuentaResource\Pages;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\DetallesRelationManager;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\PagosRelationManager;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Personas\Persona;
@@ -215,9 +216,7 @@ final class CuentaResource extends Resource
                     ->badge()
                     ->sortable(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoCuenta::class)
                     ->sortable(),
 
                 TextColumn::make('cliente.nombre_completo')

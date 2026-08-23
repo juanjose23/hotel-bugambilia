@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\FacturaFolioResource;
 
 use App\Enums\Facturacion\EstadoFolioFactura;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Facturacion\FacturaFolio;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -42,15 +44,13 @@ final class FacturaFolioResource extends Resource
                 TextColumn::make('serie.codigo')->label('Serie'),
                 TextColumn::make('numero_correlativo')->label('Correlativo')->numeric()->sortable(),
                 TextColumn::make('factura.numero')->label('Factura')->placeholder('-'),
-                TextColumn::make('estado')->badge()
-                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoFolioFactura ? $state->getLabel() : '')
-                    ->color(fn (mixed $state): string => $state instanceof EstadoFolioFactura ? $state->getColor() : 'gray'),
+                EstadoBadgeColumn::make(EstadoFolioFactura::class),
                 TextColumn::make('reservado_at')->dateTime()->sortable(),
                 TextColumn::make('emitido_at')->dateTime()->placeholder('-'),
                 TextColumn::make('motivo')->limit(40)->placeholder('-'),
             ])
             ->filters([
-                SelectFilter::make('estado')->options(EstadoFolioFactura::class),
+                FiltroEstado::make(EstadoFolioFactura::class),
                 SelectFilter::make('factura_serie_id')->relationship('serie', 'codigo')->label('Serie'),
             ]);
     }

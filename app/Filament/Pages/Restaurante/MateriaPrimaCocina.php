@@ -7,6 +7,7 @@ namespace App\Filament\Pages\Restaurante;
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\Inventario\EstadoLote;
 use App\Enums\Restaurante\UbicacionCocina;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Filament\Shared\Forms\ProductoSelect;
 use App\Filament\Shared\Forms\ProductoVarianteSelect;
 use App\Interactors\Restaurante\Cocina\TransformarMateriaPrimaCocina;
@@ -315,16 +316,14 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
                     ->label('Unidad')
                     ->state(fn (Stock $record): string => $record->variante?->unidadMedida->nombre ?? $record->variante?->producto->unidadMedida->nombre ?? 'unid'),
 
-                TextColumn::make('costo_unitario')
+                MontoMonedaColumn::make('costo_unitario')
                     ->label('Costo Unitario')
                     ->state(fn (Stock $record): float => (float) ($record->lote->costo_unitario ?? 0.0))
-                    ->money('NIO')
                     ->alignEnd(),
 
-                TextColumn::make('valor_total')
+                MontoMonedaColumn::make('valor_total')
                     ->label('Valor Total Estimado')
                     ->state(fn (Stock $record): float => (float) $record->cantidad_actual * (float) ($record->lote->costo_unitario ?? 0.0))
-                    ->money('NIO')
                     ->alignEnd(),
             ])
             ->defaultSort('id', 'desc');
