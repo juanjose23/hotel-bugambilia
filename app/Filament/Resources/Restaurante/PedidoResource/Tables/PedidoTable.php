@@ -9,6 +9,10 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
 use App\Filament\Shared\Actions\Restaurante\PagarPedidoAction;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Interactors\Restaurante\Cocina\AnularTodosItemsActivos;
 use App\Interactors\Restaurante\Cocina\MarcarTodosItemsServidos;
 use App\Interactors\Restaurante\Cocina\ReenviarItemsPendientesACocina;
@@ -29,7 +33,6 @@ use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 
@@ -65,28 +68,17 @@ final class PedidoTable
                     ->counts('items')
                     ->label('Platos')
                     ->sortable(),
-                TextColumn::make('subtotal')
-                    ->label('Subtotal')
-                    ->money('NIO')
-                    ->sortable(),
-                TextColumn::make('total')
+                MontoMonedaColumn::make('subtotal')
+                    ->label('Subtotal'),
+                MontoMonedaColumn::make('total')
                     ->label('Total')
-                    ->state(fn (Pedido $record): float => (float) ($record->cuenta->total ?? $record->calcularSubtotal()))
-                    ->money('NIO')
-                    ->sortable(),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getLabel() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getLabel() ?? $state : ''))
-                    ->color(fn (mixed $state): string => $state instanceof EstadoPedido ? $state->getColor() : (is_string($state) ? EstadoPedido::tryFrom($state)?->getColor() ?? 'gray' : 'gray')),
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
+                    ->state(fn (Pedido $record): float => (float) ($record->cuenta->total ?? $record->calcularSubtotal())),
+                EstadoBadgeColumn::make(EstadoPedido::class),
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
-                SelectFilter::make('estado')->options(EstadoPedido::class),
+                FiltroEstado::make(EstadoPedido::class),
             ])
             ->recordActions([
                 ActionGroup::make([

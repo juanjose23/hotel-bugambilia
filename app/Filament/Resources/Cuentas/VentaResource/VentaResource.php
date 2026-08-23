@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Cuentas\VentaResource;
 
 use App\Enums\Cuentas\EstadoVenta;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Cuentas\Venta;
 use App\Repository\Models\Personas\Persona;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
@@ -48,16 +51,14 @@ final class VentaResource extends Resource
                         ->whereHas('cliente', fn (Builder $clienteQuery): Builder => Persona::filtrarPorNombre($clienteQuery, $search)))
                     ->placeholder('—'),
                 TextColumn::make('moneda.codigo')->label('Moneda'),
-                TextColumn::make('subtotal')->label('Subtotal')->money('NIO')->sortable(),
-                TextColumn::make('impuesto_total')->label('IVA')->money('NIO'),
-                TextColumn::make('total')->label('Total')->money('NIO')->sortable(),
-                TextColumn::make('estado')->label('Estado')->badge()
-                    ->formatStateUsing(fn (mixed $state): string => $state instanceof EstadoVenta ? $state->getLabel() : '')
-                    ->color(fn (mixed $state): string => $state instanceof EstadoVenta ? $state->getColor() : 'gray'),
-                TextColumn::make('created_at')->label('Emitida')->dateTime()->sortable(),
+                MontoMonedaColumn::make('subtotal')->label('Subtotal'),
+                MontoMonedaColumn::make('impuesto_total')->label('IVA'),
+                MontoMonedaColumn::make('total')->label('Total'),
+                EstadoBadgeColumn::make(EstadoVenta::class),
+                FechaStandardColumn::make('created_at', 'Emitida'),
             ])
             ->filters([
-                SelectFilter::make('estado')->options(EstadoVenta::class),
+                FiltroEstado::make(EstadoVenta::class),
             ]);
     }
 

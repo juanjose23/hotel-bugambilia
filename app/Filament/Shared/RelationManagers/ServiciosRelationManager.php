@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\RelationManagers;
 
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Concerns\TieneAccionesCrudEstandar;
 use App\Repository\Models\Shared\ServicioAsignacion;
 use Closure;
@@ -98,11 +99,7 @@ class ServiciosRelationManager extends RelationManager
                     ->boolean()
                     ->alignCenter(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state): string => $state->color())
-                    ->formatStateUsing(fn ($state): string => $state->label()),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
             ]);
 
         return $table

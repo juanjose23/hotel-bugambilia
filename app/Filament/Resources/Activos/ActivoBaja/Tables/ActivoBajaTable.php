@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\ActivoBaja\Tables;
 
 use App\Enums\Activos\TipoBaja;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -45,10 +46,8 @@ class ActivoBajaTable
                     ->badge()
                     ->sortable(),
 
-                TextColumn::make('valor_residual')
+                MontoMonedaColumn::make('valor_residual')
                     ->label('Valor Residual')
-                    ->money('NIO')
-                    ->sortable()
                     ->placeholder('0.00'),
 
                 TextColumn::make('creadoPor.name')

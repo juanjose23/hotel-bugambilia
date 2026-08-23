@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Catalogos\Catalogos\Tables;
 
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Catalogos\CatalogoTipo;
 use Filament\Actions\BulkActionGroup;
@@ -43,13 +44,9 @@ class CatalogosTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 EstadoBadgeColumn::make(EstadoGeneral::class),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make('updated_at', 'Actualizado')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

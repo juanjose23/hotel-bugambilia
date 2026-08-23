@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Cuentas\CuentaResource\RelationManagers;
 
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Support\MonedaHelper;
@@ -54,10 +56,7 @@ final class DetallesRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('moneda'))
             ->columns(components: [
-                TextColumn::make('created_at')
-                    ->label('Fecha')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                FechaStandardColumn::make('created_at', 'Fecha'),
                 TextColumn::make('concepto')
                     ->label('Concepto')
                     ->searchable(),
@@ -111,11 +110,7 @@ final class DetallesRelationManager extends RelationManager
                     ->money(fn ($record): string => MonedaHelper::codigo($record?->moneda))
                     ->sortable()
                     ->weight(FontWeight::Bold),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn (int $state): string => $state === EstadoGeneral::Activo->value ? 'Activo' : 'Anulado')
-                    ->color(fn (int $state): string => $state === EstadoGeneral::Activo->value ? 'success' : 'danger'),
+                EstadoBadgeColumn::make(EstadoGeneral::class),
                 TextColumn::make('creador.name')
                     ->label('Registrado por')
                     ->placeholder('Sistema'),

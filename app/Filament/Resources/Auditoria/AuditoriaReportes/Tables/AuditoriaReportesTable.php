@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Auditoria\AuditoriaReportes\Tables;
 
 use App\BusinessLogic\Shared\Reportes\ReporteDispatcher;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -17,7 +18,7 @@ class AuditoriaReportesTable
                 //
                 TextColumn::make('usuario.email')->label('Fecha'),
                 TextColumn::make('tipo_reporte')->label('Codigo Reporte'),
-                TextColumn::make('created_at')->label('Fecha'),
+                FechaStandardColumn::make('created_at', 'Fecha'),
                 TextColumn::make('parametros')
                     ->label('Parámetros')
                     ->state('...')

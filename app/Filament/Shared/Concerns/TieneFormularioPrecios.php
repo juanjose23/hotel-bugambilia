@@ -7,6 +7,7 @@ namespace App\Filament\Shared\Concerns;
 use App\BusinessLogic\Shared\ServicioPrecios;
 use App\Enums\HabitacionesEspacios\TipoPrecioEspacio;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Interactors\Shared\AsignarPrecio;
 use App\Repository\Queries\Shared\VerificarPrecioDuplicado;
 use Closure;
@@ -221,11 +222,7 @@ trait TieneFormularioPrecios
                 ->boolean()
                 ->alignCenter(),
 
-            TextColumn::make('estado')
-                ->label('Estado')
-                ->badge()
-                ->color(fn ($state) => $state instanceof EstadoGeneral ? $state->getColor() : EstadoGeneral::tryFrom(intval($state))?->getColor() ?? 'gray')
-                ->formatStateUsing(fn ($state): string => $state instanceof EstadoGeneral ? $state->getLabel() : EstadoGeneral::tryFrom(intval($state))?->getLabel() ?? '')
+            EstadoBadgeColumn::make(EstadoGeneral::class)
                 ->sortable(),
         ];
     }

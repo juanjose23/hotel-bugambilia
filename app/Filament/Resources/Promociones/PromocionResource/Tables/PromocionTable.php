@@ -6,6 +6,8 @@ namespace App\Filament\Resources\Promociones\PromocionResource\Tables;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\ActionGroup;
@@ -69,11 +71,7 @@ class PromocionTable
                     ->placeholder('-')
                     ->formatStateUsing(fn ($state) => $state ? "{$state}%" : '-'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state): ?string => is_string($color = EstadoGeneral::colorFor($state)) ? $color : null)
-                    ->formatStateUsing(fn ($state): string => EstadoGeneral::labelFor($state))
+                EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->sortable(),
 
                 IconColumn::make('web')
@@ -81,16 +79,10 @@ class PromocionTable
                     ->boolean()
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make('updated_at', 'Actualizado')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

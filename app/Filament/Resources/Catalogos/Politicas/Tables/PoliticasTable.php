@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Catalogos\Politicas\Tables;
 
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\ActionGroup;
@@ -39,10 +40,7 @@ class PoliticasTable
                 EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
