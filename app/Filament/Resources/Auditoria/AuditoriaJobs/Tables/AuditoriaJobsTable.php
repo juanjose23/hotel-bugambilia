@@ -6,6 +6,8 @@ namespace App\Filament\Resources\Auditoria\AuditoriaJobs\Tables;
 
 use App\Enums\Shared\EstadoEjecucionJob;
 use App\Enums\Shared\TipoJob;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Filters\FiltroEstado;
 use App\Interactors\Auditoria\EjecutarJobManual;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
@@ -34,11 +36,7 @@ class AuditoriaJobsTable
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => ucfirst($state)),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn (EstadoEjecucionJob $state): string => $state->getColor())
-                    ->formatStateUsing(fn (EstadoEjecucionJob $state): string => $state->getLabel()),
+                EstadoBadgeColumn::make(EstadoEjecucionJob::class),
                 TextColumn::make('usuario.name')
                     ->label('Usuario')
                     ->formatStateUsing(function ($record): string {
@@ -63,9 +61,7 @@ class AuditoriaJobsTable
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('estado')
-                    ->label('Estado')
-                    ->options(EstadoEjecucionJob::class),
+                FiltroEstado::make(EstadoEjecucionJob::class),
                 SelectFilter::make('tipo_job')
                     ->label('Tipo de Job')
                     ->options(TipoJob::class),

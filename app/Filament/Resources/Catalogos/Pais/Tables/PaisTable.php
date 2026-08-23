@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Catalogos\Pais\Tables;
 
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -40,11 +41,7 @@ class PaisTable
                     ->searchable(),
                 EstadoBadgeColumn::make(EstadoGeneral::class)
                     ->sortable(),
-                TextColumn::make('created_at')
-                    ->sortable()
-                    ->label('Creado El')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make('created_at', 'Creado El')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->dateTime()

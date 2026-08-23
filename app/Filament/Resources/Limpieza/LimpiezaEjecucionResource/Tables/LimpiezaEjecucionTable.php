@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Limpieza\LimpiezaEjecucionResource\Tables;
 
 use App\Enums\Limpieza\EstadoLimpieza;
+use App\Filament\Shared\Columns\ColaboradorNombreColumn;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
-use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Queries\Limpieza\Ubicacion\AplicarFiltroUbicacionLimpiable;
 use App\Repository\Queries\Limpieza\Ubicacion\ObtenerPathUbicacion;
-use App\Repository\Queries\Shared\ObtenerNombrePersona;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -60,21 +60,10 @@ class LimpiezaEjecucionTable
                     ->label('Turno')
                     ->sortable(),
 
-                TextColumn::make('colaborador')
-                    ->label('Colaborador')
-                    ->state(function (LimpiezaEjecucion $record): string {
-                        $p = $record->colaborador?->persona;
+                ColaboradorNombreColumn::make('colaborador.persona.nombre_completo')
+                    ->placeholder('Sin asignar'),
 
-                        return $p
-                            ? ObtenerNombrePersona::desde($p)
-                            : 'Sin asignar';
-                    })
-                    ->placeholder('Sin asignar')
-                    ->sortable(),
-
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
+                EstadoBadgeColumn::make(EstadoLimpieza::class)
                     ->sortable(),
 
                 TextColumn::make('hora_inicio')

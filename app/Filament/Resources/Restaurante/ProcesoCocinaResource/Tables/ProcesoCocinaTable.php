@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Restaurante\ProcesoCocinaResource\Tables;
 
 use App\Filament\Shared\Actions\Restaurante\ReporteCostosCocinaAction;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Support\Icons\Heroicon;
@@ -22,14 +24,13 @@ final class ProcesoCocinaTable
                 TextColumn::make('varianteOrigen.nombre_variante')->label('Variante')->searchable()->placeholder('—'),
                 TextColumn::make('cantidad_procesada')->label('Cantidad procesada')->sortable(),
                 TextColumn::make('items_count')->counts('items')->label('Resultados'),
-                TextColumn::make('costo_total')->label('Costo Total C$')->money('NIO')->sortable(),
-                TextColumn::make('costo_por_plato')
-                    ->label('Costo por Plato C$')
-                    ->state(fn ($record): float => (float) $record->costo_por_plato)
-                    ->money('NIO'),
+                MontoMonedaColumn::make('costo_total')->label('Costo Total'),
+                MontoMonedaColumn::make('costo_por_plato')
+                    ->label('Costo por Plato')
+                    ->state(fn ($record): float => (float) $record->costo_por_plato),
                 TextColumn::make('plato.nombre')->label('Plato')->searchable()->placeholder('—'),
                 TextColumn::make('realizadoPor.name')->label('Realizado por')->placeholder('—'),
-                TextColumn::make('created_at')->label('Fecha')->dateTime()->sortable(),
+                FechaStandardColumn::make('created_at', 'Fecha'),
             ])
             ->headerActions([
                 ReporteCostosCocinaAction::make(),

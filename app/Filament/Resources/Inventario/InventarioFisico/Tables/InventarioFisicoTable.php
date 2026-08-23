@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Inventario\InventarioFisico\Tables;
 
 use App\Enums\Inventario\EstadoInventarioFisico;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Concerns\InyectaDesdeContenedor;
 use App\Filament\Shared\Filters\FiltroEstado;
@@ -55,9 +56,7 @@ readonly class InventarioFisicoTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge(),
+                EstadoBadgeColumn::make(EstadoInventarioFisico::class),
 
                 class_exists(SpreadsheetColumn::class)
                     ? SpreadsheetColumn::make('datos_hoja')

@@ -6,6 +6,9 @@ namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\Restaurante\EstadoPedido;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
+use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Interactors\Restaurante\Reportes\GenerarReporteRestaurante;
 use App\Repository\Models\User;
 use App\Repository\Queries\Restaurante\Reportes\ObtenerReportesRestauranteQuery;
@@ -90,11 +93,9 @@ final class ReportesRestaurante extends Page implements HasTable
                 TextColumn::make('codigo')->label('Pedido')->searchable()->sortable(),
                 TextColumn::make('mesa.nombre')->label('Mesa'),
                 TextColumn::make('mesero.persona.nombre_completo')->label('Mesero'),
-                TextColumn::make('estado')->label('Estado')->badge()
-                    ->formatStateUsing(fn (mixed $state): string => EstadoPedido::resolveLabel($state))
-                    ->color(fn (mixed $state): string => EstadoPedido::resolveColor($state)),
-                TextColumn::make('total')->label('Total')->money('NIO')->sortable(),
-                TextColumn::make('created_at')->label('Fecha')->dateTime()->sortable(),
+                EstadoBadgeColumn::make(EstadoPedido::class),
+                MontoMonedaColumn::make('total')->label('Total'),
+                FechaStandardColumn::make('created_at', 'Fecha'),
             ])
             ->poll('30s');
     }

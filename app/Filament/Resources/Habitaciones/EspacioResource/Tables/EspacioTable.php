@@ -6,6 +6,8 @@ namespace App\Filament\Resources\Habitaciones\EspacioResource\Tables;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -60,17 +62,10 @@ class EspacioTable
                     ->sortable()
                     ->suffix(' pers.'),
 
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn ($state) => $state?->getColor() ?? 'gray')
-                    ->icon(fn ($state) => $state?->getIcon())
+                EstadoBadgeColumn::make(EstadoEspacio::class)
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
-                    ->sortable()
+                FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('orden')
