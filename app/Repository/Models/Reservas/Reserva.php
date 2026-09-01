@@ -15,6 +15,7 @@ use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Promociones\Promocion;
 use App\Repository\Models\Servicios\Servicio;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -96,6 +97,25 @@ final class Reserva extends Model implements AuditableContract
         'saldo' => 'decimal:2',
         'acompanantes' => 'array',
     ];
+
+    /**
+     * @return Attribute<int, never>
+     */
+    protected function noches(): Attribute
+    {
+        return Attribute::make(
+            get: function (): int {
+                if (! ($this->fecha_check_in instanceof Carbon) || ! ($this->fecha_check_out instanceof Carbon)) {
+                    return 1;
+                }
+
+                $checkIn = $this->fecha_check_in->copy()->startOfDay();
+                $checkOut = $this->fecha_check_out->copy()->startOfDay();
+
+                return max(1, (int) $checkIn->diffInDays($checkOut));
+            },
+        );
+    }
 
     /**
      * @return BelongsTo<Cliente, $this>

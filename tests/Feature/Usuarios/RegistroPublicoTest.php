@@ -41,7 +41,7 @@ function datosRegistroNatural(array $sobrescribir = []): array
 }
 
 it('pide la identificación al cliente cuando selecciona un tipo de documento sin número', function () {
-    $response = $this->post('/registro', datosRegistroNatural([
+    $response = $this->post(route('registro.post'), datosRegistroNatural([
         'numero_identificacion' => '',
     ]));
 
@@ -53,7 +53,7 @@ it('pide la identificación al cliente cuando selecciona un tipo de documento si
 });
 
 it('pide el tipo de identificación cuando el cliente ingresa un número sin tipo', function () {
-    $response = $this->post('/registro', datosRegistroNatural([
+    $response = $this->post(route('registro.post'), datosRegistroNatural([
         'tipo_identificacion' => '',
     ]));
 
@@ -65,9 +65,9 @@ it('pide el tipo de identificación cuando el cliente ingresa un número sin tip
 it('permite registrarse cuando la identificación está completa', function () {
     crearCatalogoClienteRegular();
 
-    $response = $this->post('/registro', datosRegistroNatural());
+    $response = $this->post(route('registro.post'), datosRegistroNatural());
 
-    $response->assertRedirect(route('portal'));
+    $response->assertRedirect(route('home'));
     $response->assertSessionHas('exito');
 
     expect(Persona::count())->toBe(1);

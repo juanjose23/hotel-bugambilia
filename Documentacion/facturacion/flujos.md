@@ -143,17 +143,17 @@ app/
 
 ## Tablas Principales
 
-| Tabla | Responsabilidad |
-| --- | --- |
-| `factura_series` | Configuracion de series fiscales y siguiente correlativo. |
-| `factura_autorizaciones_dgi` | Rangos autorizados por DGI para una serie. |
-| `factura_folios` | Control de correlativos reservados, emitidos o anulados. |
-| `facturas` | Cabecera fiscal emitida desde una venta. |
-| `factura_detalles` | Lineas fiscales derivadas de los detalles de venta. |
-| `documentos_ajuste_fiscales` | Documentos de ajuste fiscal asociados a facturas. |
-| `pasarelas_pago` | Configuracion administrativa y metadata de proveedores de pago. |
-| `pago_transacciones` | Intentos, capturas y fallos de pasarela. |
-| `pago_conciliaciones` | Resultado de conciliacion entre pasarela y pago aplicado. |
+| Tabla                        | Responsabilidad                                                 |
+| ---------------------------- | --------------------------------------------------------------- |
+| `factura_series`             | Configuracion de series fiscales y siguiente correlativo.       |
+| `factura_autorizaciones_dgi` | Rangos autorizados por DGI para una serie.                      |
+| `factura_folios`             | Control de correlativos reservados, emitidos o anulados.        |
+| `facturas`                   | Cabecera fiscal emitida desde una venta.                        |
+| `factura_detalles`           | Lineas fiscales derivadas de los detalles de venta.             |
+| `documentos_ajuste_fiscales` | Documentos de ajuste fiscal asociados a facturas.               |
+| `pasarelas_pago`             | Configuracion administrativa y metadata de proveedores de pago. |
+| `pago_transacciones`         | Intentos, capturas y fallos de pasarela.                        |
+| `pago_conciliaciones`        | Resultado de conciliacion entre pasarela y pago aplicado.       |
 
 ## Reglas de Negocio
 

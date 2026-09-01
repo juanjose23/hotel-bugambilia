@@ -15,5 +15,5 @@ test('la ruta de cuenta del cliente responde correctamente', function (): void {
 
     $response = $this->actingAs($user)->get('/portal/cuenta');
 
-    $response->assertStatus(200);
+    $response->assertRedirect(route('mis-reservas'));
 });

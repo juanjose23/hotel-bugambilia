@@ -9,10 +9,12 @@ use App\Repository\Models\Politicas\Politica;
 use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Shared\Imagen;
 use App\Repository\Models\Shared\Precio;
+use App\Repository\Models\Shared\ServicioAsignacion;
 use App\Repository\Models\Shared\Stock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -45,6 +47,12 @@ class Servicio extends Model implements AuditableContract
     public function reservable(): BelongsTo
     {
         return $this->belongsTo(RecursoReservable::class, 'reservable_id');
+    }
+
+    /** @return HasMany<ServicioAsignacion, $this> */
+    public function servicioAsignaciones(): HasMany
+    {
+        return $this->hasMany(ServicioAsignacion::class, 'servicio_id');
     }
 
     /** @return MorphMany<Precio, $this> */

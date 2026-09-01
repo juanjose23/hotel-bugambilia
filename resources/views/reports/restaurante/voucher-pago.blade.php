@@ -5,14 +5,7 @@
 
 @section('content')
     <div class="pagina">
-        <div class="report-header">
-            @include('reports.layout.partials.header', [
-                'logo_base64' => $datosHotel['logo_base64'] ?? null,
-                'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
-            ])
-        </div>
-
-        <div class="report-content" style="margin-top: 10px;">
+        <div class="report-content" style="margin-top: 0;">
             <div style="text-align: center; margin-bottom: 12px;">
                 <span style="font-size: 14px; font-weight: bold; color: #065f46; text-transform: uppercase;">Comprobante de Pago</span>
             </div>
@@ -71,9 +64,5 @@
                 </div>
             </div>
         </div>
-
-        @include('reports.layout.partials.footer', [
-            'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
-        ])
     </div>
 @endsection

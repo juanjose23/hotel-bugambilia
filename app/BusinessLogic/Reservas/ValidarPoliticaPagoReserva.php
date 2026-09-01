@@ -31,14 +31,20 @@ final class ValidarPoliticaPagoReserva
     }
 
     /**
-     * Calcula dinámicamente el saldo pendiente requerido por la política de pago.
+     * Calcula dinámicamente el saldo pendiente requerido por la política de pago o el saldo restante para liquidación.
      */
     public function obtenerMontoFaltantePolitica(Reserva $reserva): float
     {
         $tipoPago = $reserva->tipo_pago ?? TipoPagoReserva::SIN_PAGO;
         $montoMinimoRequerido = $tipoPago->monto((float) $reserva->total);
         $pagadoActual = (float) $reserva->total_pagado;
+        $faltantePolitica = max(0.0, $montoMinimoRequerido - $pagadoActual);
 
-        return max(0.0, $montoMinimoRequerido - $pagadoActual);
+        // Si la política de anticipo ya fue satisfecha pero aún existe saldo pendiente para liquidar la reserva
+        if ($faltantePolitica <= 0.0 && (float) $reserva->saldo > 0.0) {
+            return (float) $reserva->saldo;
+        }
+
+        return $faltantePolitica;
     }
 }

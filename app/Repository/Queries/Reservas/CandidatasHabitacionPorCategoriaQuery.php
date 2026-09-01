@@ -43,6 +43,7 @@ final readonly class CandidatasHabitacionPorCategoriaQuery
             ->select(['id', 'categoria_id', 'ubicacion_id', 'estado', 'reservable_id', 'nombre'])
             ->with('reservable')
             ->where('categoria_id', $categoriaId)
+            ->where('ubicacion_id', $ubicacionId)
             ->whereNull('deleted_at')
             ->where('estado', '!=', EstadoEspacio::Inactivo->value)
             ->where(function (Builder $query) use ($totalPersonas): void {
@@ -81,7 +82,7 @@ final readonly class CandidatasHabitacionPorCategoriaQuery
                             });
                     });
             })
-            ->orderByRaw('CASE WHEN id = ? THEN 1 ELSE 0 END', [$habitacionSolicitadaId])
+            ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$habitacionSolicitadaId])
             ->orderBy('nombre')
             ->get();
 

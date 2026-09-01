@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presenters\Landing;
 
 use App\Actions\Landing\ResolverUrlImagen;
+use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Habitaciones\Habitacion;
 use Illuminate\Support\Str;
 
@@ -24,6 +25,8 @@ final class HabitacionDetallePresenter
         $precioObj = $habitacion->precios->first();
         $nombre = $habitacion->nombre ?? "Habitación $habitacion->numero";
         $capacidades = $this->capacidades($habitacion);
+        $precio = $precioObj !== null ? (float) $precioObj->precio : 0.0;
+        $moneda = $precioObj !== null ? ($precioObj->moneda->simbolo ?? '$') : '$';
 
         return [
             'id' => $habitacion->id,
@@ -33,17 +36,17 @@ final class HabitacionDetallePresenter
             'numero' => $habitacion->numero,
             'slug' => Str::slug($nombre).'-'.$habitacion->id,
             'nombre' => $nombre,
-            'descripcion' => $habitacion->descripcion ?? 'Ambiente confortable con acabados de primera calidad, pensado para su descanso en Estelí.',
-            'categoria' => $habitacion->categoria->nombre ?? 'Suite Elegante',
-            'ubicacion' => $habitacion->ubicacion->nombre ?? 'Piso Principal',
-            'precio' => $precioObj ? (float) $precioObj->precio : 45.0,
-            'moneda' => $precioObj->moneda->simbolo ?? '$',
+            'descripcion' => $habitacion->descripcion ?? '',
+            'categoria' => $habitacion->categoria->nombre ?? '',
+            'ubicacion' => $habitacion->ubicacion->nombre ?? '',
+            'precio' => $precio,
+            'moneda' => $moneda,
             'capacidad' => $capacidades['total'],
             'adultos' => $capacidades['adultos'],
             'ninos' => $capacidades['ninos'],
-            'medidas' => $habitacion->detalle?->medidas ? $habitacion->detalle->medidas.' m²' : '32 m²',
+            'medidas' => $habitacion->detalle?->medidas ? $habitacion->detalle->medidas.' m²' : null,
             'vistas' => $this->vistas($habitacion),
-            'camas' => '1 Cama King Size',
+            'camas' => $this->resolverCamas($habitacion),
             'imagenes' => $this->resolverUrlImagen->deHabitacion($habitacion),
             'serviciosIncluidos' => $this->serviciosPresenter->lista($habitacion->servicioAsignaciones),
             'politicas' => $this->politicasPresenter->lista($habitacion->politicas),
@@ -82,6 +85,50 @@ final class HabitacionDetallePresenter
         ];
     }
 
+    private function resolverCamas(Habitacion $habitacion): ?string
+    {
+        $camas = [];
+
+        foreach ($habitacion->inventarioFijo as $asignacion) {
+            $activo = $asignacion->activo;
+            if ($activo !== null) {
+                $nombre = (string) ($activo->producto->nombre ?? $activo->nombre_descriptivo ?? '');
+                if (stripos($nombre, 'cama') !== false) {
+                    $camas[] = trim(explode(' - ', $nombre)[0]);
+                }
+            }
+        }
+
+        if ($camas !== []) {
+            $conteo = array_count_values($camas);
+            $partes = [];
+            foreach ($conteo as $nombreCama => $cantidad) {
+                $partes[] = "{$cantidad} {$nombreCama}";
+            }
+
+            return implode(' + ', $partes);
+        }
+
+        $texto = $habitacion->nombre.' '.($habitacion->categoria->nombre ?? '');
+        if (stripos($texto, 'matrimonial') !== false) {
+            return '1 Cama Matrimonial';
+        }
+        if (stripos($texto, 'king') !== false) {
+            return '1 Cama King Size';
+        }
+        if (stripos($texto, 'queen') !== false) {
+            return '1 Cama Queen Size';
+        }
+        if (stripos($texto, 'doble') !== false) {
+            return '2 Camas Dobles';
+        }
+        if (stripos($texto, 'sencilla') !== false || stripos($texto, 'individual') !== false) {
+            return '1 Cama Individual';
+        }
+
+        return null;
+    }
+
     /**
      * @return array<int, string>
      */
@@ -89,28 +136,56 @@ final class HabitacionDetallePresenter
     {
         $detalle = $habitacion->detalle;
 
-        if ($detalle !== null && is_array($detalle->vistas) && $detalle->vistas !== []) {
-            return $detalle->vistas;
+        if ($detalle === null || ! is_array($detalle->vistas) || $detalle->vistas === []) {
+            return [];
         }
 
-        return ['Vista al Jardín / Terraza'];
+        $vistaIds = array_filter($detalle->vistas, fn ($v) => is_numeric($v));
+        if ($vistaIds !== []) {
+            return Catalogo::whereIn('id', $vistaIds)
+                ->pluck('nombre')
+                ->filter()
+                ->map(fn (mixed $v): string => is_string($v) ? $v : '')
+                ->values()
+                ->all();
+        }
+
+        return array_values(array_filter($detalle->vistas, fn ($v) => is_string($v) && $v !== ''));
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, array{nombre: string, categoria: string, cantidad: int}>
      */
     private function equipamiento(Habitacion $habitacion): array
     {
-        $equipamiento = [];
+        $equipamientoMap = [];
 
         foreach ($habitacion->inventarioFijo as $asignacion) {
             $activo = $asignacion->activo;
-            if ($activo !== null && property_exists($activo, 'nombre') && is_string($activo->nombre) && $activo->nombre !== '') {
-                $equipamiento[] = $activo->nombre;
+            if ($activo !== null) {
+                // Obtener nombre limpio del producto sin códigos o etiquetas internas de inventario
+                $nombre = (string) ($activo->producto->nombre ?? '');
+
+                if ($nombre === '' && ! empty($activo->nombre_descriptivo)) {
+                    $nombre = trim(explode(' - ', (string) $activo->nombre_descriptivo)[0]);
+                }
+
+                if ($nombre !== '') {
+                    $categoria = (string) ($activo->producto->categoria->nombre ?? 'Mobiliario & Confort');
+
+                    if (! isset($equipamientoMap[$nombre])) {
+                        $equipamientoMap[$nombre] = [
+                            'nombre' => $nombre,
+                            'categoria' => $categoria,
+                            'cantidad' => 0,
+                        ];
+                    }
+                    $equipamientoMap[$nombre]['cantidad']++;
+                }
             }
         }
 
-        return $equipamiento;
+        return array_values($equipamientoMap);
     }
 
     /**
@@ -127,8 +202,8 @@ final class HabitacionDetallePresenter
             'slug' => Str::slug($nombre).'-'.$h->id,
             'nombre' => $nombre,
             'categoria' => $h->categoria->nombre ?? 'Suite',
-            'precio' => $p ? (float) $p->precio : 45.0,
-            'moneda' => $p->moneda->simbolo ?? '$',
+            'precio' => $p !== null ? (float) $p->precio : 0.0,
+            'moneda' => $p !== null ? ($p->moneda->simbolo ?? '$') : '$',
             'imagen' => $img !== null ? ($this->resolverUrlImagen->ejecutar($img->url) ?? '/images/main-room.jpg') : '/images/main-room.jpg',
         ];
     }

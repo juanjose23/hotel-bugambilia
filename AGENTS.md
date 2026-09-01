@@ -648,6 +648,71 @@ Usuarios
 
 ---
 
+# 18. Frontend (Inertia.js + React 19 + TypeScript + React Hook Form)
+
+El código frontend reside en `resources/js/` bajo una arquitectura modular por dominios:
+
+```text
+resources/js/
+├── modules/                  # Dominios de negocio autocontenidos
+│   ├── auth/
+│   ├── clientes/
+│   ├── espacios/
+│   ├── habitaciones/
+│   ├── home/
+│   ├── reservas/
+│   ├── restaurante/
+│   ├── servicios/
+│   └── shared/               # Componentes transversales
+│       ├── components/ui/    # Componentes base shadcn/ui
+│       ├── hooks/
+│       ├── types/
+│       └── utils/
+└── pages/                    # Vistas del router de Inertia (delgadas)
+    ├── auth/
+    ├── espacios/
+    ├── habitaciones/
+    ├── home/
+    └── servicios/
+```
+
+### Estructura interna de cada módulo (`modules/<dominio>/`):
+
+```text
+modules/<dominio>/
+├── components/               # Componentes visuales del dominio (PascalCase.tsx)
+├── hooks/                    # Custom hooks de formularios y filtros (use<Nombre>.ts)
+├── schemas/                  # Esquemas Zod y tipos inferidos (<nombre>Schema.ts)
+└── types/                    # Interfaces y contratos del dominio (index.ts)
+```
+
+### Reglas obligatorias de Frontend:
+
+1. **Separación `pages/` vs `modules/`:**
+    - `pages/`: Vistas contenedoras delgadas y adaptadores del router de Inertia (reciben props del Interactor / Presenter). No contienen lógica de negocio ni validaciones manuales.
+    - `modules/`: Lógica de dominio, hooks (`useCamelCase`), componentes (`PascalCase`), esquemas Zod (`camelCaseSchema`) y contratos de tipos (`types/`).
+    - `modules/shared/`: Componentes y utilidades reutilizados entre dos o más módulos (`RoomCard`, `Button`, `Input`, `Select`, `Sheet`, `Field`, `Checkbox`, etc.).
+
+2. **Formularios con React Hook Form + Zod (Sin `useState` manual):**
+    - Todo formulario o flujo interactivo **debe tener su propio custom hook** en `modules/<dominio>/hooks/use<Accion>Form.ts`.
+    - Utilizar obligatoriamente `react-hook-form` integrado con `@hookform/resolvers/zod` (`zodResolver(esquema)`).
+    - Prohibido crear `useState` manuales para valores del formulario, errores o flags de submit.
+    - Usar las propiedades nativas de `formState`:
+        - `errors`: Errores reactivos validados por Zod.
+        - `isSubmitting`: Para deshabilitar botones y mostrar loaders (`<Loader2 className="animate-spin" />`).
+        - `isSubmitSuccessful`: Para transiciones o pantallas de confirmación/éxito.
+
+3. **Componentes UI y Diseño Estético (shadcn/ui + TailwindCSS v4):**
+    - Usar exclusivamente componentes de `@/modules/shared/components/ui/` (`Field`, `FieldLabel`, `FieldError`, `FieldGroup`, `Button`, `Input`, `Checkbox`, `Select`, `Sheet`, `Card`, etc.).
+    - Prohibido usar inputs HTML nativos sin estilizar (`<input>`, `<select>`, `<button>`).
+    - Priorizar estética premium: micro-animaciones, transiciones suaves, tipografía nítida y consistencia visual en modo claro y oscuro.
+
+4. **Eventos y Tipado en React 19:**
+    - No usar `FormEvent` (deprecado).
+    - Usar `SubmitEvent<HTMLFormElement>` para formularios y tipos estrictos de TypeScript sin `any`.
+
+---
+
 # Regla final
 
 Antes de crear una clase preguntarse:

@@ -127,11 +127,13 @@ class ResumenReserva
                         TextEntry::make('duracion_noches')
                             ->label('Noches de Estancia')
                             ->state(function (Reserva $record): string {
-                                if (! $record->fecha_check_in instanceof Carbon || ! $record->fecha_check_out instanceof Carbon) {
+                                if (! $record->fecha_check_in || ! $record->fecha_check_out) {
                                     return '—';
                                 }
 
-                                $noches = $record->fecha_check_in->diffInDays($record->fecha_check_out);
+                                $checkIn = Carbon::parse($record->fecha_check_in);
+                                $checkOut = Carbon::parse($record->fecha_check_out);
+                                $noches = (int) $checkIn->diffInDays($checkOut);
 
                                 return $noches > 0 ? "{$noches} noche(s)" : '1 noche';
                             })
