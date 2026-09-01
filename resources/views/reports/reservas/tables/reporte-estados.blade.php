@@ -1,3 +1,5 @@
+@use(App\Enums\Reservas\EstadoReserva)
+@use(App\Support\MonedaHelper)
 <table class="data-table">
     <thead>
         <tr>
@@ -15,13 +17,13 @@
                 <td><span class="sku-code">{{ $reserva->codigo_reserva }}</span></td>
                 <td>{{ $reserva->cliente?->persona?->nombre_completo ?? 'N/A' }}</td>
                 <td>
-                    <span class="badge {{ $reserva->estado === 'confirmada' || $reserva->estado === 'finalizada' ? 'badge-success' : ($reserva->estado === 'cancelada' ? 'badge-danger' : 'badge-warning') }}">
-                        {{ ucfirst($reserva->estado ?? 'Pendiente') }}
+                    <span class="badge {{ $reserva->estado === EstadoReserva::CONFIRMADA || $reserva->estado === EstadoReserva::CHECKED_OUT ? 'badge-success' : ($reserva->estado === EstadoReserva::CANCELADA || $reserva->estado === EstadoReserva::NO_SHOW ? 'badge-danger' : 'badge-warning') }}">
+                        {{ $reserva->estado?->label() ?? 'Pendiente' }}
                     </span>
                 </td>
-                <td>{{ optional($reserva->fecha_entrada)->format('d/m/Y') ?? '-' }}</td>
-                <td>{{ optional($reserva->fecha_salida)->format('d/m/Y') ?? '-' }}</td>
-                <td class="amount" style="text-align: right;">$ {{ number_format((float) $reserva->total, 2) }}</td>
+                <td>{{ optional($reserva->fecha_check_in)->format('d/m/Y') ?? '-' }}</td>
+                <td>{{ optional($reserva->fecha_check_out)->format('d/m/Y') ?? '-' }}</td>
+                <td class="amount" style="text-align: right;">{{ MonedaHelper::simbolo() }} {{ number_format((float) $reserva->total, 2) }}</td>
             </tr>
         @empty
             <tr>

@@ -13,11 +13,11 @@
     "iconLibrary": "lucide",
     "rtl": false,
     "aliases": {
-        "components": "@/modulos/compartido/componentes",
-        "utils": "@/modulos/compartido/utilidades/clases",
-        "ui": "@/modulos/compartido/ui",
-        "lib": "@/modulos/compartido",
-        "hooks": "@/modulos/compartido/hooks"
+        "components": "@/modules/shared/components",
+        "utils": "@/modules/shared/utils/clases",
+        "ui": "@/modules/shared/components/ui",
+        "lib": "@/modules/shared",
+        "hooks": "@/modules/shared/hooks"
     },
     "menuColor": "default",
     "menuAccent": "subtle",

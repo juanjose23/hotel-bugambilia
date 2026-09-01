@@ -88,8 +88,8 @@ final class EspacioDetallePresenter
     {
         $p = $e->precios->first();
         $imgUrl = $e->imagenes->first() !== null
-            ? $this->resolverUrlImagen->ejecutar($e->imagenes->first()->url) ?? '/images/terrace.jpg'
-            : '/images/terrace.jpg';
+            ? $this->resolverUrlImagen->ejecutar($e->imagenes->first()->url) ?? '/images/terrace.webp'
+            : '/images/terrace.webp';
 
         return [
             'id' => $e->id,

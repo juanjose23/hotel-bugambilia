@@ -93,11 +93,11 @@ final class ObtenerServicioDetalleLanding
         $name = strtolower($servicio->nombre);
 
         return [match (true) {
-            str_contains($cat, 'gastro') || str_contains($cat, 'restaurante') || str_contains($name, 'desayuno') || str_contains($name, 'cena') => '/images/service-kitchen.png',
-            str_contains($cat, 'piscina') || str_contains($name, 'piscina') => '/images/service-pool.png',
-            str_contains($cat, 'bar') || str_contains($name, 'bar') => '/images/service-bartender.png',
-            str_contains($cat, 'evento') || str_contains($name, 'evento') => '/images/service-events.png',
-            default => '/images/terrace.jpg',
+            str_contains($cat, 'gastro') || str_contains($cat, 'restaurante') || str_contains($name, 'desayuno') || str_contains($name, 'cena') => '/images/service-kitchen.webp',
+            str_contains($cat, 'piscina') || str_contains($name, 'piscina') => '/images/service-pool.webp',
+            str_contains($cat, 'bar') || str_contains($name, 'bar') => '/images/service-bartender.webp',
+            str_contains($cat, 'evento') || str_contains($name, 'evento') => '/images/service-events.webp',
+            default => '/images/terrace.webp',
         }];
     }
 

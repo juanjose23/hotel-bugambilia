@@ -1,3 +1,4 @@
+@use(App\Support\MonedaHelper)
 <table class="data-table">
     <thead>
         <tr>
@@ -14,10 +15,10 @@
             <tr>
                 <td><span class="sku-code">{{ $reserva->codigo_reserva }}</span></td>
                 <td>{{ $reserva->habitacion?->nombre ?? 'N/A' }}</td>
-                <td>{{ optional($reserva->fecha_entrada)->format('d/m/Y') ?? '-' }}</td>
-                <td>{{ optional($reserva->fecha_salida)->format('d/m/Y') ?? '-' }}</td>
+                <td>{{ optional($reserva->fecha_check_in)->format('d/m/Y') ?? '-' }}</td>
+                <td>{{ optional($reserva->fecha_check_out)->format('d/m/Y') ?? '-' }}</td>
                 <td style="text-align: center;">{{ $reserva->noches ?? 1 }}</td>
-                <td class="amount" style="text-align: right;">$ {{ number_format((float) $reserva->total, 2) }}</td>
+                <td class="amount" style="text-align: right;">{{ MonedaHelper::simbolo() }} {{ number_format((float) $reserva->total, 2) }}</td>
             </tr>
         @empty
             <tr>
@@ -30,7 +31,7 @@
             <tr style="background:#f1f5f9;">
                 <td colspan="4" style="text-align:right; font-weight:bold; text-transform:uppercase; padding:10px;">Total General:</td>
                 <td style="text-align:center; font-weight:bold; padding:10px;">{{ $totalNoches ?? 0 }}</td>
-                <td style="text-align:right; font-weight:bold; color:#711C37; padding:10px;">$ {{ number_format((float) ($totalIngresos ?? 0), 2) }}</td>
+                <td style="text-align:right; font-weight:bold; color:#711C37; padding:10px;">{{ MonedaHelper::simbolo() }} {{ number_format((float) ($totalIngresos ?? 0), 2) }}</td>
             </tr>
         </tfoot>
     @endif

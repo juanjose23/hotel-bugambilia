@@ -45,9 +45,17 @@ final class HabitacionController extends Controller
 
     public function mostrarReserva(
         string $slug,
-        ObtenerHabitacionReservaLanding $interactor,
+        Request $request,
+        ObtenerHabitacionDetalleLanding $interactor,
     ): Response {
-        return Inertia::render('habitaciones/HabitacionReservar', $interactor->ejecutar($slug));
+        $data = $interactor->ejecutar($slug);
+
+        return Inertia::render('reservas/ReservarHabitacion', [
+            ...$data,
+            'initialCheckIn' => $request->query('check_in', ''),
+            'initialCheckOut' => $request->query('check_out', ''),
+            'initialHuespedes' => $request->query('huespedes', '2'),
+        ]);
     }
 
     public function disponibilidad(
@@ -80,6 +88,14 @@ final class HabitacionController extends Controller
             ? min(18, max(1, (int) $request->query('meses')))
             : 12;
 
-        return response()->json($interactor->calendarioDisponibilidad($slug, $meses));
+        $adultos = is_numeric($request->query('adultos'))
+            ? max(1, (int) $request->query('adultos'))
+            : null;
+
+        $ninos = is_numeric($request->query('ninos'))
+            ? max(0, (int) $request->query('ninos'))
+            : null;
+
+        return response()->json($interactor->calendarioDisponibilidad($slug, $meses, $adultos, $ninos));
     }
 }

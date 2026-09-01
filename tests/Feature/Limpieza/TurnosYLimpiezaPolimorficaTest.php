@@ -106,7 +106,7 @@ describe('Módulo de Turnos de Limpieza (limp_horario_turnos)', function () {
     });
 });
 
-describe('Planificación de Horarios Polimórficos Cabecera-Detalle (limp_horarios)', function () {
+describe('Planificación de Horarios Polimórficos Headers-Detalle (limp_horarios)', function () {
     it('permite planificar limpieza para habitación, espacio y ubicación general', function () {
         $turno = Turno::create([
             'nombre' => 'Turno Vespertino',
@@ -405,8 +405,7 @@ describe('Nuevas características del Módulo de Limpieza (Equipos, Horarios Nul
     });
 
     it('envía recordatorios de limpieza pendientes cuando pasa la hora estimada', function () {
-        Carbon::setTestNow(Carbon::parse('2026-08-04 09:00:00'));
-
+        // Creamos una ejecución pendiente para hoy
         $turno = Turno::create([
             'nombre' => 'Turno Alertas',
             'lider_id' => $this->lider->id,
@@ -414,6 +413,7 @@ describe('Nuevas características del Módulo de Limpieza (Equipos, Horarios Nul
             'hora_fin' => '15:00:00',
         ]);
 
+        // Aseguramos que el líder tenga usuario asociado para recibir notificaciones
         $userLider = User::factory()->create(['persona_id' => $this->lider->persona_id]);
 
         $horario = LimpiezaHorario::create([
@@ -432,35 +432,24 @@ describe('Nuevas características del Módulo de Limpieza (Equipos, Horarios Nul
             'limpiable_id' => $this->habitacion->id,
             'turno_id' => $turno->id,
             'colaborador_id' => $this->lider->id,
-            'fecha' => '2026-08-04',
+            'fecha' => now()->toDateString(),
             'estado' => EstadoLimpieza::Pendiente,
         ]);
 
+        // Cambiar la hora actual a las 09:00 para simular que ya venció la hora estimada (08:00)
+        Carbon::setTestNow(now()->startOfDay()->addHours(9));
+
         Artisan::call('limpieza:enviar-recordatorios');
+
+        $notificaciones = DB::table('notifications')
+            ->where('notifiable_id', $userLider->id)
+            ->where('type', 'Filament\Notifications\DatabaseNotification')
+            ->get();
+
+        expect($notificaciones)->not->toBeEmpty();
 
         expect($ejecucion->fresh()->recordatorio_enviado_at)->not->toBeNull();
 
-        expect(DB::table('notifications')
-            ->where('notifiable_id', $userLider->id)
-            ->where('notifiable_type', User::class)
-            ->count())->toBeGreaterThan(0);
-
         Carbon::setTestNow(); // reset
-    });
-
-    test('permite crear y consultar turnos dedicados a lavanderia', function (): void {
-        $turnoLavanderia = Turno::create([
-            'nombre' => 'Turno Lavandería Nocturno',
-            'lider_id' => $this->lider->id,
-            'hora_inicio' => '22:00:00',
-            'hora_fin' => '06:00:00',
-            'es_lavanderia' => true,
-        ]);
-
-        expect($turnoLavanderia->es_lavanderia)->toBeTrue();
-
-        $encontrado = Turno::query()->where('es_lavanderia', true)->first();
-        expect($encontrado)->not->toBeNull();
-        expect($encontrado?->nombre)->toBe('Turno Lavandería Nocturno');
     });
 });

@@ -48,6 +48,8 @@ final class ObtenerPagoPublico
                 'impuestos' => round((float) $reserva->total - (float) $reserva->subtotal + (float) $reserva->descuento, 2),
                 'tarifaServicio' => 0,
                 'total' => (float) $reserva->total,
+                'totalPagado' => (float) $reserva->total_pagado,
+                'saldo' => (float) $reserva->saldo,
                 'monedaCodigo' => $reserva->moneda?->codigo,
             ],
             'serviciosExtras' => $this->serviciosExtras(),

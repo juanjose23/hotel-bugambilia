@@ -20,9 +20,20 @@ class ReservaPolicy
 
     public function view(AuthUser $authUser, Reserva $reserva): bool
     {
-        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
+        if ($authUser instanceof User && ($authUser->is_admin || $authUser->can('View:Reserva'))) {
+            return true;
+        }
 
-        return ($clienteId !== null && $clienteId === $reserva->cliente_id) || $authUser->can('View:Reserva');
+        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
+        if ($clienteId !== null && $clienteId === $reserva->cliente_id) {
+            return true;
+        }
+
+        if ($authUser instanceof User && $reserva->email_cliente !== null && strcasecmp((string) $authUser->email, (string) $reserva->email_cliente) === 0) {
+            return true;
+        }
+
+        return $authUser->can('View:Reserva');
     }
 
     public function create(AuthUser $authUser): bool
@@ -72,9 +83,20 @@ class ReservaPolicy
 
     public function cancel(AuthUser $authUser, Reserva $reserva): bool
     {
-        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
+        if ($authUser instanceof User && ($authUser->is_admin || $authUser->can('Update:Reserva'))) {
+            return true;
+        }
 
-        return ($clienteId !== null && $clienteId === $reserva->cliente_id) || $authUser->can('Update:Reserva');
+        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
+        if ($clienteId !== null && $clienteId === $reserva->cliente_id) {
+            return true;
+        }
+
+        if ($authUser instanceof User && $reserva->email_cliente !== null && strcasecmp((string) $authUser->email, (string) $reserva->email_cliente) === 0) {
+            return true;
+        }
+
+        return $authUser->can('Update:Reserva');
     }
 
     public function reorder(AuthUser $authUser): bool

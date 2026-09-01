@@ -49,14 +49,7 @@
     @endphp
 
     <div class="pagina">
-        <div class="report-header">
-            @include('reports.layout.partials.header', [
-                'logo_base64' => $datosHotel['logo_base64'] ?? null,
-                'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
-            ])
-        </div>
-
-        <div class="report-content" style="margin-top: 9px;">
+        <div class="report-content" style="margin-top: 0;">
             {{-- Identificación superior y código de barras --}}
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: avoid;">
                 <tr>
@@ -269,11 +262,5 @@
                 </tr>
             </table>
         </div>
-
-        @include('reports.layout.partials.footer', [
-            'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : [],
-            'usuario' => auth()->user()?->name ?? 'Sistema',
-            'generadoEn' => $fechaEmision,
-        ])
     </div>
 @endsection

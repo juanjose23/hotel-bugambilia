@@ -1,30 +1,43 @@
 import { Head } from '@inertiajs/react';
-import { SeccionContacto } from '@/modulos/contacto/componentes/SeccionContacto';
+import { ContactoFaq } from '@/modules/contacto/components/ContactoFaq';
+import { ContactoForm } from '@/modules/contacto/components/ContactoForm';
+import { ContactoHero } from '@/modules/contacto/components/ContactoHero';
+import { ContactoInfoCards } from '@/modules/contacto/components/ContactoInfoCards';
+import { ContactoMapa } from '@/modules/contacto/components/ContactoMapa';
 
-interface PropiedadesPaginaContacto {
-    hotel?: {
-        name?: string;
-        telefono?: string;
-        email?: string;
-        direccion?: string;
-    };
-}
-
-export const PaginaContacto = ({ hotel }: PropiedadesPaginaContacto) => {
+export const Contacto = () => {
     return (
         <>
             <Head>
-                <title>
-                    Contacto Directo & Recepción 24/7 — Hotel Bugambilias Estelí
-                </title>
+                <title>Contacto & Ubicación — Hotel Bugambilias Estelí</title>
                 <meta
                     name="description"
-                    content="Contacte directamente con la recepción de Hotel Bugambilias Estelí. Asistencia 24/7, atención telefónica, WhatsApp y reservación directa sin intermediarios."
+                    content="Comunícate con recepción de Hotel Bugambilias en Estelí, Nicaragua. Consulta disponibilidad de habitaciones, salones de eventos y cómo llegar."
                 />
             </Head>
-            <SeccionContacto hotelInfo={hotel} />
+
+            <div className="flex flex-col">
+                <ContactoHero />
+                <ContactoInfoCards />
+
+                {/* Formulario y Mapa en 2 Columnas */}
+                <section className="bg-background py-8 md:py-12">
+                    <div className="container mx-auto px-4 sm:px-6">
+                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+                            <div className="lg:col-span-7">
+                                <ContactoForm />
+                            </div>
+                            <div className="lg:col-span-5">
+                                <ContactoMapa />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <ContactoFaq />
+            </div>
         </>
     );
 };
 
-export default PaginaContacto;
+export default Contacto;

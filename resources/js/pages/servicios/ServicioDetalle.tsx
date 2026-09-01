@@ -1,28 +1,50 @@
 import { Head } from '@inertiajs/react';
-import type { ItemServicio } from '@/modulos/compartido/types';
-import { SeccionDetalleServicio } from '@/modulos/servicios/componentes/SeccionDetalleServicio';
+import { useState } from 'react';
+import { ServicioConsultaSheet } from '@/modules/servicios/components/ServicioConsultaSheet';
+import { ServicioDetalleHero } from '@/modules/servicios/components/ServicioDetalleHero';
+import { ServicioPoliticas } from '@/modules/servicios/components/ServicioPoliticas';
+import type { ServicioDetalleProps } from '@/modules/servicios/types';
+import { usePropiedadesPagina } from '@/modules/shared/hooks/usePropiedadesPagina';
 
-interface PropiedadesPaginaServicioDetalle {
-    service: ItemServicio & {
-        imagenes: string[];
-    };
-}
+export const ServicioDetalle = ({ service }: ServicioDetalleProps) => {
+    const [consultaAbierta, setConsultaAbierta] = useState(false);
+    const { hotel } = usePropiedadesPagina();
 
-export const PaginaServicioDetalle = ({
-    service,
-}: PropiedadesPaginaServicioDetalle) => {
+    const telefonoWhatsApp = (hotel?.whatsapp || '+50584842323').replace(
+        /\D/g,
+        '',
+    );
+
     return (
-        <>
+        <div className="min-h-screen bg-background font-sans">
             <Head>
-                <title>{`${service?.nombre || 'Detalle Servicio'} — Hotel Bugambilias Estelí`}</title>
+                <title>{`${service.nombre} — Hotel Bugambilias`}</title>
                 <meta
                     name="description"
-                    content={`Conozca más sobre el servicio ${service?.nombre} en Hotel Bugambilias Estelí. Atención boutique y confort garantizado.`}
+                    content={`${service.nombre} en Hotel Bugambilias Estelí. ${service.descripcion || ''}`}
                 />
             </Head>
-            <SeccionDetalleServicio service={service} />
-        </>
+
+            {/* Cabecera y Detalles de Servicio */}
+            <ServicioDetalleHero
+                service={service}
+                alAbrirConsulta={() => setConsultaAbierta(true)}
+                telefonoWhatsApp={telefonoWhatsApp}
+            />
+
+            {/* Políticas y Condiciones */}
+            <div className="container mx-auto px-4 pb-14 sm:px-6 lg:max-w-5xl">
+                <ServicioPoliticas politicas={service.politicas} />
+            </div>
+
+            {/* Sheet Lateral de Consulta */}
+            <ServicioConsultaSheet
+                abierto={consultaAbierta}
+                alCerrar={() => setConsultaAbierta(false)}
+                servicio={service}
+            />
+        </div>
     );
 };
 
-export default PaginaServicioDetalle;
+export default ServicioDetalle;
