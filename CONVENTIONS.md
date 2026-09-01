@@ -64,6 +64,7 @@
 ### TRUE FAT (refactoring needed)
 
 #### Limpieza
+
 - 🧱 `getForms` — GestionarCarrito (204L) — 4 forms con queries inline en closures
 - 🧱 `getForms` — ControlLavanderia (153L) — 2 forms con Repeater + Eloquent inline
 - 🧱 `IniciarLimpieza@execute` (95L) — DB::transaction con validación, updates y redirect
@@ -72,24 +73,29 @@
 - 🧱 `ControlLavanderia@submitReabastecer` (56L) — mapping manual de items + interactor
 
 #### Inventario
+
 - 🧱 `ConsumirStock@execute` (79L) — FEFO + validación + loop de consumo
 - 🧱 `ServicioTraslados@ejecutarTrasladoEntreBodegas` (68L) — validar + descontar + crear stock
 - 🧱 `ReabastecerUbicacion@execute` (65L) — resolver destino + transacción por item
 - 🧱 `ServicioConsumos@ejecutarConsumoDeStock` (59L) — actualizar stock + lote + movimiento
 
 #### Restaurante
+
 - 🧱 `ConciliacionRecetasCocina@getHeaderActions` (91L) — form schema + DB insert en header action
 
 #### Filament Forms
+
 - 🧱 `MateriaPrimaCocina@form` (164L) — 3 tabs anidados
 - 🧱 `CheckInPage@form` (169L) — 5-step Wizard
 
 #### Filament Creación
+
 - 🧱 `CreateActivo@handleRecordCreation` (54L) — extracción manual de 11 campos
 
 ### BORDERLINE (monitored)
 
 #### Inventario
+
 - 🧱 `ControlLavanderia@submitConsumir` (42L)
 - 🧱 `GestionarCarrito@submitAbastecer` (47L)
 - 🧱 `TrasladarEntreBodegas@execute` (35L)
@@ -97,6 +103,7 @@
 - 🧱 `ObtenerRotacionInventario@ejecutar` (35L)
 
 #### Reportes PDF (13 acciones con patrón repetitivo 38-50L)
+
 - 🧱 `GenerarReporteOrdenCompraPdfAction@ejecutar` (50L)
 - 🧱 `GenerarReporteSeguimientoOcPdfAction@ejecutar` (45L)
 - 🧱 `GenerarReporteDevolucionesPdfAction@ejecutar` (45L)
@@ -112,10 +119,12 @@
 - 🧱 `GenerarReporteSolicitudPdfAction@ejecutar` (31L)
 
 #### Restaurante/Landing
+
 - 🧱 `ObtenerHistoricoServiciosPrecios@ejecutar` (50L)
 - 🧱 `ObtenerServiciosLanding@ejecutar` (30L)
 
 #### Compras
+
 - 🧱 `ObtenerOrdenCompraReporteQuery@ejecutar` (42L)
 - 🧱 `ReportesCompras@buscarTrazabilidad` (50L)
 

@@ -85,8 +85,12 @@ final readonly class ObtenerHabitacionReservaLanding
      *     calendario: array<int, array<string, mixed>>
      * }
      */
-    public function calendarioDisponibilidad(string $slug, int $meses): array
-    {
+    public function calendarioDisponibilidad(
+        string $slug,
+        int $meses,
+        ?int $adultos = null,
+        ?int $ninos = null,
+    ): array {
         $data = $this->habitacionDetalle->ejecutar($slug);
         $categoriaId = $this->enteroOpcional($data['room']['categoria_id'] ?? null);
         $ubicacionId = $this->enteroOpcional($data['room']['ubicacion_id'] ?? null);
@@ -102,11 +106,17 @@ final readonly class ObtenerHabitacionReservaLanding
 
         $inicio = CarbonImmutable::now()->startOfDay();
         $fin = $inicio->addMonths($meses)->startOfDay();
+
+        $adultosReq = $adultos ?? ($this->enteroOpcional($data['room']['capacidad'] ?? null) ?? 1);
+        $ninosReq = $ninos ?? 0;
+
         $disponibilidad = $this->diasAgotados->porCategoria(
             categoriaId: $categoriaId,
             inicio: $inicio,
             fin: $fin,
             ubicacionId: $ubicacionId,
+            adultos: $adultosReq,
+            ninos: $ninosReq,
         );
 
         return [

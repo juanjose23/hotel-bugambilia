@@ -1,11 +1,10 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { ComponentType, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Toaster } from 'sonner';
-import { LayoutPublico } from '@/modulos/compartido/componentes/layouts/LayoutPublico';
-import { LimitadorErrores } from '@/modulos/compartido/componentes/LimitadorErrores';
-import { ProveedorTema } from '@/modulos/compartido/hooks/useTema';
+import { ErrorBoundary } from '@/modules/shared/components/ErrorBoundary';
+import { Layout } from '@/modules/shared/components/layouts/Layout';
 import 'sonner/dist/styles.css';
 
 type ComponenteConLayout = ComponentType<Record<string, unknown>> & {
@@ -15,35 +14,51 @@ type ComponenteConLayout = ComponentType<Record<string, unknown>> & {
         | ((page: ReactNode) => ReactNode);
 };
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Hotel Bugambilias';
+
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60 * 5, // 5 minutos de caché
+            refetchOnWindowFocus: false,
+            retry: 1,
+        },
+    },
+});
+
+const paginasGlob = import.meta.glob<{ default: ComponenteConLayout }>(
+    './pages/**/*.tsx',
+);
 
 void createInertiaApp({
     strictMode: true,
     title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) =>
-        resolvePageComponent(
-            `./pages/${name}.tsx`,
-            import.meta.glob<{ default: ComponenteConLayout }>(
-                './pages/**/*.tsx',
-            ),
-        ).then((modulo) => {
-            const page = modulo.default as ComponenteConLayout;
-            page.layout =
-                page.layout ||
-                ((pageContent: ReactNode) => (
-                    <LayoutPublico>{pageContent}</LayoutPublico>
-                ));
+    resolve: (name) => {
+        return resolvePageComponent(`./pages/${name}.tsx`, paginasGlob).then(
+            (modulo) => {
+                const page = modulo.default as ComponenteConLayout;
 
-            return page;
-        }),
+                if (page.layout === undefined) {
+                    if (name.toLowerCase().startsWith('auth/')) {
+                        page.layout = (pageContent: ReactNode) => pageContent;
+                    } else {
+                        page.layout = (pageContent: ReactNode) => (
+                            <Layout>{pageContent}</Layout>
+                        );
+                    }
+                }
+
+                return page;
+            },
+        );
+    },
     setup({ el, App, props }) {
         const content = (
-            <ProveedorTema>
-                <LimitadorErrores>
+            <QueryClientProvider client={queryClient}>
+                <ErrorBoundary>
                     <App {...props} />
-                    <Toaster richColors position="top-right" />
-                </LimitadorErrores>
-            </ProveedorTema>
+                </ErrorBoundary>
+            </QueryClientProvider>
         );
 
         if (!el) {

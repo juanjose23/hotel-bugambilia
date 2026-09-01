@@ -31,9 +31,12 @@ final class ObtenerDiasAgotadosHabitacionQuery
         CarbonInterface $fin,
         ?int $reservaExcluidaId = null,
         ?int $ubicacionId = null,
+        int $adultos = 1,
+        int $ninos = 0,
     ): array {
         $inicioRango = CarbonImmutable::instance($inicio)->startOfDay();
         $finRango = CarbonImmutable::instance($fin)->startOfDay();
+        $totalPersonas = $adultos + $ninos;
 
         if ($finRango->lessThanOrEqualTo($inicioRango)) {
             return [
@@ -49,6 +52,18 @@ final class ObtenerDiasAgotadosHabitacionQuery
             ->when($ubicacionId !== null, fn (Builder $query): Builder => $query->where('ubicacion_id', $ubicacionId))
             ->whereNull('deleted_at')
             ->where('estado', '!=', EstadoEspacio::Inactivo->value)
+            ->where(function (Builder $query) use ($totalPersonas): void {
+                $query->whereDoesntHave('detalle')
+                    ->orWhereHas('detalle', function (Builder $detalleQuery) use ($totalPersonas): void {
+                        $detalleQuery
+                            ->where(function (Builder $sinCapacidad): void {
+                                $sinCapacidad
+                                    ->whereNull('capacidad_adultos')
+                                    ->whereNull('capacidad_ninos');
+                            })
+                            ->orWhereRaw('(COALESCE(capacidad_adultos, 0) + COALESCE(capacidad_ninos, 0)) >= ?', [$totalPersonas]);
+                    });
+            })
             ->pluck('id')
             ->map(fn (mixed $id): int => is_numeric($id) ? (int) $id : 0);
 

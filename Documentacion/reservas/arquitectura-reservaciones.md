@@ -53,7 +53,7 @@ La entidad específica continúa siendo la fuente de verdad de sus datos descrip
 
 | Columna                              | Descripción                                              |
 | ------------------------------------ | -------------------------------------------------------- |
-| `reserva_id`                         | Cabecera comercial propietaria.                          |
+| `reserva_id`                         | Cabecera comercial propietaria.                           |
 | `reservable_id`                      | Recurso contratado.                                      |
 | `parent_id`                          | Detalle principal del que depende un servicio adicional. |
 | `estado`                             | Estado operativo del detalle.                            |

@@ -4,6 +4,7 @@ namespace App\Repository\Models;
 
 use App\Repository\Models\Audits\AuditoriaReporte;
 use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Usuarios\SocialAccount;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -64,5 +65,13 @@ class User extends Authenticatable implements AuditableContract, FilamentUser
     public function reportes(): HasMany
     {
         return $this->hasMany(AuditoriaReporte::class);
+    }
+
+    /**
+     * @return HasMany<SocialAccount, $this>
+     */
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
     }
 }

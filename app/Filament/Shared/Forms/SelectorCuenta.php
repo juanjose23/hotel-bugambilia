@@ -39,7 +39,7 @@ final class SelectorCuenta
                     return null;
                 }
 
-                $cuenta = Cuenta::with(['cliente', 'estancia.habitacion', 'reserva'])->find((int) $value);
+                $cuenta = Cuenta::with(['cliente.persona', 'estancia.habitacion', 'reserva'])->find((int) $value);
 
                 return $cuenta instanceof Cuenta ? self::etiqueta($cuenta) : null;
             })
@@ -80,7 +80,7 @@ final class SelectorCuenta
         }
 
         return $query
-            ->with(['cliente', 'estancia.habitacion', 'reserva'])
+            ->with(['cliente.persona', 'estancia.habitacion', 'reserva'])
             ->get()
             ->mapWithKeys(fn (Cuenta $cuenta): array => [
                 $cuenta->id => self::etiqueta($cuenta),

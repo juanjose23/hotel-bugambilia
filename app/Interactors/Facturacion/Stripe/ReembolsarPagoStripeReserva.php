@@ -39,6 +39,8 @@ final readonly class ReembolsarPagoStripeReserva
         bool $lanzarSiFallaConexion = false,
     ): array {
         if ($montoReembolso <= 0.0) {
+            $this->cancelarPaymentIntentsPendientes($reserva);
+
             return [];
         }
 
@@ -253,6 +255,23 @@ final readonly class ReembolsarPagoStripeReserva
                     'diferencia' => round($nuevoMontoRecibido - (float) $conciliacion->monto_esperado, 2),
                 ],
             );
+        }
+    }
+
+    private function cancelarPaymentIntentsPendientes(Reserva $reserva): void
+    {
+        $transacciones = $this->pagoTransaccionQuery->porReservaConReferenciaPasarela($reserva);
+        foreach ($transacciones as $transaccion) {
+            if ($transaccion->estado === EstadoTransaccionPago::Pendiente && $transaccion->referencia_pasarela !== null) {
+                try {
+                    $this->stripe->cancelarPaymentIntent((string) $transaccion->referencia_pasarela);
+                    $this->pagoTransaccionPersistencia->actualizar($transaccion, [
+                        'estado' => EstadoTransaccionPago::Fallida,
+                    ]);
+                } catch (\Throwable) {
+                    // Omitir si ya fue cancelado o no existe
+                }
+            }
         }
     }
 }

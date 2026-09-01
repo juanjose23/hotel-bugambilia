@@ -17,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class ActivoResource extends Resource
@@ -55,6 +56,28 @@ class ActivoResource extends Resource
         return [
 
         ];
+    }
+
+    /**
+     * @return Builder<Activo>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        /** @var Builder<Activo> $query */
+        $query = parent::getEloquentQuery();
+
+        return $query->with([
+            'producto.categoria',
+            'producto.marca',
+            'variante',
+            'moneda',
+            'proveedor.persona.personaJuridica',
+            'proveedor.persona.personaNatural',
+            'asignacionActiva.asignable',
+            'asignaciones.asignable',
+            'asignaciones.asignadoPor',
+            'mantenimientos',
+        ]);
     }
 
     public static function getPages(): array
