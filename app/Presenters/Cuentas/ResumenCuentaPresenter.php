@@ -32,8 +32,8 @@ final class ResumenCuentaPresenter
     public function paraModal(Cuenta $cuenta): array
     {
         $cuenta->loadMissing([
-            'cliente.personaNatural',
-            'cliente.personaJuridica',
+            'cliente.persona.personaNatural',
+            'cliente.persona.personaJuridica',
             'estancia.habitacion',
             'estancia.reserva',
             'reserva',

@@ -286,6 +286,7 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
     {
         /** @var Pedido|null $pedido */
         $pedido = Pedido::query()
+            ->with('cliente.persona.personaNatural', 'cliente.persona.personaJuridica')
             ->where('cuenta_id', $cuentaId)
             ->whereNotNull('cliente_id')
             ->first();

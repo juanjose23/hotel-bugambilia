@@ -78,10 +78,10 @@ This file provides guidance to Claude Code when working with the **Hotel Bugambi
 - ⚠️ **N+1 Query** in `RegistrarCobroInicialReserva@ejecutar`
 - ⚠️ **N+1 Query** in `RecalcularCuenta@sincronizarCargosObligatorios`
 - 🧱 **Fat Method** `dev:crear-usuario
-      {--email=admin@hotel.com}
-      {--password=12345678}
-      {--nombre=Admin}
-      {--telefono= : Telefono opcional}`
+    {--email=admin@hotel.com}
+    {--password=12345678}
+    {--nombre=Admin}
+    {--telefono= : Telefono opcional}`
 - 🧱 **Fat Method** `EnviarRecordatorios@ejecutar`
 - 🧱 **Fat Method** `MaterializarEjecuciones@ejecutar`
 - 🧱 **Fat Method** `MaterializarEjecuciones@notificarNuevasAsignaciones`

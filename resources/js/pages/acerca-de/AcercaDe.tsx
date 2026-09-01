@@ -1,29 +1,32 @@
 import { Head } from '@inertiajs/react';
-import { SeccionAcercaDe } from '@/modulos/acerca-de/componentes/SeccionAcercaDe';
+import { AcercaCta } from '@/modules/acerca-de/components/AcercaCta';
+import { AcercaHero } from '@/modules/acerca-de/components/AcercaHero';
+import { AcercaHistoria } from '@/modules/acerca-de/components/AcercaHistoria';
+import { AcercaInstalaciones } from '@/modules/acerca-de/components/AcercaInstalaciones';
+import { AcercaPilares } from '@/modules/acerca-de/components/AcercaPilares';
+import { AcercaStats } from '@/modules/acerca-de/components/AcercaStats';
 
-interface PropiedadesPaginaAcercaDe {
-    hotel?: {
-        name?: string;
-        fundado?: string | number;
-        direccion?: string;
-        telefono?: string;
-        email?: string;
-    };
-}
-
-export const PaginaAcercaDe = ({ hotel }: PropiedadesPaginaAcercaDe) => {
+export const AcercaDe = () => {
     return (
         <>
             <Head>
                 <title>Acerca de Nosotros — Hotel Bugambilias Estelí</title>
                 <meta
                     name="description"
-                    content="Conozca Hotel Bugambilias en Estelí. Más de 35 años ofreciendo hospitalidad boutique, garantía de mejor tarifa y experiencia corporativa inolvidable."
+                    content="Descubre la historia, valores y hospitalidad de Hotel Bugambilias en Estelí, Nicaragua. Un refugio de descanso con jardines coloniales y atención personalizada."
                 />
             </Head>
-            <SeccionAcercaDe hotelInfo={hotel} />
+
+            <div className="flex flex-col">
+                <AcercaHero />
+                <AcercaHistoria />
+                <AcercaPilares />
+                <AcercaStats />
+                <AcercaInstalaciones />
+                <AcercaCta />
+            </div>
         </>
     );
 };
 
-export default PaginaAcercaDe;
+export default AcercaDe;

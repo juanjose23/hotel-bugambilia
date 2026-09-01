@@ -35,10 +35,10 @@ final class AuthController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
 
-            return redirect($user !== null && $user->is_admin ? '/admin' : route('portal'));
+            return redirect($user !== null && $user->is_admin ? '/admin' : route('home'));
         }
 
-        return Inertia::render('IniciarSesion');
+        return Inertia::render('auth/IniciarSesion');
     }
 
     public function iniciarSesion(LoginRequest $request): RedirectResponse
@@ -49,7 +49,7 @@ final class AuthController extends Controller
         if (Auth::attempt($credenciales, $recordar)) {
             $request->session()->regenerate();
             $user = Auth::user();
-            $target = $user !== null && $user->is_admin ? '/admin' : route('portal');
+            $target = $user !== null && $user->is_admin ? '/admin' : route('home');
 
             return redirect()->intended($target)->with('exito', '¡Bienvenido de vuelta!');
         }
@@ -64,10 +64,10 @@ final class AuthController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
 
-            return redirect($user !== null && $user->is_admin ? '/admin' : route('portal'));
+            return redirect($user !== null && $user->is_admin ? '/admin' : route('home'));
         }
 
-        return Inertia::render('Registro');
+        return Inertia::render('auth/Registro');
     }
 
     public function registrar(RegistroRequest $request): RedirectResponse
@@ -82,7 +82,7 @@ final class AuthController extends Controller
             Auth::login($resultado['user']);
             $request->session()->regenerate();
 
-            return redirect()->route('portal')->with('exito', '¡Registro completado exitosamente!');
+            return redirect()->route('home')->with('exito', '¡Registro completado exitosamente!');
         } catch (YaTieneCuentaException $e) {
             Log::warning('Ya existe una cuenta con ese email: '.$e->getMessage());
 
@@ -105,14 +105,14 @@ final class AuthController extends Controller
         $usuario = Auth::user();
 
         if ($usuario === null) {
-            return redirect('/login');
+            return redirect()->route('login');
         }
 
         if (! $usuario->password_change_required) {
             return redirect('/');
         }
 
-        return Inertia::render('CambiarContrasena');
+        return Inertia::render('auth/CambiarContrasena');
     }
 
     public function cambiarContrasena(CambiarContrasenaRequest $request): RedirectResponse
@@ -120,7 +120,7 @@ final class AuthController extends Controller
         $usuario = Auth::user();
 
         if ($usuario === null) {
-            return redirect('/login');
+            return redirect()->route('login');
         }
 
         $validado = $request->validated();

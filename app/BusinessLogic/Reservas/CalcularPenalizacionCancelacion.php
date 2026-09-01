@@ -43,9 +43,7 @@ final class CalcularPenalizacionCancelacion
         $fechaInicio = $this->resolverFechaInicio($reserva);
         $dtCancelacion = DateTimeImmutable::createFromInterface($fechaCancelacion);
 
-        $esFueraDeTiempo = $esNoShow || $dtCancelacion >= $fechaInicio;
-
-        if ($esFueraDeTiempo) {
+        if ($esNoShow) {
             /** @var PoliticaPenalizacion|null $rangoNoShow */
             $rangoNoShow = $politica->penalizaciones
                 ->where('aplica_no_show', true)
@@ -58,8 +56,8 @@ final class CalcularPenalizacionCancelacion
         }
 
         // Anticipación antes del check-in / servicio
-        $diasAnticipacion = (int) floor(($fechaInicio->getTimestamp() - $dtCancelacion->getTimestamp()) / 86400);
-        $horasAnticipacion = (int) floor(($fechaInicio->getTimestamp() - $dtCancelacion->getTimestamp()) / 3600);
+        $diasAnticipacion = max(0, (int) floor(($fechaInicio->getTimestamp() - $dtCancelacion->getTimestamp()) / 86400));
+        $horasAnticipacion = max(0, (int) floor(($fechaInicio->getTimestamp() - $dtCancelacion->getTimestamp()) / 3600));
 
         foreach ($politica->penalizaciones as $rango) {
             if ($rango->aplica_no_show) {
@@ -76,6 +74,18 @@ final class CalcularPenalizacionCancelacion
 
                 return new ResultadoPenalizacion($porcentaje, $monto);
             }
+        }
+
+        if ($dtCancelacion >= $fechaInicio) {
+            /** @var PoliticaPenalizacion|null $rangoNoShow */
+            $rangoNoShow = $politica->penalizaciones
+                ->where('aplica_no_show', true)
+                ->first();
+
+            $porcentaje = $rangoNoShow !== null ? (float) $rangoNoShow->porcentaje : 100.0;
+            $monto = round(($porcentaje / 100.0) * $totalReserva, 2);
+
+            return new ResultadoPenalizacion($porcentaje, $monto);
         }
 
         // Sin rango que aplique -> cancelación gratuita

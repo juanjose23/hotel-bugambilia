@@ -23,8 +23,15 @@ class ViewActivo extends ViewRecord
     public function getRecord(): Model
     {
         return parent::getRecord()->load([
+            'producto.categoria',
+            'producto.marca',
+            'variante',
+            'moneda',
+            'proveedor.persona.personaJuridica',
+            'proveedor.persona.personaNatural',
             'asignacionActiva.asignable',
             'asignaciones.asignable',
+            'asignaciones.asignadoPor',
             'mantenimientos',
         ]);
     }

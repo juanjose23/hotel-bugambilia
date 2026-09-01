@@ -10,6 +10,7 @@ import {
     Wrench,
     ZapOff,
 } from 'lucide-react';
+import { Button } from '@/modules/shared/components/ui/button';
 
 interface PropiedadesError {
     status?: number;
@@ -179,23 +180,25 @@ export default function Error({ status = 500, message }: PropiedadesError) {
                                 Ir al inicio
                             </Link>
 
-                            <button
+                            <Button
                                 type="button"
+                                variant="outline"
                                 onClick={manejarReintentar}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-6 py-3.5 text-xs font-bold tracking-wider text-card-foreground uppercase shadow-xs transition-all hover:bg-accent hover:text-accent-foreground active:scale-95 sm:w-auto"
+                                className="w-full rounded-full px-6 py-3.5 text-xs font-bold tracking-wider uppercase shadow-xs active:scale-95 sm:w-auto"
                             >
                                 <RefreshCw className="h-4 w-4" />
                                 Reintentar
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
                                 onClick={manejarVolverAtras}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted px-6 py-3.5 text-xs font-bold tracking-wider text-muted-foreground uppercase shadow-xs transition-all hover:bg-secondary hover:text-secondary-foreground active:scale-95 sm:w-auto"
+                                className="w-full rounded-full px-6 py-3.5 text-xs font-bold tracking-wider text-muted-foreground uppercase shadow-xs active:scale-95 sm:w-auto"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                                 Volver atrás
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
