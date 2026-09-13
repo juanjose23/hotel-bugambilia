@@ -8,6 +8,8 @@ import {
     Sparkles,
     Sun,
     Moon,
+    ChefHat,
+    ShoppingBag,
 } from 'lucide-react';
 import { Button } from '@/modules/shared/components/ui/button';
 import { useTema } from '@/modules/shared/hooks/useTema';
@@ -32,6 +34,18 @@ export const PortalSidebar = ({ cliente }: PortalSidebarProps) => {
             nombre: 'Mis Reservas',
             href: '/portal/reservas',
             icono: CalendarDays,
+            exact: false,
+        },
+        {
+            nombre: 'Mis Pedidos',
+            href: '/portal/pedidos',
+            icono: ChefHat,
+            exact: false,
+        },
+        {
+            nombre: 'Pedir Restaurante',
+            href: '/restaurante',
+            icono: ShoppingBag,
             exact: false,
         },
         {

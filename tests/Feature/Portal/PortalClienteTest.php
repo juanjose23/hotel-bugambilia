@@ -6,9 +6,16 @@ use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
+use App\Enums\Restaurante\EstadoPedido;
+use App\Enums\Shared\EstadoGeneral;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\CatalogoTipo;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\User;
@@ -245,4 +252,67 @@ test('un huesped puede actualizar sus datos de perfil desde el portal', function
     expect($user->name)->toBe('Roberto Actualizado')
         ->and($user->email)->toBe('roberto.nuevo@example.com')
         ->and($user->persona?->telefono)->toBe('+505 8899 0011');
+});
+
+test('un usuario con pedidos de restaurante puede ver sus comandas en el dashboard y en /portal/pedidos', function (): void {
+    $user = User::factory()->create([
+        'name' => 'Comensal Delivery',
+        'email' => 'delivery.cliente@example.com',
+    ]);
+
+    $tipoCliente = CatalogoTipo::query()->firstOrCreate(
+        ['codigo' => 'TIPO-CLIENTE'],
+        ['nombre' => 'Tipo de Cliente', 'estado' => EstadoGeneral::Activo]
+    );
+
+    $catalogo = Catalogo::query()->firstOrCreate(
+        ['codigo' => 'REGULAR'],
+        [
+            'catalogo_tipo_id' => $tipoCliente->id,
+            'nombre' => 'Cliente Regular',
+            'estado' => EstadoGeneral::Activo,
+        ]
+    );
+
+    $persona = Persona::create([
+        'primer_nombre' => 'Comensal',
+        'tipo_persona' => 'natural',
+        'telefono' => '+505 8888 9999',
+    ]);
+    $user->update(['persona_id' => $persona->id]);
+
+    $cliente = Cliente::create([
+        'persona_id' => $persona->id,
+        'catalogo_id' => $catalogo->id,
+        'estado' => 1,
+    ]);
+
+    Pedido::create([
+        'codigo' => 'PED-PORTAL-TEST-1',
+        'cliente_id' => $cliente->id,
+        'estado' => EstadoPedido::ABIERTO,
+        'subtotal' => 250.0,
+        'consecutivo_comanda' => 1,
+        'abierto_en' => now(),
+        'notas' => '🛵 PEDIDO A DOMICILIO (WEB) | Cliente: Comensal | Tel: +505 8888 9999',
+    ]);
+
+    // Dashboard
+    $response = $this->actingAs($user)->get(route('portal.dashboard'));
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('portal/Dashboard')
+        ->has('pedidos_activos', 1)
+        ->where('estadisticas.tiene_reservas', false)
+        ->where('estadisticas.tiene_pedidos', true)
+    );
+
+    // Página de pedidos
+    $responsePedidos = $this->actingAs($user)->get(route('portal.pedidos.index'));
+    $responsePedidos->assertOk();
+    $responsePedidos->assertInertia(fn ($page) => $page
+        ->component('portal/MisPedidos')
+        ->has('pedidos_activos', 1)
+        ->where('pedidos_activos.0.codigo', 'PED-PORTAL-TEST-1')
+    );
 });

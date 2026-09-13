@@ -53,9 +53,8 @@ final class ValidCedulaNicaragua implements ValidationRule
     public function validarMunicipio(string $cedulaLimpia): bool
     {
         $municipio = substr($cedulaLimpia, 0, 3);
-        $num = (int) $municipio;
 
-        return $num >= 1 && $num <= 100;
+        return CatalogoMunicipiosNicaragua::esCodigoMunicipioValido($municipio);
     }
 
     public function validarFecha(string $cedulaLimpia): bool

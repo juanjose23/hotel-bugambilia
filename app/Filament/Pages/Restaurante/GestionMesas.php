@@ -44,6 +44,13 @@ final class GestionMesas extends Page
 {
     use HasPageShield;
 
+    public function __construct(
+        private readonly ConfirmarLlegadaReservaMesa $confirmarLlegadaReserva,
+        private readonly CancelarReservaMesa $cancelarReservaMesa,
+        private readonly RegistrarSolicitudLimpieza $registrarSolicitudLimpieza,
+        private readonly AbrirCuentaYConsumoRestaurante $abrirCuentaYConsumoRestaurante,
+    ) {}
+
     protected static string|BackedEnum|null $navigationIcon = 'hugeicons-restaurant-table';
 
     protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
@@ -86,6 +93,8 @@ final class GestionMesas extends Page
     /** @var Collection<int, Espacio> */
     public Collection $mesasFiltradas;
 
+    public string $vistaModo = 'mapa';
+
     /** @var array<int, EstadoEspacio> */
     public array $estadosMesa = [];
 
@@ -93,7 +102,7 @@ final class GestionMesas extends Page
 
     public ?string $filtroEstado = null;
 
-    public string $ordenarPor = 'nombre';
+    public string $ordenarPor = 'orden';
 
     // ── Unión de mesas ──
     public ?int $mesaSeleccionadaId = null;
@@ -246,8 +255,79 @@ final class GestionMesas extends Page
             'capacidad' => $this->mesasFiltradas->sortBy(
                 static fn (Espacio $mesa): int => (int) ($mesa->meta_datos['capacidad_personas'] ?? 0)
             ),
-            default => $this->mesasFiltradas->sortBy('nombre'),
+            'nombre' => $this->mesasFiltradas->sortBy('nombre'),
+            default => $this->mesasFiltradas->sortBy(
+                static fn (Espacio $mesa): int => (int) ($mesa->orden ?? 0)
+            ),
         };
+    }
+
+    public function cambiarVistaModo(string $modo): void
+    {
+        $this->vistaModo = in_array($modo, ['mapa', 'cuadricula'], true) ? $modo : 'mapa';
+    }
+
+    /**
+     * Retorna las mesas filtradas agrupadas por zona/ambiente con sus metadatos y orden.
+     *
+     * @return array<string, array{nombre: string, icono: string, color: string, mesas: Collection<int, Espacio>}>
+     */
+    public function obtenerMesasAgrupadasPorZona(): array
+    {
+        $zonasConfig = [
+            'interior' => [
+                'nombre' => 'Salón Principal (Interior)',
+                'icono' => 'hugeicons-restaurant-01',
+                'color' => 'rose',
+            ],
+            'terraza' => [
+                'nombre' => 'Terraza al Aire Libre',
+                'icono' => 'hugeicons-tree-01',
+                'color' => 'emerald',
+            ],
+            'bar' => [
+                'nombre' => 'Bar & Lounge',
+                'icono' => 'hugeicons-cocktail',
+                'color' => 'amber',
+            ],
+            'vip' => [
+                'nombre' => 'Cenador Privado (VIP)',
+                'icono' => 'hugeicons-crown',
+                'color' => 'violet',
+            ],
+        ];
+
+        $agrupadas = [];
+
+        foreach ($this->mesasFiltradas as $mesa) {
+            $meta = is_array($mesa->meta_datos) ? $mesa->meta_datos : [];
+            $zonaKey = (string) ($meta['zona_restaurante'] ?? 'interior');
+
+            if (! isset($agrupadas[$zonaKey])) {
+                $config = $zonasConfig[$zonaKey] ?? [
+                    'nombre' => ucfirst($zonaKey),
+                    'icono' => 'hugeicons-restaurant-table',
+                    'color' => 'blue',
+                ];
+
+                $agrupadas[$zonaKey] = [
+                    'nombre' => $config['nombre'],
+                    'icono' => $config['icono'],
+                    'color' => $config['color'],
+                    'mesas' => collect(),
+                ];
+            }
+
+            $agrupadas[$zonaKey]['mesas']->push($mesa);
+        }
+
+        // Ordenar cada grupo por orden secuencial de mesa
+        foreach ($agrupadas as &$grupo) {
+            $grupo['mesas'] = $grupo['mesas']->sortBy(fn (Espacio $m): int => (int) ($m->orden ?? 0));
+        }
+        unset($grupo);
+
+        return $agrupadas;
     }
 
     // ────────────────────────────────────────────
@@ -287,7 +367,7 @@ final class GestionMesas extends Page
         try {
             $authId = auth()->id();
             $meseroId = is_numeric($authId) ? (int) $authId : null;
-            $pedido = app(ConfirmarLlegadaReservaMesa::class)->ejecutar($mesaId, $meseroId);
+            $pedido = $this->confirmarLlegadaReserva->ejecutar($mesaId, $meseroId);
             $this->recargarMesas();
 
             Notification::make()
@@ -307,7 +387,7 @@ final class GestionMesas extends Page
     public function cancelarReservaMesa(int $mesaId): void
     {
         try {
-            app(CancelarReservaMesa::class)->ejecutar($mesaId);
+            $this->cancelarReservaMesa->ejecutar($mesaId);
             $this->recargarMesas();
 
             Notification::make()
@@ -331,7 +411,7 @@ final class GestionMesas extends Page
         $this->cambiarEstadoMesa($mesaId, EstadoEspacio::Sucio);
 
         if ($mesa !== null) {
-            app(RegistrarSolicitudLimpieza::class)->execute(
+            $this->registrarSolicitudLimpieza->execute(
                 limpiable: $mesa,
                 prioridad: 'normal',
                 notas: "Limpieza de la mesa '{$mesa->nombre}' solicitada desde la Gestión de Mesas",
@@ -615,7 +695,7 @@ final class GestionMesas extends Page
                 }
 
                 $userId = auth()->id() !== null ? (int) auth()->id() : null;
-                $resultado = app(AbrirCuentaYConsumoRestaurante::class)->ejecutar($pedido, $userId);
+                $resultado = $this->abrirCuentaYConsumoRestaurante->ejecutar($pedido, $userId);
 
                 return $resultado['cuenta'];
             },
@@ -705,7 +785,7 @@ final class GestionMesas extends Page
 
     public static function canAccess(): bool
     {
-        if (! app(VerificarRestauranteActivo::class)->estaActivo()) {
+        if (! self::restauranteActivo()) {
             return false;
         }
 
@@ -714,4 +794,11 @@ final class GestionMesas extends Page
 
         return $user?->can('page_GestionMesas') ?? false;
     }
+
+    private static function restauranteActivo(): bool
+    {
+        return self::$restauranteActivo ??= app(VerificarRestauranteActivo::class)->estaActivo();
+    }
+
+    private static ?bool $restauranteActivo = null;
 }

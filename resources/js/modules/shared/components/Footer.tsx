@@ -3,7 +3,7 @@ import { MapPin, Phone, Mail, Star } from 'lucide-react';
 import { usePropiedadesPagina } from '@/modules/shared/hooks/usePropiedadesPagina';
 
 export const Footer = () => {
-    const { hotel } = usePropiedadesPagina();
+    const { hotel, restaurante_activo } = usePropiedadesPagina();
     const nombre = hotel?.nombre || hotel?.name || 'Hotel Bugambilias';
     const telefono = hotel?.telefono || '+505 8713 6805';
     const email = hotel?.email || 'recepcion@bugambiliashotel.com';
@@ -79,6 +79,16 @@ export const Footer = () => {
                                     Eventos & Espacios
                                 </Link>
                             </li>
+                            {restaurante_activo && (
+                                <li>
+                                    <Link
+                                        href="/restaurante"
+                                        className="text-gray-400 transition-colors hover:text-white"
+                                    >
+                                        Restaurante & Bar
+                                    </Link>
+                                </li>
+                            )}
                             <li>
                                 <Link
                                     href="/servicios"

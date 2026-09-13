@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Habitaciones;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Habitaciones\ConsultarDisponibilidadHabitacionRequest;
 use App\Interactors\Landing\ObtenerHabitacionDetalleLanding;
 use App\Interactors\Landing\ObtenerHabitacionesLanding;
 use App\Interactors\Landing\ObtenerHabitacionReservaLanding;
@@ -60,15 +61,11 @@ final class HabitacionController extends Controller
 
     public function disponibilidad(
         string $slug,
-        Request $request,
+        ConsultarDisponibilidadHabitacionRequest $request,
         ObtenerHabitacionReservaLanding $interactor,
     ): JsonResponse {
-        $validated = $request->validate([
-            'fecha_check_in' => ['required', 'date'],
-            'fecha_check_out' => ['required', 'date', 'after:fecha_check_in'],
-            'adultos' => ['nullable', 'integer', 'min:1', 'max:20'],
-            'ninos' => ['nullable', 'integer', 'min:0', 'max:20'],
-        ]);
+        /** @var array{fecha_check_in: string, fecha_check_out: string, adultos?: int|null, ninos?: int|null} $validated */
+        $validated = $request->validated();
 
         return response()->json($interactor->recomendarDisponibilidad(
             slug: $slug,

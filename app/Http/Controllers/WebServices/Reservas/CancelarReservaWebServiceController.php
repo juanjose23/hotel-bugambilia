@@ -6,24 +6,22 @@ namespace App\Http\Controllers\WebServices\Reservas;
 
 use App\BusinessLogic\Reservas\Data\CancelarReservaHabitacionData;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\WebServices\Reservas\CancelarReservaWebServiceRequest;
 use App\Interactors\Reservas\Gestion\CancelarReservaPublica;
 use App\Repository\Models\Reservas\Reserva;
 use DomainException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class CancelarReservaWebServiceController extends Controller
 {
     public function __invoke(
-        Request $request,
+        CancelarReservaWebServiceRequest $request,
         Reserva $reserva,
         CancelarReservaPublica $cancelarReserva,
     ): JsonResponse {
         $this->authorize('cancel', $reserva);
 
-        $datos = $request->validate([
-            'motivo' => ['nullable', 'string', 'max:255'],
-        ]);
+        $datos = $request->validated();
 
         try {
             $resultado = $cancelarReserva->ejecutar(new CancelarReservaHabitacionData(

@@ -263,8 +263,8 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     public function obtenerRestauranteParaLanding(): ?Espacio
     {
         /** @var Espacio|null $restaurante */
-        $restaurante = Espacio::where('tipo', TipoEspacio::RESTAURANTE)
-            ->where('estado', '!=', 0)
+        $restaurante = Espacio::activosWeb()
+            ->where('tipo', TipoEspacio::RESTAURANTE)
             ->with(['imagenes'])
             ->first();
 
@@ -276,6 +276,8 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     {
         return Espacio::where('padre_id', $restauranteId)
             ->where('tipo', TipoEspacio::MESA)
+            ->with(['ubicacion'])
+            ->orderBy('orden')
             ->orderBy('nombre')
             ->get();
     }
