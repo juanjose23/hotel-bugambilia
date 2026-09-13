@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Clientes\PortalAcompanantesController;
 use App\Http\Controllers\Clientes\PortalDashboardController;
+use App\Http\Controllers\Clientes\PortalPedidosController;
 use App\Http\Controllers\Clientes\PortalPerfilController;
 use App\Http\Controllers\Clientes\PortalReservasController;
 use App\Http\Controllers\Clientes\PortalServiciosEstanciaController;
@@ -18,6 +19,7 @@ Route::middleware('auth')->prefix('portal')->name('portal.')->group(function ():
     Route::get('/', PortalDashboardController::class)->name('dashboard');
     Route::get('/reservas', [PortalReservasController::class, 'index'])->name('reservas.index');
     Route::get('/reservas/{id}', [PortalReservasController::class, 'show'])->name('reservas.show');
+    Route::get('/pedidos', PortalPedidosController::class)->name('pedidos.index');
 
     // Servicios adicionales de la estancia
     Route::get('/reservas/{id}/servicios', [PortalServiciosEstanciaController::class, 'create'])->name('reservas.servicios.create');

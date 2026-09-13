@@ -15364,15 +15364,13 @@ function Ng({
                 this.pond && (bt(this.$refs.input), (this.pond = null)));
         },
         dispatchFormEvent(G, k = {}) {
-            this.$el
-                .closest('form')
-                ?.dispatchEvent(
-                    new CustomEvent(G, {
-                        composed: !0,
-                        cancelable: !0,
-                        detail: k,
-                    }),
-                );
+            this.$el.closest('form')?.dispatchEvent(
+                new CustomEvent(G, {
+                    composed: !0,
+                    cancelable: !0,
+                    detail: k,
+                }),
+            );
         },
         async getUploadedFiles() {
             let G = await m();

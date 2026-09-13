@@ -45,6 +45,8 @@ final class ObtenerMapaMesasQuery
             ])->latest('id')])
             ->where('padre_id', $restaurante->id)
             ->where('tipo', TipoEspacio::MESA->value)
+            ->orderBy('orden')
+            ->orderBy('id')
             ->get();
         $reservasVigentes = $this->reservasVigentes->paraMesas($mesas->modelKeys());
 

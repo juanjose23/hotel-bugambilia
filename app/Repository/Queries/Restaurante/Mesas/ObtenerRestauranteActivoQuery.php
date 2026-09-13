@@ -12,4 +12,9 @@ final class ObtenerRestauranteActivoQuery
     {
         return Espacio::tieneRestauranteActivo();
     }
+
+    public function ejecutarParaWeb(): bool
+    {
+        return Espacio::tieneRestaurantePublico();
+    }
 }

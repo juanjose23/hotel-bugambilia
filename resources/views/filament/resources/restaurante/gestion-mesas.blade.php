@@ -128,85 +128,113 @@
         </div>
 
         {{-- ═══════════════════════════════════════════ --}}
-        {{-- Toolbar de operaciones                     --}}
+        {{-- Toolbar de operaciones & Selector de Vista  --}}
         {{-- ═══════════════════════════════════════════ --}}
-        <div class="flex flex-wrap items-center gap-2">
-            <x-filament::button
-                dusk="unir-mesas"
-                wire:click="$dispatch('open-modal', { id: 'modal-unir-mesas' })"
-                icon="heroicon-o-link"
-                color="primary"
-                size="sm"
-            >
-                Unir Mesas
-            </x-filament::button>
-
-            <x-filament::button
-                dusk="mover-cuenta"
-                wire:click="$dispatch('open-modal', { id: 'modal-mover-cuenta' })"
-                icon="heroicon-o-arrows-right-left"
-                color="warning"
-                size="sm"
-            >
-                Mover Cuenta
-            </x-filament::button>
-
-            <x-filament::button
-                dusk="aplicar-descuento"
-                wire:click="$dispatch('open-modal', { id: 'modal-descuento' })"
-                icon="heroicon-o-currency-dollar"
-                color="danger"
-                size="sm"
-            >
-                Aplicar Descuento
-            </x-filament::button>
-        </div>
-
-        {{-- Grid de mesas --}}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            @forelse ($mesasFiltradas as $mesa)
-                @php
-                    $estilo = $this->obtenerConfiguracionEstiloMesa(
-                        $mesa->estado
-                    );
-
-                    $estadoVal = $mesa->estado instanceof BackedEnum
-                        ? $mesa->estado->value
-                        : (int) $mesa->estado;
-                @endphp
-
-                <x-restaurante.mesa-card
-                    wire:key="mesa-card-{{ $mesa->id }}"
-                    dusk="mesa-{{ $mesa->id }}"
-                    :mesa="$mesa"
-                    :estilo="$estilo"
-                    :estado-val="$estadoVal"
-                    :estados="$estadosMesa"
-                    :simbolo-moneda="$simboloMoneda"
-                />
-            @empty
-                <div
-                    class="col-span-full rounded-2xl border border-dashed
-                           border-gray-300 p-8 text-center
-                           dark:border-gray-700"
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+                <x-filament::button
+                    dusk="unir-mesas"
+                    wire:click="$dispatch('open-modal', { id: 'modal-unir-mesas' })"
+                    icon="heroicon-o-link"
+                    color="primary"
+                    size="sm"
                 >
-                    <x-filament::icon
-                        icon="hugeicons-restaurant-table"
-                        class="mx-auto h-8 w-8 text-gray-400"
-                    />
+                    Unir Mesas
+                </x-filament::button>
 
-                    <p class="mt-2 text-sm font-bold text-gray-700 dark:text-gray-300">
-                        No se encontraron mesas
-                    </p>
+                <x-filament::button
+                    dusk="mover-cuenta"
+                    wire:click="$dispatch('open-modal', { id: 'modal-mover-cuenta' })"
+                    icon="heroicon-o-arrows-right-left"
+                    color="warning"
+                    size="sm"
+                >
+                    Mover Cuenta
+                </x-filament::button>
 
-                    @if ($filtroMesa !== '' || $filtroEstado !== null)
-                        <p class="mt-1 text-xs text-gray-500">
-                            Intenta cambiar los filtros de búsqueda.
-                        </p>
-                    @endif
-                </div>
-            @endforelse
+                <x-filament::button
+                    dusk="aplicar-descuento"
+                    wire:click="$dispatch('open-modal', { id: 'modal-descuento' })"
+                    icon="heroicon-o-currency-dollar"
+                    color="danger"
+                    size="sm"
+                >
+                    Aplicar Descuento
+                </x-filament::button>
+            </div>
+
+            {{-- Selector de Modo de Vista --}}
+            <div class="flex items-center gap-1 rounded-xl bg-gray-100 p-1 border border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-xs">
+                <button
+                    type="button"
+                    wire:click="cambiarVistaModo('mapa')"
+                    class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-bold transition-all cursor-pointer {{ $vistaModo === 'mapa' ? 'bg-white text-gray-900 shadow-xs dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white' }}"
+                >
+                    <x-filament::icon icon="heroicon-o-map" class="size-4" />
+                    <span>Plano de Mesas</span>
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="cambiarVistaModo('cuadricula')"
+                    class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-bold transition-all cursor-pointer {{ $vistaModo === 'cuadricula' ? 'bg-white text-gray-900 shadow-xs dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white' }}"
+                >
+                    <x-filament::icon icon="heroicon-o-squares-2x2" class="size-4" />
+                    <span>Tarjetas</span>
+                </button>
+            </div>
         </div>
+
+        {{-- Contenido según modo de vista --}}
+        @if ($vistaModo === 'mapa')
+            @include('filament.resources.restaurante.partials.mapa-mesas-visual')
+        @else
+            {{-- Grid de mesas tradicional --}}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                @forelse ($mesasFiltradas as $mesa)
+                    @php
+                        $estilo = $this->obtenerConfiguracionEstiloMesa(
+                            $mesa->estado
+                        );
+
+                        $estadoVal = $mesa->estado instanceof BackedEnum
+                            ? $mesa->estado->value
+                            : (int) $mesa->estado;
+                    @endphp
+
+                    <x-restaurante.mesa-card
+                        wire:key="mesa-card-{{ $mesa->id }}"
+                        dusk="mesa-{{ $mesa->id }}"
+                        :mesa="$mesa"
+                        :estilo="$estilo"
+                        :estado-val="$estadoVal"
+                        :estados="$estadosMesa"
+                        :simbolo-moneda="$simboloMoneda"
+                    />
+                @empty
+                    <div
+                        class="col-span-full rounded-2xl border border-dashed
+                               border-gray-300 p-8 text-center
+                               dark:border-gray-700"
+                    >
+                        <x-filament::icon
+                            icon="hugeicons-restaurant-table"
+                            class="mx-auto h-8 w-8 text-gray-400"
+                        />
+
+                        <p class="mt-2 text-sm font-bold text-gray-700 dark:text-gray-300">
+                            No se encontraron mesas
+                        </p>
+
+                        @if ($filtroMesa !== '' || $filtroEstado !== null)
+                            <p class="mt-1 text-xs text-gray-500">
+                                Intenta cambiar los filtros de búsqueda.
+                            </p>
+                        @endif
+                    </div>
+                @endforelse
+            </div>
+        @endif
     </div>
 
     {{-- ═══════════════════════════════════════════ --}}

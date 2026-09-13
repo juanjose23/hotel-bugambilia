@@ -15,6 +15,36 @@ export interface EstadisticasHuesped {
     total_reservas: number;
     activas: number;
     completadas: number;
+    total_pedidos?: number;
+    pedidos_activos?: number;
+    tiene_reservas?: boolean;
+    tiene_pedidos?: boolean;
+}
+
+export interface ItemPedidoPortal {
+    id: number;
+    nombre: string;
+    cantidad: number;
+    precio_unitario: number;
+    subtotal: number;
+    observaciones?: string | null;
+}
+
+export interface PortalPedidoResumen {
+    id: number;
+    codigo: string;
+    estado: number;
+    estado_label: string;
+    estado_color: string;
+    subtotal: number;
+    costo_delivery: number;
+    total: number;
+    moneda: string;
+    abierto_en: string;
+    notas?: string | null;
+    es_delivery: boolean;
+    mesa?: string | null;
+    items: ItemPedidoPortal[];
 }
 
 export interface PortalReservaResumen {
