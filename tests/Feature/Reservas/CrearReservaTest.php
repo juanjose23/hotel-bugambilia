@@ -277,8 +277,8 @@ test('ignora el total manipulado enviado al endpoint público', function (): voi
         'email_cliente' => 'maria@ejemplo.com',
         'tipo_reserva' => TipoReserva::HABITACION->value,
         'habitacion_id' => $habitacion->id,
-        'fecha_check_in' => '2026-09-10',
-        'fecha_check_out' => '2026-09-12',
+        'fecha_check_in' => now()->addDays(5)->format('Y-m-d'),
+        'fecha_check_out' => now()->addDays(7)->format('Y-m-d'),
         'adultos' => 2,
         'total' => 0.01,
     ]);
