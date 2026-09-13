@@ -46,6 +46,7 @@ export interface PropiedadesCompartidasInertia extends PageProps {
     };
     hotel?: HotelInfoDomain;
     flash?: FlashMessages;
+    restaurante_activo?: boolean;
     [key: string]: unknown;
 }
 

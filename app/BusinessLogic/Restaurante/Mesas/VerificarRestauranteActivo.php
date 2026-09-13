@@ -16,4 +16,9 @@ final class VerificarRestauranteActivo
     {
         return $this->restauranteActivo->ejecutar();
     }
+
+    public function estaHabilitadoWeb(): bool
+    {
+        return $this->restauranteActivo->ejecutarParaWeb();
+    }
 }

@@ -36,7 +36,7 @@ final class ObtenerEspacioDetalleLanding
         $identificadorStr = (string) $identificador;
 
         $query = Espacio::with([
-            'ubicacion', 'imagenes', 'precios.moneda', 'politicas', 'servicioAsignaciones.servicio',
+            'ubicacion', 'imagenes', 'precios.moneda', 'politicas.penalizaciones', 'servicioAsignaciones.servicio',
         ])->activosWeb();
 
         if (is_numeric($identificador)) {

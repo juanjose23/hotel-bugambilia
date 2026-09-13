@@ -4,12 +4,14 @@ import {
     BedDouble,
     Landmark,
     UtensilsCrossed,
-    Users,
+    Sparkles,
     MessageSquare,
 } from 'lucide-react';
+import { usePropiedadesPagina } from '@/modules/shared/hooks/usePropiedadesPagina';
 
 export const MobileBottomNav = () => {
     const { url } = usePage();
+    const { restaurante_activo } = usePropiedadesPagina();
 
     const items = [
         {
@@ -30,17 +32,21 @@ export const MobileBottomNav = () => {
             icono: Landmark,
             activo: url.startsWith('/espacios'),
         },
+        ...(restaurante_activo
+            ? [
+                  {
+                      nombre: 'Restaurante',
+                      href: '/restaurante',
+                      icono: UtensilsCrossed,
+                      activo: url.startsWith('/restaurante'),
+                  },
+              ]
+            : []),
         {
             nombre: 'Servicios',
             href: '/servicios',
-            icono: UtensilsCrossed,
+            icono: Sparkles,
             activo: url.startsWith('/servicios'),
-        },
-        {
-            nombre: 'Nosotros',
-            href: '/acerca-de',
-            icono: Users,
-            activo: url.startsWith('/acerca-de'),
         },
         {
             nombre: 'Contacto',

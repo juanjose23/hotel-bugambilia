@@ -303,10 +303,26 @@ class EspacioForm
                                     ->native(false)
                                     ->prefixIcon(Heroicon::UserGroup),
 
-                                TextInput::make('meta_datos.horario_comida')
-                                    ->label('Horario de Comida')
-                                    ->placeholder('Ej. 07:00 - 22:00')
+                                TextInput::make('meta_datos.horario_desayuno')
+                                    ->label('Horario de Desayuno')
+                                    ->placeholder('Ej. 07:00 - 10:30 AM')
                                     ->prefixIcon(Heroicon::Clock),
+
+                                TextInput::make('meta_datos.horario_almuerzo')
+                                    ->label('Horario de Almuerzo')
+                                    ->placeholder('Ej. 12:00 - 03:30 PM')
+                                    ->prefixIcon(Heroicon::Clock),
+
+                                TextInput::make('meta_datos.horario_cena')
+                                    ->label('Horario de Cena')
+                                    ->placeholder('Ej. 06:00 - 10:00 PM')
+                                    ->prefixIcon(Heroicon::Clock),
+
+                                TextInput::make('meta_datos.whatsapp_reservas')
+                                    ->label('WhatsApp para Reservas')
+                                    ->placeholder('Ej. +50588888888')
+                                    ->prefixIcon(Heroicon::Phone)
+                                    ->helperText('Opcional. Si se deja vacío, se utilizará el número de WhatsApp general del hotel.'),
 
                                 TextInput::make('meta_datos.capacidad_mesas')
                                     ->label('Capacidad Total en Mesas')
@@ -315,6 +331,27 @@ class EspacioForm
                                     ->minValue(1)
                                     ->suffix(' mesas')
                                     ->prefixIcon(Heroicon::TableCells),
+
+                                Toggle::make('meta_datos.permite_delivery')
+                                    ->label('Habilitar Pedidos a Domicilio (Delivery)')
+                                    ->helperText('Permite a los clientes armar su carrito y enviar pedidos por WhatsApp desde la página pública.')
+                                    ->default(true),
+
+                                TextInput::make('meta_datos.costo_delivery')
+                                    ->label('Costo de Envío / Delivery')
+                                    ->placeholder('Ej. 50')
+                                    ->numeric()
+                                    ->prefix('C$')
+                                    ->default(50)
+                                    ->prefixIcon(Heroicon::Truck),
+
+                                TextInput::make('meta_datos.pedido_minimo')
+                                    ->label('Monto Mínimo de Pedido')
+                                    ->placeholder('Ej. 100')
+                                    ->numeric()
+                                    ->prefix('C$')
+                                    ->default(0)
+                                    ->prefixIcon(Heroicon::Banknotes),
                             ])
                             ->visible(fn ($get) => $get('tipo') === TipoEspacio::RESTAURANTE->value),
 

@@ -96,6 +96,16 @@ final class Espacio extends Model implements AuditableContract
             ->exists();
     }
 
+    /**
+     * Comprueba si existe al menos un Espacio de tipo Restaurante público y visible en la web.
+     */
+    public static function tieneRestaurantePublico(): bool
+    {
+        return self::activosWeb()
+            ->where('tipo', TipoEspacio::RESTAURANTE)
+            ->exists();
+    }
+
     /** @var array<int, string> */
     protected array $auditInclude = [
         'padre_id',

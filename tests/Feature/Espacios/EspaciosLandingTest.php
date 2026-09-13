@@ -96,3 +96,28 @@ test('se puede guardar acompañantes en una reserva de habitacion', function () 
         ->and($reserva?->acompanantes)->toBeArray()
         ->and($reserva?->acompanantes[0]['nombre'])->toBe('Ana Mendoza');
 });
+
+test('la ruta publica /espacios/{slug} carga el detalle del espacio con politicas y penalizaciones sin lazy loading violation', function () {
+    $espacio = Espacio::query()->activosWeb()->whereNull('padre_id')->first();
+
+    if (! $espacio) {
+        $espacio = Espacio::create([
+            'codigo' => 'ESP-GIMNASIO-TEST',
+            'nombre' => 'Gimnasio Fitness Center',
+            'slug' => 'gimnasio-fitness-center',
+            'tipo' => TipoEspacio::GYM,
+            'estado' => EstadoEspacio::Disponible,
+            'capacidad_personas' => 30,
+            'web' => true,
+            'reservable' => true,
+        ]);
+    }
+
+    $response = $this->get('/espacios/'.($espacio->slug ?? $espacio->codigo));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espacios/EspacioDetalle', false)
+        ->has('space')
+    );
+});

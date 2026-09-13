@@ -8,6 +8,8 @@ use App\BusinessLogic\Facturacion\Stripe\VerificarFirmaWebhookStripe;
 use App\Enums\Facturacion\EventoWebhookStripe;
 use App\Exceptions\StripeApiException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\WebServices\Stripe\ConfirmarPagoStripeClienteRequest;
+use App\Http\Requests\WebServices\Stripe\CrearIntentoPagoStripeRequest;
 use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripeReserva;
 use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripeReservaCliente;
 use App\Interactors\Facturacion\Stripe\CrearIntentoPagoStripeReserva;
@@ -23,14 +25,12 @@ use Throwable;
 final class StripeReservaPaymentController extends Controller
 {
     public function crearIntento(
-        Request $request,
+        CrearIntentoPagoStripeRequest $request,
         CrearIntentoPagoStripeReserva $crearIntentoPago,
         ResolverReservaPagoStripe $resolverReserva,
     ): JsonResponse {
-        $datos = $request->validate([
-            'reserva_id' => ['required', 'integer', 'exists:reservas,id'],
-            'codigo_reserva' => ['required', 'string', 'max:80'],
-        ]);
+        /** @var array{reserva_id: int, codigo_reserva: string} $datos */
+        $datos = $request->validated();
 
         $reserva = $resolverReserva->ejecutar(
             reservaId: (int) $datos['reserva_id'],
@@ -77,14 +77,11 @@ final class StripeReservaPaymentController extends Controller
     }
 
     public function confirmarCliente(
-        Request $request,
+        ConfirmarPagoStripeClienteRequest $request,
         ConfirmarPagoStripeReservaCliente $confirmarPagoCliente,
     ): JsonResponse {
-        $datos = $request->validate([
-            'reserva_id' => ['required', 'integer', 'exists:reservas,id'],
-            'codigo_reserva' => ['required', 'string', 'max:80'],
-            'payment_intent_id' => ['required', 'string', 'max:120'],
-        ]);
+        /** @var array{reserva_id: int, codigo_reserva: string, payment_intent_id: string} $datos */
+        $datos = $request->validated();
 
         try {
             $transaccion = $confirmarPagoCliente->ejecutar(

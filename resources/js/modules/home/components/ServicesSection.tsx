@@ -118,9 +118,13 @@ export const ServicesSection = ({
                                 const IconoComponente = resolverIconoPorTexto(
                                     espacio.tipo || espacio.nombre,
                                 );
-                                const enlaceDetalle = espacio.slug
-                                    ? `/espacios/${espacio.slug}`
-                                    : '/espacios';
+                                const enlaceDetalle =
+                                    espacio.tipo?.toLowerCase() ===
+                                    'restaurante'
+                                        ? '/restaurante'
+                                        : espacio.slug
+                                          ? `/espacios/${espacio.slug}`
+                                          : '/espacios';
 
                                 return (
                                     <Link

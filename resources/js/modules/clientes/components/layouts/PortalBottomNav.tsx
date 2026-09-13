@@ -3,7 +3,7 @@ import {
     LayoutDashboard,
     CalendarDays,
     UserCircle,
-    CalendarPlus,
+    ChefHat,
 } from 'lucide-react';
 
 export const PortalBottomNav = () => {
@@ -17,15 +17,15 @@ export const PortalBottomNav = () => {
             exact: true,
         },
         {
-            nombre: 'Mis Reservas',
+            nombre: 'Reservas',
             href: '/portal/reservas',
             icono: CalendarDays,
             exact: false,
         },
         {
-            nombre: 'Reservar',
-            href: '/habitaciones',
-            icono: CalendarPlus,
+            nombre: 'Pedidos',
+            href: '/portal/pedidos',
+            icono: ChefHat,
             exact: false,
         },
         {
