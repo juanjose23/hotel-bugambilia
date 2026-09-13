@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Clientes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Clientes\SolicitarServicioEstanciaRequest;
 use App\Interactors\Clientes\ObtenerCatalogoServiciosEstancia;
 use App\Interactors\Clientes\ObtenerDetalleReservaPortal;
 use App\Interactors\Clientes\SolicitarServicioEstancia;
@@ -44,23 +45,13 @@ final class PortalServiciosEstanciaController extends Controller
         ]);
     }
 
-    public function store(int $id, Request $request): RedirectResponse|JsonResponse
+    public function store(int $id, SolicitarServicioEstanciaRequest $request): RedirectResponse|JsonResponse
     {
-        $datos = $request->validate([
-            'servicio_id' => ['required', 'integer', 'exists:servicios,id'],
-            'cantidad' => ['required', 'numeric', 'min:1', 'max:50'],
-            'notas' => ['nullable', 'string', 'max:500'],
-        ]);
-
         /** @var User|null $user */
         $user = $request->user();
 
         try {
-            $resultado = $this->solicitarServicio->ejecutar($id, [
-                'servicio_id' => (int) $datos['servicio_id'],
-                'cantidad' => (float) $datos['cantidad'],
-                'notas' => $datos['notas'] ?? null,
-            ], $user);
+            $resultado = $this->solicitarServicio->ejecutar($id, $request->datosServicio(), $user);
         } catch (DomainException $exception) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $exception->getMessage()], 422);

@@ -71,6 +71,9 @@ final class RestauranteSeeder extends Seeder
         // 5. Cargar Pedidos Demo Activos e Históricos usando el flujo operativo de restaurante.
         $this->call(PedidoRestauranteSeeder::class);
 
-        $this->command->info('Restaurante Bugambilias: Espacio, Mesas, Menú, Pedidos y Reservas creados exitosamente en un solo Seeder unificado.');
+        // 6. Cargar Zonas de Delivery de Restaurante
+        $this->call(ZonaDeliverySeeder::class);
+
+        $this->command->info('Restaurante Bugambilias: Espacio, Mesas, Menú, Pedidos, Reservas y Zonas de Delivery creados exitosamente.');
     }
 }

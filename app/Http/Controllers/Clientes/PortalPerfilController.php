@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Clientes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Clientes\ActualizarPerfilClienteRequest;
 use App\Interactors\Clientes\ActualizarPerfilClientePortal;
 use App\Interactors\Clientes\ObtenerDashboardPortalCliente;
 use App\Repository\Models\User;
@@ -34,18 +35,13 @@ final class PortalPerfilController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse|JsonResponse
+    public function update(ActualizarPerfilClienteRequest $request): RedirectResponse|JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        $datos = $request->validate([
-            'nombre' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', "unique:users,email,{$user->id}"],
-            'telefono' => ['nullable', 'string', 'max:30'],
-            'identificacion' => ['nullable', 'string', 'max:50'],
-            'tipo_identificacion' => ['nullable', 'string', 'max:50'],
-        ]);
+        /** @var array{nombre: string, email: string, telefono?: string|null, identificacion?: string|null, tipo_identificacion?: string|null} $datos */
+        $datos = $request->validated();
 
         try {
             $resultado = $this->actualizarPerfil->ejecutar($user, $datos);

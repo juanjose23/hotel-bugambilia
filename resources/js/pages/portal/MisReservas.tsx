@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { BedDouble } from 'lucide-react';
 import { useState } from 'react';
 import { PortalLayout } from '@/modules/clientes/components/layouts/PortalLayout';
@@ -7,6 +7,7 @@ import type {
     ClienteProfile,
     PortalReservaResumen,
 } from '@/modules/clientes/types';
+import { useCancelarReserva } from '@/modules/reservas/hooks/useCancelarReserva';
 
 interface MisReservasPageProps {
     reservas_activas: PortalReservaResumen[];
@@ -21,24 +22,7 @@ export const MisReservas = ({
 }: MisReservasPageProps) => {
     const [tab, setTab] = useState<'activas' | 'historial'>('activas');
 
-    const handleCancelarReserva = (
-        reservaId: number,
-        codigoReserva: string,
-    ) => {
-        if (!confirm('¿Estás seguro de que deseas cancelar tu reservación?')) {
-            return;
-        }
-
-        router.post(
-            `/reservas/${reservaId}/cancelar`,
-            {
-                codigo: codigoReserva,
-            },
-            {
-                preserveScroll: true,
-            },
-        );
-    };
+    const { cancelarReserva } = useCancelarReserva();
 
     const listaActual =
         tab === 'activas' ? reservas_activas : historial_reservas;
@@ -100,7 +84,7 @@ export const MisReservas = ({
                             <PortalReservaItem
                                 key={reserva.id}
                                 reserva={reserva}
-                                onCancelar={handleCancelarReserva}
+                                onCancelar={cancelarReserva}
                             />
                         ))}
                     </div>

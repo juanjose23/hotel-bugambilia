@@ -1,6 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Search, Calendar, BedDouble, ArrowRight, Loader2 } from 'lucide-react';
 import { MisReservasCard } from '@/modules/reservas/components/MisReservasCard';
+import { useCancelarReserva } from '@/modules/reservas/hooks/useCancelarReserva';
 import { useMisReservasForm } from '@/modules/reservas/hooks/useMisReservasForm';
 import type { ReservaPortalItem } from '@/modules/reservas/types';
 import { MisReservasGridSkeleton } from '@/modules/shared/components/skeletons';
@@ -22,24 +23,7 @@ export const MisReservas = ({
         },
     );
 
-    const handleCancelarReserva = (
-        reservaId: number,
-        codigoReserva?: string,
-    ) => {
-        if (!confirm('¿Estás seguro de que deseas cancelar esta reserva?')) {
-            return;
-        }
-
-        router.post(
-            `/reservas/${reservaId}/cancelar`,
-            {
-                codigo: codigoReserva,
-            },
-            {
-                preserveScroll: true,
-            },
-        );
-    };
+    const { cancelarReserva } = useCancelarReserva();
 
     return (
         <>
@@ -147,7 +131,7 @@ export const MisReservas = ({
                                     <MisReservasCard
                                         key={reserva.id}
                                         reserva={reserva}
-                                        onCancelar={handleCancelarReserva}
+                                        onCancelar={cancelarReserva}
                                     />
                                 ))}
                             </div>

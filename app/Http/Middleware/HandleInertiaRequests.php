@@ -2,12 +2,17 @@
 
 namespace App\Http\Middleware;
 
+use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
+
+    public function __construct(
+        private readonly VerificarRestauranteActivo $verificarRestauranteActivo,
+    ) {}
 
     public function version(Request $request): ?string
     {
@@ -60,6 +65,7 @@ class HandleInertiaRequests extends Middleware
                 'logo' => config('hotel.logo'),
                 'icon' => config('hotel.icon'),
             ],
+            'restaurante_activo' => fn () => $this->verificarRestauranteActivo->estaHabilitadoWeb(),
         ];
     }
 }

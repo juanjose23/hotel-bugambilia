@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Clientes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Clientes\GestionarAcompanantesRequest;
 use App\Interactors\Clientes\GestionarAcompanantesReserva;
 use App\Interactors\Clientes\ObtenerDetalleReservaPortal;
 use App\Repository\Models\User;
@@ -39,22 +40,13 @@ final class PortalAcompanantesController extends Controller
         ]);
     }
 
-    public function store(int $id, Request $request): RedirectResponse|JsonResponse
+    public function store(int $id, GestionarAcompanantesRequest $request): RedirectResponse|JsonResponse
     {
-        $datos = $request->validate([
-            'acompanantes' => ['required', 'array'],
-            'acompanantes.*.nombre' => ['required', 'string', 'max:150'],
-            'acompanantes.*.identificacion' => ['nullable', 'string', 'max:50'],
-            'acompanantes.*.tipo' => ['nullable', 'string', 'in:adulto,nino,bebe'],
-        ]);
-
         /** @var User|null $user */
         $user = $request->user();
 
         try {
-            /** @var array<int, array{nombre: string, identificacion?: string|null, tipo?: string|null}> $listaAcompanantes */
-            $listaAcompanantes = $datos['acompanantes'];
-            $resultado = $this->gestionarAcompanantes->ejecutar($id, $listaAcompanantes, $user);
+            $resultado = $this->gestionarAcompanantes->ejecutar($id, $request->acompanantes(), $user);
         } catch (DomainException $exception) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $exception->getMessage()], 422);

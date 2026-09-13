@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
     Calendar,
@@ -11,6 +11,7 @@ import { PortalLayout } from '@/modules/clientes/components/layouts/PortalLayout
 import { DetalleSuiteCard } from '@/modules/clientes/components/reservas/DetalleSuiteCard';
 import { EstadoCuentaCard } from '@/modules/clientes/components/reservas/EstadoCuentaCard';
 import type { PortalReservaDetalleCompleto } from '@/modules/clientes/types';
+import { useCancelarReserva } from '@/modules/reservas/hooks/useCancelarReserva';
 import { Button, buttonVariants } from '@/modules/shared/components/ui/button';
 
 interface ReservaDetalleProps {
@@ -18,24 +19,13 @@ interface ReservaDetalleProps {
 }
 
 export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
-    const handleCancelarReserva = () => {
-        if (
-            !confirm(
-                '¿Estás seguro de que deseas cancelar esta reserva? El reembolso se calculará y procesará de forma automática según la política de cancelación.',
-            )
-        ) {
-            return;
-        }
+    const { cancelarReserva } = useCancelarReserva({
+        confirmMessage:
+            '¿Estás seguro de que deseas cancelar esta reserva? El reembolso se calculará y procesará de forma automática según la política de cancelación.',
+    });
 
-        router.post(
-            `/reservas/${reserva.id}/cancelar`,
-            {
-                codigo: reserva.codigo_reserva,
-            },
-            {
-                preserveScroll: true,
-            },
-        );
+    const handleCancelarReserva = () => {
+        cancelarReserva(reserva.id, reserva.codigo_reserva);
     };
 
     return (
