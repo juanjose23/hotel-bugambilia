@@ -75,12 +75,14 @@ class ReportesCompras extends Page implements HasForms, HasTable
     public function mount(): void
     {
         $this->reportData = [
-            'reporte' => null,
+            'reporte' => 'solicitudes_estado',
             'fecha_inicio' => now()->startOfMonth()->format('Y-m-d'),
             'fecha_fin' => now()->format('Y-m-d'),
             'estado' => null,
             'meses' => 6,
         ];
+
+        $this->reportForm->fill($this->reportData);
 
         $this->searchData = [
             'codigo' => null,
@@ -109,10 +111,29 @@ class ReportesCompras extends Page implements HasForms, HasTable
     public function descargarReporte(): null
     {
         $data = $this->reportForm->getState();
-        $data['pageSize'] = $this->pageSize;
-        $data['orientation'] = $this->orientation;
-        $url = ReporteFiltros::getUrlReporte($data);
-        $this->dispatch('open-new-tab', url: $url);
+        $rawReporte = $data['reporte'] ?? null;
+        $reporte = is_string($rawReporte) ? $rawReporte : '';
+
+        if ($reporte === '') {
+            return null;
+        }
+
+        $params = [
+            'fecha_inicio' => is_string($data['fecha_inicio'] ?? null) ? $data['fecha_inicio'] : '',
+            'fecha_fin' => is_string($data['fecha_fin'] ?? null) ? $data['fecha_fin'] : '',
+            'pageSize' => $this->pageSize,
+            'orientation' => $this->orientation,
+        ];
+
+        if ($reporte === 'solicitudes_estado') {
+            $params['estado'] = $data['estado'] ?? null;
+        }
+
+        if ($reporte === 'analisis_precio') {
+            $params['meses'] = $data['meses'] ?? 6;
+        }
+
+        $this->procesarDescargaReporte('compras', $reporte, $params);
 
         return null;
     }
@@ -246,7 +267,7 @@ class ReportesCompras extends Page implements HasForms, HasTable
             return false;
         }
 
-        return $user->can('page_ReportesCompras')
+        return $user->can('Page:ReportesCompras')
             || $user->can('Compras:ImprimirReportesCompras')
             || $user->can('Compras:ImprimirSolicitud');
     }

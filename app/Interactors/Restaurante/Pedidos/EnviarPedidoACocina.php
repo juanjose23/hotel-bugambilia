@@ -18,16 +18,17 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class EnviarPedidoACocina
+final readonly class EnviarPedidoACocina
 {
     public function __construct(
-        private readonly ConsumirIngredientesPedido $consumirIngredientes,
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly AbrirCuenta $abrirCuenta,
-        private readonly RegistrarDetalleCuenta $registrarDetalle,
-        private readonly NotificadorRestaurante $notificador,
-        private readonly RecalcularTotalesPedido $recalcular,
-        private readonly BloquearItemsPorFaltaStock $bloquearItemsPorFaltaStock,
+        private ConsumirIngredientesPedido $consumirIngredientes,
+        private DescontarStockProductoPedido $descontarStockProducto,
+        private RestauranteRepositorioInterface $repositorio,
+        private AbrirCuenta $abrirCuenta,
+        private RegistrarDetalleCuenta $registrarDetalle,
+        private NotificadorRestaurante $notificador,
+        private RecalcularTotalesPedido $recalcular,
+        private BloquearItemsPorFaltaStock $bloquearItemsPorFaltaStock,
     ) {}
 
     /**
@@ -52,7 +53,7 @@ final class EnviarPedidoACocina
             throw new DomainException('Este pedido ya fue enviado a preparación.');
         }
 
-        $pedido->load(['items.plato.receta']);
+        $pedido->load(['items.plato.receta', 'items.producto', 'items.variante']);
 
         if ($pedido->items->isEmpty()) {
             throw new DomainException('No se puede enviar un pedido a cocina sin platillos seleccionados.');
@@ -69,7 +70,12 @@ final class EnviarPedidoACocina
                     $item->estado = EstadoItemPedido::EN_PREPARACION;
                     $this->repositorio->guardarItem($item);
 
-                    $this->consumirIngredientes->ejecutar($item);
+                    if ($item->esProducto()) {
+                        $this->descontarStockProducto->ejecutar($item);
+                    } else {
+                        $this->consumirIngredientes->ejecutar($item);
+                    }
+
                     $procesados[] = $item->id;
                     $nuevosItems[] = $item;
                 }
@@ -96,9 +102,15 @@ final class EnviarPedidoACocina
             // Registrar cada item procesado en la cuenta para que el saldo crezca
             if ($cuenta instanceof Cuenta) {
                 foreach ($nuevosItems as $item) {
+                    $nombreConcepto = match (true) {
+                        $item->plato !== null => $item->plato->nombre,
+                        $item->producto !== null => $item->producto->nombre.($item->variante !== null ? ' ('.$item->variante->nombre_variante.')' : ''),
+                        default => 'Ítem',
+                    };
+
                     $this->registrarDetalle->ejecutar(
                         cuenta: $cuenta,
-                        concepto: ($item->plato->nombre ?? 'Platillo').($item->observaciones ? " ({$item->observaciones})" : ''),
+                        concepto: $nombreConcepto.($item->observaciones ? " ({$item->observaciones})" : ''),
                         precioUnitario: (float) $item->precio_unitario,
                         cantidad: (float) $item->cantidad,
                         origen: $item,

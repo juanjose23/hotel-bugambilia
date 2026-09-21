@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Tag, ConciergeBell } from 'lucide-react';
+import { ArrowRight, Tag } from 'lucide-react';
+import { DynamicIcon } from '@/modules/shared/components/DynamicIcon';
 import type { ServicioItem } from '../types';
 
 interface PropsServicioCard {
@@ -38,8 +39,12 @@ export const ServicioCard = ({ servicio }: PropsServicioCard) => {
                         </span>
                     </span>
                 ) : (
-                    <span className="absolute right-3.5 bottom-3.5 flex items-center gap-1 rounded-full border border-white/20 bg-primary/90 px-2.5 py-0.5 text-xs font-black text-primary-foreground shadow-xs backdrop-blur-md">
-                        <ConciergeBell className="size-3" />
+                    <span className="absolute right-3.5 bottom-3.5 flex items-center gap-1.5 rounded-full border border-white/20 bg-primary/90 px-2.5 py-0.5 text-xs font-black text-primary-foreground shadow-xs backdrop-blur-md">
+                        <DynamicIcon
+                            name={servicio.icono}
+                            fallback="ConciergeBell"
+                            className="size-3"
+                        />
                         <span>Servicio Exclusivo</span>
                     </span>
                 )}
@@ -48,9 +53,19 @@ export const ServicioCard = ({ servicio }: PropsServicioCard) => {
             {/* Contenido */}
             <div className="flex flex-1 flex-col justify-between p-6">
                 <div>
-                    <h3 className="text-lg font-black tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-xl dark:group-hover:text-rose-400">
-                        {servicio.nombre}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                        {servicio.icono && (
+                            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-rose-500/10 dark:text-rose-400">
+                                <DynamicIcon
+                                    name={servicio.icono}
+                                    className="size-4"
+                                />
+                            </div>
+                        )}
+                        <h3 className="text-lg font-black tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-xl dark:group-hover:text-rose-400">
+                            {servicio.nombre}
+                        </h3>
+                    </div>
                     <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                         {servicio.descripcion ||
                             'Disfruta de nuestras exclusivas amenidades y servicios diseñados para una estancia insuperable en Estelí.'}

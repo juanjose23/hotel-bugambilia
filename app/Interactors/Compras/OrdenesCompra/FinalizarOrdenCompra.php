@@ -8,10 +8,10 @@ use App\Enums\Compras\EstadoOrdenCompra;
 use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Persistencia\Compras\OrdenCompraRepositorioInterface;
 
-final class FinalizarOrdenCompra
+final readonly class FinalizarOrdenCompra
 {
     public function __construct(
-        private readonly OrdenCompraRepositorioInterface $ordenCompraRepositorio,
+        private OrdenCompraRepositorioInterface $ordenCompraRepositorio,
     ) {}
 
     public function ejecutar(OrdenCompra $orden): void

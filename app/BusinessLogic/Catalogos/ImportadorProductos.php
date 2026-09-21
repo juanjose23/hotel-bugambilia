@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Catalogos;
 
-use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Persistencia\Catalogos\ProductoRepositorioInterface;
 use Illuminate\Support\Str;
 
-class ImportadorProductos
+final readonly class ImportadorProductos
 {
+    public function __construct(
+        private ProductoRepositorioInterface $productoRepositorio,
+    ) {}
+
     /**
      * @return array{processed: int, errors: array<int, string>}
      */
@@ -42,7 +46,7 @@ class ImportadorProductos
             $dataRow = array_combine($header, $row);
 
             try {
-                $producto = Producto::query()->firstOrCreate([
+                $producto = $this->productoRepositorio->firstOrCreate([
                     'nombre' => $dataRow['nombre'] ?? 'Sin nombre',
                 ], [
                     'descripcion' => $dataRow['descripcion'] ?? null,
@@ -61,7 +65,7 @@ class ImportadorProductos
                         }
                     }
 
-                    $producto->variantes()->create([
+                    $this->productoRepositorio->crearVariante($producto, [
                         'codigo' => $dataRow['variante_codigo'] ?? Str::upper(Str::random(8)),
                         'nombre_variante' => $dataRow['variante_nombre'] ?? 'Principal',
                         'atributos' => $attrs,
@@ -69,6 +73,7 @@ class ImportadorProductos
                         'volumen' => $dataRow['volumen'] ?? null,
                         'estado' => isset($dataRow['variante_estado']) ? (int) $dataRow['variante_estado'] : 1,
                     ]);
+
                 }
 
                 $processed++;

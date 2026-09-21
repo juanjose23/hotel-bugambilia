@@ -11,6 +11,8 @@ use App\Filament\Resources\Servicios\Servicios\Pages\ViewServicio;
 use App\Filament\Resources\Servicios\Servicios\Schemas\ServicioForm;
 use App\Filament\Resources\Servicios\Servicios\Schemas\ServicioInfolist;
 use App\Filament\Resources\Servicios\Servicios\Tables\ServiciosTable;
+use App\Filament\Shared\RelationManagers\ActivosDelServicioRelationManager;
+use App\Filament\Shared\RelationManagers\ImagenesRelationManager;
 use App\Filament\Shared\RelationManagers\PoliticasRelationManager;
 use App\Filament\Shared\RelationManagers\PreciosRelationManager;
 use App\Filament\Shared\RelationManagers\StocksRelationManager;
@@ -62,7 +64,9 @@ class ServicioResource extends Resource
         return [
             PreciosRelationManager::class,
             StocksRelationManager::class,
+            ActivosDelServicioRelationManager::class,
             PoliticasRelationManager::class,
+            ImagenesRelationManager::class,
         ];
     }
 

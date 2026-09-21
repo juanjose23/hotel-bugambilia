@@ -20,7 +20,7 @@ final class ObtenerPedidosCocinaQuery
                     EstadoItemPedido::SERVIDO,
                     EstadoItemPedido::ANULADO,
                 ]);
-            }, 'items.plato'])
+            }, 'items.plato', 'items.producto', 'items.variante'])
             ->whereHas('items', function ($query) {
                 $query->whereIn('estado', [
                     EstadoItemPedido::PENDIENTE,

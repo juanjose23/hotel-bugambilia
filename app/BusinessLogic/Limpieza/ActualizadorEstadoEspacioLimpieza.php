@@ -9,9 +9,14 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 
-class ActualizadorEstadoEspacioLimpieza
+final readonly class ActualizadorEstadoEspacioLimpieza
 {
+    public function __construct(
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
+    ) {}
+
     public function actualizar(LimpiezaEjecucion|SolicitudLimpieza $record, ?LimpiezaEjecucion $ejecucion): void
     {
         $record->loadMissing('limpiable');
@@ -27,9 +32,9 @@ class ActualizadorEstadoEspacioLimpieza
                 }
             }
 
-            $limpiable->update(['estado' => $nuevoEstado]);
+            $this->limpiezaRepositorio->actualizarEstadoLimpiable($limpiable, $nuevoEstado);
         } elseif ($limpiable instanceof Espacio) {
-            $limpiable->update(['estado' => EstadoEspacio::Disponible]);
+            $this->limpiezaRepositorio->actualizarEstadoLimpiable($limpiable, EstadoEspacio::Disponible);
         }
     }
 }

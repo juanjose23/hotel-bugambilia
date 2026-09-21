@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Restaurante;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Restaurante\ConfirmarPagoStripePedidoRequest;
-use App\Interactors\Landing\ConfirmarPagoStripePedidoLanding;
+use App\Interactors\Restaurante\Pedidos\ConfirmarPagoStripePedido;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
@@ -15,7 +15,7 @@ final class ConfirmarPagoStripePedidoController extends Controller
 {
     public function __invoke(
         ConfirmarPagoStripePedidoRequest $request,
-        ConfirmarPagoStripePedidoLanding $interactor,
+        ConfirmarPagoStripePedido $interactor,
     ): JsonResponse {
         /** @var array{pedido_id: int, payment_intent_id: string} $validated */
         $validated = $request->validated();

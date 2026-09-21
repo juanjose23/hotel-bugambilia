@@ -7,7 +7,7 @@ namespace App\Http\Controllers\WebServices\Reservas;
 use App\BusinessLogic\Reservas\Data\CancelarReservaHabitacionData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\WebServices\Reservas\CancelarReservaWebServiceRequest;
-use App\Interactors\Reservas\Gestion\CancelarReservaPublica;
+use App\Interactors\Reservas\Gestion\CancelarReserva;
 use App\Repository\Models\Reservas\Reserva;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +17,7 @@ final class CancelarReservaWebServiceController extends Controller
     public function __invoke(
         CancelarReservaWebServiceRequest $request,
         Reserva $reserva,
-        CancelarReservaPublica $cancelarReserva,
+        CancelarReserva $cancelarReserva,
     ): JsonResponse {
         $this->authorize('cancel', $reserva);
 

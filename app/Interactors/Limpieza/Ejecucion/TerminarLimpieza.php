@@ -9,18 +9,25 @@ use App\BusinessLogic\Limpieza\Data\TerminarLimpiezaData;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-class TerminarLimpieza
+final readonly class TerminarLimpieza
 {
     public function __construct(
-        private readonly FinalizarEjecucionLimpieza $finalizarEjecucion,
-        private readonly ActualizadorEstadoEspacioLimpieza $actualizadorEstado,
+        private FinalizarEjecucionLimpieza $finalizarEjecucion,
+        private ActualizadorEstadoEspacioLimpieza $actualizadorEstado,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
 
     public function execute(TerminarLimpiezaData $dto): void
     {
-        DB::transaction(function () use ($dto) {
+        $this->ejecutar($dto);
+    }
+
+    public function ejecutar(TerminarLimpiezaData $dto): void
+    {
+        DB::transaction(function () use ($dto): void {
             $ejecucion = $this->resolveEjecucion($dto->record);
             $solicitud = $this->resolveSolicitud($dto->record);
 
@@ -29,7 +36,7 @@ class TerminarLimpieza
             }
 
             if ($solicitud) {
-                $solicitud->update(['estado' => EstadoLimpieza::Completada]);
+                $this->limpiezaRepositorio->actualizarSolicitud($solicitud, ['estado' => EstadoLimpieza::Completada]);
             }
 
             $this->actualizadorEstado->actualizar($dto->record, $ejecucion);
@@ -42,7 +49,7 @@ class TerminarLimpieza
             return $record;
         }
 
-        return LimpiezaEjecucion::where('solicitud_id', $record->id)->first();
+        return $this->limpiezaRepositorio->buscarEjecucionPorSolicitudId((int) $record->id);
     }
 
     private function resolveSolicitud(LimpiezaEjecucion|SolicitudLimpieza $record): ?SolicitudLimpieza
@@ -51,7 +58,9 @@ class TerminarLimpieza
             return $record;
         }
 
-        /** @var ?SolicitudLimpieza */
-        return $record->solicitud()->first();
+        /** @var ?SolicitudLimpieza $solicitud */
+        $solicitud = $record->solicitud()->first();
+
+        return $solicitud;
     }
 }

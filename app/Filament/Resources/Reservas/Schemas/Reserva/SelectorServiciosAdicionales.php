@@ -8,6 +8,7 @@ use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Servicios\Servicio;
+use App\Support\MonedaHelper;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -27,6 +28,8 @@ class SelectorServiciosAdicionales
             ->columnSpanFull()
             ->icon(Heroicon::PlusCircle)
             ->description('Agregue los servicios y espacios que forman parte de esta misma reserva.')
+            ->collapsible()
+            ->collapsed()
             ->columns(1)
             ->schema([
                 Repeater::make('servicios_adicionales')
@@ -46,9 +49,9 @@ class SelectorServiciosAdicionales
                                 ->get()
                                 ->mapWithKeys(function (Servicio $servicio): array {
                                     $precioVal = $servicio->precios()->latest()->first()->precio ?? $servicio->precio_base ?? 0.0;
-                                    $precioStr = number_format((float) $precioVal, 2);
+                                    $precioStr = MonedaHelper::formatear((float) $precioVal);
 
-                                    return [$servicio->id => "{$servicio->nombre} (C$ {$precioStr})"];
+                                    return [$servicio->id => "{$servicio->nombre} ({$precioStr})"];
                                 })
                                 ->all())
                             ->searchable()
@@ -93,8 +96,10 @@ class SelectorServiciosAdicionales
 
                                 $precioVal = (float) ($servicio->precios()->latest()->first()->precio ?? $servicio->precio_base ?? 0.0);
                                 $subtotal = $precioVal * $cantidad;
+                                $precioFmt = MonedaHelper::formatear($precioVal);
+                                $subtotalFmt = MonedaHelper::formatear($subtotal);
 
-                                return sprintf('C$ %s c/u · Total: C$ %s', number_format($precioVal, 2), number_format($subtotal, 2));
+                                return "{$precioFmt} c/u · Total: {$subtotalFmt}";
                             })
                             ->columnSpan(['default' => 1, 'sm' => 1, 'md' => 2]),
 

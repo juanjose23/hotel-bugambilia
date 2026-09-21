@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Promociones;
 
+use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Promociones\Promocion;
 use Illuminate\Support\Collection;
 
-final class ObtenerPromocionesPublicasQuery
+final readonly class ObtenerPromocionesPublicasQuery
 {
     /**
      * @return Collection<int, Promocion>
@@ -42,5 +43,23 @@ final class ObtenerPromocionesPublicasQuery
         }
 
         return $query->orderBy('id', 'desc')->get();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function obtenerCategorias(): array
+    {
+        $tipoIds = Promocion::activos()->whereNotNull('tipo_promocion_id')->pluck('tipo_promocion_id')->unique();
+
+        return Catalogo::query()
+            ->whereIn('id', $tipoIds)
+            ->pluck('nombre')
+            ->filter()
+            ->map(fn (mixed $nombre): string => is_string($nombre) ? $nombre : '')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 }

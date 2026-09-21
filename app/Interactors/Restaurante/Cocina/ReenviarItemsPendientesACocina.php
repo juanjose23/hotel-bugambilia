@@ -16,15 +16,15 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class ReenviarItemsPendientesACocina
+final readonly class ReenviarItemsPendientesACocina
 {
     public function __construct(
-        private readonly ConsumirIngredientesPedido $consumirIngredientes,
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly RegistrarDetalleCuenta $registrarDetalle,
-        private readonly NotificadorRestaurante $notificador,
-        private readonly RecalcularTotalesPedido $recalcular,
-        private readonly BloquearItemsPorFaltaStock $bloquearItemsPorFaltaStock,
+        private ConsumirIngredientesPedido $consumirIngredientes,
+        private RestauranteRepositorioInterface $repositorio,
+        private RegistrarDetalleCuenta $registrarDetalle,
+        private NotificadorRestaurante $notificador,
+        private RecalcularTotalesPedido $recalcular,
+        private BloquearItemsPorFaltaStock $bloquearItemsPorFaltaStock,
     ) {}
 
     public function ejecutar(Pedido $pedido): Pedido

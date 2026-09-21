@@ -1,11 +1,12 @@
 @props([
     'mesa',
     'estilo' => [],
-    'simboloMoneda' => 'C$',
+    'simboloMoneda' => null,
     'estados' => [],
 ])
 
 @php
+    $simboloMoneda = $simboloMoneda ?? \App\Support\MonedaHelper::simbolo();
     $capacidad = (int) ($mesa->capacidad_personas ?? 0);
 
     $estadoActual = is_object($mesa->estado)

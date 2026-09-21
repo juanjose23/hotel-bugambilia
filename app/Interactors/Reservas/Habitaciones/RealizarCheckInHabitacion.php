@@ -6,7 +6,7 @@ namespace App\Interactors\Reservas\Habitaciones;
 
 use App\BusinessLogic\CheckIn\ValidarRequisitosCheckIn;
 use App\BusinessLogic\Reservas\Data\RealizarCheckInData;
-use App\BusinessLogic\Reservas\RecalcularEstadoReservaHabitacion;
+use App\BusinessLogic\Reservas\Resolutores\RecalcularEstadoReservaHabitacion;
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
@@ -42,9 +42,7 @@ final readonly class RealizarCheckInHabitacion
 
             $reserva = $this->reservas->obtenerReservaDeDetalleConLock($detalle);
 
-            if (! in_array($detalle->estado, [EstadoReservaDetalle::CONFIRMADO, EstadoReservaDetalle::PENDIENTE], true)) {
-                throw new DomainException("El detalle de reserva #{$detalle->id} no está en estado confirmado o pendiente para Check-In.");
-            }
+            $this->validarRequisitos->validarEstadoDetalle($detalle);
 
             $recurso = $detalle->reservable;
             if ($recurso === null) {
@@ -57,17 +55,16 @@ final readonly class RealizarCheckInHabitacion
                 throw new DomainException("No se encontró una habitación física asociada al recurso reservable #{$recurso->id}.");
             }
 
-            if (! in_array($habitacion->estado, [EstadoEspacio::Disponible, EstadoEspacio::Reservado], true)) {
-                throw new DomainException("La habitación {$habitacion->nombre} (N° {$habitacion->numero}) no está operacionalmente disponible para Check-In. Estado actual: {$habitacion->estado->getLabel()}.");
-            }
+            $this->validarRequisitos->validarEstadoHabitacion($habitacion);
 
             if ($reserva->habitacion_id === null) {
                 $this->reservas->actualizar($reserva, ['habitacion_id' => $habitacion->id]);
             }
 
-            if ($this->reservas->existeEstanciaActivaParaDetalle((int) $detalle->id)) {
-                throw new DomainException("Ya existe una estancia activa para el detalle de reserva #{$detalle->id}.");
-            }
+            $this->validarRequisitos->validarSinEstanciaActiva(
+                $this->reservas->existeEstanciaActivaParaDetalle((int) $detalle->id),
+                (int) $detalle->id,
+            );
 
             // Confirm/update guests if provided
             if (! empty($data->huespedes)) {

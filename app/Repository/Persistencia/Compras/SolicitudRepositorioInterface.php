@@ -31,4 +31,16 @@ interface SolicitudRepositorioInterface
      * @param  array<int, array{cantidad_aprobada: float|int|string}>  $itemsCancelacion
      */
     public function cancelar(Solicitud $solicitud, array $itemsCancelacion, string $nota): void;
+
+    public function eliminar(Solicitud $solicitud): void;
+
+    public function restaurar(Solicitud $solicitud): void;
+
+    public function eliminarPermanente(Solicitud $solicitud): void;
+
+    public function obtenerCodigoDepartamento(int $departamentoId): ?string;
+
+    public function obtenerUltimoCodigoPorPrefijo(string $prefijo): ?string;
+
+    public function buscarPorIdConItems(int $id): ?Solicitud;
 }

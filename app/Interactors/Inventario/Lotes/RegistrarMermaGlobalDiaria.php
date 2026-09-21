@@ -6,19 +6,20 @@ namespace App\Interactors\Inventario\Lotes;
 
 use App\BusinessLogic\Inventario\Estrategias\FEFOStrategy;
 use App\BusinessLogic\Inventario\Servicios\ServicioMermas;
-use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\Lote;
+use App\Repository\Persistencia\Catalogos\UbicacionRepositorioInterface;
 use App\Repository\Queries\Inventario\Stock\ObtenerStockParaConsumo;
 use DomainException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
-final class RegistrarMermaGlobalDiaria
+final readonly class RegistrarMermaGlobalDiaria
 {
     public function __construct(
-        private readonly ObtenerStockParaConsumo $stockQuery,
-        private readonly ServicioMermas $servicioMermas,
-        private readonly FEFOStrategy $fefo,
+        private ObtenerStockParaConsumo $stockQuery,
+        private ServicioMermas $servicioMermas,
+        private FEFOStrategy $fefo,
+        private UbicacionRepositorioInterface $ubicacionRepositorio,
     ) {}
 
     /**
@@ -31,7 +32,7 @@ final class RegistrarMermaGlobalDiaria
         array $items,
         ?int $usuarioId = null,
     ): array {
-        $ubicacion = Ubicacion::find($ubicacionId);
+        $ubicacion = $this->ubicacionRepositorio->buscarPorId($ubicacionId);
         if ($ubicacion === null) {
             throw new DomainException('Ubicación no encontrada.');
         }

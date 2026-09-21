@@ -9,14 +9,15 @@ use App\BusinessLogic\Activos\ReglasIndividualizacion;
 use App\Enums\Activos\EstadoIndividualizacion;
 use App\Repository\Persistencia\Activos\RegistroIndividualizacionRepositorioInterface;
 use App\Repository\Queries\Catalogos\ObtenerUbicacionAlmacen;
+use Illuminate\Support\Facades\DB;
 
-class IndividualizarActivos
+final readonly class IndividualizarActivos
 {
     public function __construct(
-        private readonly ProcesadorIndividualizacionActivos $procesador,
-        private readonly ReglasIndividualizacion $reglas,
-        private readonly RegistroIndividualizacionRepositorioInterface $registroRepositorio,
-        private readonly ObtenerUbicacionAlmacen $obtenerAlmacen,
+        private ProcesadorIndividualizacionActivos $procesador,
+        private ReglasIndividualizacion $reglas,
+        private RegistroIndividualizacionRepositorioInterface $registroRepositorio,
+        private ObtenerUbicacionAlmacen $obtenerAlmacen,
     ) {}
 
     /** @param array<int, array<string, mixed>> $items */
@@ -40,6 +41,6 @@ class IndividualizarActivos
             throw new \RuntimeException('No existe ninguna ubicación activa en el sistema.');
         }
 
-        $this->procesador->procesar($registro, $items, $usuarioId, $ubicacion);
+        DB::transaction(fn () => $this->procesador->procesar($registro, $items, $usuarioId, $ubicacion));
     }
 }

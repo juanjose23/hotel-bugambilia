@@ -27,7 +27,7 @@ test('rechaza el check-in si la reserva no esta confirmada', function (): void {
         'estado' => EstadoReserva::PENDIENTE,
     ]);
 
-    $validator = new ValidarRequisitosCheckIn;
+    $validator = app(ValidarRequisitosCheckIn::class);
     $validator->validar($reserva);
 })->throws(DomainException::class, 'confirmadas');
 
@@ -43,7 +43,7 @@ test('rechaza el check-in si la reserva no tiene habitacion ni espacio asignado'
         'espacio_id' => null,
     ]);
 
-    $validator = new ValidarRequisitosCheckIn;
+    $validator = app(ValidarRequisitosCheckIn::class);
     $validator->validar($reserva);
 })->throws(DomainException::class, 'habitación o espacio físico');
 
@@ -83,7 +83,7 @@ test('permite el check-in cuando la reserva esta confirmada y tiene habitacion a
         'habitacion_id' => $habitacion->id,
     ]);
 
-    $validator = new ValidarRequisitosCheckIn;
+    $validator = app(ValidarRequisitosCheckIn::class);
     expect(fn () => $validator->validar($reserva))->not->toThrow(Exception::class);
 });
 
@@ -127,6 +127,6 @@ test('permite el check-in de 1 adulto si la habitacion admite 1 adulto', functio
         'reservable_id' => $recurso->id,
     ]);
 
-    $validator = new ValidarRequisitosCheckIn;
+    $validator = app(ValidarRequisitosCheckIn::class);
     expect(fn () => $validator->validar($reserva, $detalle))->not->toThrow(Exception::class);
 });

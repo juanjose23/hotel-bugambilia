@@ -15,6 +15,8 @@ class NotasReservaSeccion
         return Section::make('Notas & Especificaciones')
             ->columnSpanFull()
             ->icon(Heroicon::DocumentText)
+            ->collapsible()
+            ->collapsed()
             ->schema([
                 RichEditor::make('notas')
                     ->hiddenLabel()

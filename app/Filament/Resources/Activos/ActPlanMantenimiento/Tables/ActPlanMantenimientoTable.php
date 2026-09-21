@@ -70,6 +70,7 @@ class ActPlanMantenimientoTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->modifyQueryUsing(fn ($query) => $query->with(['moneda', 'proveedor.persona']));
     }
 }

@@ -2,7 +2,6 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Lock, Utensils, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { RestauranteCheckoutResumenSidebar } from '@/modules/restaurante/components/RestauranteCheckoutResumenSidebar';
-import { RestauranteCheckoutStepperHeader } from '@/modules/restaurante/components/RestauranteCheckoutStepperHeader';
 import { RestaurantePasoArticulos } from '@/modules/restaurante/components/RestaurantePasoArticulos';
 import { RestaurantePasoEntrega } from '@/modules/restaurante/components/RestaurantePasoEntrega';
 import { RestaurantePasoPago } from '@/modules/restaurante/components/RestaurantePasoPago';
@@ -11,6 +10,13 @@ import { crearRestaurantePorDefecto } from '@/modules/restaurante/constants';
 import { useCarritoRestaurante } from '@/modules/restaurante/hooks/useCarritoRestaurante';
 import { usePedidoDeliveryForm } from '@/modules/restaurante/hooks/usePedidoDeliveryForm';
 import type { RestauranteCheckoutPageProps } from '@/modules/restaurante/types';
+import { StepperHeader } from '@/modules/shared/components/StepperHeader';
+
+const PASOS_CHECKOUT = [
+    { num: 1, titulo: 'Artículos', subtitulo: 'Revisión de platillos' },
+    { num: 2, titulo: 'Entrega', subtitulo: 'Dirección y contacto' },
+    { num: 3, titulo: 'Pago', subtitulo: 'Efectivo o Tarjeta' },
+];
 
 export const RestauranteCheckout = ({
     restaurante,
@@ -96,9 +102,10 @@ export const RestauranteCheckout = ({
                 </div>
 
                 {/* Stepper Superior */}
-                <RestauranteCheckoutStepperHeader
+                <StepperHeader
+                    pasos={PASOS_CHECKOUT}
                     pasoActual={pasoActual}
-                    onCambiarPaso={irAlPaso}
+                    onCambiarPaso={(p) => irAlPaso(p as 1 | 2 | 3)}
                 />
 
                 {/* Error de envío si ocurre */}

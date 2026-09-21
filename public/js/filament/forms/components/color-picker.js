@@ -1,8 +1,8 @@
 var c = (e, t = 0, r = 1) => (e > r ? r : e < t ? t : e),
     a = (e, t = 0, r = Math.pow(10, t)) => Math.round(r * e) / r;
 var at = { grad: 360 / 400, turn: 360, rad: 360 / (Math.PI * 2) },
-    F = (e) => G(v(e)),
-    v = (e) => (
+    D = (e) => G($(e)),
+    $ = (e) => (
         e[0] === '#' && (e = e.substring(1)),
         e.length < 6
             ? {
@@ -36,13 +36,13 @@ var at = { grad: 360 / 400, turn: 360, rad: 360 / (Math.PI * 2) },
               })
             : { h: 0, s: 0, v: 0, a: 1 };
     },
-    J = it,
+    F = it,
     lt = ({ h: e, s: t, l: r, a: o }) => (
         (t *= (r < 50 ? r : 100 - r) / 100),
         { h: e, s: t > 0 ? ((2 * t) / (r + t)) * 100 : 0, v: r + t, a: o }
     ),
-    X = (e) => ct(A(e)),
-    Y = ({ h: e, s: t, v: r, a: o }) => {
+    J = (e) => ct(O(e)),
+    X = ({ h: e, s: t, v: r, a: o }) => {
         let s = ((200 - t) * r) / 100;
         return {
             h: a(e),
@@ -55,37 +55,37 @@ var at = { grad: 360 / 400, turn: 360, rad: 360 / (Math.PI * 2) },
             a: a(o, 2),
         };
     };
-var d = (e) => {
-        let { h: t, s: r, l: o } = Y(e);
+var h = (e) => {
+        let { h: t, s: r, l: o } = X(e);
         return `hsl(${t}, ${r}%, ${o}%)`;
     },
-    $ = (e) => {
-        let { h: t, s: r, l: o, a: s } = Y(e);
+    S = (e) => {
+        let { h: t, s: r, l: o, a: s } = X(e);
         return `hsla(${t}, ${r}%, ${o}%, ${s})`;
     },
-    A = ({ h: e, s: t, v: r, a: o }) => {
+    O = ({ h: e, s: t, v: r, a: o }) => {
         ((e = (e / 360) * 6), (t = t / 100), (r = r / 100));
         let s = Math.floor(e),
             n = r * (1 - t),
             i = r * (1 - (e - s) * t),
-            l = r * (1 - (1 - e + s) * t),
-            q = s % 6;
+            u = r * (1 - (1 - e + s) * t),
+            l = s % 6;
         return {
-            r: a([r, i, n, n, l, r][q] * 255),
-            g: a([l, r, r, i, n, n][q] * 255),
-            b: a([n, n, l, r, r, i][q] * 255),
+            r: a([r, i, n, n, u, r][l] * 255),
+            g: a([u, r, r, i, n, n][l] * 255),
+            b: a([n, n, u, r, r, i][l] * 255),
             a: a(o, 2),
         };
     },
-    B = (e) => {
-        let { r: t, g: r, b: o } = A(e);
+    Y = (e) => {
+        let { r: t, g: r, b: o } = O(e);
         return `rgb(${t}, ${r}, ${o})`;
     },
-    D = (e) => {
-        let { r: t, g: r, b: o, a: s } = A(e);
+    B = (e) => {
+        let { r: t, g: r, b: o, a: s } = O(e);
         return `rgba(${t}, ${r}, ${o}, ${s})`;
     };
-var I = (e) => {
+var A = (e) => {
         let r =
             /rgba?\(?\s*(-?\d*\.?\d+)(%)?[,\s]+(-?\d*\.?\d+)(%)?[,\s]+(-?\d*\.?\d+)(%)?,?\s*[/\s]*(-?\d*\.?\d+)?(%)?\s*\)?/i.exec(
                 e,
@@ -99,14 +99,14 @@ var I = (e) => {
               })
             : { h: 0, s: 0, v: 0, a: 1 };
     },
-    U = I,
-    b = (e) => {
+    U = A,
+    v = (e) => {
         let t = e.toString(16);
         return t.length < 2 ? '0' + t : t;
     },
     ct = ({ r: e, g: t, b: r, a: o }) => {
-        let s = o < 1 ? b(a(o * 255)) : '';
-        return '#' + b(e) + b(t) + b(r) + s;
+        let s = o < 1 ? v(a(o * 255)) : '';
+        return '#' + v(e) + v(t) + v(r) + s;
     },
     G = ({ r: e, g: t, b: r, a: o }) => {
         let s = Math.max(e, t, r),
@@ -125,15 +125,15 @@ var I = (e) => {
             a: o,
         };
     };
-var L = (e, t) => {
+var I = (e, t) => {
         if (e === t) return !0;
         for (let r in e) if (e[r] !== t[r]) return !1;
         return !0;
     },
-    h = (e, t) => e.replace(/\s/g, '') === t.replace(/\s/g, ''),
-    K = (e, t) => (e.toLowerCase() === t.toLowerCase() ? !0 : L(v(e), v(t)));
+    m = (e, t) => e.replace(/\s/g, '') === t.replace(/\s/g, ''),
+    K = (e, t) => (e.toLowerCase() === t.toLowerCase() ? !0 : I($(e), $(t)));
 var Q = {},
-    S = (e) => {
+    H = (e) => {
         let t = Q[e];
         return (
             t ||
@@ -143,16 +143,16 @@ var Q = {},
             t
         );
     },
-    f = (e, t, r) => {
+    g = (e, t, r) => {
         e.dispatchEvent(new CustomEvent(t, { bubbles: !0, detail: r }));
     };
-var m = !1,
-    O = (e) => 'touches' in e,
-    pt = (e) => (m && !O(e) ? !1 : (m || (m = O(e)), !0)),
+var f = !1,
+    L = (e) => 'touches' in e,
+    pt = (e) => (f && !L(e) ? !1 : (f || (f = L(e)), !0)),
     W = (e, t) => {
-        let r = O(t) ? t.touches[0] : t,
+        let r = L(t) ? t.touches[0] : t,
             o = e.el.getBoundingClientRect();
-        f(
+        g(
             e.el,
             'move',
             e.getMove({
@@ -167,7 +167,7 @@ var m = !1,
             (e.xy && r < 37) ||
             r < 33 ||
             (t.preventDefault(),
-            f(
+            g(
                 e.el,
                 'move',
                 e.getMove(
@@ -192,9 +192,9 @@ var m = !1,
                 ),
             ));
     },
-    u = class {
+    d = class {
         constructor(t, r, o, s) {
-            let n = S(
+            let n = H(
                 `<div role="slider" tabindex="0" part="${r}" ${o}><div part="${r}-pointer"></div></div>`,
             );
             t.appendChild(n.content.cloneNode(!0));
@@ -210,14 +210,14 @@ var m = !1,
             let r = t
                 ? document.addEventListener
                 : document.removeEventListener;
-            (r(m ? 'touchmove' : 'mousemove', this),
-                r(m ? 'touchend' : 'mouseup', this));
+            (r(f ? 'touchmove' : 'mousemove', this),
+                r(f ? 'touchend' : 'mouseup', this));
         }
         handleEvent(t) {
             switch (t.type) {
                 case 'mousedown':
                 case 'touchstart':
-                    if ((t.preventDefault(), !pt(t) || (!m && t.button != 0)))
+                    if ((t.preventDefault(), !pt(t) || (!f && t.button != 0)))
                         return;
                     (this.el.focus(), W(this, t), (this.dragging = !0));
                     break;
@@ -240,7 +240,7 @@ var m = !1,
             });
         }
     };
-var H = class extends u {
+var w = class extends d {
     constructor(t) {
         super(
             t,
@@ -254,7 +254,7 @@ var H = class extends u {
             this.style([
                 {
                     left: `${(t / 360) * 100}%`,
-                    color: d({ h: t, s: 100, v: 100, a: 1 }),
+                    color: h({ h: t, s: 100, v: 100, a: 1 }),
                 },
             ]),
             this.el.setAttribute('aria-valuenow', `${a(t)}`));
@@ -263,15 +263,15 @@ var H = class extends u {
         return { h: r ? c(this.h + t.x * 360, 0, 360) : 360 * t.x };
     }
 };
-var w = class extends u {
+var y = class extends d {
     constructor(t) {
         super(t, 'saturation', 'aria-label="Color"', !0);
     }
     update(t) {
         ((this.hsva = t),
             this.style([
-                { top: `${100 - t.v}%`, left: `${t.s}%`, color: d(t) },
-                { 'background-color': d({ h: t.h, s: 100, v: 100, a: 1 }) },
+                { top: `${100 - t.v}%`, left: `${t.s}%`, color: h(t) },
+                { 'background-color': h({ h: t.h, s: 100, v: 100, a: 1 }) },
             ]),
             this.el.setAttribute(
                 'aria-valuetext',
@@ -298,17 +298,17 @@ var T = Symbol('same'),
     et = Symbol('hsva'),
     _ = Symbol('update'),
     ot = Symbol('parts'),
-    g = Symbol('css'),
-    x = Symbol('sliders'),
+    x = Symbol('css'),
+    b = Symbol('sliders'),
     p = class extends HTMLElement {
         static get observedAttributes() {
             return ['color'];
         }
-        get [g]() {
+        get [x]() {
             return [Z, tt, rt];
         }
-        get [x]() {
-            return [w, H];
+        get [b]() {
+            return [y, w];
         }
         get color() {
             return this[R];
@@ -321,11 +321,11 @@ var T = Symbol('same'),
         }
         constructor() {
             super();
-            let t = S(`<style>${this[g].join('')}</style>`),
+            let t = H(`<style>${this[x].join('')}</style>`),
                 r = this.attachShadow({ mode: 'open' });
             (r.appendChild(t.content.cloneNode(!0)),
                 r.addEventListener('move', this),
-                (this[ot] = this[x].map((o) => new o(r))));
+                (this[ot] = this[b].map((o) => new o(r))));
         }
         connectedCallback() {
             if (this.hasOwnProperty('color')) {
@@ -342,9 +342,9 @@ var T = Symbol('same'),
                 o = { ...r, ...t.detail };
             this[_](o);
             let s;
-            !L(o, r) &&
+            !I(o, r) &&
                 !this[T]((s = this.colorModel.fromHsva(o))) &&
-                ((this[R] = s), f(this, 'color-changed', { value: s }));
+                ((this[R] = s), g(this, 'color-changed', { value: s }));
         }
         [T](t) {
             return this.color && this.colorModel.equal(t, this.color);
@@ -355,47 +355,47 @@ var T = Symbol('same'),
     };
 var dt = {
         defaultColor: '#000',
-        toHsva: F,
-        fromHsva: ({ h: e, s: t, v: r }) => X({ h: e, s: t, v: r, a: 1 }),
+        toHsva: D,
+        fromHsva: ({ h: e, s: t, v: r }) => J({ h: e, s: t, v: r, a: 1 }),
         equal: K,
-        fromAttr: (e) => e,
-    },
-    y = class extends p {
-        get colorModel() {
-            return dt;
-        }
-    };
-var P = class extends y {};
-customElements.define('hex-color-picker', P);
-var ht = {
-        defaultColor: 'hsl(0, 0%, 0%)',
-        toHsva: J,
-        fromHsva: d,
-        equal: h,
         fromAttr: (e) => e,
     },
     M = class extends p {
         get colorModel() {
-            return ht;
+            return dt;
         }
     };
-var z = class extends M {};
-customElements.define('hsl-string-color-picker', z);
-var mt = {
-        defaultColor: 'rgb(0, 0, 0)',
-        toHsva: U,
-        fromHsva: B,
-        equal: h,
+var P = class extends M {};
+customElements.define('hex-color-picker', P);
+var ht = {
+        defaultColor: 'hsl(0, 0%, 0%)',
+        toHsva: F,
+        fromHsva: h,
+        equal: m,
         fromAttr: (e) => e,
     },
     k = class extends p {
         get colorModel() {
+            return ht;
+        }
+    };
+var z = class extends k {};
+customElements.define('hsl-string-color-picker', z);
+var mt = {
+        defaultColor: 'rgb(0, 0, 0)',
+        toHsva: U,
+        fromHsva: Y,
+        equal: m,
+        fromAttr: (e) => e,
+    },
+    C = class extends p {
+        get colorModel() {
             return mt;
         }
     };
-var V = class extends k {};
+var V = class extends C {};
 customElements.define('rgb-string-color-picker', V);
-var C = class extends u {
+var E = class extends d {
     constructor(t) {
         super(
             t,
@@ -406,11 +406,11 @@ var C = class extends u {
     }
     update(t) {
         this.hsva = t;
-        let r = $({ ...t, a: 0 }),
-            o = $({ ...t, a: 1 }),
+        let r = S({ ...t, a: 0 }),
+            o = S({ ...t, a: 1 }),
             s = t.a * 100;
         this.style([
-            { left: `${s}%`, color: $(t) },
+            { left: `${s}%`, color: S(t) },
             { '--gradient': `linear-gradient(90deg, ${r}, ${o}` },
         ]);
         let n = a(s);
@@ -422,27 +422,27 @@ var C = class extends u {
     }
 };
 var st = `[part=alpha]{flex:0 0 24px}[part=alpha]::after{display:block;content:"";position:absolute;top:0;left:0;right:0;bottom:0;border-radius:inherit;background-image:var(--gradient);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}[part^=alpha]{background-color:#fff;background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill-opacity=".05"><rect x="8" width="8" height="8"/><rect y="8" width="8" height="8"/></svg>')}[part=alpha-pointer]{top:50%}`;
-var E = class extends p {
-    get [g]() {
-        return [...super[g], st];
-    }
+var N = class extends p {
     get [x]() {
-        return [...super[x], C];
+        return [...super[x], st];
+    }
+    get [b]() {
+        return [...super[b], E];
     }
 };
 var ft = {
         defaultColor: 'rgba(0, 0, 0, 1)',
-        toHsva: I,
-        fromHsva: D,
-        equal: h,
+        toHsva: A,
+        fromHsva: B,
+        equal: m,
         fromAttr: (e) => e,
     },
-    N = class extends E {
+    q = class extends N {
         get colorModel() {
             return ft;
         }
     };
-var j = class extends N {};
+var j = class extends q {};
 customElements.define('rgba-string-color-picker', j);
 function gt({
     isAutofocused: e,
@@ -453,8 +453,10 @@ function gt({
     liveDebounce: n,
     state: i,
 }) {
+    let u = !1;
     return {
         state: i,
+        panelObserver: null,
         init() {
             (this.state === null ||
                 this.state === '' ||
@@ -463,8 +465,9 @@ function gt({
                 this.$watch(
                     'state',
                     Alpine.debounce((l) => {
-                        CSS.supports('color', l) &&
-                            (this.$refs.picker.color = l);
+                        u ||
+                            (CSS.supports('color', l) &&
+                                (this.$refs.picker.color = l));
                     }, 200),
                 ),
                 this.$refs.input.addEventListener('change', (l) => {
@@ -475,19 +478,21 @@ function gt({
                         !(s || !(r || o)) &&
                             setTimeout(
                                 () => {
-                                    this.state === l.detail.value &&
-                                        this.commitState();
+                                    u ||
+                                        (this.state === l.detail.value &&
+                                            this.commitState());
                                 },
                                 o ? n : 250,
                             ));
                 }),
                 (r || o || s) &&
-                    new MutationObserver(() =>
+                    ((this.panelObserver = new MutationObserver(() =>
                         this.isOpen() ? null : this.commitState(),
-                    ).observe(this.$refs.panel, {
+                    )),
+                    this.panelObserver.observe(this.$refs.panel, {
                         attributes: !0,
                         childList: !0,
-                    }));
+                    })));
         },
         togglePanelVisibility() {
             t || this.$refs.panel.toggle(this.$refs.input);
@@ -501,9 +506,13 @@ function gt({
             return this.$refs.panel.style.display === 'block';
         },
         commitState() {
-            JSON.stringify(this.$wire.__instance.canonical) !==
-                JSON.stringify(this.$wire.__instance.ephemeral) &&
-                this.$wire.$commit();
+            u ||
+                (JSON.stringify(this.$wire.__instance.canonical) !==
+                    JSON.stringify(this.$wire.__instance.ephemeral) &&
+                    this.$wire.$commit());
+        },
+        destroy() {
+            ((u = !0), this.panelObserver?.disconnect());
         },
     };
 }

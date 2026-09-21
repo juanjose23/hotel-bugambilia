@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Restaurante\PlatoResource\Schemas;
 
 use App\Actions\Restaurante\Platos\GenerarCodigoPlato;
+use App\Enums\Restaurante\AreaCocina;
 use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Restaurante\Platos\SincronizarGaleriaPlatoImagenes;
 use App\Repository\Queries\Restaurante\Platos\ObtenerCatalogoPlatoQuery;
@@ -53,6 +54,12 @@ final class PlatoForm
                             ->searchable()
                             ->preload()
                             ->nullable(),
+
+                        Select::make('area_cocina')
+                            ->label('Área de Preparación')
+                            ->options(AreaCocina::class)
+                            ->default(AreaCocina::COCINA)
+                            ->required(),
 
                         Select::make('estado')
                             ->label('Estado')

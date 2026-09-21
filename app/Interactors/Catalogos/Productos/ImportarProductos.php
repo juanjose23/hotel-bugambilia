@@ -6,7 +6,7 @@ namespace App\Interactors\Catalogos\Productos;
 
 use App\BusinessLogic\Catalogos\ImportadorProductos;
 
-class ImportarProductos
+final class ImportarProductos
 {
     public function __construct(
         private readonly ImportadorProductos $importador,

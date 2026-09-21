@@ -6,23 +6,21 @@ namespace App\Interactors\Restaurante\Mesas;
 
 use App\BusinessLogic\Restaurante\Mesas\ValidarTransicionMesa;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
-use App\Enums\Limpieza\EstadoLimpieza;
 use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Restaurante\Mesas\ObtenerMesaQuery;
 use DomainException;
 use InvalidArgumentException;
 
-final class CambiarEstadoMesa
+final readonly class CambiarEstadoMesa
 {
     public function __construct(
-        private readonly ObtenerMesaQuery $mesas,
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly ValidarTransicionMesa $validarTransicion,
-        private readonly RegistrarSolicitudLimpieza $registrarSolicitudLimpieza,
+        private ObtenerMesaQuery $mesas,
+        private RestauranteRepositorioInterface $repositorio,
+        private ValidarTransicionMesa $validarTransicion,
+        private RegistrarSolicitudLimpieza $registrarSolicitudLimpieza,
     ) {}
 
     public function ejecutar(
@@ -37,11 +35,10 @@ final class CambiarEstadoMesa
         }
 
         if ($mesa->estado !== $estado) {
-            $tieneSolicitudActiva = SolicitudLimpieza::query()
-                ->where('limpiable_type', $mesa->getMorphClass())
-                ->where('limpiable_id', $mesa->id)
-                ->whereIn('estado', [EstadoLimpieza::Pendiente, EstadoLimpieza::EnProgreso])
-                ->exists();
+            $tieneSolicitudActiva = $this->repositorio->tieneSolicitudLimpiezaActiva(
+                $mesa->getMorphClass(),
+                (int) $mesa->id,
+            );
 
             if ($tieneSolicitudActiva && ! in_array($estado, [EstadoEspacio::Sucio, EstadoEspacio::Limpieza], true)) {
                 throw new DomainException(

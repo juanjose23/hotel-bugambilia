@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Carrito;
 
 use App\BusinessLogic\Inventario\Servicios\ReabastecedorFefo;
+use Illuminate\Support\Facades\DB;
 
-class ReabastecerCarrito
+final readonly class ReabastecerCarrito
 {
     public function __construct(
-        private readonly ReabastecedorFefo $reabastecedorFefo,
+        private ReabastecedorFefo $reabastecedorFefo,
     ) {}
 
     /**
@@ -19,6 +20,6 @@ class ReabastecerCarrito
      */
     public function execute(int $bodegaOrigenId, int $carritoDestinoId, array $items, ?int $creadoPorId = null): void
     {
-        $this->reabastecedorFefo->reabastecer($bodegaOrigenId, $carritoDestinoId, $items, $creadoPorId);
+        DB::transaction(fn () => $this->reabastecedorFefo->reabastecer($bodegaOrigenId, $carritoDestinoId, $items, $creadoPorId));
     }
 }

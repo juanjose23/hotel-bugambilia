@@ -8,10 +8,10 @@ use App\BusinessLogic\Inventario\Data\Pack\StockItemPackData;
 use App\Repository\Queries\Inventario\Pack\ObtenerStockItemsPackQuery;
 use Illuminate\Support\Collection;
 
-class CalcularRatioMinStock
+final readonly class CalcularRatioMinStock
 {
     public function __construct(
-        private readonly ObtenerStockItemsPackQuery $obtenerStock,
+        private ObtenerStockItemsPackQuery $obtenerStock,
     ) {}
 
     public function ejecutar(int $productoPadreId): string

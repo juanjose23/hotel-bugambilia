@@ -1,5 +1,6 @@
+@use(App\Support\MonedaHelper)
 <x-filament-panels::page>
-    <div x-data x-on:open-new-tab.window="window.open($event.detail.url || $event.detail[0]?.url, '_blank')" class="w-full space-y-6">
+    <div class="w-full space-y-6">
 
         {{-- ─── Subheader / Encabezado ─────────────────────────── --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -26,7 +27,7 @@
             <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-lg">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                        C$ {{ number_format((float) ($resumen['total_facturado'] ?? 0), 2) }}
+                        {{ MonedaHelper::formatear((float) ($resumen['total_facturado'] ?? 0)) }}
                     </span>
                     <x-heroicon-o-banknotes class="w-5 h-5 text-emerald-500" />
                 </div>
@@ -77,7 +78,7 @@
                             </div>
                             <div class="text-right flex items-center gap-4">
                                 <span class="text-sm font-black text-gray-950 dark:text-white">×{{ $p['cantidad'] }}</span>
-                                <span class="text-xs font-bold text-gray-400 min-w-[70px] text-right">C$ {{ number_format($p['total'], 2) }}</span>
+                                <span class="text-xs font-bold text-gray-400 min-w-[70px] text-right">{{ MonedaHelper::formatear($p['total']) }}</span>
                             </div>
                         </div>
                     @empty
@@ -101,7 +102,7 @@
                         <div class="space-y-1">
                             <div class="flex items-center justify-between text-xs font-bold">
                                 <span class="text-gray-700 dark:text-gray-300">{!! $cat['categoria'] !!}</span>
-                                <span class="text-gray-950 dark:text-white">C$ {{ number_format($cat['total'], 2) }} <span class="text-[10px] text-gray-400 ml-1">({{ $cat['cantidad'] }} platos)</span></span>
+                                <span class="text-gray-950 dark:text-white">{{ MonedaHelper::formatear($cat['total']) }} <span class="text-[10px] text-gray-400 ml-1">({{ $cat['cantidad'] }} platos)</span></span>
                             </div>
                             @php
                                 $maxTotal = count($porCategoria) > 0 ? max(array_column($porCategoria, 'total')) : 1;

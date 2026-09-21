@@ -35,10 +35,10 @@
                 t,
             ),
         ue = oe((t, n) => {
-            (function (a, s, g) {
+            (function (a, s, w) {
                 if (!a) return;
                 for (
-                    var p = {
+                    var v = {
                             8: 'backspace',
                             9: 'tab',
                             13: 'enter',
@@ -62,7 +62,7 @@
                             93: 'meta',
                             224: 'meta',
                         },
-                        w = {
+                        b = {
                             106: '*',
                             107: '+',
                             109: '-',
@@ -80,7 +80,7 @@
                             221: ']',
                             222: "'",
                         },
-                        v = {
+                        u = {
                             '~': '`',
                             '!': '1',
                             '@': '2',
@@ -101,7 +101,7 @@
                             '?': '/',
                             '|': '\\',
                         },
-                        S = {
+                        g = {
                             option: 'alt',
                             command: 'meta',
                             return: 'enter',
@@ -111,14 +111,14 @@
                                 ? 'meta'
                                 : 'ctrl',
                         },
-                        A,
+                        C,
                         y = 1;
                     y < 20;
                     ++y
                 )
-                    p[111 + y] = 'f' + y;
-                for (y = 0; y <= 9; ++y) p[y + 96] = y.toString();
-                function E(e, r, o) {
+                    v[111 + y] = 'f' + y;
+                for (y = 0; y <= 9; ++y) v[y + 96] = y.toString();
+                function M(e, r, o) {
                     if (e.addEventListener) {
                         e.addEventListener(r, o, !1);
                         return;
@@ -130,16 +130,16 @@
                         var r = String.fromCharCode(e.which);
                         return (e.shiftKey || (r = r.toLowerCase()), r);
                     }
-                    return p[e.which]
-                        ? p[e.which]
-                        : w[e.which]
-                          ? w[e.which]
+                    return v[e.which]
+                        ? v[e.which]
+                        : b[e.which]
+                          ? b[e.which]
                           : String.fromCharCode(e.which).toLowerCase();
                 }
-                function F(e, r) {
+                function j(e, r) {
                     return e.sort().join(',') === r.sort().join(',');
                 }
-                function V(e) {
+                function F(e) {
                     var r = [];
                     return (
                         e.shiftKey && r.push('shift'),
@@ -149,7 +149,7 @@
                         r
                     );
                 }
-                function H(e) {
+                function V(e) {
                     if (e.preventDefault) {
                         e.preventDefault();
                         return;
@@ -163,19 +163,19 @@
                     }
                     e.cancelBubble = !0;
                 }
-                function P(e) {
+                function L(e) {
                     return (
                         e == 'shift' || e == 'ctrl' || e == 'alt' || e == 'meta'
                     );
                 }
                 function B() {
-                    if (!A) {
-                        A = {};
-                        for (var e in p)
+                    if (!C) {
+                        C = {};
+                        for (var e in v)
                             (e > 95 && e < 112) ||
-                                (p.hasOwnProperty(e) && (A[p[e]] = e));
+                                (v.hasOwnProperty(e) && (C[v[e]] = e));
                     }
-                    return A;
+                    return C;
                 }
                 function X(e, r, o) {
                     return (
@@ -189,30 +189,30 @@
                         ? ['+']
                         : ((e = e.replace(/\+{2}/g, '+plus')), e.split('+'));
                 }
-                function G(e, r) {
+                function U(e, r) {
                     var o,
                         h,
-                        k,
-                        M = [];
-                    for (o = Y(e), k = 0; k < o.length; ++k)
-                        ((h = o[k]),
-                            S[h] && (h = S[h]),
+                        O,
+                        S = [];
+                    for (o = Y(e), O = 0; O < o.length; ++O)
+                        ((h = o[O]),
+                            g[h] && (h = g[h]),
                             r &&
                                 r != 'keypress' &&
-                                v[h] &&
-                                ((h = v[h]), M.push('shift')),
-                            P(h) && M.push(h));
+                                u[h] &&
+                                ((h = u[h]), S.push('shift')),
+                            L(h) && S.push(h));
                     return (
-                        (r = X(h, M, r)),
-                        { key: h, modifiers: M, action: r }
+                        (r = X(h, S, r)),
+                        { key: h, modifiers: S, action: r }
                     );
                 }
-                function U(e, r) {
+                function G(e, r) {
                     return e === null || e === s
                         ? !1
                         : e === r
                           ? !0
-                          : U(e.parentNode, r);
+                          : G(e.parentNode, r);
                 }
                 function _(e) {
                     var r = this;
@@ -220,9 +220,9 @@
                     ((r.target = e), (r._callbacks = {}), (r._directMap = {}));
                     var o = {},
                         h,
-                        k = !1,
-                        M = !1,
-                        L = !1;
+                        O = !1,
+                        S = !1,
+                        P = !1;
                     function D(i) {
                         i = i || {};
                         var f = !1,
@@ -234,70 +234,70 @@
                             }
                             o[c] = 0;
                         }
-                        f || (L = !1);
+                        f || (P = !1);
                     }
-                    function I(i, f, c, l, d, b) {
-                        var u,
+                    function I(i, f, c, l, p, k) {
+                        var d,
                             m,
-                            C = [],
-                            O = c.type;
+                            E = [],
+                            A = c.type;
                         if (!r._callbacks[i]) return [];
                         for (
-                            O == 'keyup' && P(i) && (f = [i]), u = 0;
-                            u < r._callbacks[i].length;
-                            ++u
+                            A == 'keyup' && L(i) && (f = [i]), d = 0;
+                            d < r._callbacks[i].length;
+                            ++d
                         )
                             if (
-                                ((m = r._callbacks[i][u]),
+                                ((m = r._callbacks[i][d]),
                                 !(!l && m.seq && o[m.seq] != m.level) &&
-                                    O == m.action &&
-                                    ((O == 'keypress' &&
+                                    A == m.action &&
+                                    ((A == 'keypress' &&
                                         !c.metaKey &&
                                         !c.ctrlKey) ||
-                                        F(f, m.modifiers)))
+                                        j(f, m.modifiers)))
                             ) {
-                                var $ = !l && m.combo == d,
-                                    ee = l && m.seq == l && m.level == b;
-                                (($ || ee) && r._callbacks[i].splice(u, 1),
-                                    C.push(m));
+                                var $ = !l && m.combo == p,
+                                    ee = l && m.seq == l && m.level == k;
+                                (($ || ee) && r._callbacks[i].splice(d, 1),
+                                    E.push(m));
                             }
-                        return C;
+                        return E;
                     }
                     function q(i, f, c, l) {
                         r.stopCallback(f, f.target || f.srcElement, c, l) ||
-                            (i(f, c) === !1 && (H(f), J(f)));
+                            (i(f, c) === !1 && (V(f), J(f)));
                     }
                     r._handleKey = function (i, f, c) {
                         var l = I(i, f, c),
-                            d,
-                            b = {},
-                            u = 0,
+                            p,
+                            k = {},
+                            d = 0,
                             m = !1;
-                        for (d = 0; d < l.length; ++d)
-                            l[d].seq && (u = Math.max(u, l[d].level));
-                        for (d = 0; d < l.length; ++d) {
-                            if (l[d].seq) {
-                                if (l[d].level != u) continue;
+                        for (p = 0; p < l.length; ++p)
+                            l[p].seq && (d = Math.max(d, l[p].level));
+                        for (p = 0; p < l.length; ++p) {
+                            if (l[p].seq) {
+                                if (l[p].level != d) continue;
                                 ((m = !0),
-                                    (b[l[d].seq] = 1),
-                                    q(l[d].callback, c, l[d].combo, l[d].seq));
+                                    (k[l[p].seq] = 1),
+                                    q(l[p].callback, c, l[p].combo, l[p].seq));
                                 continue;
                             }
-                            m || q(l[d].callback, c, l[d].combo);
+                            m || q(l[p].callback, c, l[p].combo);
                         }
-                        var C = c.type == 'keypress' && M;
-                        (c.type == L && !P(i) && !C && D(b),
-                            (M = m && c.type == 'keydown'));
+                        var E = c.type == 'keypress' && S;
+                        (c.type == P && !L(i) && !E && D(k),
+                            (S = m && c.type == 'keydown'));
                     };
                     function T(i) {
                         typeof i.which != 'number' && (i.which = i.keyCode);
                         var f = x(i);
                         if (f) {
-                            if (i.type == 'keyup' && k === f) {
-                                k = !1;
+                            if (i.type == 'keyup' && O === f) {
+                                O = !1;
                                 return;
                             }
-                            r.handleKey(f, V(i), i);
+                            r.handleKey(f, F(i), i);
                         }
                     }
                     function Q() {
@@ -305,49 +305,49 @@
                     }
                     function Z(i, f, c, l) {
                         o[i] = 0;
-                        function d(O) {
+                        function p(A) {
                             return function () {
-                                ((L = O), ++o[i], Q());
+                                ((P = A), ++o[i], Q());
                             };
                         }
-                        function b(O) {
-                            (q(c, O, i),
-                                l !== 'keyup' && (k = x(O)),
+                        function k(A) {
+                            (q(c, A, i),
+                                l !== 'keyup' && (O = x(A)),
                                 setTimeout(D, 10));
                         }
-                        for (var u = 0; u < f.length; ++u) {
-                            var m = u + 1 === f.length,
-                                C = m ? b : d(l || G(f[u + 1]).action);
-                            z(f[u], C, l, i, u);
+                        for (var d = 0; d < f.length; ++d) {
+                            var m = d + 1 === f.length,
+                                E = m ? k : p(l || U(f[d + 1]).action);
+                            z(f[d], E, l, i, d);
                         }
                     }
-                    function z(i, f, c, l, d) {
+                    function z(i, f, c, l, p) {
                         ((r._directMap[i + ':' + c] = f),
                             (i = i.replace(/\s+/g, ' ')));
-                        var b = i.split(' '),
-                            u;
-                        if (b.length > 1) {
-                            Z(i, b, f, c);
+                        var k = i.split(' '),
+                            d;
+                        if (k.length > 1) {
+                            Z(i, k, f, c);
                             return;
                         }
-                        ((u = G(i, c)),
-                            (r._callbacks[u.key] = r._callbacks[u.key] || []),
-                            I(u.key, u.modifiers, { type: u.action }, l, i, d),
-                            r._callbacks[u.key][l ? 'unshift' : 'push']({
+                        ((d = U(i, c)),
+                            (r._callbacks[d.key] = r._callbacks[d.key] || []),
+                            I(d.key, d.modifiers, { type: d.action }, l, i, p),
+                            r._callbacks[d.key][l ? 'unshift' : 'push']({
                                 callback: f,
-                                modifiers: u.modifiers,
-                                action: u.action,
+                                modifiers: d.modifiers,
+                                action: d.action,
                                 seq: l,
-                                level: d,
+                                level: p,
                                 combo: i,
                             }));
                     }
                     ((r._bindMultiple = function (i, f, c) {
                         for (var l = 0; l < i.length; ++l) z(i[l], f, c);
                     }),
-                        E(e, 'keypress', T),
-                        E(e, 'keydown', T),
-                        E(e, 'keyup', T));
+                        M(e, 'keypress', T),
+                        M(e, 'keydown', T),
+                        M(e, 'keyup', T));
                 }
                 ((_.prototype.bind = function (e, r, o) {
                     var h = this;
@@ -378,7 +378,7 @@
                         if (
                             (' ' + r.className + ' ').indexOf(' mousetrap ') >
                                 -1 ||
-                            U(r, o.target)
+                            G(r, o.target)
                         )
                             return !1;
                         if (
@@ -400,8 +400,8 @@
                         return e._handleKey.apply(e, arguments);
                     }),
                     (_.addKeycodes = function (e) {
-                        for (var r in e) e.hasOwnProperty(r) && (p[r] = e[r]);
-                        A = null;
+                        for (var r in e) e.hasOwnProperty(r) && (v[r] = e[r]);
+                        C = null;
                     }),
                     (_.init = function () {
                         var e = _(s);
@@ -431,14 +431,14 @@
         if (t) {
             var n = {},
                 a = t.prototype.stopCallback;
-            ((t.prototype.stopCallback = function (s, g, p, w) {
-                var v = this;
-                return v.paused ? !0 : n[p] || n[w] ? !1 : a.call(v, s, g, p);
+            ((t.prototype.stopCallback = function (s, w, v, b) {
+                var u = this;
+                return u.paused ? !0 : n[v] || n[b] ? !1 : a.call(u, s, w, v);
             }),
-                (t.prototype.bindGlobal = function (s, g, p) {
-                    var w = this;
-                    if ((w.bind(s, g, p), s instanceof Array)) {
-                        for (var v = 0; v < s.length; v++) n[s[v]] = !0;
+                (t.prototype.bindGlobal = function (s, w, v) {
+                    var b = this;
+                    if ((b.bind(s, w, v), s instanceof Array)) {
+                        for (var u = 0; u < s.length; u++) n[s[u]] = !0;
                         return;
                     }
                     n[s] = !0;
@@ -446,44 +446,44 @@
                 t.init());
         }
     })(typeof Mousetrap < 'u' ? Mousetrap : void 0);
-    var R = () =>
+    var H = () =>
             Array.from(document.querySelectorAll('[aria-modal="true"]')).find(
                 (t) => window.getComputedStyle(t).display !== 'none',
             ),
-        pe = (t) => {
+        de = (t) => {
             t.directive(
                 'mousetrap',
-                (n, { modifiers: a, expression: s }, { evaluate: g }) => {
-                    let p = () => (s ? g(s) : n.click());
-                    ((a = a.map((w) =>
-                        w
+                (
+                    n,
+                    { modifiers: a, expression: s },
+                    { cleanup: w, evaluate: v },
+                ) => {
+                    let b = () => (s ? v(s) : n.click());
+                    ((a = a.map((u) =>
+                        u
                             .replace(/--/g, ' ')
                             .replace(/-/g, '+')
                             .replace(/\bslash\b/g, '/'),
                     )),
                         a.includes('global') &&
-                            ((a = a.filter((w) => w !== 'global')),
-                            K.default.bindGlobal(a, (w) => {
-                                let v = R();
-                                (v && !v.contains(n)) ||
-                                    (w.preventDefault(), p());
+                            ((a = a.filter((u) => u !== 'global')),
+                            K.default.bindGlobal(a, (u) => {
+                                let g = H();
+                                (g && !g.contains(n)) ||
+                                    (u.preventDefault(), b());
                             })),
-                        K.default.bind(a, (w) => {
-                            let v = R();
-                            (v && !v.contains(n)) || (w.preventDefault(), p());
+                        K.default.bind(a, (u) => {
+                            let g = H();
+                            (g && !g.contains(n)) || (u.preventDefault(), b());
                         }),
-                        document.addEventListener(
-                            'livewire:navigating',
-                            () => {
-                                K.default.unbind(a);
-                            },
-                            { once: !0 },
-                        ));
+                        w(() => {
+                            K.default.unbind(a);
+                        }));
                 },
             );
         },
-        W = pe;
-    var j = () => ({
+        R = de;
+    var W = () => ({
         isOpen: window.Alpine.$persist(!0).as('isOpen'),
         isOpenDesktop: window.Alpine.$persist(!0).as('isOpenDesktop'),
         collapsedGroups: window.Alpine.$persist(null).as('collapsedGroups'),
@@ -516,11 +516,11 @@
                 let n = window.innerWidth,
                     a = t >= 1024,
                     s = n < 1024,
-                    g = n >= 1024;
+                    w = n >= 1024;
                 (a && s
                     ? ((this.isOpenDesktop = this.isOpen),
                       this.isOpen && this.close())
-                    : !a && g && (this.isOpen = this.isOpenDesktop),
+                    : !a && w && (this.isOpen = this.isOpenDesktop),
                     (t = n));
             })),
                 this.resizeObserver.observe(document.body),
@@ -591,38 +591,38 @@
     document.addEventListener('livewire:init', () => {
         Livewire.interceptRequest(
             ({ request: t, onError: n, onFailure: a }) => {
-                (n(({ response: s, preventDefault: g }) => {
-                    let p = window.filamentErrorNotifications;
-                    if (!p) return;
+                (n(({ response: s, preventDefault: w }) => {
+                    let v = window.filamentErrorNotifications;
+                    if (!v) return;
                     try {
-                        let S = t?.payload;
-                        if (S && S.components.length === 1) {
-                            for (let A of S.components)
+                        let g = t?.payload;
+                        if (g && g.components.length === 1) {
+                            for (let C of g.components)
                                 if (
-                                    JSON.parse(A.snapshot).data
+                                    JSON.parse(C.snapshot).data
                                         .isFilamentNotificationsComponent
                                 )
                                     return;
                         }
                     } catch {}
-                    let w = s?.status ?? '',
-                        v = p[w] ?? p[''];
-                    v.isDisabled !== !0 &&
-                        (g(),
-                        v.isHidden !== !0 &&
+                    let b = s?.status ?? '',
+                        u = v[b] ?? v[''];
+                    u.isDisabled !== !0 &&
+                        (w(),
+                        u.isHidden !== !0 &&
                             new FilamentNotification()
-                                .title(v.title)
-                                .body(v.body)
+                                .title(u.title)
+                                .body(u.body)
                                 .danger()
                                 .send());
                 }),
                     a(() => {
                         let s = window.filamentErrorNotifications;
                         if (!s) return;
-                        let g = s[''];
+                        let w = s[''];
                         new FilamentNotification()
-                            .title(g.title)
-                            .body(g.body)
+                            .title(w.title)
+                            .body(w.body)
                             .danger()
                             .send();
                     }));
@@ -658,12 +658,16 @@
         livewireComponent: n,
         $wire: a,
     }) => {
-        window.addEventListener('beforeunload', (s) => {
+        let s = (w) => {
             window.jsMd5(JSON.stringify(a.data).replace(/\\/g, '')) ===
                 a.savedDataHash ||
                 a?.__instance?.effects?.redirect ||
-                (s.preventDefault(), (s.returnValue = !0));
-        });
+                (w.preventDefault(), (w.returnValue = !0));
+        };
+        (window.addEventListener('beforeunload', s),
+            a.__instance.addCleanup(() =>
+                window.removeEventListener('beforeunload', s),
+            ));
     };
     window.setUpSpaModeUnsavedDataChangesAlert = ({
         body: t,
@@ -676,33 +680,45 @@
                     : window.jsMd5(
                           JSON.stringify(a.data).replace(/\\/g, ''),
                       ) !== a.savedDataHash,
-            g = () => confirm(t);
-        (document.addEventListener('livewire:navigate', (p) => {
-            if (typeof n() < 'u') {
-                if (!s() || g()) return;
-                p.preventDefault();
-            }
-        }),
-            window.addEventListener('beforeunload', (p) => {
-                s() && (p.preventDefault(), (p.returnValue = !0));
+            w = () => confirm(t),
+            v = (u) => {
+                if (typeof n() < 'u') {
+                    if (!s() || w()) return;
+                    u.preventDefault();
+                }
+            },
+            b = (u) => {
+                s() && (u.preventDefault(), (u.returnValue = !0));
+            };
+        (document.addEventListener('livewire:navigate', v),
+            window.addEventListener('beforeunload', b),
+            a.__instance.addCleanup(() => {
+                (document.removeEventListener('livewire:navigate', v),
+                    window.removeEventListener('beforeunload', b));
             }));
     };
     window.setUpUnsavedActionChangesAlert = ({
         resolveLivewireComponentUsing: t,
         $wire: n,
     }) => {
-        window.addEventListener('beforeunload', (a) => {
+        let a = (s) => {
             if (
                 !(typeof t() > 'u') &&
-                (n.mountedActions?.length ?? 0) &&
+                (n.mountedActions ?? []).some(
+                    (w) => w.hasUnsavedChangesAlert ?? !0,
+                ) &&
                 !n?.__instance?.effects?.redirect
             ) {
-                (a.preventDefault(), (a.returnValue = !0));
+                (s.preventDefault(), (s.returnValue = !0));
                 return;
             }
-        });
+        };
+        (window.addEventListener('beforeunload', a),
+            n.__instance.addCleanup(() =>
+                window.removeEventListener('beforeunload', a),
+            ));
     };
     document.addEventListener('alpine:init', () => {
-        (window.Alpine.plugin(W), window.Alpine.store('sidebar', j()));
+        (window.Alpine.plugin(R), window.Alpine.store('sidebar', W()));
     });
 })();

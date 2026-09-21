@@ -90,7 +90,15 @@ export const HeaderMenuMovil = ({
                             )}
 
                             <DropdownMenuItem
-                                onClick={() => router.visit('/mis-reservas')}
+                                onClick={() => router.visit('/portal')}
+                                className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary"
+                            >
+                                <LayoutDashboard className="size-3.5" />
+                                <span>Portal Huéspedes</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                                onClick={() => router.visit('/portal/reservas')}
                                 className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground"
                             >
                                 <BedDouble className="size-3.5 text-muted-foreground" />

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Cocina;
 
 use App\Enums\Compras\EstadoSolicitud;
-use App\Enums\Restaurante\UbicacionCocina;
 use App\Notifications\Compras\NotificadorCompras;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Compras\Solicitud;
@@ -14,7 +13,7 @@ use App\Repository\Models\Shared\Stock;
 use App\Repository\Models\User;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 final readonly class ResolverSolicitudAbastecimientoCocina
@@ -35,7 +34,7 @@ final readonly class ResolverSolicitudAbastecimientoCocina
 
             $this->validarAutorizacionInventario($usuarioId);
 
-            $destinoId = $this->obtenerUbicacionCocinaId();
+            $destinoId = $this->repositorio->obtenerUbicacionCocinaId();
             $faltantes = $this->faltantesInventarioInterno($solicitud, $destinoId);
 
             if ($faltantes !== []) {
@@ -55,11 +54,11 @@ final readonly class ResolverSolicitudAbastecimientoCocina
                 ];
             }
 
-            $destino = Ubicacion::query()->find($destinoId);
+            $destino = $this->repositorio->obtenerUbicacionPorId($destinoId);
             $detalle = implode('; ', array_slice($traslados, 0, 8));
             $nota = '['.now()->format('d/m/Y H:i').'] RESUELTO CON INVENTARIO: '.$detalle;
             $solicitud->notas = trim((string) ($solicitud->notas ?? '')."\n".$nota);
-            $solicitud->save();
+            $this->repositorio->guardarSolicitudAbastecimiento($solicitud);
 
             $this->notificadorCompras->abastecimientoCocinaResueltoConInventario($solicitud, $traslados);
 
@@ -69,7 +68,7 @@ final readonly class ResolverSolicitudAbastecimientoCocina
 
     private function validarAutorizacionInventario(?int $usuarioId): void
     {
-        $usuario = $usuarioId !== null ? User::query()->find($usuarioId) : null;
+        $usuario = $usuarioId !== null ? $this->repositorio->obtenerUsuarioPorId($usuarioId) : null;
 
         if (! $usuario instanceof User || ! $usuario->can('Inventario:ResolverAbastecimientoCocina')) {
             throw new DomainException('Debe autorizar esta resolución un usuario con permiso de inventario.');
@@ -121,7 +120,7 @@ final readonly class ResolverSolicitudAbastecimientoCocina
             return [];
         }
 
-        $destino = Ubicacion::query()->find($destinoId);
+        $destino = $this->repositorio->obtenerUbicacionPorId($destinoId);
         $destinoNombre = $destino->nombre ?? 'Cocina';
 
         foreach ($this->stocksDisponibles($varianteId, $destinoId) as $stockOrigen) {
@@ -136,14 +135,14 @@ final readonly class ResolverSolicitudAbastecimientoCocina
             }
 
             $origenId = (int) $stockOrigen->stockable_id;
-            $origen = Ubicacion::query()->find($origenId);
+            $origen = $this->repositorio->obtenerUbicacionPorId($origenId);
             $origenNombre = $origen->nombre ?? "Bodega #{$origenId}";
             $stockOrigen->cantidad_actual = (float) $stockOrigen->cantidad_actual - $cantidad;
             $this->repositorio->guardarStock($stockOrigen);
 
             $stockDestino = $this->repositorio->obtenerStockPorVariante($destinoId, $varianteId);
             if (! $stockDestino instanceof Stock) {
-                $stockDestino = Stock::query()->create([
+                $stockDestino = $this->repositorio->crearStock([
                     'stockable_type' => Ubicacion::class,
                     'stockable_id' => $destinoId,
                     'producto_variante_id' => $varianteId,
@@ -186,22 +185,11 @@ final readonly class ResolverSolicitudAbastecimientoCocina
     }
 
     /**
-     * @return EloquentCollection<int, Stock>
+     * @return Collection<int, Stock>
      */
-    private function stocksDisponibles(int $varianteId, int $destinoId): EloquentCollection
+    private function stocksDisponibles(int $varianteId, int $destinoId): Collection
     {
-        /** @var EloquentCollection<int, Stock> $stocks */
-        $stocks = Stock::query()
-            ->with('lote')
-            ->where('stockable_type', Ubicacion::class)
-            ->where('stockable_id', '!=', $destinoId)
-            ->where('producto_variante_id', $varianteId)
-            ->where('cantidad_actual', '>', 0)
-            ->orderByDesc('cantidad_actual')
-            ->lockForUpdate()
-            ->get();
-
-        return $stocks;
+        return $this->repositorio->obtenerStocksDisponiblesParaTraslado($varianteId, $destinoId);
     }
 
     private function cantidadAResolver(SolicitudItem $item): float
@@ -217,21 +205,5 @@ final readonly class ResolverSolicitudAbastecimientoCocina
         $variante = $item->variante !== null ? ($item->variante->nombre_variante ?: $item->variante->codigo) : null;
 
         return $variante !== null ? "{$producto} - {$variante}" : $producto;
-    }
-
-    private function obtenerUbicacionCocinaId(): int
-    {
-        $id = Ubicacion::query()
-            ->where('nombre', UbicacionCocina::RESTAURANTE->value)
-            ->orWhere('nombre', 'Cocina')
-            ->orWhere('nombre', 'like', '%Cocina%')
-            ->orWhere('tipo', 'cocina')
-            ->value('id');
-
-        if (! is_numeric($id)) {
-            throw new DomainException('No existe una ubicación de cocina configurada para recibir abastecimiento.');
-        }
-
-        return (int) $id;
     }
 }

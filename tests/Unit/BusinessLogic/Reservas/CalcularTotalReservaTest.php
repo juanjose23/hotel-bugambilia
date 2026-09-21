@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\CalcularTotalReserva;
+use App\BusinessLogic\Reservas\Calculos\CalcularTotalReserva;
 
 test('calcula total principal multiplicando por unidades', function (): void {
     $calculator = new CalcularTotalReserva;

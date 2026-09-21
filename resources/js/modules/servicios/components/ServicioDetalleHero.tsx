@@ -6,6 +6,7 @@ import {
     MessageCircle,
     MessageSquare,
 } from 'lucide-react';
+import { DynamicIcon } from '@/modules/shared/components/DynamicIcon';
 import { Button } from '@/modules/shared/components/ui/button';
 import type { ServicioItem } from '../types';
 
@@ -96,7 +97,14 @@ export const ServicioDetalleHero = ({
                     <div className="flex flex-col justify-between lg:col-span-5">
                         <div>
                             <div className="inline-flex items-center gap-1.5 text-xs font-black tracking-wider text-primary uppercase dark:text-rose-400">
-                                <Award className="size-3.5" />
+                                {service.icono ? (
+                                    <DynamicIcon
+                                        name={service.icono}
+                                        className="size-4"
+                                    />
+                                ) : (
+                                    <Award className="size-3.5" />
+                                )}
                                 <span>Hotel Bugambilias • Estelí</span>
                             </div>
 

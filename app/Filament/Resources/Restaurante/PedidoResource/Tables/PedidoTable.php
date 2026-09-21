@@ -23,6 +23,7 @@ use App\Interactors\Restaurante\Pedidos\SepararPedido;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -41,7 +42,7 @@ final class PedidoTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['items.plato', 'cuenta.detalles', 'mesa', 'mesero.persona']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['items.plato', 'items.producto', 'items.variante', 'cuenta.detalles', 'cuenta.moneda', 'mesa', 'mesero.persona']))
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('codigo')
@@ -66,7 +67,7 @@ final class PedidoTable
                     ->placeholder('—'),
                 TextColumn::make('items_count')
                     ->counts('items')
-                    ->label('Platos')
+                    ->label('Ítems')
                     ->sortable(),
                 MontoMonedaColumn::make('subtotal')
                     ->label('Subtotal'),
@@ -112,11 +113,11 @@ final class PedidoTable
                             }
 
                             $items = $cuenta->detalles
-                                ->map(function ($detalle): string {
+                                ->map(function ($detalle) use ($cuenta): string {
                                     $concepto = e((string) $detalle->concepto);
-                                    $total = number_format((float) $detalle->total, 2);
+                                    $total = MonedaHelper::formatear((float) $detalle->total, $cuenta->moneda);
 
-                                    return "<li class=\"flex items-center justify-between gap-4 py-2 border-b border-gray-100 dark:border-gray-800\"><span>{$concepto}</span><strong>C$ {$total}</strong></li>";
+                                    return "<li class=\"flex items-center justify-between gap-4 py-2 border-b border-gray-100 dark:border-gray-800\"><span>{$concepto}</span><strong>{$total}</strong></li>";
                                 })
                                 ->implode('');
 
@@ -365,9 +366,10 @@ final class PedidoTable
                 EstadoItemPedido::LISTO,
                 EstadoItemPedido::SERVIDO,
             ], true))
-            ->mapWithKeys(function ($item): array {
+            ->mapWithKeys(function ($item) use ($pedido): array {
                 $nombre = $item->plato !== null ? $item->plato->nombre : 'Producto #'.$item->plato_id;
-                $label = "{$nombre} x {$item->cantidad} - C$ ".number_format((float) $item->subtotal, 2);
+                $subtotalFmt = MonedaHelper::formatear((float) $item->subtotal, $pedido->cuenta?->moneda);
+                $label = "{$nombre} x {$item->cantidad} - {$subtotalFmt}";
 
                 return [(int) $item->id => (string) $label];
             })

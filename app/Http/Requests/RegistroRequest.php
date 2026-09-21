@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\Repository\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -38,7 +39,17 @@ final class RegistroRequest extends FormRequest
             'phone' => [$tipoPersona === 'juridica' ? 'required' : 'nullable', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'tipo_identificacion' => ['nullable', 'string', 'max:30', 'required_with:numero_identificacion'],
-            'numero_identificacion' => ['nullable', 'string', 'max:50', 'required_with:tipo_identificacion'],
+            'numero_identificacion' => [
+                'nullable',
+                'string',
+                'max:50',
+                'required_with:tipo_identificacion',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($this->input('tipo_identificacion') === 'cedula' && filled($value)) {
+                        (new ValidCedulaNicaragua)->validate($attribute, $value, $fail);
+                    }
+                },
+            ],
         ];
 
         if ($tipoPersona === 'juridica') {

@@ -9,7 +9,7 @@ use App\Events\Inventario\MermaRegistrada;
 use App\Repository\Models\Inventario\Lote;
 use Illuminate\Support\Facades\DB;
 
-class RegistrarMerma
+final class RegistrarMerma
 {
     public function __construct(
         private readonly Lote $modeloLote,

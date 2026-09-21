@@ -5130,29 +5130,30 @@
     var Ai = se;
     window.Sortable = Ai;
     var Ho = (e) => {
-        e.directive('sortable', (t) => {
-            let r = parseInt(t.dataset?.sortableAnimationDuration);
-            (r !== 0 && !r && (r = 300),
+        e.directive('sortable', (t, {}, { cleanup: r }) => {
+            let n = parseInt(t.dataset?.sortableAnimationDuration);
+            (n !== 0 && !n && (n = 300),
                 (t.sortable = Ai.create(t, {
                     group: t.getAttribute('x-sortable-group'),
                     draggable: '[x-sortable-item]',
                     handle: '[x-sortable-handle]',
                     dataIdAttr: 'x-sortable-item',
-                    animation: r,
+                    animation: n,
                     ghostClass: 'fi-sortable-ghost',
-                    onEnd(n) {
+                    onEnd(i) {
                         let {
-                            item: i,
-                            to: o,
-                            oldDraggableIndex: a,
-                            newDraggableIndex: d,
-                        } = n;
-                        if (a === d) return;
-                        let u = this.options.draggable,
-                            c = o.querySelectorAll(`:scope > ${u}`)[d - 1];
-                        c && o.insertBefore(i, c.nextSibling);
+                            item: o,
+                            to: a,
+                            oldDraggableIndex: d,
+                            newDraggableIndex: u,
+                        } = i;
+                        if (d === u) return;
+                        let c = this.options.draggable,
+                            y = a.querySelectorAll(`:scope > ${c}`)[u - 1];
+                        y && a.insertBefore(o, y.nextSibling);
                     },
-                })));
+                })),
+                r(() => t.sortable.destroy()));
         });
     };
     var Cs = Object.create,
@@ -8792,23 +8793,39 @@
         Vo = Fs;
     var zo = () => ({
         panelId: null,
+        observer: null,
+        navigateListener: null,
         init() {
-            (document.addEventListener('livewire:navigate', () => this.close()),
+            ((this.navigateListener = () => this.close()),
+                document.addEventListener(
+                    'livewire:navigate',
+                    this.navigateListener,
+                ),
                 this.setUpAria());
+        },
+        destroy() {
+            (this.observer?.disconnect(),
+                (this.observer = null),
+                document.removeEventListener(
+                    'livewire:navigate',
+                    this.navigateListener,
+                ),
+                (this.navigateListener = null));
         },
         setUpAria() {
             let e = this.getTrigger(),
                 t = this.$refs.panel;
-            if (!e || !t) return;
-            (this.panelId ??
-                (this.panelId =
-                    t.id ||
-                    'fi-dropdown-panel-' +
-                        Math.random().toString(36).slice(2, 10)),
-                this.syncAria());
-            let r = new MutationObserver(() => this.syncAria());
-            (r.observe(t, { attributeFilter: ['id', 'style'] }),
-                r.observe(e, {
+            !e ||
+                !t ||
+                (this.panelId ??
+                    (this.panelId =
+                        t.id ||
+                        'fi-dropdown-panel-' +
+                            Math.random().toString(36).slice(2, 10)),
+                this.syncAria(),
+                (this.observer = new MutationObserver(() => this.syncAria())),
+                this.observer.observe(t, { attributeFilter: ['id', 'style'] }),
+                this.observer.observe(e, {
                     attributeFilter: [
                         'aria-controls',
                         'aria-expanded',
@@ -8853,23 +8870,37 @@
     });
     var Yo = () => ({
         form: null,
+        eventListenersController: null,
         processingCount: 0,
         isProcessing: !1,
         processingMessage: null,
         init() {
-            let e = this.$el.closest('form');
-            (e?.addEventListener('form-processing-started', (t) => {
-                (this.processingCount++,
-                    (this.isProcessing = !0),
-                    (this.processingMessage = t.detail.message));
-            }),
-                e?.addEventListener('form-processing-finished', () => {
-                    ((this.processingCount = Math.max(
-                        0,
-                        this.processingCount - 1,
-                    )),
-                        (this.isProcessing = this.processingCount > 0));
-                }));
+            ((this.form = this.$el.closest('form')),
+                (this.eventListenersController = new AbortController()));
+            let { signal: e } = this.eventListenersController;
+            (this.form?.addEventListener(
+                'form-processing-started',
+                (t) => {
+                    (this.processingCount++,
+                        (this.isProcessing = !0),
+                        (this.processingMessage = t.detail.message));
+                },
+                { signal: e },
+            ),
+                this.form?.addEventListener(
+                    'form-processing-finished',
+                    () => {
+                        ((this.processingCount = Math.max(
+                            0,
+                            this.processingCount - 1,
+                        )),
+                            (this.isProcessing = this.processingCount > 0));
+                    },
+                    { signal: e },
+                ));
+        },
+        destroy() {
+            this.eventListenersController?.abort();
         },
     });
     var nr = 0,

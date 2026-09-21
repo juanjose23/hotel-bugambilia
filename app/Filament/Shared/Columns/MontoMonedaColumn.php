@@ -8,6 +8,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Support\MonedaHelper;
 use Closure;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
 
 class MontoMonedaColumn
 {
@@ -28,11 +29,48 @@ class MontoMonedaColumn
         }
 
         return MonedaHelper::codigo(self::instancia(
-            data_get($record, 'moneda')
-                ?? data_get($record, 'cuenta.moneda')
-                ?? data_get($record, 'reserva.moneda')
-                ?? data_get($record, 'transaccion.moneda'),
+            self::resolverValor($record, 'moneda')
+                ?? self::resolverValor($record, 'cuenta.moneda')
+                ?? self::resolverValor($record, 'reserva.moneda')
+                ?? self::resolverValor($record, 'transaccion.moneda'),
         ));
+    }
+
+    private static function resolverValor(mixed $record, string $ruta): mixed
+    {
+        $actual = $record;
+
+        foreach (explode('.', $ruta) as $segmento) {
+            if ($actual instanceof Model) {
+                if (! $actual->relationLoaded($segmento)) {
+                    if (! method_exists($actual, $segmento)) {
+                        return null;
+                    }
+
+                    $actual->loadMissing($segmento);
+                }
+
+                $actual = $actual->getRelation($segmento);
+
+                continue;
+            }
+
+            if (is_array($actual)) {
+                $actual = $actual[$segmento] ?? null;
+
+                continue;
+            }
+
+            if (is_object($actual) && property_exists($actual, $segmento)) {
+                $actual = $actual->{$segmento} ?? null;
+
+                continue;
+            }
+
+            return null;
+        }
+
+        return $actual;
     }
 
     private static function instancia(mixed $moneda): ?Moneda

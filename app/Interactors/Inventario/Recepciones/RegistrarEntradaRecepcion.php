@@ -8,17 +8,19 @@ use App\BusinessLogic\Inventario\Servicios\CreadorLoteRecepcion;
 use App\BusinessLogic\Inventario\Servicios\IndividualizadorAutomaticoRecepcion;
 use App\BusinessLogic\Inventario\Validacion\ReglasLotesRecepcion;
 use App\Enums\Activos\EstadoIndividualizacion;
+use App\Enums\Catalogos\TipoProducto;
 use App\Enums\Inventario\EstadoLote;
-use App\Repository\Models\Activos\RegistroIndividualizacion;
+use App\Repository\Persistencia\Activos\RegistroIndividualizacionRepositorioInterface;
 use App\Repository\Queries\Catalogos\BuscarProductoPorId;
 
-class RegistrarEntradaRecepcion
+final readonly class RegistrarEntradaRecepcion
 {
     public function __construct(
-        private readonly IndividualizadorAutomaticoRecepcion $individualizador,
-        private readonly CreadorLoteRecepcion $creadorLote,
-        private readonly ReglasLotesRecepcion $reglas,
-        private readonly BuscarProductoPorId $buscarProductoPorId
+        private IndividualizadorAutomaticoRecepcion $individualizador,
+        private CreadorLoteRecepcion $creadorLote,
+        private ReglasLotesRecepcion $reglas,
+        private BuscarProductoPorId $buscarProductoPorId,
+        private RegistroIndividualizacionRepositorioInterface $registroRepositorio,
     ) {}
 
     /**
@@ -40,9 +42,11 @@ class RegistrarEntradaRecepcion
 
             $productoId = (int) $item['producto_id'];
             $producto = $this->buscarProductoPorId->ejecutar($productoId);
-            if ($producto && $producto->tipo === 3) {
-                $registro = RegistroIndividualizacion::firstOrCreate(
-                    ['recepcion_item_id' => (int) $item['id']],
+            $tipoProducto = $producto !== null ? TipoProducto::tryFrom($producto->tipo) : null;
+
+            if ($tipoProducto === TipoProducto::ActivoFijo) {
+                $registro = $this->registroRepositorio->buscarOrCreate(
+                    (int) $item['id'],
                     [
                         'producto_id' => $productoId,
                         'producto_variante_id' => isset($item['producto_variante_id']) ? (int) $item['producto_variante_id'] : null,

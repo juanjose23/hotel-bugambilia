@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Reservas;
 
-use App\BusinessLogic\Reservas\CalcularResumenRestaurante;
+use App\BusinessLogic\Reservas\Calculos\CalcularResumenRestaurante;
+use App\BusinessLogic\Reservas\Data\EspacioAdicionalItemData;
+use App\BusinessLogic\Reservas\Data\PreordenItemData;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Monedas\Moneda;
@@ -52,6 +54,14 @@ final readonly class CalcularResumenRestauranteQuery
             : [];
 
         foreach ($espaciosAdicionales as $espacio) {
+            if ($espacio instanceof EspacioAdicionalItemData) {
+                if ($espacio->espacioId > 0) {
+                    $ids[] = $espacio->espacioId;
+                }
+
+                continue;
+            }
+
             if (
                 ! is_array($espacio)
                 || ! is_numeric($espacio['espacio_id'] ?? null)
@@ -98,7 +108,11 @@ final readonly class CalcularResumenRestauranteQuery
 
         $platoIds = [];
         foreach ($itemsPreorden as $item) {
-            if (is_array($item) && is_numeric($item['plato_id'] ?? null)) {
+            if ($item instanceof PreordenItemData) {
+                if ($item->platoId > 0) {
+                    $platoIds[] = $item->platoId;
+                }
+            } elseif (is_array($item) && is_numeric($item['plato_id'] ?? null)) {
                 $platoIds[] = (int) $item['plato_id'];
             }
         }
@@ -133,6 +147,17 @@ final readonly class CalcularResumenRestauranteQuery
         $preorden = [];
 
         foreach ($itemsPreorden as $item) {
+            if ($item instanceof PreordenItemData) {
+                $platoId = $item->platoId;
+                $precio = $preciosPlatos[$platoId] ?? $this->pedidos->precioActualDePlato($platoId);
+                $preorden[] = [
+                    'cantidad' => max(1, $item->cantidad),
+                    'precio' => $precio !== null ? $precio : 0.0,
+                ];
+
+                continue;
+            }
+
             if (
                 ! is_array($item)
                 || ! is_numeric($item['plato_id'] ?? null)

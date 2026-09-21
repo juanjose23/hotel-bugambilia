@@ -7,6 +7,7 @@ namespace App\Actions\Restaurante\Voucher;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Support\HotelInfo;
+use App\Support\MonedaHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -14,7 +15,7 @@ final class GenerarVoucherPedidoPDF
 {
     public function ejecutar(Pedido $pedido): StreamedResponse
     {
-        $pedido->loadMissing(['items.plato', 'mesa', 'mesero.persona', 'cliente.personaNatural', 'cliente.personaJuridica', 'cuenta.estancia.habitacion', 'cuenta.moneda']);
+        $pedido->loadMissing(['items.plato', 'mesa', 'mesero.persona', 'cliente.persona', 'cuenta.estancia.habitacion', 'cuenta.moneda']);
 
         $items = $pedido->items->filter(fn ($item) => $item->estado !== EstadoItemPedido::ANULADO);
 
@@ -23,7 +24,7 @@ final class GenerarVoucherPedidoPDF
         $clienteNombre = $pedido->cliente->nombre_completo ?? ('Cliente '.($pedido->mesa->nombre ?? 'Mostrador'));
         $habitacionNumero = $pedido->cuenta->estancia->habitacion->numero ?? null;
 
-        $simboloMoneda = (string) ($pedido->cuenta->moneda->simbolo ?? 'C$');
+        $simboloMoneda = MonedaHelper::simbolo($pedido->cuenta?->moneda);
 
         $pdf = Pdf::loadView('reports.restaurante.voucher-pedido', [
             'pedido' => $pedido,

@@ -7,18 +7,24 @@ namespace App\BusinessLogic\Inventario\Servicios;
 use App\BusinessLogic\Inventario\Estrategias\PutawayPolicy;
 use App\BusinessLogic\Inventario\Validacion\ReglasLotesRecepcion;
 use App\Enums\Inventario\EstadoLote;
-use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Repository\Models\Catalogos\Ubicacion;
-use App\Repository\Models\Compras\RecepcionItem;
-use App\Repository\Models\Inventario\MovimientoStock;
-use App\Repository\Models\Inventario\Stock;
+use App\Repository\Persistencia\Catalogos\ProductoRepositorioInterface;
+use App\Repository\Persistencia\Catalogos\UbicacionRepositorioInterface;
+use App\Repository\Persistencia\Compras\RecepcionRepositorioInterface;
 use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
+use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
+use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
 
-readonly class CreadorLoteRecepcion
+final readonly class CreadorLoteRecepcion
 {
     public function __construct(
         private LoteRepositorioInterface $loteRepositorio,
-        private ReglasLotesRecepcion $reglas
+        private StockRepositorioInterface $stockRepositorio,
+        private MovimientoStockRepositorioInterface $movimientoStockRepositorio,
+        private UbicacionRepositorioInterface $ubicacionRepositorio,
+        private RecepcionRepositorioInterface $recepcionRepositorio,
+        private ProductoRepositorioInterface $productoRepositorio,
+        private PutawayPolicy $putawayPolicy,
+        private ReglasLotesRecepcion $reglas,
     ) {}
 
     /**
@@ -38,37 +44,31 @@ readonly class CreadorLoteRecepcion
     ): void {
         $ubicacion = null;
         if (! empty($item['ubicacion_id'])) {
-            $found = Ubicacion::where('estado', 1)->find($item['ubicacion_id']);
-            if ($found instanceof Ubicacion) {
-                $ubicacion = $found;
-            }
+            $ubicacion = $this->ubicacionRepositorio->buscarPorId((int) $item['ubicacion_id']);
         }
         if (! $ubicacion) {
-            $ubicacion = PutawayPolicy::sugerirUbicacion();
+            $ubicacion = $this->putawayPolicy->sugerirUbicacion();
         }
 
         $ubicacionDetalle = null;
         if (! empty($item['ubicacion_detalle_id'])) {
-            $foundDetalle = Ubicacion::where('estado', 1)->find($item['ubicacion_detalle_id']);
-            if ($foundDetalle instanceof Ubicacion) {
-                $ubicacionDetalle = $foundDetalle;
-            }
+            $ubicacionDetalle = $this->ubicacionRepositorio->buscarPorId((int) $item['ubicacion_detalle_id']);
         }
         if (! $ubicacionDetalle) {
-            $ubicacionDetalle = PutawayPolicy::sugerirSubUbicacion($ubicacion);
+            $ubicacionDetalle = $this->putawayPolicy->sugerirSubUbicacion($ubicacion);
         }
 
         $costoUnitario = null;
         $costoTotal = null;
 
-        $recepcionItem = RecepcionItem::with(['ordenItem.ordenCompra', 'variante'])->find((int) $item['id']);
+        $recepcionItem = $this->recepcionRepositorio->buscarItemPorId((int) $item['id']);
         if ($recepcionItem && $recepcionItem->ordenItem) {
             $precioUnitario = (float) $recepcionItem->ordenItem->precio_unitario;
             $tasaCambio = (float) ($recepcionItem->ordenItem->ordenCompra->tasa_cambio ?? 1.0);
 
             $unidadesPorEmpaque = 1.0;
             if ($varianteId) {
-                $variante = $recepcionItem->variante ?? ProductoVariante::find($varianteId);
+                $variante = $recepcionItem->variante ?? $this->productoRepositorio->buscarVariantePorId($varianteId);
                 $unidadesPorEmpaque = (float) ($variante->unidades_por_empaque ?? 1.0);
             }
 
@@ -97,7 +97,7 @@ readonly class CreadorLoteRecepcion
         ];
         $lote = $this->loteRepositorio->crear($datos);
 
-        Stock::create([
+        $this->stockRepositorio->crear([
             'producto_id' => $productoId,
             'producto_variante_id' => $varianteId,
             'lote_id' => $lote->id,
@@ -106,7 +106,7 @@ readonly class CreadorLoteRecepcion
             'cantidad' => $cantidad,
         ]);
 
-        MovimientoStock::create([
+        $this->movimientoStockRepositorio->registrar([
             'tipo' => 'MOV_ENTRADA',
             'lote_id' => $lote->id,
             'producto_id' => $productoId,

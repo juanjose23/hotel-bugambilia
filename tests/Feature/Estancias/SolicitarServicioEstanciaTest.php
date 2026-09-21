@@ -10,7 +10,7 @@ use App\Enums\Reservas\OrigenReservaDetalle;
 use App\Enums\Reservas\TipoRecursoReservable;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Estancias\SolicitarServicioEstancia;
+use App\Interactors\Reservas\Estancias\SolicitarServicioEstancia;
 use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Interactors\Reservas\Habitaciones\RealizarCheckInHabitacion;
 use App\Repository\Models\Estancias\Estancia;

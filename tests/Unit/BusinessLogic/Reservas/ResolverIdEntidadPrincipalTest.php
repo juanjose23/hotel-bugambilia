@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\LeerDatoReserva;
-use App\BusinessLogic\Reservas\ResolverIdEntidadPrincipal;
+use App\BusinessLogic\Reservas\Resolutores\ResolverIdEntidadPrincipal;
+use App\BusinessLogic\Reservas\Support\LeerDatoReserva;
 use App\Enums\Reservas\TipoReserva;
 
 test('resuelve habitacion_id para tipo HABITACION', function (): void {

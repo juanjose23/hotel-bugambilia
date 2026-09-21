@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\ValidarFechasReserva;
+use App\BusinessLogic\Reservas\Validaciones\ValidarFechasReserva;
 use Illuminate\Support\Carbon;
 
 beforeEach(function (): void {

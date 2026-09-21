@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Interactors\Facturacion\Stripe;
 
 use App\Actions\Facturacion\StripeMontoMenorUnidad;
+use App\BusinessLogic\Facturacion\Stripe\DistribuirReembolsoStripe;
 use App\Enums\Facturacion\EstadoConciliacionPago;
 use App\Enums\Facturacion\EstadoTransaccionPago;
 use App\Enums\Facturacion\PasarelaCodigo;
 use App\Exceptions\StripeApiException;
-use App\Repository\Models\Facturacion\PagoConciliacion;
 use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Facturacion\PagoConciliacionPersistencia;
@@ -25,6 +25,7 @@ final readonly class ReembolsarPagoStripeReserva
         private PagoTransaccionPersistencia $pagoTransaccionPersistencia,
         private StripeMontoMenorUnidad $montoMenorUnidad,
         private PagoConciliacionPersistencia $pagoConciliacionPersistencia,
+        private DistribuirReembolsoStripe $distribuirReembolso,
     ) {}
 
     /**
@@ -121,21 +122,14 @@ final readonly class ReembolsarPagoStripeReserva
             return [];
         }
 
-        $restante = round($montoReembolso, 2);
+        $itemsDistribucion = $this->distribuirReembolso->distribuir($transacciones, $montoReembolso, $reserva);
         $reembolsos = [];
 
-        /** @var PagoTransaccion $transaccion */
-        foreach ($transacciones as $transaccion) {
-            if ($restante <= 0.0) {
-                break;
-            }
-
-            $monedaCodigo = $transaccion->moneda !== null
-                ? (string) $transaccion->moneda->codigo
-                : ($reserva->moneda !== null ? (string) $reserva->moneda->codigo : 'USD');
-            $montoTransaccion = (float) $transaccion->monto;
-            $montoAReembolsar = min($restante, $montoTransaccion);
-            $paymentIntentId = (string) $transaccion->referencia_pasarela;
+        foreach ($itemsDistribucion as $item) {
+            $transaccion = $item->transaccion;
+            $monedaCodigo = $item->monedaCodigo;
+            $montoAReembolsar = $item->montoAReembolsar;
+            $paymentIntentId = $item->paymentIntentId;
             $idempotencyKey = 'stripe-refund-reserva-'.$reserva->id.'-'.$transaccion->id.'-'.$montoAReembolsar;
 
             try {
@@ -190,11 +184,11 @@ final readonly class ReembolsarPagoStripeReserva
                 'usuario_id' => $usuarioId,
                 'registrado_at' => now()->toISOString(),
             ];
-            $responsePayload['refunds'] = $refunds;
-
             $datosActualizar = [
                 'response_payload' => $responsePayload,
             ];
+
+            $montoTransaccion = (float) $transaccion->monto;
 
             if ($montoAReembolsar >= $montoTransaccion) {
                 $datosActualizar['estado'] = EstadoTransaccionPago::Reembolsada;
@@ -211,7 +205,6 @@ final readonly class ReembolsarPagoStripeReserva
                 'monto' => round($montoAReembolsar, 2),
                 'referencia' => is_string($refund['id'] ?? null) ? $refund['id'] : null,
             ];
-            $restante = round($restante - $montoAReembolsar, 2);
         }
 
         return $reembolsos;
@@ -223,9 +216,7 @@ final readonly class ReembolsarPagoStripeReserva
         float $montoTransaccion,
         ?int $usuarioId,
     ): void {
-        $conciliacion = PagoConciliacion::query()
-            ->where('pago_transaccion_id', $transaccion->id)
-            ->first();
+        $conciliacion = $this->pagoConciliacionPersistencia->buscarPorPagoTransaccionId((int) $transaccion->id);
 
         if ($conciliacion === null) {
             return;

@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Carrito;
 
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
-use App\Repository\Persistencia\Limpieza\EjecucionLimpiezaRepository;
+use App\Repository\Persistencia\Limpieza\EjecucionLimpiezaRepositoryInterface;
 
-final class LiberarCarritoDeEjecucion
+final readonly class LiberarCarritoDeEjecucion
 {
     public function __construct(
-        private readonly EjecucionLimpiezaRepository $repository,
+        private EjecucionLimpiezaRepositoryInterface $repository,
     ) {}
 
     public function execute(LimpiezaEjecucion $ejecucion): LimpiezaEjecucion

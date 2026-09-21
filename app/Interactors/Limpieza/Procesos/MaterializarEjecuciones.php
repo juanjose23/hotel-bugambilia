@@ -7,15 +7,13 @@ namespace App\Interactors\Limpieza\Procesos;
 use App\BusinessLogic\Limpieza\ResolverDestinatarios;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Notifications\Limpieza\NotificadorLimpieza;
-use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\LimpiezaHorario;
-use App\Repository\Models\Limpieza\Turno;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 use App\Repository\Queries\Limpieza\ObtenerUsuariosPorPersonaIds;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-final class MaterializarEjecuciones
+final readonly class MaterializarEjecuciones
 {
     private const DIAS_SEMANA = [
         'Monday' => 'lunes',
@@ -28,10 +26,19 @@ final class MaterializarEjecuciones
     ];
 
     public function __construct(
-        private readonly NotificadorLimpieza $notificador,
-        private readonly ResolverDestinatarios $resolverDestinatarios,
-        private readonly ObtenerUsuariosPorPersonaIds $obtenerUsuariosPorPersonaIds,
+        private NotificadorLimpieza $notificador,
+        private ResolverDestinatarios $resolverDestinatarios,
+        private ObtenerUsuariosPorPersonaIds $obtenerUsuariosPorPersonaIds,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
+
+    /**
+     * @return array{fecha: string, dia_semana: string, creados: int}
+     */
+    public function execute(?string $fechaInput = null): array
+    {
+        return $this->ejecutar($fechaInput);
+    }
 
     /**
      * @return array{fecha: string, dia_semana: string, creados: int}
@@ -41,7 +48,7 @@ final class MaterializarEjecuciones
         $fecha = $fechaInput ? Carbon::parse($fechaInput) : Carbon::today();
         $diaSemanaActual = self::DIAS_SEMANA[$fecha->format('l')];
 
-        $horarios = $this->obtenerHorariosActivos($diaSemanaActual);
+        $horarios = $this->limpiezaRepositorio->obtenerHorariosActivosParaMaterializar($diaSemanaActual);
 
         return $this->materializarHorarios($horarios, $fecha, $diaSemanaActual);
     }
@@ -54,19 +61,8 @@ final class MaterializarEjecuciones
         $fecha = $fechaInput ? Carbon::parse($fechaInput) : Carbon::today();
         $diaSemanaActual = self::DIAS_SEMANA[$fecha->format('l')];
 
-        $horarios = LimpiezaHorario::query()
-            ->whereKey($horarioId)
-            ->where('activo', true)
-            ->whereNotNull('turno_id')
-            ->where(function (Builder $query) use ($diaSemanaActual) {
-                $query->where('frecuencia', 'diaria')
-                    ->orWhere(function (Builder $query) use ($diaSemanaActual) {
-                        $query->where('frecuencia', 'semanal')
-                            ->where('dia_semana', $diaSemanaActual);
-                    });
-            })
-            ->with(['turno', 'detalles'])
-            ->get();
+        $horarios = $this->limpiezaRepositorio->obtenerHorariosActivosParaMaterializar($diaSemanaActual)
+            ->filter(fn (LimpiezaHorario $h): bool => (int) $h->id === $horarioId);
 
         return $this->materializarHorarios($horarios, $fecha, $diaSemanaActual);
     }
@@ -78,11 +74,7 @@ final class MaterializarEjecuciones
     private function materializarHorarios(Collection $horarios, Carbon $fecha, string $diaSemanaActual): array
     {
         $fechaStr = $fecha->toDateString();
-        $ejecucionesExistentes = LimpiezaEjecucion::query()
-            ->whereDate('fecha', $fechaStr)
-            ->get(['limpiable_type', 'limpiable_id', 'turno_id'])
-            ->map(fn ($e) => "{$e->limpiable_type}:{$e->limpiable_id}:{$e->turno_id}")
-            ->flip();
+        $ejecucionesExistentes = $this->limpiezaRepositorio->obtenerEjecucionesExistentesKeys($fechaStr);
 
         $creados = 0;
         $creadosPorTurno = [];
@@ -94,12 +86,11 @@ final class MaterializarEjecuciones
             $checklistData = $this->prepararChecklist($horario->checklist);
 
             foreach ($horario->detalles as $detalle) {
-                $key = "{$detalle->limpiable_type}:{$detalle->limpiable_id}:{$horario->turno_id}";
+                $key = sprintf('%s-%s-%s', $detalle->limpiable_type, $detalle->limpiable_id, $horario->turno_id);
                 if ($ejecucionesExistentes->has($key)) {
                     continue;
                 }
 
-                // Acumular en memoria para un único INSERT masivo al final
                 $nuevasEjecuciones[] = [
                     'horario_id' => $horario->id,
                     'limpiable_type' => $detalle->limpiable_type,
@@ -121,10 +112,9 @@ final class MaterializarEjecuciones
             }
         }
 
-        // INSERT masivo: una sola query en lugar de N INSERTs individuales
         if ($nuevasEjecuciones !== []) {
             foreach (array_chunk($nuevasEjecuciones, 500) as $lote) {
-                LimpiezaEjecucion::insert($lote);
+                $this->limpiezaRepositorio->insertarEjecucionesMasivas($lote);
             }
         }
 
@@ -135,25 +125,6 @@ final class MaterializarEjecuciones
             'dia_semana' => $diaSemanaActual,
             'creados' => $creados,
         ];
-    }
-
-    /**
-     * @return Collection<int, LimpiezaHorario>
-     */
-    private function obtenerHorariosActivos(string $diaSemanaActual): Collection
-    {
-        return LimpiezaHorario::query()
-            ->where('activo', true)
-            ->whereNotNull('turno_id')
-            ->where(function (Builder $query) use ($diaSemanaActual) {
-                $query->where('frecuencia', 'diaria')
-                    ->orWhere(function (Builder $query) use ($diaSemanaActual) {
-                        $query->where('frecuencia', 'semanal')
-                            ->where('dia_semana', $diaSemanaActual);
-                    });
-            })
-            ->with(['turno', 'detalles'])
-            ->get();
     }
 
     /**
@@ -187,9 +158,7 @@ final class MaterializarEjecuciones
             return;
         }
 
-        $turnos = Turno::with(['lider.persona', 'apoyo.persona'])
-            ->whereIn('id', $turnoIds)
-            ->get();
+        $turnos = $this->limpiezaRepositorio->obtenerTurnosConPersonasPorIds($turnoIds);
 
         $personaIds = $turnos->pluck('lider.persona.id')
             ->merge($turnos->pluck('apoyo.persona.id'))
@@ -200,7 +169,6 @@ final class MaterializarEjecuciones
 
         $usuarios = $this->obtenerUsuariosPorPersonaIds->ejecutar($personaIds);
 
-        // keyBy('id') para acceso O(1) en lugar de firstWhere O(n) por iteración
         $turnosPorId = $turnos->keyBy('id');
 
         foreach ($creadosPorTurno as $turnoId => $cantidad) {

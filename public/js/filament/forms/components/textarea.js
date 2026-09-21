@@ -1,11 +1,12 @@
-function n({ initialHeight: e, shouldAutosize: i, state: h }) {
+function n({ initialHeight: e, shouldAutosize: s, state: i }) {
     return {
-        state: h,
+        state: i,
+        resizeObserver: null,
         wrapperEl: null,
         init() {
             ((this.wrapperEl = this.$el.parentNode),
                 this.setInitialHeight(),
-                i
+                s
                     ? this.$watch('state', () => {
                           this.resize();
                       })
@@ -17,23 +18,27 @@ function n({ initialHeight: e, shouldAutosize: i, state: h }) {
         },
         resize() {
             if (this.$el.scrollHeight <= 0) return;
-            let t = this.$el.style.height;
+            let r = this.$el.style.height;
             this.$el.style.height = '0px';
-            let r = this.$el.scrollHeight;
-            this.$el.style.height = t;
+            let h = this.$el.scrollHeight;
+            this.$el.style.height = r;
             let l =
                     parseFloat(e) *
                     parseFloat(
                         getComputedStyle(document.documentElement).fontSize,
                     ),
-                s = Math.max(r, l) + 'px';
-            this.wrapperEl.style.height !== s &&
-                (this.wrapperEl.style.height = s);
+                t = Math.max(h, l) + 'px';
+            this.wrapperEl.style.height !== t &&
+                (this.wrapperEl.style.height = t);
         },
         setUpResizeObserver() {
-            new ResizeObserver(() => {
+            ((this.resizeObserver = new ResizeObserver(() => {
                 this.wrapperEl.style.height = this.$el.style.height;
-            }).observe(this.$el);
+            })),
+                this.resizeObserver.observe(this.$el));
+        },
+        destroy() {
+            this.resizeObserver?.disconnect();
         },
     };
 }

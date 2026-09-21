@@ -6,17 +6,14 @@ namespace App\Repository\Queries\Catalogos;
 
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Services\Shared\GeneradorCodigoService;
 
-class GenerarCodigoBarras
+final class GenerarCodigoBarras
 {
-    public function __construct(
-        private readonly GeneradorCodigoService $generadorCodigo,
-    ) {}
-
     public function ejecutar(Producto $producto, ?ProductoVariante $variante = null): string
     {
-        return $this->generadorCodigo->generarCodigoBarras((string) $producto->nombre, $variante?->codigo);
+        $codigo = $variante !== null ? $variante->codigo : (string) $producto->nombre;
+
+        return trim(str_replace([' ', '-', '/'], '', $codigo));
     }
 
     /** @return list<string> */

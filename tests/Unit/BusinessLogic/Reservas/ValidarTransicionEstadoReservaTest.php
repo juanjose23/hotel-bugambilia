@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\ValidarTransicionEstadoReserva;
+use App\BusinessLogic\Reservas\Validaciones\ValidarTransicionEstadoReserva;
 use App\Enums\Reservas\EstadoReserva;
 
 it('usa códigos enteros estables para los estados de reserva', function (): void {

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\Activos\EstadoActivo;
+use App\Enums\Activos\EstadoAsignacion;
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
@@ -14,6 +16,9 @@ use App\Enums\Restaurante\EstadoPedido;
 use App\Interactors\Restaurante\Pedidos\AbrirPedidoMesa;
 use App\Interactors\Restaurante\Pedidos\CerrarPedidoMesa;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
+use App\Repository\Models\Activos\Activo;
+use App\Repository\Models\Activos\ActivoAsignacion;
+use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Estancias\Estancia;
@@ -23,13 +28,31 @@ use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\Plato;
 
 test('flujo completo de restaurante: abrir mesa ocupada, enviar a cocina y cerrar cargando a estancia con solicitud de limpieza', function (): void {
-    // 1. Crear Mesa Disponible
+    // 1. Crear Mesa Disponible con Activo Fijo asignado
     $mesa = Espacio::query()->create([
         'codigo' => 'MESA-05',
         'nombre' => 'Mesa Terraza 05',
         'tipo' => 'mesa',
         'estado' => EstadoEspacio::Disponible,
         'activo' => true,
+    ]);
+
+    $producto = Producto::factory()->create();
+
+    $activo = Activo::query()->create([
+        'codigo_inventario' => 'AF-TEST-05',
+        'producto_id' => $producto->id,
+        'nombre_descriptivo' => 'Mesa Madera 4S',
+        'estado' => EstadoActivo::Activo,
+        'fecha_adquisicion' => now()->toDateString(),
+    ]);
+
+    ActivoAsignacion::query()->create([
+        'activo_id' => $activo->id,
+        'asignable_type' => Espacio::class,
+        'asignable_id' => $mesa->id,
+        'fecha_inicio' => now()->toDateString(),
+        'estado' => EstadoAsignacion::Vigente,
     ]);
 
     // 2. Abrir Pedido en la Mesa
@@ -122,3 +145,16 @@ test('rechaza abrir un pedido si la mesa no esta disponible', function (): void 
     $interactor = app(AbrirPedidoMesa::class);
     $interactor->ejecutar($mesaOcupada);
 })->throws(DomainException::class, 'no está disponible');
+
+test('rechaza abrir un pedido si la mesa no tiene activo de mobiliario asignado', function (): void {
+    $mesaSinActivo = Espacio::query()->create([
+        'codigo' => 'MESA-SIN-ACTIVO',
+        'nombre' => 'Mesa Sin Activo',
+        'tipo' => 'mesa',
+        'estado' => EstadoEspacio::Disponible,
+        'activo' => true,
+    ]);
+
+    $interactor = app(AbrirPedidoMesa::class);
+    $interactor->ejecutar($mesaSinActivo);
+})->throws(DomainException::class, 'no tiene un activo físico');

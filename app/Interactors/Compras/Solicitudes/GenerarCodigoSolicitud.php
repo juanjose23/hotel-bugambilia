@@ -4,26 +4,27 @@ declare(strict_types=1);
 
 namespace App\Interactors\Compras\Solicitudes;
 
-use App\Repository\Models\Catalogos\Catalogo;
-use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
 
-final class GenerarCodigoSolicitud
+final readonly class GenerarCodigoSolicitud
 {
+    public function __construct(
+        private SolicitudRepositorioInterface $solicitudRepositorio,
+    ) {}
+
     public function ejecutar(int $departamentoId): string
     {
-        $departamento = Catalogo::findOrFail($departamentoId);
-        $siglas = $this->obtenerSiglas((string) $departamento->codigo);
+        $codigoDepto = $this->solicitudRepositorio->obtenerCodigoDepartamento($departamentoId) ?? 'GRAL';
+        $siglas = $this->obtenerSiglas($codigoDepto);
+        $prefijo = "S-{$siglas}-";
 
-        $ultimo = Solicitud::withTrashed()
-            ->where('codigo', 'like', "S-{$siglas}-%")
-            ->orderByDesc('codigo')
-            ->first();
+        $ultimo = $this->solicitudRepositorio->obtenerUltimoCodigoPorPrefijo($prefijo);
 
         $numero = $ultimo
-            ? intval(substr($ultimo->codigo, strlen("S-{$siglas}-"))) + 1
+            ? intval(substr($ultimo, strlen($prefijo))) + 1
             : 1;
 
-        return "S-{$siglas}-".str_pad((string) $numero, 3, '0', STR_PAD_LEFT);
+        return "{$prefijo}".str_pad((string) $numero, 3, '0', STR_PAD_LEFT);
     }
 
     private function obtenerSiglas(string $codigoCatalogo): string

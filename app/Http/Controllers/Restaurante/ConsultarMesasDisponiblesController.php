@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Restaurante;
 
 use App\Http\Controllers\Controller;
-use App\Interactors\Landing\ObtenerMesasDisponiblesLanding;
+use App\Interactors\Restaurante\Mesas\ObtenerMesasDisponibles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,7 +13,7 @@ final class ConsultarMesasDisponiblesController extends Controller
 {
     public function __invoke(
         Request $request,
-        ObtenerMesasDisponiblesLanding $interactor,
+        ObtenerMesasDisponibles $interactor,
     ): JsonResponse {
         $fecha = (string) $request->query('fecha', date('Y-m-d'));
         $hora = (string) $request->query('hora', '13:00');

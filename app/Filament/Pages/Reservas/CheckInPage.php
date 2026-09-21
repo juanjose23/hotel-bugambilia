@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Reservas;
 
 use App\BusinessLogic\CheckIn\ObtenerReadinessCheckIn;
+use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\BusinessLogic\Reservas\Data\RealizarCheckInData;
 use App\BusinessLogic\Reservas\Data\RegistrarHuespedData;
 use App\Enums\Estancias\EstadoEstancia;
+use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoHuesped;
@@ -30,18 +32,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Wizard;
-use Filament\Schemas\Components\Wizard\Step;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\Size;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -63,7 +58,7 @@ final class CheckInPage extends Page implements HasForms, HasTable
 
     protected static ?string $navigationLabel = 'Check-In';
 
-    protected static ?string $title = 'Asistente de Check-In';
+    protected static ?string $title = 'Recepción — Asistente de Check-In';
 
     protected static ?int $navigationSort = 2;
 
@@ -86,13 +81,29 @@ final class CheckInPage extends Page implements HasForms, HasTable
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('ver_reserva')
+                ->label('Ver Ficha de Reserva')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->url(fn (): ?string => $this->reserva !== null ? ReservaResource::getUrl('view', ['record' => $this->reserva->id]) : null)
+                ->openUrlInNewTab()
+                ->visible(fn (): bool => $this->reserva !== null),
+
             Action::make('volver')
-                ->label('Volver a lista')
+                ->label('Volver a la Lista')
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(self::getUrl())
                 ->visible(fn (): bool => $this->reserva !== null),
         ];
+    }
+
+    public function volverALista(): void
+    {
+        $this->record = null;
+        $this->reserva = null;
+        $this->reservaDetalleId = null;
+        $this->form->fill(['cantidad_llaves' => 1]);
     }
 
     // ── Mount ────────────────────────────────────────────────────────────────
@@ -101,7 +112,7 @@ final class CheckInPage extends Page implements HasForms, HasTable
     {
         if ($this->record !== null) {
             $reserva = Reserva::query()
-                ->with(['moneda', 'detalles.reservable', 'huespedes'])
+                ->with(['moneda', 'detalles.reservable', 'huespedes', 'habitacion', 'espacio'])
                 ->find($this->record);
 
             if ($reserva !== null && in_array(
@@ -140,168 +151,134 @@ final class CheckInPage extends Page implements HasForms, HasTable
         return $schema
             ->statePath('data')
             ->schema([
-                Wizard::make([
+                Section::make('1. Asignación de Habitación')
+                    ->icon('heroicon-o-home')
+                    ->description('Seleccione la habitación de la reserva para el ingreso del huésped.')
+                    ->schema([
+                        Select::make('detalle_id')
+                            ->label('Habitación a Ocupar')
+                            ->options(function (): array {
+                                if ($this->reserva === null) {
+                                    return [];
+                                }
 
-                    // ── PASO 1: Seleccionar Habitación ──────────────────────────
-                    Step::make('Habitación')
-                        ->icon('heroicon-o-home')
-                        ->description('Seleccione la habitación a hacer check-in')
-                        ->schema([
-                            Select::make('detalle_id')
-                                ->label('Habitación de la Reserva')
-                                ->options(function (): array {
-                                    if ($this->reserva === null) {
-                                        return [];
-                                    }
+                                return $this->reserva->detalles
+                                    ->whereNull('parent_id')
+                                    ->whereIn('estado', [
+                                        EstadoReservaDetalle::CONFIRMADO,
+                                        EstadoReservaDetalle::PENDIENTE,
+                                    ])
+                                    ->mapWithKeys(function (ReservaDetalle $d): array {
+                                        $habitacion = $d->reservable !== null
+                                            ? Habitacion::where('reservable_id', $d->reservable->id)->first()
+                                            : null;
 
-                                    return $this->reserva->detalles
-                                        ->whereNull('parent_id')
-                                        ->whereIn('estado', [
-                                            EstadoReservaDetalle::CONFIRMADO,
-                                            EstadoReservaDetalle::PENDIENTE,
-                                        ])
-                                        ->mapWithKeys(function (ReservaDetalle $d): array {
-                                            $habitacion = $d->reservable !== null
-                                                ? Habitacion::where('reservable_id', $d->reservable->id)->first()
-                                                : null;
+                                        $label = $habitacion !== null
+                                            ? "Hab. {$habitacion->numero} — {$habitacion->nombre}"
+                                            : "Detalle #{$d->id}";
 
-                                            $label = $habitacion !== null
-                                                ? "Hab. {$habitacion->numero} — {$habitacion->nombre}"
-                                                : "Detalle #{$d->id}";
+                                        return [$d->id => $label];
+                                    })
+                                    ->toArray();
+                            })
+                            ->required()
+                            ->native(false)
+                            ->live()
+                            ->afterStateUpdated(function (?int $state): void {
+                                $this->reservaDetalleId = $state;
+                            })
+                            ->helperText('Seleccione la habitación para verificar su estado de readiness y entrega.')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible(),
 
-                                            return [$d->id => $label];
-                                        })
-                                        ->toArray();
-                                })
-                                ->required()
-                                ->native(false)
-                                ->live()
-                                ->afterStateUpdated(function (?int $state): void {
-                                    $this->reservaDetalleId = $state;
-                                })
-                                ->helperText('Seleccione la habitación específica para iniciar el proceso de check-in.')
-                                ->columnSpanFull(),
-                        ]),
+                Section::make('2. Registro de Acompañantes')
+                    ->icon('heroicon-o-users')
+                    ->description('Registre a los ocupantes adicionales. El titular ya se encuentra registrado.')
+                    ->schema([
+                        Repeater::make('huespedes_nuevos')
+                            ->hiddenLabel()
+                            ->defaultItems(0)
+                            ->addActionLabel('Agregar acompañante')
+                            ->columns(4)
+                            ->reorderable(false)
+                            ->schema([
+                                TextInput::make('nombre')
+                                    ->label('Nombre Completo')
+                                    ->required()
+                                    ->maxLength(150),
 
-                    // ── PASO 2: Huéspedes ───────────────────────────────────────
-                    Step::make('Huéspedes')
-                        ->icon('heroicon-o-users')
-                        ->description('Registre los acompañantes si los hay')
-                        ->schema([
-                            Section::make('Acompañantes')
-                                ->description('Agregue a todos los huéspedes que ocuparán la habitación. El titular se registra automáticamente.')
-                                ->icon('heroicon-o-user-group')
-                                ->schema([
-                                    Repeater::make('huespedes_nuevos')
-                                        ->hiddenLabel()
-                                        ->defaultItems(0)
-                                        ->addActionLabel('Agregar acompañante')
-                                        ->columns(4)
-                                        ->reorderable(false)
-                                        ->schema([
-                                            TextInput::make('nombre')
-                                                ->label('Nombre Completo')
-                                                ->required()
-                                                ->maxLength(150),
+                                Select::make('tipo_identificacion')
+                                    ->label('Tipo Documento')
+                                    ->options([
+                                        'cedula' => 'Cédula',
+                                        'pasaporte' => 'Pasaporte',
+                                        'residencia' => 'Residencia',
+                                    ])
+                                    ->default('cedula')
+                                    ->required()
+                                    ->live()
+                                    ->native(false),
 
-                                            Select::make('tipo_identificacion')
-                                                ->label('Tipo Documento')
-                                                ->options([
-                                                    'cedula' => 'Cédula',
-                                                    'pasaporte' => 'Pasaporte',
-                                                    'residencia' => 'Residencia',
-                                                ])
-                                                ->default('cedula')
-                                                ->required()
-                                                ->native(false),
+                                TextInput::make('identificacion')
+                                    ->label('Número de Documento')
+                                    ->required()
+                                    ->rules([
+                                        fn (Get $get) => $get('tipo_identificacion') === 'cedula' ? new ValidCedulaNicaragua : null,
+                                    ])
+                                    ->maxLength(100),
 
-                                            TextInput::make('identificacion')
-                                                ->label('Número de Documento')
-                                                ->required()
-                                                ->maxLength(100),
+                                Select::make('tipo')
+                                    ->label('Categoría')
+                                    ->options([
+                                        'adulto' => 'Adulto',
+                                        'nino' => 'Niño',
+                                        'infante' => 'Infante',
+                                    ])
+                                    ->default('adulto')
+                                    ->required()
+                                    ->native(false),
+                            ]),
+                    ])
+                    ->collapsible(),
 
-                                            Select::make('tipo')
-                                                ->label('Categoría')
-                                                ->options([
-                                                    'adulto' => 'Adulto',
-                                                    'nino' => 'Niño',
-                                                    'infante' => 'Infante',
-                                                ])
-                                                ->default('adulto')
-                                                ->required()
-                                                ->native(false),
-                                        ]),
-                                ]),
-                        ]),
+                Section::make('3. Llaves, Folio de Consumos & Observaciones')
+                    ->icon('heroicon-o-key')
+                    ->description('Configuración de llaves físicas o tarjetas RFID, apertura de cuenta de consumos y notas.')
+                    ->schema([
+                        TextInput::make('cantidad_llaves')
+                            ->label('Llaves entregadas')
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(10)
+                            ->default(1)
+                            ->required()
+                            ->suffix('llave(s)'),
 
-                    // ── PASO 3: Estado de la Habitación ────────────────────────
-                    Step::make('Estado')
-                        ->icon('heroicon-o-check-badge')
-                        ->description('Verifique las condiciones operativas de la habitación')
-                        ->schema([
-                            Section::make('Readiness de la Habitación')
-                                ->description('Estado actual de la habitación para el ingreso del huésped.')
-                                ->icon('heroicon-o-shield-check')
-                                ->schema($this->buildReadinessSchema()),
-                        ]),
+                        Toggle::make('abrir_cuenta')
+                            ->label('Abrir cuenta de consumo')
+                            ->helperText('Permite cargar consumos de restaurante, bar, lavandería y spa a la habitación.')
+                            ->live()
+                            ->onColor('success')
+                            ->inline(false),
 
-                    // ── PASO 4: Garantía y Cuenta ───────────────────────────────
-                    Step::make('Garantía')
-                        ->icon('heroicon-o-credit-card')
-                        ->description('Configure cuenta de consumo y llaves')
-                        ->schema([
-                            Section::make('Llaves y Cuenta de Consumo')
-                                ->icon('heroicon-o-key')
-                                ->schema([
-                                    TextInput::make('cantidad_llaves')
-                                        ->label('Llaves entregadas')
-                                        ->integer()
-                                        ->minValue(1)
-                                        ->maxValue(10)
-                                        ->default(1)
-                                        ->required()
-                                        ->suffix('llave(s)'),
+                        TextInput::make('limite_cuenta')
+                            ->label('Límite autorizado de la cuenta')
+                            ->numeric()
+                            ->prefix(fn (): string => MonedaHelper::simbolo($this->reserva?->moneda))
+                            ->minValue(0)
+                            ->helperText('Monto máximo permitido para cargos.')
+                            ->visible(fn (callable $get): bool => (bool) $get('abrir_cuenta')),
 
-                                    Toggle::make('abrir_cuenta')
-                                        ->label('Abrir cuenta de consumo')
-                                        ->helperText('Permite cargar consumos de restaurante, bar, lavandería, etc.')
-                                        ->live()
-                                        ->onColor('success')
-                                        ->inline(false),
-
-                                    TextInput::make('limite_cuenta')
-                                        ->label('Límite autorizado de la cuenta')
-                                        ->numeric()
-                                        ->prefix(fn (): string => MonedaHelper::simbolo($this->reserva?->moneda))
-                                        ->minValue(0)
-                                        ->helperText('Monto máximo permitido para cargos a cuenta.')
-                                        ->visible(fn (callable $get): bool => (bool) $get('abrir_cuenta')),
-
-                                    Textarea::make('observaciones')
-                                        ->label('Observaciones de entrada')
-                                        ->placeholder('Estado de la habitación, solicitudes especiales, notas de recepción...')
-                                        ->rows(3)
-                                        ->maxLength(2000)
-                                        ->columnSpanFull(),
-                                ])
-                                ->columns(2),
-                        ]),
-
-                    // ── PASO 5: Confirmar ───────────────────────────────────────
-                    Step::make('Confirmar')
-                        ->icon('heroicon-o-check-badge')
-                        ->description('Revise y confirme el check-in')
-                        ->schema($this->buildResumenSchema()),
-
-                ]) // fin Wizard::make
-                    ->submitAction(
-                        Action::make('realizar_check_in')
-                            ->label('REALIZAR CHECK-IN')
-                            ->icon('heroicon-o-key')
-                            ->color('success')
-                            ->size(Size::Large)
-                            ->submit('submit')
-                    ),
+                        Textarea::make('observaciones')
+                            ->label('Observaciones de entrada')
+                            ->placeholder('Solicitudes especiales, notas de recepción, preferencias...')
+                            ->rows(3)
+                            ->maxLength(2000)
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
             ]);
     }
 
@@ -312,201 +289,82 @@ final class CheckInPage extends Page implements HasForms, HasTable
         return $table
             ->query(
                 Reserva::query()
-                    ->with(['habitacion', 'detalles'])
+                    ->with(['habitacion', 'espacio', 'detalles.reservable', 'moneda'])
                     ->whereIn('estado', [EstadoReserva::CONFIRMADA, EstadoReserva::PARCIALMENTE_CHECKED_IN])
             )
             ->columns([
                 TextColumn::make('codigo_reserva')
-                    ->label('Reserva')
+                    ->label('Código')
                     ->badge()
                     ->color('primary')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('nombre_cliente')
-                    ->label('Cliente')
+                    ->label('Huésped Titular')
+                    ->icon('heroicon-o-user')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('habitacion.nombre')
-                    ->label('Habitación')
-                    ->placeholder('—'),
+                    ->label('Habitación Asignada')
+                    ->icon('heroicon-o-home')
+                    ->formatStateUsing(function (Reserva $record): string {
+                        $hab = $record->habitacion;
+                        if ($hab !== null) {
+                            return "Hab. {$hab->numero} — {$hab->nombre}";
+                        }
+
+                        $esp = $record->espacio;
+                        if ($esp !== null) {
+                            return "Espacio — {$esp->nombre}";
+                        }
+
+                        return 'Sin asignar';
+                    })
+                    ->badge()
+                    ->color('gray')
+                    ->sortable(),
 
                 TextColumn::make('fecha_check_in')
-                    ->label('Check-In')
+                    ->label('Fecha Entrada')
+                    ->date('d/m/Y')
+                    ->description(fn (Reserva $record): string => $record->fecha_check_in?->isToday() ? '¡Llega Hoy!' : ($record->fecha_check_in?->isTomorrow() ? 'Llega Mañana' : ''))
+                    ->sortable(),
+
+                TextColumn::make('fecha_check_out')
+                    ->label('Fecha Salida')
                     ->date('d/m/Y')
                     ->sortable(),
 
                 TextColumn::make('adultos')
-                    ->label('Adultos'),
+                    ->label('Ocupantes')
+                    ->formatStateUsing(fn (Reserva $record): string => "{$record->adultos} ad.".($record->ninos > 0 ? " + {$record->ninos} niñ." : ''))
+                    ->alignCenter(),
+
+                TextColumn::make('saldo')
+                    ->label('Saldo Reserva')
+                    ->money(fn (Reserva $record): string => MonedaHelper::codigo($record->moneda))
+                    ->badge()
+                    ->color(fn (Reserva $record): string => (float) $record->saldo > 0 ? 'warning' : 'success'),
 
                 EstadoBadgeColumn::make(EstadoReserva::class),
-
-                IconColumn::make('solicita_cuenta')
-                    ->label('Cuenta')
-                    ->boolean(),
             ])
             ->defaultSort('fecha_check_in')
             ->recordActions([
                 Action::make('iniciar')
-                    ->label('Check-In')
+                    ->label('Hacer Check-In')
                     ->icon('heroicon-o-key')
                     ->color('success')
                     ->url(fn (Reserva $record): string => self::getUrl(['record' => $record->id])),
+
+                Action::make('ver_reserva_modal')
+                    ->label('Ver')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->url(fn (Reserva $record): string => ReservaResource::getUrl('view', ['record' => $record->id]))
+                    ->openUrlInNewTab(),
             ]);
-    }
-
-    // ── Readiness ─────────────────────────────────────────────────────────────
-
-    /** @return array<int, Component> */
-    private function buildReadinessSchema(): array
-    {
-        if ($this->reservaDetalleId === null) {
-            return [
-                Section::make('Seleccione primero una habitación en el Paso 1')
-                    ->icon('heroicon-o-information-circle')
-                    ->schema([]),
-            ];
-        }
-
-        $readiness = $this->getReadiness();
-
-        $numeroHabitacion = is_string($readiness['habitacion_numero'] ?? null) ? $readiness['habitacion_numero'] : '—';
-        $estadoHabitacionLabel = is_string($readiness['estado_habitacion_label'] ?? null) ? $readiness['estado_habitacion_label'] : '—';
-        $totalHuespedes = is_int($readiness['total_huespedes'] ?? null) ? $readiness['total_huespedes'] : 0;
-
-        /** @var list<string> $bloqueos */
-        $bloqueos = $readiness['bloqueos'] ?? [];
-
-        /** @var list<string> $advertencias */
-        $advertencias = $readiness['advertencias'] ?? [];
-
-        $items = [
-            ['key' => 'reserva_confirmada',        'label' => 'Reserva confirmada'],
-            ['key' => 'habitacion_disponible',      'label' => 'Habitación disponible'],
-            ['key' => 'habitacion_limpia',          'label' => 'Habitación limpia'],
-            ['key' => 'sin_bloqueo_mantenimiento',  'label' => 'Sin bloqueo de mantenimiento'],
-            ['key' => 'sin_estancia_activa',        'label' => 'Sin estancia activa'],
-            ['key' => 'titular_identificado',       'label' => 'Titular identificado'],
-        ];
-
-        return [
-            Grid::make(2)
-                ->schema([
-                    Section::make('Checklist')
-                        ->icon('heroicon-o-shield-check')
-                        ->description('Hab. '.$numeroHabitacion.' — Estado: '.$estadoHabitacionLabel)
-                        ->schema(
-                            array_map(
-                                fn (array $item): IconEntry => IconEntry::make($item['key'])
-                                    ->label($item['label'])
-                                    ->state(fn () => (bool) ($readiness[$item['key']] ?? false))
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-check-circle')
-                                    ->falseIcon('heroicon-o-x-circle')
-                                    ->trueColor('success')
-                                    ->falseColor('danger'),
-                                $items
-                            )
-                        )
-                        ->columns(1),
-
-                    Section::make('Resumen')
-                        ->icon('heroicon-o-information-circle')
-                        ->schema([
-                            TextEntry::make('estado_check')
-                                ->label('Check-In')
-                                ->state(fn () => $readiness['puede_realizar_check_in'] ? 'LISTO' : 'BLOQUEADO')
-                                ->badge()
-                                ->color(fn () => $readiness['puede_realizar_check_in'] ? 'success' : 'danger'),
-
-                            TextEntry::make('estado_habitacion')
-                                ->label('Estado Habitación')
-                                ->state(fn () => $readiness['estado_habitacion_label'])
-                                ->badge()
-                                ->color(fn () => $readiness['estado_habitacion_color']),
-
-                            TextEntry::make('huespedes_count')
-                                ->label('Huéspedes registrados')
-                                ->state(fn () => (string) $totalHuespedes),
-
-                            // Bloqueos
-                            ...array_map(
-                                fn (string $b): TextEntry => TextEntry::make('bloqueo_'.md5($b))
-                                    ->label('Bloqueo')
-                                    ->state(fn () => $b)
-                                    ->badge()
-                                    ->color('danger'),
-                                $bloqueos
-                            ),
-
-                            // Advertencias
-                            ...array_map(
-                                fn (string $a): TextEntry => TextEntry::make('adv_'.md5($a))
-                                    ->label('Advertencia')
-                                    ->state(fn () => $a)
-                                    ->badge()
-                                    ->color('warning'),
-                                $advertencias
-                            ),
-                        ]),
-                ]),
-        ];
-    }
-
-    /** @return array<int, Component> */
-    private function buildResumenSchema(): array
-    {
-        if ($this->reserva === null) {
-            return [];
-        }
-
-        return [
-            Grid::make(2)
-                ->schema([
-                    Section::make('Datos de la Reserva')
-                        ->icon('heroicon-o-document-text')
-                        ->schema([
-                            TextEntry::make('codigo')
-                                ->label('Código')
-                                ->state(fn () => $this->reserva->codigo_reserva)
-                                ->weight('bold'),
-
-                            TextEntry::make('cliente')
-                                ->label('Titular')
-                                ->state(fn () => $this->reserva->nombre_cliente ?? '—'),
-
-                            TextEntry::make('checkin')
-                                ->label('Check-In programado')
-                                ->state(fn () => $this->reserva?->fecha_check_in?->format('d/m/Y') ?? '—'),
-
-                            TextEntry::make('checkout')
-                                ->label('Check-Out programado')
-                                ->state(fn () => $this->reserva?->fecha_check_out?->format('d/m/Y') ?? '—'),
-
-                            TextEntry::make('noches')
-                                ->label('Noches')
-                                ->state(function (): string {
-                                    $ci = $this->reserva?->fecha_check_in;
-                                    $co = $this->reserva?->fecha_check_out;
-
-                                    return $ci && $co ? (string) $ci->diffInDays($co) : '—';
-                                }),
-
-                            TextEntry::make('saldo')
-                                ->label('Saldo pendiente')
-                                ->state(fn () => MonedaHelper::simbolo($this->reserva->moneda).' '.number_format((float) $this->reserva->saldo, 2))
-                                ->badge()
-                                ->color(fn () => (float) $this->reserva->saldo > 0 ? 'warning' : 'success'),
-                        ])
-                        ->columns(2),
-
-                    Section::make('Validación Final')
-                        ->icon('heroicon-o-check-badge')
-                        ->description('Todos los requisitos deben cumplirse antes del ingreso.')
-                        ->schema($this->buildReadinessSchema()),
-                ]),
-        ];
     }
 
     // ── Readiness data ────────────────────────────────────────────────────────
@@ -538,6 +396,7 @@ final class CheckInPage extends Page implements HasForms, HasTable
             'confirmadas_total' => Reserva::query()->whereIn('estado', [EstadoReserva::CONFIRMADA->value, EstadoReserva::PARCIALMENTE_CHECKED_IN->value])->count(),
             'pendientes_hoy' => Reserva::query()->where('estado', EstadoReserva::CONFIRMADA->value)->whereDate('fecha_check_in', '<=', $hoy)->count(),
             'realizadas_hoy' => Estancia::query()->where('estado', EstadoEstancia::ACTIVA->value)->whereDate('check_in_at', $hoy)->count(),
+            'habitaciones_disponibles' => Habitacion::query()->where('estado', EstadoEspacio::Disponible)->count(),
         ];
     }
 

@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
-use Database\Seeders\ColaboradorBaseSeeder;
+use Database\Seeders\Colaboradores\ColaboradorBaseSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\MonedaSeeder;
+use Database\Seeders\Configuracion\PaisSeeder;
+use Database\Seeders\Configuracion\UbicacionSeeder;
 use Database\Seeders\EspacioSeeder;
-use Database\Seeders\MenuRestauranteSeeder;
-use Database\Seeders\MonedaSeeder;
-use Database\Seeders\PaisSeeder;
-use Database\Seeders\RestauranteSeeder;
+use Database\Seeders\Restaurante\Menu\MenuRestauranteSeeder;
 use Database\Seeders\TasaCambioSeeder;
-use Database\Seeders\UbicacionSeeder;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('la página del restaurante responde exitosamente y pasa los datos de restaurante, ambientes y menú a Inertia', function () {
@@ -24,7 +23,6 @@ test('la página del restaurante responde exitosamente y pasa los datos de resta
         ColaboradorBaseSeeder::class,
         UbicacionSeeder::class,
         EspacioSeeder::class,
-        RestauranteSeeder::class,
         MenuRestauranteSeeder::class,
     ]);
 

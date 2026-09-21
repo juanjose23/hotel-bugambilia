@@ -8,11 +8,11 @@ use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerItemPedidoQuery;
 use DomainException;
 
-final class MarcarTodosItemsServidos
+final readonly class MarcarTodosItemsServidos
 {
     public function __construct(
-        private readonly MarcarItemServido $marcarItemServido,
-        private readonly ObtenerItemPedidoQuery $items,
+        private MarcarItemServido $marcarItemServido,
+        private ObtenerItemPedidoQuery $items,
     ) {}
 
     /**

@@ -223,7 +223,7 @@ final class CuentaResource extends Resource
                     ->label('Cliente')
                     ->placeholder('—')
                     ->searchable(query: fn (Builder $query, string $search): Builder => $query
-                        ->whereHas('cliente', fn (Builder $clienteQuery): Builder => Persona::filtrarPorNombre($clienteQuery, $search))),
+                        ->whereHas('cliente.persona', fn (Builder $personaQuery): Builder => Persona::filtrarPorNombre($personaQuery, $search))),
 
                 TextColumn::make('estancia.habitacion.nombre')
                     ->label('Habitación')

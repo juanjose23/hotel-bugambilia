@@ -5,17 +5,37 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Carrito;
 
 use App\BusinessLogic\Inventario\Servicios\ServicioConsumos;
-use App\Repository\Models\Inventario\Stock;
-use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-final class RegistrarSalidaCarrito
+final readonly class RegistrarSalidaCarrito
 {
     public function __construct(
-        private readonly ServicioConsumos $servicioConsumos,
+        private ServicioConsumos $servicioConsumos,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
 
     public function execute(
+        int $stockId,
+        float $cantidad,
+        int $carritoId,
+        string $tipoSalida,
+        ?int $ejecucionId,
+        ?int $creadoPorId,
+        ?string $notas,
+    ): void {
+        $this->ejecutar(
+            $stockId,
+            $cantidad,
+            $carritoId,
+            $tipoSalida,
+            $ejecucionId,
+            $creadoPorId,
+            $notas,
+        );
+    }
+
+    public function ejecutar(
         int $stockId,
         float $cantidad,
         int $carritoId,
@@ -35,11 +55,7 @@ final class RegistrarSalidaCarrito
         };
 
         DB::transaction(function () use ($stockId, $cantidad, $carritoId, $tipoSalida, $tipoMovimiento, $ejecucionId, $creadoPorId, $notas): void {
-            $stock = Stock::query()
-                ->whereKey($stockId)
-                ->where('ubicacion_id', $carritoId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $stock = $this->limpiezaRepositorio->obtenerStockCarritoPorIdConLock($stockId, $carritoId);
 
             if ((float) $stock->cantidad < $cantidad) {
                 throw new \RuntimeException(sprintf(
@@ -67,29 +83,8 @@ final class RegistrarSalidaCarrito
             );
 
             if ($tipoSalida === 'uso' && $ejecucionId !== null && $stock->producto_variante_id !== null) {
-                $this->registrarConsumoEnEjecucion($ejecucionId, (int) $stock->producto_variante_id, $cantidad);
+                $this->limpiezaRepositorio->actualizarConsumoEnEjecucion($ejecucionId, (int) $stock->producto_variante_id, $cantidad);
             }
         });
-    }
-
-    private function registrarConsumoEnEjecucion(int $ejecucionId, int $productoVarianteId, float $cantidad): void
-    {
-        $ejecucion = LimpiezaEjecucion::query()
-            ->whereKey($ejecucionId)
-            ->lockForUpdate()
-            ->first();
-
-        if (! $ejecucion instanceof LimpiezaEjecucion) {
-            return;
-        }
-
-        $consumos = is_array($ejecucion->consumos) ? $ejecucion->consumos : [];
-        $actual = isset($consumos[$productoVarianteId]) && is_numeric($consumos[$productoVarianteId])
-            ? (float) $consumos[$productoVarianteId]
-            : 0.0;
-
-        $consumos[$productoVarianteId] = $actual + $cantidad;
-        $ejecucion->consumos = $consumos;
-        $ejecucion->save();
     }
 }

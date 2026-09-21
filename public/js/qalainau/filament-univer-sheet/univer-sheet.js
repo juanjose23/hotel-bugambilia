@@ -33219,18 +33219,20 @@ For more info please visit our website: https://redi.wendell.fun/en-US/docs/faq#
                 },
             })),
         Joe = (t, e) =>
-            new Array(9).fill(0).map((n, r) => ({
-                glyphFormat: ` %${r + 1}`,
-                glyphSymbol: t,
-                bulletAlignment: R6.START,
-                textStyle: { fs: 16 },
-                startNumber: 0,
-                paragraphProperties: {
-                    hanging: { v: 21 },
-                    indentStart: { v: 21 * r },
-                    textStyle: e,
-                },
-            })),
+            new Array(9)
+                .fill(0)
+                .map((n, r) => ({
+                    glyphFormat: ` %${r + 1}`,
+                    glyphSymbol: t,
+                    bulletAlignment: R6.START,
+                    textStyle: { fs: 16 },
+                    startNumber: 0,
+                    paragraphProperties: {
+                        hanging: { v: 21 },
+                        indentStart: { v: 21 * r },
+                        textStyle: e,
+                    },
+                })),
         v4 = {
             [Cn.BULLET_LIST]: {
                 listType: Cn.BULLET_LIST,
@@ -91177,17 +91179,19 @@ For more info please visit our website: https://redi.wendell.fun/en-US/docs/faq#
                 return this.ancestorTransform.invert().applyPoint(t);
             }
             _setTransForm() {
-                ((this.transform = x2.create().composeMatrix({
-                    left: this.left + this.strokeWidth / 2,
-                    top: this.top + this.strokeWidth / 2,
-                    scaleX: this.scaleX,
-                    scaleY: this.scaleY,
-                    angle: this.angle,
-                    skewX: this.skewX,
-                    skewY: this.skewY,
-                    flipX: this.flipX,
-                    flipY: this.flipY,
-                })),
+                ((this.transform = x2
+                    .create()
+                    .composeMatrix({
+                        left: this.left + this.strokeWidth / 2,
+                        top: this.top + this.strokeWidth / 2,
+                        scaleX: this.scaleX,
+                        scaleY: this.scaleY,
+                        angle: this.angle,
+                        skewX: this.skewX,
+                        skewY: this.skewY,
+                        flipX: this.flipX,
+                        flipY: this.flipY,
+                    })),
                     this._makeDirtyMix());
             }
             _makeDirtyMix() {
@@ -102278,14 +102282,16 @@ For more info please visit our website: https://redi.wendell.fun/en-US/docs/faq#
             let v = { right: f - d, bottom: h - m };
             (s.makeDirty(!1),
                 i.resize(p, g),
-                i.changeSkeleton(s).render(t, {
-                    viewBound: {
-                        left: 0,
-                        top: 0,
-                        right: v.right,
-                        bottom: v.bottom,
-                    },
-                }));
+                i
+                    .changeSkeleton(s)
+                    .render(t, {
+                        viewBound: {
+                            left: 0,
+                            top: 0,
+                            right: v.right,
+                            bottom: v.bottom,
+                        },
+                    }));
         }
         _clipRectangleForOverflow(t, e, n, r, a, i, o, s, l = 0) {
             let c = o[e - 1] || 0,
@@ -110898,10 +110904,12 @@ For more info please visit our website: https://redi.wendell.fun/en-US/docs/faq#
                 return !0;
             }
             _transformHandler() {
-                ((this.transform = x2.create().composeMatrix({
-                    scaleX: this.scaleX,
-                    scaleY: this.scaleY,
-                })),
+                ((this.transform = x2
+                    .create()
+                    .composeMatrix({
+                        scaleX: this.scaleX,
+                        scaleY: this.scaleY,
+                    })),
                     this.getViewports().forEach((t) => {
                         t.resetCanvasSizeAndUpdateScroll();
                     }),
@@ -143839,15 +143847,17 @@ ${We.TABLE_CELL_END}`));
             id: 'doc.command.horizontal-line',
             type: Z.COMMAND,
             handler: (t, e) =>
-                t.get(H).syncExecuteCommand(KE.id, {
-                    horizontalLine: {
-                        padding: 5,
-                        color: { rgb: '#CDD0D8' },
-                        width: 1,
-                        dashStyle: Tse.SOLID,
-                    },
-                    textRange: e?.insertRange,
-                }),
+                t
+                    .get(H)
+                    .syncExecuteCommand(KE.id, {
+                        horizontalLine: {
+                            padding: 5,
+                            color: { rgb: '#CDD0D8' },
+                            width: 1,
+                            dashStyle: Tse.SOLID,
+                        },
+                        textRange: e?.insertRange,
+                    }),
         },
         WZ = {
             id: 'doc.command.insert-horizontal-line-bellow',
@@ -188269,10 +188279,12 @@ ${We.TABLE_CELL_END}`));
                               },
                           ])
                         : t.isCube()
-                          ? (e = t.getCubeValues().map((n) => ({
-                                rowCount: n.getRowCount(),
-                                columnCount: n.getColumnCount(),
-                            })))
+                          ? (e = t
+                                .getCubeValues()
+                                .map((n) => ({
+                                    rowCount: n.getRowCount(),
+                                    columnCount: n.getColumnCount(),
+                                })))
                           : t.isArray() &&
                             (e = [
                                 {
@@ -205751,24 +205763,28 @@ ${We.TABLE_CELL_END}`));
     function kp(t, e, n) {
         let r = null;
         return (
-            n.getMatrixWithMergedCells(t, e, t, e).forValue(
-                (a, i, o) => (
-                    (r = {
-                        actualRow: a,
-                        actualColumn: i,
-                        startRow: a,
-                        startColumn: i,
-                        isMerged: o.rowSpan !== void 0 || o.colSpan !== void 0,
-                        isMergedMainCell:
-                            o.rowSpan !== void 0 && o.colSpan !== void 0,
-                        endRow: a + (o.rowSpan !== void 0 ? o.rowSpan - 1 : 0),
-                        endColumn:
-                            i + (o.colSpan !== void 0 ? o.colSpan - 1 : 0),
-                        rangeType: le.NORMAL,
-                    }),
-                    !1
+            n
+                .getMatrixWithMergedCells(t, e, t, e)
+                .forValue(
+                    (a, i, o) => (
+                        (r = {
+                            actualRow: a,
+                            actualColumn: i,
+                            startRow: a,
+                            startColumn: i,
+                            isMerged:
+                                o.rowSpan !== void 0 || o.colSpan !== void 0,
+                            isMergedMainCell:
+                                o.rowSpan !== void 0 && o.colSpan !== void 0,
+                            endRow:
+                                a + (o.rowSpan !== void 0 ? o.rowSpan - 1 : 0),
+                            endColumn:
+                                i + (o.colSpan !== void 0 ? o.colSpan - 1 : 0),
+                            rangeType: le.NORMAL,
+                        }),
+                        !1
+                    ),
                 ),
-            ),
             r || {
                 actualColumn: e,
                 actualRow: t,
@@ -207306,25 +207322,29 @@ ${We.TABLE_CELL_END}`));
                     });
                     return (
                         pn(b.redos, h),
-                        t.get(Dt).pushUndoRedo({
-                            unitID: l,
-                            undoMutations: [
-                                ...((p = f.preUndos) !== null && p !== void 0
-                                    ? p
-                                    : []),
-                                ...d,
-                                ...f.undos,
-                                ...b.undos,
-                            ],
-                            redoMutations: [
-                                ...((g = f.preRedos) !== null && g !== void 0
-                                    ? g
-                                    : []),
-                                ...m,
-                                ...f.redos,
-                                ...b.redos,
-                            ],
-                        }),
+                        t
+                            .get(Dt)
+                            .pushUndoRedo({
+                                unitID: l,
+                                undoMutations: [
+                                    ...((p = f.preUndos) !== null &&
+                                    p !== void 0
+                                        ? p
+                                        : []),
+                                    ...d,
+                                    ...f.undos,
+                                    ...b.undos,
+                                ],
+                                redoMutations: [
+                                    ...((g = f.preRedos) !== null &&
+                                    g !== void 0
+                                        ? g
+                                        : []),
+                                    ...m,
+                                    ...f.redos,
+                                    ...b.redos,
+                                ],
+                            }),
                         !0
                     );
                 }
@@ -207417,26 +207437,30 @@ ${We.TABLE_CELL_END}`));
                     });
                     return (
                         pn(b.redos, h),
-                        t.get(Dt).pushUndoRedo({
-                            unitID: l,
-                            undoMutations: [
-                                ...((p = f.preUndos) !== null && p !== void 0
-                                    ? p
-                                    : []),
-                                { id: Wo.id, params: d },
-                                { id: yt.id, params: m },
-                                ...f.undos,
-                                ...b.undos,
-                            ],
-                            redoMutations: [
-                                ...((g = f.preRedos) !== null && g !== void 0
-                                    ? g
-                                    : []),
-                                { id: _o.id, params: u },
-                                ...f.redos,
-                                ...b.redos,
-                            ],
-                        }),
+                        t
+                            .get(Dt)
+                            .pushUndoRedo({
+                                unitID: l,
+                                undoMutations: [
+                                    ...((p = f.preUndos) !== null &&
+                                    p !== void 0
+                                        ? p
+                                        : []),
+                                    { id: Wo.id, params: d },
+                                    { id: yt.id, params: m },
+                                    ...f.undos,
+                                    ...b.undos,
+                                ],
+                                redoMutations: [
+                                    ...((g = f.preRedos) !== null &&
+                                    g !== void 0
+                                        ? g
+                                        : []),
+                                    { id: _o.id, params: u },
+                                    ...f.redos,
+                                    ...b.redos,
+                                ],
+                            }),
                         !0
                     );
                 }
@@ -207608,11 +207632,13 @@ ${We.TABLE_CELL_END}`));
                         pn(D.redos, w),
                         I.push(...D.redos),
                         T.push(...D.undos),
-                        t.get(Dt).pushUndoRedo({
-                            unitID: h,
-                            undoMutations: T,
-                            redoMutations: I,
-                        }),
+                        t
+                            .get(Dt)
+                            .pushUndoRedo({
+                                unitID: h,
+                                undoMutations: T,
+                                redoMutations: I,
+                            }),
                         !0
                     );
                 }
@@ -207709,11 +207735,13 @@ ${We.TABLE_CELL_END}`));
                         pn(D.redos, w),
                         I.push(...D.redos),
                         T.push(...D.undos),
-                        t.get(Dt).pushUndoRedo({
-                            unitID: h,
-                            undoMutations: T,
-                            redoMutations: I,
-                        }),
+                        t
+                            .get(Dt)
+                            .pushUndoRedo({
+                                unitID: h,
+                                undoMutations: T,
+                                redoMutations: I,
+                            }),
                         !0
                     );
                 }
@@ -207939,11 +207967,13 @@ ${We.TABLE_CELL_END}`));
                     k = d.afterCommandExecute({ id: KC.id, params: e });
                 return p.result
                     ? (pn([...k.redos, ...y], l),
-                      t.get(Dt).pushUndoRedo({
-                          unitID: i,
-                          undoMutations: [...h, ...k.undos, ...v],
-                          redoMutations: [...f, ...k.redos, ...y],
-                      }),
+                      t
+                          .get(Dt)
+                          .pushUndoRedo({
+                              unitID: i,
+                              undoMutations: [...h, ...k.undos, ...v],
+                              redoMutations: [...f, ...k.redos, ...y],
+                          }),
                       !0)
                     : !1;
             },
@@ -210848,10 +210878,12 @@ ${We.TABLE_CELL_END}`));
                 b && d.push(b);
                 let v = wZt(t, e);
                 v && m.push(v);
-                let y = t.get(hn).onCommandExecute({
-                    id: n2.id,
-                    params: { unitId: a, subUnitId: i, ranges: c },
-                });
+                let y = t
+                    .get(hn)
+                    .onCommandExecute({
+                        id: n2.id,
+                        params: { unitId: a, subUnitId: i, ranges: c },
+                    });
                 return (
                     d.push(...y.redos),
                     m.push(...y.undos),
@@ -210883,11 +210915,13 @@ ${We.TABLE_CELL_END}`));
                 let { worksheet: i } = a,
                     o = i.getUnitId(),
                     s = i.getSheetId();
-                return t.get(H).executeCommand(n2.id, {
-                    selections: r,
-                    unitId: o,
-                    subUnitId: s,
-                });
+                return t
+                    .get(H)
+                    .executeCommand(n2.id, {
+                        selections: r,
+                        unitId: o,
+                        subUnitId: s,
+                    });
             },
         },
         qz = {
@@ -210907,12 +210941,14 @@ ${We.TABLE_CELL_END}`));
                 let { worksheet: i } = a,
                     o = i.getUnitId(),
                     s = i.getSheetId();
-                return t.get(H).executeCommand(n2.id, {
-                    value: go.COLUMNS,
-                    selections: r,
-                    unitId: o,
-                    subUnitId: s,
-                });
+                return t
+                    .get(H)
+                    .executeCommand(n2.id, {
+                        value: go.COLUMNS,
+                        selections: r,
+                        unitId: o,
+                        subUnitId: s,
+                    });
             },
         },
         Wz = {
@@ -210932,12 +210968,14 @@ ${We.TABLE_CELL_END}`));
                 let { workbook: i, worksheet: o } = a,
                     s = i.getUnitId(),
                     l = o.getSheetId();
-                return t.get(H).executeCommand(n2.id, {
-                    value: go.ROWS,
-                    selections: r,
-                    unitId: s,
-                    subUnitId: l,
-                });
+                return t
+                    .get(H)
+                    .executeCommand(n2.id, {
+                        value: go.ROWS,
+                        selections: r,
+                        unitId: s,
+                        subUnitId: l,
+                    });
             },
         };
     function Gz(t, e, n, r, a = {}) {
@@ -211462,9 +211500,11 @@ ${We.TABLE_CELL_END}`));
             type: Z.COMMAND,
             id: 'sheet.command.reset-text-color',
             handler: (t) =>
-                t.get(H).syncExecuteCommand(za.id, {
-                    style: { type: 'cl', value: { rgb: null } },
-                }),
+                t
+                    .get(H)
+                    .syncExecuteCommand(za.id, {
+                        style: { type: 'cl', value: { rgb: null } },
+                    }),
         },
         mR = {
             type: Z.COMMAND,
@@ -211480,9 +211520,11 @@ ${We.TABLE_CELL_END}`));
             type: Z.COMMAND,
             id: 'sheet.command.reset-background-color',
             handler: (t) =>
-                t.get(H).syncExecuteCommand(za.id, {
-                    style: { type: 'bg', value: { rgb: null } },
-                }),
+                t
+                    .get(H)
+                    .syncExecuteCommand(za.id, {
+                        style: { type: 'bg', value: { rgb: null } },
+                    }),
         },
         Ep = {
             type: Z.COMMAND,
@@ -213434,15 +213476,17 @@ ${We.TABLE_CELL_END}`));
             o > 0 && a.push(i),
             {
                 firstChunkCellData: a.length > 0 ? a[0] : {},
-                remainingMutations: a.slice(1).map((s) => ({
-                    id: yt.id,
-                    params: {
-                        unitId: t,
-                        subUnitId: e,
-                        cellValue: s,
-                        __splitChunk__: !0,
-                    },
-                })),
+                remainingMutations: a
+                    .slice(1)
+                    .map((s) => ({
+                        id: yt.id,
+                        params: {
+                            unitId: t,
+                            subUnitId: e,
+                            cellValue: s,
+                            __splitChunk__: !0,
+                        },
+                    })),
             }
         );
     }
@@ -214503,26 +214547,29 @@ ${We.TABLE_CELL_END}`));
                     let v = i.afterCommandExecute({ id: P0.id, params: e });
                     return (
                         pn(v.redos, o),
-                        t.get(Dt).pushUndoRedo({
-                            unitID: n,
-                            undoMutations: [
-                                { id: Nh.id, params: d },
-                                { id: cn.id, params: m },
-                                ...((g = h.undos) !== null && g !== void 0
-                                    ? g
-                                    : []),
-                                ...v.undos,
-                            ],
-                            redoMutations: [
-                                ...((b = h.preRedos) !== null && b !== void 0
-                                    ? b
-                                    : []),
-                                { id: Mh.id, params: c },
-                                { id: cn.id, params: u },
-                                ...h.redos,
-                                ...v.redos,
-                            ],
-                        }),
+                        t
+                            .get(Dt)
+                            .pushUndoRedo({
+                                unitID: n,
+                                undoMutations: [
+                                    { id: Nh.id, params: d },
+                                    { id: cn.id, params: m },
+                                    ...((g = h.undos) !== null && g !== void 0
+                                        ? g
+                                        : []),
+                                    ...v.undos,
+                                ],
+                                redoMutations: [
+                                    ...((b = h.preRedos) !== null &&
+                                    b !== void 0
+                                        ? b
+                                        : []),
+                                    { id: Mh.id, params: c },
+                                    { id: cn.id, params: u },
+                                    ...h.redos,
+                                    ...v.redos,
+                                ],
+                            }),
                         !0
                     );
                 }
@@ -214618,26 +214665,29 @@ ${We.TABLE_CELL_END}`));
                     let C = i.afterCommandExecute({ id: k3.id, params: f });
                     return (
                         pn(C.redos, s),
-                        t.get(Dt).pushUndoRedo({
-                            unitID: d,
-                            undoMutations: [
-                                { id: Mh.id, params: p },
-                                { id: cn.id, params: g },
-                                ...((k = v.undos) !== null && k !== void 0
-                                    ? k
-                                    : []),
-                                ...C.undos,
-                            ],
-                            redoMutations: [
-                                ...((E = v.preRedos) !== null && E !== void 0
-                                    ? E
-                                    : []),
-                                { id: Nh.id, params: f },
-                                { id: cn.id, params: h },
-                                ...v.redos,
-                                ...C.redos,
-                            ],
-                        }),
+                        t
+                            .get(Dt)
+                            .pushUndoRedo({
+                                unitID: d,
+                                undoMutations: [
+                                    { id: Mh.id, params: p },
+                                    { id: cn.id, params: g },
+                                    ...((k = v.undos) !== null && k !== void 0
+                                        ? k
+                                        : []),
+                                    ...C.undos,
+                                ],
+                                redoMutations: [
+                                    ...((E = v.preRedos) !== null &&
+                                    E !== void 0
+                                        ? E
+                                        : []),
+                                    { id: Nh.id, params: f },
+                                    { id: cn.id, params: h },
+                                    ...v.redos,
+                                    ...C.redos,
+                                ],
+                            }),
                         !0
                     );
                 }
@@ -221886,24 +221936,28 @@ ${We.TABLE_CELL_END}`));
     function nz(t, e, n) {
         let r = null;
         return (
-            n.getMatrixWithMergedCells(t, e, t, e).forValue(
-                (a, i, o) => (
-                    (r = {
-                        actualRow: a,
-                        actualColumn: i,
-                        startRow: a,
-                        startColumn: i,
-                        isMerged: o.rowSpan !== void 0 || o.colSpan !== void 0,
-                        isMergedMainCell:
-                            o.rowSpan !== void 0 && o.colSpan !== void 0,
-                        endRow: a + (o.rowSpan !== void 0 ? o.rowSpan - 1 : 0),
-                        endColumn:
-                            i + (o.colSpan !== void 0 ? o.colSpan - 1 : 0),
-                        rangeType: le.NORMAL,
-                    }),
-                    !1
+            n
+                .getMatrixWithMergedCells(t, e, t, e)
+                .forValue(
+                    (a, i, o) => (
+                        (r = {
+                            actualRow: a,
+                            actualColumn: i,
+                            startRow: a,
+                            startColumn: i,
+                            isMerged:
+                                o.rowSpan !== void 0 || o.colSpan !== void 0,
+                            isMergedMainCell:
+                                o.rowSpan !== void 0 && o.colSpan !== void 0,
+                            endRow:
+                                a + (o.rowSpan !== void 0 ? o.rowSpan - 1 : 0),
+                            endColumn:
+                                i + (o.colSpan !== void 0 ? o.colSpan - 1 : 0),
+                            rangeType: le.NORMAL,
+                        }),
+                        !1
+                    ),
                 ),
-            ),
             r || {
                 actualColumn: e,
                 actualRow: t,
@@ -245211,17 +245265,21 @@ ${We.TABLE_CELL_END}`));
             id: 'sheet.command.paste-col-width',
             type: Z.COMMAND,
             handler: async (t) =>
-                t.get(H).executeCommand(Ku.id, {
-                    value: ja.SPECIAL_PASTE_COL_WIDTH,
-                }),
+                t
+                    .get(H)
+                    .executeCommand(Ku.id, {
+                        value: ja.SPECIAL_PASTE_COL_WIDTH,
+                    }),
         },
         IR = {
             id: 'sheet.command.paste-besides-border',
             type: Z.COMMAND,
             handler: async (t) =>
-                t.get(H).executeCommand(Ku.id, {
-                    value: ja.SPECIAL_PASTE_BESIDES_BORDER,
-                }),
+                t
+                    .get(H)
+                    .executeCommand(Ku.id, {
+                        value: ja.SPECIAL_PASTE_BESIDES_BORDER,
+                    }),
         },
         gUe = {
             id: 'sheet.command.optional-paste',
@@ -246279,10 +246337,12 @@ ${We.TABLE_CELL_END}`));
             id: 'sheet.command.add-range-protection-from-sheet-bar',
             async handler(t) {
                 return (
-                    await t.get(H).executeCommand(B3.id, {
-                        fromSheetBar: !0,
-                        showDetail: !0,
-                    }),
+                    await t
+                        .get(H)
+                        .executeCommand(B3.id, {
+                            fromSheetBar: !0,
+                            showDetail: !0,
+                        }),
                     !0
                 );
             },
@@ -247027,14 +247087,16 @@ ${We.TABLE_CELL_END}`));
                         },
                     },
                 ];
-                return t.get(H).executeCommand(cn.id, {
-                    unitId: r.getUnitId(),
-                    subUnitId: a.getSheetId(),
-                    selections: p,
-                    type: Ba.MOVE_END,
-                    extra: l,
-                    reveal: !0,
-                });
+                return t
+                    .get(H)
+                    .executeCommand(cn.id, {
+                        unitId: r.getUnitId(),
+                        subUnitId: a.getSheetId(),
+                        selections: p,
+                        type: Ba.MOVE_END,
+                        extra: l,
+                        reveal: !0,
+                    });
             },
         },
         Jh = {
@@ -247168,14 +247230,16 @@ ${We.TABLE_CELL_END}`));
                       (u[p] = S),
                       o.setSelections(g, b, [], Ba.MOVE_END))
                     : (u[d] = S);
-                let N = t.get(H).executeCommand(cn.id, {
-                        unitId: g,
-                        subUnitId: b,
-                        type: Ba.MOVE_END,
-                        selections: u,
-                        reveal: !0,
-                        extra: e.extra,
-                    }),
+                let N = t
+                        .get(H)
+                        .executeCommand(cn.id, {
+                            unitId: g,
+                            subUnitId: b,
+                            type: Ba.MOVE_END,
+                            selections: u,
+                            reveal: !0,
+                            extra: e.extra,
+                        }),
                     P =
                         (n = t.get(lt).getRenderById(g)) === null ||
                         n === void 0
@@ -247220,14 +247284,16 @@ ${We.TABLE_CELL_END}`));
                     (m.rangeType = o.range.rangeType),
                     Pe.equals(m, u)
                         ? !1
-                        : t.get(H).syncExecuteCommand(cn.id, {
-                              unitId: a,
-                              subUnitId: i,
-                              type: Ba.MOVE_END,
-                              selections: [{ range: m, primary: d }],
-                              extra: c,
-                              reveal: !0,
-                          })
+                        : t
+                              .get(H)
+                              .syncExecuteCommand(cn.id, {
+                                  unitId: a,
+                                  subUnitId: i,
+                                  type: Ba.MOVE_END,
+                                  selections: [{ range: m, primary: d }],
+                                  extra: c,
+                                  reveal: !0,
+                              })
                 );
             },
         },
@@ -247994,15 +248060,17 @@ ${We.TABLE_CELL_END}`));
                         offsetY: b,
                     } = l || {},
                     { xSplit: v, ySplit: y } = a.worksheet.getConfig().freeze;
-                return t.get(H).syncExecuteCommand(e6.id, {
-                    unitId: i.getUnitId(),
-                    sheetId: o.getSheetId(),
-                    sheetViewStartRow: c ?? p ?? 0 + y,
-                    sheetViewStartColumn: u ?? h ?? 0 + v,
-                    offsetX: d ?? g,
-                    offsetY: m ?? b,
-                    duration: f,
-                });
+                return t
+                    .get(H)
+                    .syncExecuteCommand(e6.id, {
+                        unitId: i.getUnitId(),
+                        sheetId: o.getSheetId(),
+                        sheetViewStartRow: c ?? p ?? 0 + y,
+                        sheetViewStartColumn: u ?? h ?? 0 + v,
+                        offsetX: d ?? g,
+                        offsetY: m ?? b,
+                        duration: f,
+                    });
             },
         },
         Dte = {
@@ -248026,12 +248094,14 @@ ${We.TABLE_CELL_END}`));
                 let e = je(t.get(Y));
                 if (!e) return !1;
                 let { subUnitId: n, unitId: r } = e;
-                return t.get(H).executeCommand(e6.id, {
-                    unitId: r,
-                    sheetId: n,
-                    sheetViewStartRow: 0,
-                    sheetViewStartColumn: 0,
-                });
+                return t
+                    .get(H)
+                    .executeCommand(e6.id, {
+                        unitId: r,
+                        sheetId: n,
+                        sheetViewStartRow: 0,
+                        sheetViewStartColumn: 0,
+                    });
             },
         },
         uen = (t, e) => {
@@ -248593,11 +248663,13 @@ ${We.TABLE_CELL_END}`));
                     u = t.get(ma).isVisible();
                 return (u.unitId === i || u.unitId === Br) && u.visible
                     ? !1
-                    : t.get(H).executeCommand(U3.id, {
-                          unitId: i,
-                          subUnitId: a,
-                          zoomRatio: c,
-                      });
+                    : t
+                          .get(H)
+                          .executeCommand(U3.id, {
+                              unitId: i,
+                              subUnitId: a,
+                              zoomRatio: c,
+                          });
             },
         },
         W0 = {
@@ -248609,11 +248681,13 @@ ${We.TABLE_CELL_END}`));
                     i = t.get(ma).isVisible();
                 return (i.unitId === n || i.unitId === Br) && i.visible
                     ? !1
-                    : t.get(H).executeCommand(U3.id, {
-                          unitId: n,
-                          subUnitId: r,
-                          zoomRatio: a,
-                      });
+                    : t
+                          .get(H)
+                          .executeCommand(U3.id, {
+                              unitId: n,
+                              subUnitId: r,
+                              zoomRatio: a,
+                          });
             },
         },
         Gp = Lt('univer.sheetbar-service'),
@@ -252021,17 +252095,19 @@ ${We.TABLE_CELL_END}`));
         });
         let f = je(n.get(Y), { unitId: i, subUnitId: o });
         if (f && f.worksheet) {
-            let h = f.worksheet.getMergeData().filter((p) =>
-                Pe.intersects(
-                    {
-                        startRow: c,
-                        startColumn: l,
-                        endRow: d,
-                        endColumn: u,
-                    },
-                    p,
-                ),
-            );
+            let h = f.worksheet
+                .getMergeData()
+                .filter((p) =>
+                    Pe.intersects(
+                        {
+                            startRow: c,
+                            startColumn: l,
+                            endRow: d,
+                            endColumn: u,
+                        },
+                        p,
+                    ),
+                );
             if (h.length > 0) {
                 let p = { unitId: i, subUnitId: o, ranges: h };
                 r.push({ id: _a.id, params: p });
@@ -266261,13 +266337,15 @@ ${We.TABLE_CELL_END}`));
                         : !0,
                 [r, a] = (0, Le.useState)(window.innerWidth < eUe),
                 i = J(FU),
-                o = i.getFunctions().map((f, h) => ({
-                    name: f.func,
-                    value: 0,
-                    show: !0,
-                    disable: !1,
-                    pattern: null,
-                })),
+                o = i
+                    .getFunctions()
+                    .map((f, h) => ({
+                        name: f.func,
+                        value: 0,
+                        show: !0,
+                        disable: !1,
+                        pattern: null,
+                    })),
                 s = (f, h, p, g) => {
                     let [b, v] = (0, Le.useState)(f),
                         [y, k] = (0, Le.useState)(!0),
@@ -276127,10 +276205,12 @@ ${We.TABLE_CELL_END}`));
             id: 'formula-ui.operation.more-functions',
             type: Z.OPERATION,
             handler: async (t) => (
-                t.get(Ki).open({
-                    header: { title: 'formula.insert.tooltip' },
-                    children: { label: RVe },
-                }),
+                t
+                    .get(Ki)
+                    .open({
+                        header: { title: 'formula.insert.tooltip' },
+                        children: { label: RVe },
+                    }),
                 !0
             ),
         },
@@ -285640,10 +285720,12 @@ ${We.TABLE_CELL_END}`));
             }
             showSheet() {
                 return (
-                    this._injector.get(H).syncExecuteCommand(P3.id, {
-                        unitId: this._workbook.getUnitId(),
-                        subUnitId: this._worksheet.getSheetId(),
-                    }),
+                    this._injector
+                        .get(H)
+                        .syncExecuteCommand(P3.id, {
+                            unitId: this._workbook.getUnitId(),
+                            subUnitId: this._worksheet.getSheetId(),
+                        }),
                     this
                 );
             }
@@ -286827,11 +286909,13 @@ ${We.TABLE_CELL_END}`));
                 });
             }
             getUsedThemeStyle() {
-                return this._injector.get(sb).getAppliedRangeThemeStyle({
-                    unitId: this._workbook.getUnitId(),
-                    subUnitId: this._worksheet.getSheetId(),
-                    range: this._range,
-                });
+                return this._injector
+                    .get(sb)
+                    .getAppliedRangeThemeStyle({
+                        unitId: this._workbook.getUnitId(),
+                        subUnitId: this._worksheet.getSheetId(),
+                        range: this._range,
+                    });
             }
             clear(e) {
                 return e && e.contentsOnly && !e.formatOnly
@@ -290180,14 +290264,16 @@ ${We.TABLE_CELL_END}`));
             return Ne(this._injector.get(Em).endCell$.subscribe(t));
         }
         onCellRender(t, e = ua.Style, n = lb.DATA_VALIDATION) {
-            return this._injector.get(hn).intercept(is.CELL_CONTENT, {
-                effect: e,
-                handler: (r, a, i) => (
-                    r && !r.customRender && t && (r.customRender = [...t]),
-                    i(r)
-                ),
-                priority: n,
-            });
+            return this._injector
+                .get(hn)
+                .intercept(is.CELL_CONTENT, {
+                    effect: e,
+                    handler: (r, a, i) => (
+                        r && !r.customRender && t && (r.customRender = [...t]),
+                        i(r)
+                    ),
+                    priority: n,
+                });
         }
         onBeforeCellEdit(t) {
             return this._injector.get(H).beforeCommandExecuted((e) => {

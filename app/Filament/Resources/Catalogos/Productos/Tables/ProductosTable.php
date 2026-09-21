@@ -10,6 +10,7 @@ use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEliminados;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
@@ -17,6 +18,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -25,6 +27,9 @@ class ProductosTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
+            ->persistFiltersInSession()
+            ->persistSearchInSession()
             ->columns([
                 TextColumn::make('nombre')
                     ->sortable(),
@@ -36,7 +41,8 @@ class ProductosTable
                     ->sortable(),
                 TextColumn::make('unidadMedida.nombre')
                     ->label('Unidad de Medida')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('tipo')
                     ->label('Tipo')
                     ->badge()
@@ -64,8 +70,10 @@ class ProductosTable
                 ),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                ])->icon(Heroicon::EllipsisVertical),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

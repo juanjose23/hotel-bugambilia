@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Espacios;
 
 use App\Http\Controllers\Controller;
-use App\Interactors\Landing\ObtenerEspacioDetalleLanding;
-use App\Interactors\Landing\ObtenerEspaciosLanding;
-use App\Interactors\Landing\ObtenerOpcionesReservaLanding;
+use App\Interactors\Espacios\ObtenerEspacioDetalle;
+use App\Interactors\Espacios\ObtenerEspacios;
+use App\Interactors\Reservas\Gestion\ObtenerOpcionesReserva;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,7 +15,7 @@ use Inertia\Response;
 
 final class EspacioController extends Controller
 {
-    public function index(Request $request, ObtenerEspaciosLanding $interactor): Response
+    public function index(Request $request, ObtenerEspacios $interactor): Response
     {
         $tipo = $request->string('tipo')->toString();
 
@@ -28,8 +28,8 @@ final class EspacioController extends Controller
 
     public function show(
         string|int $slug,
-        ObtenerEspacioDetalleLanding $interactor,
-        ObtenerOpcionesReservaLanding $opciones,
+        ObtenerEspacioDetalle $interactor,
+        ObtenerOpcionesReserva $opciones,
     ): Response|RedirectResponse {
         $detalle = $interactor->ejecutar($slug);
         $space = $detalle['space'];
@@ -49,8 +49,8 @@ final class EspacioController extends Controller
 
     public function mostrarReserva(
         string|int $slug,
-        ObtenerEspacioDetalleLanding $interactor,
-        ObtenerOpcionesReservaLanding $opciones,
+        ObtenerEspacioDetalle $interactor,
+        ObtenerOpcionesReserva $opciones,
     ): Response|RedirectResponse {
         $detalle = $interactor->ejecutar($slug);
         $space = $detalle['space'];

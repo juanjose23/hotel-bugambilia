@@ -6,7 +6,7 @@ namespace App\BusinessLogic\Activos;
 
 use App\Enums\Activos\EstadoIndividualizacion;
 
-class ReglasIndividualizacion
+final readonly class ReglasIndividualizacion
 {
     public function validarCantidad(int $cantidadRegistrada, int $cantidadAIndividualizar, int $cantidadTotal): void
     {

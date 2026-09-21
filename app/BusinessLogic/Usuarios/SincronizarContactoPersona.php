@@ -6,7 +6,7 @@ namespace App\BusinessLogic\Usuarios;
 
 use App\Repository\Models\Personas\Persona;
 
-final class SincronizarContactoPersona
+final readonly class SincronizarContactoPersona
 {
     /**
      * Decide qué campos de contacto deben actualizarse en la persona.

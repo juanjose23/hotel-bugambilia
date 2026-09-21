@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Reservas\Gestion;
 
-use App\BusinessLogic\Reservas\ValidarTransicionEstadoReserva;
+use App\BusinessLogic\Reservas\Validaciones\ValidarTransicionEstadoReserva;
 use App\Enums\Reservas\EstadoReserva;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;

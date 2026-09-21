@@ -14,7 +14,7 @@ use App\Repository\Queries\Catalogos\BuscarProductoPorId;
 use App\Repository\Queries\Compras\Recepciones\ObtenerRecepcionItemConCompra;
 use Illuminate\Support\Facades\DB;
 
-class RegistrarActivoFijo
+final class RegistrarActivoFijo
 {
     public function __construct(
         private readonly GeneradorCodigoInventario $generadorCodigo,

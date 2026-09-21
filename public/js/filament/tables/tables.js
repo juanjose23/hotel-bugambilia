@@ -1,11 +1,11 @@
 (() => {
     var N = Math.min,
-        k = Math.max,
+        E = Math.max,
         H = Math.round,
         _ = Math.floor,
         O = (e) => ({ x: e, y: e });
     function Z(e, t, o) {
-        return k(e, N(t, o));
+        return E(e, N(t, o));
     }
     function j(e, t) {
         return typeof e == 'function' ? e(t) : e;
@@ -128,7 +128,7 @@
             y = await (l.getOffsetParent == null
                 ? void 0
                 : l.getOffsetParent(s.floating)),
-            b = (await (l.isElement == null ? void 0 : l.isElement(y)))
+            v = (await (l.isElement == null ? void 0 : l.isElement(y)))
                 ? (await (l.getScale == null ? void 0 : l.getScale(y))) || {
                       x: 1,
                       y: 1,
@@ -147,10 +147,10 @@
                     : x,
             );
         return {
-            top: (g.top - L.top + m.top) / b.y,
-            bottom: (L.bottom - g.bottom + m.bottom) / b.y,
-            left: (g.left - L.left + m.left) / b.x,
-            right: (L.right - g.right + m.right) / b.x,
+            top: (g.top - L.top + m.top) / v.y,
+            bottom: (L.bottom - g.bottom + m.bottom) / v.y,
+            left: (g.left - L.left + m.left) / v.x,
+            right: (L.right - g.right + m.right) / v.x,
         };
     }
     var Me = 50,
@@ -178,7 +178,7 @@
                 let { name: g, fn: x } = w,
                     {
                         x: y,
-                        y: b,
+                        y: v,
                         data: L,
                         reset: S,
                     } = await x({
@@ -193,7 +193,7 @@
                         elements: { reference: e, floating: t },
                     });
                 ((d = y ?? d),
-                    (u = b ?? u),
+                    (u = v ?? u),
                     (m[g] = { ...m[g], ...L }),
                     S &&
                         f < Me &&
@@ -293,15 +293,15 @@
                             let g = f === 'y' ? 'top' : 'left',
                                 x = f === 'y' ? 'bottom' : 'right',
                                 y = m + u[g],
-                                b = m - u[x];
-                            m = Z(y, m, b);
+                                v = m - u[x];
+                            m = Z(y, m, v);
                         }
                         if (s) {
                             let g = h === 'y' ? 'top' : 'left',
                                 x = h === 'y' ? 'bottom' : 'right',
                                 y = p + u[g],
-                                b = p - u[x];
-                            p = Z(y, p, b);
+                                v = p - u[x];
+                            p = Z(y, p, v);
                         }
                         let w = c.fn({ ...t, [f]: m, [h]: p });
                         return {
@@ -322,7 +322,7 @@
     function F(e) {
         return ge(e) ? (e.nodeName || '').toLowerCase() : '#document';
     }
-    function v(e) {
+    function b(e) {
         var t;
         return (
             (e == null || (t = e.ownerDocument) == null
@@ -338,20 +338,20 @@
             : t.documentElement;
     }
     function ge(e) {
-        return G() ? e instanceof Node || e instanceof v(e).Node : !1;
+        return G() ? e instanceof Node || e instanceof b(e).Node : !1;
     }
     function R(e) {
-        return G() ? e instanceof Element || e instanceof v(e).Element : !1;
+        return G() ? e instanceof Element || e instanceof b(e).Element : !1;
     }
     function T(e) {
         return G()
-            ? e instanceof HTMLElement || e instanceof v(e).HTMLElement
+            ? e instanceof HTMLElement || e instanceof b(e).HTMLElement
             : !1;
     }
     function me(e) {
         return !G() || typeof ShadowRoot > 'u'
             ? !1
-            : e instanceof ShadowRoot || e instanceof v(e).ShadowRoot;
+            : e instanceof ShadowRoot || e instanceof b(e).ShadowRoot;
     }
     function B(e) {
         let { overflow: t, overflowX: o, overflowY: n, display: r } = C(e);
@@ -364,7 +364,7 @@
     function pe(e) {
         return /^(table|td|th)$/.test(F(e));
     }
-    function I(e) {
+    function U(e) {
         try {
             if (e.matches(':popover-open')) return !0;
         } catch {}
@@ -392,11 +392,11 @@
         );
     }
     function we(e) {
-        let t = E(e);
+        let t = k(e);
         for (; T(t) && !M(t);) {
             if (J(t)) return t;
-            if (I(t)) return null;
-            t = E(t);
+            if (U(t)) return null;
+            t = k(t);
         }
         return null;
     }
@@ -414,20 +414,20 @@
         return /^(html|body|#document)$/.test(F(e));
     }
     function C(e) {
-        return v(e).getComputedStyle(e);
+        return b(e).getComputedStyle(e);
     }
-    function U(e) {
+    function I(e) {
         return R(e)
             ? { scrollLeft: e.scrollLeft, scrollTop: e.scrollTop }
             : { scrollLeft: e.scrollX, scrollTop: e.scrollY };
     }
-    function E(e) {
+    function k(e) {
         if (F(e) === 'html') return e;
         let t = e.assignedSlot || e.parentNode || (me(e) && e.host) || A(e);
         return me(t) ? t.host : t;
     }
     function xe(e) {
-        let t = E(e);
+        let t = k(e);
         return M(t)
             ? e.ownerDocument
                 ? e.ownerDocument.body
@@ -441,7 +441,7 @@
         (t === void 0 && (t = []), o === void 0 && (o = !0));
         let r = xe(e),
             l = r === ((n = e.ownerDocument) == null ? void 0 : n.body),
-            i = v(r);
+            i = b(r);
         if (l) {
             let s = q(i);
             return t.concat(
@@ -485,13 +485,13 @@
     }
     var We = O(0);
     function Ce(e) {
-        let t = v(e);
+        let t = b(e);
         return !K() || !t.visualViewport
             ? We
             : { x: t.visualViewport.offsetLeft, y: t.visualViewport.offsetTop };
     }
     function He(e, t, o) {
-        return (t === void 0 && (t = !1), !o || (t && o !== v(e)) ? !1 : t);
+        return (t === void 0 && (t = !1), !o || (t && o !== b(e)) ? !1 : t);
     }
     function $(e, t, o, n) {
         (t === void 0 && (t = !1), o === void 0 && (o = !1));
@@ -505,8 +505,8 @@
             d = r.width / i.x,
             u = r.height / i.y;
         if (l) {
-            let h = v(l),
-                f = n && R(n) ? v(n) : n,
+            let h = b(l),
+                f = n && R(n) ? b(n) : n,
                 m = h,
                 p = q(m);
             for (; p && n && f !== m;) {
@@ -516,21 +516,21 @@
                     y =
                         g.left +
                         (p.clientLeft + parseFloat(x.paddingLeft)) * w.x,
-                    b = g.top + (p.clientTop + parseFloat(x.paddingTop)) * w.y;
+                    v = g.top + (p.clientTop + parseFloat(x.paddingTop)) * w.y;
                 ((c *= w.x),
                     (a *= w.y),
                     (d *= w.x),
                     (u *= w.y),
                     (c += y),
-                    (a += b),
-                    (m = v(p)),
+                    (a += v),
+                    (m = b(p)),
                     (p = q(m)));
             }
         }
         return P({ width: d, height: u, x: c, y: a });
     }
     function Q(e, t) {
-        let o = U(e).scrollLeft;
+        let o = I(e).scrollLeft;
         return t ? t.left + o : $(A(e)).left + o;
     }
     function Oe(e, t) {
@@ -543,13 +543,13 @@
         let { elements: t, rect: o, offsetParent: n, strategy: r } = e,
             l = r === 'fixed',
             i = A(n),
-            s = t ? I(t.floating) : !1;
+            s = t ? U(t.floating) : !1;
         if (n === i || (s && l)) return o;
         let c = { scrollLeft: 0, scrollTop: 0 },
             a = O(1),
             d = O(0),
             u = T(n);
-        if ((u || (!u && !l)) && ((F(n) !== 'body' || B(i)) && (c = U(n)), u)) {
+        if ((u || (!u && !l)) && ((F(n) !== 'body' || B(i)) && (c = I(n)), u)) {
             let f = $(n);
             ((a = W(n)), (d.x = f.x + n.clientLeft), (d.y = f.y + n.clientTop));
         }
@@ -564,12 +564,12 @@
     function ze(e) {
         return Array.from(e.getClientRects());
     }
-    function Ie(e) {
+    function Ue(e) {
         let t = A(e),
-            o = U(e),
+            o = I(e),
             n = e.ownerDocument.body,
-            r = k(t.scrollWidth, t.clientWidth, n.scrollWidth, n.clientWidth),
-            l = k(
+            r = E(t.scrollWidth, t.clientWidth, n.scrollWidth, n.clientWidth),
+            l = E(
                 t.scrollHeight,
                 t.clientHeight,
                 n.scrollHeight,
@@ -579,13 +579,13 @@
             s = -o.scrollTop;
         return (
             C(n).direction === 'rtl' &&
-                (i += k(t.clientWidth, n.clientWidth) - r),
+                (i += E(t.clientWidth, n.clientWidth) - r),
             { width: r, height: l, x: i, y: s }
         );
     }
     var ye = 25;
-    function Ue(e, t) {
-        let o = v(e),
+    function Ie(e, t) {
+        let o = b(e),
             n = A(e),
             r = o.visualViewport,
             l = n.clientWidth,
@@ -623,10 +623,10 @@
             a = n * l.y;
         return { width: i, height: s, x: c, y: a };
     }
-    function be(e, t, o) {
+    function ve(e, t, o) {
         let n;
-        if (t === 'viewport') n = Ue(e, o);
-        else if (t === 'document') n = Ie(A(e));
+        if (t === 'viewport') n = Ie(e, o);
+        else if (t === 'document') n = Ue(A(e));
         else if (R(t)) n = Xe(t, o);
         else {
             let r = Ce(e);
@@ -640,7 +640,7 @@
         return P(n);
     }
     function Ae(e, t) {
-        let o = E(e);
+        let o = k(e);
         return o === t || !R(o) || M(o)
             ? !1
             : C(o).position === 'fixed' || Ae(o, t);
@@ -651,7 +651,7 @@
         let n = V(e, [], !1).filter((s) => R(s) && F(s) !== 'body'),
             r = null,
             l = C(e).position === 'fixed',
-            i = l ? E(e) : e;
+            i = l ? k(e) : e;
         for (; R(i) && !M(i);) {
             let s = C(i),
                 c = J(i);
@@ -668,7 +668,7 @@
                 )
                     ? (n = n.filter((d) => d !== i))
                     : (r = s),
-                (i = E(i)));
+                (i = k(i)));
         }
         return (t.set(e, n), n);
     }
@@ -676,23 +676,23 @@
         let { element: t, boundary: o, rootBoundary: n, strategy: r } = e,
             i = [
                 ...(o === 'clippingAncestors'
-                    ? I(t)
+                    ? U(t)
                         ? []
                         : je(t, this._c)
                     : [].concat(o)),
                 n,
             ],
-            s = be(t, i[0], r),
+            s = ve(t, i[0], r),
             c = s.top,
             a = s.right,
             d = s.bottom,
             u = s.left;
         for (let h = 1; h < i.length; h++) {
-            let f = be(t, i[h], r);
-            ((c = k(f.top, c)),
+            let f = ve(t, i[h], r);
+            ((c = E(f.top, c)),
                 (a = N(f.right, a)),
                 (d = N(f.bottom, d)),
-                (u = k(f.left, u)));
+                (u = E(f.left, u)));
         }
         return { width: a - u, height: d - c, x: u, y: c };
     }
@@ -711,7 +711,7 @@
             c.x = Q(r);
         }
         if (n || (!n && !l))
-            if (((F(t) !== 'body' || B(r)) && (s = U(t)), n)) {
+            if (((F(t) !== 'body' || B(r)) && (s = I(t)), n)) {
                 let f = $(t, !0, l, t);
                 ((c.x = f.x + t.clientLeft), (c.y = f.y + t.clientTop));
             } else r && a();
@@ -724,25 +724,25 @@
     function ie(e) {
         return C(e).position === 'static';
     }
-    function ve(e, t) {
+    function be(e, t) {
         if (!T(e) || C(e).position === 'fixed') return null;
         if (t) return t(e);
         let o = e.offsetParent;
         return (A(e) === o && (o = o.ownerDocument.body), o);
     }
     function Se(e, t) {
-        let o = v(e);
-        if (I(e)) return o;
+        let o = b(e);
+        if (U(e)) return o;
         if (!T(e)) {
-            let r = E(e);
+            let r = k(e);
             for (; r && !M(r);) {
                 if (R(r) && !ie(r)) return r;
-                r = E(r);
+                r = k(r);
             }
             return o;
         }
-        let n = ve(e, t);
-        for (; n && pe(n) && ie(n);) n = ve(n, t);
+        let n = be(e, t);
+        for (; n && pe(n) && ie(n);) n = be(n, t);
         return n && M(n) && ie(n) && !J(n) ? o : n || we(e) || o;
     }
     var Ke = async function (e) {
@@ -797,20 +797,20 @@
                 y = {
                     rootMargin:
                         -m + 'px ' + -p + 'px ' + -w + 'px ' + -g + 'px',
-                    threshold: k(0, N(1, c)) || 1,
+                    threshold: E(0, N(1, c)) || 1,
                 },
-                b = !0;
+                v = !0;
             function L(S) {
                 let X = S[0].intersectionRatio;
                 if (X !== c) {
-                    if (!b) return i();
+                    if (!v) return i();
                     X
                         ? i(!1, X)
                         : (n = setTimeout(() => {
                               i(!1, 1e-7);
                           }, 1e3));
                 }
-                (X === 1 && !Te(a, e.getBoundingClientRect()) && i(), (b = !1));
+                (X === 1 && !Te(a, e.getBoundingClientRect()) && i(), (v = !1));
             }
             try {
                 o = new IntersectionObserver(L, {
@@ -881,8 +881,8 @@
             }
         );
     }
-    var ke = ue;
-    var Ee = he;
+    var Ee = ue;
+    var ke = he;
     var Pe = (e, t, o) => {
         let n = new Map(),
             r = { platform: Qe, ...o },
@@ -909,18 +909,27 @@
         livewireId: null,
         entangledSelectedRecords: o ? l.$entangle(o) : null,
         cleanUpFiltersDropdown: null,
+        livewireEventListenersController: null,
         unsubscribeLivewireHook: null,
         init() {
             ((this.livewireId =
                 this.$root.closest('[wire\\:id]')?.attributes['wire:id'].value),
-                l.$on('deselectAllTableRecords', () =>
-                    this.deselectAllRecords(),
-                ),
-                l.$on('scrollToTopOfTable', () =>
-                    this.$root.scrollIntoView({
-                        block: 'start',
-                        inline: 'nearest',
-                    }),
+                (this.livewireEventListenersController =
+                    new AbortController()));
+            let { signal: i } = this.livewireEventListenersController;
+            (l.$el.addEventListener(
+                'deselectAllTableRecords',
+                () => this.deselectAllRecords(),
+                { signal: i },
+            ),
+                l.$el.addEventListener(
+                    'scrollToTopOfTable',
+                    () =>
+                        this.$root.scrollIntoView({
+                            block: 'start',
+                            inline: 'nearest',
+                        }),
+                    { signal: i },
                 ),
                 o &&
                     (n !== 1
@@ -935,8 +944,8 @@
                 this.$nextTick(() => this.watchForCheckboxClicks()),
                 (this.unsubscribeLivewireHook = Livewire.hook(
                     'element.init',
-                    ({ component: i }) => {
-                        i.id === this.livewireId &&
+                    ({ component: s }) => {
+                        s.id === this.livewireId &&
                             this.watchForCheckboxClicks();
                     },
                 )));
@@ -1143,49 +1152,44 @@
                 ((this.areFiltersOpen = !this.areFiltersOpen),
                 this.areFiltersOpen)
             ) {
-                let i = Le(
-                        this.$refs.filtersTriggerActionContainer,
-                        this.$refs.filtersContentContainer,
-                        async () => {
-                            let { x: a, y: d } = await Pe(
-                                this.$refs.filtersTriggerActionContainer,
-                                this.$refs.filtersContentContainer,
-                                {
-                                    placement: 'bottom-end',
-                                    middleware: [ke(8), Ee({ padding: 8 })],
-                                },
-                            );
-                            Object.assign(
-                                this.$refs.filtersContentContainer.style,
-                                { left: `${a}px`, top: `${d}px` },
-                            );
-                        },
-                    ),
-                    s = (a) => {
-                        let d = this.$refs.filtersTriggerActionContainer,
-                            u = this.$refs.filtersContentContainer;
-                        (u && u.contains(a.target)) ||
-                            (d && d.contains(a.target)) ||
+                let i = this.$refs.filtersTriggerActionContainer,
+                    s = this.$refs.filtersContentContainer,
+                    c = !0,
+                    a = Le(i, s, async () => {
+                        let { x: h, y: f } = await Pe(i, s, {
+                            placement: 'bottom-end',
+                            middleware: [Ee(8), ke({ padding: 8 })],
+                        });
+                        c &&
+                            Object.assign(s.style, {
+                                left: `${h}px`,
+                                top: `${f}px`,
+                            });
+                    }),
+                    d = (h) => {
+                        (s && s.contains(h.target)) ||
+                            (i && i.contains(h.target)) ||
                             ((this.areFiltersOpen = !1),
                             this.cleanUpFiltersDropdown &&
                                 (this.cleanUpFiltersDropdown(),
                                 (this.cleanUpFiltersDropdown = null)));
                     };
-                (document.addEventListener('mousedown', s),
-                    document.addEventListener('touchstart', s, {
+                (document.addEventListener('mousedown', d),
+                    document.addEventListener('touchstart', d, {
                         passive: !0,
                     }));
-                let c = (a) => {
-                    a.key === 'Escape' && s(a);
+                let u = (h) => {
+                    h.key === 'Escape' && d(h);
                 };
-                (document.addEventListener('keydown', c),
+                (document.addEventListener('keydown', u),
                     (this.cleanUpFiltersDropdown = () => {
-                        (i(),
-                            document.removeEventListener('mousedown', s),
-                            document.removeEventListener('touchstart', s, {
+                        ((c = !1),
+                            a(),
+                            document.removeEventListener('mousedown', d),
+                            document.removeEventListener('touchstart', d, {
                                 passive: !0,
                             }),
-                            document.removeEventListener('keydown', c));
+                            document.removeEventListener('keydown', u));
                     }));
             } else
                 this.cleanUpFiltersDropdown &&
@@ -1193,7 +1197,9 @@
                     (this.cleanUpFiltersDropdown = null));
         },
         destroy() {
-            this.unsubscribeLivewireHook?.();
+            (this.cleanUpFiltersDropdown?.(),
+                this.livewireEventListenersController?.abort(),
+                this.unsubscribeLivewireHook?.());
         },
     });
     function se({ columns: e, isLive: t }) {

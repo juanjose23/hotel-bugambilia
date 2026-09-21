@@ -12,15 +12,20 @@ use App\Repository\Queries\Limpieza\Carrito\BloquearCarritoParaLimpieza;
 use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionParaActualizar;
 use Illuminate\Support\Facades\DB;
 
-final class ReclamarEIniciarLimpieza
+final readonly class ReclamarEIniciarLimpieza
 {
     public function __construct(
-        private readonly ObtenerEjecucionParaActualizar $obtenerEjecucion,
-        private readonly IniciarLimpieza $iniciarLimpieza,
-        private readonly BloquearCarritoParaLimpieza $bloquearCarrito,
+        private ObtenerEjecucionParaActualizar $obtenerEjecucion,
+        private IniciarLimpieza $iniciarLimpieza,
+        private BloquearCarritoParaLimpieza $bloquearCarrito,
     ) {}
 
     public function execute(int $ejecucionId, int $colaboradorId, ?int $carritoId, ?int $usuarioId = null): LimpiezaEjecucion
+    {
+        return $this->ejecutar($ejecucionId, $colaboradorId, $carritoId, $usuarioId);
+    }
+
+    public function ejecutar(int $ejecucionId, int $colaboradorId, ?int $carritoId, ?int $usuarioId = null): LimpiezaEjecucion
     {
         return DB::transaction(function () use ($ejecucionId, $colaboradorId, $carritoId, $usuarioId): LimpiezaEjecucion {
             if ($carritoId !== null) {

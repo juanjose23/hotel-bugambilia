@@ -61,7 +61,7 @@
                 'labelColspan' => 3,
                 'label' => 'Total Activos:',
                 'total' => $totalCosto ?? 0,
-                'monedaSimbolo' => 'C$',
+                'monedaSimbolo' => \App\Support\MonedaHelper::simbolo(),
                 'count' => count($activos),
             ])
         @endif

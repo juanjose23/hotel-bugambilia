@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\ZonaDeliveryResource\Tables;
 
+use App\Repository\Models\Restaurante\ZonaDelivery;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -46,17 +47,25 @@ final class ZonaDeliveryTable
 
                 TextColumn::make('municipios')
                     ->label('Municipios Cubiertos')
-                    ->formatStateUsing(function ($state): string {
-                        if (! is_array($state) || empty($state)) {
+                    ->state(function (ZonaDelivery $record): string {
+                        $municipios = array_values(array_filter(
+                            $record->municipios ?? [],
+                            fn (string $municipio): bool => $municipio !== '',
+                        ));
+
+                        if ($municipios === []) {
                             return 'Sin municipios';
                         }
-                        /** @var list<string> $municipiosList */
-                        $municipiosList = array_values(array_filter($state, fn ($m): bool => is_string($m) && $m !== ''));
-                        $count = count($municipiosList);
-                        $preview = implode(', ', array_slice($municipiosList, 0, 3));
+
+                        $preview = implode(', ', array_slice($municipios, 0, 3));
+                        $count = count($municipios);
 
                         return $count > 3 ? "{$preview} (+".($count - 3).' más)' : $preview;
                     })
+                    ->tooltip(fn (ZonaDelivery $record): string => implode(', ', array_filter(
+                        $record->municipios ?? [],
+                        fn (string $municipio): bool => $municipio !== '',
+                    )))
                     ->badge()
                     ->color('gray'),
 

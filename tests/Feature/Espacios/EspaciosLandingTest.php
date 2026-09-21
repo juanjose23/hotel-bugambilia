@@ -7,16 +7,15 @@ use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
-use Database\Seeders\ColaboradorBaseSeeder;
+use Database\Seeders\Colaboradores\ColaboradorBaseSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\MonedaSeeder;
+use Database\Seeders\Configuracion\PaisSeeder;
+use Database\Seeders\Configuracion\UbicacionSeeder;
 use Database\Seeders\EspacioSeeder;
 use Database\Seeders\HabitacionSeeder;
-use Database\Seeders\MonedaSeeder;
-use Database\Seeders\PaisSeeder;
-use Database\Seeders\RestauranteSeeder;
 use Database\Seeders\TasaCambioSeeder;
-use Database\Seeders\UbicacionSeeder;
 
 test('la ruta publica /espacios carga correctamente y lista solo espacios activos con web igual a true', function () {
     $this->seed([
@@ -28,7 +27,6 @@ test('la ruta publica /espacios carga correctamente y lista solo espacios activo
         ColaboradorBaseSeeder::class,
         UbicacionSeeder::class,
         EspacioSeeder::class,
-        RestauranteSeeder::class,
     ]);
 
     // Crear un espacio oculto en la web

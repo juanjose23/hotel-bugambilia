@@ -8,13 +8,12 @@ use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\MonedaSeeder;
+use Database\Seeders\Configuracion\PaisSeeder;
+use Database\Seeders\Configuracion\UbicacionSeeder;
 use Database\Seeders\HabitacionSeeder;
-use Database\Seeders\MonedaSeeder;
-use Database\Seeders\PaisSeeder;
-use Database\Seeders\TasaCambioSeeder;
-use Database\Seeders\UbicacionSeeder;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {

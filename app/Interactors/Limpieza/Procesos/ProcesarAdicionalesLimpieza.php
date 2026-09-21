@@ -7,15 +7,21 @@ namespace App\Interactors\Limpieza\Procesos;
 use App\BusinessLogic\Limpieza\Data\ReabastecerItemData;
 use App\BusinessLogic\Limpieza\Data\ReabastecerUbicacionData;
 use App\Interactors\Limpieza\Stock\ReabastecerUbicacion;
-use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
-use App\Repository\Models\Shared\Stock as SharedStock;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 
-class ProcesarAdicionalesLimpieza
+final readonly class ProcesarAdicionalesLimpieza
 {
     public function __construct(
-        private readonly ReabastecerUbicacion $reabastecerUbicacion,
+        private ReabastecerUbicacion $reabastecerUbicacion,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
+
+    /** @param array<string, mixed> $data */
+    public function execute(LimpiezaEjecucion $ejecucion, array $data, ?int $carritoId, string $tipoDestino, ?int $usuarioId): void
+    {
+        $this->ejecutar($ejecucion, $data, $carritoId, $tipoDestino, $usuarioId);
+    }
 
     /** @param array<string, mixed> $data */
     public function ejecutar(LimpiezaEjecucion $ejecucion, array $data, ?int $carritoId, string $tipoDestino, ?int $usuarioId): void
@@ -30,25 +36,20 @@ class ProcesarAdicionalesLimpieza
                 continue;
             }
 
-            SharedStock::firstOrCreate([
-                'stockable_type' => $ejecucion->limpiable_type,
-                'stockable_id' => $ejecucion->limpiable_id,
-                'producto_variante_id' => $varianteId,
-            ], [
-                'cantidad_ideal' => 0.0,
-                'cantidad_actual' => 0.0,
-            ]);
+            $this->limpiezaRepositorio->crearSharedStockSiNoExiste(
+                stockableType: (string) $ejecucion->limpiable_type,
+                stockableId: (int) $ejecucion->limpiable_id,
+                varianteId: $varianteId,
+            );
 
             if ($carritoId) {
-                $available = (float) InventarioStock::where('ubicacion_id', $carritoId)
-                    ->where('producto_variante_id', $varianteId)
-                    ->sum('cantidad');
+                $available = $this->limpiezaRepositorio->obtenerStockDisponibleEnCarrito($carritoId, $varianteId);
 
                 $aReponer = min($qty, $available);
                 if ($aReponer > 0) {
                     $this->reabastecerUbicacion->execute(new ReabastecerUbicacionData(
                         tipoDestino: $tipoDestino,
-                        destinoId: $ejecucion->limpiable_id,
+                        destinoId: (int) $ejecucion->limpiable_id,
                         items: [ReabastecerItemData::fromArray(['producto_variante_id' => $varianteId, 'cantidad' => $aReponer])],
                         bodegaOrigenId: $carritoId,
                         creadoPorId: $usuarioId,

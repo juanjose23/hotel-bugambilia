@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Facturacion;
 
+use App\BusinessLogic\Facturacion\Calculos\CalcularIvaProporcionalFactura;
 use App\Enums\Facturacion\EstadoFactura;
 use App\Enums\Facturacion\EstadoFolioFactura;
 use App\Enums\Facturacion\TipoFactura;
@@ -32,6 +33,7 @@ final readonly class EmitirFacturaDesdeVenta
         private FacturaQuery $facturaQuery,
         private FacturaPersistencia $facturaPersistencia,
         private FacturaFolioPersistencia $facturaFolioPersistencia,
+        private CalcularIvaProporcionalFactura $calcularIvaProporcional,
     ) {}
 
     /**
@@ -156,14 +158,17 @@ final readonly class EmitirFacturaDesdeVenta
 
     private function crearDetalles(Factura $factura, Venta $venta): void
     {
-        $subtotalVenta = max(0.01, (float) $venta->subtotal);
+        $subtotalVenta = (float) $venta->subtotal;
+        $impuestoTotalVenta = (float) $venta->impuesto_total;
 
-        $venta->detalles->each(function (VentaDetalle $detalle) use ($factura, $venta, $subtotalVenta): void {
-            $proporcion = (float) $detalle->subtotal / $subtotalVenta;
-            $iva = (float) $detalle->impuesto > 0
-                ? (float) $detalle->impuesto
-                : round((float) $venta->impuesto_total * $proporcion, 2);
-            $totalLinea = round((float) $detalle->subtotal - (float) $detalle->descuento + $iva, 2);
+        $venta->detalles->each(function (VentaDetalle $detalle) use ($factura, $subtotalVenta, $impuestoTotalVenta): void {
+            $calculo = $this->calcularIvaProporcional->calcular(
+                subtotalDetalle: (float) $detalle->subtotal,
+                descuentoDetalle: (float) $detalle->descuento,
+                impuestoDetalle: (float) $detalle->impuesto,
+                subtotalVenta: $subtotalVenta,
+                impuestoTotalVenta: $impuestoTotalVenta,
+            );
 
             $this->facturaPersistencia->crearDetalle($factura, [
                 'venta_detalle_id' => $detalle->id,
@@ -172,9 +177,9 @@ final readonly class EmitirFacturaDesdeVenta
                 'precio_unitario' => $detalle->precio_unitario,
                 'subtotal' => $detalle->subtotal,
                 'descuento' => $detalle->descuento,
-                'iva_porcentaje' => (float) $detalle->subtotal > 0 ? round(($iva / (float) $detalle->subtotal) * 100, 4) : 0,
-                'iva' => $iva,
-                'total_linea' => $totalLinea,
+                'iva_porcentaje' => $calculo->ivaPorcentaje,
+                'iva' => $calculo->iva,
+                'total_linea' => $calculo->totalLinea,
                 'origen_type' => $detalle->origen_type,
                 'origen_id' => $detalle->origen_id,
             ]);

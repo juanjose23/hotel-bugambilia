@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Promociones\BeneficioClienteResource\Tables;
 
 use App\Enums\Promociones\TipoBeneficioCliente;
 use App\Filament\Shared\Filters\FiltroEliminados;
+use App\Support\MonedaHelper;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -48,7 +49,7 @@ class BeneficioClienteTable
 
                 TextColumn::make('valor')
                     ->label('Valor')
-                    ->formatStateUsing(fn ($state, $record): string => $state === null ? '-' : ($record->es_porcentaje ? "{$state}%" : "C$ {$state}")),
+                    ->formatStateUsing(fn ($state, $record): string => $state === null ? '-' : ($record->es_porcentaje ? "{$state}%" : MonedaHelper::formatear((float) $state))),
 
                 IconColumn::make('combinable')
                     ->label('Comb.')

@@ -73,50 +73,14 @@ class ServicioForm
                             ->helperText('Activar para que este servicio sea visible en el sitio web público.'),
 
                         Select::make('icono')
-                            ->label('Icono Representativo (Sitio Web)')
+                            ->label('Icono Representativo')
                             ->options($listadoHeroicons->ejecutar())
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->prefixIcon(function (?string $state): string {
-                                if (! $state) {
-                                    return 'heroicon-o-check-badge';
-                                }
-                                if (str_starts_with($state, 'heroicon-')) {
-                                    return $state;
-                                }
-
-                                return match ($state) {
-                                    'wifi' => 'heroicon-o-wifi',
-                                    'coffee' => 'heroicon-o-cup-soda',
-                                    'utensils', 'restaurant' => 'heroicon-o-building-storefront',
-                                    'bar' => 'heroicon-o-cake',
-                                    'pool', 'swimming' => 'heroicon-o-lifebuoy',
-                                    'car', 'parking' => 'heroicon-o-truck',
-                                    'gym' => 'heroicon-o-trophy',
-                                    'laundry', 'shirt' => 'heroicon-o-scissors',
-                                    'concierge', 'bell' => 'heroicon-o-bell',
-                                    'ac', 'wind' => 'heroicon-o-sun',
-                                    'tv' => 'heroicon-o-computer-desktop',
-                                    'bath' => 'heroicon-o-home-modern',
-                                    'lock' => 'heroicon-o-lock-closed',
-                                    'key' => 'heroicon-o-key',
-                                    'sun' => 'heroicon-o-sun',
-                                    'flame' => 'heroicon-o-fire',
-                                    'gift' => 'heroicon-o-gift',
-                                    'phone' => 'heroicon-o-phone',
-                                    'bed' => 'heroicon-o-home',
-                                    'calendar' => 'heroicon-o-calendar',
-                                    'card' => 'heroicon-o-credit-card',
-                                    'scissors' => 'heroicon-o-scissors',
-                                    'plane' => 'heroicon-o-paper-airplane',
-                                    'briefcase' => 'heroicon-o-briefcase',
-                                    'map' => 'heroicon-o-map',
-                                    default => 'heroicon-o-check-badge',
-                                };
-                            })
-                            ->placeholder('Selecciona un icono emblemático para la página web')
-                            ->helperText('Selecciona un icono representativo que se mostrará en el sitio web (mapeado automáticamente a Lucide Icons).'),
+                            ->prefixIcon(fn (?string $state): string => ObtenerListadoHeroicons::resolverParaFilament($state))
+                            ->placeholder('Selecciona un icono representativo')
+                            ->helperText('Selecciona un icono representativo que se mostrará en el catálogo y sitio web.'),
 
                         Textarea::make('descripcion')
                             ->label('Descripción')

@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
+/**
+ * @property int $id
+ * @property int $persona_id
+ * @property string $razon_social
+ * @property string|null $tipo_identificacion
+ * @property string|null $numero_identificacion
+ * @property Persona $persona
+ */
 class PersonaJuridica extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;

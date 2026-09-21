@@ -11,7 +11,7 @@ use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorioInterface;
 use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-class AsignarActivo
+final class AsignarActivo
 {
     public function __construct(
         private readonly ActivoRepositorioInterface $activoRepositorio,

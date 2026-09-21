@@ -14,6 +14,7 @@ import type {
     ServicioAdicionalItem,
 } from '@/modules/reservas/types';
 import { Button } from '@/modules/shared/components/ui/button';
+import { Input } from '@/modules/shared/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -138,7 +139,7 @@ export const HabitacionReservaCard = ({
                             <div className="mt-1 truncate text-xs font-bold text-foreground">
                                 {formatearFecha(checkIn) || 'dd/mm/aaaa'}
                             </div>
-                            <input
+                            <Input
                                 type="date"
                                 aria-label="Fecha de llegada"
                                 min={new Date().toISOString().split('T')[0]}
@@ -170,7 +171,7 @@ export const HabitacionReservaCard = ({
                             <div className="mt-1 truncate text-xs font-bold text-foreground">
                                 {formatearFecha(checkOut) || 'dd/mm/aaaa'}
                             </div>
-                            <input
+                            <Input
                                 type="date"
                                 aria-label="Fecha de salida"
                                 min={

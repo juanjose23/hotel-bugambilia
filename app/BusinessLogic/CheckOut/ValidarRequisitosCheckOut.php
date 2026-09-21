@@ -7,6 +7,7 @@ namespace App\BusinessLogic\CheckOut;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Queries\Cuentas\ObtenerSaldoPendienteReservaQuery;
+use App\Support\MonedaHelper;
 use DomainException;
 
 final class ValidarRequisitosCheckOut
@@ -37,10 +38,9 @@ final class ValidarRequisitosCheckOut
         $saldoPendiente = $this->saldoPendiente->ejecutar((int) $estancia->reserva_id);
 
         if ($saldoPendiente > 0 && ! $creditoAutorizado) {
+            $saldoFmt = MonedaHelper::formatear($saldoPendiente, $estancia->cuenta->moneda ?? $estancia->reserva?->moneda);
             throw new DomainException(
-                'No se puede realizar el check-out mientras existan cuentas con saldo pendiente de C$ '.
-                number_format($saldoPendiente, 2, '.', ',').
-                '. Requiere liquidación o autorización de crédito corporativo.',
+                "No se puede realizar el check-out mientras existan cuentas con saldo pendiente de {$saldoFmt}. Requiere liquidación o autorización de crédito corporativo.",
             );
         }
     }

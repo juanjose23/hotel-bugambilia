@@ -48,25 +48,25 @@ var We = Ke((Yo, Qo) => {
             h = s && (L ? document.documentMode || 6 : +(S || b)[1]),
             g = !S && /WebKit\//.test(o),
             C = g && /Qt\/\d+\.\d+/.test(o),
-            k = !S && /Chrome\/(\d+)/.exec(o),
-            c = k && +k[1],
+            _ = !S && /Chrome\/(\d+)/.exec(o),
+            c = _ && +_[1],
             d = /Opera\//.test(o),
-            x = /Apple Computer/.test(navigator.vendor),
-            z = /Mac OS X 1\d\D([8-9]|\d\d)\D/.test(o),
-            M = /PhantomJS/.test(o),
-            w = x && (/Mobile\/\w+/.test(o) || navigator.maxTouchPoints > 2),
-            W = /Android/.test(o),
-            E =
-                w ||
-                W ||
+            w = /Apple Computer/.test(navigator.vendor),
+            E = /Mac OS X 1\d\D([8-9]|\d\d)\D/.test(o),
+            z = /PhantomJS/.test(o),
+            k = w && (/Mobile\/\w+/.test(o) || navigator.maxTouchPoints > 2),
+            R = /Android/.test(o),
+            M =
+                k ||
+                R ||
                 /webOS|BlackBerry|Opera Mini|Opera Mobi|IEMobile/i.test(o),
-            N = w || /Mac/.test(p),
-            K = /\bCrOS\b/.test(o),
+            I = k || /Mac/.test(p),
+            U = /\bCrOS\b/.test(o),
             J = /win/i.test(p),
             re = d && o.match(/Version\/(\d*\.\d*)/);
         (re && (re = Number(re[1])), re && re >= 15 && ((d = !1), (g = !0)));
-        var q = N && (C || (d && (re == null || re < 12.11))),
-            F = v || (s && h >= 9);
+        var F = I && (C || (d && (re == null || re < 12.11))),
+            q = v || (s && h >= 9);
         function D(e) {
             return new RegExp('(^|\\s)' + e + '(?:$|\\s)\\s*');
         }
@@ -127,7 +127,7 @@ var We = Ke((Yo, Qo) => {
             do if ((t.nodeType == 11 && (t = t.host), t == e)) return !0;
             while ((t = t.parentNode));
         }
-        function R(e) {
+        function H(e) {
             var t = e.ownerDocument || e,
                 n;
             try {
@@ -148,15 +148,15 @@ var We = Ke((Yo, Qo) => {
                 n[r] && !D(n[r]).test(t) && (t += ' ' + n[r]);
             return t;
         }
-        var I = function (e) {
+        var N = function (e) {
             e.select();
         };
-        w
-            ? (I = function (e) {
+        k
+            ? (N = function (e) {
                   ((e.selectionStart = 0), (e.selectionEnd = e.value.length));
               })
             : s &&
-              (I = function (e) {
+              (N = function (e) {
                   try {
                       e.select();
                   } catch {}
@@ -239,10 +239,10 @@ var We = Ke((Yo, Qo) => {
                     return r;
             }
         }
-        var U = [''];
+        var $ = [''];
         function Z(e) {
-            for (; U.length <= e;) U.push(ce(U) + ' ');
-            return U[e];
+            for (; $.length <= e;) $.push(ce($) + ' ');
+            return $[e];
         }
         function ce(e) {
             return e[e.length - 1];
@@ -286,13 +286,13 @@ var We = Ke((Yo, Qo) => {
             for (var t in e) if (e.hasOwnProperty(t) && e[t]) return !1;
             return !0;
         }
-        var $ =
+        var K =
             /[\u0300-\u036f\u0483-\u0489\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u065e\u0670\u06d6-\u06dc\u06de-\u06e4\u06e7\u06e8\u06ea-\u06ed\u0711\u0730-\u074a\u07a6-\u07b0\u07eb-\u07f3\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0900-\u0902\u093c\u0941-\u0948\u094d\u0951-\u0955\u0962\u0963\u0981\u09bc\u09be\u09c1-\u09c4\u09cd\u09d7\u09e2\u09e3\u0a01\u0a02\u0a3c\u0a41\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a70\u0a71\u0a75\u0a81\u0a82\u0abc\u0ac1-\u0ac5\u0ac7\u0ac8\u0acd\u0ae2\u0ae3\u0b01\u0b3c\u0b3e\u0b3f\u0b41-\u0b44\u0b4d\u0b56\u0b57\u0b62\u0b63\u0b82\u0bbe\u0bc0\u0bcd\u0bd7\u0c3e-\u0c40\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0cbc\u0cbf\u0cc2\u0cc6\u0ccc\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0d3e\u0d41-\u0d44\u0d4d\u0d57\u0d62\u0d63\u0dca\u0dcf\u0dd2-\u0dd4\u0dd6\u0ddf\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0eb1\u0eb4-\u0eb9\u0ebb\u0ebc\u0ec8-\u0ecd\u0f18\u0f19\u0f35\u0f37\u0f39\u0f71-\u0f7e\u0f80-\u0f84\u0f86\u0f87\u0f90-\u0f97\u0f99-\u0fbc\u0fc6\u102d-\u1030\u1032-\u1037\u1039\u103a\u103d\u103e\u1058\u1059\u105e-\u1060\u1071-\u1074\u1082\u1085\u1086\u108d\u109d\u135f\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17b7-\u17bd\u17c6\u17c9-\u17d3\u17dd\u180b-\u180d\u18a9\u1920-\u1922\u1927\u1928\u1932\u1939-\u193b\u1a17\u1a18\u1a56\u1a58-\u1a5e\u1a60\u1a62\u1a65-\u1a6c\u1a73-\u1a7c\u1a7f\u1b00-\u1b03\u1b34\u1b36-\u1b3a\u1b3c\u1b42\u1b6b-\u1b73\u1b80\u1b81\u1ba2-\u1ba5\u1ba8\u1ba9\u1c2c-\u1c33\u1c36\u1c37\u1cd0-\u1cd2\u1cd4-\u1ce0\u1ce2-\u1ce8\u1ced\u1dc0-\u1de6\u1dfd-\u1dff\u200c\u200d\u20d0-\u20f0\u2cef-\u2cf1\u2de0-\u2dff\u302a-\u302f\u3099\u309a\ua66f-\ua672\ua67c\ua67d\ua6f0\ua6f1\ua802\ua806\ua80b\ua825\ua826\ua8c4\ua8e0-\ua8f1\ua926-\ua92d\ua947-\ua951\ua980-\ua982\ua9b3\ua9b6-\ua9b9\ua9bc\uaa29-\uaa2e\uaa31\uaa32\uaa35\uaa36\uaa43\uaa4c\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uabe5\uabe8\uabed\udc00-\udfff\ufb1e\ufe00-\ufe0f\ufe20-\ufe26\uff9e\uff9f]/;
-        function H(e) {
-            return e.charCodeAt(0) >= 768 && $.test(e);
+        function W(e) {
+            return e.charCodeAt(0) >= 768 && K.test(e);
         }
         function le(e, t, n) {
-            for (; (n < 0 ? t > 0 : t < e.length) && H(e.charAt(t));) t += n;
+            for (; (n < 0 ? t > 0 : t < e.length) && W(e.charAt(t));) t += n;
             return t;
         }
         function De(e, t, n) {
@@ -565,7 +565,7 @@ var We = Ke((Yo, Qo) => {
                         : e.button & 2
                           ? (t = 3)
                           : e.button & 4 && (t = 2)),
-                N && e.ctrlKey && t == 1 && (t = 3),
+                I && e.ctrlKey && t == 1 && (t = 3),
                 t
             );
         }
@@ -896,7 +896,7 @@ b`.split(/\n/).length != 3
             var n = t - e.height;
             if (n) for (var r = e; r; r = r.parent) r.height += n;
         }
-        function _(e) {
+        function x(e) {
             if (e.parent == null) return null;
             for (
                 var t = e.parent, n = Se(t.lines, e), r = t.parent;
@@ -1085,7 +1085,7 @@ b`.split(/\n/).length != 3
         }
         function da(e, t, n) {
             if (!t.styles || t.styles[0] != e.state.modeGen) {
-                var r = wn(e, _(t)),
+                var r = wn(e, x(t)),
                     i =
                         t.text.length > e.options.maxHighlightLength &&
                         Vt(e.doc.mode, r.state),
@@ -1538,7 +1538,7 @@ b`.split(/\n/).length != 3
         function ao(e, t) {
             var n = Ae(e, t),
                 r = Zt(n);
-            return n == r ? t : _(r);
+            return n == r ? t : x(r);
         }
         function Ta(e, t) {
             if (t > e.lastLine()) return t;
@@ -1546,7 +1546,7 @@ b`.split(/\n/).length != 3
                 r;
             if (!mr(e, n)) return t;
             for (; (r = ai(n));) n = r.find(1, !0).line;
-            return _(n) + 1;
+            return x(n) + 1;
         }
         function mr(e, t) {
             var n = or && t.markedSpans;
@@ -1627,7 +1627,7 @@ b`.split(/\n/).length != 3
             ((this.text = e), _a(this, t), (this.height = n ? n(this) : 1));
         };
         ((Xr.prototype.lineNo = function () {
-            return _(this);
+            return x(this);
         }),
             Wt(Xr));
         function Oc(e, t, n, r) {
@@ -1671,7 +1671,7 @@ b`.split(/\n/).length != 3
                         (l = Pe(a, e.doc.direction)) &&
                         (r.addToken = Uc(r.addToken, l)),
                     (r.map = []));
-                var u = t != e.display.externalMeasured && _(a);
+                var u = t != e.display.externalMeasured && x(a);
                 ($c(a, r, da(e, a, u)),
                     a.styleClasses &&
                         (a.styleClasses.bgClass &&
@@ -1972,7 +1972,7 @@ b`.split(/\n/).length != 3
         function za(e, t, n) {
             ((this.line = t),
                 (this.rest = Nc(t)),
-                (this.size = this.rest ? _(ce(this.rest)) - n + 1 : 1),
+                (this.size = this.rest ? x(ce(this.rest)) - n + 1 : 1),
                 (this.node = this.text = null),
                 (this.hidden = mr(e, t)));
         }
@@ -2354,7 +2354,7 @@ b`.split(/\n/).length != 3
                             cache: e.measure.caches[r],
                         };
                 for (var i = 0; i < e.rest.length; i++)
-                    if (_(e.rest[i]) > n)
+                    if (x(e.rest[i]) > n)
                         return {
                             map: e.measure.maps[i],
                             cache: e.measure.caches[i],
@@ -2364,7 +2364,7 @@ b`.split(/\n/).length != 3
         }
         function rf(e, t) {
             t = Zt(t);
-            var n = _(t),
+            var n = x(t),
                 r = (e.display.externalMeasured = new za(e.doc, t, n));
             r.lineN = n;
             var i = (r.built = Ca(e, r));
@@ -2380,7 +2380,7 @@ b`.split(/\n/).length != 3
             if (n && t >= n.lineN && t < n.lineN + n.size) return n;
         }
         function Qr(e, t) {
-            var n = _(t),
+            var n = x(t),
                 r = po(e, n);
             (r && !r.text
                 ? (r = null)
@@ -2489,11 +2489,11 @@ b`.split(/\n/).length != 3
                 m;
             if (a.nodeType == 3) {
                 for (var A = 0; A < 4; A++) {
-                    for (; l && H(t.line.text.charAt(i.coverStart + l));) --l;
+                    for (; l && W(t.line.text.charAt(i.coverStart + l));) --l;
                     for (
                         ;
                         i.coverStart + u < i.coverEnd &&
-                        H(t.line.text.charAt(i.coverStart + u));
+                        W(t.line.text.charAt(i.coverStart + u));
                     )
                         ++u;
                     if (
@@ -2588,7 +2588,7 @@ b`.split(/\n/).length != 3
                 (e.display.lineNumChars = null));
         }
         function Ha(e) {
-            return k && W
+            return _ && R
                 ? -(
                       e.body.getBoundingClientRect().left -
                       parseInt(getComputedStyle(e.body).marginLeft)
@@ -2597,7 +2597,7 @@ b`.split(/\n/).length != 3
                       (e.documentElement || e.body).scrollLeft;
         }
         function Wa(e) {
-            return k && W
+            return _ && R
                 ? -(
                       e.body.getBoundingClientRect().top -
                       parseInt(getComputedStyle(e.body).marginTop)
@@ -3431,7 +3431,7 @@ b`.split(/\n/).length != 3
                         : t.bottom + r.top >
                               (a.defaultView.innerHeight ||
                                   a.documentElement.clientHeight) && (i = !1),
-                    i != null && !M)
+                    i != null && !z)
                 ) {
                     var l = y(
                         'div',
@@ -3715,7 +3715,7 @@ b`.split(/\n/).length != 3
                         ));
             }),
             (qr.prototype.zeroWidthHack = function () {
-                var e = N && !z ? '12px' : '18px';
+                var e = I && !E ? '12px' : '18px';
                 ((this.horiz.style.height = this.vert.style.width = e),
                     (this.horiz.style.visibility = this.vert.style.visibility =
                         'hidden'),
@@ -3918,7 +3918,7 @@ b`.split(/\n/).length != 3
                         !0,
                     ),
                 (t.display.maxLineChanged = !1));
-            var n = e.focus && e.focus == R(he(t));
+            var n = e.focus && e.focus == H(he(t));
             (e.preparedSelection &&
                 t.display.input.showSelection(e.preparedSelection, n),
                 (e.updatedDisplay || e.startHeight != t.doc.height) &&
@@ -4104,7 +4104,7 @@ b`.split(/\n/).length != 3
         }
         function Tf(e) {
             if (e.hasFocus()) return null;
-            var t = R(he(e));
+            var t = H(he(e));
             if (!t || !O(e.display.lineDiv, t)) return null;
             var n = { activeElt: t };
             if (window.getSelection) {
@@ -4121,7 +4121,7 @@ b`.split(/\n/).length != 3
         }
         function Lf(e) {
             if (
-                !(!e || !e.activeElt || e.activeElt == R(ze(e.activeElt))) &&
+                !(!e || !e.activeElt || e.activeElt == H(ze(e.activeElt))) &&
                 (e.activeElt.focus(),
                 !/^(INPUT|TEXTAREA)$/.test(e.activeElt.nodeName) &&
                     e.anchorNode &&
@@ -4257,7 +4257,7 @@ b`.split(/\n/).length != 3
             function u(ie) {
                 var ue = ie.nextSibling;
                 return (
-                    g && N && e.display.currentWheelTarget == ie
+                    g && I && e.display.currentWheelTarget == ie
                         ? (ie.style.display = 'none')
                         : ie.parentNode.removeChild(ie),
                     ue
@@ -4449,13 +4449,13 @@ b`.split(/\n/).length != 3
                     [i.scrollbarFiller, i.gutterFiller, i.scroller],
                     'CodeMirror',
                 )),
-                k && c === 105 && (i.wrapper.style.clipPath = 'inset(0px)'),
+                _ && c === 105 && (i.wrapper.style.clipPath = 'inset(0px)'),
                 i.wrapper.setAttribute('translate', 'no'),
                 s &&
                     h < 8 &&
                     ((i.gutters.style.zIndex = -1),
                     (i.scroller.style.paddingRight = 0)),
-                !g && !(v && E) && (i.scroller.draggable = !0),
+                !g && !(v && M) && (i.scroller.draggable = !0),
                 e && (e.appendChild ? e.appendChild(i.wrapper) : e(i.wrapper)),
                 (i.viewFrom = i.viewTo = t.first),
                 (i.reportedViewFrom = i.reportedViewTo = t.first),
@@ -4486,7 +4486,7 @@ b`.split(/\n/).length != 3
         }
         var bi = 0,
             sr = null;
-        s ? (sr = -0.53) : v ? (sr = 15) : k ? (sr = -0.7) : x && (sr = -1 / 3);
+        s ? (sr = -0.53) : v ? (sr = 15) : _ ? (sr = -0.7) : w && (sr = -1 / 3);
         function sl(e) {
             var t = e.wheelDeltaX,
                 n = e.wheelDeltaY;
@@ -4506,7 +4506,7 @@ b`.split(/\n/).length != 3
             return ((t.x *= sr), (t.y *= sr), t);
         }
         function ul(e, t) {
-            k &&
+            _ &&
                 c == 102 &&
                 (e.display.chromeScrollHack == null
                     ? (e.display.sizer.style.pointerEvents = 'none')
@@ -4525,7 +4525,7 @@ b`.split(/\n/).length != 3
                 f = u.scrollWidth > u.clientWidth,
                 m = u.scrollHeight > u.clientHeight;
             if ((r && f) || (i && m)) {
-                if (i && N && g) {
+                if (i && I && g) {
                     e: for (
                         var A = t.target, B = l.view;
                         A != u;
@@ -5355,7 +5355,7 @@ b`.split(/\n/).length != 3
                 u = !1,
                 f = a.line;
             (e.options.lineWrapping ||
-                ((f = _(Zt(Ae(r, a.line)))),
+                ((f = x(Zt(Ae(r, a.line)))),
                 r.iter(f, l.line + 1, function (Y) {
                     if (Y == i.maxLine) return ((u = !0), !0);
                 })),
@@ -5443,7 +5443,7 @@ b`.split(/\n/).length != 3
             var i = t,
                 a = t;
             return (
-                typeof t == 'number' ? (a = Ae(e, ua(e, t))) : (i = _(t)),
+                typeof t == 'number' ? (a = Ae(e, ua(e, t))) : (i = x(t)),
                 i == null ? null : (r(a, i) && e.cm && vr(e.cm, i, n), a)
             );
         }
@@ -5593,7 +5593,7 @@ b`.split(/\n/).length != 3
             var e = this.doc.cm,
                 t = this.line.widgets,
                 n = this.line,
-                r = _(n);
+                r = x(n);
             if (!(r == null || !t)) {
                 for (var i = 0; i < t.length; ++i)
                     t[i] == this && t.splice(i--, 1);
@@ -5620,7 +5620,7 @@ b`.split(/\n/).length != 3
                         Nt(n, function () {
                             ((n.curOp.forceUpdate = !0),
                                 ql(n, r, i),
-                                ht(n, 'lineWidgetChanged', n, e, _(r)));
+                                ht(n, 'lineWidgetChanged', n, e, x(r)));
                         }));
             }),
             Wt(Rn));
@@ -5659,7 +5659,7 @@ b`.split(/\n/).length != 3
                         'lineWidgetAdded',
                         a,
                         i,
-                        typeof t == 'number' ? t : _(t),
+                        typeof t == 'number' ? t : x(t),
                     ),
                 i
             );
@@ -5687,10 +5687,10 @@ b`.split(/\n/).length != 3
                     var l = this.lines[a],
                         u = Sn(l.markedSpans, this);
                     (e && !this.collapsed
-                        ? vr(e, _(l), 'text')
+                        ? vr(e, x(l), 'text')
                         : e &&
-                          (u.to != null && (i = _(l)),
-                          u.from != null && (r = _(l))),
+                          (u.to != null && (i = x(l)),
+                          u.from != null && (r = x(l))),
                         (l.markedSpans = zc(l.markedSpans, u)),
                         u.from == null &&
                             this.collapsed &&
@@ -5725,10 +5725,10 @@ b`.split(/\n/).length != 3
                         l = Sn(a.markedSpans, this);
                     if (
                         l.from != null &&
-                        ((n = ne(t ? a : _(a), l.from)), e == -1)
+                        ((n = ne(t ? a : x(a), l.from)), e == -1)
                     )
                         return n;
-                    if (l.to != null && ((r = ne(t ? a : _(a), l.to)), e == 1))
+                    if (l.to != null && ((r = ne(t ? a : x(a), l.to)), e == 1))
                         return r;
                 }
                 return n && { from: n, to: r };
@@ -5742,7 +5742,7 @@ b`.split(/\n/).length != 3
                     !r ||
                     Nt(r, function () {
                         var i = t.line,
-                            a = _(t.line),
+                            a = x(t.line),
                             l = po(r, a);
                         if (
                             (l &&
@@ -6022,7 +6022,7 @@ b`.split(/\n/).length != 3
                 if (ae(this, e)) return Ae(this, e);
             },
             getLineNumber: function (e) {
-                return _(e);
+                return x(e);
             },
             getLineHandleVisualStart: function (e) {
                 return (typeof e == 'number' && (e = Ae(this, e)), Zt(e));
@@ -6239,7 +6239,7 @@ b`.split(/\n/).length != 3
                 if (typeof e == 'number') {
                     if (!ae(this, e) || ((t = e), (e = Ae(this, e)), !e))
                         return null;
-                } else if (((t = _(e)), t == null)) return null;
+                } else if (((t = x(e)), t == null)) return null;
                 return {
                     line: t,
                     handle: e,
@@ -6628,7 +6628,7 @@ b`.split(/\n/).length != 3
                 !(ot(e, t) || lr(e.display, t)) &&
                 (t.dataTransfer.setData('Text', e.getSelection()),
                 (t.dataTransfer.effectAllowed = 'copyMove'),
-                t.dataTransfer.setDragImage && !x)
+                t.dataTransfer.setDragImage && !w)
             ) {
                 var n = y(
                     'img',
@@ -6873,7 +6873,7 @@ b`.split(/\n/).length != 3
                 'Ctrl-Down': 'goDocEnd',
                 fallthrough: ['basic', 'emacsy'],
             }),
-            (ur.default = N ? ur.macDefault : ur.pcDefault));
+            (ur.default = I ? ur.macDefault : ur.pcDefault));
         function Yf(e) {
             var t = e.split(/-(?!$)/);
             e = t[t.length - 1];
@@ -6949,8 +6949,8 @@ b`.split(/\n/).length != 3
             var r = e;
             return (
                 t.altKey && r != 'Alt' && (e = 'Alt-' + e),
-                (q ? t.metaKey : t.ctrlKey) && r != 'Ctrl' && (e = 'Ctrl-' + e),
-                (q ? t.ctrlKey : t.metaKey) && r != 'Mod' && (e = 'Cmd-' + e),
+                (F ? t.metaKey : t.ctrlKey) && r != 'Ctrl' && (e = 'Ctrl-' + e),
+                (F ? t.ctrlKey : t.metaKey) && r != 'Mod' && (e = 'Cmd-' + e),
                 !n && t.shiftKey && r != 'Shift' && (e = 'Shift-' + e),
                 e
             );
@@ -7370,12 +7370,12 @@ b`.split(/\n/).length != 3
         function Wl(e, t) {
             var n = Ae(e.doc, t),
                 r = Zt(n);
-            return (r != n && (t = _(r)), jo(!0, e, r, t, 1));
+            return (r != n && (t = x(r)), jo(!0, e, r, t, 1));
         }
         function Jf(e, t) {
             var n = Ae(e.doc, t),
                 r = Ic(n);
-            return (r != n && (t = _(r)), jo(!0, e, n, t, -1));
+            return (r != n && (t = x(r)), jo(!0, e, n, t, -1));
         }
         function Ul(e, t) {
             var n = Wl(e, t.line),
@@ -7470,7 +7470,7 @@ b`.split(/\n/).length != 3
             var t = this;
             if (
                 !(e.target && e.target != t.display.input.getField()) &&
-                ((t.curOp.focus = R(he(t))), !ot(t, e))
+                ((t.curOp.focus = H(he(t))), !ot(t, e))
             ) {
                 s && h < 11 && e.keyCode == 27 && (e.returnValue = !1);
                 var n = e.keyCode;
@@ -7481,10 +7481,10 @@ b`.split(/\n/).length != 3
                     !r &&
                         n == 88 &&
                         !ti &&
-                        (N ? e.metaKey : e.ctrlKey) &&
+                        (I ? e.metaKey : e.ctrlKey) &&
                         t.replaceSelection('', null, 'cut')),
                     v &&
-                        !N &&
+                        !I &&
                         !r &&
                         n == 46 &&
                         e.shiftKey &&
@@ -7520,7 +7520,7 @@ b`.split(/\n/).length != 3
                     lr(t.display, e) ||
                     ot(t, e) ||
                     (e.ctrlKey && !e.altKey) ||
-                    (N && e.metaKey)
+                    (I && e.metaKey)
                 )
             ) {
                 var n = e.keyCode,
@@ -7586,7 +7586,7 @@ b`.split(/\n/).length != 3
                                         return n.input.focus();
                                     }, 20))
                                   : i == 3 &&
-                                    (F
+                                    (q
                                         ? t.display.input.onContextMenu(e)
                                         : wo(t))));
                 }
@@ -7616,7 +7616,7 @@ b`.split(/\n/).length != 3
             var r = e.getOption('configureMouse'),
                 i = r ? r(e, t, n) : {};
             if (i.unit == null) {
-                var a = K ? n.shiftKey && n.metaKey : n.altKey;
+                var a = U ? n.shiftKey && n.metaKey : n.altKey;
                 i.unit = a
                     ? 'rectangle'
                     : t == 'single'
@@ -7628,14 +7628,14 @@ b`.split(/\n/).length != 3
             return (
                 (i.extend == null || e.doc.extend) &&
                     (i.extend = e.doc.extend || n.shiftKey),
-                i.addNew == null && (i.addNew = N ? n.metaKey : n.ctrlKey),
+                i.addNew == null && (i.addNew = I ? n.metaKey : n.ctrlKey),
                 i.moveOnDrag == null &&
-                    (i.moveOnDrag = !(N ? n.altKey : n.ctrlKey)),
+                    (i.moveOnDrag = !(I ? n.altKey : n.ctrlKey)),
                 i
             );
         }
         function sd(e, t, n, r) {
-            s ? setTimeout(Ee(Qa, e), 0) : (e.curOp.focus = R(he(e)));
+            s ? setTimeout(Ee(Qa, e), 0) : (e.curOp.focus = H(he(e)));
             var i = ld(e, n, r),
                 a = e.doc.sel,
                 l;
@@ -7666,7 +7666,7 @@ b`.split(/\n/).length != 3
                         a ||
                             (kt(m),
                             r.addNew || _i(e.doc, n, null, null, r.extend),
-                            (g && !x) || (s && h == 9)
+                            (g && !w) || (s && h == 9)
                                 ? setTimeout(function () {
                                       (i.wrapper.ownerDocument.body.focus({
                                           preventScroll: !0,
@@ -7804,7 +7804,7 @@ b`.split(/\n/).length != 3
                     Ne = Mr(e, be, !0, r.unit == 'rectangle');
                 if (Ne)
                     if (ye(Ne, B) != 0) {
-                        ((e.curOp.focus = R(he(e))), ee(Ne));
+                        ((e.curOp.focus = H(he(e))), ee(Ne));
                         var Fe = gi(i, a);
                         (Ne.line >= Fe.to || Ne.line < Fe.from) &&
                             setTimeout(
@@ -7909,7 +7909,7 @@ b`.split(/\n/).length != 3
             lr(e.display, t) ||
                 dd(e, t) ||
                 ot(e, t, 'contextmenu') ||
-                F ||
+                q ||
                 e.display.input.onContextMenu(t);
         }
         function dd(e, t) {
@@ -8013,7 +8013,7 @@ b`.split(/\n/).length != 3
                 n('electricChars', !0),
                 n(
                     'inputStyle',
-                    E ? 'contenteditable' : 'textarea',
+                    M ? 'contenteditable' : 'textarea',
                     function () {
                         throw new Error(
                             'inputStyle can not (yet) be changed in a running editor',
@@ -8242,7 +8242,7 @@ b`.split(/\n/).length != 3
                     keySeq: null,
                     specialChars: null,
                 }),
-                t.autofocus && !E && a.input.focus(),
+                t.autofocus && !M && a.input.focus(),
                 s &&
                     h < 11 &&
                     setTimeout(function () {
@@ -8253,7 +8253,7 @@ b`.split(/\n/).length != 3
                 Fr(this),
                 (this.curOp.forceUpdate = !0),
                 pl(this, r),
-                (t.autofocus && !E) || this.hasFocus()
+                (t.autofocus && !M) || this.hasFocus()
                     ? setTimeout(function () {
                           n.hasFocus() && !n.state.focused && So(n);
                       }, 20)
@@ -8603,7 +8603,7 @@ b`.split(/\n/).length != 3
                 );
             return (
                 g ? (e.style.width = '1000px') : e.setAttribute('wrap', 'off'),
-                w && (e.style.border = '1px solid black'),
+                k && (e.style.border = '1px solid black'),
                 t
             );
         }
@@ -9000,7 +9000,7 @@ b`.split(/\n/).length != 3
                         ));
                 },
                 hasFocus: function () {
-                    return this.display.input.getField() == R(he(this));
+                    return this.display.input.getField() == H(he(this));
                 },
                 isReadOnly: function () {
                     return !!(this.options.readOnly || this.doc.cantEdit);
@@ -9318,8 +9318,8 @@ b`.split(/\n/).length != 3
                         ),
                         (B.value = Qt.text.join(`
 `)));
-                    var ee = R(ze(i));
-                    (I(B),
+                    var ee = H(ze(i));
+                    (N(B),
                         setTimeout(function () {
                             (r.display.lineSpace.removeChild(A),
                                 ee.focus(),
@@ -9336,7 +9336,7 @@ b`.split(/\n/).length != 3
             }),
             (Qe.prototype.prepareSelection = function () {
                 var e = Ya(this.cm, !1);
-                return ((e.focus = R(ze(this.div)) == this.div), e);
+                return ((e.focus = H(ze(this.div)) == this.div), e);
             }),
             (Qe.prototype.showSelection = function (e, t) {
                 !e ||
@@ -9437,7 +9437,7 @@ b`.split(/\n/).length != 3
             (Qe.prototype.focus = function () {
                 this.cm.options.readOnly != 'nocursor' &&
                     ((!this.selectionInEditor() ||
-                        R(ze(this.div)) != this.div) &&
+                        H(ze(this.div)) != this.div) &&
                         this.showSelection(this.prepareSelection(), !0),
                     this.div.focus());
             }),
@@ -9485,8 +9485,8 @@ b`.split(/\n/).length != 3
                     var e = this.getSelection(),
                         t = this.cm;
                     if (
-                        W &&
-                        k &&
+                        R &&
+                        _ &&
                         this.cm.display.gutterSpecs.length &&
                         bd(e.anchorNode)
                     ) {
@@ -9534,8 +9534,8 @@ b`.split(/\n/).length != 3
                     return !1;
                 var a, l, u;
                 r.line == t.viewFrom || (a = Ar(e, r.line)) == 0
-                    ? ((l = _(t.view[0].line)), (u = t.view[0].node))
-                    : ((l = _(t.view[a].line)),
+                    ? ((l = x(t.view[0].line)), (u = t.view[0].node))
+                    : ((l = x(t.view[a].line)),
                       (u = t.view[a - 1].node.nextSibling));
                 var f = Ar(e, i.line),
                     m,
@@ -9543,7 +9543,7 @@ b`.split(/\n/).length != 3
                 if (
                     (f == t.view.length - 1
                         ? ((m = t.viewTo - 1), (A = t.lineDiv.lastChild))
-                        : ((m = _(t.view[f + 1].line) - 1),
+                        : ((m = x(t.view[f + 1].line) - 1),
                           (A = t.view[f + 1].node.previousSibling)),
                     !u)
                 )
@@ -9745,10 +9745,10 @@ b`.split(/\n/).length != 3
         function xd(e, t, n) {
             var r = e.text.firstChild,
                 i = !1;
-            if (!t || !O(r, t)) return dn(ne(_(e.line), 0), !0);
+            if (!t || !O(r, t)) return dn(ne(x(e.line), 0), !0);
             if (t == r && ((i = !0), (t = r.childNodes[n]), (n = 0), !t)) {
                 var a = e.rest ? ce(e.rest) : e.line;
-                return dn(ne(_(a), a.text.length), i);
+                return dn(ne(x(a), a.text.length), i);
             }
             var l = t.nodeType == 3 ? t : null,
                 u = t;
@@ -9771,7 +9771,7 @@ b`.split(/\n/).length != 3
                     ) {
                         var Fe = Ce[Ne + 2];
                         if (Fe == me || Fe == ve) {
-                            var $e = _(be < 0 ? e.line : e.rest[be]),
+                            var $e = x(be < 0 ? e.line : e.rest[be]),
                                 Ve = Ce[Ne] + xe;
                             return (
                                 (xe < 0 || Fe != me) &&
@@ -9818,7 +9818,7 @@ b`.split(/\n/).length != 3
             this.createField(e);
             var i = this.textarea;
             (e.wrapper.insertBefore(this.wrapper, e.wrapper.firstChild),
-                w && (i.style.width = '0px'),
+                k && (i.style.width = '0px'),
                 Ie(i, 'input', function () {
                     (s && h >= 9 && t.hasSelection && (t.hasSelection = null),
                         n.poll());
@@ -9840,7 +9840,7 @@ b`.split(/\n/).length != 3
                                 : ((n.prevInput = ''),
                                   (i.value = u.text.join(`
 `)),
-                                  I(i)));
+                                  N(i)));
                     } else return;
                     l.type == 'cut' && (r.state.cutIncoming = +new Date());
                 }
@@ -9936,7 +9936,7 @@ b`.split(/\n/).length != 3
                         this.prevInput = '';
                         var n = t.getSelection();
                         ((this.textarea.value = n),
-                            t.state.focused && I(this.textarea),
+                            t.state.focused && N(this.textarea),
                             s && h >= 9 && (this.hasSelection = n));
                     } else
                         e ||
@@ -9954,7 +9954,7 @@ b`.split(/\n/).length != 3
             (st.prototype.focus = function () {
                 if (
                     this.cm.options.readOnly != 'nocursor' &&
-                    (!E || R(ze(this.textarea)) != this.textarea)
+                    (!M || H(ze(this.textarea)) != this.textarea)
                 )
                     try {
                         this.textarea.focus();
@@ -10007,7 +10007,7 @@ b`.split(/\n/).length != 3
                 if (i == r && !t.somethingSelected()) return !1;
                 if (
                     (s && h >= 9 && this.hasSelection === i) ||
-                    (N && /[\uf700-\uf7ff]/.test(i))
+                    (I && /[\uf700-\uf7ff]/.test(i))
                 )
                     return (t.display.input.reset(), !1);
                 if (t.doc.sel == t.display.selForContextMenu) {
@@ -10130,7 +10130,7 @@ b`.split(/\n/).length != 3
                         r.detectingSelectAll = setTimeout(me, 200);
                     }
                 }
-                if ((s && h >= 9 && ee(), F)) {
+                if ((s && h >= 9 && ee(), q)) {
                     dr(e);
                     var ie = function () {
                         (_t(window, 'mouseup', ie), setTimeout(Y, 20));
@@ -10155,7 +10155,7 @@ b`.split(/\n/).length != 3
                     (t.placeholder = e.placeholder),
                 t.autofocus == null)
             ) {
-                var n = R(ze(e));
+                var n = H(ze(e));
                 t.autofocus =
                     n == e ||
                     (e.getAttribute('autofocus') != null && n == document.body);
@@ -10372,28 +10372,28 @@ var ps = Ke((fs, ds) => {
             if (S.getOption('disableInput')) return o.Pass;
             for (var s = S.listSelections(), h = [], g = 0; g < s.length; g++) {
                 var C = s[g].head,
-                    k = S.getStateAfter(C.line),
-                    c = o.innerMode(S.getMode(), k);
+                    _ = S.getStateAfter(C.line),
+                    c = o.innerMode(S.getMode(), _);
                 if (
                     c.mode.name !== 'markdown' &&
                     c.mode.helperType !== 'markdown'
                 ) {
                     S.execCommand('newlineAndIndent');
                     return;
-                } else k = c.state;
-                var d = k.list !== !1,
-                    x = k.quote !== 0,
-                    z = S.getLine(C.line),
-                    M = p.exec(z),
-                    w = /^\s*$/.test(z.slice(0, C.ch));
-                if (!s[g].empty() || (!d && !x) || !M || w) {
+                } else _ = c.state;
+                var d = _.list !== !1,
+                    w = _.quote !== 0,
+                    E = S.getLine(C.line),
+                    z = p.exec(E),
+                    k = /^\s*$/.test(E.slice(0, C.ch));
+                if (!s[g].empty() || (!d && !w) || !z || k) {
                     S.execCommand('newlineAndIndent');
                     return;
                 }
-                if (v.test(z)) {
-                    var W = x && />\s*$/.test(z),
-                        E = !/>\s*$/.test(z);
-                    ((W || E) &&
+                if (v.test(E)) {
+                    var R = w && />\s*$/.test(E),
+                        M = !/>\s*$/.test(E);
+                    ((R || M) &&
                         S.replaceRange(
                             '',
                             { line: C.line, ch: 0 },
@@ -10402,18 +10402,18 @@ var ps = Ke((fs, ds) => {
                         (h[g] = `
 `));
                 } else {
-                    var N = M[1],
-                        K = M[5],
-                        J = !(L.test(M[2]) || M[2].indexOf('>') >= 0),
+                    var I = z[1],
+                        U = z[5],
+                        J = !(L.test(z[2]) || z[2].indexOf('>') >= 0),
                         re = J
-                            ? parseInt(M[3], 10) + 1 + M[4]
-                            : M[2].replace('x', ' ');
+                            ? parseInt(z[3], 10) + 1 + z[4]
+                            : z[2].replace('x', ' ');
                     ((h[g] =
                         `
 ` +
-                        N +
+                        I +
                         re +
-                        K),
+                        U),
                         J && b(S, C));
                 }
             }
@@ -10423,36 +10423,36 @@ var ps = Ke((fs, ds) => {
             var h = s.line,
                 g = 0,
                 C = 0,
-                k = p.exec(S.getLine(h)),
-                c = k[1];
+                _ = p.exec(S.getLine(h)),
+                c = _[1];
             do {
                 g += 1;
                 var d = h + g,
-                    x = S.getLine(d),
-                    z = p.exec(x);
-                if (z) {
-                    var M = z[1],
-                        w = parseInt(k[3], 10) + g - C,
-                        W = parseInt(z[3], 10),
-                        E = W;
-                    if (c === M && !isNaN(W))
-                        (w === W && (E = W + 1),
-                            w > W && (E = w + 1),
+                    w = S.getLine(d),
+                    E = p.exec(w);
+                if (E) {
+                    var z = E[1],
+                        k = parseInt(_[3], 10) + g - C,
+                        R = parseInt(E[3], 10),
+                        M = R;
+                    if (c === z && !isNaN(R))
+                        (k === R && (M = R + 1),
+                            k > R && (M = k + 1),
                             S.replaceRange(
-                                x.replace(p, M + E + z[4] + z[5]),
+                                w.replace(p, z + M + E[4] + E[5]),
                                 { line: d, ch: 0 },
-                                { line: d, ch: x.length },
+                                { line: d, ch: w.length },
                             ));
                     else {
                         if (
-                            c.length > M.length ||
-                            (c.length < M.length && g === 1)
+                            c.length > z.length ||
+                            (c.length < z.length && g === 1)
                         )
                             return;
                         C += 1;
                     }
                 }
-            } while (z);
+            } while (E);
         }
     });
 });
@@ -10465,8 +10465,8 @@ var ms = Ke((hs, gs) => {
               : o(CodeMirror);
     })(function (o) {
         o.defineOption('placeholder', '', function (h, g, C) {
-            var k = C && C != o.Init;
-            if (g && !k)
+            var _ = C && C != o.Init;
+            if (g && !_)
                 (h.on('blur', b),
                     h.on('change', S),
                     h.on('swapDoc', S),
@@ -10478,7 +10478,7 @@ var ms = Ke((hs, gs) => {
                         }),
                     ),
                     S(h));
-            else if (!g && k) {
+            else if (!g && _) {
                 (h.off('blur', b),
                     h.off('change', S),
                     h.off('swapDoc', S),
@@ -10555,96 +10555,96 @@ var ys = Ke((vs, bs) => {
               : o(CodeMirror);
     })(function (o) {
         'use strict';
-        o.defineOption('styleSelectedText', !1, function (k, c, d) {
-            var x = d && d != o.Init;
-            c && !x
-                ? ((k.state.markedSelection = []),
-                  (k.state.markedSelectionStyle =
+        o.defineOption('styleSelectedText', !1, function (_, c, d) {
+            var w = d && d != o.Init;
+            c && !w
+                ? ((_.state.markedSelection = []),
+                  (_.state.markedSelectionStyle =
                       typeof c == 'string' ? c : 'CodeMirror-selectedtext'),
-                  g(k),
-                  k.on('cursorActivity', p),
-                  k.on('change', v))
+                  g(_),
+                  _.on('cursorActivity', p),
+                  _.on('change', v))
                 : !c &&
-                  x &&
-                  (k.off('cursorActivity', p),
-                  k.off('change', v),
-                  h(k),
-                  (k.state.markedSelection = k.state.markedSelectionStyle =
+                  w &&
+                  (_.off('cursorActivity', p),
+                  _.off('change', v),
+                  h(_),
+                  (_.state.markedSelection = _.state.markedSelectionStyle =
                       null));
         });
-        function p(k) {
-            k.state.markedSelection &&
-                k.operation(function () {
-                    C(k);
+        function p(_) {
+            _.state.markedSelection &&
+                _.operation(function () {
+                    C(_);
                 });
         }
-        function v(k) {
-            k.state.markedSelection &&
-                k.state.markedSelection.length &&
-                k.operation(function () {
-                    h(k);
+        function v(_) {
+            _.state.markedSelection &&
+                _.state.markedSelection.length &&
+                _.operation(function () {
+                    h(_);
                 });
         }
         var L = 8,
             b = o.Pos,
             S = o.cmpPos;
-        function s(k, c, d, x) {
+        function s(_, c, d, w) {
             if (S(c, d) != 0)
                 for (
-                    var z = k.state.markedSelection,
-                        M = k.state.markedSelectionStyle,
-                        w = c.line;
+                    var E = _.state.markedSelection,
+                        z = _.state.markedSelectionStyle,
+                        k = c.line;
                     ;
                 ) {
-                    var W = w == c.line ? c : b(w, 0),
-                        E = w + L,
-                        N = E >= d.line,
-                        K = N ? d : b(E, 0),
-                        J = k.markText(W, K, { className: M });
-                    if ((x == null ? z.push(J) : z.splice(x++, 0, J), N)) break;
-                    w = E;
+                    var R = k == c.line ? c : b(k, 0),
+                        M = k + L,
+                        I = M >= d.line,
+                        U = I ? d : b(M, 0),
+                        J = _.markText(R, U, { className: z });
+                    if ((w == null ? E.push(J) : E.splice(w++, 0, J), I)) break;
+                    k = M;
                 }
         }
-        function h(k) {
-            for (var c = k.state.markedSelection, d = 0; d < c.length; ++d)
+        function h(_) {
+            for (var c = _.state.markedSelection, d = 0; d < c.length; ++d)
                 c[d].clear();
             c.length = 0;
         }
-        function g(k) {
-            h(k);
-            for (var c = k.listSelections(), d = 0; d < c.length; d++)
-                s(k, c[d].from(), c[d].to());
+        function g(_) {
+            h(_);
+            for (var c = _.listSelections(), d = 0; d < c.length; d++)
+                s(_, c[d].from(), c[d].to());
         }
-        function C(k) {
-            if (!k.somethingSelected()) return h(k);
-            if (k.listSelections().length > 1) return g(k);
-            var c = k.getCursor('start'),
-                d = k.getCursor('end'),
-                x = k.state.markedSelection;
-            if (!x.length) return s(k, c, d);
-            var z = x[0].find(),
-                M = x[x.length - 1].find();
+        function C(_) {
+            if (!_.somethingSelected()) return h(_);
+            if (_.listSelections().length > 1) return g(_);
+            var c = _.getCursor('start'),
+                d = _.getCursor('end'),
+                w = _.state.markedSelection;
+            if (!w.length) return s(_, c, d);
+            var E = w[0].find(),
+                z = w[w.length - 1].find();
             if (
+                !E ||
                 !z ||
-                !M ||
                 d.line - c.line <= L ||
-                S(c, M.to) >= 0 ||
-                S(d, z.from) <= 0
+                S(c, z.to) >= 0 ||
+                S(d, E.from) <= 0
             )
-                return g(k);
-            for (; S(c, z.from) > 0;) (x.shift().clear(), (z = x[0].find()));
+                return g(_);
+            for (; S(c, E.from) > 0;) (w.shift().clear(), (E = w[0].find()));
             for (
-                S(c, z.from) < 0 &&
-                (z.to.line - c.line < L
-                    ? (x.shift().clear(), s(k, c, z.to, 0))
-                    : s(k, c, z.from, 0));
-                S(d, M.to) < 0;
+                S(c, E.from) < 0 &&
+                (E.to.line - c.line < L
+                    ? (w.shift().clear(), s(_, c, E.to, 0))
+                    : s(_, c, E.from, 0));
+                S(d, z.to) < 0;
             )
-                (x.pop().clear(), (M = x[x.length - 1].find()));
-            S(d, M.to) > 0 &&
-                (d.line - M.from.line < L
-                    ? (x.pop().clear(), s(k, M.from, d))
-                    : s(k, M.to, d));
+                (w.pop().clear(), (z = w[w.length - 1].find()));
+            S(d, z.to) > 0 &&
+                (d.line - z.from.line < L
+                    ? (w.pop().clear(), s(_, z.from, d))
+                    : s(_, z.to, d));
         }
     });
 });
@@ -10658,63 +10658,63 @@ var ks = Ke((xs, _s) => {
     })(function (o) {
         'use strict';
         var p = o.Pos;
-        function v(w) {
-            var W = w.flags;
+        function v(k) {
+            var R = k.flags;
             return (
-                W ??
-                (w.ignoreCase ? 'i' : '') +
-                    (w.global ? 'g' : '') +
-                    (w.multiline ? 'm' : '')
+                R ??
+                (k.ignoreCase ? 'i' : '') +
+                    (k.global ? 'g' : '') +
+                    (k.multiline ? 'm' : '')
             );
         }
-        function L(w, W) {
-            for (var E = v(w), N = E, K = 0; K < W.length; K++)
-                N.indexOf(W.charAt(K)) == -1 && (N += W.charAt(K));
-            return E == N ? w : new RegExp(w.source, N);
+        function L(k, R) {
+            for (var M = v(k), I = M, U = 0; U < R.length; U++)
+                I.indexOf(R.charAt(U)) == -1 && (I += R.charAt(U));
+            return M == I ? k : new RegExp(k.source, I);
         }
-        function b(w) {
-            return /\\s|\\n|\n|\\W|\\D|\[\^/.test(w.source);
+        function b(k) {
+            return /\\s|\\n|\n|\\W|\\D|\[\^/.test(k.source);
         }
-        function S(w, W, E) {
-            W = L(W, 'g');
+        function S(k, R, M) {
+            R = L(R, 'g');
             for (
-                var N = E.line, K = E.ch, J = w.lastLine();
-                N <= J;
-                N++, K = 0
+                var I = M.line, U = M.ch, J = k.lastLine();
+                I <= J;
+                I++, U = 0
             ) {
-                W.lastIndex = K;
-                var re = w.getLine(N),
-                    q = W.exec(re);
-                if (q)
+                R.lastIndex = U;
+                var re = k.getLine(I),
+                    F = R.exec(re);
+                if (F)
                     return {
-                        from: p(N, q.index),
-                        to: p(N, q.index + q[0].length),
-                        match: q,
+                        from: p(I, F.index),
+                        to: p(I, F.index + F[0].length),
+                        match: F,
                     };
             }
         }
-        function s(w, W, E) {
-            if (!b(W)) return S(w, W, E);
-            W = L(W, 'gm');
-            for (var N, K = 1, J = E.line, re = w.lastLine(); J <= re;) {
-                for (var q = 0; q < K && !(J > re); q++) {
-                    var F = w.getLine(J++);
-                    N =
-                        N == null
-                            ? F
-                            : N +
+        function s(k, R, M) {
+            if (!b(R)) return S(k, R, M);
+            R = L(R, 'gm');
+            for (var I, U = 1, J = M.line, re = k.lastLine(); J <= re;) {
+                for (var F = 0; F < U && !(J > re); F++) {
+                    var q = k.getLine(J++);
+                    I =
+                        I == null
+                            ? q
+                            : I +
                               `
 ` +
-                              F;
+                              q;
                 }
-                ((K = K * 2), (W.lastIndex = E.ch));
-                var D = W.exec(N);
+                ((U = U * 2), (R.lastIndex = M.ch));
+                var D = R.exec(I);
                 if (D) {
-                    var Q = N.slice(0, D.index).split(`
+                    var Q = I.slice(0, D.index).split(`
 `),
                         j = D[0].split(`
 `),
-                        V = E.line + Q.length - 1,
+                        V = M.line + Q.length - 1,
                         y = Q[Q.length - 1].length;
                     return {
                         from: p(V, y),
@@ -10729,60 +10729,60 @@ var ks = Ke((xs, _s) => {
                 }
             }
         }
-        function h(w, W, E) {
-            for (var N, K = 0; K <= w.length;) {
-                W.lastIndex = K;
-                var J = W.exec(w);
+        function h(k, R, M) {
+            for (var I, U = 0; U <= k.length;) {
+                R.lastIndex = U;
+                var J = R.exec(k);
                 if (!J) break;
                 var re = J.index + J[0].length;
-                if (re > w.length - E) break;
-                ((!N || re > N.index + N[0].length) && (N = J),
-                    (K = J.index + 1));
+                if (re > k.length - M) break;
+                ((!I || re > I.index + I[0].length) && (I = J),
+                    (U = J.index + 1));
             }
-            return N;
+            return I;
         }
-        function g(w, W, E) {
-            W = L(W, 'g');
+        function g(k, R, M) {
+            R = L(R, 'g');
             for (
-                var N = E.line, K = E.ch, J = w.firstLine();
-                N >= J;
-                N--, K = -1
+                var I = M.line, U = M.ch, J = k.firstLine();
+                I >= J;
+                I--, U = -1
             ) {
-                var re = w.getLine(N),
-                    q = h(re, W, K < 0 ? 0 : re.length - K);
-                if (q)
+                var re = k.getLine(I),
+                    F = h(re, R, U < 0 ? 0 : re.length - U);
+                if (F)
                     return {
-                        from: p(N, q.index),
-                        to: p(N, q.index + q[0].length),
-                        match: q,
+                        from: p(I, F.index),
+                        to: p(I, F.index + F[0].length),
+                        match: F,
                     };
             }
         }
-        function C(w, W, E) {
-            if (!b(W)) return g(w, W, E);
-            W = L(W, 'gm');
+        function C(k, R, M) {
+            if (!b(R)) return g(k, R, M);
+            R = L(R, 'gm');
             for (
-                var N,
-                    K = 1,
-                    J = w.getLine(E.line).length - E.ch,
-                    re = E.line,
-                    q = w.firstLine();
-                re >= q;
+                var I,
+                    U = 1,
+                    J = k.getLine(M.line).length - M.ch,
+                    re = M.line,
+                    F = k.firstLine();
+                re >= F;
             ) {
-                for (var F = 0; F < K && re >= q; F++) {
-                    var D = w.getLine(re--);
-                    N =
-                        N == null
+                for (var q = 0; q < U && re >= F; q++) {
+                    var D = k.getLine(re--);
+                    I =
+                        I == null
                             ? D
                             : D +
                               `
 ` +
-                              N;
+                              I;
                 }
-                K *= 2;
-                var Q = h(N, W, J);
+                U *= 2;
+                var Q = h(I, R, J);
                 if (Q) {
-                    var j = N.slice(0, Q.index).split(`
+                    var j = I.slice(0, Q.index).split(`
 `),
                         V = Q[0].split(`
 `),
@@ -10801,168 +10801,168 @@ var ks = Ke((xs, _s) => {
                 }
             }
         }
-        var k, c;
+        var _, c;
         String.prototype.normalize
-            ? ((k = function (w) {
-                  return w.normalize('NFD').toLowerCase();
+            ? ((_ = function (k) {
+                  return k.normalize('NFD').toLowerCase();
               }),
-              (c = function (w) {
-                  return w.normalize('NFD');
+              (c = function (k) {
+                  return k.normalize('NFD');
               }))
-            : ((k = function (w) {
-                  return w.toLowerCase();
+            : ((_ = function (k) {
+                  return k.toLowerCase();
               }),
-              (c = function (w) {
-                  return w;
+              (c = function (k) {
+                  return k;
               }));
-        function d(w, W, E, N) {
-            if (w.length == W.length) return E;
-            for (var K = 0, J = E + Math.max(0, w.length - W.length); ;) {
-                if (K == J) return K;
-                var re = (K + J) >> 1,
-                    q = N(w.slice(0, re)).length;
-                if (q == E) return re;
-                q > E ? (J = re) : (K = re + 1);
+        function d(k, R, M, I) {
+            if (k.length == R.length) return M;
+            for (var U = 0, J = M + Math.max(0, k.length - R.length); ;) {
+                if (U == J) return U;
+                var re = (U + J) >> 1,
+                    F = I(k.slice(0, re)).length;
+                if (F == M) return re;
+                F > M ? (J = re) : (U = re + 1);
             }
         }
-        function x(w, W, E, N) {
-            if (!W.length) return null;
-            var K = N ? k : c,
-                J = K(W).split(/\r|\n\r?/);
+        function w(k, R, M, I) {
+            if (!R.length) return null;
+            var U = I ? _ : c,
+                J = U(R).split(/\r|\n\r?/);
             e: for (
-                var re = E.line, q = E.ch, F = w.lastLine() + 1 - J.length;
-                re <= F;
-                re++, q = 0
+                var re = M.line, F = M.ch, q = k.lastLine() + 1 - J.length;
+                re <= q;
+                re++, F = 0
             ) {
-                var D = w.getLine(re).slice(q),
-                    Q = K(D);
+                var D = k.getLine(re).slice(F),
+                    Q = U(D);
                 if (J.length == 1) {
                     var j = Q.indexOf(J[0]);
                     if (j == -1) continue e;
-                    var E = d(D, Q, j, K) + q;
+                    var M = d(D, Q, j, U) + F;
                     return {
-                        from: p(re, d(D, Q, j, K) + q),
-                        to: p(re, d(D, Q, j + J[0].length, K) + q),
+                        from: p(re, d(D, Q, j, U) + F),
+                        to: p(re, d(D, Q, j + J[0].length, U) + F),
                     };
                 } else {
                     var V = Q.length - J[0].length;
                     if (Q.slice(V) != J[0]) continue e;
                     for (var y = 1; y < J.length - 1; y++)
-                        if (K(w.getLine(re + y)) != J[y]) continue e;
-                    var G = w.getLine(re + J.length - 1),
-                        X = K(G),
+                        if (U(k.getLine(re + y)) != J[y]) continue e;
+                    var G = k.getLine(re + J.length - 1),
+                        X = U(G),
                         O = J[J.length - 1];
                     if (X.slice(0, O.length) != O) continue e;
                     return {
-                        from: p(re, d(D, Q, V, K) + q),
-                        to: p(re + J.length - 1, d(G, X, O.length, K)),
+                        from: p(re, d(D, Q, V, U) + F),
+                        to: p(re + J.length - 1, d(G, X, O.length, U)),
                     };
                 }
             }
         }
-        function z(w, W, E, N) {
-            if (!W.length) return null;
-            var K = N ? k : c,
-                J = K(W).split(/\r|\n\r?/);
+        function E(k, R, M, I) {
+            if (!R.length) return null;
+            var U = I ? _ : c,
+                J = U(R).split(/\r|\n\r?/);
             e: for (
-                var re = E.line, q = E.ch, F = w.firstLine() - 1 + J.length;
-                re >= F;
-                re--, q = -1
+                var re = M.line, F = M.ch, q = k.firstLine() - 1 + J.length;
+                re >= q;
+                re--, F = -1
             ) {
-                var D = w.getLine(re);
-                q > -1 && (D = D.slice(0, q));
-                var Q = K(D);
+                var D = k.getLine(re);
+                F > -1 && (D = D.slice(0, F));
+                var Q = U(D);
                 if (J.length == 1) {
                     var j = Q.lastIndexOf(J[0]);
                     if (j == -1) continue e;
                     return {
-                        from: p(re, d(D, Q, j, K)),
-                        to: p(re, d(D, Q, j + J[0].length, K)),
+                        from: p(re, d(D, Q, j, U)),
+                        to: p(re, d(D, Q, j + J[0].length, U)),
                     };
                 } else {
                     var V = J[J.length - 1];
                     if (Q.slice(0, V.length) != V) continue e;
                     for (
-                        var y = 1, E = re - J.length + 1;
+                        var y = 1, M = re - J.length + 1;
                         y < J.length - 1;
                         y++
                     )
-                        if (K(w.getLine(E + y)) != J[y]) continue e;
-                    var G = w.getLine(re + 1 - J.length),
-                        X = K(G);
+                        if (U(k.getLine(M + y)) != J[y]) continue e;
+                    var G = k.getLine(re + 1 - J.length),
+                        X = U(G);
                     if (X.slice(X.length - J[0].length) != J[0]) continue e;
                     return {
                         from: p(
                             re + 1 - J.length,
-                            d(G, X, G.length - J[0].length, K),
+                            d(G, X, G.length - J[0].length, U),
                         ),
-                        to: p(re, d(D, Q, V.length, K)),
+                        to: p(re, d(D, Q, V.length, U)),
                     };
                 }
             }
         }
-        function M(w, W, E, N) {
+        function z(k, R, M, I) {
             ((this.atOccurrence = !1),
                 (this.afterEmptyMatch = !1),
-                (this.doc = w),
-                (E = E ? w.clipPos(E) : p(0, 0)),
-                (this.pos = { from: E, to: E }));
-            var K;
-            (typeof N == 'object' ? (K = N.caseFold) : ((K = N), (N = null)),
-                typeof W == 'string'
-                    ? (K == null && (K = !1),
+                (this.doc = k),
+                (M = M ? k.clipPos(M) : p(0, 0)),
+                (this.pos = { from: M, to: M }));
+            var U;
+            (typeof I == 'object' ? (U = I.caseFold) : ((U = I), (I = null)),
+                typeof R == 'string'
+                    ? (U == null && (U = !1),
                       (this.matches = function (J, re) {
-                          return (J ? z : x)(w, W, re, K);
+                          return (J ? E : w)(k, R, re, U);
                       }))
-                    : ((W = L(W, 'gm')),
-                      !N || N.multiline !== !1
+                    : ((R = L(R, 'gm')),
+                      !I || I.multiline !== !1
                           ? (this.matches = function (J, re) {
-                                return (J ? C : s)(w, W, re);
+                                return (J ? C : s)(k, R, re);
                             })
                           : (this.matches = function (J, re) {
-                                return (J ? g : S)(w, W, re);
+                                return (J ? g : S)(k, R, re);
                             })));
         }
-        ((M.prototype = {
+        ((z.prototype = {
             findNext: function () {
                 return this.find(!1);
             },
             findPrevious: function () {
                 return this.find(!0);
             },
-            find: function (w) {
-                var W = this.doc.clipPos(w ? this.pos.from : this.pos.to);
+            find: function (k) {
+                var R = this.doc.clipPos(k ? this.pos.from : this.pos.to);
                 if (
                     this.afterEmptyMatch &&
                     this.atOccurrence &&
-                    ((W = p(W.line, W.ch)),
-                    w
-                        ? (W.ch--,
-                          W.ch < 0 &&
-                              (W.line--,
-                              (W.ch = (this.doc.getLine(W.line) || '').length)))
-                        : (W.ch++,
-                          W.ch > (this.doc.getLine(W.line) || '').length &&
-                              ((W.ch = 0), W.line++)),
-                    o.cmpPos(W, this.doc.clipPos(W)) != 0)
+                    ((R = p(R.line, R.ch)),
+                    k
+                        ? (R.ch--,
+                          R.ch < 0 &&
+                              (R.line--,
+                              (R.ch = (this.doc.getLine(R.line) || '').length)))
+                        : (R.ch++,
+                          R.ch > (this.doc.getLine(R.line) || '').length &&
+                              ((R.ch = 0), R.line++)),
+                    o.cmpPos(R, this.doc.clipPos(R)) != 0)
                 )
                     return (this.atOccurrence = !1);
-                var E = this.matches(w, W);
+                var M = this.matches(k, R);
                 if (
-                    ((this.afterEmptyMatch = E && o.cmpPos(E.from, E.to) == 0),
-                    E)
+                    ((this.afterEmptyMatch = M && o.cmpPos(M.from, M.to) == 0),
+                    M)
                 )
                     return (
-                        (this.pos = E),
+                        (this.pos = M),
                         (this.atOccurrence = !0),
                         this.pos.match || !0
                     );
-                var N = p(
-                    w ? this.doc.firstLine() : this.doc.lastLine() + 1,
+                var I = p(
+                    k ? this.doc.firstLine() : this.doc.lastLine() + 1,
                     0,
                 );
                 return (
-                    (this.pos = { from: N, to: N }),
+                    (this.pos = { from: I, to: I }),
                     (this.atOccurrence = !1)
                 );
             },
@@ -10972,33 +10972,33 @@ var ks = Ke((xs, _s) => {
             to: function () {
                 if (this.atOccurrence) return this.pos.to;
             },
-            replace: function (w, W) {
+            replace: function (k, R) {
                 if (this.atOccurrence) {
-                    var E = o.splitLines(w);
-                    (this.doc.replaceRange(E, this.pos.from, this.pos.to, W),
+                    var M = o.splitLines(k);
+                    (this.doc.replaceRange(M, this.pos.from, this.pos.to, R),
                         (this.pos.to = p(
-                            this.pos.from.line + E.length - 1,
-                            E[E.length - 1].length +
-                                (E.length == 1 ? this.pos.from.ch : 0),
+                            this.pos.from.line + M.length - 1,
+                            M[M.length - 1].length +
+                                (M.length == 1 ? this.pos.from.ch : 0),
                         )));
                 }
             },
         }),
-            o.defineExtension('getSearchCursor', function (w, W, E) {
-                return new M(this.doc, w, W, E);
+            o.defineExtension('getSearchCursor', function (k, R, M) {
+                return new z(this.doc, k, R, M);
             }),
-            o.defineDocExtension('getSearchCursor', function (w, W, E) {
-                return new M(this, w, W, E);
+            o.defineDocExtension('getSearchCursor', function (k, R, M) {
+                return new z(this, k, R, M);
             }),
-            o.defineExtension('selectMatches', function (w, W) {
+            o.defineExtension('selectMatches', function (k, R) {
                 for (
-                    var E = [],
-                        N = this.getSearchCursor(w, this.getCursor('from'), W);
-                    N.findNext() &&
-                    !(o.cmpPos(N.to(), this.getCursor('to')) > 0);
+                    var M = [],
+                        I = this.getSearchCursor(k, this.getCursor('from'), R);
+                    I.findNext() &&
+                    !(o.cmpPos(I.to(), this.getCursor('to')) > 0);
                 )
-                    E.push({ anchor: N.from(), head: N.to() });
-                E.length && this.setSelections(E, 0);
+                    M.push({ anchor: I.from(), head: I.to() });
+                M.length && this.setSelections(M, 0);
             }));
     });
 });
@@ -11011,38 +11011,38 @@ var Vo = Ke((ws, Ss) => {
               : o(CodeMirror);
     })(function (o) {
         'use strict';
-        function p(O, R, se, _e, I, T) {
+        function p(O, H, se, _e, N, T) {
             ((this.indented = O),
-                (this.column = R),
+                (this.column = H),
                 (this.type = se),
                 (this.info = _e),
-                (this.align = I),
+                (this.align = N),
                 (this.prev = T));
         }
-        function v(O, R, se, _e) {
-            var I = O.indented;
+        function v(O, H, se, _e) {
+            var N = O.indented;
             return (
                 O.context &&
                     O.context.type == 'statement' &&
                     se != 'statement' &&
-                    (I = O.context.indented),
-                (O.context = new p(I, R, se, _e, null, O.context))
+                    (N = O.context.indented),
+                (O.context = new p(N, H, se, _e, null, O.context))
             );
         }
         function L(O) {
-            var R = O.context.type;
+            var H = O.context.type;
             return (
-                (R == ')' || R == ']' || R == '}') &&
+                (H == ')' || H == ']' || H == '}') &&
                     (O.indented = O.context.indented),
                 (O.context = O.context.prev)
             );
         }
-        function b(O, R, se) {
+        function b(O, H, se) {
             if (
-                R.prevToken == 'variable' ||
-                R.prevToken == 'type' ||
+                H.prevToken == 'variable' ||
+                H.prevToken == 'type' ||
                 /\S(?:[^- ]>|[*\]])\s*$|\*$/.test(O.string.slice(0, se)) ||
-                (R.typeAtEndOfLine && O.column() == O.indentation())
+                (H.typeAtEndOfLine && O.column() == O.indentation())
             )
                 return !0;
         }
@@ -11053,36 +11053,36 @@ var Vo = Ke((ws, Ss) => {
                 O = O.prev;
             }
         }
-        o.defineMode('clike', function (O, R) {
+        o.defineMode('clike', function (O, H) {
             var se = O.indentUnit,
-                _e = R.statementIndentUnit || se,
-                I = R.dontAlignCalls,
-                T = R.keywords || {},
-                he = R.types || {},
-                ze = R.builtin || {},
-                de = R.blockKeywords || {},
-                Ee = R.defKeywords || {},
-                ge = R.atoms || {},
-                Oe = R.hooks || {},
-                qe = R.multiLineStrings,
-                Se = R.indentStatements !== !1,
-                Be = R.indentSwitch !== !1,
-                Ze = R.namespaceSeparator,
-                ke = R.isPunctuationChar || /[\[\]{}\(\),;\:\.]/,
-                Je = R.numberStart || /[\d\.]/,
+                _e = H.statementIndentUnit || se,
+                N = H.dontAlignCalls,
+                T = H.keywords || {},
+                he = H.types || {},
+                ze = H.builtin || {},
+                de = H.blockKeywords || {},
+                Ee = H.defKeywords || {},
+                ge = H.atoms || {},
+                Oe = H.hooks || {},
+                qe = H.multiLineStrings,
+                Se = H.indentStatements !== !1,
+                Be = H.indentSwitch !== !1,
+                Ze = H.namespaceSeparator,
+                ke = H.isPunctuationChar || /[\[\]{}\(\),;\:\.]/,
+                Je = H.numberStart || /[\d\.]/,
                 Re =
-                    R.number ||
+                    H.number ||
                     /^(?:0x[a-f\d]+|0b[01]+|(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)(u|ll?|l|f)?/i,
-                Ge = R.isOperatorChar || /[+\-*&%=<>!?|\/]/,
-                U = R.isIdentifierChar || /[\w\$_\xa1-\uffff]/,
-                Z = R.isReservedIdentifier || !1,
+                Ge = H.isOperatorChar || /[+\-*&%=<>!?|\/]/,
+                $ = H.isIdentifierChar || /[\w\$_\xa1-\uffff]/,
+                Z = H.isReservedIdentifier || !1,
                 ce,
                 He;
             function te(we, Me) {
                 var Le = we.next();
                 if (Oe[Le]) {
-                    var $ = Oe[Le](we, Me);
-                    if ($ !== !1) return $;
+                    var K = Oe[Le](we, Me);
+                    if (K !== !1) return K;
                 }
                 if (Le == '"' || Le == "'")
                     return ((Me.tokenize = fe(Le)), Me.tokenize(we, Me));
@@ -11099,47 +11099,47 @@ var Vo = Ke((ws, Ss) => {
                     for (; !we.match(/^\/[\/*]/, !1) && we.eat(Ge););
                     return 'operator';
                 }
-                if ((we.eatWhile(U), Ze)) for (; we.match(Ze);) we.eatWhile(U);
-                var H = we.current();
-                return h(T, H)
-                    ? (h(de, H) && (ce = 'newstatement'),
-                      h(Ee, H) && (He = !0),
+                if ((we.eatWhile($), Ze)) for (; we.match(Ze);) we.eatWhile($);
+                var W = we.current();
+                return h(T, W)
+                    ? (h(de, W) && (ce = 'newstatement'),
+                      h(Ee, W) && (He = !0),
                       'keyword')
-                    : h(he, H)
+                    : h(he, W)
                       ? 'type'
-                      : h(ze, H) || (Z && Z(H))
-                        ? (h(de, H) && (ce = 'newstatement'), 'builtin')
-                        : h(ge, H)
+                      : h(ze, W) || (Z && Z(W))
+                        ? (h(de, W) && (ce = 'newstatement'), 'builtin')
+                        : h(ge, W)
                           ? 'atom'
                           : 'variable';
             }
             function fe(we) {
                 return function (Me, Le) {
-                    for (var $ = !1, H, le = !1; (H = Me.next()) != null;) {
-                        if (H == we && !$) {
+                    for (var K = !1, W, le = !1; (W = Me.next()) != null;) {
+                        if (W == we && !K) {
                             le = !0;
                             break;
                         }
-                        $ = !$ && H == '\\';
+                        K = !K && W == '\\';
                     }
                     return (
-                        (le || !($ || qe)) && (Le.tokenize = null),
+                        (le || !(K || qe)) && (Le.tokenize = null),
                         'string'
                     );
                 };
             }
             function oe(we, Me) {
-                for (var Le = !1, $; ($ = we.next());) {
-                    if ($ == '/' && Le) {
+                for (var Le = !1, K; (K = we.next());) {
+                    if (K == '/' && Le) {
                         Me.tokenize = null;
                         break;
                     }
-                    Le = $ == '*';
+                    Le = K == '*';
                 }
                 return 'comment';
             }
             function Ue(we, Me) {
-                R.typeFirstDefinitions &&
+                H.typeFirstDefinitions &&
                     we.eol() &&
                     S(Me.context) &&
                     (Me.typeAtEndOfLine = b(we, Me, we.pos));
@@ -11165,8 +11165,8 @@ var Vo = Ke((ws, Ss) => {
                     )
                         return (Ue(we, Me), null);
                     ce = He = null;
-                    var $ = (Me.tokenize || te)(we, Me);
-                    if ($ == 'comment' || $ == 'meta') return $;
+                    var K = (Me.tokenize || te)(we, Me);
+                    if (K == 'comment' || K == 'meta') return K;
                     if (
                         (Le.align == null && (Le.align = !0),
                         ce == ';' ||
@@ -11194,24 +11194,24 @@ var Vo = Ke((ws, Ss) => {
                                       ce == 'newstatement')) &&
                               v(Me, we.column(), 'statement', we.current());
                     if (
-                        ($ == 'variable' &&
+                        (K == 'variable' &&
                             (Me.prevToken == 'def' ||
-                                (R.typeFirstDefinitions &&
+                                (H.typeFirstDefinitions &&
                                     b(we, Me, we.start) &&
                                     S(Me.context) &&
                                     we.match(/^\s*\(/, !1))) &&
-                            ($ = 'def'),
+                            (K = 'def'),
                         Oe.token)
                     ) {
-                        var H = Oe.token(we, Me, $);
-                        H !== void 0 && ($ = H);
+                        var W = Oe.token(we, Me, K);
+                        W !== void 0 && (K = W);
                     }
                     return (
-                        $ == 'def' && R.styleDefs === !1 && ($ = 'variable'),
+                        K == 'def' && H.styleDefs === !1 && (K = 'variable'),
                         (Me.startOfLine = !1),
-                        (Me.prevToken = He ? 'def' : $ || ce),
+                        (Me.prevToken = He ? 'def' : K || ce),
                         Ue(we, Me),
-                        $
+                        K
                     );
                 },
                 indent: function (we, Me) {
@@ -11221,16 +11221,16 @@ var Vo = Ke((ws, Ss) => {
                     )
                         return o.Pass;
                     var Le = we.context,
-                        $ = Me && Me.charAt(0),
-                        H = $ == Le.type;
+                        K = Me && Me.charAt(0),
+                        W = K == Le.type;
                     if (
-                        (Le.type == 'statement' && $ == '}' && (Le = Le.prev),
-                        R.dontIndentStatements)
+                        (Le.type == 'statement' && K == '}' && (Le = Le.prev),
+                        H.dontIndentStatements)
                     )
                         for (
                             ;
                             Le.type == 'statement' &&
-                            R.dontIndentStatements.test(Le.info);
+                            H.dontIndentStatements.test(Le.info);
                         )
                             Le = Le.prev;
                     if (Oe.indent) {
@@ -11238,20 +11238,20 @@ var Vo = Ke((ws, Ss) => {
                         if (typeof le == 'number') return le;
                     }
                     var De = Le.prev && Le.prev.info == 'switch';
-                    if (R.allmanIndentation && /[{(]/.test($)) {
+                    if (H.allmanIndentation && /[{(]/.test(K)) {
                         for (; Le.type != 'top' && Le.type != '}';)
                             Le = Le.prev;
                         return Le.indented;
                     }
                     return Le.type == 'statement'
-                        ? Le.indented + ($ == '{' ? 0 : _e)
-                        : Le.align && (!I || Le.type != ')')
-                          ? Le.column + (H ? 0 : 1)
-                          : Le.type == ')' && !H
+                        ? Le.indented + (K == '{' ? 0 : _e)
+                        : Le.align && (!N || Le.type != ')')
+                          ? Le.column + (W ? 0 : 1)
+                          : Le.type == ')' && !W
                             ? Le.indented + _e
                             : Le.indented +
-                              (H ? 0 : se) +
-                              (!H && De && !/^(?:case|default)\b/.test(Me)
+                              (W ? 0 : se) +
+                              (!W && De && !/^(?:case|default)\b/.test(Me)
                                   ? se
                                   : 0);
                 },
@@ -11266,46 +11266,46 @@ var Vo = Ke((ws, Ss) => {
             };
         });
         function s(O) {
-            for (var R = {}, se = O.split(' '), _e = 0; _e < se.length; ++_e)
-                R[se[_e]] = !0;
-            return R;
+            for (var H = {}, se = O.split(' '), _e = 0; _e < se.length; ++_e)
+                H[se[_e]] = !0;
+            return H;
         }
-        function h(O, R) {
-            return typeof O == 'function' ? O(R) : O.propertyIsEnumerable(R);
+        function h(O, H) {
+            return typeof O == 'function' ? O(H) : O.propertyIsEnumerable(H);
         }
         var g =
                 'auto if break case register continue return default do sizeof static else struct switch extern typedef union for goto while enum const volatile inline restrict asm fortran',
             C =
                 'alignas alignof and and_eq audit axiom bitand bitor catch class compl concept constexpr const_cast decltype delete dynamic_cast explicit export final friend import module mutable namespace new noexcept not not_eq operator or or_eq override private protected public reinterpret_cast requires static_assert static_cast template this thread_local throw try typeid typename using virtual xor xor_eq',
-            k =
+            _ =
                 'bycopy byref in inout oneway out self super atomic nonatomic retain copy readwrite readonly strong weak assign typeof nullable nonnull null_resettable _cmd @interface @implementation @end @protocol @encode @property @synthesize @dynamic @class @public @package @private @protected @required @optional @try @catch @finally @import @selector @encode @defs @synchronized @autoreleasepool @compatibility_alias @available',
             c =
                 'FOUNDATION_EXPORT FOUNDATION_EXTERN NS_INLINE NS_FORMAT_FUNCTION  NS_RETURNS_RETAINEDNS_ERROR_ENUM NS_RETURNS_NOT_RETAINED NS_RETURNS_INNER_POINTER NS_DESIGNATED_INITIALIZER NS_ENUM NS_OPTIONS NS_REQUIRES_NIL_TERMINATION NS_ASSUME_NONNULL_BEGIN NS_ASSUME_NONNULL_END NS_SWIFT_NAME NS_REFINED_FOR_SWIFT',
             d = s('int long char short double float unsigned signed void bool'),
-            x = s('SEL instancetype id Class Protocol BOOL');
-        function z(O) {
+            w = s('SEL instancetype id Class Protocol BOOL');
+        function E(O) {
             return h(d, O) || /.+_t$/.test(O);
         }
-        function M(O) {
-            return z(O) || h(x, O);
+        function z(O) {
+            return E(O) || h(w, O);
         }
-        var w = 'case do else for if switch while struct enum union',
-            W = 'struct enum union';
-        function E(O, R) {
-            if (!R.startOfLine) return !1;
+        var k = 'case do else for if switch while struct enum union',
+            R = 'struct enum union';
+        function M(O, H) {
+            if (!H.startOfLine) return !1;
             for (var se, _e = null; (se = O.peek());) {
                 if (se == '\\' && O.match(/^.$/)) {
-                    _e = E;
+                    _e = M;
                     break;
                 } else if (se == '/' && O.match(/^\/[\/\*]/, !1)) break;
                 O.next();
             }
-            return ((R.tokenize = _e), 'meta');
+            return ((H.tokenize = _e), 'meta');
         }
-        function N(O, R) {
-            return R.prevToken == 'type' ? 'type' : !1;
+        function I(O, H) {
+            return H.prevToken == 'type' ? 'type' : !1;
         }
-        function K(O) {
+        function U(O) {
             return !O || O.length < 2 || O[0] != '_'
                 ? !1
                 : O[1] == '_' || O[1] !== O[1].toLowerCase();
@@ -11313,13 +11313,13 @@ var Vo = Ke((ws, Ss) => {
         function J(O) {
             return (O.eatWhile(/[\w\.']/), 'number');
         }
-        function re(O, R) {
+        function re(O, H) {
             if ((O.backUp(1), O.match(/^(?:R|u8R|uR|UR|LR)/))) {
                 var se = O.match(/^"([^\s\\()]{0,16})\(/);
                 return se
-                    ? ((R.cpp11RawStringDelim = se[1]),
-                      (R.tokenize = D),
-                      D(O, R))
+                    ? ((H.cpp11RawStringDelim = se[1]),
+                      (H.tokenize = D),
+                      D(O, H))
                     : !1;
             }
             return O.match(/^(?:u8|u|U|L)/)
@@ -11328,64 +11328,64 @@ var Vo = Ke((ws, Ss) => {
                     : !1
                 : (O.next(), !1);
         }
-        function q(O) {
-            var R = /(\w+)::~?(\w+)$/.exec(O);
-            return R && R[1] == R[2];
+        function F(O) {
+            var H = /(\w+)::~?(\w+)$/.exec(O);
+            return H && H[1] == H[2];
         }
-        function F(O, R) {
+        function q(O, H) {
             for (var se; (se = O.next()) != null;)
                 if (se == '"' && !O.eat('"')) {
-                    R.tokenize = null;
+                    H.tokenize = null;
                     break;
                 }
             return 'string';
         }
-        function D(O, R) {
-            var se = R.cpp11RawStringDelim.replace(/[^\w\s]/g, '\\$&'),
+        function D(O, H) {
+            var se = H.cpp11RawStringDelim.replace(/[^\w\s]/g, '\\$&'),
                 _e = O.match(new RegExp('.*?\\)' + se + '"'));
-            return (_e ? (R.tokenize = null) : O.skipToEnd(), 'string');
+            return (_e ? (H.tokenize = null) : O.skipToEnd(), 'string');
         }
-        function Q(O, R) {
+        function Q(O, H) {
             typeof O == 'string' && (O = [O]);
             var se = [];
             function _e(T) {
                 if (T) for (var he in T) T.hasOwnProperty(he) && se.push(he);
             }
-            (_e(R.keywords),
-                _e(R.types),
-                _e(R.builtin),
-                _e(R.atoms),
+            (_e(H.keywords),
+                _e(H.types),
+                _e(H.builtin),
+                _e(H.atoms),
                 se.length &&
-                    ((R.helperType = O[0]),
+                    ((H.helperType = O[0]),
                     o.registerHelper('hintWords', O[0], se)));
-            for (var I = 0; I < O.length; ++I) o.defineMIME(O[I], R);
+            for (var N = 0; N < O.length; ++N) o.defineMIME(O[N], H);
         }
         (Q(['text/x-csrc', 'text/x-c', 'text/x-chdr'], {
             name: 'clike',
             keywords: s(g),
-            types: z,
-            blockKeywords: s(w),
-            defKeywords: s(W),
+            types: E,
+            blockKeywords: s(k),
+            defKeywords: s(R),
             typeFirstDefinitions: !0,
             atoms: s('NULL true false'),
-            isReservedIdentifier: K,
-            hooks: { '#': E, '*': N },
+            isReservedIdentifier: U,
+            hooks: { '#': M, '*': I },
             modeProps: { fold: ['brace', 'include'] },
         }),
             Q(['text/x-c++src', 'text/x-c++hdr'], {
                 name: 'clike',
                 keywords: s(g + ' ' + C),
-                types: z,
-                blockKeywords: s(w + ' class try catch'),
-                defKeywords: s(W + ' class namespace'),
+                types: E,
+                blockKeywords: s(k + ' class try catch'),
+                defKeywords: s(R + ' class namespace'),
                 typeFirstDefinitions: !0,
                 atoms: s('true false NULL nullptr'),
                 dontIndentStatements: /^template$/,
                 isIdentifierChar: /[\w\$_~\xa1-\uffff]/,
-                isReservedIdentifier: K,
+                isReservedIdentifier: U,
                 hooks: {
-                    '#': E,
-                    '*': N,
+                    '#': M,
+                    '*': I,
                     u: re,
                     U: re,
                     L: re,
@@ -11400,14 +11400,14 @@ var Vo = Ke((ws, Ss) => {
                     7: J,
                     8: J,
                     9: J,
-                    token: function (O, R, se) {
+                    token: function (O, H, se) {
                         if (
                             se == 'variable' &&
                             O.peek() == '(' &&
-                            (R.prevToken == ';' ||
-                                R.prevToken == null ||
-                                R.prevToken == '}') &&
-                            q(O.current())
+                            (H.prevToken == ';' ||
+                                H.prevToken == null ||
+                                H.prevToken == '}') &&
+                            F(O.current())
                         )
                             return 'def';
                     },
@@ -11436,9 +11436,9 @@ var Vo = Ke((ws, Ss) => {
                             ? !1
                             : (O.eatWhile(/[\w\$_]/), 'meta');
                     },
-                    '"': function (O, R) {
+                    '"': function (O, H) {
                         return O.match(/""$/)
-                            ? ((R.tokenize = j), R.tokenize(O, R))
+                            ? ((H.tokenize = j), H.tokenize(O, H))
                             : !1;
                     },
                 },
@@ -11459,17 +11459,17 @@ var Vo = Ke((ws, Ss) => {
                 typeFirstDefinitions: !0,
                 atoms: s('true false null'),
                 hooks: {
-                    '@': function (O, R) {
+                    '@': function (O, H) {
                         return O.eat('"')
-                            ? ((R.tokenize = F), F(O, R))
+                            ? ((H.tokenize = q), q(O, H))
                             : (O.eatWhile(/[\w\$_]/), 'meta');
                     },
                 },
             }));
-        function j(O, R) {
+        function j(O, H) {
             for (var se = !1; !O.eol();) {
                 if (!se && O.match('"""')) {
-                    R.tokenize = null;
+                    H.tokenize = null;
                     break;
                 }
                 se = O.next() == '\\' && !se;
@@ -11477,19 +11477,19 @@ var Vo = Ke((ws, Ss) => {
             return 'string';
         }
         function V(O) {
-            return function (R, se) {
-                for (var _e; (_e = R.next());)
-                    if (_e == '*' && R.eat('/'))
+            return function (H, se) {
+                for (var _e; (_e = H.next());)
+                    if (_e == '*' && H.eat('/'))
                         if (O == 1) {
                             se.tokenize = null;
                             break;
                         } else
                             return (
                                 (se.tokenize = V(O - 1)),
-                                se.tokenize(R, se)
+                                se.tokenize(H, se)
                             );
-                    else if (_e == '/' && R.eat('*'))
-                        return ((se.tokenize = V(O + 1)), se.tokenize(R, se));
+                    else if (_e == '/' && H.eat('*'))
+                        return ((se.tokenize = V(O + 1)), se.tokenize(H, se));
                 return 'comment';
             };
         }
@@ -11514,9 +11514,9 @@ var Vo = Ke((ws, Ss) => {
                 '@': function (O) {
                     return (O.eatWhile(/[\w\$_]/), 'meta');
                 },
-                '"': function (O, R) {
+                '"': function (O, H) {
                     return O.match('""')
-                        ? ((R.tokenize = j), R.tokenize(O, R))
+                        ? ((H.tokenize = j), H.tokenize(O, H))
                         : !1;
                 },
                 "'": function (O) {
@@ -11524,10 +11524,10 @@ var Vo = Ke((ws, Ss) => {
                         ? 'string-2'
                         : (O.eatWhile(/[\w\$_\xa1-\uffff]/), 'atom');
                 },
-                '=': function (O, R) {
-                    var se = R.context;
+                '=': function (O, H) {
+                    var se = H.context;
                     return se.type == '}' && se.align && O.eat('>')
-                        ? ((R.context = new p(
+                        ? ((H.context = new p(
                               se.indented,
                               se.column,
                               se.type,
@@ -11538,28 +11538,28 @@ var Vo = Ke((ws, Ss) => {
                           'operator')
                         : !1;
                 },
-                '/': function (O, R) {
+                '/': function (O, H) {
                     return O.eat('*')
-                        ? ((R.tokenize = V(1)), R.tokenize(O, R))
+                        ? ((H.tokenize = V(1)), H.tokenize(O, H))
                         : !1;
                 },
             },
             modeProps: { closeBrackets: { pairs: '()[]{}""', triples: '"' } },
         });
         function y(O) {
-            return function (R, se) {
-                for (var _e = !1, I, T = !1; !R.eol();) {
-                    if (!O && !_e && R.match('"')) {
+            return function (H, se) {
+                for (var _e = !1, N, T = !1; !H.eol();) {
+                    if (!O && !_e && H.match('"')) {
                         T = !0;
                         break;
                     }
-                    if (O && R.match('"""')) {
+                    if (O && H.match('"""')) {
                         T = !0;
                         break;
                     }
-                    ((I = R.next()),
-                        !_e && I == '$' && R.match('{') && R.skipTo('}'),
-                        (_e = !_e && I == '\\' && !O));
+                    ((N = H.next()),
+                        !_e && N == '$' && H.match('{') && H.skipTo('}'),
+                        (_e = !_e && N == '\\' && !O));
                 }
                 return ((T || !O) && (se.tokenize = null), 'string');
             };
@@ -11585,32 +11585,32 @@ var Vo = Ke((ws, Ss) => {
                 '@': function (O) {
                     return (O.eatWhile(/[\w\$_]/), 'meta');
                 },
-                '*': function (O, R) {
-                    return R.prevToken == '.' ? 'variable' : 'operator';
+                '*': function (O, H) {
+                    return H.prevToken == '.' ? 'variable' : 'operator';
                 },
-                '"': function (O, R) {
-                    return ((R.tokenize = y(O.match('""'))), R.tokenize(O, R));
+                '"': function (O, H) {
+                    return ((H.tokenize = y(O.match('""'))), H.tokenize(O, H));
                 },
-                '/': function (O, R) {
+                '/': function (O, H) {
                     return O.eat('*')
-                        ? ((R.tokenize = V(1)), R.tokenize(O, R))
+                        ? ((H.tokenize = V(1)), H.tokenize(O, H))
                         : !1;
                 },
-                indent: function (O, R, se, _e) {
-                    var I = se && se.charAt(0);
+                indent: function (O, H, se, _e) {
+                    var N = se && se.charAt(0);
                     if ((O.prevToken == '}' || O.prevToken == ')') && se == '')
                         return O.indented;
                     if (
                         (O.prevToken == 'operator' &&
                             se != '}' &&
                             O.context.type != '}') ||
-                        (O.prevToken == 'variable' && I == '.') ||
-                        ((O.prevToken == '}' || O.prevToken == ')') && I == '.')
+                        (O.prevToken == 'variable' && N == '.') ||
+                        ((O.prevToken == '}' || O.prevToken == ')') && N == '.')
                     )
-                        return _e * 2 + R.indented;
-                    if (R.align && R.type == '}')
+                        return _e * 2 + H.indented;
+                    if (H.align && H.type == '}')
                         return (
-                            R.indented +
+                            H.indented +
                             (O.context.type == (se || '').charAt(0) ? 0 : _e)
                         );
                 },
@@ -11633,7 +11633,7 @@ var Vo = Ke((ws, Ss) => {
                     'true false gl_FragColor gl_SecondaryColor gl_Normal gl_Vertex gl_MultiTexCoord0 gl_MultiTexCoord1 gl_MultiTexCoord2 gl_MultiTexCoord3 gl_MultiTexCoord4 gl_MultiTexCoord5 gl_MultiTexCoord6 gl_MultiTexCoord7 gl_FogCoord gl_PointCoord gl_Position gl_PointSize gl_ClipVertex gl_FrontColor gl_BackColor gl_FrontSecondaryColor gl_BackSecondaryColor gl_TexCoord gl_FogFragCoord gl_FragCoord gl_FrontFacing gl_FragData gl_FragDepth gl_ModelViewMatrix gl_ProjectionMatrix gl_ModelViewProjectionMatrix gl_TextureMatrix gl_NormalMatrix gl_ModelViewMatrixInverse gl_ProjectionMatrixInverse gl_ModelViewProjectionMatrixInverse gl_TextureMatrixTranspose gl_ModelViewMatrixInverseTranspose gl_ProjectionMatrixInverseTranspose gl_ModelViewProjectionMatrixInverseTranspose gl_TextureMatrixInverseTranspose gl_NormalScale gl_DepthRange gl_ClipPlane gl_Point gl_FrontMaterial gl_BackMaterial gl_LightSource gl_LightModel gl_FrontLightModelProduct gl_BackLightModelProduct gl_TextureColor gl_EyePlaneS gl_EyePlaneT gl_EyePlaneR gl_EyePlaneQ gl_FogParameters gl_MaxLights gl_MaxClipPlanes gl_MaxTextureUnits gl_MaxTextureCoords gl_MaxVertexAttribs gl_MaxVertexUniformComponents gl_MaxVaryingFloats gl_MaxVertexTextureImageUnits gl_MaxTextureImageUnits gl_MaxFragmentUniformComponents gl_MaxCombineTextureImageUnits gl_MaxDrawBuffers',
                 ),
                 indentSwitch: !1,
-                hooks: { '#': E },
+                hooks: { '#': M },
                 modeProps: { fold: ['brace', 'include'] },
             }),
             Q('text/x-nesc', {
@@ -11642,51 +11642,51 @@ var Vo = Ke((ws, Ss) => {
                     g +
                         ' as atomic async call command component components configuration event generic implementation includes interface module new norace nx_struct nx_union post provides signal task uses abstract extends',
                 ),
-                types: z,
-                blockKeywords: s(w),
+                types: E,
+                blockKeywords: s(k),
                 atoms: s('null true false'),
-                hooks: { '#': E },
+                hooks: { '#': M },
                 modeProps: { fold: ['brace', 'include'] },
             }),
             Q('text/x-objectivec', {
                 name: 'clike',
-                keywords: s(g + ' ' + k),
-                types: M,
+                keywords: s(g + ' ' + _),
+                types: z,
                 builtin: s(c),
                 blockKeywords: s(
-                    w +
+                    k +
                         ' @synthesize @try @catch @finally @autoreleasepool @synchronized',
                 ),
                 defKeywords: s(
-                    W + ' @interface @implementation @protocol @class',
+                    R + ' @interface @implementation @protocol @class',
                 ),
                 dontIndentStatements: /^@.*$/,
                 typeFirstDefinitions: !0,
                 atoms: s('YES NO NULL Nil nil true false nullptr'),
-                isReservedIdentifier: K,
-                hooks: { '#': E, '*': N },
+                isReservedIdentifier: U,
+                hooks: { '#': M, '*': I },
                 modeProps: { fold: ['brace', 'include'] },
             }),
             Q('text/x-objectivec++', {
                 name: 'clike',
-                keywords: s(g + ' ' + k + ' ' + C),
-                types: M,
+                keywords: s(g + ' ' + _ + ' ' + C),
+                types: z,
                 builtin: s(c),
                 blockKeywords: s(
-                    w +
+                    k +
                         ' @synthesize @try @catch @finally @autoreleasepool @synchronized class try catch',
                 ),
                 defKeywords: s(
-                    W +
+                    R +
                         ' @interface @implementation @protocol @class class namespace',
                 ),
                 dontIndentStatements: /^@.*$|^template$/,
                 typeFirstDefinitions: !0,
                 atoms: s('YES NO NULL Nil nil true false nullptr'),
-                isReservedIdentifier: K,
+                isReservedIdentifier: U,
                 hooks: {
-                    '#': E,
-                    '*': N,
+                    '#': M,
+                    '*': I,
                     u: re,
                     U: re,
                     L: re,
@@ -11701,14 +11701,14 @@ var Vo = Ke((ws, Ss) => {
                     7: J,
                     8: J,
                     9: J,
-                    token: function (O, R, se) {
+                    token: function (O, H, se) {
                         if (
                             se == 'variable' &&
                             O.peek() == '(' &&
-                            (R.prevToken == ';' ||
-                                R.prevToken == null ||
-                                R.prevToken == '}') &&
-                            q(O.current())
+                            (H.prevToken == ';' ||
+                                H.prevToken == null ||
+                                H.prevToken == '}') &&
+                            F(O.current())
                         )
                             return 'def';
                     },
@@ -11721,33 +11721,33 @@ var Vo = Ke((ws, Ss) => {
                 keywords: s(
                     'base break clone continue const default delete enum extends function in class foreach local resume return this throw typeof yield constructor instanceof static',
                 ),
-                types: z,
+                types: E,
                 blockKeywords: s(
                     'case catch class else for foreach if switch try while',
                 ),
                 defKeywords: s('function local class'),
                 typeFirstDefinitions: !0,
                 atoms: s('true false null'),
-                hooks: { '#': E },
+                hooks: { '#': M },
                 modeProps: { fold: ['brace', 'include'] },
             }));
         var G = null;
         function X(O) {
-            return function (R, se) {
-                for (var _e = !1, I, T = !1; !R.eol();) {
+            return function (H, se) {
+                for (var _e = !1, N, T = !1; !H.eol();) {
                     if (
                         !_e &&
-                        R.match('"') &&
-                        (O == 'single' || R.match('""'))
+                        H.match('"') &&
+                        (O == 'single' || H.match('""'))
                     ) {
                         T = !0;
                         break;
                     }
-                    if (!_e && R.match('``')) {
+                    if (!_e && H.match('``')) {
                         ((G = X(O)), (T = !0));
                         break;
                     }
-                    ((I = R.next()), (_e = O == 'single' && !_e && I == '\\'));
+                    ((N = H.next()), (_e = O == 'single' && !_e && N == '\\'));
                 }
                 return (T && (se.tokenize = null), 'string');
             };
@@ -11758,8 +11758,8 @@ var Vo = Ke((ws, Ss) => {
                 'abstracts alias assembly assert assign break case catch class continue dynamic else exists extends finally for function given if import in interface is let module new nonempty object of out outer package return satisfies super switch then this throw try value void while',
             ),
             types: function (O) {
-                var R = O.charAt(0);
-                return R === R.toUpperCase() && R !== R.toLowerCase();
+                var H = O.charAt(0);
+                return H === H.toUpperCase() && H !== H.toLowerCase();
             },
             blockKeywords: s(
                 'case catch class dynamic else finally for function if interface module new object switch try while',
@@ -11783,24 +11783,24 @@ var Vo = Ke((ws, Ss) => {
                 '@': function (O) {
                     return (O.eatWhile(/[\w\$_]/), 'meta');
                 },
-                '"': function (O, R) {
+                '"': function (O, H) {
                     return (
-                        (R.tokenize = X(O.match('""') ? 'triple' : 'single')),
-                        R.tokenize(O, R)
+                        (H.tokenize = X(O.match('""') ? 'triple' : 'single')),
+                        H.tokenize(O, H)
                     );
                 },
-                '`': function (O, R) {
+                '`': function (O, H) {
                     return !G || !O.match('`')
                         ? !1
-                        : ((R.tokenize = G), (G = null), R.tokenize(O, R));
+                        : ((H.tokenize = G), (G = null), H.tokenize(O, H));
                 },
                 "'": function (O) {
                     return (O.eatWhile(/[\w\$_\xa1-\uffff]/), 'atom');
                 },
-                token: function (O, R, se) {
+                token: function (O, H, se) {
                     if (
                         (se == 'variable' || se == 'type') &&
-                        R.prevToken == '.'
+                        H.prevToken == '.'
                     )
                         return 'variable-2';
                 },
@@ -11890,25 +11890,25 @@ var gn = Ke((Es, zs) => {
               : o(CodeMirror);
     })(function (o) {
         'use strict';
-        o.defineMode('css', function (F, D) {
+        o.defineMode('css', function (q, D) {
             var Q = D.inline;
             D.propertyKeywords || (D = o.resolveMode('text/css'));
-            var j = F.indentUnit,
+            var j = q.indentUnit,
                 V = D.tokenHooks,
                 y = D.documentTypes || {},
                 G = D.mediaTypes || {},
                 X = D.mediaFeatures || {},
                 O = D.mediaValueKeywords || {},
-                R = D.propertyKeywords || {},
+                H = D.propertyKeywords || {},
                 se = D.nonStandardPropertyKeywords || {},
                 _e = D.fontProperties || {},
-                I = D.counterDescriptors || {},
+                N = D.counterDescriptors || {},
                 T = D.colorKeywords || {},
                 he = D.valueKeywords || {},
                 ze = D.allowNested,
                 de = D.lineComment,
                 Ee = D.supportsAtComponent === !0,
-                ge = F.highlightNonStandardPropertyKeywords !== !1,
+                ge = q.highlightNonStandardPropertyKeywords !== !1,
                 Oe,
                 qe;
             function Se(te, fe) {
@@ -12004,13 +12004,13 @@ var gn = Ke((Es, zs) => {
                     te.context.type
                 );
             }
-            function U(te, fe, oe) {
+            function $(te, fe, oe) {
                 return He[oe.context.type](te, fe, oe);
             }
             function Z(te, fe, oe, Ue) {
                 for (var we = Ue || 1; we > 0; we--)
                     oe.context = oe.context.prev;
-                return U(te, fe, oe);
+                return $(te, fe, oe);
             }
             function ce(te) {
                 var fe = te.current().toLowerCase();
@@ -12053,7 +12053,7 @@ var gn = Ke((Es, zs) => {
                 (He.block = function (te, fe, oe) {
                     if (te == 'word') {
                         var Ue = fe.current().toLowerCase();
-                        return R.hasOwnProperty(Ue)
+                        return H.hasOwnProperty(Ue)
                             ? ((qe = 'property'), 'maybeprop')
                             : se.hasOwnProperty(Ue)
                               ? ((qe = ge ? 'string-2' : 'property'),
@@ -12072,7 +12072,7 @@ var gn = Ke((Es, zs) => {
                               : He.top(te, fe, oe);
                 }),
                 (He.maybeprop = function (te, fe, oe) {
-                    return te == ':' ? Re(oe, fe, 'prop') : U(te, fe, oe);
+                    return te == ':' ? Re(oe, fe, 'prop') : $(te, fe, oe);
                 }),
                 (He.prop = function (te, fe, oe) {
                     if (te == ';') return Ge(oe);
@@ -12114,7 +12114,7 @@ var gn = Ke((Es, zs) => {
                         ? 'pseudo'
                         : te == 'word'
                           ? ((qe = 'variable-3'), oe.context.type)
-                          : U(te, fe, oe);
+                          : $(te, fe, oe);
                 }),
                 (He.documentTypes = function (te, fe, oe) {
                     return te == 'word' && y.hasOwnProperty(fe.current())
@@ -12138,7 +12138,7 @@ var gn = Ke((Es, zs) => {
                                 ? (qe = 'property')
                                 : O.hasOwnProperty(Ue)
                                   ? (qe = 'keyword')
-                                  : R.hasOwnProperty(Ue)
+                                  : H.hasOwnProperty(Ue)
                                     ? (qe = 'property')
                                     : se.hasOwnProperty(Ue)
                                       ? (qe = ge ? 'string-2' : 'property')
@@ -12169,7 +12169,7 @@ var gn = Ke((Es, zs) => {
                         ? Re(oe, fe, 'restricted_atBlock')
                         : te == 'word' && oe.stateArg == '@counter-style'
                           ? ((qe = 'variable'), 'restricted_atBlock_before')
-                          : U(te, fe, oe);
+                          : $(te, fe, oe);
                 }),
                 (He.restricted_atBlock = function (te, fe, oe) {
                     return te == '}'
@@ -12180,7 +12180,7 @@ var gn = Ke((Es, zs) => {
                                     fe.current().toLowerCase(),
                                 )) ||
                             (oe.stateArg == '@counter-style' &&
-                                !I.hasOwnProperty(fe.current().toLowerCase()))
+                                !N.hasOwnProperty(fe.current().toLowerCase()))
                                 ? (qe = 'error')
                                 : (qe = 'property'),
                             'maybeprop')
@@ -12191,7 +12191,7 @@ var gn = Ke((Es, zs) => {
                         ? ((qe = 'variable'), 'keyframes')
                         : te == '{'
                           ? Re(oe, fe, 'top')
-                          : U(te, fe, oe);
+                          : $(te, fe, oe);
                 }),
                 (He.at = function (te, fe, oe) {
                     return te == ';'
@@ -12272,9 +12272,9 @@ var gn = Ke((Es, zs) => {
                 }
             );
         });
-        function p(F) {
-            for (var D = {}, Q = 0; Q < F.length; ++Q)
-                D[F[Q].toLowerCase()] = !0;
+        function p(q) {
+            for (var D = {}, Q = 0; Q < q.length; ++Q)
+                D[q[Q].toLowerCase()] = !0;
             return D;
         }
         var v = ['domain', 'regexp', 'url', 'url-prefix'],
@@ -12354,7 +12354,7 @@ var gn = Ke((Es, zs) => {
                 'high',
             ],
             C = p(g),
-            k = [
+            _ = [
                 'align-content',
                 'align-items',
                 'align-self',
@@ -12800,7 +12800,7 @@ var gn = Ke((Es, zs) => {
                 'text-anchor',
                 'writing-mode',
             ],
-            c = p(k),
+            c = p(_),
             d = [
                 'accent-color',
                 'aspect-ratio',
@@ -12859,8 +12859,8 @@ var gn = Ke((Es, zs) => {
                 'shape-inside',
                 'zoom',
             ],
-            x = p(d),
-            z = [
+            w = p(d),
+            E = [
                 'font-display',
                 'font-family',
                 'src',
@@ -12871,8 +12871,8 @@ var gn = Ke((Es, zs) => {
                 'font-weight',
                 'font-style',
             ],
-            M = p(z),
-            w = [
+            z = p(E),
+            k = [
                 'additive-symbols',
                 'fallback',
                 'negative',
@@ -12884,8 +12884,8 @@ var gn = Ke((Es, zs) => {
                 'symbols',
                 'system',
             ],
-            W = p(w),
-            E = [
+            R = p(k),
+            M = [
                 'aliceblue',
                 'antiquewhite',
                 'aqua',
@@ -13035,8 +13035,8 @@ var gn = Ke((Es, zs) => {
                 'yellow',
                 'yellowgreen',
             ],
-            N = p(E),
-            K = [
+            I = p(M),
+            U = [
                 'above',
                 'absolute',
                 'activeborder',
@@ -13557,18 +13557,18 @@ var gn = Ke((Es, zs) => {
                 'xx-large',
                 'xx-small',
             ],
-            J = p(K),
+            J = p(U),
             re = v
                 .concat(b)
                 .concat(s)
                 .concat(g)
-                .concat(k)
+                .concat(_)
                 .concat(d)
-                .concat(E)
-                .concat(K);
+                .concat(M)
+                .concat(U);
         o.registerHelper('hintWords', 'css', re);
-        function q(F, D) {
-            for (var Q = !1, j; (j = F.next()) != null;) {
+        function F(q, D) {
+            for (var Q = !1, j; (j = q.next()) != null;) {
                 if (Q && j == '/') {
                     D.tokenize = null;
                     break;
@@ -13583,14 +13583,14 @@ var gn = Ke((Es, zs) => {
             mediaFeatures: h,
             mediaValueKeywords: C,
             propertyKeywords: c,
-            nonStandardPropertyKeywords: x,
-            fontProperties: M,
-            counterDescriptors: W,
-            colorKeywords: N,
+            nonStandardPropertyKeywords: w,
+            fontProperties: z,
+            counterDescriptors: R,
+            colorKeywords: I,
             valueKeywords: J,
             tokenHooks: {
-                '/': function (F, D) {
-                    return F.eat('*') ? ((D.tokenize = q), q(F, D)) : !1;
+                '/': function (q, D) {
+                    return q.eat('*') ? ((D.tokenize = F), F(q, D)) : !1;
                 },
             },
             name: 'css',
@@ -13600,33 +13600,33 @@ var gn = Ke((Es, zs) => {
                 mediaFeatures: h,
                 mediaValueKeywords: C,
                 propertyKeywords: c,
-                nonStandardPropertyKeywords: x,
-                colorKeywords: N,
+                nonStandardPropertyKeywords: w,
+                colorKeywords: I,
                 valueKeywords: J,
-                fontProperties: M,
+                fontProperties: z,
                 allowNested: !0,
                 lineComment: '//',
                 tokenHooks: {
-                    '/': function (F, D) {
-                        return F.eat('/')
-                            ? (F.skipToEnd(), ['comment', 'comment'])
-                            : F.eat('*')
-                              ? ((D.tokenize = q), q(F, D))
+                    '/': function (q, D) {
+                        return q.eat('/')
+                            ? (q.skipToEnd(), ['comment', 'comment'])
+                            : q.eat('*')
+                              ? ((D.tokenize = F), F(q, D))
                               : ['operator', 'operator'];
                     },
-                    ':': function (F) {
-                        return F.match(/^\s*\{/, !1) ? [null, null] : !1;
+                    ':': function (q) {
+                        return q.match(/^\s*\{/, !1) ? [null, null] : !1;
                     },
-                    $: function (F) {
+                    $: function (q) {
                         return (
-                            F.match(/^[\w-]+/),
-                            F.match(/^\s*:/, !1)
+                            q.match(/^[\w-]+/),
+                            q.match(/^\s*:/, !1)
                                 ? ['variable-2', 'variable-definition']
                                 : ['variable-2', 'variable']
                         );
                     },
-                    '#': function (F) {
-                        return F.eat('{') ? [null, 'interpolation'] : !1;
+                    '#': function (q) {
+                        return q.eat('{') ? [null, 'interpolation'] : !1;
                     },
                 },
                 name: 'css',
@@ -13637,30 +13637,30 @@ var gn = Ke((Es, zs) => {
                 mediaFeatures: h,
                 mediaValueKeywords: C,
                 propertyKeywords: c,
-                nonStandardPropertyKeywords: x,
-                colorKeywords: N,
+                nonStandardPropertyKeywords: w,
+                colorKeywords: I,
                 valueKeywords: J,
-                fontProperties: M,
+                fontProperties: z,
                 allowNested: !0,
                 lineComment: '//',
                 tokenHooks: {
-                    '/': function (F, D) {
-                        return F.eat('/')
-                            ? (F.skipToEnd(), ['comment', 'comment'])
-                            : F.eat('*')
-                              ? ((D.tokenize = q), q(F, D))
+                    '/': function (q, D) {
+                        return q.eat('/')
+                            ? (q.skipToEnd(), ['comment', 'comment'])
+                            : q.eat('*')
+                              ? ((D.tokenize = F), F(q, D))
                               : ['operator', 'operator'];
                     },
-                    '@': function (F) {
-                        return F.eat('{')
+                    '@': function (q) {
+                        return q.eat('{')
                             ? [null, 'interpolation']
-                            : F.match(
+                            : q.match(
                                     /^(charset|document|font-face|import|(-(moz|ms|o|webkit)-)?keyframes|media|namespace|page|supports)\b/i,
                                     !1,
                                 )
                               ? !1
-                              : (F.eatWhile(/[\w\\\-]/),
-                                F.match(/^\s*:/, !1)
+                              : (q.eatWhile(/[\w\\\-]/),
+                                q.match(/^\s*:/, !1)
                                     ? ['variable-2', 'variable-definition']
                                     : ['variable-2', 'variable']);
                     },
@@ -13676,15 +13676,15 @@ var gn = Ke((Es, zs) => {
                 mediaTypes: S,
                 mediaFeatures: h,
                 propertyKeywords: c,
-                nonStandardPropertyKeywords: x,
-                fontProperties: M,
-                counterDescriptors: W,
-                colorKeywords: N,
+                nonStandardPropertyKeywords: w,
+                fontProperties: z,
+                counterDescriptors: R,
+                colorKeywords: I,
                 valueKeywords: J,
                 supportsAtComponent: !0,
                 tokenHooks: {
-                    '/': function (F, D) {
-                        return F.eat('*') ? ((D.tokenize = q), q(F, D)) : !1;
+                    '/': function (q, D) {
+                        return q.eat('*') ? ((D.tokenize = F), F(q, D)) : !1;
                     },
                 },
                 name: 'css',
@@ -13831,7 +13831,7 @@ var mn = Ke((qs, Fs) => {
                 h = b.htmlMode ? p : v;
             for (var g in h) s[g] = h[g];
             for (var g in b) s[g] = b[g];
-            var C, k;
+            var C, _;
             function c(y, G) {
                 function X(se) {
                     return ((G.tokenize = se), se(y, G));
@@ -13841,29 +13841,29 @@ var mn = Ke((qs, Fs) => {
                     return y.eat('!')
                         ? y.eat('[')
                             ? y.match('CDATA[')
-                                ? X(z('atom', ']]>'))
+                                ? X(E('atom', ']]>'))
                                 : null
                             : y.match('--')
-                              ? X(z('comment', '-->'))
+                              ? X(E('comment', '-->'))
                               : y.match('DOCTYPE', !0, !0)
-                                ? (y.eatWhile(/[\w\._\-]/), X(M(1)))
+                                ? (y.eatWhile(/[\w\._\-]/), X(z(1)))
                                 : null
                         : y.eat('?')
                           ? (y.eatWhile(/[\w\._\-]/),
-                            (G.tokenize = z('meta', '?>')),
+                            (G.tokenize = E('meta', '?>')),
                             'meta')
                           : ((C = y.eat('/') ? 'closeTag' : 'openTag'),
                             (G.tokenize = d),
                             'tag bracket');
                 if (O == '&') {
-                    var R;
+                    var H;
                     return (
                         y.eat('#')
                             ? y.eat('x')
-                                ? (R = y.eatWhile(/[a-fA-F\d]/) && y.eat(';'))
-                                : (R = y.eatWhile(/[\d]/) && y.eat(';'))
-                            : (R = y.eatWhile(/[\w\.\-:]/) && y.eat(';')),
-                        R ? 'atom' : 'error'
+                                ? (H = y.eatWhile(/[a-fA-F\d]/) && y.eat(';'))
+                                : (H = y.eatWhile(/[\d]/) && y.eat(';'))
+                            : (H = y.eatWhile(/[\w\.\-:]/) && y.eat(';')),
+                        H ? 'atom' : 'error'
                     );
                 } else return (y.eatWhile(/[^&<]/), null);
             }
@@ -13879,19 +13879,19 @@ var mn = Ke((qs, Fs) => {
                 if (X == '=') return ((C = 'equals'), null);
                 if (X == '<') {
                     ((G.tokenize = c),
-                        (G.state = K),
+                        (G.state = U),
                         (G.tagName = G.tagStart = null));
                     var O = G.tokenize(y, G);
                     return O ? O + ' tag error' : 'tag error';
                 } else
                     return /[\'\"]/.test(X)
-                        ? ((G.tokenize = x(X)),
+                        ? ((G.tokenize = w(X)),
                           (G.stringStartCol = y.column()),
                           G.tokenize(y, G))
                         : (y.match(/^[^\s\u00a0=<>\"\']*[^\s\u00a0=<>\"\'\/]/),
                           'word');
             }
-            function x(y) {
+            function w(y) {
                 var G = function (X, O) {
                     for (; !X.eol();)
                         if (X.next() == y) {
@@ -13902,7 +13902,7 @@ var mn = Ke((qs, Fs) => {
                 };
                 return ((G.isInAttribute = !0), G);
             }
-            function z(y, G) {
+            function E(y, G) {
                 return function (X, O) {
                     for (; !X.eol();) {
                         if (X.match(G)) {
@@ -13914,28 +13914,28 @@ var mn = Ke((qs, Fs) => {
                     return y;
                 };
             }
-            function M(y) {
+            function z(y) {
                 return function (G, X) {
                     for (var O; (O = G.next()) != null;) {
                         if (O == '<')
-                            return ((X.tokenize = M(y + 1)), X.tokenize(G, X));
+                            return ((X.tokenize = z(y + 1)), X.tokenize(G, X));
                         if (O == '>')
                             if (y == 1) {
                                 X.tokenize = c;
                                 break;
                             } else
                                 return (
-                                    (X.tokenize = M(y - 1)),
+                                    (X.tokenize = z(y - 1)),
                                     X.tokenize(G, X)
                                 );
                     }
                     return 'meta';
                 };
             }
-            function w(y) {
+            function k(y) {
                 return y && y.toLowerCase();
             }
-            function W(y, G, X) {
+            function R(y, G, X) {
                 ((this.prev = y.context),
                     (this.tagName = G || ''),
                     (this.indent = y.indented),
@@ -13944,34 +13944,34 @@ var mn = Ke((qs, Fs) => {
                         (y.context && y.context.noIndent)) &&
                         (this.noIndent = !0));
             }
-            function E(y) {
+            function M(y) {
                 y.context && (y.context = y.context.prev);
             }
-            function N(y, G) {
+            function I(y, G) {
                 for (var X; ;) {
                     if (
                         !y.context ||
                         ((X = y.context.tagName),
-                        !s.contextGrabbers.hasOwnProperty(w(X)) ||
-                            !s.contextGrabbers[w(X)].hasOwnProperty(w(G)))
+                        !s.contextGrabbers.hasOwnProperty(k(X)) ||
+                            !s.contextGrabbers[k(X)].hasOwnProperty(k(G)))
                     )
                         return;
-                    E(y);
+                    M(y);
                 }
             }
-            function K(y, G, X) {
+            function U(y, G, X) {
                 return y == 'openTag'
                     ? ((X.tagStart = G.column()), J)
                     : y == 'closeTag'
                       ? re
-                      : K;
+                      : U;
             }
             function J(y, G, X) {
                 return y == 'word'
-                    ? ((X.tagName = G.current()), (k = 'tag'), D)
+                    ? ((X.tagName = G.current()), (_ = 'tag'), D)
                     : s.allowMissingTagName && y == 'endTag'
-                      ? ((k = 'tag bracket'), D(y, G, X))
-                      : ((k = 'error'), J);
+                      ? ((_ = 'tag bracket'), D(y, G, X))
+                      : ((_ = 'error'), J);
             }
             function re(y, G, X) {
                 if (y == 'word') {
@@ -13980,53 +13980,53 @@ var mn = Ke((qs, Fs) => {
                         X.context &&
                             X.context.tagName != O &&
                             s.implicitlyClosed.hasOwnProperty(
-                                w(X.context.tagName),
+                                k(X.context.tagName),
                             ) &&
-                            E(X),
+                            M(X),
                         (X.context && X.context.tagName == O) ||
                         s.matchClosing === !1
-                            ? ((k = 'tag'), q)
-                            : ((k = 'tag error'), F)
+                            ? ((_ = 'tag'), F)
+                            : ((_ = 'tag error'), q)
                     );
                 } else
                     return s.allowMissingTagName && y == 'endTag'
-                        ? ((k = 'tag bracket'), q(y, G, X))
-                        : ((k = 'error'), F);
-            }
-            function q(y, G, X) {
-                return y != 'endTag' ? ((k = 'error'), q) : (E(X), K);
+                        ? ((_ = 'tag bracket'), F(y, G, X))
+                        : ((_ = 'error'), q);
             }
             function F(y, G, X) {
-                return ((k = 'error'), q(y, G, X));
+                return y != 'endTag' ? ((_ = 'error'), F) : (M(X), U);
+            }
+            function q(y, G, X) {
+                return ((_ = 'error'), F(y, G, X));
             }
             function D(y, G, X) {
-                if (y == 'word') return ((k = 'attribute'), Q);
+                if (y == 'word') return ((_ = 'attribute'), Q);
                 if (y == 'endTag' || y == 'selfcloseTag') {
                     var O = X.tagName,
-                        R = X.tagStart;
+                        H = X.tagStart;
                     return (
                         (X.tagName = X.tagStart = null),
                         y == 'selfcloseTag' ||
-                        s.autoSelfClosers.hasOwnProperty(w(O))
-                            ? N(X, O)
-                            : (N(X, O),
-                              (X.context = new W(X, O, R == X.indented))),
-                        K
+                        s.autoSelfClosers.hasOwnProperty(k(O))
+                            ? I(X, O)
+                            : (I(X, O),
+                              (X.context = new R(X, O, H == X.indented))),
+                        U
                     );
                 }
-                return ((k = 'error'), D);
+                return ((_ = 'error'), D);
             }
             function Q(y, G, X) {
                 return y == 'equals'
                     ? j
-                    : (s.allowMissing || (k = 'error'), D(y, G, X));
+                    : (s.allowMissing || (_ = 'error'), D(y, G, X));
             }
             function j(y, G, X) {
                 return y == 'string'
                     ? V
                     : y == 'word' && s.allowUnquoted
-                      ? ((k = 'string'), D)
-                      : ((k = 'error'), D(y, G, X));
+                      ? ((_ = 'string'), D)
+                      : ((_ = 'error'), D(y, G, X));
             }
             function V(y, G, X) {
                 return y == 'string' ? V : D(y, G, X);
@@ -14035,7 +14035,7 @@ var mn = Ke((qs, Fs) => {
                 startState: function (y) {
                     var G = {
                         tokenize: c,
-                        state: K,
+                        state: U,
                         indented: y || 0,
                         tagName: null,
                         tagStart: null,
@@ -14056,9 +14056,9 @@ var mn = Ke((qs, Fs) => {
                     return (
                         (X || C) &&
                             X != 'comment' &&
-                            ((k = null),
+                            ((_ = null),
                             (G.state = G.state(C || X, y, G)),
-                            k && (X = k == 'error' ? X + ' error' : k)),
+                            _ && (X = _ == 'error' ? X + ' error' : _)),
                         X
                     );
                 },
@@ -14077,21 +14077,21 @@ var mn = Ke((qs, Fs) => {
                             : y.tagStart +
                                   S * (s.multilineTagIndentFactor || 1);
                     if (s.alignCDATA && /<!\[CDATA\[/.test(G)) return 0;
-                    var R = G && /^<(\/)?([\w_:\.-]*)/.exec(G);
-                    if (R && R[1])
+                    var H = G && /^<(\/)?([\w_:\.-]*)/.exec(G);
+                    if (H && H[1])
                         for (; O;)
-                            if (O.tagName == R[2]) {
+                            if (O.tagName == H[2]) {
                                 O = O.prev;
                                 break;
                             } else if (
-                                s.implicitlyClosed.hasOwnProperty(w(O.tagName))
+                                s.implicitlyClosed.hasOwnProperty(k(O.tagName))
                             )
                                 O = O.prev;
                             else break;
-                    else if (R)
+                    else if (H)
                         for (; O;) {
-                            var se = s.contextGrabbers[w(O.tagName)];
-                            if (se && se.hasOwnProperty(w(R[2]))) O = O.prev;
+                            var se = s.contextGrabbers[k(O.tagName)];
+                            if (se && se.hasOwnProperty(k(H[2]))) O = O.prev;
                             else break;
                         }
                     for (; O && O.prev && !O.startOfLine;) O = O.prev;
@@ -14140,18 +14140,18 @@ var vn = Ke((Is, Ns) => {
                 h = v.trackScope !== !1,
                 g = v.typescript,
                 C = v.wordCharacters || /[\w$\xa1-\uffff]/,
-                k = (function () {
-                    function _(pt) {
+                _ = (function () {
+                    function x(pt) {
                         return { type: pt, style: 'keyword' };
                     }
-                    var P = _('keyword a'),
-                        ae = _('keyword b'),
-                        pe = _('keyword c'),
-                        ne = _('keyword d'),
-                        ye = _('operator'),
+                    var P = x('keyword a'),
+                        ae = x('keyword b'),
+                        pe = x('keyword c'),
+                        ne = x('keyword d'),
+                        ye = x('operator'),
                         Xe = { type: 'atom', style: 'atom' };
                     return {
-                        if: _('if'),
+                        if: x('if'),
                         while: P,
                         with: P,
                         else: ae,
@@ -14161,20 +14161,20 @@ var vn = Ke((Is, Ns) => {
                         return: ne,
                         break: ne,
                         continue: ne,
-                        new: _('new'),
+                        new: x('new'),
                         delete: pe,
                         void: pe,
                         throw: pe,
-                        debugger: _('debugger'),
-                        var: _('var'),
-                        const: _('var'),
-                        let: _('var'),
-                        function: _('function'),
-                        catch: _('catch'),
-                        for: _('for'),
-                        switch: _('switch'),
-                        case: _('case'),
-                        default: _('default'),
+                        debugger: x('debugger'),
+                        var: x('var'),
+                        const: x('var'),
+                        let: x('var'),
+                        function: x('function'),
+                        catch: x('catch'),
+                        for: x('for'),
+                        switch: x('switch'),
+                        case: x('case'),
+                        default: x('default'),
                         in: ye,
                         typeof: ye,
                         instanceof: ye,
@@ -14184,12 +14184,12 @@ var vn = Ke((Is, Ns) => {
                         undefined: Xe,
                         NaN: Xe,
                         Infinity: Xe,
-                        this: _('this'),
-                        class: _('class'),
-                        super: _('atom'),
+                        this: x('this'),
+                        class: x('class'),
+                        super: x('atom'),
                         yield: pe,
-                        export: _('export'),
-                        import: _('import'),
+                        export: x('export'),
+                        import: x('import'),
                         extends: pe,
                         await: pe,
                     };
@@ -14197,8 +14197,8 @@ var vn = Ke((Is, Ns) => {
                 c = /[+\-*&%=<>!?|~^@]/,
                 d =
                     /^@(context|id|value|language|type|container|list|set|reverse|index|base|vocab|graph)"/;
-            function x(_) {
-                for (var P = !1, ae, pe = !1; (ae = _.next()) != null;) {
+            function w(x) {
+                for (var P = !1, ae, pe = !1; (ae = x.next()) != null;) {
                     if (!P) {
                         if (ae == '/' && !pe) return;
                         ae == '[' ? (pe = !0) : pe && ae == ']' && (pe = !1);
@@ -14206,130 +14206,130 @@ var vn = Ke((Is, Ns) => {
                     P = !P && ae == '\\';
                 }
             }
-            var z, M;
-            function w(_, P, ae) {
-                return ((z = _), (M = ae), P);
+            var E, z;
+            function k(x, P, ae) {
+                return ((E = x), (z = ae), P);
             }
-            function W(_, P) {
-                var ae = _.next();
+            function R(x, P) {
+                var ae = x.next();
                 if (ae == '"' || ae == "'")
-                    return ((P.tokenize = E(ae)), P.tokenize(_, P));
-                if (ae == '.' && _.match(/^\d[\d_]*(?:[eE][+\-]?[\d_]+)?/))
-                    return w('number', 'number');
-                if (ae == '.' && _.match('..')) return w('spread', 'meta');
-                if (/[\[\]{}\(\),;\:\.]/.test(ae)) return w(ae);
-                if (ae == '=' && _.eat('>')) return w('=>', 'operator');
+                    return ((P.tokenize = M(ae)), P.tokenize(x, P));
+                if (ae == '.' && x.match(/^\d[\d_]*(?:[eE][+\-]?[\d_]+)?/))
+                    return k('number', 'number');
+                if (ae == '.' && x.match('..')) return k('spread', 'meta');
+                if (/[\[\]{}\(\),;\:\.]/.test(ae)) return k(ae);
+                if (ae == '=' && x.eat('>')) return k('=>', 'operator');
                 if (
                     ae == '0' &&
-                    _.match(/^(?:x[\dA-Fa-f_]+|o[0-7_]+|b[01_]+)n?/)
+                    x.match(/^(?:x[\dA-Fa-f_]+|o[0-7_]+|b[01_]+)n?/)
                 )
-                    return w('number', 'number');
+                    return k('number', 'number');
                 if (/\d/.test(ae))
                     return (
-                        _.match(
+                        x.match(
                             /^[\d_]*(?:n|(?:\.[\d_]*)?(?:[eE][+\-]?[\d_]+)?)?/,
                         ),
-                        w('number', 'number')
+                        k('number', 'number')
                     );
                 if (ae == '/')
-                    return _.eat('*')
-                        ? ((P.tokenize = N), N(_, P))
-                        : _.eat('/')
-                          ? (_.skipToEnd(), w('comment', 'comment'))
-                          : Bt(_, P, 1)
-                            ? (x(_),
-                              _.match(/^\b(([gimyus])(?![gimyus]*\2))+\b/),
-                              w('regexp', 'string-2'))
-                            : (_.eat('='),
-                              w('operator', 'operator', _.current()));
-                if (ae == '`') return ((P.tokenize = K), K(_, P));
-                if (ae == '#' && _.peek() == '!')
-                    return (_.skipToEnd(), w('meta', 'meta'));
-                if (ae == '#' && _.eatWhile(C))
-                    return w('variable', 'property');
+                    return x.eat('*')
+                        ? ((P.tokenize = I), I(x, P))
+                        : x.eat('/')
+                          ? (x.skipToEnd(), k('comment', 'comment'))
+                          : Bt(x, P, 1)
+                            ? (w(x),
+                              x.match(/^\b(([gimyus])(?![gimyus]*\2))+\b/),
+                              k('regexp', 'string-2'))
+                            : (x.eat('='),
+                              k('operator', 'operator', x.current()));
+                if (ae == '`') return ((P.tokenize = U), U(x, P));
+                if (ae == '#' && x.peek() == '!')
+                    return (x.skipToEnd(), k('meta', 'meta'));
+                if (ae == '#' && x.eatWhile(C))
+                    return k('variable', 'property');
                 if (
-                    (ae == '<' && _.match('!--')) ||
+                    (ae == '<' && x.match('!--')) ||
                     (ae == '-' &&
-                        _.match('->') &&
-                        !/\S/.test(_.string.slice(0, _.start)))
+                        x.match('->') &&
+                        !/\S/.test(x.string.slice(0, x.start)))
                 )
-                    return (_.skipToEnd(), w('comment', 'comment'));
+                    return (x.skipToEnd(), k('comment', 'comment'));
                 if (c.test(ae))
                     return (
                         (ae != '>' || !P.lexical || P.lexical.type != '>') &&
-                            (_.eat('=')
-                                ? (ae == '!' || ae == '=') && _.eat('=')
+                            (x.eat('=')
+                                ? (ae == '!' || ae == '=') && x.eat('=')
                                 : /[<>*+\-|&?]/.test(ae) &&
-                                  (_.eat(ae), ae == '>' && _.eat(ae))),
-                        ae == '?' && _.eat('.')
-                            ? w('.')
-                            : w('operator', 'operator', _.current())
+                                  (x.eat(ae), ae == '>' && x.eat(ae))),
+                        ae == '?' && x.eat('.')
+                            ? k('.')
+                            : k('operator', 'operator', x.current())
                     );
                 if (C.test(ae)) {
-                    _.eatWhile(C);
-                    var pe = _.current();
+                    x.eatWhile(C);
+                    var pe = x.current();
                     if (P.lastType != '.') {
-                        if (k.propertyIsEnumerable(pe)) {
-                            var ne = k[pe];
-                            return w(ne.type, ne.style, pe);
+                        if (_.propertyIsEnumerable(pe)) {
+                            var ne = _[pe];
+                            return k(ne.type, ne.style, pe);
                         }
                         if (
                             pe == 'async' &&
-                            _.match(
+                            x.match(
                                 /^(\s|\/\*([^*]|\*(?!\/))*?\*\/)*[\[\(\w]/,
                                 !1,
                             )
                         )
-                            return w('async', 'keyword', pe);
+                            return k('async', 'keyword', pe);
                     }
-                    return w('variable', 'variable', pe);
+                    return k('variable', 'variable', pe);
                 }
             }
-            function E(_) {
+            function M(x) {
                 return function (P, ae) {
                     var pe = !1,
                         ne;
                     if (S && P.peek() == '@' && P.match(d))
-                        return ((ae.tokenize = W), w('jsonld-keyword', 'meta'));
-                    for (; (ne = P.next()) != null && !(ne == _ && !pe);)
+                        return ((ae.tokenize = R), k('jsonld-keyword', 'meta'));
+                    for (; (ne = P.next()) != null && !(ne == x && !pe);)
                         pe = !pe && ne == '\\';
-                    return (pe || (ae.tokenize = W), w('string', 'string'));
+                    return (pe || (ae.tokenize = R), k('string', 'string'));
                 };
             }
-            function N(_, P) {
-                for (var ae = !1, pe; (pe = _.next());) {
+            function I(x, P) {
+                for (var ae = !1, pe; (pe = x.next());) {
                     if (pe == '/' && ae) {
-                        P.tokenize = W;
+                        P.tokenize = R;
                         break;
                     }
                     ae = pe == '*';
                 }
-                return w('comment', 'comment');
+                return k('comment', 'comment');
             }
-            function K(_, P) {
-                for (var ae = !1, pe; (pe = _.next()) != null;) {
-                    if (!ae && (pe == '`' || (pe == '$' && _.eat('{')))) {
-                        P.tokenize = W;
+            function U(x, P) {
+                for (var ae = !1, pe; (pe = x.next()) != null;) {
+                    if (!ae && (pe == '`' || (pe == '$' && x.eat('{')))) {
+                        P.tokenize = R;
                         break;
                     }
                     ae = !ae && pe == '\\';
                 }
-                return w('quasi', 'string-2', _.current());
+                return k('quasi', 'string-2', x.current());
             }
             var J = '([{}])';
-            function re(_, P) {
+            function re(x, P) {
                 P.fatArrowAt && (P.fatArrowAt = null);
-                var ae = _.string.indexOf('=>', _.start);
+                var ae = x.string.indexOf('=>', x.start);
                 if (!(ae < 0)) {
                     if (g) {
                         var pe =
                             /:\s*(?:\w+(?:<[^>]*>|\[\])?|\{[^}]*\})\s*$/.exec(
-                                _.string.slice(_.start, ae),
+                                x.string.slice(x.start, ae),
                             );
                         pe && (ae = pe.index);
                     }
                     for (var ne = 0, ye = !1, Xe = ae - 1; Xe >= 0; --Xe) {
-                        var pt = _.string.charAt(Xe),
+                        var pt = x.string.charAt(Xe),
                             Et = J.indexOf(pt);
                         if (Et >= 0 && Et < 3) {
                             if (!ne) {
@@ -14345,10 +14345,10 @@ var vn = Ke((Is, Ns) => {
                         else if (/["'\/`]/.test(pt))
                             for (; ; --Xe) {
                                 if (Xe == 0) return;
-                                var Zr = _.string.charAt(Xe - 1);
+                                var Zr = x.string.charAt(Xe - 1);
                                 if (
                                     Zr == pt &&
-                                    _.string.charAt(Xe - 2) != '\\'
+                                    x.string.charAt(Xe - 2) != '\\'
                                 ) {
                                     Xe--;
                                     break;
@@ -14362,7 +14362,7 @@ var vn = Ke((Is, Ns) => {
                     ye && !ne && (P.fatArrowAt = Xe);
                 }
             }
-            var q = {
+            var F = {
                 atom: !0,
                 number: !0,
                 variable: !0,
@@ -14372,32 +14372,32 @@ var vn = Ke((Is, Ns) => {
                 import: !0,
                 'jsonld-keyword': !0,
             };
-            function F(_, P, ae, pe, ne, ye) {
-                ((this.indented = _),
+            function q(x, P, ae, pe, ne, ye) {
+                ((this.indented = x),
                     (this.column = P),
                     (this.type = ae),
                     (this.prev = ne),
                     (this.info = ye),
                     pe != null && (this.align = pe));
             }
-            function D(_, P) {
+            function D(x, P) {
                 if (!h) return !1;
-                for (var ae = _.localVars; ae; ae = ae.next)
+                for (var ae = x.localVars; ae; ae = ae.next)
                     if (ae.name == P) return !0;
-                for (var pe = _.context; pe; pe = pe.prev)
+                for (var pe = x.context; pe; pe = pe.prev)
                     for (var ae = pe.vars; ae; ae = ae.next)
                         if (ae.name == P) return !0;
             }
-            function Q(_, P, ae, pe, ne) {
-                var ye = _.cc;
+            function Q(x, P, ae, pe, ne) {
+                var ye = x.cc;
                 for (
-                    j.state = _,
+                    j.state = x,
                         j.stream = ne,
                         j.marked = null,
                         j.cc = ye,
                         j.style = P,
-                        _.lexical.hasOwnProperty('align') ||
-                            (_.lexical.align = !0);
+                        x.lexical.hasOwnProperty('align') ||
+                            (x.lexical.align = !0);
                     ;
                 ) {
                     var Xe = ye.length ? ye.pop() : s ? Se : Oe;
@@ -14405,7 +14405,7 @@ var vn = Ke((Is, Ns) => {
                         for (; ye.length && ye[ye.length - 1].lex;) ye.pop()();
                         return j.marked
                             ? j.marked
-                            : ae == 'variable' && D(_, pe)
+                            : ae == 'variable' && D(x, pe)
                               ? 'variable-2'
                               : P;
                     }
@@ -14413,17 +14413,17 @@ var vn = Ke((Is, Ns) => {
             }
             var j = { state: null, column: null, marked: null, cc: null };
             function V() {
-                for (var _ = arguments.length - 1; _ >= 0; _--)
-                    j.cc.push(arguments[_]);
+                for (var x = arguments.length - 1; x >= 0; x--)
+                    j.cc.push(arguments[x]);
             }
             function y() {
                 return (V.apply(null, arguments), !0);
             }
-            function G(_, P) {
-                for (var ae = P; ae; ae = ae.next) if (ae.name == _) return !0;
+            function G(x, P) {
+                for (var ae = P; ae; ae = ae.next) if (ae.name == x) return !0;
                 return !1;
             }
-            function X(_) {
+            function X(x) {
                 var P = j.state;
                 if (((j.marked = 'def'), !!h)) {
                     if (P.context) {
@@ -14432,59 +14432,59 @@ var vn = Ke((Is, Ns) => {
                             P.context &&
                             P.context.block
                         ) {
-                            var ae = O(_, P.context);
+                            var ae = O(x, P.context);
                             if (ae != null) {
                                 P.context = ae;
                                 return;
                             }
-                        } else if (!G(_, P.localVars)) {
-                            P.localVars = new _e(_, P.localVars);
+                        } else if (!G(x, P.localVars)) {
+                            P.localVars = new _e(x, P.localVars);
                             return;
                         }
                     }
                     v.globalVars &&
-                        !G(_, P.globalVars) &&
-                        (P.globalVars = new _e(_, P.globalVars));
+                        !G(x, P.globalVars) &&
+                        (P.globalVars = new _e(x, P.globalVars));
                 }
             }
-            function O(_, P) {
+            function O(x, P) {
                 if (P)
                     if (P.block) {
-                        var ae = O(_, P.prev);
+                        var ae = O(x, P.prev);
                         return ae
                             ? ae == P.prev
                                 ? P
                                 : new se(ae, P.vars, !0)
                             : null;
                     } else
-                        return G(_, P.vars)
+                        return G(x, P.vars)
                             ? P
-                            : new se(P.prev, new _e(_, P.vars), !1);
+                            : new se(P.prev, new _e(x, P.vars), !1);
                 else return null;
             }
-            function R(_) {
+            function H(x) {
                 return (
-                    _ == 'public' ||
-                    _ == 'private' ||
-                    _ == 'protected' ||
-                    _ == 'abstract' ||
-                    _ == 'readonly'
+                    x == 'public' ||
+                    x == 'private' ||
+                    x == 'protected' ||
+                    x == 'abstract' ||
+                    x == 'readonly'
                 );
             }
-            function se(_, P, ae) {
-                ((this.prev = _), (this.vars = P), (this.block = ae));
+            function se(x, P, ae) {
+                ((this.prev = x), (this.vars = P), (this.block = ae));
             }
-            function _e(_, P) {
-                ((this.name = _), (this.next = P));
+            function _e(x, P) {
+                ((this.name = x), (this.next = P));
             }
-            var I = new _e('this', new _e('arguments', null));
+            var N = new _e('this', new _e('arguments', null));
             function T() {
                 ((j.state.context = new se(
                     j.state.context,
                     j.state.localVars,
                     !1,
                 )),
-                    (j.state.localVars = I));
+                    (j.state.localVars = N));
             }
             function he() {
                 ((j.state.context = new se(
@@ -14500,7 +14500,7 @@ var vn = Ke((Is, Ns) => {
                     (j.state.context = j.state.context.prev));
             }
             ze.lex = !0;
-            function de(_, P) {
+            function de(x, P) {
                 var ae = function () {
                     var pe = j.state,
                         ne = pe.indented;
@@ -14512,10 +14512,10 @@ var vn = Ke((Is, Ns) => {
                             ye = ye.prev
                         )
                             ne = ye.indented;
-                    pe.lexical = new F(
+                    pe.lexical = new q(
                         ne,
                         j.stream.column(),
-                        _,
+                        x,
                         null,
                         pe.lexical,
                         P,
@@ -14524,57 +14524,57 @@ var vn = Ke((Is, Ns) => {
                 return ((ae.lex = !0), ae);
             }
             function Ee() {
-                var _ = j.state;
-                _.lexical.prev &&
-                    (_.lexical.type == ')' && (_.indented = _.lexical.indented),
-                    (_.lexical = _.lexical.prev));
+                var x = j.state;
+                x.lexical.prev &&
+                    (x.lexical.type == ')' && (x.indented = x.lexical.indented),
+                    (x.lexical = x.lexical.prev));
             }
             Ee.lex = !0;
-            function ge(_) {
+            function ge(x) {
                 function P(ae) {
-                    return ae == _
+                    return ae == x
                         ? y()
-                        : _ == ';' || ae == '}' || ae == ')' || ae == ']'
+                        : x == ';' || ae == '}' || ae == ')' || ae == ']'
                           ? V()
                           : y(P);
                 }
                 return P;
             }
-            function Oe(_, P) {
-                return _ == 'var'
+            function Oe(x, P) {
+                return x == 'var'
                     ? y(de('vardef', P), Rr, ge(';'), Ee)
-                    : _ == 'keyword a'
+                    : x == 'keyword a'
                       ? y(de('form'), Ze, Oe, Ee)
-                      : _ == 'keyword b'
+                      : x == 'keyword b'
                         ? y(de('form'), Oe, Ee)
-                        : _ == 'keyword d'
+                        : x == 'keyword d'
                           ? j.stream.match(/^\s*$/, !1)
                               ? y()
                               : y(de('stat'), Je, ge(';'), Ee)
-                          : _ == 'debugger'
+                          : x == 'debugger'
                             ? y(ge(';'))
-                            : _ == '{'
+                            : x == '{'
                               ? y(de('}'), he, De, Ee, ze)
-                              : _ == ';'
+                              : x == ';'
                                 ? y()
-                                : _ == 'if'
+                                : x == 'if'
                                   ? (j.state.lexical.info == 'else' &&
                                         j.state.cc[j.state.cc.length - 1] ==
                                             Ee &&
                                         j.state.cc.pop()(),
                                     y(de('form'), Ze, Oe, Ee, Hr))
-                                  : _ == 'function'
+                                  : x == 'function'
                                     ? y(Ht)
-                                    : _ == 'for'
+                                    : x == 'for'
                                       ? y(de('form'), he, ei, Oe, ze, Ee)
-                                      : _ == 'class' || (g && P == 'interface')
+                                      : x == 'class' || (g && P == 'interface')
                                         ? ((j.marked = 'keyword'),
                                           y(
-                                              de('form', _ == 'class' ? _ : P),
+                                              de('form', x == 'class' ? x : P),
                                               Wr,
                                               Ee,
                                           ))
-                                        : _ == 'variable'
+                                        : x == 'variable'
                                           ? g && P == 'declare'
                                               ? ((j.marked = 'keyword'), y(Oe))
                                               : g &&
@@ -14608,7 +14608,7 @@ var vn = Ke((Is, Ns) => {
                                                     ? ((j.marked = 'keyword'),
                                                       y(Oe))
                                                     : y(de('stat'), Ue)
-                                          : _ == 'switch'
+                                          : x == 'switch'
                                             ? y(
                                                   de('form'),
                                                   Ze,
@@ -14620,11 +14620,11 @@ var vn = Ke((Is, Ns) => {
                                                   Ee,
                                                   ze,
                                               )
-                                            : _ == 'case'
+                                            : x == 'case'
                                               ? y(Se, ge(':'))
-                                              : _ == 'default'
+                                              : x == 'default'
                                                 ? y(ge(':'))
-                                                : _ == 'catch'
+                                                : x == 'catch'
                                                   ? y(
                                                         de('form'),
                                                         T,
@@ -14633,11 +14633,11 @@ var vn = Ke((Is, Ns) => {
                                                         Ee,
                                                         ze,
                                                     )
-                                                  : _ == 'export'
+                                                  : x == 'export'
                                                     ? y(de('stat'), Ur, Ee)
-                                                    : _ == 'import'
+                                                    : x == 'import'
                                                       ? y(de('stat'), gr, Ee)
-                                                      : _ == 'async'
+                                                      : x == 'async'
                                                         ? y(Oe)
                                                         : P == '@'
                                                           ? y(Se, Oe)
@@ -14648,76 +14648,76 @@ var vn = Ke((Is, Ns) => {
                                                                 Ee,
                                                             );
             }
-            function qe(_) {
-                if (_ == '(') return y($t, ge(')'));
+            function qe(x) {
+                if (x == '(') return y($t, ge(')'));
             }
-            function Se(_, P) {
-                return ke(_, P, !1);
+            function Se(x, P) {
+                return ke(x, P, !1);
             }
-            function Be(_, P) {
-                return ke(_, P, !0);
+            function Be(x, P) {
+                return ke(x, P, !0);
             }
-            function Ze(_) {
-                return _ != '(' ? V() : y(de(')'), Je, ge(')'), Ee);
+            function Ze(x) {
+                return x != '(' ? V() : y(de(')'), Je, ge(')'), Ee);
             }
-            function ke(_, P, ae) {
+            function ke(x, P, ae) {
                 if (j.state.fatArrowAt == j.stream.start) {
                     var pe = ae ? He : ce;
-                    if (_ == '(')
-                        return y(T, de(')'), H($t, ')'), Ee, ge('=>'), pe, ze);
-                    if (_ == 'variable') return V(T, Ct, ge('=>'), pe, ze);
+                    if (x == '(')
+                        return y(T, de(')'), W($t, ')'), Ee, ge('=>'), pe, ze);
+                    if (x == 'variable') return V(T, Ct, ge('=>'), pe, ze);
                 }
                 var ne = ae ? Ge : Re;
-                return q.hasOwnProperty(_)
+                return F.hasOwnProperty(x)
                     ? y(ne)
-                    : _ == 'function'
+                    : x == 'function'
                       ? y(Ht, ne)
-                      : _ == 'class' || (g && P == 'interface')
+                      : x == 'class' || (g && P == 'interface')
                         ? ((j.marked = 'keyword'), y(de('form'), to, Ee))
-                        : _ == 'keyword c' || _ == 'async'
+                        : x == 'keyword c' || x == 'async'
                           ? y(ae ? Be : Se)
-                          : _ == '('
+                          : x == '('
                             ? y(de(')'), Je, ge(')'), Ee, ne)
-                            : _ == 'operator' || _ == 'spread'
+                            : x == 'operator' || x == 'spread'
                               ? y(ae ? Be : Se)
-                              : _ == '['
+                              : x == '['
                                 ? y(de(']'), at, Ee, ne)
-                                : _ == '{'
+                                : x == '{'
                                   ? le(Me, '}', null, ne)
-                                  : _ == 'quasi'
-                                    ? V(U, ne)
-                                    : _ == 'new'
+                                  : x == 'quasi'
+                                    ? V($, ne)
+                                    : x == 'new'
                                       ? y(te(ae))
                                       : y();
             }
-            function Je(_) {
-                return _.match(/[;\}\)\],]/) ? V() : V(Se);
+            function Je(x) {
+                return x.match(/[;\}\)\],]/) ? V() : V(Se);
             }
-            function Re(_, P) {
-                return _ == ',' ? y(Je) : Ge(_, P, !1);
+            function Re(x, P) {
+                return x == ',' ? y(Je) : Ge(x, P, !1);
             }
-            function Ge(_, P, ae) {
+            function Ge(x, P, ae) {
                 var pe = ae == !1 ? Re : Ge,
                     ne = ae == !1 ? Se : Be;
-                if (_ == '=>') return y(T, ae ? He : ce, ze);
-                if (_ == 'operator')
+                if (x == '=>') return y(T, ae ? He : ce, ze);
+                if (x == 'operator')
                     return /\+\+|--/.test(P) || (g && P == '!')
                         ? y(pe)
                         : g &&
                             P == '<' &&
                             j.stream.match(/^([^<>]|<[^<>]*>)*>\s*\(/, !1)
-                          ? y(de('>'), H(Pe, '>'), Ee, pe)
+                          ? y(de('>'), W(Pe, '>'), Ee, pe)
                           : P == '?'
                             ? y(Se, ge(':'), ne)
                             : y(ne);
-                if (_ == 'quasi') return V(U, pe);
-                if (_ != ';') {
-                    if (_ == '(') return le(Be, ')', 'call', pe);
-                    if (_ == '.') return y(we, pe);
-                    if (_ == '[') return y(de(']'), Je, ge(']'), Ee, pe);
+                if (x == 'quasi') return V($, pe);
+                if (x != ';') {
+                    if (x == '(') return le(Be, ')', 'call', pe);
+                    if (x == '.') return y(we, pe);
+                    if (x == '[') return y(de(']'), Je, ge(']'), Ee, pe);
                     if (g && P == 'as')
                         return ((j.marked = 'keyword'), y(Pe, pe));
-                    if (_ == 'regexp')
+                    if (x == 'regexp')
                         return (
                             (j.state.lastType = j.marked = 'operator'),
                             j.stream.backUp(j.stream.pos - j.stream.start - 1),
@@ -14725,51 +14725,51 @@ var vn = Ke((Is, Ns) => {
                         );
                 }
             }
-            function U(_, P) {
-                return _ != 'quasi'
+            function $(x, P) {
+                return x != 'quasi'
                     ? V()
                     : P.slice(P.length - 2) != '${'
-                      ? y(U)
+                      ? y($)
                       : y(Je, Z);
             }
-            function Z(_) {
-                if (_ == '}')
+            function Z(x) {
+                if (x == '}')
                     return (
                         (j.marked = 'string-2'),
-                        (j.state.tokenize = K),
-                        y(U)
+                        (j.state.tokenize = U),
+                        y($)
                     );
             }
-            function ce(_) {
-                return (re(j.stream, j.state), V(_ == '{' ? Oe : Se));
+            function ce(x) {
+                return (re(j.stream, j.state), V(x == '{' ? Oe : Se));
             }
-            function He(_) {
-                return (re(j.stream, j.state), V(_ == '{' ? Oe : Be));
+            function He(x) {
+                return (re(j.stream, j.state), V(x == '{' ? Oe : Be));
             }
-            function te(_) {
+            function te(x) {
                 return function (P) {
                     return P == '.'
-                        ? y(_ ? oe : fe)
+                        ? y(x ? oe : fe)
                         : P == 'variable' && g
-                          ? y(It, _ ? Ge : Re)
-                          : V(_ ? Be : Se);
+                          ? y(It, x ? Ge : Re)
+                          : V(x ? Be : Se);
                 };
             }
-            function fe(_, P) {
+            function fe(x, P) {
                 if (P == 'target') return ((j.marked = 'keyword'), y(Re));
             }
-            function oe(_, P) {
+            function oe(x, P) {
                 if (P == 'target') return ((j.marked = 'keyword'), y(Ge));
             }
-            function Ue(_) {
-                return _ == ':' ? y(Ee, Oe) : V(Re, ge(';'), Ee);
+            function Ue(x) {
+                return x == ':' ? y(Ee, Oe) : V(Re, ge(';'), Ee);
             }
-            function we(_) {
-                if (_ == 'variable') return ((j.marked = 'property'), y());
+            function we(x) {
+                if (x == 'variable') return ((j.marked = 'property'), y());
             }
-            function Me(_, P) {
-                if (_ == 'async') return ((j.marked = 'property'), y(Me));
-                if (_ == 'variable' || j.style == 'keyword') {
+            function Me(x, P) {
+                if (x == 'async') return ((j.marked = 'property'), y(Me));
+                if (x == 'variable' || j.style == 'keyword') {
                     if (((j.marked = 'property'), P == 'get' || P == 'set'))
                         return y(Le);
                     var ae;
@@ -14778,79 +14778,79 @@ var vn = Ke((Is, Ns) => {
                             j.state.fatArrowAt == j.stream.start &&
                             (ae = j.stream.match(/^\s*:\s*/, !1)) &&
                             (j.state.fatArrowAt = j.stream.pos + ae[0].length),
-                        y($)
+                        y(K)
                     );
                 } else {
-                    if (_ == 'number' || _ == 'string')
+                    if (x == 'number' || x == 'string')
                         return (
                             (j.marked = S ? 'property' : j.style + ' property'),
-                            y($)
+                            y(K)
                         );
-                    if (_ == 'jsonld-keyword') return y($);
-                    if (g && R(P)) return ((j.marked = 'keyword'), y(Me));
-                    if (_ == '[') return y(Se, nt, ge(']'), $);
-                    if (_ == 'spread') return y(Be, $);
+                    if (x == 'jsonld-keyword') return y(K);
+                    if (g && H(P)) return ((j.marked = 'keyword'), y(Me));
+                    if (x == '[') return y(Se, nt, ge(']'), K);
+                    if (x == 'spread') return y(Be, K);
                     if (P == '*') return ((j.marked = 'keyword'), y(Me));
-                    if (_ == ':') return V($);
+                    if (x == ':') return V(K);
                 }
             }
-            function Le(_) {
-                return _ != 'variable'
-                    ? V($)
+            function Le(x) {
+                return x != 'variable'
+                    ? V(K)
                     : ((j.marked = 'property'), y(Ht));
             }
-            function $(_) {
-                if (_ == ':') return y(Be);
-                if (_ == '(') return V(Ht);
+            function K(x) {
+                if (x == ':') return y(Be);
+                if (x == '(') return V(Ht);
             }
-            function H(_, P, ae) {
+            function W(x, P, ae) {
                 function pe(ne, ye) {
                     if (ae ? ae.indexOf(ne) > -1 : ne == ',') {
                         var Xe = j.state.lexical;
                         return (
                             Xe.info == 'call' && (Xe.pos = (Xe.pos || 0) + 1),
                             y(function (pt, Et) {
-                                return pt == P || Et == P ? V() : V(_);
+                                return pt == P || Et == P ? V() : V(x);
                             }, pe)
                         );
                     }
                     return ne == P || ye == P
                         ? y()
                         : ae && ae.indexOf(';') > -1
-                          ? V(_)
+                          ? V(x)
                           : y(ge(P));
                 }
                 return function (ne, ye) {
-                    return ne == P || ye == P ? y() : V(_, pe);
+                    return ne == P || ye == P ? y() : V(x, pe);
                 };
             }
-            function le(_, P, ae) {
+            function le(x, P, ae) {
                 for (var pe = 3; pe < arguments.length; pe++)
                     j.cc.push(arguments[pe]);
-                return y(de(P, ae), H(_, P), Ee);
+                return y(de(P, ae), W(x, P), Ee);
             }
-            function De(_) {
-                return _ == '}' ? y() : V(Oe, De);
+            function De(x) {
+                return x == '}' ? y() : V(Oe, De);
             }
-            function nt(_, P) {
+            function nt(x, P) {
                 if (g) {
-                    if (_ == ':') return y(Pe);
+                    if (x == ':') return y(Pe);
                     if (P == '?') return y(nt);
                 }
             }
-            function dt(_, P) {
-                if (g && (_ == ':' || P == 'in')) return y(Pe);
+            function dt(x, P) {
+                if (g && (x == ':' || P == 'in')) return y(Pe);
             }
-            function Pt(_) {
-                if (g && _ == ':')
+            function Pt(x) {
+                if (g && x == ':')
                     return j.stream.match(/^\s*\w+\s+is\b/, !1)
                         ? y(Se, Ft, Pe)
                         : y(Pe);
             }
-            function Ft(_, P) {
+            function Ft(x, P) {
                 if (P == 'is') return ((j.marked = 'keyword'), y());
             }
-            function Pe(_, P) {
+            function Pe(x, P) {
                 if (
                     P == 'keyof' ||
                     P == 'typeof' ||
@@ -14858,279 +14858,279 @@ var vn = Ke((Is, Ns) => {
                     P == 'readonly'
                 )
                     return ((j.marked = 'keyword'), y(P == 'typeof' ? Be : Pe));
-                if (_ == 'variable' || P == 'void')
+                if (x == 'variable' || P == 'void')
                     return ((j.marked = 'type'), y(Rt));
                 if (P == '|' || P == '&') return y(Pe);
-                if (_ == 'string' || _ == 'number' || _ == 'atom') return y(Rt);
-                if (_ == '[') return y(de(']'), H(Pe, ']', ','), Ee, Rt);
-                if (_ == '{') return y(de('}'), Ie, Ee, Rt);
-                if (_ == '(') return y(H(ot, ')'), xt, Rt);
-                if (_ == '<') return y(H(Pe, '>'), Pe);
-                if (_ == 'quasi') return V(_t, Rt);
+                if (x == 'string' || x == 'number' || x == 'atom') return y(Rt);
+                if (x == '[') return y(de(']'), W(Pe, ']', ','), Ee, Rt);
+                if (x == '{') return y(de('}'), Ie, Ee, Rt);
+                if (x == '(') return y(W(ot, ')'), xt, Rt);
+                if (x == '<') return y(W(Pe, '>'), Pe);
+                if (x == 'quasi') return V(_t, Rt);
             }
-            function xt(_) {
-                if (_ == '=>') return y(Pe);
+            function xt(x) {
+                if (x == '=>') return y(Pe);
             }
-            function Ie(_) {
-                return _.match(/[\}\)\]]/)
+            function Ie(x) {
+                return x.match(/[\}\)\]]/)
                     ? y()
-                    : _ == ',' || _ == ';'
+                    : x == ',' || x == ';'
                       ? y(Ie)
                       : V(nr, Ie);
             }
-            function nr(_, P) {
-                if (_ == 'variable' || j.style == 'keyword')
+            function nr(x, P) {
+                if (x == 'variable' || j.style == 'keyword')
                     return ((j.marked = 'property'), y(nr));
-                if (P == '?' || _ == 'number' || _ == 'string') return y(nr);
-                if (_ == ':') return y(Pe);
-                if (_ == '[') return y(ge('variable'), dt, ge(']'), nr);
-                if (_ == '(') return V(hr, nr);
-                if (!_.match(/[;\}\)\],]/)) return y();
+                if (P == '?' || x == 'number' || x == 'string') return y(nr);
+                if (x == ':') return y(Pe);
+                if (x == '[') return y(ge('variable'), dt, ge(']'), nr);
+                if (x == '(') return V(hr, nr);
+                if (!x.match(/[;\}\)\],]/)) return y();
             }
-            function _t(_, P) {
-                return _ != 'quasi'
+            function _t(x, P) {
+                return x != 'quasi'
                     ? V()
                     : P.slice(P.length - 2) != '${'
                       ? y(_t)
                       : y(Pe, it);
             }
-            function it(_) {
-                if (_ == '}')
+            function it(x) {
+                if (x == '}')
                     return (
                         (j.marked = 'string-2'),
-                        (j.state.tokenize = K),
+                        (j.state.tokenize = U),
                         y(_t)
                     );
             }
-            function ot(_, P) {
-                return (_ == 'variable' && j.stream.match(/^\s*[?:]/, !1)) ||
+            function ot(x, P) {
+                return (x == 'variable' && j.stream.match(/^\s*[?:]/, !1)) ||
                     P == '?'
                     ? y(ot)
-                    : _ == ':'
+                    : x == ':'
                       ? y(Pe)
-                      : _ == 'spread'
+                      : x == 'spread'
                         ? y(ot)
                         : V(Pe);
             }
-            function Rt(_, P) {
-                if (P == '<') return y(de('>'), H(Pe, '>'), Ee, Rt);
-                if (P == '|' || _ == '.' || P == '&') return y(Pe);
-                if (_ == '[') return y(Pe, ge(']'), Rt);
+            function Rt(x, P) {
+                if (P == '<') return y(de('>'), W(Pe, '>'), Ee, Rt);
+                if (P == '|' || x == '.' || P == '&') return y(Pe);
+                if (x == '[') return y(Pe, ge(']'), Rt);
                 if (P == 'extends' || P == 'implements')
                     return ((j.marked = 'keyword'), y(Pe));
                 if (P == '?') return y(Pe, ge(':'), Pe);
             }
-            function It(_, P) {
-                if (P == '<') return y(de('>'), H(Pe, '>'), Ee, Rt);
+            function It(x, P) {
+                if (P == '<') return y(de('>'), W(Pe, '>'), Ee, Rt);
             }
             function Wt() {
                 return V(Pe, kt);
             }
-            function kt(_, P) {
+            function kt(x, P) {
                 if (P == '=') return y(Pe);
             }
-            function Rr(_, P) {
+            function Rr(x, P) {
                 return P == 'enum'
                     ? ((j.marked = 'keyword'), y(Ae))
                     : V(Ct, nt, Ut, eo);
             }
-            function Ct(_, P) {
-                if (g && R(P)) return ((j.marked = 'keyword'), y(Ct));
-                if (_ == 'variable') return (X(P), y());
-                if (_ == 'spread') return y(Ct);
-                if (_ == '[') return le(yn, ']');
-                if (_ == '{') return le(dr, '}');
+            function Ct(x, P) {
+                if (g && H(P)) return ((j.marked = 'keyword'), y(Ct));
+                if (x == 'variable') return (X(P), y());
+                if (x == 'spread') return y(Ct);
+                if (x == '[') return le(yn, ']');
+                if (x == '{') return le(dr, '}');
             }
-            function dr(_, P) {
-                return _ == 'variable' && !j.stream.match(/^\s*:/, !1)
+            function dr(x, P) {
+                return x == 'variable' && !j.stream.match(/^\s*:/, !1)
                     ? (X(P), y(Ut))
-                    : (_ == 'variable' && (j.marked = 'property'),
-                      _ == 'spread'
+                    : (x == 'variable' && (j.marked = 'property'),
+                      x == 'spread'
                           ? y(Ct)
-                          : _ == '}'
+                          : x == '}'
                             ? V()
-                            : _ == '['
+                            : x == '['
                               ? y(Se, ge(']'), ge(':'), dr)
                               : y(ge(':'), Ct, Ut));
             }
             function yn() {
                 return V(Ct, Ut);
             }
-            function Ut(_, P) {
+            function Ut(x, P) {
                 if (P == '=') return y(Be);
             }
-            function eo(_) {
-                if (_ == ',') return y(Rr);
+            function eo(x) {
+                if (x == ',') return y(Rr);
             }
-            function Hr(_, P) {
-                if (_ == 'keyword b' && P == 'else')
+            function Hr(x, P) {
+                if (x == 'keyword b' && P == 'else')
                     return y(de('form', 'else'), Oe, Ee);
             }
-            function ei(_, P) {
+            function ei(x, P) {
                 if (P == 'await') return y(ei);
-                if (_ == '(') return y(de(')'), xn, Ee);
+                if (x == '(') return y(de(')'), xn, Ee);
             }
-            function xn(_) {
-                return _ == 'var' ? y(Rr, pr) : _ == 'variable' ? y(pr) : V(pr);
+            function xn(x) {
+                return x == 'var' ? y(Rr, pr) : x == 'variable' ? y(pr) : V(pr);
             }
-            function pr(_, P) {
-                return _ == ')'
+            function pr(x, P) {
+                return x == ')'
                     ? y()
-                    : _ == ';'
+                    : x == ';'
                       ? y(pr)
                       : P == 'in' || P == 'of'
                         ? ((j.marked = 'keyword'), y(Se, pr))
                         : V(Se, pr);
             }
-            function Ht(_, P) {
+            function Ht(x, P) {
                 if (P == '*') return ((j.marked = 'keyword'), y(Ht));
-                if (_ == 'variable') return (X(P), y(Ht));
-                if (_ == '(') return y(T, de(')'), H($t, ')'), Ee, Pt, Oe, ze);
-                if (g && P == '<') return y(de('>'), H(Wt, '>'), Ee, Ht);
+                if (x == 'variable') return (X(P), y(Ht));
+                if (x == '(') return y(T, de(')'), W($t, ')'), Ee, Pt, Oe, ze);
+                if (g && P == '<') return y(de('>'), W(Wt, '>'), Ee, Ht);
             }
-            function hr(_, P) {
+            function hr(x, P) {
                 if (P == '*') return ((j.marked = 'keyword'), y(hr));
-                if (_ == 'variable') return (X(P), y(hr));
-                if (_ == '(') return y(T, de(')'), H($t, ')'), Ee, Pt, ze);
-                if (g && P == '<') return y(de('>'), H(Wt, '>'), Ee, hr);
+                if (x == 'variable') return (X(P), y(hr));
+                if (x == '(') return y(T, de(')'), W($t, ')'), Ee, Pt, ze);
+                if (g && P == '<') return y(de('>'), W(Wt, '>'), Ee, hr);
             }
-            function ti(_, P) {
-                if (_ == 'keyword' || _ == 'variable')
+            function ti(x, P) {
+                if (x == 'keyword' || x == 'variable')
                     return ((j.marked = 'type'), y(ti));
-                if (P == '<') return y(de('>'), H(Wt, '>'), Ee);
+                if (P == '<') return y(de('>'), W(Wt, '>'), Ee);
             }
-            function $t(_, P) {
+            function $t(x, P) {
                 return (
                     P == '@' && y(Se, $t),
-                    _ == 'spread'
+                    x == 'spread'
                         ? y($t)
-                        : g && R(P)
+                        : g && H(P)
                           ? ((j.marked = 'keyword'), y($t))
-                          : g && _ == 'this'
+                          : g && x == 'this'
                             ? y(nt, Ut)
                             : V(Ct, nt, Ut)
                 );
             }
-            function to(_, P) {
-                return _ == 'variable' ? Wr(_, P) : Kt(_, P);
+            function to(x, P) {
+                return x == 'variable' ? Wr(x, P) : Kt(x, P);
             }
-            function Wr(_, P) {
-                if (_ == 'variable') return (X(P), y(Kt));
+            function Wr(x, P) {
+                if (x == 'variable') return (X(P), y(Kt));
             }
-            function Kt(_, P) {
-                if (P == '<') return y(de('>'), H(Wt, '>'), Ee, Kt);
-                if (P == 'extends' || P == 'implements' || (g && _ == ','))
+            function Kt(x, P) {
+                if (P == '<') return y(de('>'), W(Wt, '>'), Ee, Kt);
+                if (P == 'extends' || P == 'implements' || (g && x == ','))
                     return (
                         P == 'implements' && (j.marked = 'keyword'),
                         y(g ? Pe : Se, Kt)
                     );
-                if (_ == '{') return y(de('}'), Gt, Ee);
+                if (x == '{') return y(de('}'), Gt, Ee);
             }
-            function Gt(_, P) {
+            function Gt(x, P) {
                 if (
-                    _ == 'async' ||
-                    (_ == 'variable' &&
+                    x == 'async' ||
+                    (x == 'variable' &&
                         (P == 'static' ||
                             P == 'get' ||
                             P == 'set' ||
-                            (g && R(P))) &&
+                            (g && H(P))) &&
                         j.stream.match(/^\s+#?[\w$\xa1-\uffff]/, !1))
                 )
                     return ((j.marked = 'keyword'), y(Gt));
-                if (_ == 'variable' || j.style == 'keyword')
+                if (x == 'variable' || j.style == 'keyword')
                     return ((j.marked = 'property'), y(Cr, Gt));
-                if (_ == 'number' || _ == 'string') return y(Cr, Gt);
-                if (_ == '[') return y(Se, nt, ge(']'), Cr, Gt);
+                if (x == 'number' || x == 'string') return y(Cr, Gt);
+                if (x == '[') return y(Se, nt, ge(']'), Cr, Gt);
                 if (P == '*') return ((j.marked = 'keyword'), y(Gt));
-                if (g && _ == '(') return V(hr, Gt);
-                if (_ == ';' || _ == ',') return y(Gt);
-                if (_ == '}') return y();
+                if (g && x == '(') return V(hr, Gt);
+                if (x == ';' || x == ',') return y(Gt);
+                if (x == '}') return y();
                 if (P == '@') return y(Se, Gt);
             }
-            function Cr(_, P) {
+            function Cr(x, P) {
                 if (P == '!' || P == '?') return y(Cr);
-                if (_ == ':') return y(Pe, Ut);
+                if (x == ':') return y(Pe, Ut);
                 if (P == '=') return y(Be);
                 var ae = j.state.lexical.prev,
                     pe = ae && ae.info == 'interface';
                 return V(pe ? hr : Ht);
             }
-            function Ur(_, P) {
+            function Ur(x, P) {
                 return P == '*'
                     ? ((j.marked = 'keyword'), y(Gr, ge(';')))
                     : P == 'default'
                       ? ((j.marked = 'keyword'), y(Se, ge(';')))
-                      : _ == '{'
-                        ? y(H($r, '}'), Gr, ge(';'))
+                      : x == '{'
+                        ? y(W($r, '}'), Gr, ge(';'))
                         : V(Oe);
             }
-            function $r(_, P) {
+            function $r(x, P) {
                 if (P == 'as')
                     return ((j.marked = 'keyword'), y(ge('variable')));
-                if (_ == 'variable') return V(Be, $r);
+                if (x == 'variable') return V(Be, $r);
             }
-            function gr(_) {
-                return _ == 'string'
+            function gr(x) {
+                return x == 'string'
                     ? y()
-                    : _ == '('
+                    : x == '('
                       ? V(Se)
-                      : _ == '.'
+                      : x == '.'
                         ? V(Re)
                         : V(Kr, Vt, Gr);
             }
-            function Kr(_, P) {
-                return _ == '{'
+            function Kr(x, P) {
+                return x == '{'
                     ? le(Kr, '}')
-                    : (_ == 'variable' && X(P),
+                    : (x == 'variable' && X(P),
                       P == '*' && (j.marked = 'keyword'),
                       y(_n));
             }
-            function Vt(_) {
-                if (_ == ',') return y(Kr, Vt);
+            function Vt(x) {
+                if (x == ',') return y(Kr, Vt);
             }
-            function _n(_, P) {
+            function _n(x, P) {
                 if (P == 'as') return ((j.marked = 'keyword'), y(Kr));
             }
-            function Gr(_, P) {
+            function Gr(x, P) {
                 if (P == 'from') return ((j.marked = 'keyword'), y(Se));
             }
-            function at(_) {
-                return _ == ']' ? y() : V(H(Be, ']'));
+            function at(x) {
+                return x == ']' ? y() : V(W(Be, ']'));
             }
             function Ae() {
-                return V(de('form'), Ct, ge('{'), de('}'), H(ir, '}'), Ee, Ee);
+                return V(de('form'), Ct, ge('{'), de('}'), W(ir, '}'), Ee, Ee);
             }
             function ir() {
                 return V(Ct, Ut);
             }
-            function kn(_, P) {
+            function kn(x, P) {
                 return (
-                    _.lastType == 'operator' ||
-                    _.lastType == ',' ||
+                    x.lastType == 'operator' ||
+                    x.lastType == ',' ||
                     c.test(P.charAt(0)) ||
                     /[,.]/.test(P.charAt(0))
                 );
             }
-            function Bt(_, P, ae) {
+            function Bt(x, P, ae) {
                 return (
-                    (P.tokenize == W &&
+                    (P.tokenize == R &&
                         /^(?:operator|sof|keyword [bcd]|case|new|export|default|spread|[\[{}\(,;:]|=>)$/.test(
                             P.lastType,
                         )) ||
                     (P.lastType == 'quasi' &&
-                        /\{\s*$/.test(_.string.slice(0, _.pos - (ae || 0))))
+                        /\{\s*$/.test(x.string.slice(0, x.pos - (ae || 0))))
                 );
             }
             return {
-                startState: function (_) {
+                startState: function (x) {
                     var P = {
-                        tokenize: W,
+                        tokenize: R,
                         lastType: 'sof',
                         cc: [],
-                        lexical: new F((_ || 0) - L, 0, 'block', !1),
+                        lexical: new q((x || 0) - L, 0, 'block', !1),
                         localVars: v.localVars,
                         context: v.localVars && new se(null, null, !1),
-                        indented: _ || 0,
+                        indented: x || 0,
                     };
                     return (
                         v.globalVars &&
@@ -15139,34 +15139,34 @@ var vn = Ke((Is, Ns) => {
                         P
                     );
                 },
-                token: function (_, P) {
+                token: function (x, P) {
                     if (
-                        (_.sol() &&
+                        (x.sol() &&
                             (P.lexical.hasOwnProperty('align') ||
                                 (P.lexical.align = !1),
-                            (P.indented = _.indentation()),
-                            re(_, P)),
-                        P.tokenize != N && _.eatSpace())
+                            (P.indented = x.indentation()),
+                            re(x, P)),
+                        P.tokenize != I && x.eatSpace())
                     )
                         return null;
-                    var ae = P.tokenize(_, P);
-                    return z == 'comment'
+                    var ae = P.tokenize(x, P);
+                    return E == 'comment'
                         ? ae
                         : ((P.lastType =
-                              z == 'operator' && (M == '++' || M == '--')
+                              E == 'operator' && (z == '++' || z == '--')
                                   ? 'incdec'
-                                  : z),
-                          Q(P, ae, z, M, _));
+                                  : E),
+                          Q(P, ae, E, z, x));
                 },
-                indent: function (_, P) {
-                    if (_.tokenize == N || _.tokenize == K) return o.Pass;
-                    if (_.tokenize != W) return 0;
+                indent: function (x, P) {
+                    if (x.tokenize == I || x.tokenize == U) return o.Pass;
+                    if (x.tokenize != R) return 0;
                     var ae = P && P.charAt(0),
-                        pe = _.lexical,
+                        pe = x.lexical,
                         ne;
                     if (!/^\s*else\b/.test(P))
-                        for (var ye = _.cc.length - 1; ye >= 0; --ye) {
-                            var Xe = _.cc[ye];
+                        for (var ye = x.cc.length - 1; ye >= 0; --ye) {
+                            var Xe = x.cc[ye];
                             if (Xe == Ee) pe = pe.prev;
                             else if (Xe != Hr && Xe != ze) break;
                         }
@@ -15174,7 +15174,7 @@ var vn = Ke((Is, Ns) => {
                         ;
                         (pe.type == 'stat' || pe.type == 'form') &&
                         (ae == '}' ||
-                            ((ne = _.cc[_.cc.length - 1]) &&
+                            ((ne = x.cc[x.cc.length - 1]) &&
                                 (ne == Re || ne == Ge) &&
                                 !/^[,\.=+\-*:?[\(]/.test(P)));
                     )
@@ -15187,7 +15187,7 @@ var vn = Ke((Is, Ns) => {
                         Et = ae == pt;
                     return pt == 'vardef'
                         ? pe.indented +
-                              (_.lastType == 'operator' || _.lastType == ','
+                              (x.lastType == 'operator' || x.lastType == ','
                                   ? pe.info.length + 1
                                   : 0)
                         : pt == 'form' && ae == '{'
@@ -15195,7 +15195,7 @@ var vn = Ke((Is, Ns) => {
                           : pt == 'form'
                             ? pe.indented + L
                             : pt == 'stat'
-                              ? pe.indented + (kn(_, P) ? b || L : 0)
+                              ? pe.indented + (kn(x, P) ? b || L : 0)
                               : pe.info == 'switch' &&
                                   !Et &&
                                   v.doubleIndentSwitch != !1
@@ -15216,9 +15216,9 @@ var vn = Ke((Is, Ns) => {
                 jsonldMode: S,
                 jsonMode: s,
                 expressionAllowed: Bt,
-                skipExpression: function (_) {
+                skipExpression: function (x) {
                     Q(
-                        _,
+                        x,
                         'atom',
                         'atom',
                         'true',
@@ -15291,142 +15291,142 @@ var Qn = Ke((Os, Ps) => {
                 [null, null, 'css'],
             ],
         };
-        function v(C, k, c) {
+        function v(C, _, c) {
             var d = C.current(),
-                x = d.search(k);
+                w = d.search(_);
             return (
-                x > -1
-                    ? C.backUp(d.length - x)
+                w > -1
+                    ? C.backUp(d.length - w)
                     : d.match(/<\/?$/) &&
-                      (C.backUp(d.length), C.match(k, !1) || C.match(d)),
+                      (C.backUp(d.length), C.match(_, !1) || C.match(d)),
                 c
             );
         }
         var L = {};
         function b(C) {
-            var k = L[C];
+            var _ = L[C];
             return (
-                k ||
+                _ ||
                 (L[C] = new RegExp(
                     '\\s+' + C + `\\s*=\\s*('|")?([^'"]+)('|")?\\s*`,
                 ))
             );
         }
-        function S(C, k) {
-            var c = C.match(b(k));
+        function S(C, _) {
+            var c = C.match(b(_));
             return c ? /^\s*(.*?)\s*$/.exec(c[2])[1] : '';
         }
-        function s(C, k) {
-            return new RegExp((k ? '^' : '') + '</\\s*' + C + '\\s*>', 'i');
+        function s(C, _) {
+            return new RegExp((_ ? '^' : '') + '</\\s*' + C + '\\s*>', 'i');
         }
-        function h(C, k) {
+        function h(C, _) {
             for (var c in C)
                 for (
-                    var d = k[c] || (k[c] = []), x = C[c], z = x.length - 1;
-                    z >= 0;
-                    z--
+                    var d = _[c] || (_[c] = []), w = C[c], E = w.length - 1;
+                    E >= 0;
+                    E--
                 )
-                    d.unshift(x[z]);
+                    d.unshift(w[E]);
         }
-        function g(C, k) {
+        function g(C, _) {
             for (var c = 0; c < C.length; c++) {
                 var d = C[c];
-                if (!d[0] || d[1].test(S(k, d[0]))) return d[2];
+                if (!d[0] || d[1].test(S(_, d[0]))) return d[2];
             }
         }
         (o.defineMode(
             'htmlmixed',
-            function (C, k) {
+            function (C, _) {
                 var c = o.getMode(C, {
                         name: 'xml',
                         htmlMode: !0,
-                        multilineTagIndentFactor: k.multilineTagIndentFactor,
-                        multilineTagIndentPastTag: k.multilineTagIndentPastTag,
-                        allowMissingTagName: k.allowMissingTagName,
+                        multilineTagIndentFactor: _.multilineTagIndentFactor,
+                        multilineTagIndentPastTag: _.multilineTagIndentPastTag,
+                        allowMissingTagName: _.allowMissingTagName,
                     }),
                     d = {},
-                    x = k && k.tags,
-                    z = k && k.scriptTypes;
-                if ((h(p, d), x && h(x, d), z))
-                    for (var M = z.length - 1; M >= 0; M--)
-                        d.script.unshift(['type', z[M].matches, z[M].mode]);
-                function w(W, E) {
-                    var N = c.token(W, E.htmlState),
-                        K = /\btag\b/.test(N),
+                    w = _ && _.tags,
+                    E = _ && _.scriptTypes;
+                if ((h(p, d), w && h(w, d), E))
+                    for (var z = E.length - 1; z >= 0; z--)
+                        d.script.unshift(['type', E[z].matches, E[z].mode]);
+                function k(R, M) {
+                    var I = c.token(R, M.htmlState),
+                        U = /\btag\b/.test(I),
                         J;
                     if (
-                        K &&
-                        !/[<>\s\/]/.test(W.current()) &&
+                        U &&
+                        !/[<>\s\/]/.test(R.current()) &&
                         (J =
-                            E.htmlState.tagName &&
-                            E.htmlState.tagName.toLowerCase()) &&
+                            M.htmlState.tagName &&
+                            M.htmlState.tagName.toLowerCase()) &&
                         d.hasOwnProperty(J)
                     )
-                        E.inTag = J + ' ';
-                    else if (E.inTag && K && />$/.test(W.current())) {
-                        var re = /^([\S]+) (.*)/.exec(E.inTag);
-                        E.inTag = null;
-                        var q = W.current() == '>' && g(d[re[1]], re[2]),
-                            F = o.getMode(C, q),
+                        M.inTag = J + ' ';
+                    else if (M.inTag && U && />$/.test(R.current())) {
+                        var re = /^([\S]+) (.*)/.exec(M.inTag);
+                        M.inTag = null;
+                        var F = R.current() == '>' && g(d[re[1]], re[2]),
+                            q = o.getMode(C, F),
                             D = s(re[1], !0),
                             Q = s(re[1], !1);
-                        ((E.token = function (j, V) {
+                        ((M.token = function (j, V) {
                             return j.match(D, !1)
-                                ? ((V.token = w),
+                                ? ((V.token = k),
                                   (V.localState = V.localMode = null),
                                   null)
                                 : v(j, Q, V.localMode.token(j, V.localState));
                         }),
-                            (E.localMode = F),
-                            (E.localState = o.startState(
-                                F,
-                                c.indent(E.htmlState, '', ''),
+                            (M.localMode = q),
+                            (M.localState = o.startState(
+                                q,
+                                c.indent(M.htmlState, '', ''),
                             )));
                     } else
-                        E.inTag &&
-                            ((E.inTag += W.current()),
-                            W.eol() && (E.inTag += ' '));
-                    return N;
+                        M.inTag &&
+                            ((M.inTag += R.current()),
+                            R.eol() && (M.inTag += ' '));
+                    return I;
                 }
                 return {
                     startState: function () {
-                        var W = o.startState(c);
+                        var R = o.startState(c);
                         return {
-                            token: w,
+                            token: k,
                             inTag: null,
                             localMode: null,
                             localState: null,
-                            htmlState: W,
+                            htmlState: R,
                         };
                     },
-                    copyState: function (W) {
-                        var E;
+                    copyState: function (R) {
+                        var M;
                         return (
-                            W.localState &&
-                                (E = o.copyState(W.localMode, W.localState)),
+                            R.localState &&
+                                (M = o.copyState(R.localMode, R.localState)),
                             {
-                                token: W.token,
-                                inTag: W.inTag,
-                                localMode: W.localMode,
-                                localState: E,
-                                htmlState: o.copyState(c, W.htmlState),
+                                token: R.token,
+                                inTag: R.inTag,
+                                localMode: R.localMode,
+                                localState: M,
+                                htmlState: o.copyState(c, R.htmlState),
                             }
                         );
                     },
-                    token: function (W, E) {
-                        return E.token(W, E);
+                    token: function (R, M) {
+                        return M.token(R, M);
                     },
-                    indent: function (W, E, N) {
-                        return !W.localMode || /^\s*<\//.test(E)
-                            ? c.indent(W.htmlState, E, N)
-                            : W.localMode.indent
-                              ? W.localMode.indent(W.localState, E, N)
+                    indent: function (R, M, I) {
+                        return !R.localMode || /^\s*<\//.test(M)
+                            ? c.indent(R.htmlState, M, I)
+                            : R.localMode.indent
+                              ? R.localMode.indent(R.localState, M, I)
                               : o.Pass;
                     },
-                    innerMode: function (W) {
+                    innerMode: function (R) {
                         return {
-                            state: W.localState || W.htmlState,
-                            mode: W.localMode || c,
+                            state: R.localState || R.htmlState,
+                            mode: R.localMode || c,
                         };
                     },
                 };
@@ -15585,12 +15585,12 @@ var Rs = Ke((Bs, js) => {
                 return null;
             }
             function s(c, d) {
-                return function (x, z) {
-                    if (!z.escapeNext && x.eat(c)) z.tokenize = d;
+                return function (w, E) {
+                    if (!E.escapeNext && w.eat(c)) E.tokenize = d;
                     else {
-                        z.escapeNext && (z.escapeNext = !1);
-                        var M = x.next();
-                        M == '\\' && (z.escapeNext = !0);
+                        E.escapeNext && (E.escapeNext = !1);
+                        var z = w.next();
+                        z == '\\' && (E.escapeNext = !0);
                     }
                     return 'string';
                 };
@@ -15662,9 +15662,9 @@ var Rs = Ke((Bs, js) => {
                     return ((d.tokenize = s('"', d.tokenize)), 'string');
                 if (c.match(L)) return 'operator';
                 if (c.match(b)) return 'keyword';
-                var x = c.match(p);
-                return x
-                    ? (x[0] == 'comment' && (d.blockCommentTag = !0), 'keyword')
+                var w = c.match(p);
+                return w
+                    ? (w[0] == 'comment' && (d.blockCommentTag = !0), 'keyword')
                     : c.match(/\b(\w+)\b/)
                       ? ((d.waitDot = !0), (d.waitPipe = !0), 'variable')
                       : c.match('%}')
@@ -15673,7 +15673,7 @@ var Rs = Ke((Bs, js) => {
                           (d.waitDot = null),
                           (d.waitPipe = null),
                           d.blockCommentTag
-                              ? ((d.blockCommentTag = !1), (d.tokenize = k))
+                              ? ((d.blockCommentTag = !1), (d.tokenize = _))
                               : (d.tokenize = S),
                           'tag')
                         : (c.next(), 'null');
@@ -15684,7 +15684,7 @@ var Rs = Ke((Bs, js) => {
                     'comment'
                 );
             }
-            function k(c, d) {
+            function _(c, d) {
                 return c.match(/\{%\s*endcomment\s*%\}/, !1)
                     ? ((d.tokenize = g), c.match('{%'), 'tag')
                     : (c.next(), 'comment');
@@ -15717,39 +15717,39 @@ var Di = Ke((Hs, Ws) => {
               : o(CodeMirror);
     })(function (o) {
         'use strict';
-        ((o.defineSimpleMode = function (k, c) {
-            o.defineMode(k, function (d) {
+        ((o.defineSimpleMode = function (_, c) {
+            o.defineMode(_, function (d) {
                 return o.simpleMode(d, c);
             });
         }),
-            (o.simpleMode = function (k, c) {
+            (o.simpleMode = function (_, c) {
                 p(c, 'start');
                 var d = {},
-                    x = c.meta || {},
-                    z = !1;
-                for (var M in c)
-                    if (M != x && c.hasOwnProperty(M))
+                    w = c.meta || {},
+                    E = !1;
+                for (var z in c)
+                    if (z != w && c.hasOwnProperty(z))
                         for (
-                            var w = (d[M] = []), W = c[M], E = 0;
-                            E < W.length;
-                            E++
+                            var k = (d[z] = []), R = c[z], M = 0;
+                            M < R.length;
+                            M++
                         ) {
-                            var N = W[E];
-                            (w.push(new b(N, c)),
-                                (N.indent || N.dedent) && (z = !0));
+                            var I = R[M];
+                            (k.push(new b(I, c)),
+                                (I.indent || I.dedent) && (E = !0));
                         }
-                var K = {
+                var U = {
                     startState: function () {
                         return {
                             state: 'start',
                             pending: null,
                             local: null,
                             localState: null,
-                            indent: z ? [] : null,
+                            indent: E ? [] : null,
                         };
                     },
                     copyState: function (re) {
-                        var q = {
+                        var F = {
                             state: re.state,
                             pending: re.pending,
                             local: re.local,
@@ -15757,24 +15757,24 @@ var Di = Ke((Hs, Ws) => {
                             indent: re.indent && re.indent.slice(0),
                         };
                         (re.localState &&
-                            (q.localState = o.copyState(
+                            (F.localState = o.copyState(
                                 re.local.mode,
                                 re.localState,
                             )),
-                            re.stack && (q.stack = re.stack.slice(0)));
-                        for (var F = re.persistentStates; F; F = F.next)
-                            q.persistentStates = {
-                                mode: F.mode,
-                                spec: F.spec,
+                            re.stack && (F.stack = re.stack.slice(0)));
+                        for (var q = re.persistentStates; q; q = q.next)
+                            F.persistentStates = {
+                                mode: q.mode,
+                                spec: q.spec,
                                 state:
-                                    F.state == re.localState
-                                        ? q.localState
-                                        : o.copyState(F.mode, F.state),
-                                next: q.persistentStates,
+                                    q.state == re.localState
+                                        ? F.localState
+                                        : o.copyState(q.mode, q.state),
+                                next: F.persistentStates,
                             };
-                        return q;
+                        return F;
                     },
-                    token: S(d, k),
+                    token: S(d, _),
                     innerMode: function (re) {
                         return (
                             re.local && {
@@ -15783,98 +15783,98 @@ var Di = Ke((Hs, Ws) => {
                             }
                         );
                     },
-                    indent: C(d, x),
+                    indent: C(d, w),
                 };
-                if (x) for (var J in x) x.hasOwnProperty(J) && (K[J] = x[J]);
-                return K;
+                if (w) for (var J in w) w.hasOwnProperty(J) && (U[J] = w[J]);
+                return U;
             }));
-        function p(k, c) {
-            if (!k.hasOwnProperty(c))
+        function p(_, c) {
+            if (!_.hasOwnProperty(c))
                 throw new Error('Undefined state ' + c + ' in simple mode');
         }
-        function v(k, c) {
-            if (!k) return /(?:)/;
+        function v(_, c) {
+            if (!_) return /(?:)/;
             var d = '';
             return (
-                k instanceof RegExp
-                    ? (k.ignoreCase && (d = 'i'),
-                      k.unicode && (d += 'u'),
-                      (k = k.source))
-                    : (k = String(k)),
-                new RegExp((c === !1 ? '' : '^') + '(?:' + k + ')', d)
+                _ instanceof RegExp
+                    ? (_.ignoreCase && (d = 'i'),
+                      _.unicode && (d += 'u'),
+                      (_ = _.source))
+                    : (_ = String(_)),
+                new RegExp((c === !1 ? '' : '^') + '(?:' + _ + ')', d)
             );
         }
-        function L(k) {
-            if (!k) return null;
-            if (k.apply) return k;
-            if (typeof k == 'string') return k.replace(/\./g, ' ');
-            for (var c = [], d = 0; d < k.length; d++)
-                c.push(k[d] && k[d].replace(/\./g, ' '));
+        function L(_) {
+            if (!_) return null;
+            if (_.apply) return _;
+            if (typeof _ == 'string') return _.replace(/\./g, ' ');
+            for (var c = [], d = 0; d < _.length; d++)
+                c.push(_[d] && _[d].replace(/\./g, ' '));
             return c;
         }
-        function b(k, c) {
-            ((k.next || k.push) && p(c, k.next || k.push),
-                (this.regex = v(k.regex)),
-                (this.token = L(k.token)),
-                (this.data = k));
+        function b(_, c) {
+            ((_.next || _.push) && p(c, _.next || _.push),
+                (this.regex = v(_.regex)),
+                (this.token = L(_.token)),
+                (this.data = _));
         }
-        function S(k, c) {
-            return function (d, x) {
-                if (x.pending) {
-                    var z = x.pending.shift();
+        function S(_, c) {
+            return function (d, w) {
+                if (w.pending) {
+                    var E = w.pending.shift();
                     return (
-                        x.pending.length == 0 && (x.pending = null),
-                        (d.pos += z.text.length),
-                        z.token
+                        w.pending.length == 0 && (w.pending = null),
+                        (d.pos += E.text.length),
+                        E.token
                     );
                 }
-                if (x.local)
-                    if (x.local.end && d.match(x.local.end)) {
-                        var M = x.local.endToken || null;
-                        return ((x.local = x.localState = null), M);
+                if (w.local)
+                    if (w.local.end && d.match(w.local.end)) {
+                        var z = w.local.endToken || null;
+                        return ((w.local = w.localState = null), z);
                     } else {
-                        var M = x.local.mode.token(d, x.localState),
-                            w;
+                        var z = w.local.mode.token(d, w.localState),
+                            k;
                         return (
-                            x.local.endScan &&
-                                (w = x.local.endScan.exec(d.current())) &&
-                                (d.pos = d.start + w.index),
-                            M
+                            w.local.endScan &&
+                                (k = w.local.endScan.exec(d.current())) &&
+                                (d.pos = d.start + k.index),
+                            z
                         );
                     }
-                for (var W = k[x.state], E = 0; E < W.length; E++) {
-                    var N = W[E],
-                        K = (!N.data.sol || d.sol()) && d.match(N.regex);
-                    if (K) {
-                        (N.data.next
-                            ? (x.state = N.data.next)
-                            : N.data.push
-                              ? ((x.stack || (x.stack = [])).push(x.state),
-                                (x.state = N.data.push))
-                              : N.data.pop &&
-                                x.stack &&
-                                x.stack.length &&
-                                (x.state = x.stack.pop()),
-                            N.data.mode && h(c, x, N.data.mode, N.token),
-                            N.data.indent &&
-                                x.indent.push(d.indentation() + c.indentUnit),
-                            N.data.dedent && x.indent.pop());
-                        var J = N.token;
+                for (var R = _[w.state], M = 0; M < R.length; M++) {
+                    var I = R[M],
+                        U = (!I.data.sol || d.sol()) && d.match(I.regex);
+                    if (U) {
+                        (I.data.next
+                            ? (w.state = I.data.next)
+                            : I.data.push
+                              ? ((w.stack || (w.stack = [])).push(w.state),
+                                (w.state = I.data.push))
+                              : I.data.pop &&
+                                w.stack &&
+                                w.stack.length &&
+                                (w.state = w.stack.pop()),
+                            I.data.mode && h(c, w, I.data.mode, I.token),
+                            I.data.indent &&
+                                w.indent.push(d.indentation() + c.indentUnit),
+                            I.data.dedent && w.indent.pop());
+                        var J = I.token;
                         if (
-                            (J && J.apply && (J = J(K)),
-                            K.length > 2 &&
-                                N.token &&
-                                typeof N.token != 'string')
+                            (J && J.apply && (J = J(U)),
+                            U.length > 2 &&
+                                I.token &&
+                                typeof I.token != 'string')
                         ) {
-                            for (var re = 2; re < K.length; re++)
-                                K[re] &&
-                                    (x.pending || (x.pending = [])).push({
-                                        text: K[re],
-                                        token: N.token[re - 1],
+                            for (var re = 2; re < U.length; re++)
+                                U[re] &&
+                                    (w.pending || (w.pending = [])).push({
+                                        text: U[re],
+                                        token: I.token[re - 1],
                                     });
                             return (
                                 d.backUp(
-                                    K[0].length - (K[1] ? K[1].length : 0),
+                                    U[0].length - (U[1] ? U[1].length : 0),
                                 ),
                                 J[0]
                             );
@@ -15884,74 +15884,74 @@ var Di = Ke((Hs, Ws) => {
                 return (d.next(), null);
             };
         }
-        function s(k, c) {
-            if (k === c) return !0;
-            if (!k || typeof k != 'object' || !c || typeof c != 'object')
+        function s(_, c) {
+            if (_ === c) return !0;
+            if (!_ || typeof _ != 'object' || !c || typeof c != 'object')
                 return !1;
             var d = 0;
-            for (var x in k)
-                if (k.hasOwnProperty(x)) {
-                    if (!c.hasOwnProperty(x) || !s(k[x], c[x])) return !1;
+            for (var w in _)
+                if (_.hasOwnProperty(w)) {
+                    if (!c.hasOwnProperty(w) || !s(_[w], c[w])) return !1;
                     d++;
                 }
-            for (var x in c) c.hasOwnProperty(x) && d--;
+            for (var w in c) c.hasOwnProperty(w) && d--;
             return d == 0;
         }
-        function h(k, c, d, x) {
-            var z;
+        function h(_, c, d, w) {
+            var E;
             if (d.persistent)
-                for (var M = c.persistentStates; M && !z; M = M.next)
-                    (d.spec ? s(d.spec, M.spec) : d.mode == M.mode) && (z = M);
-            var w = z ? z.mode : d.mode || o.getMode(k, d.spec),
-                W = z ? z.state : o.startState(w);
+                for (var z = c.persistentStates; z && !E; z = z.next)
+                    (d.spec ? s(d.spec, z.spec) : d.mode == z.mode) && (E = z);
+            var k = E ? E.mode : d.mode || o.getMode(_, d.spec),
+                R = E ? E.state : o.startState(k);
             (d.persistent &&
-                !z &&
+                !E &&
                 (c.persistentStates = {
-                    mode: w,
+                    mode: k,
                     spec: d.spec,
-                    state: W,
+                    state: R,
                     next: c.persistentStates,
                 }),
-                (c.localState = W),
+                (c.localState = R),
                 (c.local = {
-                    mode: w,
+                    mode: k,
                     end: d.end && v(d.end),
                     endScan: d.end && d.forceEnd !== !1 && v(d.end, !1),
-                    endToken: x && x.join ? x[x.length - 1] : x,
+                    endToken: w && w.join ? w[w.length - 1] : w,
                 }));
         }
-        function g(k, c) {
-            for (var d = 0; d < c.length; d++) if (c[d] === k) return !0;
+        function g(_, c) {
+            for (var d = 0; d < c.length; d++) if (c[d] === _) return !0;
         }
-        function C(k, c) {
-            return function (d, x, z) {
+        function C(_, c) {
+            return function (d, w, E) {
                 if (d.local && d.local.mode.indent)
-                    return d.local.mode.indent(d.localState, x, z);
+                    return d.local.mode.indent(d.localState, w, E);
                 if (
                     d.indent == null ||
                     d.local ||
                     (c.dontIndentStates && g(d.state, c.dontIndentStates) > -1)
                 )
                     return o.Pass;
-                var M = d.indent.length - 1,
-                    w = k[d.state];
+                var z = d.indent.length - 1,
+                    k = _[d.state];
                 e: for (;;) {
-                    for (var W = 0; W < w.length; W++) {
-                        var E = w[W];
-                        if (E.data.dedent && E.data.dedentIfLineStart !== !1) {
-                            var N = E.regex.exec(x);
-                            if (N && N[0]) {
-                                (M--,
-                                    (E.next || E.push) &&
-                                        (w = k[E.next || E.push]),
-                                    (x = x.slice(N[0].length)));
+                    for (var R = 0; R < k.length; R++) {
+                        var M = k[R];
+                        if (M.data.dedent && M.data.dedentIfLineStart !== !1) {
+                            var I = M.regex.exec(w);
+                            if (I && I[0]) {
+                                (z--,
+                                    (M.next || M.push) &&
+                                        (k = _[M.next || M.push]),
+                                    (w = w.slice(I[0].length)));
                                 continue e;
                             }
                         }
                     }
                     break;
                 }
-                return M < 0 ? 0 : d.indent[M];
+                return z < 0 ? 0 : d.indent[z];
             };
         }
     });
@@ -15989,13 +15989,13 @@ var Ks = Ke((Us, $s) => {
             ],
             g = [p, S].concat(L).concat(h),
             C = '(' + g.join('|') + ')',
-            k = new RegExp('^(\\s*)' + C + '(\\s*)(#.*)?$', 'i'),
+            _ = new RegExp('^(\\s*)' + C + '(\\s*)(#.*)?$', 'i'),
             c = new RegExp('^(\\s*)' + C + '(\\s+)', 'i');
         (o.defineSimpleMode('dockerfile', {
             start: [
                 { regex: /^\s*#.*$/, sol: !0, token: 'comment' },
                 { regex: v, token: [null, 'keyword'], sol: !0, next: 'from' },
-                { regex: k, token: [null, 'keyword', null, 'error'], sol: !0 },
+                { regex: _, token: [null, 'keyword', null, 'error'], sol: !0 },
                 {
                     regex: b,
                     token: [null, 'keyword', null],
@@ -16904,12 +16904,12 @@ var Jo = Ke((Ys, Qs) => {
             function (p, v) {
                 var L = o.getMode(p, 'text/html'),
                     b = L.name == 'null';
-                function S(I) {
+                function S(N) {
                     if (o.findModeByName) {
-                        var T = o.findModeByName(I);
-                        T && (I = T.mime || T.mimes[0]);
+                        var T = o.findModeByName(N);
+                        T && (N = T.mime || T.mimes[0]);
                     }
-                    var he = o.getMode(p, I);
+                    var he = o.getMode(p, N);
                     return he.name == 'null' ? null : he;
                 }
                 (v.highlightFormatting === void 0 &&
@@ -16953,58 +16953,58 @@ var Jo = Ke((Ys, Qs) => {
                         (s[h] = v.tokenTypeOverrides[h]);
                 var g = /^([*\-_])(?:\s*\1){2,}\s*$/,
                     C = /^(?:[*\-+]|^[0-9]+([.)]))\s+/,
-                    k = /^\[(x| )\](?=\s)/i,
+                    _ = /^\[(x| )\](?=\s)/i,
                     c = v.allowAtxHeaderWithoutSpace ? /^(#+)/ : /^(#+)(?: |$)/,
                     d = /^ {0,3}(?:\={1,}|-{2,})\s*$/,
-                    x = /^[^#!\[\]*_\\<>` "'(~:]+/,
-                    z = /^(~~~+|```+)[ \t]*([\w\/+#-]*)[^\n`]*$/,
-                    M = /^\s*\[[^\]]+?\]:.*$/,
-                    w =
+                    w = /^[^#!\[\]*_\\<>` "'(~:]+/,
+                    E = /^(~~~+|```+)[ \t]*([\w\/+#-]*)[^\n`]*$/,
+                    z = /^\s*\[[^\]]+?\]:.*$/,
+                    k =
                         /[!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~\xA1\xA7\xAB\xB6\xB7\xBB\xBF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u0AF0\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2308-\u230B\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E42\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA8FC\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]|\uD800[\uDD00-\uDD02\uDF9F\uDFD0]|\uD801\uDD6F|\uD802[\uDC57\uDD1F\uDD3F\uDE50-\uDE58\uDE7F\uDEF0-\uDEF6\uDF39-\uDF3F\uDF99-\uDF9C]|\uD804[\uDC47-\uDC4D\uDCBB\uDCBC\uDCBE-\uDCC1\uDD40-\uDD43\uDD74\uDD75\uDDC5-\uDDC9\uDDCD\uDDDB\uDDDD-\uDDDF\uDE38-\uDE3D\uDEA9]|\uD805[\uDCC6\uDDC1-\uDDD7\uDE41-\uDE43\uDF3C-\uDF3E]|\uD809[\uDC70-\uDC74]|\uD81A[\uDE6E\uDE6F\uDEF5\uDF37-\uDF3B\uDF44]|\uD82F\uDC9F|\uD836[\uDE87-\uDE8B]/,
-                    W = '    ';
-                function E(I, T, he) {
-                    return ((T.f = T.inline = he), he(I, T));
+                    R = '    ';
+                function M(N, T, he) {
+                    return ((T.f = T.inline = he), he(N, T));
                 }
-                function N(I, T, he) {
-                    return ((T.f = T.block = he), he(I, T));
+                function I(N, T, he) {
+                    return ((T.f = T.block = he), he(N, T));
                 }
-                function K(I) {
-                    return !I || !/\S/.test(I.string);
+                function U(N) {
+                    return !N || !/\S/.test(N.string);
                 }
-                function J(I) {
+                function J(N) {
                     if (
-                        ((I.linkTitle = !1),
-                        (I.linkHref = !1),
-                        (I.linkText = !1),
-                        (I.em = !1),
-                        (I.strong = !1),
-                        (I.strikethrough = !1),
-                        (I.quote = 0),
-                        (I.indentedCode = !1),
-                        I.f == q)
+                        ((N.linkTitle = !1),
+                        (N.linkHref = !1),
+                        (N.linkText = !1),
+                        (N.em = !1),
+                        (N.strong = !1),
+                        (N.strikethrough = !1),
+                        (N.quote = 0),
+                        (N.indentedCode = !1),
+                        N.f == F)
                     ) {
                         var T = b;
                         if (!T) {
-                            var he = o.innerMode(L, I.htmlState);
+                            var he = o.innerMode(L, N.htmlState);
                             T =
                                 he.mode.name == 'xml' &&
                                 he.state.tagStart === null &&
                                 !he.state.context &&
                                 he.state.tokenize.isInText;
                         }
-                        T && ((I.f = j), (I.block = re), (I.htmlState = null));
+                        T && ((N.f = j), (N.block = re), (N.htmlState = null));
                     }
                     return (
-                        (I.trailingSpace = 0),
-                        (I.trailingSpaceNewLine = !1),
-                        (I.prevLine = I.thisLine),
-                        (I.thisLine = { stream: null }),
+                        (N.trailingSpace = 0),
+                        (N.trailingSpaceNewLine = !1),
+                        (N.prevLine = N.thisLine),
+                        (N.thisLine = { stream: null }),
                         null
                     );
                 }
-                function re(I, T) {
-                    var he = I.column() === T.indentation,
-                        ze = K(T.prevLine.stream),
+                function re(N, T) {
+                    var he = N.column() === T.indentation,
+                        ze = U(T.prevLine.stream),
                         de = T.indentedCode,
                         Ee = T.prevLine.hr,
                         ge = T.list !== !1,
@@ -17037,7 +17037,7 @@ var Jo = Ke((Ys, Qs) => {
                         Be =
                             (T.list === !1 || Ee || ze) &&
                             T.indentation <= Oe &&
-                            I.match(g),
+                            N.match(g),
                         Ze = null;
                     if (
                         T.indentationDiff >= 4 &&
@@ -17046,12 +17046,12 @@ var Jo = Ke((Ys, Qs) => {
                             T.prevLine.header ||
                             ze)
                     )
-                        return (I.skipToEnd(), (T.indentedCode = !0), s.code);
-                    if (I.eatSpace()) return null;
+                        return (N.skipToEnd(), (T.indentedCode = !0), s.code);
+                    if (N.eatSpace()) return null;
                     if (
                         he &&
                         T.indentation <= Oe &&
-                        (Ze = I.match(c)) &&
+                        (Ze = N.match(c)) &&
                         Ze[1].length <= 6
                     )
                         return (
@@ -17062,11 +17062,11 @@ var Jo = Ke((Ys, Qs) => {
                             (T.f = T.inline),
                             D(T)
                         );
-                    if (T.indentation <= Oe && I.eat('>'))
+                    if (T.indentation <= Oe && N.eat('>'))
                         return (
                             (T.quote = he ? 1 : T.quote + 1),
                             v.highlightFormatting && (T.formatting = 'quote'),
-                            I.eatSpace(),
+                            N.eatSpace(),
                             D(T)
                         );
                     if (
@@ -17074,11 +17074,11 @@ var Jo = Ke((Ys, Qs) => {
                         !T.setext &&
                         he &&
                         T.indentation <= Oe &&
-                        (Ze = I.match(C))
+                        (Ze = N.match(C))
                     ) {
                         var ke = Ze[1] ? 'ol' : 'ul';
                         return (
-                            (T.indentation = qe + I.current().length),
+                            (T.indentation = qe + N.current().length),
                             (T.list = !0),
                             (T.quote = 0),
                             T.listStack.push(T.indentation),
@@ -17086,14 +17086,14 @@ var Jo = Ke((Ys, Qs) => {
                             (T.strong = !1),
                             (T.code = !1),
                             (T.strikethrough = !1),
-                            v.taskLists && I.match(k, !1) && (T.taskList = !0),
+                            v.taskLists && N.match(_, !1) && (T.taskList = !0),
                             (T.f = T.inline),
                             v.highlightFormatting &&
                                 (T.formatting = ['list', 'list-' + ke]),
                             D(T)
                         );
                     } else {
-                        if (he && T.indentation <= Oe && (Ze = I.match(z, !0)))
+                        if (he && T.indentation <= Oe && (Ze = N.match(E, !0)))
                             return (
                                 (T.quote = 0),
                                 (T.fencedEndRE = new RegExp(Ze[1] + '+ *$')),
@@ -17102,7 +17102,7 @@ var Jo = Ke((Ys, Qs) => {
                                     S(Ze[2] || v.fencedCodeBlockDefaultMode)),
                                 T.localMode &&
                                     (T.localState = o.startState(T.localMode)),
-                                (T.f = T.block = F),
+                                (T.f = T.block = q),
                                 v.highlightFormatting &&
                                     (T.formatting = 'code-block'),
                                 (T.code = -1),
@@ -17115,15 +17115,15 @@ var Jo = Ke((Ys, Qs) => {
                                 T.list === !1 &&
                                 !T.code &&
                                 !Be &&
-                                !M.test(I.string) &&
-                                (Ze = I.lookAhead(1)) &&
+                                !z.test(N.string) &&
+                                (Ze = N.lookAhead(1)) &&
                                 (Ze = Ze.match(d)))
                         )
                             return (
                                 T.setext
                                     ? ((T.header = T.setext),
                                       (T.setext = 0),
-                                      I.skipToEnd(),
+                                      N.skipToEnd(),
                                       v.highlightFormatting &&
                                           (T.formatting = 'header'))
                                     : ((T.header =
@@ -17135,36 +17135,36 @@ var Jo = Ke((Ys, Qs) => {
                             );
                         if (Be)
                             return (
-                                I.skipToEnd(),
+                                N.skipToEnd(),
                                 (T.hr = !0),
                                 (T.thisLine.hr = !0),
                                 s.hr
                             );
-                        if (I.peek() === '[') return E(I, T, O);
+                        if (N.peek() === '[') return M(N, T, O);
                     }
-                    return E(I, T, T.inline);
+                    return M(N, T, T.inline);
                 }
-                function q(I, T) {
-                    var he = L.token(I, T.htmlState);
+                function F(N, T) {
+                    var he = L.token(N, T.htmlState);
                     if (!b) {
                         var ze = o.innerMode(L, T.htmlState);
                         ((ze.mode.name == 'xml' &&
                             ze.state.tagStart === null &&
                             !ze.state.context &&
                             ze.state.tokenize.isInText) ||
-                            (T.md_inside && I.current().indexOf('>') > -1)) &&
+                            (T.md_inside && N.current().indexOf('>') > -1)) &&
                             ((T.f = j), (T.block = re), (T.htmlState = null));
                     }
                     return he;
                 }
-                function F(I, T) {
+                function q(N, T) {
                     var he = T.listStack[T.listStack.length - 1] || 0,
                         ze = T.indentation < he,
                         de = he + 3;
                     if (
                         T.fencedEndRE &&
                         T.indentation <= de &&
-                        (ze || I.match(T.fencedEndRE))
+                        (ze || N.match(T.fencedEndRE))
                     ) {
                         v.highlightFormatting && (T.formatting = 'code-block');
                         var Ee;
@@ -17176,70 +17176,70 @@ var Jo = Ke((Ys, Qs) => {
                             (T.fencedEndRE = null),
                             (T.code = 0),
                             (T.thisLine.fencedCodeEnd = !0),
-                            ze ? N(I, T, T.block) : Ee
+                            ze ? I(N, T, T.block) : Ee
                         );
                     } else
                         return T.localMode
-                            ? T.localMode.token(I, T.localState)
-                            : (I.skipToEnd(), s.code);
+                            ? T.localMode.token(N, T.localState)
+                            : (N.skipToEnd(), s.code);
                 }
-                function D(I) {
+                function D(N) {
                     var T = [];
-                    if (I.formatting) {
+                    if (N.formatting) {
                         (T.push(s.formatting),
-                            typeof I.formatting == 'string' &&
-                                (I.formatting = [I.formatting]));
-                        for (var he = 0; he < I.formatting.length; he++)
-                            (T.push(s.formatting + '-' + I.formatting[he]),
-                                I.formatting[he] === 'header' &&
+                            typeof N.formatting == 'string' &&
+                                (N.formatting = [N.formatting]));
+                        for (var he = 0; he < N.formatting.length; he++)
+                            (T.push(s.formatting + '-' + N.formatting[he]),
+                                N.formatting[he] === 'header' &&
                                     T.push(
                                         s.formatting +
                                             '-' +
-                                            I.formatting[he] +
+                                            N.formatting[he] +
                                             '-' +
-                                            I.header,
+                                            N.header,
                                     ),
-                                I.formatting[he] === 'quote' &&
+                                N.formatting[he] === 'quote' &&
                                     (!v.maxBlockquoteDepth ||
-                                    v.maxBlockquoteDepth >= I.quote
+                                    v.maxBlockquoteDepth >= N.quote
                                         ? T.push(
                                               s.formatting +
                                                   '-' +
-                                                  I.formatting[he] +
+                                                  N.formatting[he] +
                                                   '-' +
-                                                  I.quote,
+                                                  N.quote,
                                           )
                                         : T.push('error')));
                     }
-                    if (I.taskOpen)
+                    if (N.taskOpen)
                         return (T.push('meta'), T.length ? T.join(' ') : null);
-                    if (I.taskClosed)
+                    if (N.taskClosed)
                         return (
                             T.push('property'),
                             T.length ? T.join(' ') : null
                         );
                     if (
-                        (I.linkHref
+                        (N.linkHref
                             ? T.push(s.linkHref, 'url')
-                            : (I.strong && T.push(s.strong),
-                              I.em && T.push(s.em),
-                              I.strikethrough && T.push(s.strikethrough),
-                              I.emoji && T.push(s.emoji),
-                              I.linkText && T.push(s.linkText),
-                              I.code && T.push(s.code),
-                              I.image && T.push(s.image),
-                              I.imageAltText && T.push(s.imageAltText, 'link'),
-                              I.imageMarker && T.push(s.imageMarker)),
-                        I.header && T.push(s.header, s.header + '-' + I.header),
-                        I.quote &&
+                            : (N.strong && T.push(s.strong),
+                              N.em && T.push(s.em),
+                              N.strikethrough && T.push(s.strikethrough),
+                              N.emoji && T.push(s.emoji),
+                              N.linkText && T.push(s.linkText),
+                              N.code && T.push(s.code),
+                              N.image && T.push(s.image),
+                              N.imageAltText && T.push(s.imageAltText, 'link'),
+                              N.imageMarker && T.push(s.imageMarker)),
+                        N.header && T.push(s.header, s.header + '-' + N.header),
+                        N.quote &&
                             (T.push(s.quote),
                             !v.maxBlockquoteDepth ||
-                            v.maxBlockquoteDepth >= I.quote
-                                ? T.push(s.quote + '-' + I.quote)
+                            v.maxBlockquoteDepth >= N.quote
+                                ? T.push(s.quote + '-' + N.quote)
                                 : T.push(s.quote + '-' + v.maxBlockquoteDepth)),
-                        I.list !== !1)
+                        N.list !== !1)
                     ) {
-                        var ze = (I.listStack.length - 1) % 3;
+                        var ze = (N.listStack.length - 1) % 3;
                         ze
                             ? ze === 1
                                 ? T.push(s.list2)
@@ -17247,25 +17247,25 @@ var Jo = Ke((Ys, Qs) => {
                             : T.push(s.list1);
                     }
                     return (
-                        I.trailingSpaceNewLine
+                        N.trailingSpaceNewLine
                             ? T.push('trailing-space-new-line')
-                            : I.trailingSpace &&
+                            : N.trailingSpace &&
                               T.push(
                                   'trailing-space-' +
-                                      (I.trailingSpace % 2 ? 'a' : 'b'),
+                                      (N.trailingSpace % 2 ? 'a' : 'b'),
                               ),
                         T.length ? T.join(' ') : null
                     );
                 }
-                function Q(I, T) {
-                    if (I.match(x, !0)) return D(T);
+                function Q(N, T) {
+                    if (N.match(w, !0)) return D(T);
                 }
-                function j(I, T) {
-                    var he = T.text(I, T);
+                function j(N, T) {
+                    var he = T.text(N, T);
                     if (typeof he < 'u') return he;
                     if (T.list) return ((T.list = null), D(T));
                     if (T.taskList) {
-                        var ze = I.match(k, !0)[1] === ' ';
+                        var ze = N.match(_, !0)[1] === ' ';
                         return (
                             ze ? (T.taskOpen = !0) : (T.taskClosed = !0),
                             v.highlightFormatting && (T.formatting = 'task'),
@@ -17276,13 +17276,13 @@ var Jo = Ke((Ys, Qs) => {
                     if (
                         ((T.taskOpen = !1),
                         (T.taskClosed = !1),
-                        T.header && I.match(/^#+$/, !0))
+                        T.header && N.match(/^#+$/, !0))
                     )
                         return (
                             v.highlightFormatting && (T.formatting = 'header'),
                             D(T)
                         );
-                    var de = I.next();
+                    var de = N.next();
                     if (T.linkTitle) {
                         T.linkTitle = !1;
                         var Ee = de;
@@ -17293,13 +17293,13 @@ var Jo = Ke((Ys, Qs) => {
                             )));
                         var ge =
                             '^\\s*(?:[^' + Ee + '\\\\]+|\\\\\\\\|\\\\.)' + Ee;
-                        if (I.match(new RegExp(ge), !0)) return s.linkHref;
+                        if (N.match(new RegExp(ge), !0)) return s.linkHref;
                     }
                     if (de === '`') {
                         var Oe = T.formatting;
                         (v.highlightFormatting && (T.formatting = 'code'),
-                            I.eatWhile('`'));
-                        var qe = I.current().length;
+                            N.eatWhile('`'));
+                        var qe = N.current().length;
                         if (T.code == 0 && (!T.quote || qe == 1))
                             return ((T.code = qe), D(T));
                         if (qe == T.code) {
@@ -17307,12 +17307,12 @@ var Jo = Ke((Ys, Qs) => {
                             return ((T.code = 0), Se);
                         } else return ((T.formatting = Oe), D(T));
                     } else if (T.code) return D(T);
-                    if (de === '\\' && (I.next(), v.highlightFormatting)) {
+                    if (de === '\\' && (N.next(), v.highlightFormatting)) {
                         var Be = D(T),
                             Ze = s.formatting + '-escape';
                         return Be ? Be + ' ' + Ze : Ze;
                     }
-                    if (de === '!' && I.match(/\[[^\]]*\] ?(?:\(|\[)/, !1))
+                    if (de === '!' && N.match(/\[[^\]]*\] ?(?:\(|\[)/, !1))
                         return (
                             (T.imageMarker = !0),
                             (T.image = !0),
@@ -17322,7 +17322,7 @@ var Jo = Ke((Ys, Qs) => {
                     if (
                         de === '[' &&
                         T.imageMarker &&
-                        I.match(/[^\]]*\](\(.*?\)| ?\[.*?\])/, !1)
+                        N.match(/[^\]]*\](\(.*?\)| ?\[.*?\])/, !1)
                     )
                         return (
                             (T.imageMarker = !1),
@@ -17342,7 +17342,7 @@ var Jo = Ke((Ys, Qs) => {
                     }
                     if (de === '[' && !T.image)
                         return (
-                            (T.linkText && I.match(/^.*?\]/)) ||
+                            (T.linkText && N.match(/^.*?\]/)) ||
                                 ((T.linkText = !0),
                                 v.highlightFormatting &&
                                     (T.formatting = 'link')),
@@ -17354,13 +17354,13 @@ var Jo = Ke((Ys, Qs) => {
                         return (
                             (T.linkText = !1),
                             (T.inline = T.f =
-                                I.match(/\(.*?\)| ?\[.*?\]/, !1) ? y : j),
+                                N.match(/\(.*?\)| ?\[.*?\]/, !1) ? y : j),
                             Be
                         );
                     }
                     if (
                         de === '<' &&
-                        I.match(/^(https?|ftps?):\/\/(?:[^\\>]|\\.)+>/, !1)
+                        N.match(/^(https?|ftps?):\/\/(?:[^\\>]|\\.)+>/, !1)
                     ) {
                         ((T.f = T.inline = V),
                             v.highlightFormatting && (T.formatting = 'link'));
@@ -17372,7 +17372,7 @@ var Jo = Ke((Ys, Qs) => {
                     }
                     if (
                         de === '<' &&
-                        I.match(/^[^> \\]+@(?:[^\\>]|\\.)+>/, !1)
+                        N.match(/^[^> \\]+@(?:[^\\>]|\\.)+>/, !1)
                     ) {
                         ((T.f = T.inline = V),
                             v.highlightFormatting && (T.formatting = 'link'));
@@ -17382,60 +17382,60 @@ var Jo = Ke((Ys, Qs) => {
                     if (
                         v.xml &&
                         de === '<' &&
-                        I.match(
+                        N.match(
                             /^(!--|\?|!\[CDATA\[|[a-z][a-z0-9-]*(?:\s+[a-z_:.\-]+(?:\s*=\s*[^>]+)?)*\s*(?:>|$))/i,
                             !1,
                         )
                     ) {
-                        var ke = I.string.indexOf('>', I.pos);
+                        var ke = N.string.indexOf('>', N.pos);
                         if (ke != -1) {
-                            var Je = I.string.substring(I.start, ke);
+                            var Je = N.string.substring(N.start, ke);
                             /markdown\s*=\s*('|"){0,1}1('|"){0,1}/.test(Je) &&
                                 (T.md_inside = !0);
                         }
                         return (
-                            I.backUp(1),
+                            N.backUp(1),
                             (T.htmlState = o.startState(L)),
-                            N(I, T, q)
+                            I(N, T, F)
                         );
                     }
-                    if (v.xml && de === '<' && I.match(/^\/\w*?>/))
+                    if (v.xml && de === '<' && N.match(/^\/\w*?>/))
                         return ((T.md_inside = !1), 'tag');
                     if (de === '*' || de === '_') {
                         for (
                             var Re = 1,
                                 Ge =
-                                    I.pos == 1
+                                    N.pos == 1
                                         ? ' '
-                                        : I.string.charAt(I.pos - 2);
-                            Re < 3 && I.eat(de);
+                                        : N.string.charAt(N.pos - 2);
+                            Re < 3 && N.eat(de);
                         )
                             Re++;
-                        var U = I.peek() || ' ',
+                        var $ = N.peek() || ' ',
                             Z =
-                                !/\s/.test(U) &&
-                                (!w.test(U) || /\s/.test(Ge) || w.test(Ge)),
+                                !/\s/.test($) &&
+                                (!k.test($) || /\s/.test(Ge) || k.test(Ge)),
                             ce =
                                 !/\s/.test(Ge) &&
-                                (!w.test(Ge) || /\s/.test(U) || w.test(U)),
+                                (!k.test(Ge) || /\s/.test($) || k.test($)),
                             He = null,
                             te = null;
                         if (
                             (Re % 2 &&
-                                (!T.em && Z && (de === '*' || !ce || w.test(Ge))
+                                (!T.em && Z && (de === '*' || !ce || k.test(Ge))
                                     ? (He = !0)
                                     : T.em == de &&
                                       ce &&
-                                      (de === '*' || !Z || w.test(U)) &&
+                                      (de === '*' || !Z || k.test($)) &&
                                       (He = !1)),
                             Re > 1 &&
                                 (!T.strong &&
                                 Z &&
-                                (de === '*' || !ce || w.test(Ge))
+                                (de === '*' || !ce || k.test(Ge))
                                     ? (te = !0)
                                     : T.strong == de &&
                                       ce &&
-                                      (de === '*' || !Z || w.test(U)) &&
+                                      (de === '*' || !Z || k.test($)) &&
                                       (te = !1)),
                             te != null || He != null)
                         ) {
@@ -17455,33 +17455,33 @@ var Jo = Ke((Ys, Qs) => {
                                 Se
                             );
                         }
-                    } else if (de === ' ' && (I.eat('*') || I.eat('_'))) {
-                        if (I.peek() === ' ') return D(T);
-                        I.backUp(1);
+                    } else if (de === ' ' && (N.eat('*') || N.eat('_'))) {
+                        if (N.peek() === ' ') return D(T);
+                        N.backUp(1);
                     }
                     if (v.strikethrough) {
-                        if (de === '~' && I.eatWhile(de)) {
+                        if (de === '~' && N.eatWhile(de)) {
                             if (T.strikethrough) {
                                 v.highlightFormatting &&
                                     (T.formatting = 'strikethrough');
                                 var Se = D(T);
                                 return ((T.strikethrough = !1), Se);
-                            } else if (I.match(/^[^\s]/, !1))
+                            } else if (N.match(/^[^\s]/, !1))
                                 return (
                                     (T.strikethrough = !0),
                                     v.highlightFormatting &&
                                         (T.formatting = 'strikethrough'),
                                     D(T)
                                 );
-                        } else if (de === ' ' && I.match('~~', !0)) {
-                            if (I.peek() === ' ') return D(T);
-                            I.backUp(2);
+                        } else if (de === ' ' && N.match('~~', !0)) {
+                            if (N.peek() === ' ') return D(T);
+                            N.backUp(2);
                         }
                     }
                     if (
                         v.emoji &&
                         de === ':' &&
-                        I.match(
+                        N.match(
                             /^(?:[a-z_\d+][a-z_\d+-]*|\-[a-z_\d+][a-z_\d+-]*):/,
                         )
                     ) {
@@ -17492,15 +17492,15 @@ var Jo = Ke((Ys, Qs) => {
                     }
                     return (
                         de === ' ' &&
-                            (I.match(/^ +$/, !1)
+                            (N.match(/^ +$/, !1)
                                 ? T.trailingSpace++
                                 : T.trailingSpace &&
                                   (T.trailingSpaceNewLine = !0)),
                         D(T)
                     );
                 }
-                function V(I, T) {
-                    var he = I.next();
+                function V(N, T) {
+                    var he = N.next();
                     if (he === '>') {
                         ((T.f = T.inline = j),
                             v.highlightFormatting && (T.formatting = 'link'));
@@ -17510,11 +17510,11 @@ var Jo = Ke((Ys, Qs) => {
                             ze + s.linkInline
                         );
                     }
-                    return (I.match(/^[^>]+/, !0), s.linkInline);
+                    return (N.match(/^[^>]+/, !0), s.linkInline);
                 }
-                function y(I, T) {
-                    if (I.eatSpace()) return null;
-                    var he = I.next();
+                function y(N, T) {
+                    if (N.eatSpace()) return null;
+                    var he = N.next();
                     return he === '(' || he === '['
                         ? ((T.f = T.inline = X(he === '(' ? ')' : ']')),
                           v.highlightFormatting &&
@@ -17527,44 +17527,44 @@ var Jo = Ke((Ys, Qs) => {
                     ')': /^(?:[^\\\(\)]|\\.|\((?:[^\\\(\)]|\\.)*\))*?(?=\))/,
                     ']': /^(?:[^\\\[\]]|\\.|\[(?:[^\\\[\]]|\\.)*\])*?(?=\])/,
                 };
-                function X(I) {
+                function X(N) {
                     return function (T, he) {
                         var ze = T.next();
-                        if (ze === I) {
+                        if (ze === N) {
                             ((he.f = he.inline = j),
                                 v.highlightFormatting &&
                                     (he.formatting = 'link-string'));
                             var de = D(he);
                             return ((he.linkHref = !1), de);
                         }
-                        return (T.match(G[I]), (he.linkHref = !0), D(he));
+                        return (T.match(G[N]), (he.linkHref = !0), D(he));
                     };
                 }
-                function O(I, T) {
-                    return I.match(/^([^\]\\]|\\.)*\]:/, !1)
-                        ? ((T.f = R),
-                          I.next(),
+                function O(N, T) {
+                    return N.match(/^([^\]\\]|\\.)*\]:/, !1)
+                        ? ((T.f = H),
+                          N.next(),
                           v.highlightFormatting && (T.formatting = 'link'),
                           (T.linkText = !0),
                           D(T))
-                        : E(I, T, j);
+                        : M(N, T, j);
                 }
-                function R(I, T) {
-                    if (I.match(']:', !0)) {
+                function H(N, T) {
+                    if (N.match(']:', !0)) {
                         ((T.f = T.inline = se),
                             v.highlightFormatting && (T.formatting = 'link'));
                         var he = D(T);
                         return ((T.linkText = !1), he);
                     }
-                    return (I.match(/^([^\]\\]|\\.)+/, !0), s.linkText);
+                    return (N.match(/^([^\]\\]|\\.)+/, !0), s.linkText);
                 }
-                function se(I, T) {
-                    return I.eatSpace()
+                function se(N, T) {
+                    return N.eatSpace()
                         ? null
-                        : (I.match(/^[^\s]+/, !0),
-                          I.peek() === void 0
+                        : (N.match(/^[^\s]+/, !0),
+                          N.peek() === void 0
                               ? (T.linkTitle = !0)
-                              : I.match(
+                              : N.match(
                                     /^(?:\s+(?:"(?:[^"\\]|\\.)+"|'(?:[^'\\]|\\.)+'|\((?:[^)\\]|\\.)+\)))?/,
                                     !0,
                                 ),
@@ -17603,63 +17603,63 @@ var Jo = Ke((Ys, Qs) => {
                             fencedEndRE: null,
                         };
                     },
-                    copyState: function (I) {
+                    copyState: function (N) {
                         return {
-                            f: I.f,
-                            prevLine: I.prevLine,
-                            thisLine: I.thisLine,
-                            block: I.block,
+                            f: N.f,
+                            prevLine: N.prevLine,
+                            thisLine: N.thisLine,
+                            block: N.block,
                             htmlState:
-                                I.htmlState && o.copyState(L, I.htmlState),
-                            indentation: I.indentation,
-                            localMode: I.localMode,
-                            localState: I.localMode
-                                ? o.copyState(I.localMode, I.localState)
+                                N.htmlState && o.copyState(L, N.htmlState),
+                            indentation: N.indentation,
+                            localMode: N.localMode,
+                            localState: N.localMode
+                                ? o.copyState(N.localMode, N.localState)
                                 : null,
-                            inline: I.inline,
-                            text: I.text,
+                            inline: N.inline,
+                            text: N.text,
                             formatting: !1,
-                            linkText: I.linkText,
-                            linkTitle: I.linkTitle,
-                            linkHref: I.linkHref,
-                            code: I.code,
-                            em: I.em,
-                            strong: I.strong,
-                            strikethrough: I.strikethrough,
-                            emoji: I.emoji,
-                            header: I.header,
-                            setext: I.setext,
-                            hr: I.hr,
-                            taskList: I.taskList,
-                            list: I.list,
-                            listStack: I.listStack.slice(0),
-                            quote: I.quote,
-                            indentedCode: I.indentedCode,
-                            trailingSpace: I.trailingSpace,
-                            trailingSpaceNewLine: I.trailingSpaceNewLine,
-                            md_inside: I.md_inside,
-                            fencedEndRE: I.fencedEndRE,
+                            linkText: N.linkText,
+                            linkTitle: N.linkTitle,
+                            linkHref: N.linkHref,
+                            code: N.code,
+                            em: N.em,
+                            strong: N.strong,
+                            strikethrough: N.strikethrough,
+                            emoji: N.emoji,
+                            header: N.header,
+                            setext: N.setext,
+                            hr: N.hr,
+                            taskList: N.taskList,
+                            list: N.list,
+                            listStack: N.listStack.slice(0),
+                            quote: N.quote,
+                            indentedCode: N.indentedCode,
+                            trailingSpace: N.trailingSpace,
+                            trailingSpaceNewLine: N.trailingSpaceNewLine,
+                            md_inside: N.md_inside,
+                            fencedEndRE: N.fencedEndRE,
                         };
                     },
-                    token: function (I, T) {
-                        if (((T.formatting = !1), I != T.thisLine.stream)) {
+                    token: function (N, T) {
+                        if (((T.formatting = !1), N != T.thisLine.stream)) {
                             if (
                                 ((T.header = 0),
                                 (T.hr = !1),
-                                I.match(/^\s*$/, !0))
+                                N.match(/^\s*$/, !0))
                             )
                                 return (J(T), null);
                             if (
                                 ((T.prevLine = T.thisLine),
-                                (T.thisLine = { stream: I }),
+                                (T.thisLine = { stream: N }),
                                 (T.taskList = !1),
                                 (T.trailingSpace = 0),
                                 (T.trailingSpaceNewLine = !1),
-                                !T.localState && ((T.f = T.block), T.f != q))
+                                !T.localState && ((T.f = T.block), T.f != F))
                             ) {
-                                var he = I.match(/^\s*/, !0)[0].replace(
+                                var he = N.match(/^\s*/, !0)[0].replace(
                                     /\t/g,
-                                    W,
+                                    R,
                                 ).length;
                                 if (
                                     ((T.indentation = he),
@@ -17669,20 +17669,20 @@ var Jo = Ke((Ys, Qs) => {
                                     return null;
                             }
                         }
-                        return T.f(I, T);
+                        return T.f(N, T);
                     },
-                    innerMode: function (I) {
-                        return I.block == q
-                            ? { state: I.htmlState, mode: L }
-                            : I.localState
-                              ? { state: I.localState, mode: I.localMode }
-                              : { state: I, mode: _e };
+                    innerMode: function (N) {
+                        return N.block == F
+                            ? { state: N.htmlState, mode: L }
+                            : N.localState
+                              ? { state: N.localState, mode: N.localMode }
+                              : { state: N, mode: _e };
                     },
-                    indent: function (I, T, he) {
-                        return I.block == q && L.indent
-                            ? L.indent(I.htmlState, T, he)
-                            : I.localState && I.localMode.indent
-                              ? I.localMode.indent(I.localState, T, he)
+                    indent: function (N, T, he) {
+                        return N.block == F && L.indent
+                            ? L.indent(N.htmlState, T, he)
+                            : N.localState && N.localMode.indent
+                              ? N.localMode.indent(N.localState, T, he)
                               : o.Pass;
                     },
                     blankLine: J,
@@ -17736,18 +17736,18 @@ var eu = Ke((Vs, Js) => {
                                 ateSpace: C.ateSpace,
                             };
                         },
-                        token: function (C, k) {
-                            if (((k.combineTokens = null), k.codeBlock))
+                        token: function (C, _) {
+                            if (((_.combineTokens = null), _.codeBlock))
                                 return C.match(/^```+/)
-                                    ? ((k.codeBlock = !1), null)
+                                    ? ((_.codeBlock = !1), null)
                                     : (C.skipToEnd(), null);
                             if (
-                                (C.sol() && (k.code = !1),
+                                (C.sol() && (_.code = !1),
                                 C.sol() && C.match(/^```+/))
                             )
                                 return (
                                     C.skipToEnd(),
-                                    (k.codeBlock = !0),
+                                    (_.codeBlock = !0),
                                     null
                                 );
                             if (C.peek() === '`') {
@@ -17756,35 +17756,35 @@ var eu = Ke((Vs, Js) => {
                                 C.eatWhile('`');
                                 var d = 1 + C.pos - c;
                                 return (
-                                    k.code
-                                        ? d === b && (k.code = !1)
-                                        : ((b = d), (k.code = !0)),
+                                    _.code
+                                        ? d === b && (_.code = !1)
+                                        : ((b = d), (_.code = !0)),
                                     null
                                 );
-                            } else if (k.code) return (C.next(), null);
-                            if (C.eatSpace()) return ((k.ateSpace = !0), null);
+                            } else if (_.code) return (C.next(), null);
+                            if (C.eatSpace()) return ((_.ateSpace = !0), null);
                             if (
-                                (C.sol() || k.ateSpace) &&
-                                ((k.ateSpace = !1), L.gitHubSpice !== !1)
+                                (C.sol() || _.ateSpace) &&
+                                ((_.ateSpace = !1), L.gitHubSpice !== !1)
                             ) {
                                 if (
                                     C.match(
                                         /^(?:[a-zA-Z0-9\-_]+\/)?(?:[a-zA-Z0-9\-_]+@)?(?=.{0,6}\d)(?:[a-f0-9]{7,40}\b)/,
                                     )
                                 )
-                                    return ((k.combineTokens = !0), 'link');
+                                    return ((_.combineTokens = !0), 'link');
                                 if (
                                     C.match(
                                         /^(?:[a-zA-Z0-9\-_]+\/)?(?:[a-zA-Z0-9\-_]+)?#[0-9]+\b/,
                                     )
                                 )
-                                    return ((k.combineTokens = !0), 'link');
+                                    return ((_.combineTokens = !0), 'link');
                             }
                             return C.match(p) &&
                                 C.string.slice(C.start - 2, C.start) != '](' &&
                                 (C.start == 0 ||
                                     /\W/.test(C.string.charAt(C.start - 1)))
-                                ? ((k.combineTokens = !0), 'link')
+                                ? ((_.combineTokens = !0), 'link')
                                 : (C.next(), null);
                         },
                         blankLine: S,
@@ -17884,132 +17884,132 @@ var nu = Ke((tu, ru) => {
                 },
                 S = /[+\-*&^%:=<>!|\/]/,
                 s;
-            function h(x, z) {
-                var M = x.next();
-                if (M == '"' || M == "'" || M == '`')
-                    return ((z.tokenize = g(M)), z.tokenize(x, z));
-                if (/[\d\.]/.test(M))
+            function h(w, E) {
+                var z = w.next();
+                if (z == '"' || z == "'" || z == '`')
+                    return ((E.tokenize = g(z)), E.tokenize(w, E));
+                if (/[\d\.]/.test(z))
                     return (
-                        M == '.'
-                            ? x.match(/^[0-9_]+([eE][\-+]?[0-9_]+)?/)
-                            : M == '0'
-                              ? x.match(/^[xX][0-9a-fA-F_]+/) ||
-                                x.match(/^[0-7_]+/)
-                              : x.match(
+                        z == '.'
+                            ? w.match(/^[0-9_]+([eE][\-+]?[0-9_]+)?/)
+                            : z == '0'
+                              ? w.match(/^[xX][0-9a-fA-F_]+/) ||
+                                w.match(/^[0-7_]+/)
+                              : w.match(
                                     /^[0-9_]*\.?[0-9_]*([eE][\-+]?[0-9_]+)?/,
                                 ),
                         'number'
                     );
-                if (/[\[\]{}\(\),;\:\.]/.test(M)) return ((s = M), null);
-                if (M == '/') {
-                    if (x.eat('*')) return ((z.tokenize = C), C(x, z));
-                    if (x.eat('/')) return (x.skipToEnd(), 'comment');
+                if (/[\[\]{}\(\),;\:\.]/.test(z)) return ((s = z), null);
+                if (z == '/') {
+                    if (w.eat('*')) return ((E.tokenize = C), C(w, E));
+                    if (w.eat('/')) return (w.skipToEnd(), 'comment');
                 }
-                if (S.test(M)) return (x.eatWhile(S), 'operator');
-                x.eatWhile(/[\w\$_\xa1-\uffff]/);
-                var w = x.current();
-                return L.propertyIsEnumerable(w)
-                    ? ((w == 'case' || w == 'default') && (s = 'case'),
+                if (S.test(z)) return (w.eatWhile(S), 'operator');
+                w.eatWhile(/[\w\$_\xa1-\uffff]/);
+                var k = w.current();
+                return L.propertyIsEnumerable(k)
+                    ? ((k == 'case' || k == 'default') && (s = 'case'),
                       'keyword')
-                    : b.propertyIsEnumerable(w)
+                    : b.propertyIsEnumerable(k)
                       ? 'atom'
                       : 'variable';
             }
-            function g(x) {
-                return function (z, M) {
-                    for (var w = !1, W, E = !1; (W = z.next()) != null;) {
-                        if (W == x && !w) {
-                            E = !0;
+            function g(w) {
+                return function (E, z) {
+                    for (var k = !1, R, M = !1; (R = E.next()) != null;) {
+                        if (R == w && !k) {
+                            M = !0;
                             break;
                         }
-                        w = !w && x != '`' && W == '\\';
+                        k = !k && w != '`' && R == '\\';
                     }
                     return (
-                        (E || !(w || x == '`')) && (M.tokenize = h),
+                        (M || !(k || w == '`')) && (z.tokenize = h),
                         'string'
                     );
                 };
             }
-            function C(x, z) {
-                for (var M = !1, w; (w = x.next());) {
-                    if (w == '/' && M) {
-                        z.tokenize = h;
+            function C(w, E) {
+                for (var z = !1, k; (k = w.next());) {
+                    if (k == '/' && z) {
+                        E.tokenize = h;
                         break;
                     }
-                    M = w == '*';
+                    z = k == '*';
                 }
                 return 'comment';
             }
-            function k(x, z, M, w, W) {
-                ((this.indented = x),
-                    (this.column = z),
-                    (this.type = M),
-                    (this.align = w),
-                    (this.prev = W));
+            function _(w, E, z, k, R) {
+                ((this.indented = w),
+                    (this.column = E),
+                    (this.type = z),
+                    (this.align = k),
+                    (this.prev = R));
             }
-            function c(x, z, M) {
-                return (x.context = new k(x.indented, z, M, null, x.context));
+            function c(w, E, z) {
+                return (w.context = new _(w.indented, E, z, null, w.context));
             }
-            function d(x) {
-                if (x.context.prev) {
-                    var z = x.context.type;
+            function d(w) {
+                if (w.context.prev) {
+                    var E = w.context.type;
                     return (
-                        (z == ')' || z == ']' || z == '}') &&
-                            (x.indented = x.context.indented),
-                        (x.context = x.context.prev)
+                        (E == ')' || E == ']' || E == '}') &&
+                            (w.indented = w.context.indented),
+                        (w.context = w.context.prev)
                     );
                 }
             }
             return {
-                startState: function (x) {
+                startState: function (w) {
                     return {
                         tokenize: null,
-                        context: new k((x || 0) - v, 0, 'top', !1),
+                        context: new _((w || 0) - v, 0, 'top', !1),
                         indented: 0,
                         startOfLine: !0,
                     };
                 },
-                token: function (x, z) {
-                    var M = z.context;
+                token: function (w, E) {
+                    var z = E.context;
                     if (
-                        (x.sol() &&
-                            (M.align == null && (M.align = !1),
-                            (z.indented = x.indentation()),
-                            (z.startOfLine = !0),
-                            M.type == 'case' && (M.type = '}')),
-                        x.eatSpace())
+                        (w.sol() &&
+                            (z.align == null && (z.align = !1),
+                            (E.indented = w.indentation()),
+                            (E.startOfLine = !0),
+                            z.type == 'case' && (z.type = '}')),
+                        w.eatSpace())
                     )
                         return null;
                     s = null;
-                    var w = (z.tokenize || h)(x, z);
+                    var k = (E.tokenize || h)(w, E);
                     return (
-                        w == 'comment' ||
-                            (M.align == null && (M.align = !0),
+                        k == 'comment' ||
+                            (z.align == null && (z.align = !0),
                             s == '{'
-                                ? c(z, x.column(), '}')
+                                ? c(E, w.column(), '}')
                                 : s == '['
-                                  ? c(z, x.column(), ']')
+                                  ? c(E, w.column(), ']')
                                   : s == '('
-                                    ? c(z, x.column(), ')')
+                                    ? c(E, w.column(), ')')
                                     : s == 'case'
-                                      ? (M.type = 'case')
-                                      : ((s == '}' && M.type == '}') ||
-                                            s == M.type) &&
-                                        d(z),
-                            (z.startOfLine = !1)),
-                        w
+                                      ? (z.type = 'case')
+                                      : ((s == '}' && z.type == '}') ||
+                                            s == z.type) &&
+                                        d(E),
+                            (E.startOfLine = !1)),
+                        k
                     );
                 },
-                indent: function (x, z) {
-                    if (x.tokenize != h && x.tokenize != null) return o.Pass;
-                    var M = x.context,
-                        w = z && z.charAt(0);
-                    if (M.type == 'case' && /^(?:case|default)\b/.test(z))
-                        return ((x.context.type = '}'), M.indented);
-                    var W = w == M.type;
-                    return M.align
-                        ? M.column + (W ? 0 : 1)
-                        : M.indented + (W ? 0 : v);
+                indent: function (w, E) {
+                    if (w.tokenize != h && w.tokenize != null) return o.Pass;
+                    var z = w.context,
+                        k = E && E.charAt(0);
+                    if (z.type == 'case' && /^(?:case|default)\b/.test(E))
+                        return ((w.context.type = '}'), z.indented);
+                    var R = k == z.type;
+                    return z.align
+                        ? z.column + (R ? 0 : 1)
+                        : z.indented + (R ? 0 : v);
                 },
                 electricChars: '{}):',
                 closeBrackets: '()[]{}\'\'""``',
@@ -18032,20 +18032,20 @@ var au = Ke((iu, ou) => {
     })(function (o) {
         'use strict';
         (o.defineMode('http', function () {
-            function p(C, k) {
-                return (C.skipToEnd(), (k.cur = h), 'error');
+            function p(C, _) {
+                return (C.skipToEnd(), (_.cur = h), 'error');
             }
-            function v(C, k) {
+            function v(C, _) {
                 return C.match(/^HTTP\/\d\.\d/)
-                    ? ((k.cur = L), 'keyword')
+                    ? ((_.cur = L), 'keyword')
                     : C.match(/^[A-Z]+/) && /[ \t]/.test(C.peek())
-                      ? ((k.cur = S), 'keyword')
-                      : p(C, k);
+                      ? ((_.cur = S), 'keyword')
+                      : p(C, _);
             }
-            function L(C, k) {
+            function L(C, _) {
                 var c = C.match(/^\d+/);
-                if (!c) return p(C, k);
-                k.cur = b;
+                if (!c) return p(C, _);
+                _.cur = b;
                 var d = Number(c[0]);
                 return d >= 100 && d < 200
                     ? 'positive informational'
@@ -18059,16 +18059,16 @@ var au = Ke((iu, ou) => {
                             ? 'negative server-error'
                             : 'error';
             }
-            function b(C, k) {
-                return (C.skipToEnd(), (k.cur = h), null);
+            function b(C, _) {
+                return (C.skipToEnd(), (_.cur = h), null);
             }
-            function S(C, k) {
-                return (C.eatWhile(/\S/), (k.cur = s), 'string-2');
+            function S(C, _) {
+                return (C.eatWhile(/\S/), (_.cur = s), 'string-2');
             }
-            function s(C, k) {
+            function s(C, _) {
                 return C.match(/^HTTP\/\d\.\d$/)
-                    ? ((k.cur = h), 'keyword')
-                    : p(C, k);
+                    ? ((_.cur = h), 'keyword')
+                    : p(C, _);
             }
             function h(C) {
                 return C.sol() && !C.eat(/[ \t]/)
@@ -18081,9 +18081,9 @@ var au = Ke((iu, ou) => {
                 return (C.skipToEnd(), null);
             }
             return {
-                token: function (C, k) {
-                    var c = k.cur;
-                    return c != h && c != g && C.eatSpace() ? null : c(C, k);
+                token: function (C, _) {
+                    var c = _.cur;
+                    return c != h && c != g && C.eatSpace() ? null : c(C, _);
                 },
                 blankLine: function (C) {
                     C.cur = g;
@@ -18333,34 +18333,34 @@ var du = Ke((cu, fu) => {
                 function h(c) {
                     var d = c.tagName;
                     c.tagName = null;
-                    var x = S.indent(c, '', '');
-                    return ((c.tagName = d), x);
+                    var w = S.indent(c, '', '');
+                    return ((c.tagName = d), w);
                 }
                 function g(c, d) {
                     return d.context.mode == S
                         ? C(c, d, d.context)
-                        : k(c, d, d.context);
+                        : _(c, d, d.context);
                 }
-                function C(c, d, x) {
-                    if (x.depth == 2)
+                function C(c, d, w) {
+                    if (w.depth == 2)
                         return (
-                            c.match(/^.*?\*\//) ? (x.depth = 1) : c.skipToEnd(),
+                            c.match(/^.*?\*\//) ? (w.depth = 1) : c.skipToEnd(),
                             'comment'
                         );
                     if (c.peek() == '{') {
-                        S.skipAttribute(x.state);
-                        var z = h(x.state),
-                            M = x.state.context;
-                        if (M && c.match(/^[^>]*>\s*$/, !1)) {
-                            for (; M.prev && !M.startOfLine;) M = M.prev;
-                            M.startOfLine
-                                ? (z -= L.indentUnit)
-                                : x.prev.state.lexical &&
-                                  (z = x.prev.state.lexical.indented);
-                        } else x.depth == 1 && (z += L.indentUnit);
+                        S.skipAttribute(w.state);
+                        var E = h(w.state),
+                            z = w.state.context;
+                        if (z && c.match(/^[^>]*>\s*$/, !1)) {
+                            for (; z.prev && !z.startOfLine;) z = z.prev;
+                            z.startOfLine
+                                ? (E -= L.indentUnit)
+                                : w.prev.state.lexical &&
+                                  (E = w.prev.state.lexical.indented);
+                        } else w.depth == 1 && (E += L.indentUnit);
                         return (
                             (d.context = new p(
-                                o.startState(s, z),
+                                o.startState(s, E),
                                 s,
                                 0,
                                 d.context,
@@ -18368,12 +18368,12 @@ var du = Ke((cu, fu) => {
                             null
                         );
                     }
-                    if (x.depth == 1) {
+                    if (w.depth == 1) {
                         if (c.peek() == '<')
                             return (
-                                S.skipAttribute(x.state),
+                                S.skipAttribute(w.state),
                                 (d.context = new p(
-                                    o.startState(S, h(x.state)),
+                                    o.startState(S, h(w.state)),
                                     S,
                                     0,
                                     d.context,
@@ -18381,50 +18381,50 @@ var du = Ke((cu, fu) => {
                                 null
                             );
                         if (c.match('//')) return (c.skipToEnd(), 'comment');
-                        if (c.match('/*')) return ((x.depth = 2), g(c, d));
+                        if (c.match('/*')) return ((w.depth = 2), g(c, d));
                     }
-                    var w = S.token(c, x.state),
-                        W = c.current(),
-                        E;
+                    var k = S.token(c, w.state),
+                        R = c.current(),
+                        M;
                     return (
-                        /\btag\b/.test(w)
-                            ? />$/.test(W)
-                                ? x.state.context
-                                    ? (x.depth = 0)
+                        /\btag\b/.test(k)
+                            ? />$/.test(R)
+                                ? w.state.context
+                                    ? (w.depth = 0)
                                     : (d.context = d.context.prev)
-                                : /^</.test(W) && (x.depth = 1)
-                            : !w &&
-                              (E = W.indexOf('{')) > -1 &&
-                              c.backUp(W.length - E),
-                        w
+                                : /^</.test(R) && (w.depth = 1)
+                            : !k &&
+                              (M = R.indexOf('{')) > -1 &&
+                              c.backUp(R.length - M),
+                        k
                     );
                 }
-                function k(c, d, x) {
+                function _(c, d, w) {
                     if (
                         c.peek() == '<' &&
                         !c.match(/^<([^<>]|<[^>]*>)+,\s*>/, !1) &&
-                        s.expressionAllowed(c, x.state)
+                        s.expressionAllowed(c, w.state)
                     )
                         return (
                             (d.context = new p(
-                                o.startState(S, s.indent(x.state, '', '')),
+                                o.startState(S, s.indent(w.state, '', '')),
                                 S,
                                 0,
                                 d.context,
                             )),
-                            s.skipExpression(x.state),
+                            s.skipExpression(w.state),
                             null
                         );
-                    var z = s.token(c, x.state);
-                    if (!z && x.depth != null) {
-                        var M = c.current();
-                        M == '{'
-                            ? x.depth++
-                            : M == '}' &&
-                              --x.depth == 0 &&
+                    var E = s.token(c, w.state);
+                    if (!E && w.depth != null) {
+                        var z = c.current();
+                        z == '{'
+                            ? w.depth++
+                            : z == '}' &&
+                              --w.depth == 0 &&
                               (d.context = d.context.prev);
                     }
-                    return z;
+                    return E;
                 }
                 return {
                     startState: function () {
@@ -18434,8 +18434,8 @@ var du = Ke((cu, fu) => {
                         return { context: v(c.context) };
                     },
                     token: g,
-                    indent: function (c, d, x) {
-                        return c.context.mode.indent(c.context.state, d, x);
+                    indent: function (c, d, w) {
+                        return c.context.mode.indent(c.context.state, d, w);
                     },
                     innerMode: function (c) {
                         return c.context;
@@ -18462,10 +18462,10 @@ var gu = Ke((pu, hu) => {
     })(function (o) {
         'use strict';
         (o.defineMode('nginx', function (p) {
-            function v(x) {
-                for (var z = {}, M = x.split(' '), w = 0; w < M.length; ++w)
-                    z[M[w]] = !0;
-                return z;
+            function v(w) {
+                for (var E = {}, z = w.split(' '), k = 0; k < z.length; ++k)
+                    E[z[k]] = !0;
+                return E;
             }
             var L = v(
                     'break return rewrite set accept_mutex accept_mutex_delay access_log add_after_body add_before_body add_header addition_types aio alias allow ancient_browser ancient_browser_value auth_basic auth_basic_user_file auth_http auth_http_header auth_http_timeout autoindex autoindex_exact_size autoindex_localtime charset charset_types client_body_buffer_size client_body_in_file_only client_body_in_single_buffer client_body_temp_path client_body_timeout client_header_buffer_size client_header_timeout client_max_body_size connection_pool_size create_full_put_path daemon dav_access dav_methods debug_connection debug_points default_type degradation degrade deny devpoll_changes devpoll_events directio directio_alignment empty_gif env epoll_events error_log eventport_events expires fastcgi_bind fastcgi_buffer_size fastcgi_buffers fastcgi_busy_buffers_size fastcgi_cache fastcgi_cache_key fastcgi_cache_methods fastcgi_cache_min_uses fastcgi_cache_path fastcgi_cache_use_stale fastcgi_cache_valid fastcgi_catch_stderr fastcgi_connect_timeout fastcgi_hide_header fastcgi_ignore_client_abort fastcgi_ignore_headers fastcgi_index fastcgi_intercept_errors fastcgi_max_temp_file_size fastcgi_next_upstream fastcgi_param fastcgi_pass_header fastcgi_pass_request_body fastcgi_pass_request_headers fastcgi_read_timeout fastcgi_send_lowat fastcgi_send_timeout fastcgi_split_path_info fastcgi_store fastcgi_store_access fastcgi_temp_file_write_size fastcgi_temp_path fastcgi_upstream_fail_timeout fastcgi_upstream_max_fails flv geoip_city geoip_country google_perftools_profiles gzip gzip_buffers gzip_comp_level gzip_disable gzip_hash gzip_http_version gzip_min_length gzip_no_buffer gzip_proxied gzip_static gzip_types gzip_vary gzip_window if_modified_since ignore_invalid_headers image_filter image_filter_buffer image_filter_jpeg_quality image_filter_transparency imap_auth imap_capabilities imap_client_buffer index ip_hash keepalive_requests keepalive_timeout kqueue_changes kqueue_events large_client_header_buffers limit_conn limit_conn_log_level limit_rate limit_rate_after limit_req limit_req_log_level limit_req_zone limit_zone lingering_time lingering_timeout lock_file log_format log_not_found log_subrequest map_hash_bucket_size map_hash_max_size master_process memcached_bind memcached_buffer_size memcached_connect_timeout memcached_next_upstream memcached_read_timeout memcached_send_timeout memcached_upstream_fail_timeout memcached_upstream_max_fails merge_slashes min_delete_depth modern_browser modern_browser_value msie_padding msie_refresh multi_accept open_file_cache open_file_cache_errors open_file_cache_events open_file_cache_min_uses open_file_cache_valid open_log_file_cache output_buffers override_charset perl perl_modules perl_require perl_set pid pop3_auth pop3_capabilities port_in_redirect postpone_gzipping postpone_output protocol proxy proxy_bind proxy_buffer proxy_buffer_size proxy_buffering proxy_buffers proxy_busy_buffers_size proxy_cache proxy_cache_key proxy_cache_methods proxy_cache_min_uses proxy_cache_path proxy_cache_use_stale proxy_cache_valid proxy_connect_timeout proxy_headers_hash_bucket_size proxy_headers_hash_max_size proxy_hide_header proxy_ignore_client_abort proxy_ignore_headers proxy_intercept_errors proxy_max_temp_file_size proxy_method proxy_next_upstream proxy_pass_error_message proxy_pass_header proxy_pass_request_body proxy_pass_request_headers proxy_read_timeout proxy_redirect proxy_send_lowat proxy_send_timeout proxy_set_body proxy_set_header proxy_ssl_session_reuse proxy_store proxy_store_access proxy_temp_file_write_size proxy_temp_path proxy_timeout proxy_upstream_fail_timeout proxy_upstream_max_fails random_index read_ahead real_ip_header recursive_error_pages request_pool_size reset_timedout_connection resolver resolver_timeout rewrite_log rtsig_overflow_events rtsig_overflow_test rtsig_overflow_threshold rtsig_signo satisfy secure_link_secret send_lowat send_timeout sendfile sendfile_max_chunk server_name_in_redirect server_names_hash_bucket_size server_names_hash_max_size server_tokens set_real_ip_from smtp_auth smtp_capabilities smtp_client_buffer smtp_greeting_delay so_keepalive source_charset ssi ssi_ignore_recycled_buffers ssi_min_file_chunk ssi_silent_errors ssi_types ssi_value_length ssl ssl_certificate ssl_certificate_key ssl_ciphers ssl_client_certificate ssl_crl ssl_dhparam ssl_engine ssl_prefer_server_ciphers ssl_protocols ssl_session_cache ssl_session_timeout ssl_verify_client ssl_verify_depth starttls stub_status sub_filter sub_filter_once sub_filter_types tcp_nodelay tcp_nopush thread_stack_size timeout timer_resolution types_hash_bucket_size types_hash_max_size underscores_in_headers uninitialized_variable_warn use user userid userid_domain userid_expires userid_mark userid_name userid_p3p userid_path userid_service valid_referers variables_hash_bucket_size variables_hash_max_size worker_connections worker_cpu_affinity worker_priority worker_processes worker_rlimit_core worker_rlimit_nofile worker_rlimit_sigpending worker_threads working_directory xclient xml_entities xslt_stylesheet xslt_typesdrew@li229-23',
@@ -18478,107 +18478,107 @@ var gu = Ke((pu, hu) => {
                 ),
                 s = p.indentUnit,
                 h;
-            function g(x, z) {
-                return ((h = z), x);
+            function g(w, E) {
+                return ((h = E), w);
             }
-            function C(x, z) {
-                x.eatWhile(/[\w\$_]/);
-                var M = x.current();
-                if (L.propertyIsEnumerable(M)) return 'keyword';
-                if (b.propertyIsEnumerable(M)) return 'variable-2';
-                if (S.propertyIsEnumerable(M)) return 'string-2';
-                var w = x.next();
-                if (w == '@')
-                    return (x.eatWhile(/[\w\\\-]/), g('meta', x.current()));
-                if (w == '/' && x.eat('*')) return ((z.tokenize = k), k(x, z));
-                if (w == '<' && x.eat('!')) return ((z.tokenize = c), c(x, z));
-                if (w == '=') g(null, 'compare');
+            function C(w, E) {
+                w.eatWhile(/[\w\$_]/);
+                var z = w.current();
+                if (L.propertyIsEnumerable(z)) return 'keyword';
+                if (b.propertyIsEnumerable(z)) return 'variable-2';
+                if (S.propertyIsEnumerable(z)) return 'string-2';
+                var k = w.next();
+                if (k == '@')
+                    return (w.eatWhile(/[\w\\\-]/), g('meta', w.current()));
+                if (k == '/' && w.eat('*')) return ((E.tokenize = _), _(w, E));
+                if (k == '<' && w.eat('!')) return ((E.tokenize = c), c(w, E));
+                if (k == '=') g(null, 'compare');
                 else
-                    return (w == '~' || w == '|') && x.eat('=')
+                    return (k == '~' || k == '|') && w.eat('=')
                         ? g(null, 'compare')
-                        : w == '"' || w == "'"
-                          ? ((z.tokenize = d(w)), z.tokenize(x, z))
-                          : w == '#'
-                            ? (x.skipToEnd(), g('comment', 'comment'))
-                            : w == '!'
-                              ? (x.match(/^\s*\w*/), g('keyword', 'important'))
-                              : /\d/.test(w)
-                                ? (x.eatWhile(/[\w.%]/), g('number', 'unit'))
-                                : /[,.+>*\/]/.test(w)
+                        : k == '"' || k == "'"
+                          ? ((E.tokenize = d(k)), E.tokenize(w, E))
+                          : k == '#'
+                            ? (w.skipToEnd(), g('comment', 'comment'))
+                            : k == '!'
+                              ? (w.match(/^\s*\w*/), g('keyword', 'important'))
+                              : /\d/.test(k)
+                                ? (w.eatWhile(/[\w.%]/), g('number', 'unit'))
+                                : /[,.+>*\/]/.test(k)
                                   ? g(null, 'select-op')
-                                  : /[;{}:\[\]]/.test(w)
-                                    ? g(null, w)
-                                    : (x.eatWhile(/[\w\\\-]/),
+                                  : /[;{}:\[\]]/.test(k)
+                                    ? g(null, k)
+                                    : (w.eatWhile(/[\w\\\-]/),
                                       g('variable', 'variable'));
             }
-            function k(x, z) {
-                for (var M = !1, w; (w = x.next()) != null;) {
-                    if (M && w == '/') {
-                        z.tokenize = C;
+            function _(w, E) {
+                for (var z = !1, k; (k = w.next()) != null;) {
+                    if (z && k == '/') {
+                        E.tokenize = C;
                         break;
                     }
-                    M = w == '*';
+                    z = k == '*';
                 }
                 return g('comment', 'comment');
             }
-            function c(x, z) {
-                for (var M = 0, w; (w = x.next()) != null;) {
-                    if (M >= 2 && w == '>') {
-                        z.tokenize = C;
+            function c(w, E) {
+                for (var z = 0, k; (k = w.next()) != null;) {
+                    if (z >= 2 && k == '>') {
+                        E.tokenize = C;
                         break;
                     }
-                    M = w == '-' ? M + 1 : 0;
+                    z = k == '-' ? z + 1 : 0;
                 }
                 return g('comment', 'comment');
             }
-            function d(x) {
-                return function (z, M) {
+            function d(w) {
+                return function (E, z) {
                     for (
-                        var w = !1, W;
-                        (W = z.next()) != null && !(W == x && !w);
+                        var k = !1, R;
+                        (R = E.next()) != null && !(R == w && !k);
                     )
-                        w = !w && W == '\\';
-                    return (w || (M.tokenize = C), g('string', 'string'));
+                        k = !k && R == '\\';
+                    return (k || (z.tokenize = C), g('string', 'string'));
                 };
             }
             return {
-                startState: function (x) {
-                    return { tokenize: C, baseIndent: x || 0, stack: [] };
+                startState: function (w) {
+                    return { tokenize: C, baseIndent: w || 0, stack: [] };
                 },
-                token: function (x, z) {
-                    if (x.eatSpace()) return null;
+                token: function (w, E) {
+                    if (w.eatSpace()) return null;
                     h = null;
-                    var M = z.tokenize(x, z),
-                        w = z.stack[z.stack.length - 1];
+                    var z = E.tokenize(w, E),
+                        k = E.stack[E.stack.length - 1];
                     return (
-                        h == 'hash' && w == 'rule'
-                            ? (M = 'atom')
-                            : M == 'variable' &&
-                              (w == 'rule'
-                                  ? (M = 'number')
-                                  : (!w || w == '@media{') && (M = 'tag')),
-                        w == 'rule' && /^[\{\};]$/.test(h) && z.stack.pop(),
+                        h == 'hash' && k == 'rule'
+                            ? (z = 'atom')
+                            : z == 'variable' &&
+                              (k == 'rule'
+                                  ? (z = 'number')
+                                  : (!k || k == '@media{') && (z = 'tag')),
+                        k == 'rule' && /^[\{\};]$/.test(h) && E.stack.pop(),
                         h == '{'
-                            ? w == '@media'
-                                ? (z.stack[z.stack.length - 1] = '@media{')
-                                : z.stack.push('{')
+                            ? k == '@media'
+                                ? (E.stack[E.stack.length - 1] = '@media{')
+                                : E.stack.push('{')
                             : h == '}'
-                              ? z.stack.pop()
+                              ? E.stack.pop()
                               : h == '@media'
-                                ? z.stack.push('@media')
-                                : w == '{' &&
+                                ? E.stack.push('@media')
+                                : k == '{' &&
                                   h != 'comment' &&
-                                  z.stack.push('rule'),
-                        M
+                                  E.stack.push('rule'),
+                        z
                     );
                 },
-                indent: function (x, z) {
-                    var M = x.stack.length;
+                indent: function (w, E) {
+                    var z = w.stack.length;
                     return (
-                        /^\}/.test(z) &&
-                            (M -=
-                                x.stack[x.stack.length - 1] == 'rule' ? 2 : 1),
-                        x.baseIndent + M * s
+                        /^\}/.test(E) &&
+                            (z -=
+                                w.stack[w.stack.length - 1] == 'rule' ? 2 : 1),
+                        w.baseIndent + z * s
                     );
                 },
                 electricChars: '}',
@@ -18598,22 +18598,22 @@ var bu = Ke((mu, vu) => {
         'use strict';
         (o.defineMode('pascal', function () {
             function p(C) {
-                for (var k = {}, c = C.split(' '), d = 0; d < c.length; ++d)
-                    k[c[d]] = !0;
-                return k;
+                for (var _ = {}, c = C.split(' '), d = 0; d < c.length; ++d)
+                    _[c[d]] = !0;
+                return _;
             }
             var v = p(
                     'absolute and array asm begin case const constructor destructor div do downto else end file for function goto if implementation in inherited inline interface label mod nil not object of operator or packed procedure program record reintroduce repeat self set shl shr string then to type unit until uses var while with xor as class dispinterface except exports finalization finally initialization inline is library on out packed property raise resourcestring threadvar try absolute abstract alias assembler bitpacked break cdecl continue cppdecl cvar default deprecated dynamic enumerator experimental export external far far16 forward generic helper implements index interrupt iocheck local message name near nodefault noreturn nostackframe oldfpccall otherwise overload override pascal platform private protected public published read register reintroduce result safecall saveregisters softfloat specialize static stdcall stored strict unaligned unimplemented varargs virtual write',
                 ),
                 L = { null: !0 },
                 b = /[+\-*&%=<>!?|\/]/;
-            function S(C, k) {
+            function S(C, _) {
                 var c = C.next();
-                if (c == '#' && k.startOfLine) return (C.skipToEnd(), 'meta');
+                if (c == '#' && _.startOfLine) return (C.skipToEnd(), 'meta');
                 if (c == '"' || c == "'")
-                    return ((k.tokenize = s(c)), k.tokenize(C, k));
-                if (c == '(' && C.eat('*')) return ((k.tokenize = h), h(C, k));
-                if (c == '{') return ((k.tokenize = g), g(C, k));
+                    return ((_.tokenize = s(c)), _.tokenize(C, _));
+                if (c == '(' && C.eat('*')) return ((_.tokenize = h), h(C, _));
+                if (c == '{') return ((_.tokenize = g), g(C, _));
                 if (/[\[\]\(\),;\:\.]/.test(c)) return null;
                 if (/\d/.test(c)) return (C.eatWhile(/[\w\.]/), 'number');
                 if (c == '/' && C.eat('/')) return (C.skipToEnd(), 'comment');
@@ -18627,31 +18627,31 @@ var bu = Ke((mu, vu) => {
                       : 'variable';
             }
             function s(C) {
-                return function (k, c) {
-                    for (var d = !1, x, z = !1; (x = k.next()) != null;) {
-                        if (x == C && !d) {
-                            z = !0;
+                return function (_, c) {
+                    for (var d = !1, w, E = !1; (w = _.next()) != null;) {
+                        if (w == C && !d) {
+                            E = !0;
                             break;
                         }
-                        d = !d && x == '\\';
+                        d = !d && w == '\\';
                     }
-                    return ((z || !d) && (c.tokenize = null), 'string');
+                    return ((E || !d) && (c.tokenize = null), 'string');
                 };
             }
-            function h(C, k) {
+            function h(C, _) {
                 for (var c = !1, d; (d = C.next());) {
                     if (d == ')' && c) {
-                        k.tokenize = null;
+                        _.tokenize = null;
                         break;
                     }
                     c = d == '*';
                 }
                 return 'comment';
             }
-            function g(C, k) {
+            function g(C, _) {
                 for (var c; (c = C.next());)
                     if (c == '}') {
-                        k.tokenize = null;
+                        _.tokenize = null;
                         break;
                     }
                 return 'comment';
@@ -18660,9 +18660,9 @@ var bu = Ke((mu, vu) => {
                 startState: function () {
                     return { tokenize: null };
                 },
-                token: function (C, k) {
+                token: function (C, _) {
                     if (C.eatSpace()) return null;
-                    var c = (k.tokenize || S)(C, k);
+                    var c = (_.tokenize || S)(C, _);
                     return (c == 'comment' || c == 'meta', c);
                 },
                 electricChars: '{}',
@@ -19131,43 +19131,43 @@ var _u = Ke((yu, xu) => {
                 },
                 s = 'string-2',
                 h = /[goseximacplud]/;
-            function g(c, d, x, z, M) {
+            function g(c, d, w, E, z) {
                 return (
                     (d.chain = null),
                     (d.style = null),
                     (d.tail = null),
-                    (d.tokenize = function (w, W) {
-                        for (var E = !1, N, K = 0; (N = w.next());) {
-                            if (N === x[K] && !E)
+                    (d.tokenize = function (k, R) {
+                        for (var M = !1, I, U = 0; (I = k.next());) {
+                            if (I === w[U] && !M)
                                 return (
-                                    x[++K] !== void 0
-                                        ? ((W.chain = x[K]),
-                                          (W.style = z),
-                                          (W.tail = M))
-                                        : M && w.eatWhile(M),
-                                    (W.tokenize = k),
-                                    z
+                                    w[++U] !== void 0
+                                        ? ((R.chain = w[U]),
+                                          (R.style = E),
+                                          (R.tail = z))
+                                        : z && k.eatWhile(z),
+                                    (R.tokenize = _),
+                                    E
                                 );
-                            E = !E && N == '\\';
+                            M = !M && I == '\\';
                         }
-                        return z;
+                        return E;
                     }),
                     d.tokenize(c, d)
                 );
             }
-            function C(c, d, x) {
+            function C(c, d, w) {
                 return (
-                    (d.tokenize = function (z, M) {
+                    (d.tokenize = function (E, z) {
                         return (
-                            z.string == x && (M.tokenize = k),
-                            z.skipToEnd(),
+                            E.string == w && (z.tokenize = _),
+                            E.skipToEnd(),
                             'string'
                         );
                     }),
                     d.tokenize(c, d)
                 );
             }
-            function k(c, d) {
+            function _(c, d) {
                 if (c.eatSpace()) return null;
                 if (d.chain) return g(c, d, d.chain, d.style, d.tail);
                 if (
@@ -19179,235 +19179,235 @@ var _u = Ke((yu, xu) => {
                 if (c.match(/^<<(?=[_a-zA-Z])/))
                     return (c.eatWhile(/\w/), C(c, d, c.current().substr(2)));
                 if (c.sol() && c.match(/^\=item(?!\w)/)) return C(c, d, '=cut');
-                var x = c.next();
-                if (x == '"' || x == "'") {
-                    if (v(c, 3) == '<<' + x) {
-                        var z = c.pos;
+                var w = c.next();
+                if (w == '"' || w == "'") {
+                    if (v(c, 3) == '<<' + w) {
+                        var E = c.pos;
                         c.eatWhile(/\w/);
-                        var M = c.current().substr(1);
-                        if (M && c.eat(x)) return C(c, d, M);
-                        c.pos = z;
+                        var z = c.current().substr(1);
+                        if (z && c.eat(w)) return C(c, d, z);
+                        c.pos = E;
                     }
-                    return g(c, d, [x], 'string');
+                    return g(c, d, [w], 'string');
                 }
-                if (x == 'q') {
-                    var w = p(c, -2);
-                    if (!(w && /\w/.test(w))) {
-                        if (((w = p(c, 0)), w == 'x')) {
-                            if (((w = p(c, 1)), w == '('))
+                if (w == 'q') {
+                    var k = p(c, -2);
+                    if (!(k && /\w/.test(k))) {
+                        if (((k = p(c, 0)), k == 'x')) {
+                            if (((k = p(c, 1)), k == '('))
                                 return (b(c, 2), g(c, d, [')'], s, h));
-                            if (w == '[')
+                            if (k == '[')
                                 return (b(c, 2), g(c, d, [']'], s, h));
-                            if (w == '{')
+                            if (k == '{')
                                 return (b(c, 2), g(c, d, ['}'], s, h));
-                            if (w == '<')
+                            if (k == '<')
                                 return (b(c, 2), g(c, d, ['>'], s, h));
-                            if (/[\^'"!~\/]/.test(w))
-                                return (b(c, 1), g(c, d, [c.eat(w)], s, h));
-                        } else if (w == 'q') {
-                            if (((w = p(c, 1)), w == '('))
+                            if (/[\^'"!~\/]/.test(k))
+                                return (b(c, 1), g(c, d, [c.eat(k)], s, h));
+                        } else if (k == 'q') {
+                            if (((k = p(c, 1)), k == '('))
                                 return (b(c, 2), g(c, d, [')'], 'string'));
-                            if (w == '[')
+                            if (k == '[')
                                 return (b(c, 2), g(c, d, [']'], 'string'));
-                            if (w == '{')
+                            if (k == '{')
                                 return (b(c, 2), g(c, d, ['}'], 'string'));
-                            if (w == '<')
+                            if (k == '<')
                                 return (b(c, 2), g(c, d, ['>'], 'string'));
-                            if (/[\^'"!~\/]/.test(w))
-                                return (b(c, 1), g(c, d, [c.eat(w)], 'string'));
-                        } else if (w == 'w') {
-                            if (((w = p(c, 1)), w == '('))
+                            if (/[\^'"!~\/]/.test(k))
+                                return (b(c, 1), g(c, d, [c.eat(k)], 'string'));
+                        } else if (k == 'w') {
+                            if (((k = p(c, 1)), k == '('))
                                 return (b(c, 2), g(c, d, [')'], 'bracket'));
-                            if (w == '[')
+                            if (k == '[')
                                 return (b(c, 2), g(c, d, [']'], 'bracket'));
-                            if (w == '{')
+                            if (k == '{')
                                 return (b(c, 2), g(c, d, ['}'], 'bracket'));
-                            if (w == '<')
+                            if (k == '<')
                                 return (b(c, 2), g(c, d, ['>'], 'bracket'));
-                            if (/[\^'"!~\/]/.test(w))
+                            if (/[\^'"!~\/]/.test(k))
                                 return (
                                     b(c, 1),
-                                    g(c, d, [c.eat(w)], 'bracket')
+                                    g(c, d, [c.eat(k)], 'bracket')
                                 );
-                        } else if (w == 'r') {
-                            if (((w = p(c, 1)), w == '('))
+                        } else if (k == 'r') {
+                            if (((k = p(c, 1)), k == '('))
                                 return (b(c, 2), g(c, d, [')'], s, h));
-                            if (w == '[')
+                            if (k == '[')
                                 return (b(c, 2), g(c, d, [']'], s, h));
-                            if (w == '{')
+                            if (k == '{')
                                 return (b(c, 2), g(c, d, ['}'], s, h));
-                            if (w == '<')
+                            if (k == '<')
                                 return (b(c, 2), g(c, d, ['>'], s, h));
-                            if (/[\^'"!~\/]/.test(w))
-                                return (b(c, 1), g(c, d, [c.eat(w)], s, h));
-                        } else if (/[\^'"!~\/(\[{<]/.test(w)) {
-                            if (w == '(')
+                            if (/[\^'"!~\/]/.test(k))
+                                return (b(c, 1), g(c, d, [c.eat(k)], s, h));
+                        } else if (/[\^'"!~\/(\[{<]/.test(k)) {
+                            if (k == '(')
                                 return (b(c, 1), g(c, d, [')'], 'string'));
-                            if (w == '[')
+                            if (k == '[')
                                 return (b(c, 1), g(c, d, [']'], 'string'));
-                            if (w == '{')
+                            if (k == '{')
                                 return (b(c, 1), g(c, d, ['}'], 'string'));
-                            if (w == '<')
+                            if (k == '<')
                                 return (b(c, 1), g(c, d, ['>'], 'string'));
-                            if (/[\^'"!~\/]/.test(w))
-                                return g(c, d, [c.eat(w)], 'string');
+                            if (/[\^'"!~\/]/.test(k))
+                                return g(c, d, [c.eat(k)], 'string');
                         }
                     }
                 }
-                if (x == 'm') {
-                    var w = p(c, -2);
+                if (w == 'm') {
+                    var k = p(c, -2);
                     if (
-                        !(w && /\w/.test(w)) &&
-                        ((w = c.eat(/[(\[{<\^'"!~\/]/)), w)
+                        !(k && /\w/.test(k)) &&
+                        ((k = c.eat(/[(\[{<\^'"!~\/]/)), k)
                     ) {
-                        if (/[\^'"!~\/]/.test(w)) return g(c, d, [w], s, h);
-                        if (w == '(') return g(c, d, [')'], s, h);
-                        if (w == '[') return g(c, d, [']'], s, h);
-                        if (w == '{') return g(c, d, ['}'], s, h);
-                        if (w == '<') return g(c, d, ['>'], s, h);
+                        if (/[\^'"!~\/]/.test(k)) return g(c, d, [k], s, h);
+                        if (k == '(') return g(c, d, [')'], s, h);
+                        if (k == '[') return g(c, d, [']'], s, h);
+                        if (k == '{') return g(c, d, ['}'], s, h);
+                        if (k == '<') return g(c, d, ['>'], s, h);
                     }
                 }
-                if (x == 's') {
-                    var w = /[\/>\]})\w]/.test(p(c, -2));
-                    if (!w && ((w = c.eat(/[(\[{<\^'"!~\/]/)), w))
-                        return w == '['
+                if (w == 's') {
+                    var k = /[\/>\]})\w]/.test(p(c, -2));
+                    if (!k && ((k = c.eat(/[(\[{<\^'"!~\/]/)), k))
+                        return k == '['
                             ? g(c, d, [']', ']'], s, h)
-                            : w == '{'
+                            : k == '{'
                               ? g(c, d, ['}', '}'], s, h)
-                              : w == '<'
+                              : k == '<'
                                 ? g(c, d, ['>', '>'], s, h)
-                                : w == '('
+                                : k == '('
                                   ? g(c, d, [')', ')'], s, h)
-                                  : g(c, d, [w, w], s, h);
+                                  : g(c, d, [k, k], s, h);
                 }
-                if (x == 'y') {
-                    var w = /[\/>\]})\w]/.test(p(c, -2));
-                    if (!w && ((w = c.eat(/[(\[{<\^'"!~\/]/)), w))
-                        return w == '['
+                if (w == 'y') {
+                    var k = /[\/>\]})\w]/.test(p(c, -2));
+                    if (!k && ((k = c.eat(/[(\[{<\^'"!~\/]/)), k))
+                        return k == '['
                             ? g(c, d, [']', ']'], s, h)
-                            : w == '{'
+                            : k == '{'
                               ? g(c, d, ['}', '}'], s, h)
-                              : w == '<'
+                              : k == '<'
                                 ? g(c, d, ['>', '>'], s, h)
-                                : w == '('
+                                : k == '('
                                   ? g(c, d, [')', ')'], s, h)
-                                  : g(c, d, [w, w], s, h);
+                                  : g(c, d, [k, k], s, h);
                 }
-                if (x == 't') {
-                    var w = /[\/>\]})\w]/.test(p(c, -2));
+                if (w == 't') {
+                    var k = /[\/>\]})\w]/.test(p(c, -2));
                     if (
-                        !w &&
-                        ((w = c.eat('r')),
-                        w && ((w = c.eat(/[(\[{<\^'"!~\/]/)), w))
+                        !k &&
+                        ((k = c.eat('r')),
+                        k && ((k = c.eat(/[(\[{<\^'"!~\/]/)), k))
                     )
-                        return w == '['
+                        return k == '['
                             ? g(c, d, [']', ']'], s, h)
-                            : w == '{'
+                            : k == '{'
                               ? g(c, d, ['}', '}'], s, h)
-                              : w == '<'
+                              : k == '<'
                                 ? g(c, d, ['>', '>'], s, h)
-                                : w == '('
+                                : k == '('
                                   ? g(c, d, [')', ')'], s, h)
-                                  : g(c, d, [w, w], s, h);
+                                  : g(c, d, [k, k], s, h);
                 }
-                if (x == '`') return g(c, d, [x], 'variable-2');
-                if (x == '/')
-                    return /~\s*$/.test(v(c)) ? g(c, d, [x], s, h) : 'operator';
-                if (x == '$') {
-                    var z = c.pos;
+                if (w == '`') return g(c, d, [w], 'variable-2');
+                if (w == '/')
+                    return /~\s*$/.test(v(c)) ? g(c, d, [w], s, h) : 'operator';
+                if (w == '$') {
+                    var E = c.pos;
                     if (
                         c.eatWhile(/\d/) ||
                         (c.eat('{') && c.eatWhile(/\d/) && c.eat('}'))
                     )
                         return 'variable-2';
-                    c.pos = z;
+                    c.pos = E;
                 }
-                if (/[$@%]/.test(x)) {
-                    var z = c.pos;
+                if (/[$@%]/.test(w)) {
+                    var E = c.pos;
                     if (
                         (c.eat('^') && c.eat(/[A-Z]/)) ||
                         (!/[@$%&]/.test(p(c, -2)) &&
                             c.eat(/[=|\\\-#?@;:&`~\^!\[\]*'"$+.,\/<>()]/))
                     ) {
-                        var w = c.current();
-                        if (S[w]) return 'variable-2';
+                        var k = c.current();
+                        if (S[k]) return 'variable-2';
                     }
-                    c.pos = z;
+                    c.pos = E;
                 }
                 if (
-                    /[$@%&]/.test(x) &&
+                    /[$@%&]/.test(w) &&
                     (c.eatWhile(/[\w$]/) ||
                         (c.eat('{') && c.eatWhile(/[\w$]/) && c.eat('}')))
                 ) {
-                    var w = c.current();
-                    return S[w] ? 'variable-2' : 'variable';
+                    var k = c.current();
+                    return S[k] ? 'variable-2' : 'variable';
                 }
-                if (x == '#' && p(c, -2) != '$')
+                if (w == '#' && p(c, -2) != '$')
                     return (c.skipToEnd(), 'comment');
-                if (/[:+\-\^*$&%@=<>!?|\/~\.]/.test(x)) {
-                    var z = c.pos;
+                if (/[:+\-\^*$&%@=<>!?|\/~\.]/.test(w)) {
+                    var E = c.pos;
                     if (
                         (c.eatWhile(/[:+\-\^*$&%@=<>!?|\/~\.]/), S[c.current()])
                     )
                         return 'operator';
-                    c.pos = z;
+                    c.pos = E;
                 }
-                if (x == '_' && c.pos == 1) {
+                if (w == '_' && c.pos == 1) {
                     if (L(c, 6) == '_END__') return g(c, d, ['\0'], 'comment');
                     if (L(c, 7) == '_DATA__')
                         return g(c, d, ['\0'], 'variable-2');
                     if (L(c, 7) == '_C__') return g(c, d, ['\0'], 'string');
                 }
-                if (/\w/.test(x)) {
-                    var z = c.pos;
+                if (/\w/.test(w)) {
+                    var E = c.pos;
                     if (
                         p(c, -2) == '{' &&
                         (p(c, 0) == '}' || (c.eatWhile(/\w/) && p(c, 0) == '}'))
                     )
                         return 'string';
-                    c.pos = z;
+                    c.pos = E;
                 }
-                if (/[A-Z]/.test(x)) {
-                    var W = p(c, -2),
-                        z = c.pos;
+                if (/[A-Z]/.test(w)) {
+                    var R = p(c, -2),
+                        E = c.pos;
                     if ((c.eatWhile(/[A-Z_]/), /[\da-z]/.test(p(c, 0))))
-                        c.pos = z;
+                        c.pos = E;
                     else {
-                        var w = S[c.current()];
-                        return w
-                            ? (w[1] && (w = w[0]),
-                              W != ':'
-                                  ? w == 1
+                        var k = S[c.current()];
+                        return k
+                            ? (k[1] && (k = k[0]),
+                              R != ':'
+                                  ? k == 1
                                       ? 'keyword'
-                                      : w == 2
+                                      : k == 2
                                         ? 'def'
-                                        : w == 3
+                                        : k == 3
                                           ? 'atom'
-                                          : w == 4
+                                          : k == 4
                                             ? 'operator'
-                                            : w == 5
+                                            : k == 5
                                               ? 'variable-2'
                                               : 'meta'
                                   : 'meta')
                             : 'meta';
                     }
                 }
-                if (/[a-zA-Z_]/.test(x)) {
-                    var W = p(c, -2);
+                if (/[a-zA-Z_]/.test(w)) {
+                    var R = p(c, -2);
                     c.eatWhile(/\w/);
-                    var w = S[c.current()];
-                    return w
-                        ? (w[1] && (w = w[0]),
-                          W != ':'
-                              ? w == 1
+                    var k = S[c.current()];
+                    return k
+                        ? (k[1] && (k = k[0]),
+                          R != ':'
+                              ? k == 1
                                   ? 'keyword'
-                                  : w == 2
+                                  : k == 2
                                     ? 'def'
-                                    : w == 3
+                                    : k == 3
                                       ? 'atom'
-                                      : w == 4
+                                      : k == 4
                                         ? 'operator'
-                                        : w == 5
+                                        : k == 5
                                           ? 'variable-2'
                                           : 'meta'
                               : 'meta')
@@ -19418,14 +19418,14 @@ var _u = Ke((yu, xu) => {
             return {
                 startState: function () {
                     return {
-                        tokenize: k,
+                        tokenize: _,
                         chain: null,
                         style: null,
                         tail: null,
                     };
                 },
                 token: function (c, d) {
-                    return (d.tokenize || k)(c, d);
+                    return (d.tokenize || _)(c, d);
                 },
                 lineComment: '#',
             };
@@ -19474,32 +19474,32 @@ var Su = Ke((ku, wu) => {
     })(function (o) {
         'use strict';
         function p(C) {
-            for (var k = {}, c = C.split(' '), d = 0; d < c.length; ++d)
-                k[c[d]] = !0;
-            return k;
+            for (var _ = {}, c = C.split(' '), d = 0; d < c.length; ++d)
+                _[c[d]] = !0;
+            return _;
         }
-        function v(C, k, c) {
+        function v(C, _, c) {
             return C.length == 0
-                ? L(k)
-                : function (d, x) {
-                      for (var z = C[0], M = 0; M < z.length; M++)
-                          if (d.match(z[M][0]))
-                              return ((x.tokenize = v(C.slice(1), k)), z[M][1]);
-                      return ((x.tokenize = L(k, c)), 'string');
+                ? L(_)
+                : function (d, w) {
+                      for (var E = C[0], z = 0; z < E.length; z++)
+                          if (d.match(E[z][0]))
+                              return ((w.tokenize = v(C.slice(1), _)), E[z][1]);
+                      return ((w.tokenize = L(_, c)), 'string');
                   };
         }
-        function L(C, k) {
+        function L(C, _) {
             return function (c, d) {
-                return b(c, d, C, k);
+                return b(c, d, C, _);
             };
         }
-        function b(C, k, c, d) {
+        function b(C, _, c, d) {
             if ((d !== !1 && C.match('${', !1)) || C.match('{$', !1))
-                return ((k.tokenize = null), 'string');
+                return ((_.tokenize = null), 'string');
             if (d !== !1 && C.match(/^\$[a-zA-Z_][a-zA-Z0-9_]*/))
                 return (
                     C.match('[', !1) &&
-                        (k.tokenize = v(
+                        (_.tokenize = v(
                             [
                                 [['[', null]],
                                 [
@@ -19513,7 +19513,7 @@ var Su = Ke((ku, wu) => {
                             d,
                         )),
                     C.match(/^->\w/, !1) &&
-                        (k.tokenize = v(
+                        (_.tokenize = v(
                             [[['->', null]], [[/[\w]+/, 'variable']]],
                             c,
                             d,
@@ -19521,18 +19521,18 @@ var Su = Ke((ku, wu) => {
                     'variable-2'
                 );
             for (
-                var x = !1;
+                var w = !1;
                 !C.eol() &&
-                (x ||
+                (w ||
                     d === !1 ||
                     (!C.match('{$', !1) &&
                         !C.match(/^(\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{)/, !1)));
             ) {
-                if (!x && C.match(c)) {
-                    ((k.tokenize = null), k.tokStack.pop(), k.tokStack.pop());
+                if (!w && C.match(c)) {
+                    ((_.tokenize = null), _.tokStack.pop(), _.tokStack.pop());
                     break;
                 }
-                x = C.next() == '\\' && !x;
+                w = C.next() == '\\' && !w;
             }
             return 'string';
         }
@@ -19559,16 +19559,16 @@ var Su = Ke((ku, wu) => {
                 $: function (C) {
                     return (C.eatWhile(/[\w\$_]/), 'variable-2');
                 },
-                '<': function (C, k) {
+                '<': function (C, _) {
                     var c;
                     if ((c = C.match(/^<<\s*/))) {
                         var d = C.eat(/['"]/);
                         C.eatWhile(/[\w\.]/);
-                        var x = C.current().slice(c[0].length + (d ? 2 : 1));
-                        if ((d && C.eat(d), x))
+                        var w = C.current().slice(c[0].length + (d ? 2 : 1));
+                        if ((d && C.eat(d), w))
                             return (
-                                (k.tokStack || (k.tokStack = [])).push(x, 0),
-                                (k.tokenize = L(x, d != "'")),
+                                (_.tokStack || (_.tokStack = [])).push(w, 0),
+                                (_.tokenize = L(w, d != "'")),
                                 'string'
                             );
                     }
@@ -19585,27 +19585,27 @@ var Su = Ke((ku, wu) => {
                     }
                     return !1;
                 },
-                '"': function (C, k) {
+                '"': function (C, _) {
                     return (
-                        (k.tokStack || (k.tokStack = [])).push('"', 0),
-                        (k.tokenize = L('"')),
+                        (_.tokStack || (_.tokStack = [])).push('"', 0),
+                        (_.tokenize = L('"')),
                         'string'
                     );
                 },
-                '{': function (C, k) {
+                '{': function (C, _) {
                     return (
-                        k.tokStack &&
-                            k.tokStack.length &&
-                            k.tokStack[k.tokStack.length - 1]++,
+                        _.tokStack &&
+                            _.tokStack.length &&
+                            _.tokStack[_.tokStack.length - 1]++,
                         !1
                     );
                 },
-                '}': function (C, k) {
+                '}': function (C, _) {
                     return (
-                        k.tokStack &&
-                            k.tokStack.length > 0 &&
-                            !--k.tokStack[k.tokStack.length - 1] &&
-                            (k.tokenize = L(k.tokStack[k.tokStack.length - 2])),
+                        _.tokStack &&
+                            _.tokStack.length > 0 &&
+                            !--_.tokStack[_.tokStack.length - 1] &&
+                            (_.tokenize = L(_.tokStack[_.tokStack.length - 2])),
                         !1
                     );
                 },
@@ -19613,99 +19613,99 @@ var Su = Ke((ku, wu) => {
         };
         (o.defineMode(
             'php',
-            function (C, k) {
-                var c = o.getMode(C, (k && k.htmlMode) || 'text/html'),
+            function (C, _) {
+                var c = o.getMode(C, (_ && _.htmlMode) || 'text/html'),
                     d = o.getMode(C, g);
-                function x(z, M) {
-                    var w = M.curMode == d;
+                function w(E, z) {
+                    var k = z.curMode == d;
                     if (
-                        (z.sol() &&
-                            M.pending &&
-                            M.pending != '"' &&
-                            M.pending != "'" &&
-                            (M.pending = null),
-                        w)
+                        (E.sol() &&
+                            z.pending &&
+                            z.pending != '"' &&
+                            z.pending != "'" &&
+                            (z.pending = null),
+                        k)
                     )
-                        return w && M.php.tokenize == null && z.match('?>')
-                            ? ((M.curMode = c),
-                              (M.curState = M.html),
-                              M.php.context.prev || (M.php = null),
+                        return k && z.php.tokenize == null && E.match('?>')
+                            ? ((z.curMode = c),
+                              (z.curState = z.html),
+                              z.php.context.prev || (z.php = null),
                               'meta')
-                            : d.token(z, M.curState);
-                    if (z.match(/^<\?\w*/))
+                            : d.token(E, z.curState);
+                    if (E.match(/^<\?\w*/))
                         return (
-                            (M.curMode = d),
-                            M.php ||
-                                (M.php = o.startState(
+                            (z.curMode = d),
+                            z.php ||
+                                (z.php = o.startState(
                                     d,
-                                    c.indent(M.html, '', ''),
+                                    c.indent(z.html, '', ''),
                                 )),
-                            (M.curState = M.php),
+                            (z.curState = z.php),
                             'meta'
                         );
-                    if (M.pending == '"' || M.pending == "'") {
-                        for (; !z.eol() && z.next() != M.pending;);
-                        var W = 'string';
-                    } else if (M.pending && z.pos < M.pending.end) {
-                        z.pos = M.pending.end;
-                        var W = M.pending.style;
-                    } else var W = c.token(z, M.curState);
-                    M.pending && (M.pending = null);
-                    var E = z.current(),
-                        N = E.search(/<\?/),
-                        K;
+                    if (z.pending == '"' || z.pending == "'") {
+                        for (; !E.eol() && E.next() != z.pending;);
+                        var R = 'string';
+                    } else if (z.pending && E.pos < z.pending.end) {
+                        E.pos = z.pending.end;
+                        var R = z.pending.style;
+                    } else var R = c.token(E, z.curState);
+                    z.pending && (z.pending = null);
+                    var M = E.current(),
+                        I = M.search(/<\?/),
+                        U;
                     return (
-                        N != -1 &&
-                            (W == 'string' &&
-                            (K = E.match(/[\'\"]$/)) &&
-                            !/\?>/.test(E)
-                                ? (M.pending = K[0])
-                                : (M.pending = { end: z.pos, style: W }),
-                            z.backUp(E.length - N)),
-                        W
+                        I != -1 &&
+                            (R == 'string' &&
+                            (U = M.match(/[\'\"]$/)) &&
+                            !/\?>/.test(M)
+                                ? (z.pending = U[0])
+                                : (z.pending = { end: E.pos, style: R }),
+                            E.backUp(M.length - I)),
+                        R
                     );
                 }
                 return {
                     startState: function () {
-                        var z = o.startState(c),
-                            M = k.startOpen ? o.startState(d) : null;
+                        var E = o.startState(c),
+                            z = _.startOpen ? o.startState(d) : null;
                         return {
-                            html: z,
-                            php: M,
-                            curMode: k.startOpen ? d : c,
-                            curState: k.startOpen ? M : z,
+                            html: E,
+                            php: z,
+                            curMode: _.startOpen ? d : c,
+                            curState: _.startOpen ? z : E,
                             pending: null,
                         };
                     },
-                    copyState: function (z) {
-                        var M = z.html,
-                            w = o.copyState(c, M),
-                            W = z.php,
-                            E = W && o.copyState(d, W),
-                            N;
+                    copyState: function (E) {
+                        var z = E.html,
+                            k = o.copyState(c, z),
+                            R = E.php,
+                            M = R && o.copyState(d, R),
+                            I;
                         return (
-                            z.curMode == c ? (N = w) : (N = E),
+                            E.curMode == c ? (I = k) : (I = M),
                             {
-                                html: w,
-                                php: E,
-                                curMode: z.curMode,
-                                curState: N,
-                                pending: z.pending,
+                                html: k,
+                                php: M,
+                                curMode: E.curMode,
+                                curState: I,
+                                pending: E.pending,
                             }
                         );
                     },
-                    token: x,
-                    indent: function (z, M, w) {
-                        return (z.curMode != d && /^\s*<\//.test(M)) ||
-                            (z.curMode == d && /^\?>/.test(M))
-                            ? c.indent(z.html, M, w)
-                            : z.curMode.indent(z.curState, M, w);
+                    token: w,
+                    indent: function (E, z, k) {
+                        return (E.curMode != d && /^\s*<\//.test(z)) ||
+                            (E.curMode == d && /^\?>/.test(z))
+                            ? c.indent(E.html, z, k)
+                            : E.curMode.indent(E.curState, z, k);
                     },
                     blockCommentStart: '/*',
                     blockCommentEnd: '*/',
                     lineComment: '//',
-                    innerMode: function (z) {
-                        return { state: z.curState, mode: z.curMode };
+                    innerMode: function (E) {
+                        return { state: E.curState, mode: E.curMode };
                     },
                 };
             },
@@ -19914,7 +19914,7 @@ var Mu = Ke((Eu, zu) => {
         (o.defineMode('python', function (h, g) {
             for (
                 var C = 'error',
-                    k =
+                    _ =
                         g.delimiters ||
                         g.singleDelimiters ||
                         /^[\(\)\[\]\{\}@,:`=;\.\\]/,
@@ -19931,17 +19931,17 @@ var Mu = Ke((Eu, zu) => {
                 d++
             )
                 c[d] || c.splice(d--, 1);
-            var x = g.hangingIndent || h.indentUnit,
-                z = L,
-                M = b;
-            (g.extra_keywords != null && (z = z.concat(g.extra_keywords)),
-                g.extra_builtins != null && (M = M.concat(g.extra_builtins)));
-            var w = !(g.version && Number(g.version) < 3);
-            if (w) {
-                var W =
+            var w = g.hangingIndent || h.indentUnit,
+                E = L,
+                z = b;
+            (g.extra_keywords != null && (E = E.concat(g.extra_keywords)),
+                g.extra_builtins != null && (z = z.concat(g.extra_builtins)));
+            var k = !(g.version && Number(g.version) < 3);
+            if (k) {
+                var R =
                     g.identifiers ||
                     /^[_A-Za-z\u00A1-\uFFFF][_A-Za-z0-9\u00A1-\uFFFF]*/;
-                ((z = z.concat([
+                ((E = E.concat([
                     'nonlocal',
                     'None',
                     'aiter',
@@ -19952,15 +19952,15 @@ var Mu = Ke((Eu, zu) => {
                     'match',
                     'case',
                 ])),
-                    (M = M.concat(['ascii', 'bytes', 'exec', 'print'])));
-                var E = new RegExp(
+                    (z = z.concat(['ascii', 'bytes', 'exec', 'print'])));
+                var M = new RegExp(
                     `^(([rbuf]|(br)|(rb)|(fr)|(rf))?('{3}|"{3}|['"]))`,
                     'i',
                 );
             } else {
-                var W = g.identifiers || /^[_A-Za-z][_A-Za-z0-9]*/;
-                ((z = z.concat(['exec', 'print'])),
-                    (M = M.concat([
+                var R = g.identifiers || /^[_A-Za-z][_A-Za-z0-9]*/;
+                ((E = E.concat(['exec', 'print'])),
+                    (z = z.concat([
                         'apply',
                         'basestring',
                         'buffer',
@@ -19978,25 +19978,25 @@ var Mu = Ke((Eu, zu) => {
                         'xrange',
                         'None',
                     ])));
-                var E = new RegExp(
+                var M = new RegExp(
                     `^(([rubf]|(ur)|(br))?('{3}|"{3}|['"]))`,
                     'i',
                 );
             }
-            var N = p(z),
-                K = p(M);
+            var I = p(E),
+                U = p(z);
             function J(G, X) {
                 var O = G.sol() && X.lastToken != '\\';
                 if (
                     (O && (X.indent = G.indentation()), O && S(X).type == 'py')
                 ) {
-                    var R = S(X).offset;
+                    var H = S(X).offset;
                     if (G.eatSpace()) {
                         var se = G.indentation();
                         return (
-                            se > R
+                            se > H
                                 ? D(X)
-                                : se < R &&
+                                : se < H &&
                                   j(G, X) &&
                                   G.peek() != '#' &&
                                   (X.errorToken = !0),
@@ -20004,7 +20004,7 @@ var Mu = Ke((Eu, zu) => {
                         );
                     } else {
                         var _e = re(G, X);
-                        return (R > 0 && j(G, X) && (_e += ' ' + C), _e);
+                        return (H > 0 && j(G, X) && (_e += ' ' + C), _e);
                     }
                 }
                 return re(G, X);
@@ -20013,12 +20013,12 @@ var Mu = Ke((Eu, zu) => {
                 if (G.eatSpace()) return null;
                 if (!O && G.match(/^#.*/)) return 'comment';
                 if (G.match(/^[0-9\.]/, !1)) {
-                    var R = !1;
+                    var H = !1;
                     if (
-                        (G.match(/^[\d_]*\.\d+(e[\+\-]?\d+)?/i) && (R = !0),
-                        G.match(/^[\d_]+\.\d*/) && (R = !0),
-                        G.match(/^\.\d+/) && (R = !0),
-                        R)
+                        (G.match(/^[\d_]*\.\d+(e[\+\-]?\d+)?/i) && (H = !0),
+                        G.match(/^[\d_]+\.\d*/) && (H = !0),
+                        G.match(/^\.\d+/) && (H = !0),
+                        H)
                     )
                         return (G.eat(/J/i), 'number');
                     var se = !1;
@@ -20033,94 +20033,94 @@ var Mu = Ke((Eu, zu) => {
                     )
                         return (G.eat(/L/i), 'number');
                 }
-                if (G.match(E)) {
+                if (G.match(M)) {
                     var _e = G.current().toLowerCase().indexOf('f') !== -1;
                     return _e
-                        ? ((X.tokenize = q(G.current(), X.tokenize)),
+                        ? ((X.tokenize = F(G.current(), X.tokenize)),
                           X.tokenize(G, X))
-                        : ((X.tokenize = F(G.current(), X.tokenize)),
+                        : ((X.tokenize = q(G.current(), X.tokenize)),
                           X.tokenize(G, X));
                 }
-                for (var I = 0; I < c.length; I++)
-                    if (G.match(c[I])) return 'operator';
-                return G.match(k)
+                for (var N = 0; N < c.length; N++)
+                    if (G.match(c[N])) return 'operator';
+                return G.match(_)
                     ? 'punctuation'
-                    : X.lastToken == '.' && G.match(W)
+                    : X.lastToken == '.' && G.match(R)
                       ? 'property'
-                      : G.match(N) || G.match(v)
+                      : G.match(I) || G.match(v)
                         ? 'keyword'
-                        : G.match(K)
+                        : G.match(U)
                           ? 'builtin'
                           : G.match(/^(self|cls)\b/)
                             ? 'variable-2'
-                            : G.match(W)
+                            : G.match(R)
                               ? X.lastToken == 'def' || X.lastToken == 'class'
                                   ? 'def'
                                   : 'variable'
                               : (G.next(), O ? null : C);
             }
-            function q(G, X) {
+            function F(G, X) {
                 for (; 'rubf'.indexOf(G.charAt(0).toLowerCase()) >= 0;)
                     G = G.substr(1);
                 var O = G.length == 1,
-                    R = 'string';
-                function se(I) {
+                    H = 'string';
+                function se(N) {
                     return function (T, he) {
                         var ze = re(T, he, !0);
                         return (
                             ze == 'punctuation' &&
                                 (T.current() == '{'
-                                    ? (he.tokenize = se(I + 1))
+                                    ? (he.tokenize = se(N + 1))
                                     : T.current() == '}' &&
-                                      (I > 1
-                                          ? (he.tokenize = se(I - 1))
+                                      (N > 1
+                                          ? (he.tokenize = se(N - 1))
                                           : (he.tokenize = _e))),
                             ze
                         );
                     };
                 }
-                function _e(I, T) {
-                    for (; !I.eol();)
-                        if ((I.eatWhile(/[^'"\{\}\\]/), I.eat('\\'))) {
-                            if ((I.next(), O && I.eol())) return R;
+                function _e(N, T) {
+                    for (; !N.eol();)
+                        if ((N.eatWhile(/[^'"\{\}\\]/), N.eat('\\'))) {
+                            if ((N.next(), O && N.eol())) return H;
                         } else {
-                            if (I.match(G)) return ((T.tokenize = X), R);
-                            if (I.match('{{')) return R;
-                            if (I.match('{', !1))
+                            if (N.match(G)) return ((T.tokenize = X), H);
+                            if (N.match('{{')) return H;
+                            if (N.match('{', !1))
                                 return (
                                     (T.tokenize = se(0)),
-                                    I.current() ? R : T.tokenize(I, T)
+                                    N.current() ? H : T.tokenize(N, T)
                                 );
-                            if (I.match('}}')) return R;
-                            if (I.match('}')) return C;
-                            I.eat(/['"]/);
+                            if (N.match('}}')) return H;
+                            if (N.match('}')) return C;
+                            N.eat(/['"]/);
                         }
                     if (O) {
                         if (g.singleLineStringErrors) return C;
                         T.tokenize = X;
                     }
-                    return R;
+                    return H;
                 }
                 return ((_e.isString = !0), _e);
             }
-            function F(G, X) {
+            function q(G, X) {
                 for (; 'rubf'.indexOf(G.charAt(0).toLowerCase()) >= 0;)
                     G = G.substr(1);
                 var O = G.length == 1,
-                    R = 'string';
-                function se(_e, I) {
+                    H = 'string';
+                function se(_e, N) {
                     for (; !_e.eol();)
                         if ((_e.eatWhile(/[^'"\\]/), _e.eat('\\'))) {
-                            if ((_e.next(), O && _e.eol())) return R;
+                            if ((_e.next(), O && _e.eol())) return H;
                         } else {
-                            if (_e.match(G)) return ((I.tokenize = X), R);
+                            if (_e.match(G)) return ((N.tokenize = X), H);
                             _e.eat(/['"]/);
                         }
                     if (O) {
                         if (g.singleLineStringErrors) return C;
-                        I.tokenize = X;
+                        N.tokenize = X;
                     }
-                    return R;
+                    return H;
                 }
                 return ((se.isString = !0), se);
             }
@@ -20133,10 +20133,10 @@ var Mu = Ke((Eu, zu) => {
                 });
             }
             function Q(G, X, O) {
-                var R = G.match(/^[\s\[\{\(]*(?:#|$)/, !1)
+                var H = G.match(/^[\s\[\{\(]*(?:#|$)/, !1)
                     ? null
                     : G.column() + 1;
-                X.scopes.push({ offset: X.indent + x, type: O, align: R });
+                X.scopes.push({ offset: X.indent + w, type: O, align: H });
             }
             function j(G, X) {
                 for (
@@ -20151,31 +20151,31 @@ var Mu = Ke((Eu, zu) => {
             function V(G, X) {
                 G.sol() && ((X.beginningOfLine = !0), (X.dedent = !1));
                 var O = X.tokenize(G, X),
-                    R = G.current();
-                if (X.beginningOfLine && R == '@')
-                    return G.match(W, !1) ? 'meta' : w ? 'operator' : C;
+                    H = G.current();
+                if (X.beginningOfLine && H == '@')
+                    return G.match(R, !1) ? 'meta' : k ? 'operator' : C;
                 if (
-                    (/\S/.test(R) && (X.beginningOfLine = !1),
+                    (/\S/.test(H) && (X.beginningOfLine = !1),
                     (O == 'variable' || O == 'builtin') &&
                         X.lastToken == 'meta' &&
                         (O = 'meta'),
-                    (R == 'pass' || R == 'return') && (X.dedent = !0),
-                    R == 'lambda' && (X.lambda = !0),
-                    R == ':' &&
+                    (H == 'pass' || H == 'return') && (X.dedent = !0),
+                    H == 'lambda' && (X.lambda = !0),
+                    H == ':' &&
                         !X.lambda &&
                         S(X).type == 'py' &&
                         G.match(/^\s*(?:#|$)/, !1) &&
                         D(X),
-                    R.length == 1 && !/string|comment/.test(O))
+                    H.length == 1 && !/string|comment/.test(O))
                 ) {
-                    var se = '[({'.indexOf(R);
+                    var se = '[({'.indexOf(H);
                     if (
                         (se != -1 && Q(G, X, '])}'.slice(se, se + 1)),
-                        (se = '])}'.indexOf(R)),
+                        (se = '])}'.indexOf(H)),
                         se != -1)
                     )
-                        if (S(X).type == R)
-                            X.indent = X.scopes.pop().offset - x;
+                        if (S(X).type == H)
+                            X.indent = X.scopes.pop().offset - w;
                         else return C;
                 }
                 return (
@@ -20201,31 +20201,31 @@ var Mu = Ke((Eu, zu) => {
                 token: function (G, X) {
                     var O = X.errorToken;
                     O && (X.errorToken = !1);
-                    var R = V(G, X);
+                    var H = V(G, X);
                     return (
-                        R &&
-                            R != 'comment' &&
+                        H &&
+                            H != 'comment' &&
                             (X.lastToken =
-                                R == 'keyword' || R == 'punctuation'
+                                H == 'keyword' || H == 'punctuation'
                                     ? G.current()
-                                    : R),
-                        R == 'punctuation' && (R = null),
+                                    : H),
+                        H == 'punctuation' && (H = null),
                         G.eol() && X.lambda && (X.lambda = !1),
-                        O ? R + ' ' + C : R
+                        O ? H + ' ' + C : H
                     );
                 },
                 indent: function (G, X) {
                     if (G.tokenize != J)
                         return G.tokenize.isString ? o.Pass : 0;
                     var O = S(G),
-                        R =
+                        H =
                             O.type == X.charAt(0) ||
                             (O.type == 'py' &&
                                 !G.dedent &&
                                 /^(else:|elif |except |finally:)/.test(X));
                     return O.align != null
-                        ? O.align - (R ? 1 : 0)
-                        : O.offset - (R ? x : 0);
+                        ? O.align - (H ? 1 : 0)
+                        : O.offset - (H ? w : 0);
                 },
                 electricInput: /^\s*([\}\]\)]|else:|elif |except |finally:)$/,
                 closeBrackets: { triples: `'"` },
@@ -20256,7 +20256,7 @@ var qu = Ke((Au, Du) => {
     })(function (o) {
         'use strict';
         function p(g) {
-            for (var C = {}, k = 0, c = g.length; k < c; ++k) C[g[k]] = !0;
+            for (var C = {}, _ = 0, c = g.length; _ < c; ++_) C[g[_]] = !0;
             return C;
         }
         var v = [
@@ -20339,205 +20339,205 @@ var qu = Ke((Au, Du) => {
             h = { ']': '[', '}': '{', ')': '(' };
         (o.defineMode('ruby', function (g) {
             var C;
-            function k(E, N, K) {
-                return (K.tokenize.push(E), E(N, K));
+            function _(M, I, U) {
+                return (U.tokenize.push(M), M(I, U));
             }
-            function c(E, N) {
-                if (E.sol() && E.match('=begin') && E.eol())
-                    return (N.tokenize.push(W), 'comment');
-                if (E.eatSpace()) return null;
-                var K = E.next(),
+            function c(M, I) {
+                if (M.sol() && M.match('=begin') && M.eol())
+                    return (I.tokenize.push(R), 'comment');
+                if (M.eatSpace()) return null;
+                var U = M.next(),
                     J;
-                if (K == '`' || K == "'" || K == '"')
-                    return k(M(K, 'string', K == '"' || K == '`'), E, N);
-                if (K == '/')
-                    return d(E) ? k(M(K, 'string-2', !0), E, N) : 'operator';
-                if (K == '%') {
+                if (U == '`' || U == "'" || U == '"')
+                    return _(z(U, 'string', U == '"' || U == '`'), M, I);
+                if (U == '/')
+                    return d(M) ? _(z(U, 'string-2', !0), M, I) : 'operator';
+                if (U == '%') {
                     var re = 'string',
-                        q = !0;
-                    E.eat('s')
+                        F = !0;
+                    M.eat('s')
                         ? (re = 'atom')
-                        : E.eat(/[WQ]/)
+                        : M.eat(/[WQ]/)
                           ? (re = 'string')
-                          : E.eat(/[r]/)
+                          : M.eat(/[r]/)
                             ? (re = 'string-2')
-                            : E.eat(/[wxq]/) && ((re = 'string'), (q = !1));
-                    var F = E.eat(/[^\w\s=]/);
-                    return F
-                        ? (s.propertyIsEnumerable(F) && (F = s[F]),
-                          k(M(F, re, q, !0), E, N))
+                            : M.eat(/[wxq]/) && ((re = 'string'), (F = !1));
+                    var q = M.eat(/[^\w\s=]/);
+                    return q
+                        ? (s.propertyIsEnumerable(q) && (q = s[q]),
+                          _(z(q, re, F, !0), M, I))
                         : 'operator';
                 } else {
-                    if (K == '#') return (E.skipToEnd(), 'comment');
+                    if (U == '#') return (M.skipToEnd(), 'comment');
                     if (
-                        K == '<' &&
-                        (J = E.match(
+                        U == '<' &&
+                        (J = M.match(
                             /^<([-~])[\`\"\']?([a-zA-Z_?]\w*)[\`\"\']?(?:;|$)/,
                         ))
                     )
-                        return k(w(J[2], J[1]), E, N);
-                    if (K == '0')
+                        return _(k(J[2], J[1]), M, I);
+                    if (U == '0')
                         return (
-                            E.eat('x')
-                                ? E.eatWhile(/[\da-fA-F]/)
-                                : E.eat('b')
-                                  ? E.eatWhile(/[01]/)
-                                  : E.eatWhile(/[0-7]/),
+                            M.eat('x')
+                                ? M.eatWhile(/[\da-fA-F]/)
+                                : M.eat('b')
+                                  ? M.eatWhile(/[01]/)
+                                  : M.eatWhile(/[0-7]/),
                             'number'
                         );
-                    if (/\d/.test(K))
+                    if (/\d/.test(U))
                         return (
-                            E.match(
+                            M.match(
                                 /^[\d_]*(?:\.[\d_]+)?(?:[eE][+\-]?[\d_]+)?/,
                             ),
                             'number'
                         );
-                    if (K == '?') {
-                        for (; E.match(/^\\[CM]-/););
+                    if (U == '?') {
+                        for (; M.match(/^\\[CM]-/););
                         return (
-                            E.eat('\\') ? E.eatWhile(/\w/) : E.next(),
+                            M.eat('\\') ? M.eatWhile(/\w/) : M.next(),
                             'string'
                         );
                     } else {
-                        if (K == ':')
-                            return E.eat("'")
-                                ? k(M("'", 'atom', !1), E, N)
-                                : E.eat('"')
-                                  ? k(M('"', 'atom', !0), E, N)
-                                  : E.eat(/[\<\>]/)
-                                    ? (E.eat(/[\<\>]/), 'atom')
-                                    : E.eat(/[\+\-\*\/\&\|\:\!]/)
+                        if (U == ':')
+                            return M.eat("'")
+                                ? _(z("'", 'atom', !1), M, I)
+                                : M.eat('"')
+                                  ? _(z('"', 'atom', !0), M, I)
+                                  : M.eat(/[\<\>]/)
+                                    ? (M.eat(/[\<\>]/), 'atom')
+                                    : M.eat(/[\+\-\*\/\&\|\:\!]/)
                                       ? 'atom'
-                                      : E.eat(/[a-zA-Z$@_\xa1-\uffff]/)
-                                        ? (E.eatWhile(/[\w$\xa1-\uffff]/),
-                                          E.eat(/[\?\!\=]/),
+                                      : M.eat(/[a-zA-Z$@_\xa1-\uffff]/)
+                                        ? (M.eatWhile(/[\w$\xa1-\uffff]/),
+                                          M.eat(/[\?\!\=]/),
                                           'atom')
                                         : 'operator';
-                        if (K == '@' && E.match(/^@?[a-zA-Z_\xa1-\uffff]/))
+                        if (U == '@' && M.match(/^@?[a-zA-Z_\xa1-\uffff]/))
                             return (
-                                E.eat('@'),
-                                E.eatWhile(/[\w\xa1-\uffff]/),
+                                M.eat('@'),
+                                M.eatWhile(/[\w\xa1-\uffff]/),
                                 'variable-2'
                             );
-                        if (K == '$')
+                        if (U == '$')
                             return (
-                                E.eat(/[a-zA-Z_]/)
-                                    ? E.eatWhile(/[\w]/)
-                                    : E.eat(/\d/)
-                                      ? E.eat(/\d/)
-                                      : E.next(),
+                                M.eat(/[a-zA-Z_]/)
+                                    ? M.eatWhile(/[\w]/)
+                                    : M.eat(/\d/)
+                                      ? M.eat(/\d/)
+                                      : M.next(),
                                 'variable-3'
                             );
-                        if (/[a-zA-Z_\xa1-\uffff]/.test(K))
+                        if (/[a-zA-Z_\xa1-\uffff]/.test(U))
                             return (
-                                E.eatWhile(/[\w\xa1-\uffff]/),
-                                E.eat(/[\?\!]/),
-                                E.eat(':') ? 'atom' : 'ident'
+                                M.eatWhile(/[\w\xa1-\uffff]/),
+                                M.eat(/[\?\!]/),
+                                M.eat(':') ? 'atom' : 'ident'
                             );
                         if (
-                            K == '|' &&
-                            (N.varList || N.lastTok == '{' || N.lastTok == 'do')
+                            U == '|' &&
+                            (I.varList || I.lastTok == '{' || I.lastTok == 'do')
                         )
                             return ((C = '|'), null);
-                        if (/[\(\)\[\]{}\\;]/.test(K)) return ((C = K), null);
-                        if (K == '-' && E.eat('>')) return 'arrow';
-                        if (/[=+\-\/*:\.^%<>~|]/.test(K)) {
-                            var D = E.eatWhile(/[=+\-\/*:\.^%<>~|]/);
-                            return (K == '.' && !D && (C = '.'), 'operator');
+                        if (/[\(\)\[\]{}\\;]/.test(U)) return ((C = U), null);
+                        if (U == '-' && M.eat('>')) return 'arrow';
+                        if (/[=+\-\/*:\.^%<>~|]/.test(U)) {
+                            var D = M.eatWhile(/[=+\-\/*:\.^%<>~|]/);
+                            return (U == '.' && !D && (C = '.'), 'operator');
                         } else return null;
                     }
                 }
             }
-            function d(E) {
+            function d(M) {
                 for (
-                    var N = E.pos, K = 0, J, re = !1, q = !1;
-                    (J = E.next()) != null;
+                    var I = M.pos, U = 0, J, re = !1, F = !1;
+                    (J = M.next()) != null;
                 )
-                    if (q) q = !1;
+                    if (F) F = !1;
                     else {
-                        if ('[{('.indexOf(J) > -1) K++;
+                        if ('[{('.indexOf(J) > -1) U++;
                         else if (']})'.indexOf(J) > -1) {
-                            if ((K--, K < 0)) break;
-                        } else if (J == '/' && K == 0) {
+                            if ((U--, U < 0)) break;
+                        } else if (J == '/' && U == 0) {
                             re = !0;
                             break;
                         }
-                        q = J == '\\';
+                        F = J == '\\';
                     }
-                return (E.backUp(E.pos - N), re);
+                return (M.backUp(M.pos - I), re);
             }
-            function x(E) {
+            function w(M) {
                 return (
-                    E || (E = 1),
-                    function (N, K) {
-                        if (N.peek() == '}') {
-                            if (E == 1)
+                    M || (M = 1),
+                    function (I, U) {
+                        if (I.peek() == '}') {
+                            if (M == 1)
                                 return (
-                                    K.tokenize.pop(),
-                                    K.tokenize[K.tokenize.length - 1](N, K)
+                                    U.tokenize.pop(),
+                                    U.tokenize[U.tokenize.length - 1](I, U)
                                 );
-                            K.tokenize[K.tokenize.length - 1] = x(E - 1);
+                            U.tokenize[U.tokenize.length - 1] = w(M - 1);
                         } else
-                            N.peek() == '{' &&
-                                (K.tokenize[K.tokenize.length - 1] = x(E + 1));
-                        return c(N, K);
+                            I.peek() == '{' &&
+                                (U.tokenize[U.tokenize.length - 1] = w(M + 1));
+                        return c(I, U);
                     }
                 );
             }
-            function z() {
-                var E = !1;
-                return function (N, K) {
-                    return E
-                        ? (K.tokenize.pop(),
-                          K.tokenize[K.tokenize.length - 1](N, K))
-                        : ((E = !0), c(N, K));
+            function E() {
+                var M = !1;
+                return function (I, U) {
+                    return M
+                        ? (U.tokenize.pop(),
+                          U.tokenize[U.tokenize.length - 1](I, U))
+                        : ((M = !0), c(I, U));
                 };
             }
-            function M(E, N, K, J) {
-                return function (re, q) {
-                    var F = !1,
+            function z(M, I, U, J) {
+                return function (re, F) {
+                    var q = !1,
                         D;
                     for (
-                        q.context.type === 'read-quoted-paused' &&
-                        ((q.context = q.context.prev), re.eat('}'));
+                        F.context.type === 'read-quoted-paused' &&
+                        ((F.context = F.context.prev), re.eat('}'));
                         (D = re.next()) != null;
                     ) {
-                        if (D == E && (J || !F)) {
-                            q.tokenize.pop();
+                        if (D == M && (J || !q)) {
+                            F.tokenize.pop();
                             break;
                         }
-                        if (K && D == '#' && !F) {
+                        if (U && D == '#' && !q) {
                             if (re.eat('{')) {
-                                (E == '}' &&
-                                    (q.context = {
-                                        prev: q.context,
+                                (M == '}' &&
+                                    (F.context = {
+                                        prev: F.context,
                                         type: 'read-quoted-paused',
                                     }),
-                                    q.tokenize.push(x()));
+                                    F.tokenize.push(w()));
                                 break;
                             } else if (/[@\$]/.test(re.peek())) {
-                                q.tokenize.push(z());
+                                F.tokenize.push(E());
                                 break;
                             }
                         }
-                        F = !F && D == '\\';
+                        q = !q && D == '\\';
                     }
-                    return N;
+                    return I;
                 };
             }
-            function w(E, N) {
-                return function (K, J) {
+            function k(M, I) {
+                return function (U, J) {
                     return (
-                        N && K.eatSpace(),
-                        K.match(E) ? J.tokenize.pop() : K.skipToEnd(),
+                        I && U.eatSpace(),
+                        U.match(M) ? J.tokenize.pop() : U.skipToEnd(),
                         'string'
                     );
                 };
             }
-            function W(E, N) {
+            function R(M, I) {
                 return (
-                    E.sol() && E.match('=end') && E.eol() && N.tokenize.pop(),
-                    E.skipToEnd(),
+                    M.sol() && M.match('=end') && M.eol() && I.tokenize.pop(),
+                    M.skipToEnd(),
                     'comment'
                 );
             }
@@ -20552,69 +20552,69 @@ var qu = Ke((Au, Du) => {
                         varList: !1,
                     };
                 },
-                token: function (E, N) {
-                    ((C = null), E.sol() && (N.indented = E.indentation()));
-                    var K = N.tokenize[N.tokenize.length - 1](E, N),
+                token: function (M, I) {
+                    ((C = null), M.sol() && (I.indented = M.indentation()));
+                    var U = I.tokenize[I.tokenize.length - 1](M, I),
                         J,
                         re = C;
-                    if (K == 'ident') {
-                        var q = E.current();
-                        ((K =
-                            N.lastTok == '.'
+                    if (U == 'ident') {
+                        var F = M.current();
+                        ((U =
+                            I.lastTok == '.'
                                 ? 'property'
-                                : L.propertyIsEnumerable(E.current())
+                                : L.propertyIsEnumerable(M.current())
                                   ? 'keyword'
-                                  : /^[A-Z]/.test(q)
+                                  : /^[A-Z]/.test(F)
                                     ? 'tag'
-                                    : N.lastTok == 'def' ||
-                                        N.lastTok == 'class' ||
-                                        N.varList
+                                    : I.lastTok == 'def' ||
+                                        I.lastTok == 'class' ||
+                                        I.varList
                                       ? 'def'
                                       : 'variable'),
-                            K == 'keyword' &&
-                                ((re = q),
-                                b.propertyIsEnumerable(q)
+                            U == 'keyword' &&
+                                ((re = F),
+                                b.propertyIsEnumerable(F)
                                     ? (J = 'indent')
-                                    : S.propertyIsEnumerable(q)
+                                    : S.propertyIsEnumerable(F)
                                       ? (J = 'dedent')
-                                      : (((q == 'if' || q == 'unless') &&
-                                            E.column() == E.indentation()) ||
-                                            (q == 'do' &&
-                                                N.context.indented <
-                                                    N.indented)) &&
+                                      : (((F == 'if' || F == 'unless') &&
+                                            M.column() == M.indentation()) ||
+                                            (F == 'do' &&
+                                                I.context.indented <
+                                                    I.indented)) &&
                                         (J = 'indent')));
                     }
                     return (
-                        (C || (K && K != 'comment')) && (N.lastTok = re),
-                        C == '|' && (N.varList = !N.varList),
+                        (C || (U && U != 'comment')) && (I.lastTok = re),
+                        C == '|' && (I.varList = !I.varList),
                         J == 'indent' || /[\(\[\{]/.test(C)
-                            ? (N.context = {
-                                  prev: N.context,
-                                  type: C || K,
-                                  indented: N.indented,
+                            ? (I.context = {
+                                  prev: I.context,
+                                  type: C || U,
+                                  indented: I.indented,
                               })
                             : (J == 'dedent' || /[\)\]\}]/.test(C)) &&
-                              N.context.prev &&
-                              (N.context = N.context.prev),
-                        E.eol() &&
-                            (N.continuedLine = C == '\\' || K == 'operator'),
-                        K
+                              I.context.prev &&
+                              (I.context = I.context.prev),
+                        M.eol() &&
+                            (I.continuedLine = C == '\\' || U == 'operator'),
+                        U
                     );
                 },
-                indent: function (E, N) {
-                    if (E.tokenize[E.tokenize.length - 1] != c) return o.Pass;
-                    var K = N && N.charAt(0),
-                        J = E.context,
+                indent: function (M, I) {
+                    if (M.tokenize[M.tokenize.length - 1] != c) return o.Pass;
+                    var U = I && I.charAt(0),
+                        J = M.context,
                         re =
-                            J.type == h[K] ||
+                            J.type == h[U] ||
                             (J.type == 'keyword' &&
                                 /^(?:end|until|else|elsif|when|rescue)\b/.test(
-                                    N,
+                                    I,
                                 ));
                     return (
                         J.indented +
                         (re ? 0 : g.indentUnit) +
-                        (E.continuedLine ? g.indentUnit : 0)
+                        (M.continuedLine ? g.indentUnit : 0)
                     );
                 },
                 electricInput: /^\s*(?:end|rescue|elsif|else|\})$/,
@@ -20727,12 +20727,12 @@ var ea = Ke((Ou, Pu) => {
                     b = v.colorKeywords || {},
                     S = v.valueKeywords || {},
                     s = v.fontProperties || {};
-                function h(q) {
-                    return new RegExp('^' + q.join('|'));
+                function h(F) {
+                    return new RegExp('^' + F.join('|'));
                 }
                 var g = ['true', 'false', 'null', 'auto'],
                     C = new RegExp('^' + g.join('|')),
-                    k = [
+                    _ = [
                         '\\(',
                         '\\)',
                         '=',
@@ -20755,215 +20755,214 @@ var ea = Ke((Ou, Pu) => {
                         '\\}',
                         ':',
                     ],
-                    c = h(k),
+                    c = h(_),
                     d = /^::?[a-zA-Z_][\w\-]*/,
-                    x;
-                function z(q) {
-                    return !q.peek() || q.match(/\s+$/, !1);
+                    w;
+                function E(F) {
+                    return !F.peek() || F.match(/\s+$/, !1);
                 }
-                function M(q, F) {
-                    var D = q.peek();
+                function z(F, q) {
+                    var D = F.peek();
                     return D === ')'
-                        ? (q.next(), (F.tokenizer = J), 'operator')
+                        ? (F.next(), (q.tokenizer = J), 'operator')
                         : D === '('
-                          ? (q.next(), q.eatSpace(), 'operator')
+                          ? (F.next(), F.eatSpace(), 'operator')
                           : D === "'" || D === '"'
-                            ? ((F.tokenizer = W(q.next())), 'string')
-                            : ((F.tokenizer = W(')', !1)), 'string');
+                            ? ((q.tokenizer = R(F.next())), 'string')
+                            : ((q.tokenizer = R(')', !1)), 'string');
                 }
-                function w(q, F) {
+                function k(F, q) {
                     return function (D, Q) {
-                        return D.sol() && D.indentation() <= q
+                        return D.sol() && D.indentation() <= F
                             ? ((Q.tokenizer = J), J(D, Q))
-                            : (F && D.skipTo('*/')
+                            : (q && D.skipTo('*/')
                                   ? (D.next(), D.next(), (Q.tokenizer = J))
                                   : D.skipToEnd(),
                               'comment');
                     };
                 }
-                function W(q, F) {
-                    F == null && (F = !0);
+                function R(F, q) {
+                    q == null && (q = !0);
                     function D(Q, j) {
                         var V = Q.next(),
                             y = Q.peek(),
                             G = Q.string.charAt(Q.pos - 2),
                             X =
-                                (V !== '\\' && y === q) ||
-                                (V === q && G !== '\\');
+                                (V !== '\\' && y === F) ||
+                                (V === F && G !== '\\');
                         return X
-                            ? (V !== q && F && Q.next(),
-                              z(Q) && (j.cursorHalf = 0),
+                            ? (V !== F && q && Q.next(),
+                              E(Q) && (j.cursorHalf = 0),
                               (j.tokenizer = J),
                               'string')
                             : V === '#' && y === '{'
-                              ? ((j.tokenizer = E(D)), Q.next(), 'operator')
+                              ? ((j.tokenizer = M(D)), Q.next(), 'operator')
                               : 'string';
                     }
                     return D;
                 }
-                function E(q) {
-                    return function (F, D) {
-                        return F.peek() === '}'
-                            ? (F.next(), (D.tokenizer = q), 'operator')
-                            : J(F, D);
+                function M(F) {
+                    return function (q, D) {
+                        return q.peek() === '}'
+                            ? (q.next(), (D.tokenizer = F), 'operator')
+                            : J(q, D);
                     };
                 }
-                function N(q) {
-                    if (q.indentCount == 0) {
-                        q.indentCount++;
-                        var F = q.scopes[0].offset,
-                            D = F + p.indentUnit;
-                        q.scopes.unshift({ offset: D });
+                function I(F) {
+                    if (F.indentCount == 0) {
+                        F.indentCount++;
+                        var q = F.scopes[0].offset,
+                            D = q + p.indentUnit;
+                        F.scopes.unshift({ offset: D });
                     }
                 }
-                function K(q) {
-                    q.scopes.length != 1 && q.scopes.shift();
+                function U(F) {
+                    F.scopes.length != 1 && F.scopes.shift();
                 }
-                function J(q, F) {
-                    var D = q.peek();
-                    if (q.match('/*'))
+                function J(F, q) {
+                    var D = F.peek();
+                    if (F.match('/*'))
                         return (
-                            (F.tokenizer = w(q.indentation(), !0)),
-                            F.tokenizer(q, F)
+                            (q.tokenizer = k(F.indentation(), !0)),
+                            q.tokenizer(F, q)
                         );
-                    if (q.match('//'))
+                    if (F.match('//'))
                         return (
-                            (F.tokenizer = w(q.indentation(), !1)),
-                            F.tokenizer(q, F)
+                            (q.tokenizer = k(F.indentation(), !1)),
+                            q.tokenizer(F, q)
                         );
-                    if (q.match('#{'))
-                        return ((F.tokenizer = E(J)), 'operator');
+                    if (F.match('#{'))
+                        return ((q.tokenizer = M(J)), 'operator');
                     if (D === '"' || D === "'")
-                        return (q.next(), (F.tokenizer = W(D)), 'string');
-                    if (F.cursorHalf) {
+                        return (F.next(), (q.tokenizer = R(D)), 'string');
+                    if (q.cursorHalf) {
                         if (
                             (D === '#' &&
-                                (q.next(),
-                                q.match(/[0-9a-fA-F]{6}|[0-9a-fA-F]{3}/))) ||
-                            q.match(/^-?[0-9\.]+/)
+                                (F.next(),
+                                F.match(/[0-9a-fA-F]{6}|[0-9a-fA-F]{3}/))) ||
+                            F.match(/^-?[0-9\.]+/)
                         )
-                            return (z(q) && (F.cursorHalf = 0), 'number');
-                        if (q.match(/^(px|em|in)\b/))
-                            return (z(q) && (F.cursorHalf = 0), 'unit');
-                        if (q.match(C))
-                            return (z(q) && (F.cursorHalf = 0), 'keyword');
-                        if (q.match(/^url/) && q.peek() === '(')
+                            return (E(F) && (q.cursorHalf = 0), 'number');
+                        if (F.match(/^(px|em|in)\b/))
+                            return (E(F) && (q.cursorHalf = 0), 'unit');
+                        if (F.match(C))
+                            return (E(F) && (q.cursorHalf = 0), 'keyword');
+                        if (F.match(/^url/) && F.peek() === '(')
                             return (
-                                (F.tokenizer = M),
-                                z(q) && (F.cursorHalf = 0),
+                                (q.tokenizer = z),
+                                E(F) && (q.cursorHalf = 0),
                                 'atom'
                             );
                         if (D === '$')
                             return (
-                                q.next(),
-                                q.eatWhile(/[\w-]/),
-                                z(q) && (F.cursorHalf = 0),
+                                F.next(),
+                                F.eatWhile(/[\w-]/),
+                                E(F) && (q.cursorHalf = 0),
                                 'variable-2'
                             );
                         if (D === '!')
                             return (
-                                q.next(),
-                                (F.cursorHalf = 0),
-                                q.match(/^[\w]+/) ? 'keyword' : 'operator'
+                                F.next(),
+                                (q.cursorHalf = 0),
+                                F.match(/^[\w]+/) ? 'keyword' : 'operator'
                             );
-                        if (q.match(c))
-                            return (z(q) && (F.cursorHalf = 0), 'operator');
-                        if (q.eatWhile(/[\w-]/))
+                        if (F.match(c))
+                            return (E(F) && (q.cursorHalf = 0), 'operator');
+                        if (F.eatWhile(/[\w-]/))
                             return (
-                                z(q) && (F.cursorHalf = 0),
-                                (x = q.current().toLowerCase()),
-                                S.hasOwnProperty(x)
+                                E(F) && (q.cursorHalf = 0),
+                                (w = F.current().toLowerCase()),
+                                S.hasOwnProperty(w)
                                     ? 'atom'
-                                    : b.hasOwnProperty(x)
+                                    : b.hasOwnProperty(w)
                                       ? 'keyword'
-                                      : L.hasOwnProperty(x)
-                                        ? ((F.prevProp = q
-                                              .current()
-                                              .toLowerCase()),
+                                      : L.hasOwnProperty(w)
+                                        ? ((q.prevProp =
+                                              F.current().toLowerCase()),
                                           'property')
                                         : 'tag'
                             );
-                        if (z(q)) return ((F.cursorHalf = 0), null);
+                        if (E(F)) return ((q.cursorHalf = 0), null);
                     } else {
-                        if (D === '-' && q.match(/^-\w+-/)) return 'meta';
+                        if (D === '-' && F.match(/^-\w+-/)) return 'meta';
                         if (D === '.') {
-                            if ((q.next(), q.match(/^[\w-]+/)))
-                                return (N(F), 'qualifier');
-                            if (q.peek() === '#') return (N(F), 'tag');
+                            if ((F.next(), F.match(/^[\w-]+/)))
+                                return (I(q), 'qualifier');
+                            if (F.peek() === '#') return (I(q), 'tag');
                         }
                         if (D === '#') {
-                            if ((q.next(), q.match(/^[\w-]+/)))
-                                return (N(F), 'builtin');
-                            if (q.peek() === '#') return (N(F), 'tag');
+                            if ((F.next(), F.match(/^[\w-]+/)))
+                                return (I(q), 'builtin');
+                            if (F.peek() === '#') return (I(q), 'tag');
                         }
                         if (D === '$')
                             return (
-                                q.next(),
-                                q.eatWhile(/[\w-]/),
+                                F.next(),
+                                F.eatWhile(/[\w-]/),
                                 'variable-2'
                             );
-                        if (q.match(/^-?[0-9\.]+/)) return 'number';
-                        if (q.match(/^(px|em|in)\b/)) return 'unit';
-                        if (q.match(C)) return 'keyword';
-                        if (q.match(/^url/) && q.peek() === '(')
-                            return ((F.tokenizer = M), 'atom');
-                        if (D === '=' && q.match(/^=[\w-]+/))
-                            return (N(F), 'meta');
-                        if (D === '+' && q.match(/^\+[\w-]+/))
+                        if (F.match(/^-?[0-9\.]+/)) return 'number';
+                        if (F.match(/^(px|em|in)\b/)) return 'unit';
+                        if (F.match(C)) return 'keyword';
+                        if (F.match(/^url/) && F.peek() === '(')
+                            return ((q.tokenizer = z), 'atom');
+                        if (D === '=' && F.match(/^=[\w-]+/))
+                            return (I(q), 'meta');
+                        if (D === '+' && F.match(/^\+[\w-]+/))
                             return 'variable-3';
                         if (
                             (D === '@' &&
-                                q.match('@extend') &&
-                                (q.match(/\s*[\w]/) || K(F)),
-                            q.match(
+                                F.match('@extend') &&
+                                (F.match(/\s*[\w]/) || U(q)),
+                            F.match(
                                 /^@(else if|if|media|else|for|each|while|mixin|function)/,
                             ))
                         )
-                            return (N(F), 'def');
+                            return (I(q), 'def');
                         if (D === '@')
-                            return (q.next(), q.eatWhile(/[\w-]/), 'def');
-                        if (q.eatWhile(/[\w-]/))
-                            if (q.match(/ *: *[\w-\+\$#!\("']/, !1)) {
-                                x = q.current().toLowerCase();
-                                var Q = F.prevProp + '-' + x;
+                            return (F.next(), F.eatWhile(/[\w-]/), 'def');
+                        if (F.eatWhile(/[\w-]/))
+                            if (F.match(/ *: *[\w-\+\$#!\("']/, !1)) {
+                                w = F.current().toLowerCase();
+                                var Q = q.prevProp + '-' + w;
                                 return L.hasOwnProperty(Q)
                                     ? 'property'
-                                    : L.hasOwnProperty(x)
-                                      ? ((F.prevProp = x), 'property')
-                                      : s.hasOwnProperty(x)
+                                    : L.hasOwnProperty(w)
+                                      ? ((q.prevProp = w), 'property')
+                                      : s.hasOwnProperty(w)
                                         ? 'property'
                                         : 'tag';
                             } else
-                                return q.match(/ *:/, !1)
-                                    ? (N(F),
-                                      (F.cursorHalf = 1),
-                                      (F.prevProp = q.current().toLowerCase()),
+                                return F.match(/ *:/, !1)
+                                    ? (I(q),
+                                      (q.cursorHalf = 1),
+                                      (q.prevProp = F.current().toLowerCase()),
                                       'property')
-                                    : (q.match(/ *,/, !1) || N(F), 'tag');
+                                    : (F.match(/ *,/, !1) || I(q), 'tag');
                         if (D === ':')
-                            return q.match(d)
+                            return F.match(d)
                                 ? 'variable-3'
-                                : (q.next(), (F.cursorHalf = 1), 'operator');
+                                : (F.next(), (q.cursorHalf = 1), 'operator');
                     }
-                    return q.match(c) ? 'operator' : (q.next(), null);
+                    return F.match(c) ? 'operator' : (F.next(), null);
                 }
-                function re(q, F) {
-                    q.sol() && (F.indentCount = 0);
-                    var D = F.tokenizer(q, F),
-                        Q = q.current();
-                    if (((Q === '@return' || Q === '}') && K(F), D !== null)) {
+                function re(F, q) {
+                    F.sol() && (q.indentCount = 0);
+                    var D = q.tokenizer(F, q),
+                        Q = F.current();
+                    if (((Q === '@return' || Q === '}') && U(q), D !== null)) {
                         for (
-                            var j = q.pos - Q.length,
-                                V = j + p.indentUnit * F.indentCount,
+                            var j = F.pos - Q.length,
+                                V = j + p.indentUnit * q.indentCount,
                                 y = [],
                                 G = 0;
-                            G < F.scopes.length;
+                            G < q.scopes.length;
                             G++
                         ) {
-                            var X = F.scopes[G];
+                            var X = q.scopes[G];
                             X.offset <= V && y.push(X);
                         }
-                        F.scopes = y;
+                        q.scopes = y;
                     }
                     return D;
                 }
@@ -20978,15 +20977,15 @@ var ea = Ke((Ou, Pu) => {
                             definedMixins: [],
                         };
                     },
-                    token: function (q, F) {
-                        var D = re(q, F);
+                    token: function (F, q) {
+                        var D = re(F, q);
                         return (
-                            (F.lastToken = { style: D, content: q.current() }),
+                            (q.lastToken = { style: D, content: F.current() }),
                             D
                         );
                     },
-                    indent: function (q) {
-                        return q.scopes[0].offset;
+                    indent: function (F) {
+                        return F.scopes[0].offset;
                     },
                     blockCommentStart: '/*',
                     blockCommentEnd: '*/',
@@ -21010,8 +21009,8 @@ var Ru = Ke((Bu, ju) => {
         'use strict';
         (o.defineMode('shell', function () {
             var p = {};
-            function v(d, x) {
-                for (var z = 0; z < x.length; z++) p[x[z]] = d;
+            function v(d, w) {
+                for (var E = 0; E < w.length; E++) p[w[E]] = d;
             }
             var L = ['true', 'false'],
                 b = [
@@ -21108,106 +21107,106 @@ var Ru = Ke((Bu, ju) => {
                 v('atom', L),
                 v('keyword', b),
                 v('builtin', S));
-            function s(d, x) {
+            function s(d, w) {
                 if (d.eatSpace()) return null;
-                var z = d.sol(),
-                    M = d.next();
-                if (M === '\\') return (d.next(), null);
-                if (M === "'" || M === '"' || M === '`')
+                var E = d.sol(),
+                    z = d.next();
+                if (z === '\\') return (d.next(), null);
+                if (z === "'" || z === '"' || z === '`')
                     return (
-                        x.tokens.unshift(h(M, M === '`' ? 'quote' : 'string')),
-                        c(d, x)
+                        w.tokens.unshift(h(z, z === '`' ? 'quote' : 'string')),
+                        c(d, w)
                     );
-                if (M === '#')
-                    return z && d.eat('!')
+                if (z === '#')
+                    return E && d.eat('!')
                         ? (d.skipToEnd(), 'meta')
                         : (d.skipToEnd(), 'comment');
-                if (M === '$') return (x.tokens.unshift(C), c(d, x));
-                if (M === '+' || M === '=') return 'operator';
-                if (M === '-')
+                if (z === '$') return (w.tokens.unshift(C), c(d, w));
+                if (z === '+' || z === '=') return 'operator';
+                if (z === '-')
                     return (d.eat('-'), d.eatWhile(/\w/), 'attribute');
-                if (M == '<') {
+                if (z == '<') {
                     if (d.match('<<')) return 'operator';
-                    var w = d.match(/^<-?\s*['"]?([^'"]*)['"]?/);
-                    if (w) return (x.tokens.unshift(k(w[1])), 'string-2');
+                    var k = d.match(/^<-?\s*['"]?([^'"]*)['"]?/);
+                    if (k) return (w.tokens.unshift(_(k[1])), 'string-2');
                 }
                 if (
-                    /\d/.test(M) &&
+                    /\d/.test(z) &&
                     (d.eatWhile(/\d/), d.eol() || !/\w/.test(d.peek()))
                 )
                     return 'number';
                 d.eatWhile(/[\w-]/);
-                var W = d.current();
-                return d.peek() === '=' && /\w+/.test(W)
+                var R = d.current();
+                return d.peek() === '=' && /\w+/.test(R)
                     ? 'def'
-                    : p.hasOwnProperty(W)
-                      ? p[W]
+                    : p.hasOwnProperty(R)
+                      ? p[R]
                       : null;
             }
-            function h(d, x) {
-                var z = d == '(' ? ')' : d == '{' ? '}' : d;
-                return function (M, w) {
-                    for (var W, E = !1; (W = M.next()) != null;) {
-                        if (W === z && !E) {
-                            w.tokens.shift();
+            function h(d, w) {
+                var E = d == '(' ? ')' : d == '{' ? '}' : d;
+                return function (z, k) {
+                    for (var R, M = !1; (R = z.next()) != null;) {
+                        if (R === E && !M) {
+                            k.tokens.shift();
                             break;
                         } else if (
-                            W === '$' &&
-                            !E &&
+                            R === '$' &&
+                            !M &&
                             d !== "'" &&
-                            M.peek() != z
+                            z.peek() != E
                         ) {
-                            ((E = !0), M.backUp(1), w.tokens.unshift(C));
+                            ((M = !0), z.backUp(1), k.tokens.unshift(C));
                             break;
                         } else {
-                            if (!E && d !== z && W === d)
-                                return (w.tokens.unshift(h(d, x)), c(M, w));
-                            if (!E && /['"]/.test(W) && !/['"]/.test(d)) {
-                                (w.tokens.unshift(g(W, 'string')), M.backUp(1));
+                            if (!M && d !== E && R === d)
+                                return (k.tokens.unshift(h(d, w)), c(z, k));
+                            if (!M && /['"]/.test(R) && !/['"]/.test(d)) {
+                                (k.tokens.unshift(g(R, 'string')), z.backUp(1));
                                 break;
                             }
                         }
-                        E = !E && W === '\\';
+                        M = !M && R === '\\';
                     }
-                    return x;
+                    return w;
                 };
             }
-            function g(d, x) {
-                return function (z, M) {
-                    return ((M.tokens[0] = h(d, x)), z.next(), c(z, M));
+            function g(d, w) {
+                return function (E, z) {
+                    return ((z.tokens[0] = h(d, w)), E.next(), c(E, z));
                 };
             }
-            var C = function (d, x) {
-                x.tokens.length > 1 && d.eat('$');
-                var z = d.next();
-                return /['"({]/.test(z)
-                    ? ((x.tokens[0] = h(
-                          z,
-                          z == '(' ? 'quote' : z == '{' ? 'def' : 'string',
+            var C = function (d, w) {
+                w.tokens.length > 1 && d.eat('$');
+                var E = d.next();
+                return /['"({]/.test(E)
+                    ? ((w.tokens[0] = h(
+                          E,
+                          E == '(' ? 'quote' : E == '{' ? 'def' : 'string',
                       )),
-                      c(d, x))
-                    : (/\d/.test(z) || d.eatWhile(/\w/),
-                      x.tokens.shift(),
+                      c(d, w))
+                    : (/\d/.test(E) || d.eatWhile(/\w/),
+                      w.tokens.shift(),
                       'def');
             };
-            function k(d) {
-                return function (x, z) {
+            function _(d) {
+                return function (w, E) {
                     return (
-                        x.sol() && x.string == d && z.tokens.shift(),
-                        x.skipToEnd(),
+                        w.sol() && w.string == d && E.tokens.shift(),
+                        w.skipToEnd(),
                         'string-2'
                     );
                 };
             }
-            function c(d, x) {
-                return (x.tokens[0] || s)(d, x);
+            function c(d, w) {
+                return (w.tokens[0] || s)(d, w);
             }
             return {
                 startState: function () {
                     return { tokens: [] };
                 },
-                token: function (d, x) {
-                    return c(d, x);
+                token: function (d, w) {
+                    return c(d, w);
                 },
                 closeBrackets: '()[]{}\'\'""``',
                 lineComment: '#',
@@ -21228,31 +21227,31 @@ var Uu = Ke((Hu, Wu) => {
     })(function (o) {
         'use strict';
         o.defineMode('sql', function (g, C) {
-            var k = C.client || {},
+            var _ = C.client || {},
                 c = C.atoms || { false: !0, true: !0, null: !0 },
                 d = C.builtin || s(h),
-                x = C.keywords || s(S),
-                z = C.operatorChars || /^[*+\-%<>!=&|~^\/]/,
-                M = C.support || {},
-                w = C.hooks || {},
-                W = C.dateSQL || { date: !0, time: !0, timestamp: !0 },
-                E = C.backslashStringEscapes !== !1,
-                N = C.brackets || /^[\{}\(\)\[\]]/,
-                K = C.punctuation || /^[;.,:]/;
+                w = C.keywords || s(S),
+                E = C.operatorChars || /^[*+\-%<>!=&|~^\/]/,
+                z = C.support || {},
+                k = C.hooks || {},
+                R = C.dateSQL || { date: !0, time: !0, timestamp: !0 },
+                M = C.backslashStringEscapes !== !1,
+                I = C.brackets || /^[\{}\(\)\[\]]/,
+                U = C.punctuation || /^[;.,:]/;
             function J(Q, j) {
                 var V = Q.next();
-                if (w[V]) {
-                    var y = w[V](Q, j);
+                if (k[V]) {
+                    var y = k[V](Q, j);
                     if (y !== !1) return y;
                 }
                 if (
-                    M.hexNumber &&
+                    z.hexNumber &&
                     ((V == '0' && Q.match(/^[xX][0-9a-fA-F]+/)) ||
                         ((V == 'x' || V == 'X') && Q.match(/^'[0-9a-fA-F]*'/)))
                 )
                     return 'number';
                 if (
-                    M.binaryNumber &&
+                    z.binaryNumber &&
                     (((V == 'b' || V == 'B') && Q.match(/^'[01]*'/)) ||
                         (V == '0' && Q.match(/^b[01]+/)))
                 )
@@ -21260,25 +21259,25 @@ var Uu = Ke((Hu, Wu) => {
                 if (V.charCodeAt(0) > 47 && V.charCodeAt(0) < 58)
                     return (
                         Q.match(/^[0-9]*(\.[0-9]+)?([eE][-+]?[0-9]+)?/),
-                        M.decimallessFloat && Q.match(/^\.(?!\.)/),
+                        z.decimallessFloat && Q.match(/^\.(?!\.)/),
                         'number'
                     );
                 if (V == '?' && (Q.eatSpace() || Q.eol() || Q.eat(';')))
                     return 'variable-3';
-                if (V == "'" || (V == '"' && M.doubleQuote))
+                if (V == "'" || (V == '"' && z.doubleQuote))
                     return ((j.tokenize = re(V)), j.tokenize(Q, j));
                 if (
-                    ((M.nCharCast && (V == 'n' || V == 'N')) ||
-                        (M.charsetCast &&
+                    ((z.nCharCast && (V == 'n' || V == 'N')) ||
+                        (z.charsetCast &&
                             V == '_' &&
                             Q.match(/[a-z][a-z0-9]*/i))) &&
                     (Q.peek() == "'" || Q.peek() == '"')
                 )
                     return 'keyword';
                 if (
-                    M.escapeConstant &&
+                    z.escapeConstant &&
                     (V == 'e' || V == 'E') &&
-                    (Q.peek() == "'" || (Q.peek() == '"' && M.doubleQuote))
+                    (Q.peek() == "'" || (Q.peek() == '"' && z.doubleQuote))
                 )
                     return (
                         (j.tokenize = function (X, O) {
@@ -21286,26 +21285,26 @@ var Uu = Ke((Hu, Wu) => {
                         }),
                         'keyword'
                     );
-                if (M.commentSlashSlash && V == '/' && Q.eat('/'))
+                if (z.commentSlashSlash && V == '/' && Q.eat('/'))
                     return (Q.skipToEnd(), 'comment');
                 if (
-                    (M.commentHash && V == '#') ||
+                    (z.commentHash && V == '#') ||
                     (V == '-' &&
                         Q.eat('-') &&
-                        (!M.commentSpaceRequired || Q.eat(' ')))
+                        (!z.commentSpaceRequired || Q.eat(' ')))
                 )
                     return (Q.skipToEnd(), 'comment');
                 if (V == '/' && Q.eat('*'))
-                    return ((j.tokenize = q(1)), j.tokenize(Q, j));
+                    return ((j.tokenize = F(1)), j.tokenize(Q, j));
                 if (V == '.') {
-                    if (M.zerolessFloat && Q.match(/^(?:\d+(?:e[+-]?\d+)?)/i))
+                    if (z.zerolessFloat && Q.match(/^(?:\d+(?:e[+-]?\d+)?)/i))
                         return 'number';
                     if (Q.match(/^\.+/)) return null;
                     if (Q.match(/^[\w\d_$#]+/)) return 'variable-2';
                 } else {
-                    if (z.test(V)) return (Q.eatWhile(z), 'operator');
-                    if (N.test(V)) return 'bracket';
-                    if (K.test(V)) return (Q.eatWhile(K), 'punctuation');
+                    if (E.test(V)) return (Q.eatWhile(E), 'operator');
+                    if (I.test(V)) return 'bracket';
+                    if (U.test(V)) return (Q.eatWhile(U), 'punctuation');
                     if (
                         V == '{' &&
                         (Q.match(/^( )*(d|D|t|T|ts|TS)( )*'[^']*'( )*}/) ||
@@ -21314,16 +21313,16 @@ var Uu = Ke((Hu, Wu) => {
                         return 'number';
                     Q.eatWhile(/^[_\w\d]/);
                     var G = Q.current().toLowerCase();
-                    return W.hasOwnProperty(G) &&
+                    return R.hasOwnProperty(G) &&
                         (Q.match(/^( )+'[^']*'/) || Q.match(/^( )+"[^"]*"/))
                         ? 'number'
                         : c.hasOwnProperty(G)
                           ? 'atom'
                           : d.hasOwnProperty(G)
                             ? 'type'
-                            : x.hasOwnProperty(G)
+                            : w.hasOwnProperty(G)
                               ? 'keyword'
-                              : k.hasOwnProperty(G)
+                              : _.hasOwnProperty(G)
                                 ? 'builtin'
                                 : null;
                 }
@@ -21335,27 +21334,27 @@ var Uu = Ke((Hu, Wu) => {
                             y.tokenize = J;
                             break;
                         }
-                        G = (E || j) && !G && X == '\\';
+                        G = (M || j) && !G && X == '\\';
                     }
                     return 'string';
                 };
             }
-            function q(Q) {
+            function F(Q) {
                 return function (j, V) {
                     var y = j.match(/^.*?(\/\*|\*\/)/);
                     return (
                         y
                             ? y[1] == '/*'
-                                ? (V.tokenize = q(Q + 1))
+                                ? (V.tokenize = F(Q + 1))
                                 : Q > 1
-                                  ? (V.tokenize = q(Q - 1))
+                                  ? (V.tokenize = F(Q - 1))
                                   : (V.tokenize = J)
                             : j.skipToEnd(),
                         'comment'
                     );
                 };
             }
-            function F(Q, j, V) {
+            function q(Q, j, V) {
                 j.context = {
                     prev: j.context,
                     indent: Q.indentation(),
@@ -21387,9 +21386,9 @@ var Uu = Ke((Hu, Wu) => {
                     var y = Q.current();
                     return (
                         y == '('
-                            ? F(Q, j, ')')
+                            ? q(Q, j, ')')
                             : y == '['
-                              ? F(Q, j, ']')
+                              ? q(Q, j, ']')
                               : j.context && j.context.type == y && D(j),
                         V
                     );
@@ -21404,9 +21403,9 @@ var Uu = Ke((Hu, Wu) => {
                 },
                 blockCommentStart: '/*',
                 blockCommentEnd: '*/',
-                lineComment: M.commentSlashSlash
+                lineComment: z.commentSlashSlash
                     ? '//'
-                    : M.commentHash
+                    : z.commentHash
                       ? '#'
                       : '--',
                 closeBrackets: '()[]{}\'\'""``',
@@ -21456,8 +21455,8 @@ var Uu = Ke((Hu, Wu) => {
         var S =
             'alter and as asc between by count create delete desc distinct drop from group having in insert into is join like not on or order select set table union update values where limit ';
         function s(g) {
-            for (var C = {}, k = g.split(' '), c = 0; c < k.length; ++c)
-                C[k[c]] = !0;
+            for (var C = {}, _ = g.split(' '), c = 0; c < _.length; ++c)
+                C[_[c]] = !0;
             return C;
         }
         var h =
@@ -21696,295 +21695,295 @@ var ta = Ke(($u, Ku) => {
               : o(CodeMirror);
     })(function (o) {
         'use strict';
-        o.defineMode('stylus', function (E) {
+        o.defineMode('stylus', function (M) {
             for (
-                var N = E.indentUnit,
-                    K = '',
-                    J = w(p),
+                var I = M.indentUnit,
+                    U = '',
+                    J = k(p),
                     re = /^(a|b|i|s|col|em)$/i,
-                    q = w(S),
-                    F = w(s),
-                    D = w(C),
-                    Q = w(g),
-                    j = w(v),
-                    V = M(v),
-                    y = w(b),
-                    G = w(L),
-                    X = w(h),
+                    F = k(S),
+                    q = k(s),
+                    D = k(C),
+                    Q = k(g),
+                    j = k(v),
+                    V = z(v),
+                    y = k(b),
+                    G = k(L),
+                    X = k(h),
                     O =
                         /^\s*([.]{2,3}|&&|\|\||\*\*|[?!=:]?=|[-+*\/%<>]=?|\?:|\~)/,
-                    R = M(k),
-                    se = w(c),
+                    H = z(_),
+                    se = k(c),
                     _e = new RegExp(/^\-(moz|ms|o|webkit)-/i),
-                    I = w(d),
+                    N = k(d),
                     T = '',
                     he = {},
                     ze,
                     de,
                     Ee,
                     ge;
-                K.length < N;
+                U.length < I;
             )
-                K += ' ';
-            function Oe($, H) {
+                U += ' ';
+            function Oe(K, W) {
                 if (
-                    ((T = $.string.match(
+                    ((T = K.string.match(
                         /(^[\w-]+\s*=\s*$)|(^\s*[\w-]+\s*=\s*[\w-])|(^\s*(\.|#|@|\$|\&|\[|\d|\+|::?|\{|\>|~|\/)?\s*[\w-]*([a-z0-9-]|\*|\/\*)(\(|,)?)/,
                     )),
-                    (H.context.line.firstWord = T
+                    (W.context.line.firstWord = T
                         ? T[0].replace(/^\s*/, '')
                         : ''),
-                    (H.context.line.indent = $.indentation()),
-                    (ze = $.peek()),
-                    $.match('//'))
+                    (W.context.line.indent = K.indentation()),
+                    (ze = K.peek()),
+                    K.match('//'))
                 )
-                    return ($.skipToEnd(), ['comment', 'comment']);
-                if ($.match('/*')) return ((H.tokenize = qe), qe($, H));
+                    return (K.skipToEnd(), ['comment', 'comment']);
+                if (K.match('/*')) return ((W.tokenize = qe), qe(K, W));
                 if (ze == '"' || ze == "'")
-                    return ($.next(), (H.tokenize = Se(ze)), H.tokenize($, H));
+                    return (K.next(), (W.tokenize = Se(ze)), W.tokenize(K, W));
                 if (ze == '@')
                     return (
-                        $.next(),
-                        $.eatWhile(/[\w\\-]/),
-                        ['def', $.current()]
+                        K.next(),
+                        K.eatWhile(/[\w\\-]/),
+                        ['def', K.current()]
                     );
                 if (ze == '#') {
                     if (
-                        ($.next(),
-                        $.match(
+                        (K.next(),
+                        K.match(
                             /^[0-9a-f]{3}([0-9a-f]([0-9a-f]{2}){0,2})?\b(?!-)/i,
                         ))
                     )
                         return ['atom', 'atom'];
-                    if ($.match(/^[a-z][\w-]*/i)) return ['builtin', 'hash'];
+                    if (K.match(/^[a-z][\w-]*/i)) return ['builtin', 'hash'];
                 }
-                return $.match(_e)
+                return K.match(_e)
                     ? ['meta', 'vendor-prefixes']
-                    : $.match(/^-?[0-9]?\.?[0-9]/)
-                      ? ($.eatWhile(/[a-z%]/i), ['number', 'unit'])
+                    : K.match(/^-?[0-9]?\.?[0-9]/)
+                      ? (K.eatWhile(/[a-z%]/i), ['number', 'unit'])
                       : ze == '!'
-                        ? ($.next(),
+                        ? (K.next(),
                           [
-                              $.match(/^(important|optional)/i)
+                              K.match(/^(important|optional)/i)
                                   ? 'keyword'
                                   : 'operator',
                               'important',
                           ])
-                        : ze == '.' && $.match(/^\.[a-z][\w-]*/i)
+                        : ze == '.' && K.match(/^\.[a-z][\w-]*/i)
                           ? ['qualifier', 'qualifier']
-                          : $.match(V)
-                            ? ($.peek() == '(' && (H.tokenize = Be),
+                          : K.match(V)
+                            ? (K.peek() == '(' && (W.tokenize = Be),
                               ['property', 'word'])
-                            : $.match(/^[a-z][\w-]*\(/i)
-                              ? ($.backUp(1), ['keyword', 'mixin'])
-                              : $.match(/^(\+|-)[a-z][\w-]*\(/i)
-                                ? ($.backUp(1), ['keyword', 'block-mixin'])
-                                : $.string.match(/^\s*&/) &&
-                                    $.match(/^[-_]+[a-z][\w-]*/)
+                            : K.match(/^[a-z][\w-]*\(/i)
+                              ? (K.backUp(1), ['keyword', 'mixin'])
+                              : K.match(/^(\+|-)[a-z][\w-]*\(/i)
+                                ? (K.backUp(1), ['keyword', 'block-mixin'])
+                                : K.string.match(/^\s*&/) &&
+                                    K.match(/^[-_]+[a-z][\w-]*/)
                                   ? ['qualifier', 'qualifier']
-                                  : $.match(/^(\/|&)(-|_|:|\.|#|[a-z])/)
-                                    ? ($.backUp(1), ['variable-3', 'reference'])
-                                    : $.match(/^&{1}\s*$/)
+                                  : K.match(/^(\/|&)(-|_|:|\.|#|[a-z])/)
+                                    ? (K.backUp(1), ['variable-3', 'reference'])
+                                    : K.match(/^&{1}\s*$/)
                                       ? ['variable-3', 'reference']
-                                      : $.match(R)
+                                      : K.match(H)
                                         ? ['operator', 'operator']
-                                        : $.match(/^\$?[-_]*[a-z0-9]+[\w-]*/i)
-                                          ? $.match(
+                                        : K.match(/^\$?[-_]*[a-z0-9]+[\w-]*/i)
+                                          ? K.match(
                                                 /^(\.|\[)[\w-\'\"\]]+/i,
                                                 !1,
-                                            ) && !U($.current())
-                                              ? ($.match('.'),
+                                            ) && !$(K.current())
+                                              ? (K.match('.'),
                                                 ['variable-2', 'variable-name'])
                                               : ['variable-2', 'word']
-                                          : $.match(O)
-                                            ? ['operator', $.current()]
+                                          : K.match(O)
+                                            ? ['operator', K.current()]
                                             : /[:;,{}\[\]\(\)]/.test(ze)
-                                              ? ($.next(), [null, ze])
-                                              : ($.next(), [null, null]);
+                                              ? (K.next(), [null, ze])
+                                              : (K.next(), [null, null]);
             }
-            function qe($, H) {
-                for (var le = !1, De; (De = $.next()) != null;) {
+            function qe(K, W) {
+                for (var le = !1, De; (De = K.next()) != null;) {
                     if (le && De == '/') {
-                        H.tokenize = null;
+                        W.tokenize = null;
                         break;
                     }
                     le = De == '*';
                 }
                 return ['comment', 'comment'];
             }
-            function Se($) {
-                return function (H, le) {
-                    for (var De = !1, nt; (nt = H.next()) != null;) {
-                        if (nt == $ && !De) {
-                            $ == ')' && H.backUp(1);
+            function Se(K) {
+                return function (W, le) {
+                    for (var De = !1, nt; (nt = W.next()) != null;) {
+                        if (nt == K && !De) {
+                            K == ')' && W.backUp(1);
                             break;
                         }
                         De = !De && nt == '\\';
                     }
                     return (
-                        (nt == $ || (!De && $ != ')')) && (le.tokenize = null),
+                        (nt == K || (!De && K != ')')) && (le.tokenize = null),
                         ['string', 'string']
                     );
                 };
             }
-            function Be($, H) {
+            function Be(K, W) {
                 return (
-                    $.next(),
-                    $.match(/\s*[\"\')]/, !1)
-                        ? (H.tokenize = null)
-                        : (H.tokenize = Se(')')),
+                    K.next(),
+                    K.match(/\s*[\"\')]/, !1)
+                        ? (W.tokenize = null)
+                        : (W.tokenize = Se(')')),
                     [null, '(']
                 );
             }
-            function Ze($, H, le, De) {
-                ((this.type = $),
-                    (this.indent = H),
+            function Ze(K, W, le, De) {
+                ((this.type = K),
+                    (this.indent = W),
                     (this.prev = le),
                     (this.line = De || { firstWord: '', indent: 0 }));
             }
-            function ke($, H, le, De) {
+            function ke(K, W, le, De) {
                 return (
-                    (De = De >= 0 ? De : N),
-                    ($.context = new Ze(le, H.indentation() + De, $.context)),
+                    (De = De >= 0 ? De : I),
+                    (K.context = new Ze(le, W.indentation() + De, K.context)),
                     le
                 );
             }
-            function Je($, H) {
-                var le = $.context.indent - N;
+            function Je(K, W) {
+                var le = K.context.indent - I;
                 return (
-                    (H = H || !1),
-                    ($.context = $.context.prev),
-                    H && ($.context.indent = le),
-                    $.context.type
+                    (W = W || !1),
+                    (K.context = K.context.prev),
+                    W && (K.context.indent = le),
+                    K.context.type
                 );
             }
-            function Re($, H, le) {
-                return he[le.context.type]($, H, le);
+            function Re(K, W, le) {
+                return he[le.context.type](K, W, le);
             }
-            function Ge($, H, le, De) {
+            function Ge(K, W, le, De) {
                 for (var nt = De || 1; nt > 0; nt--)
                     le.context = le.context.prev;
-                return Re($, H, le);
+                return Re(K, W, le);
             }
-            function U($) {
-                return $.toLowerCase() in J;
+            function $(K) {
+                return K.toLowerCase() in J;
             }
-            function Z($) {
-                return (($ = $.toLowerCase()), $ in q || $ in X);
+            function Z(K) {
+                return ((K = K.toLowerCase()), K in F || K in X);
             }
-            function ce($) {
-                return $.toLowerCase() in se;
+            function ce(K) {
+                return K.toLowerCase() in se;
             }
-            function He($) {
-                return $.toLowerCase().match(_e);
+            function He(K) {
+                return K.toLowerCase().match(_e);
             }
-            function te($) {
-                var H = $.toLowerCase(),
+            function te(K) {
+                var W = K.toLowerCase(),
                     le = 'variable-2';
                 return (
-                    U($)
+                    $(K)
                         ? (le = 'tag')
-                        : ce($)
+                        : ce(K)
                           ? (le = 'block-keyword')
-                          : Z($)
+                          : Z(K)
                             ? (le = 'property')
-                            : H in D || H in I
+                            : W in D || W in N
                               ? (le = 'atom')
-                              : H == 'return' || H in Q
+                              : W == 'return' || W in Q
                                 ? (le = 'keyword')
-                                : $.match(/^[A-Z]/) && (le = 'string'),
+                                : K.match(/^[A-Z]/) && (le = 'string'),
                     le
                 );
             }
-            function fe($, H) {
+            function fe(K, W) {
                 return (
-                    (Me(H) &&
-                        ($ == '{' ||
-                            $ == ']' ||
-                            $ == 'hash' ||
-                            $ == 'qualifier')) ||
-                    $ == 'block-mixin'
+                    (Me(W) &&
+                        (K == '{' ||
+                            K == ']' ||
+                            K == 'hash' ||
+                            K == 'qualifier')) ||
+                    K == 'block-mixin'
                 );
             }
-            function oe($, H) {
-                return $ == '{' && H.match(/^\s*\$?[\w-]+/i, !1);
+            function oe(K, W) {
+                return K == '{' && W.match(/^\s*\$?[\w-]+/i, !1);
             }
-            function Ue($, H) {
-                return $ == ':' && H.match(/^[a-z-]+/, !1);
+            function Ue(K, W) {
+                return K == ':' && W.match(/^[a-z-]+/, !1);
             }
-            function we($) {
+            function we(K) {
                 return (
-                    $.sol() ||
-                    $.string.match(new RegExp('^\\s*' + W($.current())))
+                    K.sol() ||
+                    K.string.match(new RegExp('^\\s*' + R(K.current())))
                 );
             }
-            function Me($) {
-                return $.eol() || $.match(/^\s*$/, !1);
+            function Me(K) {
+                return K.eol() || K.match(/^\s*$/, !1);
             }
-            function Le($) {
-                var H = /^\s*[-_]*[a-z0-9]+[\w-]*/i,
-                    le = typeof $ == 'string' ? $.match(H) : $.string.match(H);
+            function Le(K) {
+                var W = /^\s*[-_]*[a-z0-9]+[\w-]*/i,
+                    le = typeof K == 'string' ? K.match(W) : K.string.match(W);
                 return le ? le[0].replace(/^\s*/, '') : '';
             }
             return (
-                (he.block = function ($, H, le) {
+                (he.block = function (K, W, le) {
                     if (
-                        ($ == 'comment' && we(H)) ||
-                        ($ == ',' && Me(H)) ||
-                        $ == 'mixin'
+                        (K == 'comment' && we(W)) ||
+                        (K == ',' && Me(W)) ||
+                        K == 'mixin'
                     )
-                        return ke(le, H, 'block', 0);
-                    if (oe($, H)) return ke(le, H, 'interpolation');
+                        return ke(le, W, 'block', 0);
+                    if (oe(K, W)) return ke(le, W, 'interpolation');
                     if (
-                        Me(H) &&
-                        $ == ']' &&
-                        !/^\s*(\.|#|:|\[|\*|&)/.test(H.string) &&
-                        !U(Le(H))
+                        Me(W) &&
+                        K == ']' &&
+                        !/^\s*(\.|#|:|\[|\*|&)/.test(W.string) &&
+                        !$(Le(W))
                     )
-                        return ke(le, H, 'block', 0);
-                    if (fe($, H)) return ke(le, H, 'block');
-                    if ($ == '}' && Me(H)) return ke(le, H, 'block', 0);
-                    if ($ == 'variable-name')
-                        return H.string.match(/^\s?\$[\w-\.\[\]\'\"]+$/) ||
-                            ce(Le(H))
-                            ? ke(le, H, 'variableName')
-                            : ke(le, H, 'variableName', 0);
-                    if ($ == '=')
-                        return !Me(H) && !ce(Le(H))
-                            ? ke(le, H, 'block', 0)
-                            : ke(le, H, 'block');
+                        return ke(le, W, 'block', 0);
+                    if (fe(K, W)) return ke(le, W, 'block');
+                    if (K == '}' && Me(W)) return ke(le, W, 'block', 0);
+                    if (K == 'variable-name')
+                        return W.string.match(/^\s?\$[\w-\.\[\]\'\"]+$/) ||
+                            ce(Le(W))
+                            ? ke(le, W, 'variableName')
+                            : ke(le, W, 'variableName', 0);
+                    if (K == '=')
+                        return !Me(W) && !ce(Le(W))
+                            ? ke(le, W, 'block', 0)
+                            : ke(le, W, 'block');
                     if (
-                        $ == '*' &&
-                        (Me(H) || H.match(/\s*(,|\.|#|\[|:|{)/, !1))
+                        K == '*' &&
+                        (Me(W) || W.match(/\s*(,|\.|#|\[|:|{)/, !1))
                     )
-                        return ((ge = 'tag'), ke(le, H, 'block'));
-                    if (Ue($, H)) return ke(le, H, 'pseudo');
-                    if (/@(font-face|media|supports|(-moz-)?document)/.test($))
-                        return ke(le, H, Me(H) ? 'block' : 'atBlock');
-                    if (/@(-(moz|ms|o|webkit)-)?keyframes$/.test($))
-                        return ke(le, H, 'keyframes');
-                    if (/@extends?/.test($)) return ke(le, H, 'extend', 0);
-                    if ($ && $.charAt(0) == '@')
-                        return H.indentation() > 0 && Z(H.current().slice(1))
+                        return ((ge = 'tag'), ke(le, W, 'block'));
+                    if (Ue(K, W)) return ke(le, W, 'pseudo');
+                    if (/@(font-face|media|supports|(-moz-)?document)/.test(K))
+                        return ke(le, W, Me(W) ? 'block' : 'atBlock');
+                    if (/@(-(moz|ms|o|webkit)-)?keyframes$/.test(K))
+                        return ke(le, W, 'keyframes');
+                    if (/@extends?/.test(K)) return ke(le, W, 'extend', 0);
+                    if (K && K.charAt(0) == '@')
+                        return W.indentation() > 0 && Z(W.current().slice(1))
                             ? ((ge = 'variable-2'), 'block')
-                            : /(@import|@require|@charset)/.test($)
-                              ? ke(le, H, 'block', 0)
-                              : ke(le, H, 'block');
-                    if ($ == 'reference' && Me(H)) return ke(le, H, 'block');
-                    if ($ == '(') return ke(le, H, 'parens');
-                    if ($ == 'vendor-prefixes')
-                        return ke(le, H, 'vendorPrefixes');
-                    if ($ == 'word') {
-                        var De = H.current();
+                            : /(@import|@require|@charset)/.test(K)
+                              ? ke(le, W, 'block', 0)
+                              : ke(le, W, 'block');
+                    if (K == 'reference' && Me(W)) return ke(le, W, 'block');
+                    if (K == '(') return ke(le, W, 'parens');
+                    if (K == 'vendor-prefixes')
+                        return ke(le, W, 'vendorPrefixes');
+                    if (K == 'word') {
+                        var De = W.current();
                         if (((ge = te(De)), ge == 'property'))
-                            return we(H)
-                                ? ke(le, H, 'block', 0)
+                            return we(W)
+                                ? ke(le, W, 'block', 0)
                                 : ((ge = 'atom'), 'block');
                         if (ge == 'tag') {
                             if (
                                 (/embed|menu|pre|progress|sub|table/.test(De) &&
-                                    Z(Le(H))) ||
-                                H.string.match(
+                                    Z(Le(W))) ||
+                                W.string.match(
                                     new RegExp(
                                         '\\[\\s*' + De + '|' + De + '\\s*\\]',
                                     ),
@@ -21993,94 +21992,94 @@ var ta = Ke(($u, Ku) => {
                                 return ((ge = 'atom'), 'block');
                             if (
                                 re.test(De) &&
-                                ((we(H) && H.string.match(/=/)) ||
-                                    (!we(H) &&
-                                        !H.string.match(
+                                ((we(W) && W.string.match(/=/)) ||
+                                    (!we(W) &&
+                                        !W.string.match(
                                             /^(\s*\.|#|\&|\[|\/|>|\*)/,
                                         ) &&
-                                        !U(Le(H))))
+                                        !$(Le(W))))
                             )
                                 return (
                                     (ge = 'variable-2'),
-                                    ce(Le(H)) ? 'block' : ke(le, H, 'block', 0)
+                                    ce(Le(W)) ? 'block' : ke(le, W, 'block', 0)
                                 );
-                            if (Me(H)) return ke(le, H, 'block');
+                            if (Me(W)) return ke(le, W, 'block');
                         }
                         if (ge == 'block-keyword')
                             return (
                                 (ge = 'keyword'),
-                                H.current(/(if|unless)/) && !we(H)
+                                W.current(/(if|unless)/) && !we(W)
                                     ? 'block'
-                                    : ke(le, H, 'block')
+                                    : ke(le, W, 'block')
                             );
-                        if (De == 'return') return ke(le, H, 'block', 0);
+                        if (De == 'return') return ke(le, W, 'block', 0);
                         if (
                             ge == 'variable-2' &&
-                            H.string.match(/^\s?\$[\w-\.\[\]\'\"]+$/)
+                            W.string.match(/^\s?\$[\w-\.\[\]\'\"]+$/)
                         )
-                            return ke(le, H, 'block');
+                            return ke(le, W, 'block');
                     }
                     return le.context.type;
                 }),
-                (he.parens = function ($, H, le) {
-                    if ($ == '(') return ke(le, H, 'parens');
-                    if ($ == ')')
+                (he.parens = function (K, W, le) {
+                    if (K == '(') return ke(le, W, 'parens');
+                    if (K == ')')
                         return le.context.prev.type == 'parens'
                             ? Je(le)
-                            : (H.string.match(/^[a-z][\w-]*\(/i) && Me(H)) ||
-                                ce(Le(H)) ||
-                                /(\.|#|:|\[|\*|&|>|~|\+|\/)/.test(Le(H)) ||
-                                (!H.string.match(
+                            : (W.string.match(/^[a-z][\w-]*\(/i) && Me(W)) ||
+                                ce(Le(W)) ||
+                                /(\.|#|:|\[|\*|&|>|~|\+|\/)/.test(Le(W)) ||
+                                (!W.string.match(
                                     /^-?[a-z][\w-\.\[\]\'\"]*\s*=/,
                                 ) &&
-                                    U(Le(H)))
-                              ? ke(le, H, 'block')
-                              : H.string.match(
+                                    $(Le(W)))
+                              ? ke(le, W, 'block')
+                              : W.string.match(
                                       /^[\$-]?[a-z][\w-\.\[\]\'\"]*\s*=/,
                                   ) ||
-                                  H.string.match(/^\s*(\(|\)|[0-9])/) ||
-                                  H.string.match(/^\s+[a-z][\w-]*\(/i) ||
-                                  H.string.match(/^\s+[\$-]?[a-z]/i)
-                                ? ke(le, H, 'block', 0)
-                                : Me(H)
-                                  ? ke(le, H, 'block')
-                                  : ke(le, H, 'block', 0);
+                                  W.string.match(/^\s*(\(|\)|[0-9])/) ||
+                                  W.string.match(/^\s+[a-z][\w-]*\(/i) ||
+                                  W.string.match(/^\s+[\$-]?[a-z]/i)
+                                ? ke(le, W, 'block', 0)
+                                : Me(W)
+                                  ? ke(le, W, 'block')
+                                  : ke(le, W, 'block', 0);
                     if (
-                        ($ &&
-                            $.charAt(0) == '@' &&
-                            Z(H.current().slice(1)) &&
+                        (K &&
+                            K.charAt(0) == '@' &&
+                            Z(W.current().slice(1)) &&
                             (ge = 'variable-2'),
-                        $ == 'word')
+                        K == 'word')
                     ) {
-                        var De = H.current();
+                        var De = W.current();
                         ((ge = te(De)),
                             ge == 'tag' && re.test(De) && (ge = 'variable-2'),
                             (ge == 'property' || De == 'to') && (ge = 'atom'));
                     }
-                    return $ == 'variable-name'
-                        ? ke(le, H, 'variableName')
-                        : Ue($, H)
-                          ? ke(le, H, 'pseudo')
+                    return K == 'variable-name'
+                        ? ke(le, W, 'variableName')
+                        : Ue(K, W)
+                          ? ke(le, W, 'pseudo')
                           : le.context.type;
                 }),
-                (he.vendorPrefixes = function ($, H, le) {
-                    return $ == 'word'
-                        ? ((ge = 'property'), ke(le, H, 'block', 0))
+                (he.vendorPrefixes = function (K, W, le) {
+                    return K == 'word'
+                        ? ((ge = 'property'), ke(le, W, 'block', 0))
                         : Je(le);
                 }),
-                (he.pseudo = function ($, H, le) {
-                    return Z(Le(H.string))
-                        ? Ge($, H, le)
-                        : (H.match(/^[a-z-]+/),
+                (he.pseudo = function (K, W, le) {
+                    return Z(Le(W.string))
+                        ? Ge(K, W, le)
+                        : (W.match(/^[a-z-]+/),
                           (ge = 'variable-3'),
-                          Me(H) ? ke(le, H, 'block') : Je(le));
+                          Me(W) ? ke(le, W, 'block') : Je(le));
                 }),
-                (he.atBlock = function ($, H, le) {
-                    if ($ == '(') return ke(le, H, 'atBlock_parens');
-                    if (fe($, H)) return ke(le, H, 'block');
-                    if (oe($, H)) return ke(le, H, 'interpolation');
-                    if ($ == 'word') {
-                        var De = H.current().toLowerCase();
+                (he.atBlock = function (K, W, le) {
+                    if (K == '(') return ke(le, W, 'atBlock_parens');
+                    if (fe(K, W)) return ke(le, W, 'block');
+                    if (oe(K, W)) return ke(le, W, 'interpolation');
+                    if (K == 'word') {
+                        var De = W.current().toLowerCase();
                         if (
                             (/^(only|not|and|or)$/.test(De)
                                 ? (ge = 'keyword')
@@ -22090,28 +22089,28 @@ var ta = Ke(($u, Ku) => {
                                     ? (ge = 'attribute')
                                     : y.hasOwnProperty(De)
                                       ? (ge = 'property')
-                                      : F.hasOwnProperty(De)
+                                      : q.hasOwnProperty(De)
                                         ? (ge = 'string-2')
-                                        : (ge = te(H.current())),
-                            ge == 'tag' && Me(H))
+                                        : (ge = te(W.current())),
+                            ge == 'tag' && Me(W))
                         )
-                            return ke(le, H, 'block');
+                            return ke(le, W, 'block');
                     }
                     return (
-                        $ == 'operator' &&
-                            /^(not|and|or)$/.test(H.current()) &&
+                        K == 'operator' &&
+                            /^(not|and|or)$/.test(W.current()) &&
                             (ge = 'keyword'),
                         le.context.type
                     );
                 }),
-                (he.atBlock_parens = function ($, H, le) {
-                    if ($ == '{' || $ == '}') return le.context.type;
-                    if ($ == ')')
-                        return Me(H)
-                            ? ke(le, H, 'block')
-                            : ke(le, H, 'atBlock');
-                    if ($ == 'word') {
-                        var De = H.current().toLowerCase();
+                (he.atBlock_parens = function (K, W, le) {
+                    if (K == '{' || K == '}') return le.context.type;
+                    if (K == ')')
+                        return Me(W)
+                            ? ke(le, W, 'block')
+                            : ke(le, W, 'atBlock');
+                    if (K == 'word') {
+                        var De = W.current().toLowerCase();
                         return (
                             (ge = te(De)),
                             /^(max|min)/.test(De) && (ge = 'property'),
@@ -22122,106 +22121,106 @@ var ta = Ke(($u, Ku) => {
                             le.context.type
                         );
                     }
-                    return he.atBlock($, H, le);
+                    return he.atBlock(K, W, le);
                 }),
-                (he.keyframes = function ($, H, le) {
-                    return H.indentation() == '0' &&
-                        (($ == '}' && we(H)) ||
-                            $ == ']' ||
-                            $ == 'hash' ||
-                            $ == 'qualifier' ||
-                            U(H.current()))
-                        ? Ge($, H, le)
-                        : $ == '{'
-                          ? ke(le, H, 'keyframes')
-                          : $ == '}'
-                            ? we(H)
+                (he.keyframes = function (K, W, le) {
+                    return W.indentation() == '0' &&
+                        ((K == '}' && we(W)) ||
+                            K == ']' ||
+                            K == 'hash' ||
+                            K == 'qualifier' ||
+                            $(W.current()))
+                        ? Ge(K, W, le)
+                        : K == '{'
+                          ? ke(le, W, 'keyframes')
+                          : K == '}'
+                            ? we(W)
                                 ? Je(le, !0)
-                                : ke(le, H, 'keyframes')
-                            : $ == 'unit' && /^[0-9]+\%$/.test(H.current())
-                              ? ke(le, H, 'keyframes')
-                              : $ == 'word' &&
-                                  ((ge = te(H.current())),
+                                : ke(le, W, 'keyframes')
+                            : K == 'unit' && /^[0-9]+\%$/.test(W.current())
+                              ? ke(le, W, 'keyframes')
+                              : K == 'word' &&
+                                  ((ge = te(W.current())),
                                   ge == 'block-keyword')
-                                ? ((ge = 'keyword'), ke(le, H, 'keyframes'))
+                                ? ((ge = 'keyword'), ke(le, W, 'keyframes'))
                                 : /@(font-face|media|supports|(-moz-)?document)/.test(
-                                        $,
+                                        K,
                                     )
-                                  ? ke(le, H, Me(H) ? 'block' : 'atBlock')
-                                  : $ == 'mixin'
-                                    ? ke(le, H, 'block', 0)
+                                  ? ke(le, W, Me(W) ? 'block' : 'atBlock')
+                                  : K == 'mixin'
+                                    ? ke(le, W, 'block', 0)
                                     : le.context.type;
                 }),
-                (he.interpolation = function ($, H, le) {
+                (he.interpolation = function (K, W, le) {
                     return (
-                        $ == '{' && Je(le) && ke(le, H, 'block'),
-                        $ == '}'
-                            ? H.string.match(
+                        K == '{' && Je(le) && ke(le, W, 'block'),
+                        K == '}'
+                            ? W.string.match(
                                   /^\s*(\.|#|:|\[|\*|&|>|~|\+|\/)/i,
                               ) ||
-                              (H.string.match(/^\s*[a-z]/i) && U(Le(H)))
-                                ? ke(le, H, 'block')
-                                : !H.string.match(/^(\{|\s*\&)/) ||
-                                    H.match(/\s*[\w-]/, !1)
-                                  ? ke(le, H, 'block', 0)
-                                  : ke(le, H, 'block')
-                            : $ == 'variable-name'
-                              ? ke(le, H, 'variableName', 0)
-                              : ($ == 'word' &&
-                                    ((ge = te(H.current())),
+                              (W.string.match(/^\s*[a-z]/i) && $(Le(W)))
+                                ? ke(le, W, 'block')
+                                : !W.string.match(/^(\{|\s*\&)/) ||
+                                    W.match(/\s*[\w-]/, !1)
+                                  ? ke(le, W, 'block', 0)
+                                  : ke(le, W, 'block')
+                            : K == 'variable-name'
+                              ? ke(le, W, 'variableName', 0)
+                              : (K == 'word' &&
+                                    ((ge = te(W.current())),
                                     ge == 'tag' && (ge = 'atom')),
                                 le.context.type)
                     );
                 }),
-                (he.extend = function ($, H, le) {
-                    return $ == '[' || $ == '='
+                (he.extend = function (K, W, le) {
+                    return K == '[' || K == '='
                         ? 'extend'
-                        : $ == ']'
+                        : K == ']'
                           ? Je(le)
-                          : $ == 'word'
-                            ? ((ge = te(H.current())), 'extend')
+                          : K == 'word'
+                            ? ((ge = te(W.current())), 'extend')
                             : Je(le);
                 }),
-                (he.variableName = function ($, H, le) {
-                    return $ == 'string' ||
-                        $ == '[' ||
-                        $ == ']' ||
-                        H.current().match(/^(\.|\$)/)
-                        ? (H.current().match(/^\.[\w-]+/i) &&
+                (he.variableName = function (K, W, le) {
+                    return K == 'string' ||
+                        K == '[' ||
+                        K == ']' ||
+                        W.current().match(/^(\.|\$)/)
+                        ? (W.current().match(/^\.[\w-]+/i) &&
                               (ge = 'variable-2'),
                           'variableName')
-                        : Ge($, H, le);
+                        : Ge(K, W, le);
                 }),
                 {
-                    startState: function ($) {
+                    startState: function (K) {
                         return {
                             tokenize: null,
                             state: 'block',
-                            context: new Ze('block', $ || 0, null),
+                            context: new Ze('block', K || 0, null),
                         };
                     },
-                    token: function ($, H) {
-                        return !H.tokenize && $.eatSpace()
+                    token: function (K, W) {
+                        return !W.tokenize && K.eatSpace()
                             ? null
-                            : ((de = (H.tokenize || Oe)($, H)),
+                            : ((de = (W.tokenize || Oe)(K, W)),
                               de &&
                                   typeof de == 'object' &&
                                   ((Ee = de[1]), (de = de[0])),
                               (ge = de),
-                              (H.state = he[H.state](Ee, $, H)),
+                              (W.state = he[W.state](Ee, K, W)),
                               ge);
                     },
-                    indent: function ($, H, le) {
-                        var De = $.context,
-                            nt = H && H.charAt(0),
+                    indent: function (K, W, le) {
+                        var De = K.context,
+                            nt = W && W.charAt(0),
                             dt = De.indent,
-                            Pt = Le(H),
-                            Ft = le.match(/^\s*/)[0].replace(/\t/g, K).length,
-                            Pe = $.context.prev
-                                ? $.context.prev.line.firstWord
+                            Pt = Le(W),
+                            Ft = le.match(/^\s*/)[0].replace(/\t/g, U).length,
+                            Pe = K.context.prev
+                                ? K.context.prev.line.firstWord
                                 : '',
-                            xt = $.context.prev
-                                ? $.context.prev.line.indent
+                            xt = K.context.prev
+                                ? K.context.prev.line.indent
                                 : Ft;
                         return (
                             De.prev &&
@@ -22233,47 +22232,47 @@ var ta = Ke(($u, Ku) => {
                                     (De.type == 'parens' ||
                                         De.type == 'atBlock_parens')) ||
                                 (nt == '{' && De.type == 'at'))
-                                ? (dt = De.indent - N)
+                                ? (dt = De.indent - I)
                                 : /(\})/.test(nt) ||
                                   (/@|\$|\d/.test(nt) ||
-                                  /^\{/.test(H) ||
-                                  /^\s*\/(\/|\*)/.test(H) ||
+                                  /^\{/.test(W) ||
+                                  /^\s*\/(\/|\*)/.test(W) ||
                                   /^\s*\/\*/.test(Pe) ||
                                   /^\s*[\w-\.\[\]\'\"]+\s*(\?|:|\+)?=/i.test(
-                                      H,
+                                      W,
                                   ) ||
-                                  /^(\+|-)?[a-z][\w-]*\(/i.test(H) ||
-                                  /^return/.test(H) ||
+                                  /^(\+|-)?[a-z][\w-]*\(/i.test(W) ||
+                                  /^return/.test(W) ||
                                   ce(Pt)
                                       ? (dt = Ft)
                                       : /(\.|#|:|\[|\*|&|>|~|\+|\/)/.test(nt) ||
-                                          U(Pt)
+                                          $(Pt)
                                         ? /\,\s*$/.test(Pe)
                                             ? (dt = xt)
                                             : /^\s+/.test(le) &&
                                                 (/(\.|#|:|\[|\*|&|>|~|\+|\/)/.test(
                                                     Pe,
                                                 ) ||
-                                                    U(Pe))
-                                              ? (dt = Ft <= xt ? xt : xt + N)
+                                                    $(Pe))
+                                              ? (dt = Ft <= xt ? xt : xt + I)
                                               : (dt = Ft)
                                         : !/,\s*$/.test(le) &&
                                           (He(Pt) || Z(Pt)) &&
                                           (ce(Pe)
-                                              ? (dt = Ft <= xt ? xt : xt + N)
+                                              ? (dt = Ft <= xt ? xt : xt + I)
                                               : /^\{/.test(Pe)
-                                                ? (dt = Ft <= xt ? Ft : xt + N)
+                                                ? (dt = Ft <= xt ? Ft : xt + I)
                                                 : He(Pe) || Z(Pe)
                                                   ? (dt = Ft >= xt ? xt : Ft)
                                                   : /^(\.|#|:|\[|\*|&|@|\+|\-|>|~|\/)/.test(
                                                           Pe,
                                                       ) ||
                                                       /=\s*$/.test(Pe) ||
-                                                      U(Pe) ||
+                                                      $(Pe) ||
                                                       /^\$[\w-\.\[\]\'\"]/.test(
                                                           Pe,
                                                       )
-                                                    ? (dt = xt + N)
+                                                    ? (dt = xt + I)
                                                     : (dt = Ft))),
                             dt
                         );
@@ -23468,7 +23467,7 @@ var ta = Ke(($u, Ku) => {
                 'space-around',
                 'unset',
             ],
-            k = [
+            _ = [
                 'in',
                 'and',
                 'or',
@@ -23492,7 +23491,7 @@ var ta = Ke(($u, Ku) => {
                 'readonly',
                 'disabled',
             ],
-            x = [
+            w = [
                 '@font-face',
                 '@keyframes',
                 '@media',
@@ -23503,23 +23502,23 @@ var ta = Ke(($u, Ku) => {
                 '@block',
                 '@css',
             ],
-            z = p.concat(v, L, b, S, s, g, C, h, k, c, d, x);
-        function M(E) {
+            E = p.concat(v, L, b, S, s, g, C, h, _, c, d, w);
+        function z(M) {
             return (
-                (E = E.sort(function (N, K) {
-                    return K > N;
+                (M = M.sort(function (I, U) {
+                    return U > I;
                 })),
-                new RegExp('^((' + E.join(')|(') + '))\\b')
+                new RegExp('^((' + M.join(')|(') + '))\\b')
             );
         }
-        function w(E) {
-            for (var N = {}, K = 0; K < E.length; ++K) N[E[K]] = !0;
-            return N;
+        function k(M) {
+            for (var I = {}, U = 0; U < M.length; ++U) I[M[U]] = !0;
+            return I;
         }
-        function W(E) {
-            return E.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        function R(M) {
+            return M.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
         }
-        (o.registerHelper('hintWords', 'stylus', z),
+        (o.registerHelper('hintWords', 'stylus', E),
             o.defineMIME('text/x-styl', 'stylus'));
     });
 });
@@ -23532,9 +23531,9 @@ var Xu = Ke((Gu, Zu) => {
               : o(CodeMirror);
     })(function (o) {
         'use strict';
-        function p(q) {
-            for (var F = {}, D = 0; D < q.length; D++) F[q[D]] = !0;
-            return F;
+        function p(F) {
+            for (var q = {}, D = 0; D < F.length; D++) q[F[D]] = !0;
+            return q;
         }
         var v = p([
                 '_',
@@ -23672,102 +23671,102 @@ var Xu = Ke((Gu, Zu) => {
             h = ':;,.(){}[]',
             g = /^\-?0b[01][01_]*/,
             C = /^\-?0o[0-7][0-7_]*/,
-            k =
+            _ =
                 /^\-?0x[\dA-Fa-f][\dA-Fa-f_]*(?:(?:\.[\dA-Fa-f][\dA-Fa-f_]*)?[Pp]\-?\d[\d_]*)?/,
             c = /^\-?\d[\d_]*(?:\.\d[\d_]*)?(?:[Ee]\-?\d[\d_]*)?/,
             d = /^\$\d+|(`?)[_A-Za-z][_A-Za-z$0-9]*\1/,
-            x = /^\.(?:\$\d+|(`?)[_A-Za-z][_A-Za-z$0-9]*\1)/,
-            z = /^\#[A-Za-z]+/,
-            M = /^@(?:\$\d+|(`?)[_A-Za-z][_A-Za-z$0-9]*\1)/;
-        function w(q, F, D) {
-            if ((q.sol() && (F.indented = q.indentation()), q.eatSpace()))
+            w = /^\.(?:\$\d+|(`?)[_A-Za-z][_A-Za-z$0-9]*\1)/,
+            E = /^\#[A-Za-z]+/,
+            z = /^@(?:\$\d+|(`?)[_A-Za-z][_A-Za-z$0-9]*\1)/;
+        function k(F, q, D) {
+            if ((F.sol() && (q.indented = F.indentation()), F.eatSpace()))
                 return null;
-            var Q = q.peek();
+            var Q = F.peek();
             if (Q == '/') {
-                if (q.match('//')) return (q.skipToEnd(), 'comment');
-                if (q.match('/*')) return (F.tokenize.push(N), N(q, F));
+                if (F.match('//')) return (F.skipToEnd(), 'comment');
+                if (F.match('/*')) return (q.tokenize.push(I), I(F, q));
             }
-            if (q.match(z)) return 'builtin';
-            if (q.match(M)) return 'attribute';
-            if (q.match(g) || q.match(C) || q.match(k) || q.match(c))
+            if (F.match(E)) return 'builtin';
+            if (F.match(z)) return 'attribute';
+            if (F.match(g) || F.match(C) || F.match(_) || F.match(c))
                 return 'number';
-            if (q.match(x)) return 'property';
-            if (s.indexOf(Q) > -1) return (q.next(), 'operator');
+            if (F.match(w)) return 'property';
+            if (s.indexOf(Q) > -1) return (F.next(), 'operator');
             if (h.indexOf(Q) > -1)
-                return (q.next(), q.match('..'), 'punctuation');
+                return (F.next(), F.match('..'), 'punctuation');
             var j;
-            if ((j = q.match(/("""|"|')/))) {
-                var V = E.bind(null, j[0]);
-                return (F.tokenize.push(V), V(q, F));
+            if ((j = F.match(/("""|"|')/))) {
+                var V = M.bind(null, j[0]);
+                return (q.tokenize.push(V), V(F, q));
             }
-            if (q.match(d)) {
-                var y = q.current();
+            if (F.match(d)) {
+                var y = F.current();
                 return S.hasOwnProperty(y)
                     ? 'variable-2'
                     : b.hasOwnProperty(y)
                       ? 'atom'
                       : v.hasOwnProperty(y)
-                        ? (L.hasOwnProperty(y) && (F.prev = 'define'),
+                        ? (L.hasOwnProperty(y) && (q.prev = 'define'),
                           'keyword')
                         : D == 'define'
                           ? 'def'
                           : 'variable';
             }
-            return (q.next(), null);
+            return (F.next(), null);
         }
-        function W() {
-            var q = 0;
-            return function (F, D, Q) {
-                var j = w(F, D, Q);
+        function R() {
+            var F = 0;
+            return function (q, D, Q) {
+                var j = k(q, D, Q);
                 if (j == 'punctuation') {
-                    if (F.current() == '(') ++q;
-                    else if (F.current() == ')') {
-                        if (q == 0)
+                    if (q.current() == '(') ++F;
+                    else if (q.current() == ')') {
+                        if (F == 0)
                             return (
-                                F.backUp(1),
+                                q.backUp(1),
                                 D.tokenize.pop(),
-                                D.tokenize[D.tokenize.length - 1](F, D)
+                                D.tokenize[D.tokenize.length - 1](q, D)
                             );
-                        --q;
+                        --F;
                     }
                 }
                 return j;
             };
         }
-        function E(q, F, D) {
-            for (var Q = q.length == 1, j, V = !1; (j = F.peek());)
+        function M(F, q, D) {
+            for (var Q = F.length == 1, j, V = !1; (j = q.peek());)
                 if (V) {
-                    if ((F.next(), j == '('))
-                        return (D.tokenize.push(W()), 'string');
+                    if ((q.next(), j == '('))
+                        return (D.tokenize.push(R()), 'string');
                     V = !1;
                 } else {
-                    if (F.match(q)) return (D.tokenize.pop(), 'string');
-                    (F.next(), (V = j == '\\'));
+                    if (q.match(F)) return (D.tokenize.pop(), 'string');
+                    (q.next(), (V = j == '\\'));
                 }
             return (Q && D.tokenize.pop(), 'string');
         }
-        function N(q, F) {
-            for (var D; (D = q.next());)
-                if (D === '/' && q.eat('*')) F.tokenize.push(N);
-                else if (D === '*' && q.eat('/')) {
-                    F.tokenize.pop();
+        function I(F, q) {
+            for (var D; (D = F.next());)
+                if (D === '/' && F.eat('*')) q.tokenize.push(I);
+                else if (D === '*' && F.eat('/')) {
+                    q.tokenize.pop();
                     break;
                 }
             return 'comment';
         }
-        function K(q, F, D) {
-            ((this.prev = q), (this.align = F), (this.indented = D));
+        function U(F, q, D) {
+            ((this.prev = F), (this.align = q), (this.indented = D));
         }
-        function J(q, F) {
-            var D = F.match(/^\s*($|\/[\/\*])/, !1) ? null : F.column() + 1;
-            q.context = new K(q.context, D, q.indented);
+        function J(F, q) {
+            var D = q.match(/^\s*($|\/[\/\*])/, !1) ? null : q.column() + 1;
+            F.context = new U(F.context, D, F.indented);
         }
-        function re(q) {
-            q.context &&
-                ((q.indented = q.context.indented),
-                (q.context = q.context.prev));
+        function re(F) {
+            F.context &&
+                ((F.indented = F.context.indented),
+                (F.context = F.context.prev));
         }
-        (o.defineMode('swift', function (q) {
+        (o.defineMode('swift', function (F) {
             return {
                 startState: function () {
                     return {
@@ -23777,29 +23776,29 @@ var Xu = Ke((Gu, Zu) => {
                         tokenize: [],
                     };
                 },
-                token: function (F, D) {
+                token: function (q, D) {
                     var Q = D.prev;
                     D.prev = null;
-                    var j = D.tokenize[D.tokenize.length - 1] || w,
-                        V = j(F, D, Q);
+                    var j = D.tokenize[D.tokenize.length - 1] || k,
+                        V = j(q, D, Q);
                     if (
                         (!V || V == 'comment'
                             ? (D.prev = Q)
                             : D.prev || (D.prev = V),
                         V == 'punctuation')
                     ) {
-                        var y = /[\(\[\{]|([\]\)\}])/.exec(F.current());
-                        y && (y[1] ? re : J)(D, F);
+                        var y = /[\(\[\{]|([\]\)\}])/.exec(q.current());
+                        y && (y[1] ? re : J)(D, q);
                     }
                     return V;
                 },
-                indent: function (F, D) {
-                    var Q = F.context;
+                indent: function (q, D) {
+                    var Q = q.context;
                     if (!Q) return 0;
                     var j = /^[\]\}\)]/.test(D);
                     return Q.align != null
                         ? Q.align - (j ? 1 : 0)
-                        : Q.indented + (j ? 0 : q.indentUnit);
+                        : Q.indented + (j ? 0 : F.indentUnit);
                 },
                 electricInput: /^\s*[\)\}\]]$/,
                 lineComment: '//',
@@ -23823,8 +23822,8 @@ var Vu = Ke((Yu, Qu) => {
         'use strict';
         (o.defineMode('coffeescript', function (p, v) {
             var L = 'error';
-            function b(F) {
-                return new RegExp('^((' + F.join(')|(') + '))\\b');
+            function b(q) {
+                return new RegExp('^((' + q.join(')|(') + '))\\b');
             }
             var S =
                     /^(?:->|=>|\+[+=]?|-[\-=]?|\*[\*=]?|\/[\/=]?|[=!]=|<[><]?=?|>>?=?|%=?|&=?|\|=?|\^=?|\~|!|\?|(or|and|\|\||&&|\?)=)/,
@@ -23841,7 +23840,7 @@ var Vu = Ke((Yu, Qu) => {
                     'instanceof',
                     'typeof',
                 ]),
-                k = [
+                _ = [
                     'for',
                     'while',
                     'loop',
@@ -23873,11 +23872,11 @@ var Vu = Ke((Yu, Qu) => {
                     'until',
                     'extends',
                 ],
-                d = b(k.concat(c));
-            k = b(k);
-            var x = /^('{3}|\"{3}|['\"])/,
-                z = /^(\/{3}|\/)/,
-                M = [
+                d = b(_.concat(c));
+            _ = b(_);
+            var w = /^('{3}|\"{3}|['\"])/,
+                E = /^(\/{3}|\/)/,
+                z = [
                     'Infinity',
                     'NaN',
                     'undefined',
@@ -23889,99 +23888,99 @@ var Vu = Ke((Yu, Qu) => {
                     'yes',
                     'no',
                 ],
-                w = b(M);
-            function W(F, D) {
-                if (F.sol()) {
+                k = b(z);
+            function R(q, D) {
+                if (q.sol()) {
                     D.scope.align === null && (D.scope.align = !1);
                     var Q = D.scope.offset;
-                    if (F.eatSpace()) {
-                        var j = F.indentation();
+                    if (q.eatSpace()) {
+                        var j = q.indentation();
                         return j > Q && D.scope.type == 'coffee'
                             ? 'indent'
                             : j < Q
                               ? 'dedent'
                               : null;
-                    } else Q > 0 && J(F, D);
+                    } else Q > 0 && J(q, D);
                 }
-                if (F.eatSpace()) return null;
-                var V = F.peek();
-                if (F.match('####')) return (F.skipToEnd(), 'comment');
-                if (F.match('###')) return ((D.tokenize = N), D.tokenize(F, D));
-                if (V === '#') return (F.skipToEnd(), 'comment');
-                if (F.match(/^-?[0-9\.]/, !1)) {
+                if (q.eatSpace()) return null;
+                var V = q.peek();
+                if (q.match('####')) return (q.skipToEnd(), 'comment');
+                if (q.match('###')) return ((D.tokenize = I), D.tokenize(q, D));
+                if (V === '#') return (q.skipToEnd(), 'comment');
+                if (q.match(/^-?[0-9\.]/, !1)) {
                     var y = !1;
                     if (
-                        (F.match(/^-?\d*\.\d+(e[\+\-]?\d+)?/i) && (y = !0),
-                        F.match(/^-?\d+\.\d*/) && (y = !0),
-                        F.match(/^-?\.\d+/) && (y = !0),
+                        (q.match(/^-?\d*\.\d+(e[\+\-]?\d+)?/i) && (y = !0),
+                        q.match(/^-?\d+\.\d*/) && (y = !0),
+                        q.match(/^-?\.\d+/) && (y = !0),
                         y)
                     )
-                        return (F.peek() == '.' && F.backUp(1), 'number');
+                        return (q.peek() == '.' && q.backUp(1), 'number');
                     var G = !1;
                     if (
-                        (F.match(/^-?0x[0-9a-f]+/i) && (G = !0),
-                        F.match(/^-?[1-9]\d*(e[\+\-]?\d+)?/) && (G = !0),
-                        F.match(/^-?0(?![\dx])/i) && (G = !0),
+                        (q.match(/^-?0x[0-9a-f]+/i) && (G = !0),
+                        q.match(/^-?[1-9]\d*(e[\+\-]?\d+)?/) && (G = !0),
+                        q.match(/^-?0(?![\dx])/i) && (G = !0),
                         G)
                     )
                         return 'number';
                 }
-                if (F.match(x))
+                if (q.match(w))
                     return (
-                        (D.tokenize = E(F.current(), !1, 'string')),
-                        D.tokenize(F, D)
+                        (D.tokenize = M(q.current(), !1, 'string')),
+                        D.tokenize(q, D)
                     );
-                if (F.match(z)) {
-                    if (F.current() != '/' || F.match(/^.*\//, !1))
+                if (q.match(E)) {
+                    if (q.current() != '/' || q.match(/^.*\//, !1))
                         return (
-                            (D.tokenize = E(F.current(), !0, 'string-2')),
-                            D.tokenize(F, D)
+                            (D.tokenize = M(q.current(), !0, 'string-2')),
+                            D.tokenize(q, D)
                         );
-                    F.backUp(1);
+                    q.backUp(1);
                 }
-                return F.match(S) || F.match(C)
+                return q.match(S) || q.match(C)
                     ? 'operator'
-                    : F.match(s)
+                    : q.match(s)
                       ? 'punctuation'
-                      : F.match(w)
+                      : q.match(k)
                         ? 'atom'
-                        : F.match(g) || (D.prop && F.match(h))
+                        : q.match(g) || (D.prop && q.match(h))
                           ? 'property'
-                          : F.match(d)
+                          : q.match(d)
                             ? 'keyword'
-                            : F.match(h)
+                            : q.match(h)
                               ? 'variable'
-                              : (F.next(), L);
+                              : (q.next(), L);
             }
-            function E(F, D, Q) {
+            function M(q, D, Q) {
                 return function (j, V) {
                     for (; !j.eol();)
                         if ((j.eatWhile(/[^'"\/\\]/), j.eat('\\'))) {
                             if ((j.next(), D && j.eol())) return Q;
                         } else {
-                            if (j.match(F)) return ((V.tokenize = W), Q);
+                            if (j.match(q)) return ((V.tokenize = R), Q);
                             j.eat(/['"\/]/);
                         }
                     return (
                         D &&
                             (v.singleLineStringErrors
                                 ? (Q = L)
-                                : (V.tokenize = W)),
+                                : (V.tokenize = R)),
                         Q
                     );
                 };
             }
-            function N(F, D) {
-                for (; !F.eol();) {
-                    if ((F.eatWhile(/[^#]/), F.match('###'))) {
-                        D.tokenize = W;
+            function I(q, D) {
+                for (; !q.eol();) {
+                    if ((q.eatWhile(/[^#]/), q.match('###'))) {
+                        D.tokenize = R;
                         break;
                     }
-                    F.eatWhile('#');
+                    q.eatWhile('#');
                 }
                 return 'comment';
             }
-            function K(F, D, Q) {
+            function U(q, D, Q) {
                 Q = Q || 'coffee';
                 for (var j = 0, V = !1, y = null, G = D.scope; G; G = G.prev)
                     if (G.type === 'coffee' || G.type == '}') {
@@ -23989,7 +23988,7 @@ var Vu = Ke((Yu, Qu) => {
                         break;
                     }
                 (Q !== 'coffee'
-                    ? ((V = null), (y = F.column() + F.current().length))
+                    ? ((V = null), (y = q.column() + q.current().length))
                     : D.scope.align && (D.scope.align = !1),
                     (D.scope = {
                         offset: j,
@@ -23999,11 +23998,11 @@ var Vu = Ke((Yu, Qu) => {
                         alignOffset: y,
                     }));
             }
-            function J(F, D) {
+            function J(q, D) {
                 if (D.scope.prev)
                     if (D.scope.type === 'coffee') {
                         for (
-                            var Q = F.indentation(), j = !1, V = D.scope;
+                            var Q = q.indentation(), j = !1, V = D.scope;
                             V;
                             V = V.prev
                         )
@@ -24017,19 +24016,19 @@ var Vu = Ke((Yu, Qu) => {
                         return !1;
                     } else return ((D.scope = D.scope.prev), !1);
             }
-            function re(F, D) {
-                var Q = D.tokenize(F, D),
-                    j = F.current();
+            function re(q, D) {
+                var Q = D.tokenize(q, D),
+                    j = q.current();
                 (j === 'return' && (D.dedent = !0),
-                    (((j === '->' || j === '=>') && F.eol()) ||
+                    (((j === '->' || j === '=>') && q.eol()) ||
                         Q === 'indent') &&
-                        K(F, D));
+                        U(q, D));
                 var V = '[({'.indexOf(j);
                 if (
-                    (V !== -1 && K(F, D, '])}'.slice(V, V + 1)),
-                    k.exec(j) && K(F, D),
-                    j == 'then' && J(F, D),
-                    Q === 'dedent' && J(F, D))
+                    (V !== -1 && U(q, D, '])}'.slice(V, V + 1)),
+                    _.exec(j) && U(q, D),
+                    j == 'then' && J(q, D),
+                    Q === 'dedent' && J(q, D))
                 )
                     return L;
                 if (((V = '])}'.indexOf(j)), V !== -1)) {
@@ -24039,7 +24038,7 @@ var Vu = Ke((Yu, Qu) => {
                 }
                 return (
                     D.dedent &&
-                        F.eol() &&
+                        q.eol() &&
                         (D.scope.type == 'coffee' &&
                             D.scope.prev &&
                             (D.scope = D.scope.prev),
@@ -24047,12 +24046,12 @@ var Vu = Ke((Yu, Qu) => {
                     Q
                 );
             }
-            var q = {
-                startState: function (F) {
+            var F = {
+                startState: function (q) {
                     return {
-                        tokenize: W,
+                        tokenize: R,
                         scope: {
-                            offset: F || 0,
+                            offset: q || 0,
                             type: 'coffee',
                             prev: null,
                             align: !1,
@@ -24061,22 +24060,22 @@ var Vu = Ke((Yu, Qu) => {
                         dedent: 0,
                     };
                 },
-                token: function (F, D) {
+                token: function (q, D) {
                     var Q = D.scope.align === null && D.scope;
-                    Q && F.sol() && (Q.align = !1);
-                    var j = re(F, D);
+                    Q && q.sol() && (Q.align = !1);
+                    var j = re(q, D);
                     return (
                         j &&
                             j != 'comment' &&
                             (Q && (Q.align = !0),
                             (D.prop =
-                                j == 'punctuation' && F.current() == '.')),
+                                j == 'punctuation' && q.current() == '.')),
                         j
                     );
                 },
-                indent: function (F, D) {
-                    if (F.tokenize != W) return 0;
-                    var Q = F.scope,
+                indent: function (q, D) {
+                    if (q.tokenize != R) return 0;
+                    var Q = q.scope,
                         j = D && '])}'.indexOf(D.charAt(0)) > -1;
                     if (j) for (; Q.type == 'coffee' && Q.prev;) Q = Q.prev;
                     var V = j && Q.type === D.charAt(0);
@@ -24087,7 +24086,7 @@ var Vu = Ke((Yu, Qu) => {
                 lineComment: '#',
                 fold: 'indent',
             };
-            return q;
+            return F;
         }),
             o.defineMIME('application/vnd.coffeescript', 'coffeescript'),
             o.defineMIME('text/x-coffeescript', 'coffeescript'),
@@ -24145,153 +24144,153 @@ var tc = Ke((Ju, ec) => {
                         (this.innerModeForLine = !1));
                 }
                 g.prototype.copy = function () {
-                    var U = new g();
+                    var $ = new g();
                     return (
-                        (U.javaScriptLine = this.javaScriptLine),
-                        (U.javaScriptLineExcludesColon =
+                        ($.javaScriptLine = this.javaScriptLine),
+                        ($.javaScriptLineExcludesColon =
                             this.javaScriptLineExcludesColon),
-                        (U.javaScriptArguments = this.javaScriptArguments),
-                        (U.javaScriptArgumentsDepth =
+                        ($.javaScriptArguments = this.javaScriptArguments),
+                        ($.javaScriptArgumentsDepth =
                             this.javaScriptArgumentsDepth),
-                        (U.isInterpolating = this.isInterpolating),
-                        (U.interpolationNesting = this.interpolationNesting),
-                        (U.jsState = o.copyState(h, this.jsState)),
-                        (U.innerMode = this.innerMode),
+                        ($.isInterpolating = this.isInterpolating),
+                        ($.interpolationNesting = this.interpolationNesting),
+                        ($.jsState = o.copyState(h, this.jsState)),
+                        ($.innerMode = this.innerMode),
                         this.innerMode &&
                             this.innerState &&
-                            (U.innerState = o.copyState(
+                            ($.innerState = o.copyState(
                                 this.innerMode,
                                 this.innerState,
                             )),
-                        (U.restOfLine = this.restOfLine),
-                        (U.isIncludeFiltered = this.isIncludeFiltered),
-                        (U.isEach = this.isEach),
-                        (U.lastTag = this.lastTag),
-                        (U.scriptType = this.scriptType),
-                        (U.isAttrs = this.isAttrs),
-                        (U.attrsNest = this.attrsNest.slice()),
-                        (U.inAttributeName = this.inAttributeName),
-                        (U.attributeIsType = this.attributeIsType),
-                        (U.attrValue = this.attrValue),
-                        (U.indentOf = this.indentOf),
-                        (U.indentToken = this.indentToken),
-                        (U.innerModeForLine = this.innerModeForLine),
-                        U
+                        ($.restOfLine = this.restOfLine),
+                        ($.isIncludeFiltered = this.isIncludeFiltered),
+                        ($.isEach = this.isEach),
+                        ($.lastTag = this.lastTag),
+                        ($.scriptType = this.scriptType),
+                        ($.isAttrs = this.isAttrs),
+                        ($.attrsNest = this.attrsNest.slice()),
+                        ($.inAttributeName = this.inAttributeName),
+                        ($.attributeIsType = this.attributeIsType),
+                        ($.attrValue = this.attrValue),
+                        ($.indentOf = this.indentOf),
+                        ($.indentToken = this.indentToken),
+                        ($.innerModeForLine = this.innerModeForLine),
+                        $
                     );
                 };
-                function C(U, Z) {
+                function C($, Z) {
                     if (
-                        (U.sol() &&
+                        ($.sol() &&
                             ((Z.javaScriptLine = !1),
                             (Z.javaScriptLineExcludesColon = !1)),
                         Z.javaScriptLine)
                     ) {
-                        if (Z.javaScriptLineExcludesColon && U.peek() === ':') {
+                        if (Z.javaScriptLineExcludesColon && $.peek() === ':') {
                             ((Z.javaScriptLine = !1),
                                 (Z.javaScriptLineExcludesColon = !1));
                             return;
                         }
-                        var ce = h.token(U, Z.jsState);
-                        return (U.eol() && (Z.javaScriptLine = !1), ce || !0);
+                        var ce = h.token($, Z.jsState);
+                        return ($.eol() && (Z.javaScriptLine = !1), ce || !0);
                     }
                 }
-                function k(U, Z) {
+                function _($, Z) {
                     if (Z.javaScriptArguments) {
                         if (
                             Z.javaScriptArgumentsDepth === 0 &&
-                            U.peek() !== '('
+                            $.peek() !== '('
                         ) {
                             Z.javaScriptArguments = !1;
                             return;
                         }
                         if (
-                            (U.peek() === '('
+                            ($.peek() === '('
                                 ? Z.javaScriptArgumentsDepth++
-                                : U.peek() === ')' &&
+                                : $.peek() === ')' &&
                                   Z.javaScriptArgumentsDepth--,
                             Z.javaScriptArgumentsDepth === 0)
                         ) {
                             Z.javaScriptArguments = !1;
                             return;
                         }
-                        var ce = h.token(U, Z.jsState);
+                        var ce = h.token($, Z.jsState);
                         return ce || !0;
                     }
                 }
-                function c(U) {
-                    if (U.match(/^yield\b/)) return 'keyword';
+                function c($) {
+                    if ($.match(/^yield\b/)) return 'keyword';
                 }
-                function d(U) {
-                    if (U.match(/^(?:doctype) *([^\n]+)?/)) return L;
+                function d($) {
+                    if ($.match(/^(?:doctype) *([^\n]+)?/)) return L;
                 }
-                function x(U, Z) {
-                    if (U.match('#{'))
+                function w($, Z) {
+                    if ($.match('#{'))
                         return (
                             (Z.isInterpolating = !0),
                             (Z.interpolationNesting = 0),
                             'punctuation'
                         );
                 }
-                function z(U, Z) {
+                function E($, Z) {
                     if (Z.isInterpolating) {
-                        if (U.peek() === '}') {
+                        if ($.peek() === '}') {
                             if (
                                 (Z.interpolationNesting--,
                                 Z.interpolationNesting < 0)
                             )
                                 return (
-                                    U.next(),
+                                    $.next(),
                                     (Z.isInterpolating = !1),
                                     'punctuation'
                                 );
-                        } else U.peek() === '{' && Z.interpolationNesting++;
-                        return h.token(U, Z.jsState) || !0;
+                        } else $.peek() === '{' && Z.interpolationNesting++;
+                        return h.token($, Z.jsState) || !0;
                     }
                 }
-                function M(U, Z) {
-                    if (U.match(/^case\b/)) return ((Z.javaScriptLine = !0), v);
+                function z($, Z) {
+                    if ($.match(/^case\b/)) return ((Z.javaScriptLine = !0), v);
                 }
-                function w(U, Z) {
-                    if (U.match(/^when\b/))
+                function k($, Z) {
+                    if ($.match(/^when\b/))
                         return (
                             (Z.javaScriptLine = !0),
                             (Z.javaScriptLineExcludesColon = !0),
                             v
                         );
                 }
-                function W(U) {
-                    if (U.match(/^default\b/)) return v;
+                function R($) {
+                    if ($.match(/^default\b/)) return v;
                 }
-                function E(U, Z) {
-                    if (U.match(/^extends?\b/))
+                function M($, Z) {
+                    if ($.match(/^extends?\b/))
                         return ((Z.restOfLine = 'string'), v);
                 }
-                function N(U, Z) {
-                    if (U.match(/^append\b/))
+                function I($, Z) {
+                    if ($.match(/^append\b/))
                         return ((Z.restOfLine = 'variable'), v);
                 }
-                function K(U, Z) {
-                    if (U.match(/^prepend\b/))
+                function U($, Z) {
+                    if ($.match(/^prepend\b/))
                         return ((Z.restOfLine = 'variable'), v);
                 }
-                function J(U, Z) {
-                    if (U.match(/^block\b *(?:(prepend|append)\b)?/))
+                function J($, Z) {
+                    if ($.match(/^block\b *(?:(prepend|append)\b)?/))
                         return ((Z.restOfLine = 'variable'), v);
                 }
-                function re(U, Z) {
-                    if (U.match(/^include\b/))
+                function re($, Z) {
+                    if ($.match(/^include\b/))
                         return ((Z.restOfLine = 'string'), v);
                 }
-                function q(U, Z) {
+                function F($, Z) {
                     if (
-                        U.match(/^include:([a-zA-Z0-9\-]+)/, !1) &&
-                        U.match('include')
+                        $.match(/^include:([a-zA-Z0-9\-]+)/, !1) &&
+                        $.match('include')
                     )
                         return ((Z.isIncludeFiltered = !0), v);
                 }
-                function F(U, Z) {
+                function q($, Z) {
                     if (Z.isIncludeFiltered) {
-                        var ce = R(U, Z);
+                        var ce = H($, Z);
                         return (
                             (Z.isIncludeFiltered = !1),
                             (Z.restOfLine = 'string'),
@@ -24299,61 +24298,61 @@ var tc = Ke((Ju, ec) => {
                         );
                     }
                 }
-                function D(U, Z) {
-                    if (U.match(/^mixin\b/))
+                function D($, Z) {
+                    if ($.match(/^mixin\b/))
                         return ((Z.javaScriptLine = !0), v);
                 }
-                function Q(U, Z) {
-                    if (U.match(/^\+([-\w]+)/))
+                function Q($, Z) {
+                    if ($.match(/^\+([-\w]+)/))
                         return (
-                            U.match(/^\( *[-\w]+ *=/, !1) ||
+                            $.match(/^\( *[-\w]+ *=/, !1) ||
                                 ((Z.javaScriptArguments = !0),
                                 (Z.javaScriptArgumentsDepth = 0)),
                             'variable'
                         );
-                    if (U.match('+#{', !1))
-                        return (U.next(), (Z.mixinCallAfter = !0), x(U, Z));
+                    if ($.match('+#{', !1))
+                        return ($.next(), (Z.mixinCallAfter = !0), w($, Z));
                 }
-                function j(U, Z) {
+                function j($, Z) {
                     if (Z.mixinCallAfter)
                         return (
                             (Z.mixinCallAfter = !1),
-                            U.match(/^\( *[-\w]+ *=/, !1) ||
+                            $.match(/^\( *[-\w]+ *=/, !1) ||
                                 ((Z.javaScriptArguments = !0),
                                 (Z.javaScriptArgumentsDepth = 0)),
                             !0
                         );
                 }
-                function V(U, Z) {
-                    if (U.match(/^(if|unless|else if|else)\b/))
+                function V($, Z) {
+                    if ($.match(/^(if|unless|else if|else)\b/))
                         return ((Z.javaScriptLine = !0), v);
                 }
-                function y(U, Z) {
-                    if (U.match(/^(- *)?(each|for)\b/))
+                function y($, Z) {
+                    if ($.match(/^(- *)?(each|for)\b/))
                         return ((Z.isEach = !0), v);
                 }
-                function G(U, Z) {
+                function G($, Z) {
                     if (Z.isEach) {
-                        if (U.match(/^ in\b/))
+                        if ($.match(/^ in\b/))
                             return (
                                 (Z.javaScriptLine = !0),
                                 (Z.isEach = !1),
                                 v
                             );
-                        if (U.sol() || U.eol()) Z.isEach = !1;
-                        else if (U.next()) {
-                            for (; !U.match(/^ in\b/, !1) && U.next(););
+                        if ($.sol() || $.eol()) Z.isEach = !1;
+                        else if ($.next()) {
+                            for (; !$.match(/^ in\b/, !1) && $.next(););
                             return 'variable';
                         }
                     }
                 }
-                function X(U, Z) {
-                    if (U.match(/^while\b/))
+                function X($, Z) {
+                    if ($.match(/^while\b/))
                         return ((Z.javaScriptLine = !0), v);
                 }
-                function O(U, Z) {
+                function O($, Z) {
                     var ce;
-                    if ((ce = U.match(/^(\w(?:[-:\w]*\w)?)\/?/)))
+                    if ((ce = $.match(/^(\w(?:[-:\w]*\w)?)\/?/)))
                         return (
                             (Z.lastTag = ce[1].toLowerCase()),
                             Z.lastTag === 'script' &&
@@ -24361,34 +24360,34 @@ var tc = Ke((Ju, ec) => {
                             'tag'
                         );
                 }
-                function R(U, Z) {
-                    if (U.match(/^:([\w\-]+)/)) {
+                function H($, Z) {
+                    if ($.match(/^:([\w\-]+)/)) {
                         var ce;
                         return (
                             p &&
                                 p.innerModes &&
-                                (ce = p.innerModes(U.current().substring(1))),
-                            ce || (ce = U.current().substring(1)),
+                                (ce = p.innerModes($.current().substring(1))),
+                            ce || (ce = $.current().substring(1)),
                             typeof ce == 'string' && (ce = o.getMode(p, ce)),
-                            Be(U, Z, ce),
+                            Be($, Z, ce),
                             'atom'
                         );
                     }
                 }
-                function se(U, Z) {
-                    if (U.match(/^(!?=|-)/))
+                function se($, Z) {
+                    if ($.match(/^(!?=|-)/))
                         return ((Z.javaScriptLine = !0), 'punctuation');
                 }
-                function _e(U) {
-                    if (U.match(/^#([\w-]+)/)) return b;
+                function _e($) {
+                    if ($.match(/^#([\w-]+)/)) return b;
                 }
-                function I(U) {
-                    if (U.match(/^\.([\w-]+)/)) return S;
+                function N($) {
+                    if ($.match(/^\.([\w-]+)/)) return S;
                 }
-                function T(U, Z) {
-                    if (U.peek() == '(')
+                function T($, Z) {
+                    if ($.peek() == '(')
                         return (
-                            U.next(),
+                            $.next(),
                             (Z.isAttrs = !0),
                             (Z.attrsNest = []),
                             (Z.inAttributeName = !0),
@@ -24397,31 +24396,31 @@ var tc = Ke((Ju, ec) => {
                             'punctuation'
                         );
                 }
-                function he(U, Z) {
+                function he($, Z) {
                     if (Z.isAttrs) {
                         if (
-                            (s[U.peek()] && Z.attrsNest.push(s[U.peek()]),
-                            Z.attrsNest[Z.attrsNest.length - 1] === U.peek())
+                            (s[$.peek()] && Z.attrsNest.push(s[$.peek()]),
+                            Z.attrsNest[Z.attrsNest.length - 1] === $.peek())
                         )
                             Z.attrsNest.pop();
-                        else if (U.eat(')'))
+                        else if ($.eat(')'))
                             return ((Z.isAttrs = !1), 'punctuation');
-                        if (Z.inAttributeName && U.match(/^[^=,\)!]+/))
+                        if (Z.inAttributeName && $.match(/^[^=,\)!]+/))
                             return (
-                                (U.peek() === '=' || U.peek() === '!') &&
+                                ($.peek() === '=' || $.peek() === '!') &&
                                     ((Z.inAttributeName = !1),
                                     (Z.jsState = o.startState(h)),
                                     Z.lastTag === 'script' &&
-                                    U.current().trim().toLowerCase() === 'type'
+                                    $.current().trim().toLowerCase() === 'type'
                                         ? (Z.attributeIsType = !0)
                                         : (Z.attributeIsType = !1)),
                                 'attribute'
                             );
-                        var ce = h.token(U, Z.jsState);
+                        var ce = h.token($, Z.jsState);
                         if (
                             (Z.attributeIsType &&
                                 ce === 'string' &&
-                                (Z.scriptType = U.current().toString()),
+                                (Z.scriptType = $.current().toString()),
                             Z.attrsNest.length === 0 &&
                                 (ce === 'string' ||
                                     ce === 'variable' ||
@@ -24438,46 +24437,46 @@ var tc = Ke((Ju, ec) => {
                                     ),
                                     (Z.inAttributeName = !0),
                                     (Z.attrValue = ''),
-                                    U.backUp(U.current().length),
-                                    he(U, Z)
+                                    $.backUp($.current().length),
+                                    he($, Z)
                                 );
                             } catch {}
-                        return ((Z.attrValue += U.current()), ce || !0);
+                        return ((Z.attrValue += $.current()), ce || !0);
                     }
                 }
-                function ze(U, Z) {
-                    if (U.match(/^&attributes\b/))
+                function ze($, Z) {
+                    if ($.match(/^&attributes\b/))
                         return (
                             (Z.javaScriptArguments = !0),
                             (Z.javaScriptArgumentsDepth = 0),
                             'keyword'
                         );
                 }
-                function de(U) {
-                    if (U.sol() && U.eatSpace()) return 'indent';
+                function de($) {
+                    if ($.sol() && $.eatSpace()) return 'indent';
                 }
-                function Ee(U, Z) {
-                    if (U.match(/^ *\/\/(-)?([^\n]*)/))
+                function Ee($, Z) {
+                    if ($.match(/^ *\/\/(-)?([^\n]*)/))
                         return (
-                            (Z.indentOf = U.indentation()),
+                            (Z.indentOf = $.indentation()),
                             (Z.indentToken = 'comment'),
                             'comment'
                         );
                 }
-                function ge(U) {
-                    if (U.match(/^: */)) return 'colon';
+                function ge($) {
+                    if ($.match(/^: */)) return 'colon';
                 }
-                function Oe(U, Z) {
-                    if (U.match(/^(?:\| ?| )([^\n]+)/)) return 'string';
-                    if (U.match(/^(<[^\n]*)/, !1))
+                function Oe($, Z) {
+                    if ($.match(/^(?:\| ?| )([^\n]+)/)) return 'string';
+                    if ($.match(/^(<[^\n]*)/, !1))
                         return (
-                            Be(U, Z, 'htmlmixed'),
+                            Be($, Z, 'htmlmixed'),
                             (Z.innerModeForLine = !0),
-                            Ze(U, Z, !0)
+                            Ze($, Z, !0)
                         );
                 }
-                function qe(U, Z) {
-                    if (U.eat('.')) {
+                function qe($, Z) {
+                    if ($.eat('.')) {
                         var ce = null;
                         return (
                             Z.lastTag === 'script' &&
@@ -24487,28 +24486,28 @@ var tc = Ke((Ju, ec) => {
                                       .toLowerCase()
                                       .replace(/"|'/g, ''))
                                 : Z.lastTag === 'style' && (ce = 'css'),
-                            Be(U, Z, ce),
+                            Be($, Z, ce),
                             'dot'
                         );
                     }
                 }
-                function Se(U) {
-                    return (U.next(), null);
+                function Se($) {
+                    return ($.next(), null);
                 }
-                function Be(U, Z, ce) {
+                function Be($, Z, ce) {
                     ((ce = o.mimeModes[ce] || ce),
                         (ce = (p.innerModes && p.innerModes(ce)) || ce),
                         (ce = o.mimeModes[ce] || ce),
                         (ce = o.getMode(p, ce)),
-                        (Z.indentOf = U.indentation()),
+                        (Z.indentOf = $.indentation()),
                         ce && ce.name !== 'null'
                             ? (Z.innerMode = ce)
                             : (Z.indentToken = 'string'));
                 }
-                function Ze(U, Z, ce) {
+                function Ze($, Z, ce) {
                     if (
-                        U.indentation() > Z.indentOf ||
-                        (Z.innerModeForLine && !U.sol()) ||
+                        $.indentation() > Z.indentOf ||
+                        (Z.innerModeForLine && !$.sol()) ||
                         ce
                     )
                         return Z.innerMode
@@ -24516,24 +24515,24 @@ var tc = Ke((Ju, ec) => {
                                   (Z.innerState = Z.innerMode.startState
                                       ? o.startState(
                                             Z.innerMode,
-                                            U.indentation(),
+                                            $.indentation(),
                                         )
                                       : {}),
-                              U.hideFirstChars(Z.indentOf + 2, function () {
+                              $.hideFirstChars(Z.indentOf + 2, function () {
                                   return (
-                                      Z.innerMode.token(U, Z.innerState) || !0
+                                      Z.innerMode.token($, Z.innerState) || !0
                                   );
                               }))
-                            : (U.skipToEnd(), Z.indentToken);
-                    U.sol() &&
+                            : ($.skipToEnd(), Z.indentToken);
+                    $.sol() &&
                         ((Z.indentOf = 1 / 0),
                         (Z.indentToken = null),
                         (Z.innerMode = null),
                         (Z.innerState = null));
                 }
-                function ke(U, Z) {
-                    if ((U.sol() && (Z.restOfLine = ''), Z.restOfLine)) {
-                        U.skipToEnd();
+                function ke($, Z) {
+                    if (($.sol() && (Z.restOfLine = ''), Z.restOfLine)) {
+                        $.skipToEnd();
                         var ce = Z.restOfLine;
                         return ((Z.restOfLine = ''), ce);
                     }
@@ -24541,50 +24540,50 @@ var tc = Ke((Ju, ec) => {
                 function Je() {
                     return new g();
                 }
-                function Re(U) {
-                    return U.copy();
+                function Re($) {
+                    return $.copy();
                 }
-                function Ge(U, Z) {
+                function Ge($, Z) {
                     var ce =
-                        Ze(U, Z) ||
-                        ke(U, Z) ||
-                        z(U, Z) ||
-                        F(U, Z) ||
-                        G(U, Z) ||
-                        he(U, Z) ||
-                        C(U, Z) ||
-                        k(U, Z) ||
-                        j(U, Z) ||
-                        c(U) ||
-                        d(U) ||
-                        x(U, Z) ||
-                        M(U, Z) ||
-                        w(U, Z) ||
-                        W(U) ||
-                        E(U, Z) ||
-                        N(U, Z) ||
-                        K(U, Z) ||
-                        J(U, Z) ||
-                        re(U, Z) ||
-                        q(U, Z) ||
-                        D(U, Z) ||
-                        Q(U, Z) ||
-                        V(U, Z) ||
-                        y(U, Z) ||
-                        X(U, Z) ||
-                        O(U, Z) ||
-                        R(U, Z) ||
-                        se(U, Z) ||
-                        _e(U) ||
-                        I(U) ||
-                        T(U, Z) ||
-                        ze(U, Z) ||
-                        de(U) ||
-                        Oe(U, Z) ||
-                        Ee(U, Z) ||
-                        ge(U) ||
-                        qe(U, Z) ||
-                        Se(U);
+                        Ze($, Z) ||
+                        ke($, Z) ||
+                        E($, Z) ||
+                        q($, Z) ||
+                        G($, Z) ||
+                        he($, Z) ||
+                        C($, Z) ||
+                        _($, Z) ||
+                        j($, Z) ||
+                        c($) ||
+                        d($) ||
+                        w($, Z) ||
+                        z($, Z) ||
+                        k($, Z) ||
+                        R($) ||
+                        M($, Z) ||
+                        I($, Z) ||
+                        U($, Z) ||
+                        J($, Z) ||
+                        re($, Z) ||
+                        F($, Z) ||
+                        D($, Z) ||
+                        Q($, Z) ||
+                        V($, Z) ||
+                        y($, Z) ||
+                        X($, Z) ||
+                        O($, Z) ||
+                        H($, Z) ||
+                        se($, Z) ||
+                        _e($) ||
+                        N($) ||
+                        T($, Z) ||
+                        ze($, Z) ||
+                        de($) ||
+                        Oe($, Z) ||
+                        Ee($, Z) ||
+                        ge($) ||
+                        qe($, Z) ||
+                        Se($);
                     return ce === !0 ? null : ce;
                 }
                 return { startState: Je, copyState: Re, token: Ge };
@@ -24637,38 +24636,38 @@ var ic = Ke((rc, nc) => {
                 },
                 token: function (b, S) {
                     if (S.innerActive) {
-                        var z = S.innerActive,
+                        var E = S.innerActive,
                             h = b.string;
-                        if (!z.close && b.sol())
+                        if (!E.close && b.sol())
                             return (
                                 (S.innerActive = S.inner = null),
                                 this.token(b, S)
                             );
-                        var k =
-                            z.close && !S.startingInner
-                                ? L(h, z.close, b.pos, z.parseDelimiters)
+                        var _ =
+                            E.close && !S.startingInner
+                                ? L(h, E.close, b.pos, E.parseDelimiters)
                                 : -1;
-                        if (k == b.pos && !z.parseDelimiters)
+                        if (_ == b.pos && !E.parseDelimiters)
                             return (
-                                b.match(z.close),
+                                b.match(E.close),
                                 (S.innerActive = S.inner = null),
-                                z.delimStyle &&
-                                    z.delimStyle + ' ' + z.delimStyle + '-close'
+                                E.delimStyle &&
+                                    E.delimStyle + ' ' + E.delimStyle + '-close'
                             );
-                        k > -1 && (b.string = h.slice(0, k));
-                        var M = z.mode.token(b, S.inner);
+                        _ > -1 && (b.string = h.slice(0, _));
+                        var z = E.mode.token(b, S.inner);
                         return (
-                            k > -1
+                            _ > -1
                                 ? (b.string = h)
                                 : b.pos > b.start && (S.startingInner = !1),
-                            k == b.pos &&
-                                z.parseDelimiters &&
+                            _ == b.pos &&
+                                E.parseDelimiters &&
                                 (S.innerActive = S.inner = null),
-                            z.innerStyle &&
-                                (M
-                                    ? (M = M + ' ' + z.innerStyle)
-                                    : (M = z.innerStyle)),
-                            M
+                            E.innerStyle &&
+                                (z
+                                    ? (z = z + ' ' + E.innerStyle)
+                                    : (z = E.innerStyle)),
+                            z
                         );
                     } else {
                         for (
@@ -24677,8 +24676,8 @@ var ic = Ke((rc, nc) => {
                             ++g
                         ) {
                             var C = v[g],
-                                k = L(h, C.open, b.pos);
-                            if (k == b.pos) {
+                                _ = L(h, C.open, b.pos);
+                            if (_ == b.pos) {
                                 (C.parseDelimiters || b.match(C.open),
                                     (S.startingInner = !!C.parseDelimiters),
                                     (S.innerActive = C));
@@ -24695,11 +24694,11 @@ var ic = Ke((rc, nc) => {
                                             C.delimStyle +
                                             '-open'
                                 );
-                            } else k != -1 && k < s && (s = k);
+                            } else _ != -1 && _ < s && (s = _);
                         }
                         s != 1 / 0 && (b.string = h.slice(0, s));
-                        var x = p.token(b, S.outer);
-                        return (s != 1 / 0 && (b.string = h), x);
+                        var w = p.token(b, S.outer);
+                        return (s != 1 / 0 && (b.string = h), w);
                     }
                 },
                 indent: function (b, S, s) {
@@ -25071,14 +25070,14 @@ function qi(o, p, v, L, b, S) {
         o.noMobile && s.classList.add('no-mobile'));
     var g = [];
     typeof o.className < 'u' && (g = o.className.split(' '));
-    for (var C = [], k = 0; k < g.length; k++) {
-        var c = g[k];
+    for (var C = [], _ = 0; _ < g.length; _++) {
+        var c = g[_];
         c.match(/^fa([srlb]|(-[\w-]*)|$)/) ? C.push(c) : s.classList.add(c);
     }
     if (((s.tabIndex = -1), C.length > 0)) {
-        for (var d = document.createElement('i'), x = 0; x < C.length; x++) {
-            var z = C[x];
-            d.classList.add(z);
+        for (var d = document.createElement('i'), w = 0; w < C.length; w++) {
+            var E = C[w];
+            d.classList.add(E);
         }
         s.appendChild(d);
     }
@@ -25087,12 +25086,12 @@ function qi(o, p, v, L, b, S) {
         o.action &&
             p &&
             (typeof o.action == 'function'
-                ? (s.onclick = function (M) {
-                      (M.preventDefault(), o.action(S));
+                ? (s.onclick = function (z) {
+                      (z.preventDefault(), o.action(S));
                   })
                 : typeof o.action == 'string' &&
-                  (s.onclick = function (M) {
-                      (M.preventDefault(), window.open(o.action, '_blank'));
+                  (s.onclick = function (z) {
+                      (z.preventDefault(), window.open(o.action, '_blank'));
                   })),
         s
     );
@@ -25201,27 +25200,27 @@ function Pi(o) {
     function L(y) {
         return y.state.base.base || y.state.base;
     }
-    function b(y, G, X, O, R) {
+    function b(y, G, X, O, H) {
         ((X = X || y.getLineHandle(G)),
             (O = O || y.getTokenAt({ line: G, ch: 1 })),
-            (R =
-                R ||
+            (H =
+                H ||
                 (!!X.text &&
                     y.getTokenAt({ line: G, ch: X.text.length - 1 }))));
         var se = O.type ? O.type.split(' ') : [];
-        return R && L(R).indentedCode
+        return H && L(H).indentedCode
             ? 'indented'
             : se.indexOf('comment') === -1
               ? !1
-              : L(O).fencedChars || L(R).fencedChars || v(X)
+              : L(O).fencedChars || L(H).fencedChars || v(X)
                 ? 'fenced'
                 : 'single';
     }
     function S(y, G, X, O) {
-        var R = G.line + 1,
+        var H = G.line + 1,
             se = X.line + 1,
             _e = G.line !== X.line,
-            I =
+            N =
                 O +
                 `
 `,
@@ -25236,23 +25235,23 @@ function Pi(o) {
                     `
 `),
                 se--),
-            jr(y, !1, [I, T]),
-            y.setSelection({ line: R, ch: 0 }, { line: se, ch: 0 }));
+            jr(y, !1, [N, T]),
+            y.setSelection({ line: H, ch: 0 }, { line: se, ch: 0 }));
     }
     var s = o.codemirror,
         h = s.getCursor('start'),
         g = s.getCursor('end'),
         C = s.getTokenAt({ line: h.line, ch: h.ch || 1 }),
-        k = s.getLineHandle(h.line),
-        c = b(s, h.line, k, C),
+        _ = s.getLineHandle(h.line),
+        c = b(s, h.line, _, C),
         d,
-        x,
-        z;
+        w,
+        E;
     if (c === 'single') {
-        var M = k.text.slice(0, h.ch).replace('`', ''),
-            w = k.text.slice(h.ch).replace('`', '');
+        var z = _.text.slice(0, h.ch).replace('`', ''),
+            k = _.text.slice(h.ch).replace('`', '');
         (s.replaceRange(
-            M + w,
+            z + k,
             { line: h.line, ch: 0 },
             { line: h.line, ch: 99999999999999 },
         ),
@@ -25262,28 +25261,28 @@ function Pi(o) {
             s.focus());
     } else if (c === 'fenced')
         if (h.line !== g.line || h.ch !== g.ch) {
-            for (d = h.line; d >= 0 && ((k = s.getLineHandle(d)), !v(k)); d--);
-            var W = s.getTokenAt({ line: d, ch: 1 }),
-                E = L(W).fencedChars,
-                N,
-                K,
+            for (d = h.line; d >= 0 && ((_ = s.getLineHandle(d)), !v(_)); d--);
+            var R = s.getTokenAt({ line: d, ch: 1 }),
+                M = L(R).fencedChars,
+                I,
+                U,
                 J,
                 re;
             (v(s.getLineHandle(h.line))
-                ? ((N = ''), (K = h.line))
+                ? ((I = ''), (U = h.line))
                 : v(s.getLineHandle(h.line - 1))
-                  ? ((N = ''), (K = h.line - 1))
-                  : ((N =
-                        E +
+                  ? ((I = ''), (U = h.line - 1))
+                  : ((I =
+                        M +
                         `
 `),
-                    (K = h.line)),
+                    (U = h.line)),
                 v(s.getLineHandle(g.line))
                     ? ((J = ''), (re = g.line), g.ch === 0 && (re += 1))
                     : g.ch !== 0 && v(s.getLineHandle(g.line + 1))
                       ? ((J = ''), (re = g.line + 1))
                       : ((J =
-                            E +
+                            M +
                             `
 `),
                         (re = g.line + 1)),
@@ -25295,74 +25294,74 @@ function Pi(o) {
                         { line: re + (J ? 0 : 1), ch: 0 },
                     ),
                         s.replaceRange(
-                            N,
-                            { line: K, ch: 0 },
-                            { line: K + (N ? 0 : 1), ch: 0 },
+                            I,
+                            { line: U, ch: 0 },
+                            { line: U + (I ? 0 : 1), ch: 0 },
                         ));
                 }),
                 s.setSelection(
-                    { line: K + (N ? 1 : 0), ch: 0 },
-                    { line: re + (N ? 1 : -1), ch: 0 },
+                    { line: U + (I ? 1 : 0), ch: 0 },
+                    { line: re + (I ? 1 : -1), ch: 0 },
                 ),
                 s.focus());
         } else {
-            var q = h.line;
+            var F = h.line;
             if (
                 (v(s.getLineHandle(h.line)) &&
                     (b(s, h.line + 1) === 'fenced'
-                        ? ((d = h.line), (q = h.line + 1))
-                        : ((x = h.line), (q = h.line - 1))),
+                        ? ((d = h.line), (F = h.line + 1))
+                        : ((w = h.line), (F = h.line - 1))),
                 d === void 0)
             )
-                for (d = q; d >= 0 && ((k = s.getLineHandle(d)), !v(k)); d--);
-            if (x === void 0)
+                for (d = F; d >= 0 && ((_ = s.getLineHandle(d)), !v(_)); d--);
+            if (w === void 0)
                 for (
-                    z = s.lineCount(), x = q;
-                    x < z && ((k = s.getLineHandle(x)), !v(k));
-                    x++
+                    E = s.lineCount(), w = F;
+                    w < E && ((_ = s.getLineHandle(w)), !v(_));
+                    w++
                 );
             (s.operation(function () {
                 (s.replaceRange('', { line: d, ch: 0 }, { line: d + 1, ch: 0 }),
                     s.replaceRange(
                         '',
-                        { line: x - 1, ch: 0 },
-                        { line: x, ch: 0 },
+                        { line: w - 1, ch: 0 },
+                        { line: w, ch: 0 },
                     ));
             }),
                 s.focus());
         }
     else if (c === 'indented') {
         if (h.line !== g.line || h.ch !== g.ch)
-            ((d = h.line), (x = g.line), g.ch === 0 && x--);
+            ((d = h.line), (w = g.line), g.ch === 0 && w--);
         else {
             for (d = h.line; d >= 0; d--)
                 if (
-                    ((k = s.getLineHandle(d)),
-                    !k.text.match(/^\s*$/) && b(s, d, k) !== 'indented')
+                    ((_ = s.getLineHandle(d)),
+                    !_.text.match(/^\s*$/) && b(s, d, _) !== 'indented')
                 ) {
                     d += 1;
                     break;
                 }
-            for (z = s.lineCount(), x = h.line; x < z; x++)
+            for (E = s.lineCount(), w = h.line; w < E; w++)
                 if (
-                    ((k = s.getLineHandle(x)),
-                    !k.text.match(/^\s*$/) && b(s, x, k) !== 'indented')
+                    ((_ = s.getLineHandle(w)),
+                    !_.text.match(/^\s*$/) && b(s, w, _) !== 'indented')
                 ) {
-                    x -= 1;
+                    w -= 1;
                     break;
                 }
         }
-        var F = s.getLineHandle(x + 1),
-            D = F && s.getTokenAt({ line: x + 1, ch: F.text.length - 1 }),
+        var q = s.getLineHandle(w + 1),
+            D = q && s.getTokenAt({ line: w + 1, ch: q.text.length - 1 }),
             Q = D && L(D).indentedCode;
         (s.operation(function () {
             Q &&
                 s.replaceRange(
                     `
 `,
-                    { line: x + 1, ch: 0 },
+                    { line: w + 1, ch: 0 },
                 );
-            for (var y = d; y <= x; y++) s.indentLine(y, 'subtract');
+            for (var y = d; y <= w; y++) s.indentLine(y, 'subtract');
         }),
             s.focus());
     } else {
@@ -25512,12 +25511,12 @@ function bn(o) {
         (g.classList.remove('active'),
             C.classList.remove('disabled-for-preview'));
     }
-    var k = function () {
+    var _ = function () {
         var d = o.options.previewRender(o.value(), L);
         d != null && (L.innerHTML = d);
     };
     if (
-        (p.sideBySideRenderingFunction || (p.sideBySideRenderingFunction = k),
+        (p.sideBySideRenderingFunction || (p.sideBySideRenderingFunction = _),
         S)
     ) {
         var c = o.options.previewRender(o.value(), L);
@@ -25648,56 +25647,56 @@ function la(o, p, v) {
                     'unordered-list': L,
                     'ordered-list': L,
                 },
-                C = function (z, M) {
-                    var w = {
+                C = function (E, z) {
+                    var k = {
                         quote: '>',
                         'unordered-list': v,
                         'ordered-list': '%%i.',
                     };
-                    return w[z].replace('%%i', M);
+                    return k[E].replace('%%i', z);
                 },
-                k = function (z, M) {
-                    var w = {
+                _ = function (E, z) {
+                    var k = {
                             quote: '>',
                             'unordered-list': '\\' + v,
                             'ordered-list': '\\d+.',
                         },
-                        W = new RegExp(w[z]);
-                    return M && W.test(M);
+                        R = new RegExp(k[E]);
+                    return z && R.test(z);
                 },
-                c = function (z, M, w) {
-                    var W = L.exec(M),
-                        E = C(z, d);
+                c = function (E, z, k) {
+                    var R = L.exec(z),
+                        M = C(E, d);
                     return (
-                        W !== null
-                            ? (k(z, W[2]) && (E = ''),
-                              (M =
-                                  W[1] +
-                                  E +
-                                  W[3] +
-                                  M.replace(b, '').replace(g[z], '$1')))
-                            : w == !1 && (M = E + ' ' + M),
-                        M
+                        R !== null
+                            ? (_(E, R[2]) && (M = ''),
+                              (z =
+                                  R[1] +
+                                  M +
+                                  R[3] +
+                                  z.replace(b, '').replace(g[E], '$1')))
+                            : k == !1 && (z = M + ' ' + z),
+                        z
                     );
                 },
                 d = 1,
-                x = s.line;
-            x <= h.line;
-            x++
+                w = s.line;
+            w <= h.line;
+            w++
         )
-            (function (z) {
-                var M = o.getLine(z);
+            (function (E) {
+                var z = o.getLine(E);
                 (S[p]
-                    ? (M = M.replace(g[p], '$1'))
-                    : (p == 'unordered-list' && (M = c('ordered-list', M, !0)),
-                      (M = c(p, M, !1)),
+                    ? (z = z.replace(g[p], '$1'))
+                    : (p == 'unordered-list' && (z = c('ordered-list', z, !0)),
+                      (z = c(p, z, !1)),
                       (d += 1)),
                     o.replaceRange(
-                        M,
-                        { line: z, ch: 0 },
-                        { line: z, ch: 99999999999999 },
+                        z,
+                        { line: E, ch: 0 },
+                        { line: E, ch: 99999999999999 },
                     ));
-            })(x);
+            })(w);
         o.focus();
     }
 }
@@ -25713,14 +25712,14 @@ function xc(o, p, v, L) {
         var h = b.getCursor('start'),
             g = b.getCursor('end'),
             C = b.getLine(h.line),
-            k = C.slice(0, h.ch),
+            _ = C.slice(0, h.ch),
             c = C.slice(h.ch);
         (p == 'link'
-            ? (k = k.replace(/(.*)[^!]\[/, '$1'))
-            : p == 'image' && (k = k.replace(/(.*)!\[$/, '$1')),
+            ? (_ = _.replace(/(.*)[^!]\[/, '$1'))
+            : p == 'image' && (_ = _.replace(/(.*)!\[$/, '$1')),
             (c = c.replace(/]\(.*?\)/, '')),
             b.replaceRange(
-                k + c,
+                _ + c,
                 { line: h.line, ch: 0 },
                 { line: h.line, ch: 99999999999999 },
             ),
@@ -25739,7 +25738,7 @@ function sa(o, p, v, L) {
             h = v,
             g = L,
             C = b.getCursor('start'),
-            k = b.getCursor('end');
+            _ = b.getCursor('end');
         (S[p]
             ? ((s = b.getLine(C.line)),
               (h = s.slice(0, C.ch)),
@@ -25759,8 +25758,8 @@ function sa(o, p, v, L) {
                   { line: C.line, ch: 99999999999999 },
               ),
               p == 'bold' || p == 'strikethrough'
-                  ? ((C.ch -= 2), C !== k && (k.ch -= 2))
-                  : p == 'italic' && ((C.ch -= 1), C !== k && (k.ch -= 1)))
+                  ? ((C.ch -= 2), C !== _ && (_.ch -= 2))
+                  : p == 'italic' && ((C.ch -= 1), C !== _ && (_.ch -= 1)))
             : ((s = b.getSelection()),
               p == 'bold'
                   ? ((s = s.split('**').join('')), (s = s.split('__').join('')))
@@ -25769,8 +25768,8 @@ function sa(o, p, v, L) {
                     : p == 'strikethrough' && (s = s.split('~~').join('')),
               b.replaceSelection(h + s + g),
               (C.ch += v.length),
-              (k.ch = C.ch + s.length)),
-            b.setSelection(C, k),
+              (_.ch = C.ch + s.length)),
+            b.setSelection(C, _),
             b.focus());
     }
 }
@@ -26414,11 +26413,11 @@ Maximum file size is #image_max_size#.`,
             var p = this.options,
                 v = this,
                 L = {};
-            function b(E) {
-                let N = E.getInputField(),
-                    K = N.form;
-                if (K) {
-                    let J = Array.from(K.elements).filter(
+            function b(I) {
+                let U = I.getInputField(),
+                    J = U.form;
+                if (J) {
+                    let re = Array.from(J.elements).filter(
                             (q) =>
                                 !(
                                     (q.closest &&
@@ -26426,18 +26425,18 @@ Maximum file size is #image_max_size#.`,
                                     q.offsetParent === null
                                 ),
                         ),
-                        re = J.indexOf(N);
-                    re !== -1 &&
-                        re + 1 < J.length &&
-                        J[re + 1] &&
-                        J[re + 1].focus();
+                        F = re.indexOf(U);
+                    F !== -1 &&
+                        F + 1 < re.length &&
+                        re[F + 1] &&
+                        re[F + 1].focus();
                 }
             }
-            function S(E) {
-                let N = E.getInputField(),
-                    K = N.form;
-                if (K) {
-                    let J = Array.from(K.elements).filter(
+            function S(I) {
+                let U = I.getInputField(),
+                    J = U.form;
+                if (J) {
+                    let re = Array.from(J.elements).filter(
                             (q) =>
                                 !(
                                     (q.closest &&
@@ -26445,12 +26444,12 @@ Maximum file size is #image_max_size#.`,
                                     q.offsetParent === null
                                 ),
                         ),
-                        re = J.indexOf(N);
-                    if (re !== -1)
-                        for (let q = re - 1; q >= 0; q--) {
-                            let F = J[q];
-                            if (F) {
-                                F.focus();
+                        F = re.indexOf(U);
+                    if (F !== -1)
+                        for (let q = F - 1; q >= 0; q--) {
+                            let D = re[q];
+                            if (D) {
+                                D.focus();
                                 break;
                             }
                         }
@@ -26459,30 +26458,30 @@ Maximum file size is #image_max_size#.`,
             for (var s in p.shortcuts)
                 p.shortcuts[s] !== null &&
                     Vn[s] !== null &&
-                    (function (E) {
-                        L[vc(p.shortcuts[E])] = function () {
-                            var N = Vn[E];
-                            typeof N == 'function'
-                                ? N(v)
-                                : typeof N == 'string' &&
-                                  window.open(N, '_blank');
+                    (function (I) {
+                        L[vc(p.shortcuts[I])] = function () {
+                            var U = Vn[I];
+                            typeof U == 'function'
+                                ? U(v)
+                                : typeof U == 'string' &&
+                                  window.open(U, '_blank');
                         };
                     })(s);
             ((L.Enter = 'newlineAndIndentContinueMarkdownList'),
-                (L.Tab = (E) => {
-                    let N = E.getSelection();
-                    N && N.length > 0 ? E.execCommand('indentMore') : b(E);
+                (L.Tab = (I) => {
+                    let U = I.getSelection();
+                    U && U.length > 0 ? I.execCommand('indentMore') : b(I);
                 }),
-                (L['Shift-Tab'] = (E) => {
-                    let N = E.getSelection();
-                    N && N.length > 0 ? E.execCommand('indentLess') : S(E);
+                (L['Shift-Tab'] = (I) => {
+                    let U = I.getSelection();
+                    U && U.length > 0 ? I.execCommand('indentLess') : S(I);
                 }),
-                (L.Esc = function (E) {
-                    E.getOption('fullScreen') && Br(v);
+                (L.Esc = function (I) {
+                    I.getOption('fullScreen') && Br(v);
                 }),
-                (this.documentOnKeyDown = function (E) {
-                    ((E = E || window.event),
-                        E.keyCode == 27 &&
+                (this.documentOnKeyDown = function (I) {
+                    ((I = I || window.event),
+                        I.keyCode == 27 &&
                             v.codemirror.getOption('fullScreen') &&
                             Br(v));
                 }),
@@ -26493,10 +26492,10 @@ Maximum file size is #image_max_size#.`,
                 ));
             var h, g;
             (p.overlayMode
-                ? (CodeMirror.defineMode('overlay-mode', function (E) {
+                ? (CodeMirror.defineMode('overlay-mode', function (I) {
                       return CodeMirror.overlayMode(
                           CodeMirror.getMode(
-                              E,
+                              I,
                               p.spellChecker !== !1 ? 'spell-checker' : 'gfm',
                           ),
                           p.overlayMode.mode,
@@ -26519,11 +26518,10 @@ Maximum file size is #image_max_size#.`,
                         : CodeMirrorSpellChecker({
                               codeMirrorInstance: CodeMirror,
                           })));
-            function C(E, N, K) {
+            function C(I, U, J) {
                 return { addNew: !1 };
             }
-            if (
-                ((CodeMirror.getMode('php').mime = 'text/x-php'),
+            ((CodeMirror.getMode('php').mime = 'text/x-php'),
                 (this.codemirror = CodeMirror.fromTextArea(o, {
                     mode: h,
                     backdrop: g,
@@ -26555,30 +26553,31 @@ Maximum file size is #image_max_size#.`,
                     spellcheck:
                         p.nativeSpellcheck != null ? p.nativeSpellcheck : !0,
                     autoRefresh: p.autoRefresh != null ? p.autoRefresh : !1,
-                })),
-                (this.codemirror.getScrollerElement().style.minHeight =
-                    p.minHeight),
+                    leaveSubmitMethodAlone: !0,
+                })));
+            var _ = this.codemirror.getScrollerElement();
+            if (
+                ((_.style.minHeight = p.minHeight),
                 typeof p.maxHeight < 'u' &&
-                    this.codemirror
-                        .getScrollerElement()
-                        .style.setProperty(
-                            this.hasExplicitMinHeight ? 'max-height' : 'height',
-                            p.maxHeight,
-                        ),
+                    (_.setAttribute('tabindex', '0'),
+                    _.style.setProperty(
+                        this.hasExplicitMinHeight ? 'max-height' : 'height',
+                        p.maxHeight,
+                    )),
                 p.forceSync === !0)
             ) {
-                var k = this.codemirror;
-                k.on('change', function () {
-                    k.save();
+                var c = this.codemirror;
+                c.on('change', function () {
+                    c.save();
                 });
             }
             this.gui = {};
-            var c = document.createElement('div');
-            (c.classList.add('EasyMDEContainer'),
-                c.setAttribute('role', 'application'));
-            var d = this.codemirror.getWrapperElement();
-            (d.parentNode.insertBefore(c, d),
-                c.appendChild(d),
+            var d = document.createElement('div');
+            (d.classList.add('EasyMDEContainer'),
+                d.setAttribute('role', 'application'));
+            var w = this.codemirror.getWrapperElement();
+            (w.parentNode.insertBefore(d, w),
+                d.appendChild(w),
                 p.toolbar !== !1 && (this.gui.toolbar = this.createToolbar()),
                 p.status !== !1 &&
                     (this.gui.statusbar = this.createStatusbar()),
@@ -26596,82 +26595,82 @@ Maximum file size is #image_max_size#.`,
                                     1e3,
                             )));
                     })));
-            function x(E, N) {
-                var K,
-                    J = window
+            function E(I, U) {
+                var J,
+                    re = window
                         .getComputedStyle(
                             document.querySelector('.CodeMirror-sizer'),
                         )
                         .width.replace('px', '');
-                return (E < J ? (K = N + 'px') : (K = (N / E) * 100 + '%'), K);
+                return (I < re ? (J = U + 'px') : (J = (U / I) * 100 + '%'), J);
             }
             var z = this;
-            function M(E, N) {
-                (E.setAttribute('data-img-src', N.url),
-                    E.setAttribute(
+            function k(I, U) {
+                (I.setAttribute('data-img-src', U.url),
+                    I.setAttribute(
                         'style',
                         '--bg-image:url(' +
-                            N.url +
+                            U.url +
                             ');--width:' +
-                            N.naturalWidth +
+                            U.naturalWidth +
                             'px;--height:' +
-                            x(N.naturalWidth, N.naturalHeight),
+                            E(U.naturalWidth, U.naturalHeight),
                     ),
                     z.codemirror.setSize());
             }
-            function w() {
+            function R() {
                 p.previewImagesInEditor &&
-                    c
+                    d
                         .querySelectorAll('.cm-image-marker')
-                        .forEach(function (E) {
-                            var N = E.parentElement;
+                        .forEach(function (I) {
+                            var U = I.parentElement;
                             if (
-                                N.innerText.match(/^!\[.*?\]\(.*\)/g) &&
-                                !N.hasAttribute('data-img-src')
+                                U.innerText.match(/^!\[.*?\]\(.*\)/g) &&
+                                !U.hasAttribute('data-img-src')
                             ) {
-                                var K = N.innerText.match('\\((.*)\\)');
+                                var J = U.innerText.match('\\((.*)\\)');
                                 if (
                                     (window.EMDEimagesCache ||
                                         (window.EMDEimagesCache = {}),
-                                    K && K.length >= 2)
+                                    J && J.length >= 2)
                                 ) {
-                                    var J = K[1];
+                                    var re = J[1];
                                     if (p.imagesPreviewHandler) {
-                                        var re = p.imagesPreviewHandler(K[1]);
-                                        typeof re == 'string' && (J = re);
+                                        var F = p.imagesPreviewHandler(J[1]);
+                                        typeof F == 'string' && (re = F);
                                     }
-                                    if (window.EMDEimagesCache[J])
-                                        M(N, window.EMDEimagesCache[J]);
+                                    if (window.EMDEimagesCache[re])
+                                        k(U, window.EMDEimagesCache[re]);
                                     else {
                                         var q = document.createElement('img');
                                         ((q.onload = function () {
-                                            ((window.EMDEimagesCache[J] = {
+                                            ((window.EMDEimagesCache[re] = {
                                                 naturalWidth: q.naturalWidth,
                                                 naturalHeight: q.naturalHeight,
-                                                url: J,
+                                                url: re,
                                             }),
-                                                M(
-                                                    N,
-                                                    window.EMDEimagesCache[J],
+                                                k(
+                                                    U,
+                                                    window.EMDEimagesCache[re],
                                                 ));
                                         }),
-                                            (q.src = J));
+                                            (q.src = re));
                                     }
                                 }
                             }
                         });
             }
             (this.codemirror.on('update', function () {
-                w();
+                R();
             }),
                 (this.gui.sideBySide = this.createSideBySide()),
                 (this._rendered = this.element),
                 (p.autofocus === !0 || o.autofocus) && this.codemirror.focus());
-            var W = this.codemirror;
+            var M = this.codemirror;
             setTimeout(
                 function () {
-                    W.refresh();
-                }.bind(W),
+                    M.refresh();
+                }.bind(M),
                 0,
             );
         };
@@ -27022,18 +27021,18 @@ Maximum file size is #image_max_size#.`,
                             if (!S) continue;
                         }
                         (function (C) {
-                            var k;
+                            var _;
                             if (
                                 (C === '|'
-                                    ? (k = Nd())
+                                    ? (_ = Nd())
                                     : C.children
-                                      ? (k = Id(
+                                      ? (_ = Id(
                                             C,
                                             L.options.toolbarTips,
                                             L.options.shortcuts,
                                             L,
                                         ))
-                                      : (k = qi(
+                                      : (_ = qi(
                                             C,
                                             !0,
                                             L.options.toolbarTips,
@@ -27041,8 +27040,8 @@ Maximum file size is #image_max_size#.`,
                                             'button',
                                             L,
                                         )),
-                                (b[C.name || C] = k),
-                                v.appendChild(k),
+                                (b[C.name || C] = _),
+                                v.appendChild(_),
                                 C.name === 'upload-image')
                             ) {
                                 var c = document.createElement('input');
@@ -27061,7 +27060,7 @@ Maximum file size is #image_max_size#.`,
                 var h = this.codemirror;
                 h.on('cursorActivity', function () {
                     var C = Tr(h);
-                    for (var k in b)
+                    for (var _ in b)
                         (function (c) {
                             var d = b[c];
                             C[c]
@@ -27069,7 +27068,7 @@ Maximum file size is #image_max_size#.`,
                                 : c != 'fullscreen' &&
                                   c != 'side-by-side' &&
                                   d.classList.remove('active');
-                        })(k);
+                        })(_);
                 });
                 var g = h.getWrapperElement();
                 return (g.parentNode.insertBefore(v, g), v);
@@ -27101,38 +27100,38 @@ Maximum file size is #image_max_size#.`,
                     else {
                         var g = o[b];
                         (g === 'words'
-                            ? ((h = function (x) {
-                                  x.innerHTML = gc(v.getValue());
+                            ? ((h = function (w) {
+                                  w.innerHTML = gc(v.getValue());
                               }),
-                              (S = function (x) {
-                                  x.innerHTML = gc(v.getValue());
+                              (S = function (w) {
+                                  w.innerHTML = gc(v.getValue());
                               }))
                             : g === 'lines'
-                              ? ((h = function (x) {
-                                    x.innerHTML = v.lineCount();
+                              ? ((h = function (w) {
+                                    w.innerHTML = v.lineCount();
                                 }),
-                                (S = function (x) {
-                                    x.innerHTML = v.lineCount();
+                                (S = function (w) {
+                                    w.innerHTML = v.lineCount();
                                 }))
                               : g === 'cursor'
-                                ? ((h = function (x) {
-                                      x.innerHTML = '1:1';
+                                ? ((h = function (w) {
+                                      w.innerHTML = '1:1';
                                   }),
-                                  (s = function (x) {
-                                      var z = v.getCursor(),
-                                          M = z.line + 1,
-                                          w = z.ch + 1;
-                                      x.innerHTML = M + ':' + w;
+                                  (s = function (w) {
+                                      var E = v.getCursor(),
+                                          z = E.line + 1,
+                                          k = E.ch + 1;
+                                      w.innerHTML = z + ':' + k;
                                   }))
                                 : g === 'autosave'
-                                  ? (h = function (x) {
+                                  ? (h = function (w) {
                                         p.autosave != null &&
                                             p.autosave.enabled === !0 &&
-                                            x.setAttribute('id', 'autosaved');
+                                            w.setAttribute('id', 'autosaved');
                                     })
                                   : g === 'upload-image' &&
-                                    (h = function (x) {
-                                        x.innerHTML = p.imageTexts.sbInit;
+                                    (h = function (w) {
+                                        w.innerHTML = p.imageTexts.sbInit;
                                     }),
                             L.push({
                                 className: g,
@@ -27147,28 +27146,28 @@ Maximum file size is #image_max_size#.`,
                     b < L.length;
                     b++
                 ) {
-                    var k = L[b],
+                    var _ = L[b],
                         c = document.createElement('span');
-                    ((c.className = k.className),
-                        typeof k.defaultValue == 'function' &&
-                            k.defaultValue(c),
-                        typeof k.onUpdate == 'function' &&
+                    ((c.className = _.className),
+                        typeof _.defaultValue == 'function' &&
+                            _.defaultValue(c),
+                        typeof _.onUpdate == 'function' &&
                             this.codemirror.on(
                                 'update',
-                                (function (x, z) {
+                                (function (w, E) {
                                     return function () {
-                                        z.onUpdate(x);
+                                        E.onUpdate(w);
                                     };
-                                })(c, k),
+                                })(c, _),
                             ),
-                        typeof k.onActivity == 'function' &&
+                        typeof _.onActivity == 'function' &&
                             this.codemirror.on(
                                 'cursorActivity',
-                                (function (x, z) {
+                                (function (w, E) {
                                     return function () {
-                                        z.onActivity(x);
+                                        E.onActivity(w);
                                     };
-                                })(c, k),
+                                })(c, _),
                             ),
                         C.appendChild(c));
                 }
@@ -27410,12 +27409,14 @@ function Kd({
     placeholder: h,
     setUpUsing: g,
     state: C,
-    translations: k,
+    translations: _,
     toolbarButtons: c,
     uploadFileAttachmentUsing: d,
 }) {
+    let w = !1;
     return {
         editor: null,
+        form: null,
         state: C,
         wasEditorVisible: !1,
         resizeObserver: null,
@@ -27424,9 +27425,14 @@ function Kd({
             if (
                 (this.$root.closest('.fi-modal') &&
                     (await new Promise((z) => setTimeout(z, 300))),
-                this.$root._editor &&
+                w)
+            )
+                return;
+            if (
+                (this.$root._editor &&
                     (this.$root._editor.toTextArea(),
                     (this.$root._editor = null)),
+                (this.form = this.$refs.editor.form),
                 (this.$root._editor = this.editor =
                     new EasyMDE({
                         autoDownloadFontAwesome: !1,
@@ -27438,7 +27444,7 @@ function Kd({
                         imageUploadFunction: d,
                         initialValue: this.state ?? '',
                         maxHeight: S,
-                        minHeight: s,
+                        minHeight: s ?? '3rem',
                         placeholder: h,
                         previewImagesInEditor: !0,
                         spellChecker: !1,
@@ -27457,25 +27463,25 @@ function Kd({
                 'direction',
                 document.documentElement?.dir ?? 'ltr',
             ),
-                this.editor.codemirror.on('changes', (z, M) => {
+                this.editor.codemirror.on('changes', (z, k) => {
                     try {
-                        let w = M[M.length - 1];
-                        if (w.origin === '+input') {
-                            let W = '(https://)',
-                                E = w.text[w.text.length - 1];
-                            if (E.endsWith(W) && E !== '[]' + W) {
-                                let N = w.from,
-                                    K = w.to,
-                                    re = w.text.length > 1 ? 0 : N.ch;
+                        let R = k[k.length - 1];
+                        if (R.origin === '+input') {
+                            let M = '(https://)',
+                                I = R.text[R.text.length - 1];
+                            if (I.endsWith(M) && I !== '[]' + M) {
+                                let U = R.from,
+                                    J = R.to,
+                                    F = R.text.length > 1 ? 0 : U.ch;
                                 setTimeout(() => {
                                     z.setSelection(
                                         {
-                                            line: K.line,
-                                            ch: re + E.lastIndexOf('(') + 1,
+                                            line: J.line,
+                                            ch: F + I.lastIndexOf('(') + 1,
                                         },
                                         {
-                                            line: K.line,
-                                            ch: re + E.lastIndexOf(')'),
+                                            line: J.line,
+                                            ch: F + I.lastIndexOf(')'),
                                         },
                                     );
                                 }, 25);
@@ -27483,13 +27489,13 @@ function Kd({
                         }
                     } catch {}
                 }));
-            let x = Alpine.debounce(() => {
+            let E = Alpine.debounce(() => {
                 this.editor && this.$wire.commit();
             }, b ?? 300);
-            (this.editor.codemirror.on('change', (z, M) => {
+            (this.editor.codemirror.on('change', (z, k) => {
                 this.editor &&
-                    M.origin !== 'setValue' &&
-                    ((this.state = this.editor.value()), p && x());
+                    k.origin !== 'setValue' &&
+                    ((this.state = this.editor.value()), p && E());
             }),
                 v &&
                     this.editor.codemirror.on('blur', () =>
@@ -27518,129 +27524,138 @@ function Kd({
             );
         },
         handleEditorVisibilityChange() {
-            let x = this.isEditorVisible();
-            (x &&
+            let E = this.isEditorVisible();
+            (E &&
                 !this.wasEditorVisible &&
                 Alpine.raw(this.editor)?.codemirror?.refresh(),
-                (this.wasEditorVisible = x));
+                (this.wasEditorVisible = E));
         },
         destroy() {
-            (this.resizeObserver?.disconnect(),
+            ((w = !0),
+                this.resizeObserver?.disconnect(),
                 (this.resizeObserver = null),
                 this.intersectionObserver?.disconnect(),
                 (this.intersectionObserver = null),
-                this.editor.cleanup(),
+                this.editor &&
+                    (this.editor.codemirror.setOption('autoRefresh', !1),
+                    this.form?.removeEventListener(
+                        'submit',
+                        this.editor.codemirror.save,
+                    ),
+                    this.editor.cleanup(),
+                    this.editor.toTextArea()),
+                (this.$root._editor = null),
                 (this.editor = null));
         },
         getToolbar() {
-            let x = [];
+            let E = [];
             return (
                 c.forEach((z) => {
-                    (z.forEach((M) => x.push(this.getToolbarButton(M))),
-                        z.length > 0 && x.push('|'));
+                    (z.forEach((k) => E.push(this.getToolbarButton(k))),
+                        z.length > 0 && E.push('|'));
                 }),
-                x[x.length - 1] === '|' && x.pop(),
-                x
+                E[E.length - 1] === '|' && E.pop(),
+                E
             );
         },
-        getToolbarButton(x) {
-            if (x === 'bold') return this.getBoldToolbarButton();
-            if (x === 'italic') return this.getItalicToolbarButton();
-            if (x === 'strike') return this.getStrikeToolbarButton();
-            if (x === 'link') return this.getLinkToolbarButton();
-            if (x === 'heading') return this.getHeadingToolbarButton();
-            if (x === 'blockquote') return this.getBlockquoteToolbarButton();
-            if (x === 'codeBlock') return this.getCodeBlockToolbarButton();
-            if (x === 'bulletList') return this.getBulletListToolbarButton();
-            if (x === 'orderedList') return this.getOrderedListToolbarButton();
-            if (x === 'table') return this.getTableToolbarButton();
-            if (x === 'attachFiles') return this.getAttachFilesToolbarButton();
-            if (x === 'undo') return this.getUndoToolbarButton();
-            if (x === 'redo') return this.getRedoToolbarButton();
-            console.error(`Markdown editor toolbar button "${x}" not found.`);
+        getToolbarButton(E) {
+            if (E === 'bold') return this.getBoldToolbarButton();
+            if (E === 'italic') return this.getItalicToolbarButton();
+            if (E === 'strike') return this.getStrikeToolbarButton();
+            if (E === 'link') return this.getLinkToolbarButton();
+            if (E === 'heading') return this.getHeadingToolbarButton();
+            if (E === 'blockquote') return this.getBlockquoteToolbarButton();
+            if (E === 'codeBlock') return this.getCodeBlockToolbarButton();
+            if (E === 'bulletList') return this.getBulletListToolbarButton();
+            if (E === 'orderedList') return this.getOrderedListToolbarButton();
+            if (E === 'table') return this.getTableToolbarButton();
+            if (E === 'attachFiles') return this.getAttachFilesToolbarButton();
+            if (E === 'undo') return this.getUndoToolbarButton();
+            if (E === 'redo') return this.getRedoToolbarButton();
+            console.error(`Markdown editor toolbar button "${E}" not found.`);
         },
         getBoldToolbarButton() {
             return {
                 name: 'bold',
                 action: EasyMDE.toggleBold,
-                title: k.tools?.bold,
+                title: _.tools?.bold,
             };
         },
         getItalicToolbarButton() {
             return {
                 name: 'italic',
                 action: EasyMDE.toggleItalic,
-                title: k.tools?.italic,
+                title: _.tools?.italic,
             };
         },
         getStrikeToolbarButton() {
             return {
                 name: 'strikethrough',
                 action: EasyMDE.toggleStrikethrough,
-                title: k.tools?.strike,
+                title: _.tools?.strike,
             };
         },
         getLinkToolbarButton() {
             return {
                 name: 'link',
                 action: EasyMDE.drawLink,
-                title: k.tools?.link,
+                title: _.tools?.link,
             };
         },
         getHeadingToolbarButton() {
             return {
                 name: 'heading',
                 action: EasyMDE.toggleHeadingSmaller,
-                title: k.tools?.heading,
+                title: _.tools?.heading,
             };
         },
         getBlockquoteToolbarButton() {
             return {
                 name: 'quote',
                 action: EasyMDE.toggleBlockquote,
-                title: k.tools?.blockquote,
+                title: _.tools?.blockquote,
             };
         },
         getCodeBlockToolbarButton() {
             return {
                 name: 'code',
                 action: EasyMDE.toggleCodeBlock,
-                title: k.tools?.code_block,
+                title: _.tools?.code_block,
             };
         },
         getBulletListToolbarButton() {
             return {
                 name: 'unordered-list',
                 action: EasyMDE.toggleUnorderedList,
-                title: k.tools?.bullet_list,
+                title: _.tools?.bullet_list,
             };
         },
         getOrderedListToolbarButton() {
             return {
                 name: 'ordered-list',
                 action: EasyMDE.toggleOrderedList,
-                title: k.tools?.ordered_list,
+                title: _.tools?.ordered_list,
             };
         },
         getTableToolbarButton() {
             return {
                 name: 'table',
                 action: EasyMDE.drawTable,
-                title: k.tools?.table,
+                title: _.tools?.table,
             };
         },
         getAttachFilesToolbarButton() {
             return {
                 name: 'upload-image',
                 action: EasyMDE.drawUploadedImage,
-                title: k.tools?.attach_files,
+                title: _.tools?.attach_files,
             };
         },
         getUndoToolbarButton() {
-            return { name: 'undo', action: EasyMDE.undo, title: k.tools?.undo };
+            return { name: 'undo', action: EasyMDE.undo, title: _.tools?.undo };
         },
         getRedoToolbarButton() {
-            return { name: 'redo', action: EasyMDE.redo, title: k.tools?.redo };
+            return { name: 'redo', action: EasyMDE.redo, title: _.tools?.redo };
         },
     };
 }

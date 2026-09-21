@@ -1,19 +1,25 @@
-import { AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import {
+    AlertCircle,
+    ArrowRight,
+    Loader2,
+    UtensilsCrossed,
+} from 'lucide-react';
+import { ReservaConfirmada } from '@/modules/reservas/components/ReservaConfirmada';
+import { ReservaPasoCliente } from '@/modules/reservas/components/ReservaPasoCliente';
 import { Button } from '@/modules/shared/components/ui/button';
-import { Sheet, SheetContent } from '@/modules/shared/components/ui/sheet';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from '@/modules/shared/components/ui/sheet';
+import { OCASIONES_RAPIDAS } from '../constants';
 import { useReservaMesaForm } from '../hooks/useReservaMesaForm';
 import type { RestauranteData, MesaData } from '../types';
-import { RestauranteCamposContactoReserva } from './reserva/RestauranteCamposContactoReserva';
-import { RestauranteReservaExitosa } from './reserva/RestauranteReservaExitosa';
-import { RestauranteSelectorFechaComensales } from './reserva/RestauranteSelectorFechaComensales';
-import { RestauranteSelectorHorariosTurnos } from './reserva/RestauranteSelectorHorariosTurnos';
-import type { TurnoFiltro } from './reserva/RestauranteSelectorHorariosTurnos';
-import { RestauranteAlertaMesaAsignada } from './RestauranteAlertaMesaAsignada';
-import { RestauranteHeaderReservaSheet } from './RestauranteHeaderReservaSheet';
-import { RestaurantePlanoMesasVisual } from './RestaurantePlanoMesasVisual';
+import { RestaurantePasoMesaHorario } from './reserva/RestaurantePasoMesaHorario';
 
-interface PropsRestauranteReservaMesaModal {
+export interface PropsRestauranteReservaMesaModal {
     abierto: boolean;
     alCambiarAbierto: (abierto: boolean) => void;
     restaurante: RestauranteData;
@@ -49,116 +55,80 @@ export const RestauranteReservaMesaModal = ({
         alCerrar: () => alCambiarAbierto(false),
     });
 
-    const [filtroTurno, setFiltroTurno] = useState<TurnoFiltro>('todos');
-    const [mostrarPlano, setMostrarPlano] = useState(false);
-    const [mesaSeleccionadaManual, setMesaSeleccionadaManual] =
-        useState<MesaData | null>(null);
-
-    const horariosFiltrados =
-        disponibilidad?.horarios_disponibles.filter((slot) => {
-            if (filtroTurno === 'todos') {
-                return true;
-            }
-
-            return slot.turno === filtroTurno;
-        }) ?? [];
-
-    const manejarSeleccionMesaEnPlano = (mesa: MesaData) => {
-        setMesaSeleccionadaManual(mesa);
-        seleccionarMesaEnPlano(mesa);
-    };
-
-    const mesaIndividualAsignada = !disponibilidad?.requiere_union
-        ? disponibilidad?.mesa_asignada
-        : null;
-
     return (
         <Sheet open={abierto} onOpenChange={alCambiarAbierto}>
             <SheetContent
                 side="right"
                 className="flex w-full flex-col overflow-y-auto bg-card p-6 font-sans text-foreground sm:max-w-xl"
             >
-                <RestauranteHeaderReservaSheet
-                    nombreRestaurante={restaurante.nombre}
-                />
+                <SheetHeader className="border-b border-border/80 pb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-xs dark:text-rose-400">
+                            <UtensilsCrossed className="size-5" />
+                        </div>
+                        <div>
+                            <SheetTitle className="text-base font-black tracking-tight text-foreground">
+                                Reservar Mesa en {restaurante.nombre}
+                            </SheetTitle>
+                            <SheetDescription className="mt-0.5 text-xs text-muted-foreground">
+                                Reserva instantánea por turno horario con
+                                asignación inteligente de mesas.
+                            </SheetDescription>
+                        </div>
+                    </div>
+                </SheetHeader>
 
                 {reservaCreada ? (
                     <div className="flex grow flex-col justify-center">
-                        <RestauranteReservaExitosa
-                            reservaCreada={reservaCreada}
-                            nombreRestaurante={restaurante.nombre}
+                        <ReservaConfirmada
+                            codigoReserva={reservaCreada.codigo_reserva}
+                            reservaId={reservaCreada.reserva_id}
+                            titulo={`¡Mesa Reservada en ${restaurante.nombre}!`}
+                            subtitulo="Tu mesa ha sido reservada con éxito. Te esperamos puntualmente."
+                            detalles={[
+                                { label: 'Fecha', valor: reservaCreada.fecha },
+                                { label: 'Horario', valor: reservaCreada.hora },
+                                {
+                                    label: 'Mesa(s)',
+                                    valor: reservaCreada.mesas_unidas.join(
+                                        ' + ',
+                                    ),
+                                },
+                            ]}
+                            whatsappUrl={reservaCreada.whatsapp_url}
+                            urlRetorno="/restaurante"
+                            textoRetorno="Cerrar y volver al menú"
                             variante="modal"
-                            alReiniciar={reiniciar}
+                            alCerrar={reiniciar}
                         />
                     </div>
                 ) : (
                     <form onSubmit={onSubmit} className="mt-4 space-y-5">
-                        <RestauranteSelectorFechaComensales
+                        <RestaurantePasoMesaHorario
                             register={register}
                             errors={errors}
-                            adultosSeleccionados={adultosSeleccionados}
-                            alCambiarFecha={cambiarFecha}
-                            alAjustarComensales={ajustarComensales}
-                            alSeleccionarComensales={seleccionarComensales}
-                            variante="modal"
-                        />
-
-                        {cargandoDisponibilidad ? (
-                            <div className="flex animate-pulse items-center gap-2 rounded-2xl border border-border/60 bg-muted/20 p-3.5 text-xs text-muted-foreground">
-                                <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
-                                <span>
-                                    Verificando disponibilidad de mesas en
-                                    restaurante...
-                                </span>
-                            </div>
-                        ) : (
-                            <RestauranteAlertaMesaAsignada
-                                disponibilidad={disponibilidad}
-                                adultosSeleccionados={adultosSeleccionados}
-                                mostrarPlano={mostrarPlano}
-                                alAlternarPlano={() =>
-                                    setMostrarPlano(!mostrarPlano)
-                                }
-                            />
-                        )}
-
-                        {mostrarPlano && (
-                            <div className="animate-in fade-in zoom-in-95 rounded-3xl border border-border/80 bg-muted/20 p-4 duration-200">
-                                <RestaurantePlanoMesasVisual
-                                    mesas={mesas}
-                                    mesaSeleccionadaId={
-                                        mesaSeleccionadaManual?.id ??
-                                        espacioIdSeleccionado ??
-                                        mesaIndividualAsignada?.id
-                                    }
-                                    mesasUnidasIds={
-                                        disponibilidad?.mesas_sugeridas_union?.map(
-                                            (m) => m.id,
-                                        ) ?? []
-                                    }
-                                    esModoModal={true}
-                                    alSeleccionarMesa={
-                                        manejarSeleccionMesaEnPlano
-                                    }
-                                />
-                            </div>
-                        )}
-
-                        <RestauranteSelectorHorariosTurnos
-                            horarios={horariosFiltrados}
+                            disponibilidad={disponibilidad}
+                            cargandoDisponibilidad={cargandoDisponibilidad}
                             horaSeleccionada={horaSeleccionada}
-                            cargando={cargandoDisponibilidad}
-                            errors={errors}
-                            filtroTurno={filtroTurno}
-                            alCambiarTurno={setFiltroTurno}
-                            alSeleccionarHora={seleccionarHora}
+                            adultosSeleccionados={adultosSeleccionados}
+                            espacioIdSeleccionado={espacioIdSeleccionado}
+                            mesas={mesas}
+                            cambiarFecha={cambiarFecha}
+                            seleccionarHora={seleccionarHora}
+                            ajustarComensales={ajustarComensales}
+                            seleccionarComensales={seleccionarComensales}
+                            seleccionarMesaEnPlano={seleccionarMesaEnPlano}
                             variante="modal"
                         />
 
-                        <RestauranteCamposContactoReserva
+                        <ReservaPasoCliente
                             register={register}
                             errors={errors}
+                            ocasionesRapidas={OCASIONES_RAPIDAS}
                             alAgregarNotaRapida={agregarNotaRapida}
+                            titulo="Datos de Contacto"
+                            subtitulo="Para confirmar tu mesa y notificarte inmediatamente."
+                            placeholderNotas="Petición especial u ocasión (cumpleaños, terraza, etc.)..."
                             variante="modal"
                         />
 

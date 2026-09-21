@@ -19,4 +19,14 @@ final readonly class PagoConciliacionPersistencia
 
         return $conciliacion;
     }
+
+    public function buscarPorPagoTransaccionId(int $transaccionId): ?PagoConciliacion
+    {
+        /** @var PagoConciliacion|null $conciliacion */
+        $conciliacion = PagoConciliacion::query()
+            ->where('pago_transaccion_id', $transaccionId)
+            ->first();
+
+        return $conciliacion;
+    }
 }

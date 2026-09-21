@@ -40,6 +40,11 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property float|string|null $pedido_abierto_total
  * @property int|null $cuentas_activas_count
  * @property float|null $total_mesa
+ * @property bool|null $tiene_activo_asignado
+ * @property string|null $activo_codigo
+ * @property string|null $activo_nombre
+ * @property int|null $padre_id
+ * @property-read Espacio|null $padre
  */
 final class Espacio extends Model implements AuditableContract
 {

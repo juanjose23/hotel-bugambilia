@@ -15,6 +15,9 @@ export interface EstadisticasHuesped {
     total_reservas: number;
     activas: number;
     completadas: number;
+    total_habitaciones?: number;
+    total_restaurante?: number;
+    total_servicios?: number;
     total_pedidos?: number;
     pedidos_activos?: number;
     tiene_reservas?: boolean;
@@ -56,6 +59,7 @@ export interface PortalReservaResumen {
     tipo_reserva_label: string;
     fecha_check_in?: string | null;
     fecha_check_out?: string | null;
+    hora_reserva?: string | null;
     noches: number;
     adultos: number;
     ninos: number;
@@ -63,6 +67,9 @@ export interface PortalReservaResumen {
     total_pagado: number;
     saldo: number;
     moneda_simbolo: string;
+    es_habitacion?: boolean;
+    es_restaurante?: boolean;
+    es_servicio?: boolean;
     recurso: {
         id?: number;
         nombre: string;

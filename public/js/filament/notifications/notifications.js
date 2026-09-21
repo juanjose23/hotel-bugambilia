@@ -11,6 +11,8 @@
             computedStyle: null,
             transitionDuration: null,
             transitionEasing: null,
+            closeTimeout: null,
+            durationTimeout: null,
             unsubscribeLivewireHook: null,
             init() {
                 ((this.computedStyle = window.getComputedStyle(this.$el)),
@@ -23,7 +25,7 @@
                     this.configureAnimations(),
                     t.duration &&
                         t.duration !== 'persistent' &&
-                        setTimeout(() => {
+                        (this.durationTimeout = setTimeout(() => {
                             if (!this.$el.matches(':hover')) {
                                 this.close();
                                 return;
@@ -31,7 +33,7 @@
                             this.$el.addEventListener('mouseleave', () =>
                                 this.close(),
                             );
-                        }, t.duration),
+                        }, t.duration)),
                     (this.isShown = !0));
             },
             configureTransitions() {
@@ -116,6 +118,8 @@
                     ));
             },
             close(i = !1) {
+                (clearTimeout(this.closeTimeout),
+                    clearTimeout(this.durationTimeout));
                 let s = () =>
                     window.dispatchEvent(
                         new CustomEvent('notificationClosed', {
@@ -130,7 +134,11 @@
                     s();
                     return;
                 }
-                ((this.isShown = !1), setTimeout(s, this.transitionDuration));
+                ((this.isShown = !1),
+                    (this.closeTimeout = setTimeout(
+                        s,
+                        this.transitionDuration,
+                    )));
             },
             markAsRead() {
                 window.dispatchEvent(
@@ -147,7 +155,9 @@
                 );
             },
             destroy() {
-                this.unsubscribeLivewireHook?.();
+                (clearTimeout(this.closeTimeout),
+                    clearTimeout(this.durationTimeout),
+                    this.unsubscribeLivewireHook?.());
             },
         }));
     };

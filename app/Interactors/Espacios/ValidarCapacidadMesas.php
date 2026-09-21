@@ -7,6 +7,7 @@ namespace App\Interactors\Espacios;
 use App\BusinessLogic\Restaurante\Mesas\ValidarCapacidadMesasRestaurante;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Persistencia\Espacios\EspacioRepositorioInterface;
 use App\Repository\Queries\Espacios\ConsultarCapacidadMesas;
 use DomainException;
 use InvalidArgumentException;
@@ -22,11 +23,12 @@ use OverflowException;
  *
  * Retorna el Espacio MESA creado si la validación pasa y $crearSiValida = true.
  */
-class ValidarCapacidadMesas
+final readonly class ValidarCapacidadMesas
 {
     public function __construct(
-        private readonly ConsultarCapacidadMesas $consultarCapacidad,
-        private readonly ValidarCapacidadMesasRestaurante $validarCapacidadDomain,
+        private ConsultarCapacidadMesas $consultarCapacidad,
+        private ValidarCapacidadMesasRestaurante $validarCapacidadDomain,
+        private EspacioRepositorioInterface $espacioRepositorio,
     ) {}
 
     /**
@@ -34,7 +36,7 @@ class ValidarCapacidadMesas
      *
      * @param  int  $restauranteId  ID del espacio padre tipo RESTAURANTE
      * @param  bool  $crearSiValida  Si true, crea el sub-espacio MESA con $datosMesa
-     * @param  array<string, mixed>  $datosMesa  Datos para Espacio::create() (se ignoran si $crearSiValida=false)
+     * @param  array<string, mixed>  $datosMesa  Datos para crear la mesa vía repositorio (se ignoran si $crearSiValida=false)
      *
      * @throws InvalidArgumentException Si el padre no es RESTAURANTE o el tipo de la nueva mesa no es MESA
      * @throws OverflowException Si la capacidad configurada ha sido alcanzada
@@ -45,7 +47,7 @@ class ValidarCapacidadMesas
         array $datosMesa = [],
     ): ?Espacio {
         // Validar también usando la regla de negocio de dominio
-        $padre = Espacio::find($restauranteId);
+        $padre = $this->espacioRepositorio->buscarPorId($restauranteId);
         if ($padre instanceof Espacio) {
             $meta = is_array($padre->meta_datos) ? $padre->meta_datos : [];
             try {
@@ -86,6 +88,6 @@ class ValidarCapacidadMesas
         $datosMesa['padre_id'] = $restauranteId;
         $datosMesa['tipo'] = TipoEspacio::MESA->value;
 
-        return Espacio::create($datosMesa);
+        return $this->espacioRepositorio->crear($datosMesa);
     }
 }

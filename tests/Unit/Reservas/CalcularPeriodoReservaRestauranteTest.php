@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\CalcularPeriodoReserva;
+use App\BusinessLogic\Reservas\Calculos\CalcularPeriodoReserva;
 
 test('respeta las horas seleccionadas al calcular el fin de una reserva de mesa', function (): void {
     [$inicio, $fin] = (new CalcularPeriodoReserva)->calcular(

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Catalogos\Productos\Pages;
 
+use App\BusinessLogic\Shared\Reportes\ContarRegistrosReporte;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
@@ -9,6 +10,7 @@ use App\Interactors\Catalogos\Productos\GenerarReporteProductos;
 use App\Interactors\Catalogos\Productos\ImportarProductos;
 use App\Jobs\GenerarReporteJob;
 use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\User;
 use App\Support\CachedOptions;
 use App\Support\Pdf\FormatoPagina;
 use Filament\Actions\Action;
@@ -132,17 +134,23 @@ class ListProductos extends ListRecords
                             ->default(false),
                     ])
                     ->action(function (array $data) {
-                        if (! empty($data['background'])) {
+                        $contador = app(ContarRegistrosReporte::class);
+                        if (! empty($data['background']) || $contador->superaUmbral('HTB-CP001', $data)) {
+                            $user = auth()->user();
                             dispatch(new GenerarReporteJob(
                                 codigoReporte: 'HTB-CP001',
                                 parametros: $data,
                                 usuarioId: (int) auth()->id(),
                             ));
-                            Notification::make()
-                                ->title('Reporte en proceso')
-                                ->body('Recibirás una notificación cuando esté listo.')
-                                ->success()
-                                ->send();
+                            $notif = Notification::make()
+                                ->title('⏳ Generando reporte en segundo plano')
+                                ->body('El reporte contiene un volumen alto de registros para generarse en tiempo real. Se está procesando en segundo plano y recibirás una notificación cuando esté listo para descargar.')
+                                ->warning()
+                                ->duration(10000);
+                            $notif->send();
+                            if ($user instanceof User) {
+                                $notif->sendToDatabase($user);
+                            }
 
                             return;
                         }
@@ -164,17 +172,23 @@ class ListProductos extends ListRecords
                             ->default(false),
                     ])
                     ->action(function (array $data) {
-                        if (! empty($data['background'])) {
+                        $contador = app(ContarRegistrosReporte::class);
+                        if (! empty($data['background']) || $contador->superaUmbral('HTB-CP002', $data)) {
+                            $user = auth()->user();
                             dispatch(new GenerarReporteJob(
                                 codigoReporte: 'HTB-CP002',
                                 parametros: $data,
                                 usuarioId: (int) auth()->id(),
                             ));
-                            Notification::make()
-                                ->title('Reporte en proceso')
-                                ->body('Recibirás una notificación cuando esté listo.')
-                                ->success()
-                                ->send();
+                            $notif = Notification::make()
+                                ->title('⏳ Generando reporte en segundo plano')
+                                ->body('El reporte contiene un volumen alto de registros para generarse en tiempo real. Se está procesando en segundo plano y recibirás una notificación cuando esté listo para descargar.')
+                                ->warning()
+                                ->duration(10000);
+                            $notif->send();
+                            if ($user instanceof User) {
+                                $notif->sendToDatabase($user);
+                            }
 
                             return;
                         }
@@ -207,16 +221,20 @@ class ListProductos extends ListRecords
                     ])
                     ->action(function (array $data) {
                         if (! empty($data['background'])) {
+                            $user = auth()->user();
                             dispatch(new GenerarReporteJob(
                                 codigoReporte: 'HTB-CP003',
                                 parametros: $data,
                                 usuarioId: (int) auth()->id(),
                             ));
-                            Notification::make()
-                                ->title('Reporte en proceso')
+                            $notif = Notification::make()
+                                ->title('⏳ Reporte en proceso')
                                 ->body('Recibirás una notificación cuando esté listo.')
-                                ->success()
-                                ->send();
+                                ->warning();
+                            $notif->send();
+                            if ($user instanceof User) {
+                                $notif->sendToDatabase($user);
+                            }
 
                             return;
                         }

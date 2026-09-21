@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Reportes\Reservas;
 
 use App\Interactors\Reportes\RegistrarAuditoriaReporte;
+use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Reportes\HuespedesQuery;
 use App\Repository\Queries\Reportes\RendimientoHabitacionesQuery;
 use App\Repository\Queries\Reportes\ReservasOcupacionQuery;
@@ -68,6 +69,28 @@ final readonly class GenerarReporteReserva
     {
         $layout = $this->layoutPdf($formatoPagina);
         $reservas = $this->reservasOcupacion->paraOcupacion($fechaInicio, $fechaFin, $estado);
+        $ocupacionPorDia = $this->reservasOcupacion->ocupacionPorDia($fechaInicio, $fechaFin);
+
+        $totalNoches = $reservas->reduce(
+            fn (int $carry, Reserva $reserva): int => $carry + $reserva->noches,
+            0,
+        );
+        $totalIngresos = $reservas->reduce(
+            fn (float $carry, Reserva $reserva): float => $carry + (float) $reserva->total,
+            0.0,
+        );
+        $adr = $totalNoches > 0 ? round($totalIngresos / $totalNoches, 2) : 0.0;
+
+        $totalHabitaciones = 0;
+        $totalOcupadas = 0;
+        foreach ($ocupacionPorDia as $data) {
+            $totalHabitaciones = (int) $data['total'];
+            $totalOcupadas += (int) $data['ocupadas'];
+        }
+        $diasOcupacion = count($ocupacionPorDia);
+        $porcentajePromedio = $totalHabitaciones > 0 && $diasOcupacion > 0
+            ? round(($totalOcupadas / ($totalHabitaciones * $diasOcupacion)) * 100, 1)
+            : 0.0;
 
         $paginas = (new ReportePaginador($layout))->paginar(
             items: collect($reservas->all()),
@@ -82,8 +105,12 @@ final readonly class GenerarReporteReserva
             'fechaInicio' => $fechaInicio,
             'fechaFin' => $fechaFin,
             'paginas' => $paginas,
-            'totalNoches' => $reservas->sum('noches'),
-            'totalIngresos' => $reservas->sum('total'),
+            'totalNoches' => $totalNoches,
+            'totalIngresos' => $totalIngresos,
+            'totalHabitaciones' => $totalHabitaciones,
+            'ocupacionPorDia' => $ocupacionPorDia,
+            'porcentajePromedio' => $porcentajePromedio,
+            'adr' => $adr,
             'totalRegistros' => $reservas->count(),
             ...$this->parametrosLayout($layout),
         ])->setPaper(

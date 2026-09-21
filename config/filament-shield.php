@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
-use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 
@@ -197,7 +196,7 @@ return [
         'subject' => 'class',
         'prefix' => 'page',
         'exclude' => [
-            Dashboard::class,
+            //
         ],
     ],
 
@@ -268,31 +267,18 @@ return [
 
         // Módulo de Analítica & Reportes
         'Reportes:InteligenciaNegocio',
-        'page_TableroInteligenciaNegocio',
 
-        // Módulo de Limpieza (Páginas y Acciones)
+        // Módulo de Limpieza (Acciones de Dominio)
         'liberar-carrito',
         'asignar-carrito-limpieza',
         'Limpieza:ReporteEjecuciones',
         'Limpieza:ReporteInsumos',
         'Limpieza:ReporteTurnos',
         'Limpieza:ReporteOperacionHotelera',
-        'page_TableroLimpieza',
-        'page_ReportesLimpieza',
-        'page_AbastecerCarrito',
-        'page_ControlLavanderia',
-        'page_GestionarCarrito',
 
-        // Módulo de Restaurante (Páginas y Acciones)
+        // Módulo de Restaurante (Acciones de Dominio)
         'Restaurante:ImprimirComanda',
         'Inventario:ResolverAbastecimientoCocina',
-        'page_GestionMesas',
-        'page_AutoPedido',
-        'page_CocinaPedidos',
-        'page_ConciliacionRecetasCocina',
-        'page_MateriaPrimaCocina',
-        'page_PantallaPedidos',
-        'page_ReportesRestaurante',
 
         // Módulo de Clientes / Usuarios
         'Usuarios:VerClientes',

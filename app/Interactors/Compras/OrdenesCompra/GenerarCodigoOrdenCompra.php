@@ -4,26 +4,24 @@ declare(strict_types=1);
 
 namespace App\Interactors\Compras\OrdenesCompra;
 
-use App\Repository\Models\Compras\OrdenCompra;
+use App\Repository\Persistencia\Compras\OrdenCompraRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-final class GenerarCodigoOrdenCompra
+final readonly class GenerarCodigoOrdenCompra
 {
+    public function __construct(
+        private OrdenCompraRepositorioInterface $ordenCompraRepositorio,
+    ) {}
+
     public function ejecutar(): string
     {
         $year = now()->year;
 
         return DB::transaction(function () use ($year): string {
-            $latest = OrdenCompra::withTrashed()
-                ->where('codigo', 'like', "OC-{$year}-%")
-                ->orderBy('codigo', 'desc')
-                ->lockForUpdate()
-                ->get()
-                ->first(fn ($order) => (bool) preg_match('/\-(\d+)$/', $order->codigo));
-
+            $latest = $this->ordenCompraRepositorio->obtenerUltimoCodigoPorAno($year);
             $last = 0;
 
-            if ($latest?->codigo && preg_match('/\-(\d+)$/', $latest->codigo, $matches)) {
+            if ($latest && preg_match('/\-(\d+)$/', $latest, $matches)) {
                 $last = (int) $matches[1];
             }
 

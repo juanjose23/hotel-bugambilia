@@ -11,6 +11,7 @@ use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\ViewHabitacion;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionForm;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Schemas\HabitacionInfolist;
 use App\Filament\Resources\Habitaciones\HabitacionResource\Tables\HabitacionTable;
+use App\Filament\Shared\RelationManagers\ImagenesRelationManager;
 use App\Filament\Shared\RelationManagers\InventarioFijoRelationManager;
 use App\Filament\Shared\RelationManagers\PoliticasRelationManager;
 use App\Filament\Shared\RelationManagers\PreciosRelationManager;
@@ -63,6 +64,7 @@ class HabitacionResource extends Resource
             StocksRelationManager::class,
             InventarioFijoRelationManager::class,
             ServiciosRelationManager::class,
+            ImagenesRelationManager::class,
         ];
     }
 

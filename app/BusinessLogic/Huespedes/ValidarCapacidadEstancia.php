@@ -6,13 +6,17 @@ namespace App\BusinessLogic\Huespedes;
 
 use App\Enums\Reservas\TipoHuesped;
 use App\Repository\Models\Habitaciones\DetalleHabitacion;
-use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
 use DomainException;
 
-final class ValidarCapacidadEstancia
+final readonly class ValidarCapacidadEstancia
 {
+    public function __construct(
+        private HabitacionRepositorioInterface $habitacionRepositorio,
+    ) {}
+
     public function validar(Reserva $reserva, ?ReservaDetalle $detalleEspecifico = null): void
     {
         $reserva->loadMissing(['habitacion.detalle', 'detalles.huespedes', 'detalles.reservable']);
@@ -28,10 +32,7 @@ final class ValidarCapacidadEstancia
 
     private function validarDetalle(Reserva $reserva, ReservaDetalle $reservaDetalle): void
     {
-        $habitacion = Habitacion::query()
-            ->where('reservable_id', $reservaDetalle->reservable_id)
-            ->with('detalle')
-            ->first();
+        $habitacion = $this->habitacionRepositorio->buscarPorRecursoReservableId((int) $reservaDetalle->reservable_id);
 
         if ($habitacion === null) {
             $habitacion = $reserva->habitacion;

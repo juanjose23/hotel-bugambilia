@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Facturacion\PasarelaPagoResource;
 
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Repository\Models\Facturacion\PasarelaPago;
 use BackedEnum;
 use Filament\Actions\ActionGroup;
@@ -23,6 +24,8 @@ use UnitEnum;
 
 final class PasarelaPagoResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = PasarelaPago::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CreditCard;

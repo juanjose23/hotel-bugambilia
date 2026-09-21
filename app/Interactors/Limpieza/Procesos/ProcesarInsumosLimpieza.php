@@ -5,15 +5,24 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Procesos;
 
 use App\Interactors\Limpieza\Stock\RegistrarConsumoInsumoLimpieza;
-use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Persistencia\Catalogos\ProductoRepositorioInterface;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
+use RuntimeException;
 
-class ProcesarInsumosLimpieza
+final readonly class ProcesarInsumosLimpieza
 {
     public function __construct(
-        private readonly RegistrarConsumoInsumoLimpieza $registrarConsumoInsumoLimpieza,
+        private RegistrarConsumoInsumoLimpieza $registrarConsumoInsumoLimpieza,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
+        private ProductoRepositorioInterface $productoRepositorio,
     ) {}
+
+    /** @param array<string, mixed> $data */
+    public function execute(LimpiezaEjecucion $ejecucion, array $data, int $carritoId, ?int $usuarioId): void
+    {
+        $this->ejecutar($ejecucion, $data, $carritoId, $usuarioId);
+    }
 
     /** @param array<string, mixed> $data */
     public function ejecutar(LimpiezaEjecucion $ejecucion, array $data, int $carritoId, ?int $usuarioId): void
@@ -26,14 +35,15 @@ class ProcesarInsumosLimpieza
                 continue;
             }
 
-            $variante = ProductoVariante::findOrFail((int) $varianteId);
+            $variante = $this->productoRepositorio->buscarVariantePorId((int) $varianteId);
+            if (! $variante) {
+                continue;
+            }
 
-            $available = (float) InventarioStock::where('ubicacion_id', $carritoId)
-                ->where('producto_variante_id', $varianteId)
-                ->sum('cantidad');
+            $available = $this->limpiezaRepositorio->obtenerStockDisponibleEnCarrito($carritoId, (int) $varianteId);
 
             if ($available < $qty) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'El carrito no cuenta con stock suficiente del insumo de limpieza "%s". Requerido: %f, Disponible: %f',
                     $variante->producto->nombre ?? 'Insumo',
                     $qty,
@@ -43,10 +53,10 @@ class ProcesarInsumosLimpieza
 
             $this->registrarConsumoInsumoLimpieza->execute(
                 carritoId: $carritoId,
-                productoId: $variante->producto_id,
+                productoId: (int) $variante->producto_id,
                 cantidad: $qty,
                 productoVarianteId: (int) $varianteId,
-                ejecucionId: $ejecucion->id,
+                ejecucionId: (int) $ejecucion->id,
                 creadoPorId: $usuarioId
             );
         }

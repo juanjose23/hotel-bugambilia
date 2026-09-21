@@ -8,7 +8,7 @@ use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use Illuminate\Support\Facades\DB;
 
-class GenerarCodigoSubEspacio
+final class GenerarCodigoSubEspacio
 {
     /**
      * Genera el siguiente código secuencial para un sub-espacio.

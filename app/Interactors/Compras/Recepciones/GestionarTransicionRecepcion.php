@@ -12,11 +12,11 @@ use App\Events\Compras\RecepcionRechazada;
 use App\Repository\Models\Compras\RecepcionCompra;
 use App\Repository\Persistencia\Compras\RecepcionRepositorioInterface;
 
-final class GestionarTransicionRecepcion
+final readonly class GestionarTransicionRecepcion
 {
     public function __construct(
-        private readonly ValidarTransicionRecepcion $validarTransicion,
-        private readonly RecepcionRepositorioInterface $recepcionRepositorio,
+        private ValidarTransicionRecepcion $validarTransicion,
+        private RecepcionRepositorioInterface $recepcionRepositorio,
     ) {}
 
     public function ejecutar(RecepcionCompra $recepcion, EstadoRecepcion $nuevoEstado): RecepcionCompra

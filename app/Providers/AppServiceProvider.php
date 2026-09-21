@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Events\Shared\ReporteGenerado;
+use App\Events\Shared\ReporteIniciado;
+use App\Listeners\Shared\EnviarNotificacionReporteGenerado;
+use App\Listeners\Shared\EnviarNotificacionReporteIniciado;
 use App\Notifications\Reservas\Contracts\UrlNotificadorInterface as UrlNotificadorReservasInterface;
 use App\Notifications\Reservas\UrlNotificador as UrlNotificadorReservas;
 use App\Repository\Models\Activos\ActivoMantenimiento;
@@ -34,6 +38,12 @@ use App\Repository\Persistencia\Activos\PrefijoCodigoRepositorio;
 use App\Repository\Persistencia\Activos\PrefijoCodigoRepositorioInterface;
 use App\Repository\Persistencia\Activos\RegistroIndividualizacionRepositorio;
 use App\Repository\Persistencia\Activos\RegistroIndividualizacionRepositorioInterface;
+use App\Repository\Persistencia\Catalogos\ProductoRepositorio;
+use App\Repository\Persistencia\Catalogos\ProductoRepositorioInterface;
+use App\Repository\Persistencia\Catalogos\UbicacionRepositorio;
+use App\Repository\Persistencia\Catalogos\UbicacionRepositorioInterface;
+use App\Repository\Persistencia\Compras\CotizacionRepositorio;
+use App\Repository\Persistencia\Compras\CotizacionRepositorioInterface;
 use App\Repository\Persistencia\Compras\DevolucionRepositorio;
 use App\Repository\Persistencia\Compras\DevolucionRepositorioInterface;
 use App\Repository\Persistencia\Compras\OrdenCompraRepositorio;
@@ -46,6 +56,8 @@ use App\Repository\Persistencia\Compras\SolicitudRepositorio;
 use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorio;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Espacios\EspacioRepositorio;
+use App\Repository\Persistencia\Espacios\EspacioRepositorioInterface;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorio;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
 use App\Repository\Persistencia\Inventario\InventarioFisicoRepositorio;
@@ -54,16 +66,39 @@ use App\Repository\Persistencia\Inventario\LoteRepositorio;
 use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
 use App\Repository\Persistencia\Inventario\MovimientoStockRepositorio;
 use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
+use App\Repository\Persistencia\Inventario\PackRepositorio;
+use App\Repository\Persistencia\Inventario\PackRepositorioInterface;
 use App\Repository\Persistencia\Inventario\StockRepositorio;
 use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
+use App\Repository\Persistencia\Limpieza\EjecucionLimpiezaRepository;
+use App\Repository\Persistencia\Limpieza\EjecucionLimpiezaRepositoryInterface;
+use App\Repository\Persistencia\Limpieza\LavanderiaRepositorio;
+use App\Repository\Persistencia\Limpieza\LavanderiaRepositorioInterface;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorio;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
+use App\Repository\Persistencia\Promociones\PromocionRepositorio;
+use App\Repository\Persistencia\Promociones\PromocionRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorio;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use App\Repository\Persistencia\Restaurante\RecetaTransformacionMateriaPrimaRepositorio;
+use App\Repository\Persistencia\Restaurante\RecetaTransformacionMateriaPrimaRepositorioInterface;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Persistencia\Servicios\ServicioRepositorio;
 use App\Repository\Persistencia\Servicios\ServicioRepositorioInterface;
+use App\Repository\Persistencia\Shared\AuditoriaJobRepositorio;
+use App\Repository\Persistencia\Shared\AuditoriaJobRepositorioInterface;
+use App\Repository\Persistencia\Shared\PrecioRepositorio;
+use App\Repository\Persistencia\Shared\PrecioRepositorioInterface;
+use App\Repository\Persistencia\Shared\ReporteRepositorio;
+use App\Repository\Persistencia\Shared\ReporteRepositorioInterface;
+use App\Repository\Persistencia\Usuarios\ColaboradorRepositorio;
+use App\Repository\Persistencia\Usuarios\ColaboradorRepositorioInterface;
+use App\Repository\Persistencia\Usuarios\SocialAccountRepositorio;
+use App\Repository\Persistencia\Usuarios\SocialAccountRepositorioInterface;
 use App\Repository\Persistencia\Ventas\VentaRepositorio;
 use App\Repository\Persistencia\Ventas\VentaRepositorioInterface;
+use App\Repository\Policies\AuditPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -71,11 +106,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use OwenIt\Auditing\Models\Audit;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -87,6 +124,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             HabitacionRepositorioInterface::class,
             HabitacionRepositorio::class
+        );
+
+        $this->app->bind(
+            EspacioRepositorioInterface::class,
+            EspacioRepositorio::class
         );
 
         $this->app->bind(
@@ -110,6 +152,11 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            PackRepositorioInterface::class,
+            PackRepositorio::class
+        );
+
+        $this->app->bind(
             MovimientoStockRepositorioInterface::class,
             MovimientoStockRepositorio::class
         );
@@ -122,6 +169,21 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             DevolucionRepositorioInterface::class,
             DevolucionRepositorio::class
+        );
+
+        $this->app->bind(
+            SocialAccountRepositorioInterface::class,
+            SocialAccountRepositorio::class
+        );
+
+        $this->app->bind(
+            AuditoriaJobRepositorioInterface::class,
+            AuditoriaJobRepositorio::class
+        );
+
+        $this->app->bind(
+            ReporteRepositorioInterface::class,
+            ReporteRepositorio::class
         );
 
         $this->app->bind(
@@ -155,6 +217,11 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            LimpiezaRepositorioInterface::class,
+            LimpiezaRepositorio::class
+        );
+
+        $this->app->bind(
             RegistroIndividualizacionRepositorioInterface::class,
             RegistroIndividualizacionRepositorio::class
         );
@@ -167,6 +234,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             RecepcionRepositorioInterface::class,
             RecepcionRepositorio::class
+        );
+
+        $this->app->bind(
+            CotizacionRepositorioInterface::class,
+            CotizacionRepositorio::class
         );
 
         $this->app->bind(
@@ -195,8 +267,48 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            PrecioRepositorioInterface::class,
+            PrecioRepositorio::class
+        );
+
+        $this->app->bind(
+            PromocionRepositorioInterface::class,
+            PromocionRepositorio::class
+        );
+
+        $this->app->bind(
+            RecetaTransformacionMateriaPrimaRepositorioInterface::class,
+            RecetaTransformacionMateriaPrimaRepositorio::class
+        );
+
+        $this->app->bind(
             UrlNotificadorReservasInterface::class,
             UrlNotificadorReservas::class
+        );
+
+        $this->app->bind(
+            UbicacionRepositorioInterface::class,
+            UbicacionRepositorio::class
+        );
+
+        $this->app->bind(
+            ColaboradorRepositorioInterface::class,
+            ColaboradorRepositorio::class
+        );
+
+        $this->app->bind(
+            ProductoRepositorioInterface::class,
+            ProductoRepositorio::class
+        );
+
+        $this->app->bind(
+            LavanderiaRepositorioInterface::class,
+            LavanderiaRepositorio::class
+        );
+
+        $this->app->bind(
+            EjecucionLimpiezaRepositoryInterface::class,
+            EjecucionLimpiezaRepository::class
         );
     }
 
@@ -227,6 +339,17 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureDefaults();
 
+        // Notificación de reportes generados en segundo plano (Job).
+        Event::listen(
+            ReporteIniciado::class,
+            EnviarNotificacionReporteIniciado::class,
+        );
+
+        Event::listen(
+            ReporteGenerado::class,
+            EnviarNotificacionReporteGenerado::class,
+        );
+
         View::composer('reports.*', function ($view) {
             $view->with('usuario', auth()->user() ? auth()->user()->name : 'Sistema');
         });
@@ -251,10 +374,16 @@ class AppServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(array_merge([$migrationsPath], is_array($paths) ? $paths : []));
         }
 
+        Gate::policy(Audit::class, AuditPolicy::class);
+
         // Resolver nombres de políticas modularizadas en Repository/Policies
         Gate::guessPolicyNamesUsing(function (string $modelClass) {
             if (str_starts_with($modelClass, 'App\\Repository\\Models\\')) {
                 return str_replace('App\\Repository\\Models\\', 'App\\Repository\\Policies\\', $modelClass).'Policy';
+            }
+
+            if ($modelClass === Audit::class) {
+                return AuditPolicy::class;
             }
 
             return 'App\\Policies\\'.class_basename($modelClass).'Policy';

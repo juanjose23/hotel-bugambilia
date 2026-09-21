@@ -6,7 +6,7 @@ namespace App\Interactors\Activos\Mantenimiento;
 
 use App\BusinessLogic\Activos\ProcesadorNotificacionesMantenimiento;
 
-class NotificarMantenimientos
+final class NotificarMantenimientos
 {
     public function __construct(
         private readonly ProcesadorNotificacionesMantenimiento $procesador,

@@ -7,7 +7,7 @@ namespace App\Repository\Persistencia\Limpieza;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 
-final class EjecucionLimpiezaRepository
+final readonly class EjecucionLimpiezaRepository implements EjecucionLimpiezaRepositoryInterface
 {
     public function asignarCarrito(LimpiezaEjecucion $ejecucion, int $carritoId): void
     {

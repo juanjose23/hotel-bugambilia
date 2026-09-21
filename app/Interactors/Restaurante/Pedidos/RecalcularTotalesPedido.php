@@ -14,11 +14,11 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
  * Recalcula los totales de un pedido (y su cuenta asociada) después de
  * crear, actualizar o eliminar uno de sus ítems.
  */
-final class RecalcularTotalesPedido
+final readonly class RecalcularTotalesPedido
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly RecalcularCuenta $recalcularCuenta,
+        private RestauranteRepositorioInterface $repositorio,
+        private RecalcularCuenta $recalcularCuenta,
     ) {}
 
     public function ejecutar(Pedido $pedido, bool $esItemNuevo = false): void

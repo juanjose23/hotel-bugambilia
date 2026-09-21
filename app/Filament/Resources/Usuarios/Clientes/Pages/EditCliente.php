@@ -51,6 +51,7 @@ class EditCliente extends EditRecord
                         $user = $vincular->ejecutar($persona, [
                             'email' => $data['email'],
                             'password' => $password,
+                            'password_change_required' => true,
                         ]);
                     } catch (YaTieneCuentaException $e) {
                         Notification::make()
@@ -65,8 +66,6 @@ class EditCliente extends EditRecord
                     if ($user === null) {
                         throw new \RuntimeException('No se pudo crear la cuenta de acceso.');
                     }
-
-                    $user->update(['password_change_required' => true]);
 
                     Notification::make()
                         ->title('Cuenta creada')

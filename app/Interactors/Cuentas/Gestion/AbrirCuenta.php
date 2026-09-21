@@ -11,9 +11,7 @@ use App\Events\Cuentas\CuentaAbierta;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
-use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\User;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -22,11 +20,11 @@ use Illuminate\Support\Facades\DB;
  * Aplica a: Check-In de huésped, apertura directa de cuenta de restaurante/servicio.
  * Unifica: AbrirCuentaEstancia + AbrirCuentaParaTitular.
  */
-final class AbrirCuenta
+final readonly class AbrirCuenta
 {
     public function __construct(
-        private readonly ValidarCuenta $validarCuenta,
-        private readonly CuentaRepositorioInterface $cuentas,
+        private ValidarCuenta $validarCuenta,
+        private CuentaRepositorioInterface $cuentas,
     ) {}
 
     public function ejecutar(
@@ -46,7 +44,6 @@ final class AbrirCuenta
 
                 $cuenta = $this->cuentas->abrir($cuentaExistente, [
                     'estado' => EstadoCuenta::ABIERTA,
-                    'cliente_id' => $this->resolverClienteId($cuentaExistente, $cliente, $reserva, $estancia),
                     'limite_autorizado' => $limite ?? $cuentaExistente->limite_autorizado,
                     'estancia_id' => $estancia->id ?? $cuentaExistente->estancia_id,
                     'abierta_at' => now(),
@@ -54,17 +51,12 @@ final class AbrirCuenta
                 ]);
             } else {
                 // Crea directamente en estado ABIERTA (venta directa, restaurante POS)
-                $referencia = $reserva->id ?? $estancia->id ?? now()->timestamp;
-                $baseNumero = sprintf('CTA-%s-%06d', now()->format('Y'), $referencia);
-                $numeroCuenta = $baseNumero;
-                $contador = 1;
-                while (Cuenta::withTrashed()->where('numero_cuenta', $numeroCuenta)->exists()) {
-                    $contador++;
-                    $numeroCuenta = sprintf('%s-%d', $baseNumero, $contador);
-                }
+                $referencia = (string) ($reserva->id ?? $estancia->id ?? now()->timestamp);
+                $numeroCuenta = $this->cuentas->generarNumeroCuenta($referencia);
 
-                $monedaIdResuelto = $monedaId ?? Moneda::query()->where('es_predeterminada', true)->value('id') ?? Moneda::query()->value('id');
-                $usuarioIdResuelto = ($usuarioId !== null && User::query()->where('id', $usuarioId)->exists()) ? $usuarioId : null;
+                $monedaPredeterminada = $this->cuentas->monedaPredeterminada();
+                $monedaIdResuelto = $monedaId ?? ($monedaPredeterminada !== null ? $monedaPredeterminada->id : 1);
+                $usuarioIdResuelto = ($usuarioId !== null && $this->cuentas->usuarioExiste($usuarioId)) ? $usuarioId : null;
 
                 $cuenta = $this->cuentas->crear([
                     'numero_cuenta' => $numeroCuenta,
@@ -82,7 +74,7 @@ final class AbrirCuenta
 
             $reservaModel = $reserva ?? $estancia?->reserva;
             if ($reservaModel !== null && ! $reservaModel->solicita_cuenta) {
-                $reservaModel->update(['solicita_cuenta' => true]);
+                $this->cuentas->marcarSolicitaCuenta($reservaModel->id);
             }
 
             CuentaAbierta::dispatch($cuenta);
@@ -109,12 +101,6 @@ final class AbrirCuenta
             return $reserva->cliente_id;
         }
 
-        $reservaDeEstancia = $estancia?->reserva;
-
-        if ($reservaDeEstancia !== null) {
-            return $reservaDeEstancia->cliente_id;
-        }
-
-        return null;
+        return $estancia?->reserva?->cliente_id;
     }
 }

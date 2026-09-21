@@ -15,7 +15,61 @@
     $fechaFin = $reportData['fecha_fin'] ?? $reportData['fecha_hasta'] ?? '-';
 @endphp
 
-<div x-data x-on:open-new-tab.window="window.open($event.detail.url || $event.detail[0]?.url, '_blank')" class="w-full space-y-6 font-sans">
+<div
+    x-data="{
+        pendingTab: null,
+        isGenerating: false,
+        prepararPestana() {
+            if (this.isGenerating) return;
+            this.isGenerating = true;
+            setTimeout(() => { this.isGenerating = false; }, 30000);
+            try {
+                this.pendingTab = window.open('{{ route('admin.reportes.en-proceso', [], false) }}', '_blank');
+            } catch (e) {
+                this.pendingTab = null;
+            }
+        },
+        abrirReporte(url) {
+            this.isGenerating = false;
+            if (!url) {
+                if (this.pendingTab && !this.pendingTab.closed) {
+                    try { this.pendingTab.close(); } catch (e) {}
+                }
+                this.pendingTab = null;
+                return;
+            }
+            if (this.pendingTab && !this.pendingTab.closed) {
+                try {
+                    this.pendingTab.location.replace(url);
+                    this.pendingTab = null;
+                    return;
+                } catch (e) {
+                    try {
+                        this.pendingTab.location.href = url;
+                        this.pendingTab = null;
+                        return;
+                    } catch (e2) {}
+                }
+            }
+            try {
+                const win = window.open(url, '_blank');
+                if (!win || win.closed || typeof win.closed === 'undefined') {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => a.remove(), 200);
+                }
+            } catch (e) {
+                window.location.assign(url);
+            }
+        }
+    }"
+    x-on:open-new-tab.window="abrirReporte($event.detail?.url || $event.detail?.[0]?.url || (typeof $event.detail === 'string' ? $event.detail : null))"
+    x-on:close-pending-tab.window="isGenerating = false; if (pendingTab && !pendingTab.closed) { try { pendingTab.close(); } catch (e) {} } pendingTab = null;"
+    class="w-full space-y-6 font-sans">
 
     {{-- Top Slot: 4 KPI Cards (Obligatorio en todo el proyecto) --}}
     @if(isset($kpis))
@@ -65,9 +119,11 @@
                         @elseif($tieneExcel)
                             <button 
                                 type="button" 
+                                x-on:click="prepararPestana()"
                                 wire:click="descargarExcel"
+                                x-bind:disabled="isGenerating"
                                 wire:loading.attr="disabled"
-                                class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-5 rounded-2xl shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-xs"
+                                class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-5 rounded-2xl shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                             >
                                 <x-heroicon-o-table-cells class="w-4 h-4" />
                                 <span>Exportar Excel</span>
@@ -76,13 +132,15 @@
 
                         <button 
                             type="submit" 
+                            x-on:click="prepararPestana()"
+                            x-bind:disabled="isGenerating"
                             wire:loading.attr="disabled"
-                            class="w-full sm:w-auto bg-[#711C37] hover:bg-[#59162b] text-white font-bold py-3.5 px-7 rounded-2xl shadow-lg shadow-[#711C37]/30 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 text-xs"
+                            class="w-full sm:w-auto bg-[#711C37] hover:bg-[#59162b] text-white font-bold py-3.5 px-7 rounded-2xl shadow-lg shadow-[#711C37]/30 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                         >
-                            <x-heroicon-o-arrow-down-tray class="w-4 h-4 animate-bounce" wire:loading.remove />
-                            <x-heroicon-o-arrow-path class="w-4 h-4 animate-spin" wire:loading />
-                            <span wire:loading.remove>Generar y Descargar PDF</span>
-                            <span wire:loading>Procesando...</span>
+                            <x-heroicon-o-arrow-down-tray class="w-4 h-4 animate-bounce" wire:loading.remove x-show="!isGenerating" />
+                            <x-heroicon-o-arrow-path class="w-4 h-4 animate-spin" wire:loading x-show="isGenerating" x-cloak />
+                            <span wire:loading.remove x-show="!isGenerating">Generar y Descargar PDF</span>
+                            <span wire:loading x-show="isGenerating">Procesando...</span>
                         </button>
                     </div>
                 </div>

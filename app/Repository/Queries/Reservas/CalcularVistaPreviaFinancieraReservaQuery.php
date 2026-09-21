@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Reservas;
 
-use App\BusinessLogic\Reservas\AplicarPromocionReserva;
-use App\BusinessLogic\Reservas\ValidarSeleccionAdicionales;
+use App\BusinessLogic\Reservas\Calculos\AplicarPromocionReserva;
+use App\BusinessLogic\Reservas\Validaciones\ValidarSeleccionAdicionales;
 use App\Enums\Cuentas\BaseCalculo;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Reservas\TipoReserva;

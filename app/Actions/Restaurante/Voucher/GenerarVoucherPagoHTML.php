@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Restaurante\Voucher;
 
 use App\Repository\Models\Cuentas\Cuenta;
+use App\Support\MonedaHelper;
 
 final class GenerarVoucherPagoHTML
 {
@@ -20,7 +21,7 @@ final class GenerarVoucherPagoHTML
         $montoPagado = $pago !== null ? (float) $pago->monto : 0.0;
         $totalCuenta = (float) $cuenta->total;
         $vuelto = max(0.0, $montoPagado - $totalCuenta);
-        $simboloMoneda = (string) ($cuenta->moneda->simbolo ?? 'C$');
+        $simboloMoneda = MonedaHelper::simbolo($cuenta->moneda);
 
         return view('reports.restaurante.voucher-pago-pos', [
             'cuenta' => $cuenta,

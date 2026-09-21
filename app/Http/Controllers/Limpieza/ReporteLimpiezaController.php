@@ -6,8 +6,9 @@ namespace App\Http\Controllers\Limpieza;
 
 use App\Actions\Limpieza\Reportes\GenerarReporteOperacionHoteleraAction;
 use App\Http\Controllers\ReporteController;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReporteLimpiezaController extends ReporteController
@@ -16,75 +17,86 @@ final class ReporteLimpiezaController extends ReporteController
         private readonly GenerarReporteOperacionHoteleraAction $reporteOperacionHotelera,
     ) {}
 
-    public function operacionHoteleraPdf(Request $request): StreamedResponse
+    public function operacionHoteleraPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
         return $this->generarPdf($request, 'operacion_hotelera', 'HTB-LIM-001-Limpieza-Operacion-Hotelera.pdf');
     }
 
-    public function operacionHoteleraPreview(Request $request): View
+    public function operacionHoteleraPreview(Request $request): Response|StreamedResponse|JsonResponse
     {
-        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.operacion-hotelera.pdf', 'Reporte de Limpieza y Operación Hotelera');
+        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.operacion-hotelera.pdf', 'Reporte de Limpieza y Operación Hotelera', 'operacion_hotelera');
     }
 
-    public function tiempoPromedioPdf(Request $request): StreamedResponse
+    public function tiempoPromedioPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
         return $this->generarPdf($request, 'tiempo_promedio_limpieza', 'HTB-LIM-002-Tiempo-Promedio-Limpieza.pdf');
     }
 
-    public function tiempoPromedioPreview(Request $request): View
+    public function tiempoPromedioPreview(Request $request): Response|StreamedResponse|JsonResponse
     {
-        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.tiempo-promedio.pdf', 'Tiempo Promedio de Limpieza');
+        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.tiempo-promedio.pdf', 'Tiempo Promedio de Limpieza', 'tiempo_promedio_limpieza');
     }
 
-    public function pendientesBloqueadasPdf(Request $request): StreamedResponse
+    public function pendientesBloqueadasPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
         return $this->generarPdf($request, 'habitaciones_pendientes_bloqueadas', 'HTB-LIM-003-Habitaciones-Pendientes-Bloqueadas.pdf');
     }
 
-    public function pendientesBloqueadasPreview(Request $request): View
+    public function pendientesBloqueadasPreview(Request $request): Response|StreamedResponse|JsonResponse
     {
-        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.pendientes-bloqueadas.pdf', 'Habitaciones Pendientes y Bloqueadas');
+        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.pendientes-bloqueadas.pdf', 'Habitaciones Pendientes y Bloqueadas', 'habitaciones_pendientes_bloqueadas');
     }
 
-    public function amenitiesHabitacionPdf(Request $request): StreamedResponse
+    public function amenitiesHabitacionPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
         return $this->generarPdf($request, 'consumo_amenities_habitacion', 'HTB-LIM-004-Consumo-Amenities-Habitacion.pdf');
     }
 
-    public function amenitiesHabitacionPreview(Request $request): View
+    public function amenitiesHabitacionPreview(Request $request): Response|StreamedResponse|JsonResponse
     {
-        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.amenities-habitacion.pdf', 'Consumo de Amenities por Habitación');
+        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.amenities-habitacion.pdf', 'Consumo de Amenities por Habitación', 'consumo_amenities_habitacion');
     }
 
-    public function productividadPdf(Request $request): StreamedResponse
+    public function productividadPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
         return $this->generarPdf($request, 'productividad_colaborador_turno', 'HTB-LIM-005-Productividad-Colaborador-Turno.pdf');
     }
 
-    public function productividadPreview(Request $request): View
+    public function productividadPreview(Request $request): Response|StreamedResponse|JsonResponse
     {
-        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.productividad.pdf', 'Productividad por Colaborador y Turno');
+        return $this->previsualizarPdf($request, 'admin.limpieza.reportes.productividad.pdf', 'Productividad por Colaborador y Turno', 'productividad_colaborador_turno');
     }
 
-    private function previsualizarPdf(Request $request, string $rutaPdf, string $titulo): View
+    private function previsualizarPdf(Request $request, string $rutaPdf, string $titulo, string $reporte): Response|StreamedResponse|JsonResponse
     {
         abort_unless($this->puedeGenerarReporte(), 403);
 
-        return view('reports.layout.pdf-preview', [
-            'titulo' => $titulo,
-            'pdfUrl' => route($rutaPdf, $request->query()),
-        ]);
+        $params = array_merge($request->all(), ['reporte' => $reporte]);
+
+        return $this->manejarReporte(
+            $request,
+            $reporte,
+            $params,
+            fn (): Response => response()->view('reports.layout.pdf-preview', [
+                'titulo' => $titulo,
+                'pdfUrl' => route($rutaPdf, $request->query()),
+            ]),
+        );
     }
 
-    private function generarPdf(Request $request, string $reporte, string $archivo): StreamedResponse
+    private function generarPdf(Request $request, string $reporte, string $archivo): Response|StreamedResponse|JsonResponse
     {
         abort_unless($this->puedeGenerarReporte(), 403);
 
-        $pdf = $this->reporteOperacionHotelera->pdf(array_merge($request->all(), [
-            'reporte' => $reporte,
-        ]));
-
-        return $this->streamPdf($pdf, $archivo);
+        return $this->manejarReporte(
+            $request,
+            $reporte,
+            array_merge($request->all(), ['reporte' => $reporte]),
+            fn (): StreamedResponse => $this->streamPdf(
+                $this->reporteOperacionHotelera->pdf(array_merge($request->all(), ['reporte' => $reporte])),
+                $archivo,
+            ),
+        );
     }
 
     private function puedeGenerarReporte(): bool

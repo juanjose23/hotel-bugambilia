@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Facturacion\FacturaSerieResource;
 
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Repository\Models\Facturacion\FacturaSerie;
 use BackedEnum;
@@ -22,6 +23,8 @@ use UnitEnum;
 
 final class FacturaSerieResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = FacturaSerie::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QueueList;

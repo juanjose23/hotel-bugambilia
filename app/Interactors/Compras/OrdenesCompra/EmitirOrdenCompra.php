@@ -9,10 +9,10 @@ use App\Events\Compras\OrdenEmitida;
 use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Persistencia\Compras\OrdenCompraRepositorioInterface;
 
-final class EmitirOrdenCompra
+final readonly class EmitirOrdenCompra
 {
     public function __construct(
-        private readonly OrdenCompraRepositorioInterface $ordenCompraRepositorio,
+        private OrdenCompraRepositorioInterface $ordenCompraRepositorio,
     ) {}
 
     public function ejecutar(OrdenCompra $orden): void

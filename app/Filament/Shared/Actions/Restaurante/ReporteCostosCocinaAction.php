@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Actions\Restaurante;
 
 use App\Interactors\Restaurante\Reportes\GenerarReporteCostosCocina;
+use App\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
@@ -35,12 +36,12 @@ final class ReporteCostosCocinaAction
 
                 $res = app(GenerarReporteCostosCocina::class)->ejecutar($fechaInicio, $fechaFin);
 
-                $fmtTot = number_format($res['costo_total_acumulado'], 2);
-                $fmtProm = number_format($res['costo_promedio_por_plato'], 2);
+                $fmtTot = MonedaHelper::formatear((float) $res['costo_total_acumulado']);
+                $fmtProm = MonedaHelper::formatear((float) $res['costo_promedio_por_plato']);
 
                 Notification::make()
                     ->title('Reporte de Costos Generado')
-                    ->body("Procesos: {$res['total_procesos']} | Platos: {$res['total_platos']} | Costo Total: C$ {$fmtTot} | Costo Prom/Plato: C$ {$fmtProm}")
+                    ->body("Procesos: {$res['total_procesos']} | Platos: {$res['total_platos']} | Costo Total: {$fmtTot} | Costo Prom/Plato: {$fmtProm}")
                     ->info()
                     ->send();
             });

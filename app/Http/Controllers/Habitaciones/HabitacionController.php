@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Habitaciones;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Habitaciones\ConsultarDisponibilidadHabitacionRequest;
-use App\Interactors\Landing\ObtenerHabitacionDetalleLanding;
-use App\Interactors\Landing\ObtenerHabitacionesLanding;
-use App\Interactors\Landing\ObtenerHabitacionReservaLanding;
+use App\Interactors\Habitaciones\ObtenerHabitacionDetalle;
+use App\Interactors\Habitaciones\ObtenerHabitaciones;
+use App\Interactors\Habitaciones\ObtenerHabitacionReserva;
 use App\Support\Utilidades\FormatearPaginacion;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +18,7 @@ use Inertia\Response;
 
 final class HabitacionController extends Controller
 {
-    public function index(Request $request, ObtenerHabitacionesLanding $interactor): Response
+    public function index(Request $request, ObtenerHabitaciones $interactor): Response
     {
         $categoria = $request->string('categoria')->toString();
         $busqueda = $request->string('buscar')->toString();
@@ -39,7 +39,7 @@ final class HabitacionController extends Controller
         ]);
     }
 
-    public function show(string $slug, ObtenerHabitacionDetalleLanding $interactor): Response
+    public function show(string $slug, ObtenerHabitacionDetalle $interactor): Response
     {
         return Inertia::render('habitaciones/HabitacionDetalle', $interactor->ejecutar($slug));
     }
@@ -47,7 +47,7 @@ final class HabitacionController extends Controller
     public function mostrarReserva(
         string $slug,
         Request $request,
-        ObtenerHabitacionDetalleLanding $interactor,
+        ObtenerHabitacionDetalle $interactor,
     ): Response {
         $data = $interactor->ejecutar($slug);
 
@@ -62,7 +62,7 @@ final class HabitacionController extends Controller
     public function disponibilidad(
         string $slug,
         ConsultarDisponibilidadHabitacionRequest $request,
-        ObtenerHabitacionReservaLanding $interactor,
+        ObtenerHabitacionReserva $interactor,
     ): JsonResponse {
         /** @var array{fecha_check_in: string, fecha_check_out: string, adultos?: int|null, ninos?: int|null} $validated */
         $validated = $request->validated();
@@ -79,7 +79,7 @@ final class HabitacionController extends Controller
     public function diasAgotados(
         string $slug,
         Request $request,
-        ObtenerHabitacionReservaLanding $interactor,
+        ObtenerHabitacionReserva $interactor,
     ): JsonResponse {
         $meses = is_numeric($request->query('meses'))
             ? min(18, max(1, (int) $request->query('meses')))

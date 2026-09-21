@@ -14,6 +14,7 @@ use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Monedas\ObtenerMonedasQuery;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -23,32 +24,43 @@ class InformacionGeneralSeccion
 {
     public static function make(): Section
     {
-        return Section::make('Información de la Reserva')
+        return Section::make('Tipo de Reserva')
             ->columnSpanFull()
             ->icon(Heroicon::InformationCircle)
+            ->description(fn (Get $get): string => self::descripcionPorTipo($get('tipo_reserva')))
             ->columns(['default' => 1, 'sm' => 2, 'lg' => 3])
             ->schema([
-                TextInput::make('codigo_reserva')
-                    ->label('Código de Reserva')
-                    ->placeholder('Generación automática')
-                    ->disabled()
-                    ->dehydrated()
-                    ->columnSpan(1),
-
-                Select::make('tipo_reserva')
-                    ->label('Tipo de Reserva')
+                // Selector visual tipo de reserva — prominente, con íconos y colores del enum
+                ToggleButtons::make('tipo_reserva')
+                    ->label('¿Qué tipo de reserva desea registrar?')
                     ->options(TipoReserva::options())
+                    ->icons([
+                        TipoReserva::HABITACION->value => TipoReserva::HABITACION->getIcon(),
+                        TipoReserva::RESTAURANTE->value => TipoReserva::RESTAURANTE->getIcon(),
+                        TipoReserva::SERVICIO->value => TipoReserva::SERVICIO->getIcon(),
+                        TipoReserva::PAQUETE->value => TipoReserva::PAQUETE->getIcon(),
+                    ])
+                    ->colors([
+                        TipoReserva::HABITACION->value => TipoReserva::HABITACION->getColor(),
+                        TipoReserva::RESTAURANTE->value => TipoReserva::RESTAURANTE->getColor(),
+                        TipoReserva::SERVICIO->value => TipoReserva::SERVICIO->getColor(),
+                        TipoReserva::PAQUETE->value => TipoReserva::PAQUETE->getColor(),
+                    ])
                     ->default(TipoReserva::HABITACION->value)
                     ->required()
                     ->validationMessages([
                         'required' => 'Seleccione el tipo de reserva que desea registrar.',
                     ])
+                    ->inline()
+                    ->live()
+                    ->afterStateUpdated(function (string $state, Set $set): void {
+                        self::limpiarCamposIncompatibles($state, $set);
+                    })
                     ->disabled(fn (string $operation): bool => $operation === 'create'
                         && filled(request()->query('tipo_reserva') ?? request()->query('tipo')))
-                    ->live()
-                    ->native(false)
-                    ->columnSpan(1),
+                    ->columnSpanFull(),
 
+                // Moneda — siempre visible, afecta al cálculo de precios
                 Select::make('moneda_id')
                     ->label('Moneda de Cotización')
                     ->options(fn (): array => app(ObtenerMonedasQuery::class)->ejecutar()
@@ -63,8 +75,9 @@ class InformacionGeneralSeccion
                     ->native(false)
                     ->columnSpan(1),
 
+                // Promoción — visible en ambos modos; su afterStateUpdated autocompleta habitación/mesa/servicio
                 Select::make('promocion_id')
-                    ->label('Promoción / Oferta Aplicada')
+                    ->label('Promoción / Oferta')
                     ->placeholder('Sin promoción')
                     ->options(fn (): array => Promocion::query()
                         ->vigentes()
@@ -156,6 +169,16 @@ class InformacionGeneralSeccion
                     })
                     ->columnSpan(1),
 
+                // Código de reserva — generado automáticamente, solo visible en edición
+                TextInput::make('codigo_reserva')
+                    ->label('Código de Reserva')
+                    ->placeholder('Generación automática')
+                    ->disabled()
+                    ->dehydrated()
+                    ->hiddenOn('create')
+                    ->columnSpan(1),
+
+                // Estado — siempre PENDIENTE en create; solo visible en edición
                 Select::make('estado')
                     ->label('Estado Actual')
                     ->options(EstadoReserva::options())
@@ -163,8 +186,60 @@ class InformacionGeneralSeccion
                     ->required()
                     ->disabled()
                     ->dehydrated()
+                    ->hiddenOn('create')
                     ->native(false)
                     ->columnSpan(1),
             ]);
+    }
+
+    /**
+     * Retorna una descripción contextual según el tipo de reserva activo.
+     */
+    private static function descripcionPorTipo(mixed $tipo): string
+    {
+        if (! is_string($tipo)) {
+            return 'Seleccione el tipo de reservación que desea registrar.';
+        }
+
+        return match ($tipo) {
+            TipoReserva::HABITACION->value => 'Configure fechas de estancia, habitación y número de huéspedes.',
+            TipoReserva::RESTAURANTE->value => 'Configure el horario, mesa y número de comensales.',
+            TipoReserva::SERVICIO->value => 'Configure el servicio especial y su horario programado.',
+            TipoReserva::PAQUETE->value => 'Configure todos los componentes del paquete completo.',
+            default => 'Seleccione el tipo de reservación que desea registrar.',
+        };
+    }
+
+    /**
+     * Limpia los campos que pertenecen exclusivamente al tipo de reserva anterior,
+     * evitando enviar datos inconsistentes al interactor.
+     */
+    private static function limpiarCamposIncompatibles(string $tipo, Set $set): void
+    {
+        // Al cambiar a un tipo que no incluye hospedaje, limpiar campos de habitación
+        if (! in_array($tipo, [TipoReserva::HABITACION->value, TipoReserva::PAQUETE->value], true)) {
+            $set('habitacion_id', null);
+            $set('habitaciones_adicionales', []);
+            $set('acompanantes', []);
+            $set('fecha_check_out', null);
+            $set('ninos', null);
+        }
+
+        // Al cambiar a un tipo que no incluye restaurante, limpiar campos de mesa
+        if (! in_array($tipo, [TipoReserva::RESTAURANTE->value, TipoReserva::PAQUETE->value], true)) {
+            $set('espacio_id', null);
+            $set('espacios_adicionales', []);
+            $set('duracion_horas', null);
+            $set('items_preorden', []);
+            $set('cobrar_tarifa_mesa', false);
+        }
+
+        // Al cambiar a un tipo que no incluye servicio, limpiar servicio_id
+        if (! in_array($tipo, [TipoReserva::SERVICIO->value, TipoReserva::PAQUETE->value], true)) {
+            $set('servicio_id', null);
+        }
+
+        // hora_reserva y fecha_check_in se conservan (son comunes a varios tipos)
+        // moneda_id y promocion_id se conservan (compatibles con todos los tipos)
     }
 }

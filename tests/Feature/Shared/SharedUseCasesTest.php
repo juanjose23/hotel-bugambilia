@@ -21,10 +21,10 @@ use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\Shared\ServicioAsignacion;
 use App\Repository\Queries\Shared\ObtenerNombrePersona;
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\UbicacionSeeder;
 use Database\Seeders\ServicioSeeder;
-use Database\Seeders\UbicacionSeeder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

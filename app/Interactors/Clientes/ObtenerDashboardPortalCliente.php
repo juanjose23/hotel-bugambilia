@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Clientes;
 
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoReserva;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Presenters\Clientes\PortalPresenter;
 use App\Repository\Models\Reservas\Reserva;
@@ -72,6 +73,9 @@ final class ObtenerDashboardPortalCliente
                 'total_reservas' => $reservas->count(),
                 'activas' => $activas->count(),
                 'completadas' => $historial->where('estado', EstadoReserva::CHECKED_OUT)->count(),
+                'total_habitaciones' => $reservas->whereIn('tipo_reserva', [TipoReserva::HABITACION, TipoReserva::PAQUETE])->count(),
+                'total_restaurante' => $reservas->where('tipo_reserva', TipoReserva::RESTAURANTE)->count(),
+                'total_servicios' => $reservas->where('tipo_reserva', TipoReserva::SERVICIO)->count(),
                 'total_pedidos' => $pedidos->count(),
                 'pedidos_activos' => $pedidosActivos->count(),
                 'tiene_reservas' => $reservas->isNotEmpty(),

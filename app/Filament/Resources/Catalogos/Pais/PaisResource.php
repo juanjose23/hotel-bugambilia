@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Catalogos\Pais;
 
+use App\Filament\Clusters\Configuracion\ConfiguracionCluster;
 use App\Filament\Resources\Catalogos\Pais\Pages\ListPais;
 use App\Filament\Resources\Catalogos\Pais\Schemas\PaisForm;
 use App\Filament\Resources\Catalogos\Pais\Schemas\PaisInfolist;
@@ -18,6 +19,8 @@ use UnitEnum;
 
 class PaisResource extends Resource
 {
+    protected static ?string $cluster = ConfiguracionCluster::class;
+
     protected static ?string $model = Pais::class;
 
     protected static string|UnitEnum|null $navigationGroup = 'Configuración';

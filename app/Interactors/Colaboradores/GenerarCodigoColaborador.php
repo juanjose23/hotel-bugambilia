@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Interactors\Colaboradores;
 
-use App\BusinessLogic\Colaboradores\GeneradorCodigoColaborador;
+use App\Actions\Shared\GenerarCorrelativoCodigoAction;
+use App\Repository\Models\Colaboradores\Colaborador;
 
-class GenerarCodigoColaborador
+final readonly class GenerarCodigoColaborador
 {
     public function __construct(
-        private readonly GeneradorCodigoColaborador $generadorCodigo,
+        private GenerarCorrelativoCodigoAction $generadorCodigo,
     ) {}
 
     public function execute(): string
     {
-        return $this->generadorCodigo->generar();
+        return $this->generadorCodigo->ejecutar(
+            prefix: 'COL',
+            modelClass: Colaborador::class,
+        );
     }
 }

@@ -1,5 +1,6 @@
+@use(App\Support\MonedaHelper)
 <x-filament-panels::page>
-    <div x-data="{ activeTab: 'trazabilidad' }" x-on:open-new-tab.window="window.open($event.detail.url, '_blank')" class="space-y-6">
+    <div x-data="{ activeTab: 'trazabilidad' }" class="space-y-6">
 
         {{-- ─── Navegación de Pestañas ─────────────────────────── --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -284,7 +285,7 @@
 
                         <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-lg">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">C$ 112,500</span>
+                                <span class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{{ MonedaHelper::formatear(112500) }}</span>
                                 <x-heroicon-o-banknotes class="w-5 h-5 text-emerald-500" />
                             </div>
                             <span class="text-xs font-semibold text-emerald-600/80 dark:text-emerald-400/80">Monto adjudicado OC</span>

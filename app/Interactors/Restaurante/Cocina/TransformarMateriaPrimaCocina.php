@@ -7,17 +7,16 @@ namespace App\Interactors\Restaurante\Cocina;
 use App\Enums\Inventario\EstadoLote;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
-use App\Repository\Models\Inventario\Lote;
 use App\Repository\Models\Restaurante\TransformacionMateriaPrima;
 use App\Repository\Models\Shared\Stock;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class TransformarMateriaPrimaCocina
+final readonly class TransformarMateriaPrimaCocina
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private RestauranteRepositorioInterface $repositorio,
     ) {}
 
     /**
@@ -45,8 +44,8 @@ final class TransformarMateriaPrimaCocina
                 throw new DomainException('Debe registrar al menos una materia prima obtenida o una merma.');
             }
 
-            $transformacion = TransformacionMateriaPrima::query()->create([
-                'codigo' => 'TMP-'.now()->format('Ymd-His'),
+            $transformacion = $this->repositorio->crearTransformacionMateriaPrima([
+                'codigo' => is_string($data['codigo'] ?? null) ? $data['codigo'] : 'TMP-'.now()->format('Ymd-His'),
                 'producto_origen_id' => $productoOrigenId,
                 'variante_origen_id' => $varianteOrigenId,
                 'ubicacion_origen_id' => $ubicacionOrigenId,
@@ -80,7 +79,7 @@ final class TransformarMateriaPrimaCocina
                     throw new DomainException('Cada materia prima obtenida debe tener variante destino.');
                 }
 
-                $transformacion->items()->create([
+                $this->repositorio->crearTransformacionItem($transformacion, [
                     'producto_destino_id' => $productoDestinoId,
                     'variante_destino_id' => $varianteDestinoId,
                     'ubicacion_destino_id' => $ubicacionDestinoId,
@@ -99,7 +98,7 @@ final class TransformarMateriaPrimaCocina
                 }
             }
 
-            $transformacion->update(['costo_total' => round($costoTotal, 2)]);
+            $this->repositorio->actualizarTransformacionMateriaPrima($transformacion, ['costo_total' => round($costoTotal, 2)]);
 
             return $transformacion->refresh();
         });
@@ -136,7 +135,7 @@ final class TransformarMateriaPrimaCocina
     {
         $costoUnitario = $cantidad > 0 ? round($costoAsignado / $cantidad, 6) : 0.0;
 
-        $lote = Lote::query()->create([
+        $lote = $this->repositorio->crearLote([
             'producto_id' => $productoId,
             'producto_variante_id' => $varianteId,
             'ubicacion_id' => $ubicacionId,
@@ -151,7 +150,7 @@ final class TransformarMateriaPrimaCocina
 
         $stock = $this->repositorio->obtenerStockPorVariante($ubicacionId, $varianteId);
         if (! $stock instanceof Stock) {
-            $stock = Stock::query()->create([
+            $stock = $this->repositorio->crearStock([
                 'stockable_type' => Ubicacion::class,
                 'stockable_id' => $ubicacionId,
                 'producto_variante_id' => $varianteId,
@@ -199,7 +198,7 @@ final class TransformarMateriaPrimaCocina
 
     private function nombreVariante(int $varianteId): string
     {
-        $variante = ProductoVariante::query()->with('producto')->find($varianteId);
+        $variante = $this->repositorio->obtenerVarianteConProducto($varianteId);
 
         if (! $variante instanceof ProductoVariante) {
             return "variante {$varianteId}";
