@@ -11,6 +11,7 @@ import type {
     UseFormRegister,
     UseFormSetValue,
 } from 'react-hook-form';
+import { StripePaymentForm } from '@/modules/reservas/components/StripePaymentForm';
 import type { StripePaymentData } from '@/modules/reservas/types';
 import { Button } from '@/modules/shared/components/ui/button';
 import {
@@ -22,7 +23,6 @@ import {
 import { Input } from '@/modules/shared/components/ui/input';
 import type { FormPedidoDelivery } from '../schemas/pedidoDeliverySchema';
 import type { RespuestaPedidoBackend } from '../services/restauranteService';
-import { RestaurantePagoStripePantalla } from './RestaurantePagoStripePantalla';
 import { RestaurantePedidoCompletado } from './RestaurantePedidoCompletado';
 
 interface RestaurantePasoPagoProps {
@@ -60,15 +60,56 @@ export const RestaurantePasoPago = ({
 }: RestaurantePasoPagoProps) => {
     if (stripeData) {
         return (
-            <RestaurantePagoStripePantalla
-                stripeData={stripeData}
-                pedidoCreado={pedidoCreado}
-                total={total}
-                moneda={moneda}
-                confirmandoStripe={confirmandoStripe}
-                onStripeSuccess={onStripeSuccess}
-                onCancelStripe={onCancelStripe}
-            />
+            <div className="animate-in fade-in zoom-in-95 space-y-5 rounded-3xl border border-border/80 bg-card p-6 shadow-xs duration-300">
+                <div className="border-b border-border/60 pb-4">
+                    <div className="flex items-center gap-2">
+                        <div className="flex size-7 items-center justify-center rounded-xl bg-primary/10 text-primary dark:text-rose-400">
+                            <CreditCard className="size-4" />
+                        </div>
+                        <h2 className="text-lg font-black text-foreground">
+                            Pasarela de Pago Segura con Tarjeta (Stripe)
+                        </h2>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        Comanda registrada:{' '}
+                        <strong className="text-foreground">
+                            #{pedidoCreado?.codigo}
+                        </strong>
+                        . Total a pagar:{' '}
+                        <strong className="text-primary">
+                            {moneda} {total.toFixed(2)}
+                        </strong>
+                        .
+                    </p>
+                </div>
+
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-xs text-muted-foreground">
+                    <p className="font-bold text-foreground">
+                        Procesamiento Cifrado SSL
+                    </p>
+                    <p className="mt-0.5 text-[11px]">
+                        Ingresa los 16 dígitos de tu tarjeta, fecha de
+                        vencimiento y código CVC. No almacenamos los datos
+                        sensibles de tu tarjeta.
+                    </p>
+                </div>
+
+                <StripePaymentForm
+                    stripeData={stripeData}
+                    onSuccess={onStripeSuccess}
+                    onError={(msg) => console.error('Stripe Error:', msg)}
+                    onCancel={onCancelStripe}
+                />
+
+                {confirmandoStripe && (
+                    <div className="flex items-center justify-center gap-2 rounded-2xl bg-muted/60 p-4 text-xs font-bold text-muted-foreground">
+                        <Loader2 className="size-4 animate-spin text-primary" />
+                        <span>
+                            Verificando y confirmando transacción bancaria...
+                        </span>
+                    </div>
+                )}
+            </div>
         );
     }
 
@@ -106,17 +147,18 @@ export const RestaurantePasoPago = ({
                                 Método de Pago Disponible *
                             </FieldLabel>
                             <div className="mt-1.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <button
+                                <Button
                                     type="button"
+                                    variant="ghost"
                                     onClick={() =>
                                         setValue('metodoPago', 'efectivo', {
                                             shouldValidate: true,
                                             shouldDirty: true,
                                         })
                                     }
-                                    className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
+                                    className={`flex h-auto cursor-pointer items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
                                         metodoPagoSeleccionado === 'efectivo'
-                                            ? 'border-emerald-600 bg-emerald-500/10 text-emerald-950 ring-2 ring-emerald-500/30 dark:text-emerald-300'
+                                            ? 'border-emerald-600 bg-emerald-500/10 text-emerald-950 ring-2 ring-emerald-500/30 hover:bg-emerald-500/15 dark:text-emerald-300'
                                             : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
                                     }`}
                                 >
@@ -127,24 +169,25 @@ export const RestaurantePasoPago = ({
                                         <div className="text-xs font-bold text-foreground">
                                             Efectivo contra Entrega
                                         </div>
-                                        <div className="mt-0.5 text-[11px] text-muted-foreground">
+                                        <div className="mt-0.5 text-[11px] font-normal whitespace-normal text-muted-foreground">
                                             Paga en mano al repartidor cuando
                                             recibas tu pedido en Estelí.
                                         </div>
                                     </div>
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button
                                     type="button"
+                                    variant="ghost"
                                     onClick={() =>
                                         setValue('metodoPago', 'stripe', {
                                             shouldValidate: true,
                                             shouldDirty: true,
                                         })
                                     }
-                                    className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
+                                    className={`flex h-auto cursor-pointer items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
                                         metodoPagoSeleccionado === 'stripe'
-                                            ? 'border-primary bg-primary/10 text-foreground ring-2 ring-primary/30 dark:bg-rose-950/40'
+                                            ? 'border-primary bg-primary/10 text-foreground ring-2 ring-primary/30 hover:bg-primary/15 dark:bg-rose-950/40'
                                             : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
                                     }`}
                                 >
@@ -155,12 +198,12 @@ export const RestaurantePasoPago = ({
                                         <div className="text-xs font-bold text-foreground">
                                             Tarjeta de Débito / Crédito
                                         </div>
-                                        <div className="mt-0.5 text-[11px] text-muted-foreground">
+                                        <div className="mt-0.5 text-[11px] font-normal whitespace-normal text-muted-foreground">
                                             Pago seguro en línea con Visa,
                                             Mastercard o American Express.
                                         </div>
                                     </div>
-                                </button>
+                                </Button>
                             </div>
                             {errors.metodoPago && (
                                 <FieldError className="text-[11px]">

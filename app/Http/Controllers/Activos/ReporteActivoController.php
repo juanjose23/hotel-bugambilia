@@ -9,8 +9,9 @@ use App\Interactors\Activos\Reportes\GenerarReporteActivo;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoMantenimiento;
 use Barryvdh\DomPDF\PDF;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReporteActivoController extends ReporteController
@@ -19,23 +20,21 @@ final class ReporteActivoController extends ReporteController
         private readonly GenerarReporteActivo $generarReporteActivo,
     ) {}
 
-    public function inventarioGeneralPdf(Request $request): StreamedResponse|RedirectResponse
+    public function inventarioGeneralPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('inventario_general', $request->all());
-        }
-
-        $pdf = $this->generarPdf('inventarioGeneralPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-001-Inventario-General.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-001',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('inventarioGeneralPdf', $request->all()),
+                'HTB-ACT-001-Inventario-General.pdf',
+            ),
+        );
     }
 
-    public function inventarioGeneralExcel(Request $request): StreamedResponse|RedirectResponse
+    public function inventarioGeneralExcel(Request $request): StreamedResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('inventario_general_excel', $request->all());
-        }
-
         $result = $this->generarReporteActivo->execute('inventarioGeneralExcel', $request->all());
 
         if (! $result instanceof StreamedResponse) {
@@ -63,106 +62,124 @@ final class ReporteActivoController extends ReporteController
         return $this->streamPdf($pdf, 'HTB-ACT-003-Ficha-Mantenimiento.pdf');
     }
 
-    public function etiquetasPdf(Request $request): StreamedResponse|RedirectResponse
+    public function etiquetasPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('etiquetas', $request->all());
-        }
-
-        $pdf = $this->generarPdf('etiquetasPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-004-Etiquetas-Codigos-Barras.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-004',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('etiquetasPdf', $request->all()),
+                'HTB-ACT-004-Etiquetas.pdf',
+            ),
+        );
     }
 
-    public function porUbicacionPdf(Request $request): StreamedResponse|RedirectResponse
+    public function porUbicacionPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('por_ubicacion', $request->all());
-        }
-
-        $pdf = $this->generarPdf('porUbicacionPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-005-Activos-por-Ubicacion.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-005',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('porUbicacionPdf', $request->all()),
+                'HTB-ACT-005-Activos-por-Ubicacion.pdf',
+            ),
+        );
     }
 
-    public function historialMovimientosPdf(Request $request): StreamedResponse|RedirectResponse
+    public function historialMovimientosPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('historial', $request->all());
-        }
-
-        $pdf = $this->generarPdf('historialMovimientosPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-006-Historial-Movimientos.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-006',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('historialMovimientosPdf', $request->all()),
+                'HTB-ACT-006-Historial-Movimientos.pdf',
+            ),
+        );
     }
 
-    public function enMantenimientoPdf(Request $request): StreamedResponse|RedirectResponse
+    public function enMantenimientoPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('en_mantenimiento', $request->all());
-        }
-
-        $pdf = $this->generarPdf('enMantenimientoPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-007-Activos-en-Mantenimiento.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-007',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('enMantenimientoPdf', $request->all()),
+                'HTB-ACT-007-Activos-en-Mantenimiento.pdf',
+            ),
+        );
     }
 
-    public function garantiasProximasPdf(Request $request): StreamedResponse|RedirectResponse
+    public function garantiasProximasPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('garantias', $request->all());
-        }
-
-        $pdf = $this->generarPdf('garantiasProximasPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-008-Garantias-Proximas.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-008',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('garantiasProximasPdf', $request->all()),
+                'HTB-ACT-008-Garantias-Proximas.pdf',
+            ),
+        );
     }
 
-    public function dadosDeBajaPdf(Request $request): StreamedResponse|RedirectResponse
+    public function dadosDeBajaPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('bajas', $request->all());
-        }
-
-        $pdf = $this->generarPdf('dadosDeBajaPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-009-Activos-Dados-de-Baja.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-009',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('dadosDeBajaPdf', $request->all()),
+                'HTB-ACT-009-Activos-Dados-de-Baja.pdf',
+            ),
+        );
     }
 
-    public function extraviadosPdf(Request $request): StreamedResponse|RedirectResponse
+    public function extraviadosPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('extraviados', $request->all());
-        }
-
-        $pdf = $this->generarPdf('extraviadosPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-010-Activos-Extraviados.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-010',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('extraviadosPdf', $request->all()),
+                'HTB-ACT-010-Activos-Extraviados.pdf',
+            ),
+        );
     }
 
-    public function sinAsignacionPdf(Request $request): StreamedResponse|RedirectResponse
+    public function sinAsignacionPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('sin_asignacion', $request->all());
-        }
-
-        $pdf = $this->generarPdf('sinAsignacionPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-011-Activos-Sin-Asignacion.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-011',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('sinAsignacionPdf', $request->all()),
+                'HTB-ACT-011-Activos-Sin-Asignacion.pdf',
+            ),
+        );
     }
 
-    public function mantenimientosVencidosPdf(Request $request): StreamedResponse|RedirectResponse
+    public function mantenimientosVencidosPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('manttos_vencidos', $request->all());
-        }
-
-        $pdf = $this->generarPdf('mantenimientosVencidosPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-ACT-012-Mantenimientos-Vencidos.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-012',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarPdf('mantenimientosVencidosPdf', $request->all()),
+                'HTB-ACT-012-Mantenimientos-Vencidos.pdf',
+            ),
+        );
     }
 
-    public function hojaHabitacionPdf(Request $request, string $tipo = 'habitacion', int $id = 0): StreamedResponse|RedirectResponse
+    public function hojaHabitacionPdf(Request $request, string $tipo = 'habitacion', int $id = 0): Response|StreamedResponse|JsonResponse
     {
         $routeTipo = $request->route('tipo');
         $routeId = $request->route('id');
@@ -175,13 +192,15 @@ final class ReporteActivoController extends ReporteController
             'id' => $resolvedId,
         ]);
 
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('hoja_habitacion', $params);
-        }
-
-        $pdf = $this->generarPdf('hojaHabitacionPdf', $params);
-
-        return $this->streamPdf($pdf, 'HTB-ACT-013-Hoja-Habitacion.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-ACT-013',
+            $params,
+            fn () => $this->streamPdf(
+                $this->generarPdf('hojaHabitacionPdf', $params),
+                'HTB-ACT-013-Hoja-Habitacion.pdf',
+            ),
+        );
     }
 
     /** @param array<string, mixed> $params */

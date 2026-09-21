@@ -6,6 +6,7 @@ namespace App\Repository\Queries\Espacios;
 
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
+use Illuminate\Database\Eloquent\Builder;
 use InvalidArgumentException;
 
 /**
@@ -44,8 +45,25 @@ class ConsultarCapacidadMesas
 
         $capacidadConfigurada = $this->resolveCapacidadConfigurada($restaurante);
 
-        $mesasActivas = $restaurante->hijos()
+        $subEspacioIds = $restaurante->hijos()
+            ->whereIn('tipo', [
+                TipoEspacio::AMBIENTE->value,
+                TipoEspacio::TERRAZA->value,
+                TipoEspacio::BAR->value,
+                TipoEspacio::SALON->value,
+                TipoEspacio::OTRO->value,
+            ])
+            ->pluck('id')
+            ->all();
+
+        $mesasActivas = Espacio::query()
             ->where('tipo', TipoEspacio::MESA->value)
+            ->where(function (Builder $query) use ($restaurante, $subEspacioIds): void {
+                $query->where('padre_id', $restaurante->id);
+                if (! empty($subEspacioIds)) {
+                    $query->orWhereIn('padre_id', $subEspacioIds);
+                }
+            })
             ->count();
 
         $mesasDisponibles = $capacidadConfigurada !== null

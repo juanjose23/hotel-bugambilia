@@ -80,6 +80,6 @@ app/
 │   ├── Catalogos/Catalogo/                 ← Resource Filament para catalogos
 │   └── Catalogos/CatalogoTipo/             ← Resource Filament para tipos
 └── database/seeders/
-    ├── CatalogoTipoSeeder.php              ← Siembra tipos predefinidos
-    └── CatalogoSeeder.php                  ← Siembra entradas de catálogo
+    ├── Configuracion/CatalogoTipoSeeder.php  ← Siembra tipos predefinidos
+    └── Configuracion/CatalogoSeeder.php      ← Siembra entradas de catálogo
 ```

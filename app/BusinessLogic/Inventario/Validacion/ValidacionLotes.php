@@ -8,7 +8,7 @@ use App\Enums\Inventario\EstadoLote;
 use App\Repository\Models\Inventario\Lote;
 use App\Repository\Models\Inventario\Stock;
 
-class ValidacionLotes
+final readonly class ValidacionLotes
 {
     public function validarCambioSubUbicacion(Lote $lote, int $ubicacionDetalleId): void
     {

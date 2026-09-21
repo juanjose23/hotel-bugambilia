@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Usuarios\ConflictosIdentidad;
 
+use App\Filament\Clusters\Auditoria\AuditoriaCluster;
 use App\Filament\Resources\Usuarios\ConflictosIdentidad\Pages\ListConflictosIdentidad;
 use App\Filament\Resources\Usuarios\ConflictosIdentidad\Pages\ViewConflictoIdentidad;
 use App\Filament\Resources\Usuarios\ConflictosIdentidad\Schemas\ConflictoIdentidadInfolist;
@@ -18,6 +19,8 @@ use UnitEnum;
 
 class ConflictoIdentidadResource extends Resource
 {
+    protected static ?string $cluster = AuditoriaCluster::class;
+
     protected static ?string $model = ConflictoIdentidad::class;
 
     protected static ?string $slug = 'usuarios/conflictos-identidad';
@@ -28,11 +31,11 @@ class ConflictoIdentidadResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Conflictos de Identidad';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Personas & Accesos';
+    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ExclamationTriangle;
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     public static function infolist(Schema $schema): Schema
     {

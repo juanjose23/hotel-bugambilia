@@ -77,14 +77,29 @@ class CreateReserva extends CreateRecord
     }
 
     /**
-     * Se ocultan las acciones a pie de página general para que los botones de creación
-     * se desplieguen únicamente en el último paso ("Pago y confirmación") del Wizard.
-     *
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->size('md'),
+        ];
+    }
+
+    /**
      * @return array<Action>
      */
     protected function getFormActions(): array
     {
-        return [];
+        return [
+            $this->getCreateFormAction()
+                ->size('lg'),
+            $this->getCreateAnotherFormAction()
+                ->size('lg'),
+            $this->getCancelFormAction()
+                ->size('lg'),
+        ];
     }
 
     protected function getCreateFormAction(): Action

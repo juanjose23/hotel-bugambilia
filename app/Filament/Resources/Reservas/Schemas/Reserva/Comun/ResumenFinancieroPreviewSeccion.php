@@ -18,7 +18,7 @@ final class ResumenFinancieroPreviewSeccion
             ->description('Se actualiza al completar habitación, mesa, fechas y servicios.')
             ->columnSpan(['default' => 1, 'xl' => 1])
             ->extraAttributes([
-                'class' => 'xl:sticky xl:top-4 xl:self-start',
+                'class' => 'lg:sticky lg:top-4 lg:self-start',
             ])
             ->schema([
                 TextEntry::make('resumen_financiero_lateral')

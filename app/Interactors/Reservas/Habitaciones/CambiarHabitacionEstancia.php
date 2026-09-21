@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Reservas\Habitaciones;
 
 use App\BusinessLogic\Reservas\Data\CambiarHabitacionData;
-use App\BusinessLogic\Reservas\ValidarDisponibilidadHabitacion;
+use App\BusinessLogic\Reservas\Validaciones\ValidarDisponibilidadHabitacion;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Events\Reservas\HabitacionPendienteDeLimpieza;

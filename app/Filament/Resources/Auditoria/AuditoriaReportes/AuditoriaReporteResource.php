@@ -24,7 +24,9 @@ class AuditoriaReporteResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentDuplicate;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
+
+    protected static ?int $navigationSort = 6;
 
     public static function infolist(Schema $schema): Schema
     {

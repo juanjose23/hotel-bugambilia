@@ -1,13 +1,127 @@
+import {
+    Calendar,
+    CheckCircle2,
+    Sparkles,
+    Users,
+    Utensils,
+} from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { Button } from '@/modules/shared/components/ui/button';
 import {
     mesasPorDefecto,
     normalizarClaveZona,
     ZONAS_RESTAURANTE,
 } from '../constants';
-import type { ZonaRestauranteConfig } from '../constants';
+import type { ClaveZonaRestaurante, ZonaRestauranteConfig } from '../constants';
 import type { MesaData } from '../types';
-import { RestauranteMesaCardInterna } from './RestauranteMesaCardInterna';
-import { RestaurantePlanoCtaReserva } from './RestaurantePlanoCtaReserva';
+
+interface MesaCardInternaProps {
+    mesa: MesaData;
+    esSeleccionada: boolean;
+    esUnida: boolean;
+    alSeleccionar: (mesa: MesaData) => void;
+}
+
+const RestauranteMesaCardInterna = ({
+    mesa,
+    esSeleccionada,
+    esUnida,
+    alSeleccionar,
+}: MesaCardInternaProps) => {
+    const ordenNum = mesa.orden ?? mesa.id;
+
+    return (
+        <div
+            onClick={() => alSeleccionar(mesa)}
+            className={`group relative flex cursor-pointer flex-col items-center justify-between rounded-2xl border p-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
+                esSeleccionada
+                    ? 'border-primary bg-primary/15 ring-2 ring-primary dark:bg-rose-950/40'
+                    : esUnida
+                      ? 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30'
+                      : 'border-border/80 bg-card hover:border-primary/50 dark:hover:border-rose-500/50'
+            }`}
+        >
+            <div className="absolute top-2 left-2 flex size-5 items-center justify-center rounded-full bg-muted text-[10px] font-black text-muted-foreground shadow-xs">
+                #{ordenNum}
+            </div>
+
+            <div className="absolute top-2 right-2 flex items-center gap-0.5 rounded-full border border-border/40 bg-background/80 px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground backdrop-blur-xs">
+                <Users className="size-2.5 text-primary dark:text-rose-400" />
+                <span>{mesa.capacidad}</span>
+            </div>
+
+            <div className="my-2 mt-4 flex items-center justify-center">
+                <div
+                    className={`flex size-14 items-center justify-center transition-all duration-300 group-hover:scale-105 ${
+                        mesa.tipo_mesa === 'redonda'
+                            ? 'rounded-full'
+                            : mesa.tipo_mesa === 'rectangular'
+                              ? 'aspect-16/10 h-11 w-16 rounded-xl'
+                              : 'rounded-xl'
+                    } ${
+                        esSeleccionada
+                            ? 'bg-primary text-primary-foreground shadow-md'
+                            : esUnida
+                              ? 'bg-amber-500 text-white shadow-md'
+                              : 'border border-border/80 bg-muted/80 text-foreground group-hover:border-primary/40'
+                    }`}
+                >
+                    <Utensils className="size-5" />
+                </div>
+            </div>
+
+            <span className="line-clamp-1 text-xs font-black tracking-tight text-foreground">
+                {mesa.nombre}
+            </span>
+            <span className="text-[10px] text-muted-foreground capitalize">
+                {mesa.tipo_mesa || 'Cuadrada'}
+            </span>
+
+            <div className="mt-2 flex w-full items-center justify-center gap-1 border-t border-border/40 pt-1.5">
+                {esSeleccionada ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black text-primary dark:text-rose-400">
+                        <CheckCircle2 className="size-3" /> Seleccionada
+                    </span>
+                ) : esUnida ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-600 dark:text-amber-400">
+                        <Sparkles className="size-3" /> Mesa Unida
+                    </span>
+                ) : (
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                        Disponible
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const RestaurantePlanoCtaReserva = ({
+    alAbrirReserva,
+}: {
+    alAbrirReserva: () => void;
+}) => (
+    <div className="mt-2 flex flex-col items-center justify-between gap-4 rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-background to-primary/5 p-6 shadow-sm sm:flex-row">
+        <div className="space-y-1 text-center sm:text-left">
+            <h4 className="text-base font-black text-foreground">
+                ¿Listo para reservar tu mesa favorita?
+            </h4>
+            <p className="text-xs text-muted-foreground">
+                Garantiza tu espacio con reserva inmediata y asignación
+                inteligente.
+            </p>
+        </div>
+
+        <Button
+            type="button"
+            onClick={alAbrirReserva}
+            className="cursor-pointer rounded-2xl px-6 font-black shadow-md"
+        >
+            <Calendar className="mr-2 size-4" />
+            Reservar Mesa Ahora
+        </Button>
+    </div>
+);
 
 interface PropsRestaurantePlanoMesasVisual {
     mesas?: MesaData[];
@@ -26,7 +140,9 @@ export const RestaurantePlanoMesasVisual = ({
     alAbrirReserva,
     esModoModal = false,
 }: PropsRestaurantePlanoMesasVisual) => {
-    const [zonaFiltro, setZonaFiltro] = useState<string>('todas');
+    const [zonaFiltro, setZonaFiltro] = useState<
+        ClaveZonaRestaurante | 'todas'
+    >('todas');
     const [comensalesFiltro, setComensalesFiltro] = useState<number | null>(
         null,
     );
@@ -47,10 +163,7 @@ export const RestaurantePlanoMesasVisual = ({
 
     // Agrupar mesas por zona
     const mesasPorZona = useMemo(() => {
-        const grupos: Record<
-            'interior' | 'terraza' | 'barra' | 'vip',
-            MesaData[]
-        > = {
+        const grupos: Record<ClaveZonaRestaurante, MesaData[]> = {
             interior: [],
             terraza: [],
             barra: [],
@@ -58,33 +171,14 @@ export const RestaurantePlanoMesasVisual = ({
         };
 
         mesasEfectivas.forEach((mesa) => {
-            const zKey = normalizarClaveZona(mesa.zona);
-            const cap = Number(mesa.capacidad || 2);
-
-            if (comensalesFiltro === null || cap >= comensalesFiltro) {
-                grupos[zKey].push(mesa);
-            }
+            const zonaNorm = normalizarClaveZona(mesa.zona);
+            grupos[zonaNorm].push(mesa);
         });
 
         return grupos;
-    }, [mesasEfectivas, comensalesFiltro]);
+    }, [mesasEfectivas]);
 
-    const zonasVisibles = useMemo((): Array<
-        'interior' | 'terraza' | 'barra' | 'vip'
-    > => {
-        if (zonaFiltro === 'todas') {
-            return ['interior', 'terraza', 'barra', 'vip'];
-        }
-
-        const keyNorm = normalizarClaveZona(zonaFiltro);
-
-        return [keyNorm];
-    }, [zonaFiltro]);
-
-    const idActiva =
-        mesaSeleccionadaId !== undefined
-            ? mesaSeleccionadaId
-            : idSeleccionadaInterna;
+    const idActiva = mesaSeleccionadaId ?? idSeleccionadaInterna;
 
     const handleMesaClick = (mesa: MesaData) => {
         setIdSeleccionadaInterna(mesa.id);
@@ -92,11 +186,12 @@ export const RestaurantePlanoMesasVisual = ({
         if (alSeleccionarMesa) {
             alSeleccionarMesa(mesa);
         }
-
-        if (alAbrirReserva) {
-            alAbrirReserva(mesa);
-        }
     };
+
+    const zonasVisibles: ClaveZonaRestaurante[] =
+        zonaFiltro === 'todas'
+            ? (Object.keys(ZONAS_RESTAURANTE) as ClaveZonaRestaurante[])
+            : [zonaFiltro];
 
     return (
         <div className="flex flex-col gap-6">
@@ -104,39 +199,43 @@ export const RestaurantePlanoMesasVisual = ({
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 {/* Selector de Zonas */}
                 <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-border/60 bg-muted/60 p-1 dark:bg-muted/30">
-                    <button
+                    <Button
                         type="button"
+                        variant={zonaFiltro === 'todas' ? 'default' : 'ghost'}
+                        size="sm"
                         onClick={() => setZonaFiltro('todas')}
                         className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
                             zonaFiltro === 'todas'
-                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90'
                                 : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         Todas las Zonas
-                    </button>
+                    </Button>
                     {(
                         Object.entries(ZONAS_RESTAURANTE) as Array<
-                            [string, ZonaRestauranteConfig]
+                            [ClaveZonaRestaurante, ZonaRestauranteConfig]
                         >
                     ).map(([key, config]) => {
                         const Icono = config.icono;
                         const esActivo = zonaFiltro === key;
 
                         return (
-                            <button
+                            <Button
                                 key={key}
                                 type="button"
+                                variant={esActivo ? 'default' : 'ghost'}
+                                size="sm"
                                 onClick={() => setZonaFiltro(key)}
                                 className={`flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
                                     esActivo
-                                        ? 'bg-primary text-primary-foreground shadow-xs'
+                                        ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90'
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
                                 <Icono className="size-3.5" />
                                 <span>{config.nombre.split(' ')[0]}</span>
-                            </button>
+                            </Button>
                         );
                     })}
                 </div>
@@ -148,18 +247,20 @@ export const RestaurantePlanoMesasVisual = ({
                     </span>
                     <div className="flex items-center gap-1">
                         {[null, 2, 4, 6].map((num) => (
-                            <button
+                            <Button
                                 key={num === null ? 'todos' : num}
                                 type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setComensalesFiltro(num)}
                                 className={`cursor-pointer rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all ${
                                     comensalesFiltro === num
-                                        ? 'border-primary bg-primary/10 font-black text-primary dark:text-rose-400'
+                                        ? 'border-primary bg-primary/10 font-black text-primary hover:bg-primary/20 dark:text-rose-400'
                                         : 'border-border/60 text-muted-foreground hover:bg-muted/40'
                                 }`}
                             >
                                 {num === null ? 'Todos' : `${num}+`}
-                            </button>
+                            </Button>
                         ))}
                     </div>
                 </div>

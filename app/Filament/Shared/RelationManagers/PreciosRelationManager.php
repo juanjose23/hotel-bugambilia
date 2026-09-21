@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Shared\RelationManagers;
 
-use App\BusinessLogic\Shared\ServicioPrecios;
 use App\Filament\Shared\Concerns\TieneFormularioPrecios;
+use App\Interactors\Shared\ActualizarPrecio;
 use App\Interactors\Shared\AsignarPrecio;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Servicios\Servicio;
@@ -22,12 +22,11 @@ class PreciosRelationManager extends RelationManager
     public function boot(
         VerificarPrecioDuplicado $verificarPrecioDuplicado,
         AsignarPrecio $asignarPrecio,
-        ServicioPrecios $servicioPrecios
+        ActualizarPrecio $actualizarPrecio
     ): void {
-
         $this->verificarPrecioDuplicado = $verificarPrecioDuplicado;
         $this->asignarPrecio = $asignarPrecio;
-        $this->servicioPrecios = $servicioPrecios;
+        $this->actualizarPrecio = $actualizarPrecio;
     }
 
     protected static string $relationship = 'precios';

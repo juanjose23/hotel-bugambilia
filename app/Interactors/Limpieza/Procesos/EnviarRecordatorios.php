@@ -5,22 +5,29 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Procesos;
 
 use App\BusinessLogic\Limpieza\ResolverDestinatarios;
-use App\Enums\Limpieza\EstadoLimpieza;
 use App\Notifications\Limpieza\NotificadorLimpieza;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 use App\Repository\Queries\Limpieza\ObtenerUsuariosPorPersonaIds;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
-final class EnviarRecordatorios
+final readonly class EnviarRecordatorios
 {
     public function __construct(
-        private readonly NotificadorLimpieza $notificador,
-        private readonly ResolverDestinatarios $resolverDestinatarios,
-        private readonly ObtenerUsuariosPorPersonaIds $obtenerUsuariosPorPersonaIds,
+        private NotificadorLimpieza $notificador,
+        private ResolverDestinatarios $resolverDestinatarios,
+        private ObtenerUsuariosPorPersonaIds $obtenerUsuariosPorPersonaIds,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
+
+    /**
+     * @return array{procesadas: int, enviadas: int, avisos: array<int, string>}
+     */
+    public function execute(): array
+    {
+        return $this->ejecutar();
+    }
 
     /**
      * @return array{procesadas: int, enviadas: int, avisos: array<int, string>}
@@ -30,7 +37,7 @@ final class EnviarRecordatorios
         $ahora = Carbon::now();
         $horaActual = $ahora->toTimeString();
 
-        $ejecuciones = $this->obtenerEjecucionesPendientes($ahora, $horaActual);
+        $ejecuciones = $this->limpiezaRepositorio->obtenerEjecucionesPendientesParaRecordatorio($ahora, $horaActual);
 
         $personaIds = $ejecuciones->pluck('colaborador.persona.id')
             ->merge($ejecuciones->pluck('turno.lider.persona.id'))
@@ -61,7 +68,7 @@ final class EnviarRecordatorios
 
             $this->notificador->recordatorioPendiente($ejecucion, $destinatarios);
 
-            $ejecucion->update([
+            $this->limpiezaRepositorio->actualizarEjecucion($ejecucion, [
                 'recordatorio_enviado_at' => $ahora,
             ]);
 
@@ -75,28 +82,6 @@ final class EnviarRecordatorios
             'enviadas' => $enviadas,
             'avisos' => $avisos,
         ];
-    }
-
-    /**
-     * @return Collection<int, LimpiezaEjecucion>
-     */
-    private function obtenerEjecucionesPendientes(Carbon $ahora, string $horaActual): Collection
-    {
-        return LimpiezaEjecucion::query()
-            ->whereDate('fecha', '<=', $ahora->toDateString())
-            ->where('estado', EstadoLimpieza::Pendiente)
-            ->whereNull('recordatorio_enviado_at')
-            ->whereHas('horario', function (Builder $query) use ($horaActual) {
-                $query->where('hora_estimada', '<=', $horaActual);
-            })
-            ->with([
-                'turno.lider.persona',
-                'turno.apoyo.persona',
-                'colaborador.persona',
-                'horario',
-                'limpiable',
-            ])
-            ->get();
     }
 
     private function nombreLimpiable(LimpiezaEjecucion $ejecucion): string

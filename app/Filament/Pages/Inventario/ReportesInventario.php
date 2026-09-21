@@ -93,11 +93,13 @@ class ReportesInventario extends Page implements HasForms
     public function mount(): void
     {
         $this->reportData = [
-            'reporte' => null,
+            'reporte' => 'stock',
             'producto_id' => null,
             'categoria_id' => null,
             'dias' => 30,
             'meses' => 3,
+            'fecha_inicio' => now()->startOfMonth()->format('Y-m-d'),
+            'fecha_fin' => now()->format('Y-m-d'),
             'fecha_desde' => now()->startOfMonth()->format('Y-m-d'),
             'fecha_hasta' => now()->format('Y-m-d'),
         ];
@@ -114,30 +116,6 @@ class ReportesInventario extends Page implements HasForms
     protected static ?string $title = 'Reportes del Módulo de Inventario';
 
     protected static ?int $navigationSort = 99;
-
-    /**
-     * @param  array<string, mixed>  $data
-     * @param  array<string, mixed>  $params
-     */
-    public function extracted(mixed $reporte, array $data, array $params, string $routes): null
-    {
-        $fechaInicio = $data['fecha_desde'] ?? $data['fecha_inicio'] ?? null;
-        $fechaFin = $data['fecha_hasta'] ?? $data['fecha_fin'] ?? null;
-
-        $params['fecha_desde'] = $fechaInicio;
-        $params['fecha_hasta'] = $fechaFin;
-        $params['fecha_inicio'] = $fechaInicio;
-        $params['fecha_fin'] = $fechaFin;
-        $params['periodo_desde'] = $fechaInicio;
-        $params['periodo_hasta'] = $fechaFin;
-        $params['pageSize'] = $this->pageSize;
-        $params['orientation'] = $this->orientation;
-
-        $url = route($routes, $params);
-        $this->dispatch('open-new-tab', url: $url);
-
-        return null;
-    }
 
     /** @return array<string, mixed> */
     protected function getForms(): array
@@ -156,13 +134,13 @@ class ReportesInventario extends Page implements HasForms
 
                     TextEntry::make('reporte_descripcion')
                         ->hiddenLabel()
-                        ->tooltip(fn ($get) => ReporteConfig::getDescripcion('inventario', $get('reporte')) ?? 'Seleccione un reporte de la lista para ver su descripción...')
+                        ->state(fn ($get) => ReporteConfig::getDescripcion('inventario', is_string($get('reporte')) ? $get('reporte') : '') ?? 'Seleccione un reporte de la lista para ver su descripción...')
                         ->extraAttributes(['class' => 'text-sm text-gray-500 italic mt-1 dark:text-gray-400']),
 
                     ProductoSelect::make()
                         ->label('Filtrar por Producto (Opcional)')
                         ->placeholder('Todos los productos')
-                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])),
+                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'], true)),
 
                     Select::make('categoria_id')
                         ->label('Categoría (Opcional)')
@@ -170,7 +148,7 @@ class ReportesInventario extends Page implements HasForms
                         ->placeholder('Todas las categorías')
                         ->searchable()
                         ->native(false)
-                        ->visible(fn ($get) => $get('reporte') === 'stock_minimo'),
+                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'stock_minimo', 'valorizacion'], true)),
 
                     TextInput::make('dias')
                         ->label('Días de anticipación')
@@ -188,15 +166,15 @@ class ReportesInventario extends Page implements HasForms
                         ->required()
                         ->visible(fn ($get) => $get('reporte') === 'rotacion'),
 
-                    DatePicker::make('fecha_desde')
-                        ->label('Desde')
-                        ->default(now()->startOfMonth())
+                    DatePicker::make('fecha_inicio')
+                        ->label('Fecha Inicio')
+                        ->default(now()->startOfMonth()->format('Y-m-d'))
                         ->required()
                         ->native(false),
 
-                    DatePicker::make('fecha_hasta')
-                        ->label('Hasta')
-                        ->default(now())
+                    DatePicker::make('fecha_fin')
+                        ->label('Fecha Fin')
+                        ->default(now()->format('Y-m-d'))
                         ->required()
                         ->native(false),
                 ])
@@ -213,11 +191,24 @@ class ReportesInventario extends Page implements HasForms
             return null;
         }
 
-        $params = [];
-        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])) {
+        $fechaInicio = $data['fecha_inicio'] ?? $data['fecha_desde'] ?? null;
+        $fechaFin = $data['fecha_fin'] ?? $data['fecha_hasta'] ?? null;
+
+        $params = [
+            'fecha_desde' => $fechaInicio,
+            'fecha_hasta' => $fechaFin,
+            'fecha_inicio' => $fechaInicio,
+            'fecha_fin' => $fechaFin,
+            'periodo_desde' => $fechaInicio,
+            'periodo_hasta' => $fechaFin,
+            'pageSize' => $this->pageSize,
+            'orientation' => $this->orientation,
+        ];
+
+        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'], true)) {
             $params['producto_id'] = $data['producto_id'] ?? null;
         }
-        if ($reporte === 'stock_minimo') {
+        if (in_array($reporte, ['stock', 'stock_minimo', 'valorizacion'], true)) {
             $params['categoria_id'] = $data['categoria_id'] ?? null;
         }
         if ($reporte === 'proximos_vencer') {
@@ -227,19 +218,9 @@ class ReportesInventario extends Page implements HasForms
             $params['meses'] = $data['meses'] ?? 3;
         }
 
-        try {
-            $route = ReporteConfig::getRuta('inventario', $reporte);
+        $this->procesarDescargaReporte('inventario', $reporte, $params);
 
-            return $this->extracted($reporte, $data, $params, $route);
-        } catch (InvalidArgumentException) {
-            Notification::make()
-                ->title('Reporte no disponible')
-                ->body('Este reporte no está disponible en formato PDF.')
-                ->warning()
-                ->send();
-
-            return null;
-        }
+        return null;
     }
 
     public function descargarExcel(): null
@@ -251,11 +232,22 @@ class ReportesInventario extends Page implements HasForms
             return null;
         }
 
-        $params = [];
-        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'])) {
+        $fechaInicio = $data['fecha_inicio'] ?? $data['fecha_desde'] ?? null;
+        $fechaFin = $data['fecha_fin'] ?? $data['fecha_hasta'] ?? null;
+
+        $params = [
+            'fecha_desde' => $fechaInicio,
+            'fecha_hasta' => $fechaFin,
+            'fecha_inicio' => $fechaInicio,
+            'fecha_fin' => $fechaFin,
+            'periodo_desde' => $fechaInicio,
+            'periodo_hasta' => $fechaFin,
+        ];
+
+        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'], true)) {
             $params['producto_id'] = $data['producto_id'] ?? null;
         }
-        if ($reporte === 'stock_minimo') {
+        if (in_array($reporte, ['stock', 'stock_minimo', 'valorizacion'], true)) {
             $params['categoria_id'] = $data['categoria_id'] ?? null;
         }
         if ($reporte === 'proximos_vencer') {
@@ -266,18 +258,17 @@ class ReportesInventario extends Page implements HasForms
         }
 
         try {
-            $route = ReporteConfig::getRuta('inventario', $reporte, 'excel');
-
-            return $this->extracted($reporte, $data, $params, $route);
+            $url = ReporteConfig::getUrl('inventario', $reporte, $params, 'excel');
+            $this->dispatch('open-new-tab', url: $url);
         } catch (InvalidArgumentException) {
             Notification::make()
                 ->title('Reporte no disponible')
                 ->body('Este reporte no está disponible en formato Excel.')
                 ->warning()
                 ->send();
-
-            return null;
         }
+
+        return null;
     }
 
     protected function getViewData(): array
@@ -334,7 +325,7 @@ class ReportesInventario extends Page implements HasForms
             'Inventario:ReporteCostoVentas',
         ];
 
-        return array_any($reportPermissions, fn ($perm) => $user->can($perm));
-
+        return $user->can('Page:ReportesInventario')
+            || array_any($reportPermissions, fn ($perm) => $user->can($perm));
     }
 }

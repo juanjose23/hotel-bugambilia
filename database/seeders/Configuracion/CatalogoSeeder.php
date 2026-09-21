@@ -1,0 +1,322 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders\Configuracion;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Entradas de catálogo del Hotel Bugambilias.
+ *
+ * Los códigos son estables y consumidos por otros seeders; cualquier
+ * cambio en un código existente debe replicarse en sus referencias.
+ */
+class CatalogoSeeder extends Seeder
+{
+    public function run(): void
+    {
+        /** @var Collection<string, int> $tipos */
+        $tipos = DB::table('catalogo_tipos')->pluck('id', 'codigo');
+
+        // ─── 1. CARGOS (JERÁRQUICO) ───
+        $idGerenteGral = $this->insertarGetId((int) $tipos['CARGO'], [
+            'codigo' => 'CAR_GERENTE_GRAL',
+            'nombre' => 'Gerente General',
+        ]);
+        $this->insertar((int) $tipos['CARGO'], [
+            ['codigo' => 'CAR_GERENTE_OPS', 'nombre' => 'Gerente de Operaciones', 'padre_id' => $idGerenteGral],
+            ['codigo' => 'CAR_GERENTE_ADM', 'nombre' => 'Gerente Administrativo', 'padre_id' => $idGerenteGral],
+        ]);
+
+        $idRecepcionistaJefe = $this->insertarGetId((int) $tipos['CARGO'], [
+            'codigo' => 'CAR_RECEP_JEFE',
+            'nombre' => 'Jefe de Recepción',
+        ]);
+        $this->insertar((int) $tipos['CARGO'], [
+            ['codigo' => 'CAR_RECEP_SR', 'nombre' => 'Recepcionista Senior', 'padre_id' => $idRecepcionistaJefe],
+            ['codigo' => 'CAR_RECEP_JR', 'nombre' => 'Recepcionista Junior', 'padre_id' => $idRecepcionistaJefe],
+            ['codigo' => 'CAR_BOTONES', 'nombre' => 'Botones / Concierge', 'padre_id' => $idRecepcionistaJefe],
+        ]);
+
+        $idAmaLlavesJefe = $this->insertarGetId((int) $tipos['CARGO'], [
+            'codigo' => 'CAR_AMA_LLAVES_JEFE',
+            'nombre' => 'Ama de Llaves Principal',
+        ]);
+        $this->insertar((int) $tipos['CARGO'], [
+            ['codigo' => 'CAR_CAMARERA', 'nombre' => 'Camarera de Habitaciones', 'padre_id' => $idAmaLlavesJefe],
+            ['codigo' => 'CAR_LAVANDERIA', 'nombre' => 'Operario de Lavandería', 'padre_id' => $idAmaLlavesJefe],
+        ]);
+
+        $idMantenimientoJefe = $this->insertarGetId((int) $tipos['CARGO'], [
+            'codigo' => 'CAR_MANT_JEFE',
+            'nombre' => 'Jefe de Mantenimiento',
+        ]);
+        $this->insertar((int) $tipos['CARGO'], [
+            ['codigo' => 'CAR_MANT_TEC', 'nombre' => 'Técnico de Mantenimiento', 'padre_id' => $idMantenimientoJefe],
+        ]);
+
+        $idChefEjec = $this->insertarGetId((int) $tipos['CARGO'], [
+            'codigo' => 'CAR_CHEF_EJEC',
+            'nombre' => 'Chef Ejecutivo',
+        ]);
+        $this->insertar((int) $tipos['CARGO'], [
+            ['codigo' => 'CAR_COCINERO', 'nombre' => 'Cocinero de Línea', 'padre_id' => $idChefEjec],
+            ['codigo' => 'CAR_BARTENDER', 'nombre' => 'Bartender / Barista', 'padre_id' => $idChefEjec],
+            ['codigo' => 'CAR_MESERO', 'nombre' => 'Mesero / Salonero', 'padre_id' => $idChefEjec],
+        ]);
+
+        $this->insertar((int) $tipos['CARGO'], [
+            ['codigo' => 'CAR_SEGURIDAD', 'nombre' => 'Oficial de Seguridad Integral'],
+            ['codigo' => 'CAR_CONTADOR', 'nombre' => 'Contador General'],
+            ['codigo' => 'CAR_COMPRAS', 'nombre' => 'Encargado de Compras y Bodega'],
+        ]);
+
+        // ─── 2. DEPARTAMENTOS (JERÁRQUICO) ───
+        $idOperaciones = $this->insertarGetId((int) $tipos['DEPARTAMENTO'], [
+            'codigo' => 'DEP_OPERACIONES',
+            'nombre' => 'Operaciones',
+        ]);
+        $this->insertar((int) $tipos['DEPARTAMENTO'], [
+            ['codigo' => 'DEP_AMA_LLAVES', 'nombre' => 'Ama de Llaves', 'padre_id' => $idOperaciones],
+            ['codigo' => 'DEP_MANTENIMIENTO', 'nombre' => 'Mantenimiento', 'padre_id' => $idOperaciones],
+            ['codigo' => 'DEP_RECEPCION', 'nombre' => 'Recepción', 'padre_id' => $idOperaciones],
+            ['codigo' => 'DEP_COCINA', 'nombre' => 'Cocina y Alimentos', 'padre_id' => $idOperaciones],
+            ['codigo' => 'DEP_RESTAURANTE', 'nombre' => 'Restaurante y Bares', 'padre_id' => $idOperaciones],
+            ['codigo' => 'DEP_SEGURIDAD', 'nombre' => 'Seguridad', 'padre_id' => $idOperaciones],
+        ]);
+
+        $idAdministracion = $this->insertarGetId((int) $tipos['DEPARTAMENTO'], [
+            'codigo' => 'DEP_ADMINISTRACION',
+            'nombre' => 'Administración y Finanzas',
+        ]);
+        $this->insertar((int) $tipos['DEPARTAMENTO'], [
+            ['codigo' => 'DEP_CONTABILIDAD', 'nombre' => 'Contabilidad', 'padre_id' => $idAdministracion],
+            ['codigo' => 'DEP_COMPRAS', 'nombre' => 'Compras e Inventarios', 'padre_id' => $idAdministracion],
+        ]);
+
+        // ─── 3. TIPOS DE CLIENTE (PLANO) ───
+        $this->insertar((int) $tipos['TIPO_CLIENTE'], [
+            ['codigo' => 'CLI_REGULAR', 'nombre' => 'Regular'],
+            ['codigo' => 'CLI_CORPORATIVO', 'nombre' => 'Corporativo'],
+            ['codigo' => 'CLI_VIP', 'nombre' => 'VIP'],
+        ]);
+
+        // ─── 4. SECTORES COMERCIALES (PLANO) ───
+        $this->insertar((int) $tipos['SECTOR_COMERCIAL'], [
+            ['codigo' => 'SEC_CORPORATIVO', 'nombre' => 'Empresas / Corporativo'],
+            ['codigo' => 'SEC_GUBERNAMENTAL', 'nombre' => 'Gobierno / Instituciones públicas'],
+            ['codigo' => 'SEC_AGENCIA_VIAJES', 'nombre' => 'Agencias de viajes / Tour operadores'],
+            ['codigo' => 'SEC_TURISMO_INDIVIDUAL', 'nombre' => 'Turismo / Viajeros individuales'],
+            ['codigo' => 'SEC_EVENTOS', 'nombre' => 'Eventos y Convenciones'],
+            ['codigo' => 'SEC_SEGUROS', 'nombre' => 'Compañías de seguros'],
+            ['codigo' => 'SEC_SALUD', 'nombre' => 'Salud y Bienestar'],
+            ['codigo' => 'SEC_EDUCACION', 'nombre' => 'Educación y Capacitación'],
+        ]);
+
+        // ─── 5. TIPOS DE MOVIMIENTO DE INVENTARIO (PLANO) ───
+        $this->insertar((int) $tipos['TIPO_MOVIMIENTO_INV'], [
+            ['codigo' => 'MOV_ENTRADA', 'nombre' => 'Entrada / Compra'],
+            ['codigo' => 'MOV_SALIDA', 'nombre' => 'Salida / Consumo'],
+            ['codigo' => 'MOV_AJUSTE', 'nombre' => 'Ajuste de Inventario'],
+            ['codigo' => 'MOV_TRANSFERENCIA', 'nombre' => 'Transferencia entre almacenes'],
+            ['codigo' => 'ENTRADA_RECEPCION', 'nombre' => 'Recepción de compra'],
+            ['codigo' => 'TRASLADO', 'nombre' => 'Distribución interna'],
+            ['codigo' => 'CONSUMO', 'nombre' => 'Consumo / Merma / Ajuste'],
+            ['codigo' => 'AJUSTE', 'nombre' => 'Ajuste físico'],
+        ]);
+
+        // ─── 6. CATEGORÍAS DE PRODUCTO (JERÁRQUICO) ───
+        $idAmenidades = $this->insertarGetId((int) $tipos['CATEGORIA_PRODUCTO'], [
+            'codigo' => 'CAT_PRO_AMENIDADES',
+            'nombre' => 'Amenidades',
+        ]);
+        $this->insertar((int) $tipos['CATEGORIA_PRODUCTO'], [
+            ['codigo' => 'CAT_PRO_AMEN_BANIO', 'nombre' => 'Baño', 'padre_id' => $idAmenidades],
+            ['codigo' => 'CAT_PRO_AMEN_HABIT', 'nombre' => 'Habitación', 'padre_id' => $idAmenidades],
+        ]);
+
+        $idAlimentosProd = $this->insertarGetId((int) $tipos['CATEGORIA_PRODUCTO'], [
+            'codigo' => 'CAT_PRO_ALIMENTOS',
+            'nombre' => 'Alimentos y Bebidas',
+        ]);
+        $this->insertar((int) $tipos['CATEGORIA_PRODUCTO'], [
+            ['codigo' => 'CAT_PRO_ALIM_PEREC', 'nombre' => 'Perecederos', 'padre_id' => $idAlimentosProd],
+            ['codigo' => 'CAT_PRO_ALIM_NOPER', 'nombre' => 'No perecederos', 'padre_id' => $idAlimentosProd],
+            ['codigo' => 'CAT_PRO_ABARROTES', 'nombre' => 'Abarrotes y Despensa', 'padre_id' => $idAlimentosProd],
+            ['codigo' => 'CAT_PRO_BEBIDAS', 'nombre' => 'Bebidas y Bar', 'padre_id' => $idAlimentosProd],
+        ]);
+
+        $idLimpieza = $this->insertarGetId((int) $tipos['CATEGORIA_PRODUCTO'], [
+            'codigo' => 'CAT_PRO_LIMPIEZA',
+            'nombre' => 'Limpieza y Suministros',
+        ]);
+        $this->insertar((int) $tipos['CATEGORIA_PRODUCTO'], [
+            ['codigo' => 'CAT_PRO_LIMP_QUIM', 'nombre' => 'Químicos de limpieza', 'padre_id' => $idLimpieza],
+            ['codigo' => 'CAT_PRO_LIMP_HERR', 'nombre' => 'Herramientas de limpieza', 'padre_id' => $idLimpieza],
+            ['codigo' => 'CAT_PRO_LIMP_LAVANDERIA', 'nombre' => 'Insumos de Lavandería', 'padre_id' => $idLimpieza],
+        ]);
+
+        $idActivos = $this->insertarGetId((int) $tipos['CATEGORIA_PRODUCTO'], [
+            'codigo' => 'CAT_PRO_ACTIVOS',
+            'nombre' => 'Activos Fijos y Equipos',
+        ]);
+        $this->insertar((int) $tipos['CATEGORIA_PRODUCTO'], [
+            ['codigo' => 'CAT_PRO_MOB', 'nombre' => 'Mobiliario', 'padre_id' => $idActivos],
+            ['codigo' => 'CAT_PRO_ELECTRO', 'nombre' => 'Equipos Electrónicos', 'padre_id' => $idActivos],
+            ['codigo' => 'CAT_PRO_MANT', 'nombre' => 'Herramientas de Mantenimiento', 'padre_id' => $idActivos],
+        ]);
+
+        $idBlancos = $this->insertarGetId((int) $tipos['CATEGORIA_PRODUCTO'], [
+            'codigo' => 'CAT_PRO_BLANCOS',
+            'nombre' => 'Lencería y Blancos',
+        ]);
+        $this->insertar((int) $tipos['CATEGORIA_PRODUCTO'], [
+            ['codigo' => 'CAT_PRO_BLAN_SABANAS', 'nombre' => 'Sábanas', 'padre_id' => $idBlancos],
+            ['codigo' => 'CAT_PRO_BLAN_TOALLAS', 'nombre' => 'Toallas', 'padre_id' => $idBlancos],
+            ['codigo' => 'CAT_PRO_BLAN_OTROS', 'nombre' => 'Otros textiles', 'padre_id' => $idBlancos],
+            ['codigo' => 'CAT_PRO_UNIFORMES', 'nombre' => 'Uniformes', 'padre_id' => $idBlancos],
+        ]);
+
+        // Categoría comodín para productos generales sin árbol
+        $this->insertar((int) $tipos['CATEGORIA_PRODUCTO'], [
+            ['codigo' => 'CAT_PRO_GENERAL', 'nombre' => 'Productos Generales'],
+        ]);
+
+        // ─── 7. MARCAS (PLANO) ───
+        $this->insertar((int) $tipos['MARCA'], [
+            ['codigo' => 'MARC_GEN', 'nombre' => 'Genérico'],
+            ['codigo' => 'MARC_PG', 'nombre' => 'Procter & Gamble'],
+            ['codigo' => 'MARC_KIMBERLY', 'nombre' => 'Kimberly-Clark'],
+            ['codigo' => 'MARC_ECOLAB', 'nombre' => 'Ecolab'],
+            ['codigo' => 'MARC_SAMSUNG', 'nombre' => 'Samsung'],
+            ['codigo' => 'MARC_LG', 'nombre' => 'LG'],
+        ]);
+
+        // ─── 8. UNIDADES DE MEDIDA (PLANO) ───
+        $this->insertar((int) $tipos['UNIDAD_MEDIDA'], [
+            ['codigo' => 'UNI_UD', 'nombre' => 'Unidad'],
+            ['codigo' => 'UNI_KG', 'nombre' => 'Kilogramo'],
+            ['codigo' => 'UNI_GR', 'nombre' => 'Gramo'],
+            ['codigo' => 'UNI_LIT', 'nombre' => 'Litro'],
+            ['codigo' => 'UNI_ML', 'nombre' => 'Mililitro'],
+            ['codigo' => 'UNI_CAJA', 'nombre' => 'Caja'],
+            ['codigo' => 'UNI_PAQ', 'nombre' => 'Paquete'],
+            ['codigo' => 'UNI_METRO', 'nombre' => 'Metro'],
+        ]);
+
+        // ─── 9. CONDICIONES DE PAGO (PLANO) ───
+        $this->insertar((int) $tipos['CONDICION_PAGO'], [
+            ['codigo' => 'PAG_CONTADO', 'nombre' => 'Contado'],
+            ['codigo' => 'PAG_15D', 'nombre' => '15 días'],
+            ['codigo' => 'PAG_30D', 'nombre' => '30 días'],
+            ['codigo' => 'PAG_45D', 'nombre' => '45 días'],
+            ['codigo' => 'PAG_60D', 'nombre' => '60 días'],
+            ['codigo' => 'PAG_90D', 'nombre' => '90 días'],
+        ]);
+
+        // ─── 10. CATEGORÍAS DE SERVICIO (PLANO) ───
+        $this->insertar((int) $tipos['CATEGORIA_SERVICIO'], [
+            ['codigo' => 'CAT_SERV_ALOJAMIENTO', 'nombre' => 'Alojamiento y Estancia'],
+            ['codigo' => 'CAT_SERV_BIENESTAR', 'nombre' => 'Bienestar y Relajación'],
+            ['codigo' => 'CAT_SERV_TRANSPORTE', 'nombre' => 'Transporte y Logística'],
+            ['codigo' => 'CAT_SERV_LAVANDERIA', 'nombre' => 'Lavandería y Limpieza'],
+            ['codigo' => 'CAT_SERV_NEGOCIOS', 'nombre' => 'Negocios y Eventos'],
+            ['codigo' => 'CAT_SERV_RECREACION', 'nombre' => 'Recreación y Entretenimiento'],
+            ['codigo' => 'CAT_SERV_VIP', 'nombre' => 'Servicios VIP y Personalizados'],
+            ['codigo' => 'CAT_SERV_TECNOLOGIA', 'nombre' => 'Tecnología y Conectividad'],
+        ]);
+
+        // ─── 11. TIPOS DE SERVICIO (PLANO) ───
+        $this->insertar((int) $tipos['TIPO_SERVICIO'], [
+            ['codigo' => 'TIP_SERV_SOLO_ALOJAMIENTO', 'nombre' => 'Solo Alojamiento'],
+            ['codigo' => 'TIP_SERV_ALOJAMIENTO_DESAYUNO', 'nombre' => 'Alojamiento y Desayuno'],
+            ['codigo' => 'TIP_SERV_MEDIA_PENSION', 'nombre' => 'Media Pensión'],
+            ['codigo' => 'TIP_SERV_PENSION_COMPLETA', 'nombre' => 'Pensión Completa'],
+            ['codigo' => 'TIP_SERV_TRASLADO_AEROPUERTO', 'nombre' => 'Traslado Aeropuerto'],
+            ['codigo' => 'TIP_SERV_SPA_MASAJE', 'nombre' => 'Masajes y SPA'],
+            ['codigo' => 'TIP_SERV_LAVANDERIA', 'nombre' => 'Lavandería y Planchado'],
+            ['codigo' => 'TIP_SERV_TRABAJO_EVENTOS', 'nombre' => 'Trabajo y Eventos'],
+        ]);
+
+        // ─── 12. TIPOS DE PROMOCIÓN (PLANO) ───
+        $this->insertar((int) $tipos['TIPO_PROMOCION'], [
+            ['codigo' => 'PROMO_TEMPORADA', 'nombre' => 'Descuento por Temporada'],
+            ['codigo' => 'PROMO_PAQUETE', 'nombre' => 'Paquete / Combo'],
+            ['codigo' => 'PROMO_ESTANCIA', 'nombre' => 'Estancia Prolongada'],
+            ['codigo' => 'PROMO_ANTICIPADA', 'nombre' => 'Reserva Anticipada'],
+            ['codigo' => 'PROMO_EVENTO', 'nombre' => 'Evento Especial'],
+        ]);
+
+        // ─── 13. CATEGORÍAS DE HABITACIÓN (PLANO) ───
+        $this->insertar((int) $tipos['CATEGORIA_HABITACION'], [
+            ['codigo' => 'CAT_HAB_ESTANDAR', 'nombre' => 'Estándar'],
+            ['codigo' => 'CAT_HAB_DELUXE', 'nombre' => 'Deluxe'],
+            ['codigo' => 'CAT_HAB_SUITE', 'nombre' => 'Suite'],
+            ['codigo' => 'CAT_HAB_PRESIDENCIAL', 'nombre' => 'Presidencial'],
+            ['codigo' => 'CAT_HAB_FAMILIAR', 'nombre' => 'Familiar'],
+        ]);
+
+        // ─── 14. TIPOS DE VISTA (PLANO) ───
+        $this->insertar((int) $tipos['TIPO_VISTA'], [
+            ['codigo' => 'VISTA_MAR', 'nombre' => 'Vista al Mar'],
+            ['codigo' => 'VISTA_CIUDAD', 'nombre' => 'Vista a la Ciudad'],
+            ['codigo' => 'VISTA_JARDIN', 'nombre' => 'Vista al Jardín'],
+            ['codigo' => 'VISTA_MONTANA', 'nombre' => 'Vista a la Montaña'],
+            ['codigo' => 'VISTA_PISCINA', 'nombre' => 'Vista a la Piscina'],
+            ['codigo' => 'VISTA_INTERIOR', 'nombre' => 'Vista Interior'],
+        ]);
+
+        // ─── 15. TIPOS DE PROVEEDOR (PLANO) ───
+        $this->insertar((int) $tipos['TIPO_PROVEEDOR'], [
+            ['codigo' => 'PROV_NACIONAL', 'nombre' => 'Nacional'],
+            ['codigo' => 'PROV_INTERNACIONAL', 'nombre' => 'Internacional'],
+        ]);
+    }
+
+    // -------------------- HELPERS --------------------
+
+    /**
+     * @param  array<int, array<string, mixed>>  $data
+     */
+    private function insertar(int $tipoId, array $data): void
+    {
+        foreach ($data as $item) {
+            /** @var array<string, mixed> $item */
+            DB::table('catalogos')->upsert(
+                array_merge($item, [
+                    'catalogo_tipo_id' => $tipoId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]),
+                ['catalogo_tipo_id', 'codigo']
+            );
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function insertarGetId(int $tipoId, array $item): int
+    {
+        $data = array_merge($item, [
+            'catalogo_tipo_id' => $tipoId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('catalogos')->updateOrInsert(
+            ['catalogo_tipo_id' => $tipoId, 'codigo' => $item['codigo']],
+            $data
+        );
+
+        $id = DB::table('catalogos')
+            ->where('catalogo_tipo_id', $tipoId)
+            ->where('codigo', $item['codigo'])
+            ->value('id');
+
+        return is_numeric($id) ? (int) $id : 0;
+    }
+}

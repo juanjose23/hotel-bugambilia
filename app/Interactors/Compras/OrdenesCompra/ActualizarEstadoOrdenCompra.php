@@ -9,11 +9,11 @@ use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Persistencia\Compras\OrdenCompraRepositorioInterface;
 use App\Repository\Queries\Compras\OrdenesCompra\VerificarEstadoOrdenCompra;
 
-final class ActualizarEstadoOrdenCompra
+final readonly class ActualizarEstadoOrdenCompra
 {
     public function __construct(
-        private readonly VerificarEstadoOrdenCompra $verificarEstado,
-        private readonly OrdenCompraRepositorioInterface $ordenCompraRepositorio,
+        private VerificarEstadoOrdenCompra $verificarEstado,
+        private OrdenCompraRepositorioInterface $ordenCompraRepositorio,
     ) {}
 
     public function ejecutar(OrdenCompra $orden): void

@@ -12,6 +12,7 @@ use App\Repository\Models\Cuentas\Venta;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;
 use App\Repository\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,6 +23,8 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 /**
  * @property EstadoFactura $estado
  * @property TipoFactura $tipo
+ * @property array<string, mixed>|null $datos_receptor
+ * @property CarbonInterface|null $fecha_emision
  */
 final class Factura extends Model implements AuditableContract
 {

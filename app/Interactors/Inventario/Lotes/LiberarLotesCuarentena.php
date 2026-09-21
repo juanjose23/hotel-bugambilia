@@ -9,7 +9,7 @@ use App\Events\Inventario\LoteLiberadoCuarentena;
 use App\Repository\Models\Inventario\Lote;
 use Illuminate\Support\Facades\DB;
 
-class LiberarLotesCuarentena
+final class LiberarLotesCuarentena
 {
     public function __construct(
         private readonly Lote $modeloLote,

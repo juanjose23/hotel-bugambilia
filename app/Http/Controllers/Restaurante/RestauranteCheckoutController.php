@@ -6,14 +6,14 @@ namespace App\Http\Controllers\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Http\Controllers\Controller;
-use App\Interactors\Landing\ObtenerRestauranteLanding;
+use App\Interactors\Restaurante\ObtenerRestaurante;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class RestauranteCheckoutController extends Controller
 {
     public function __invoke(
-        ObtenerRestauranteLanding $interactor,
+        ObtenerRestaurante $interactor,
         VerificarRestauranteActivo $verificarRestauranteActivo,
     ): Response {
         if (! $verificarRestauranteActivo->estaHabilitadoWeb()) {

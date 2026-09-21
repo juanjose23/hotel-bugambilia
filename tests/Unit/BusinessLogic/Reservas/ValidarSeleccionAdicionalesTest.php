@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\ValidarSeleccionAdicionales;
+use App\BusinessLogic\Reservas\Validaciones\ValidarSeleccionAdicionales;
 use App\Enums\Shared\EstadoGeneral;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;

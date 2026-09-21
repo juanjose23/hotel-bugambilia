@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
+use App\Actions\Colaboradores\SincronizarFotoColaboradorAction;
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
 use App\Repository\Models\Personas\Persona;
 use Filament\Actions\Action;
@@ -35,9 +36,7 @@ class CreateColaborador extends CreateRecord
         $colaborador = $this->record->colaborador;
 
         if ($this->fotoUpload && $colaborador) {
-            $colaborador->imagen()->create([
-                'url' => $this->fotoUpload,
-            ]);
+            app(SincronizarFotoColaboradorAction::class)->ejecutar($colaborador, $this->fotoUpload);
         }
     }
 

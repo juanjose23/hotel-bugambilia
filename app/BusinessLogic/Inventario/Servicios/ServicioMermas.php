@@ -6,13 +6,15 @@ namespace App\BusinessLogic\Inventario\Servicios;
 
 use App\BusinessLogic\Inventario\Validacion\ValidacionLotes;
 use App\Repository\Models\Inventario\Lote;
-use App\Repository\Models\Inventario\MovimientoStock;
+use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
+use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
 
-class ServicioMermas
+final readonly class ServicioMermas
 {
     public function __construct(
-        private readonly MovimientoStock $modeloMovimiento,
-        private readonly ValidacionLotes $validacion,
+        private LoteRepositorioInterface $loteRepositorio,
+        private MovimientoStockRepositorioInterface $movimientoStockRepositorio,
+        private ValidacionLotes $validacion,
     ) {}
 
     public function ejecutarMerma(
@@ -25,13 +27,13 @@ class ServicioMermas
 
         $lote->cantidad_disponible -= $cantidad;
         $lote->estado = $this->validacion->determinarEstadoPorStock($lote);
-        $lote->save();
+        $this->loteRepositorio->guardar($lote);
 
         $costoTotal = $lote->costo_unitario !== null
             ? $lote->costo_unitario * $cantidad
             : null;
 
-        $this->modeloMovimiento->create([
+        $this->movimientoStockRepositorio->registrar([
             'tipo' => 'BAJA_CALIDAD',
             'lote_id' => $lote->id,
             'producto_id' => $lote->producto_id,

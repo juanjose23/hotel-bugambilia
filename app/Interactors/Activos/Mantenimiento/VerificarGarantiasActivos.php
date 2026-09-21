@@ -7,7 +7,7 @@ namespace App\Interactors\Activos\Mantenimiento;
 use App\Notifications\Activos\NotificadorActivos;
 use App\Repository\Queries\Activos\ObtenerActivosConGarantiaPorVencer;
 
-class VerificarGarantiasActivos
+final class VerificarGarantiasActivos
 {
     public function __construct(
         private readonly ObtenerActivosConGarantiaPorVencer $obtenerActivos,

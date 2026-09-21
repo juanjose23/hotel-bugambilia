@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace App\Listeners\Reservas;
 
-use App\Enums\Limpieza\EstadoLimpieza;
 use App\Events\Reservas\HabitacionPendienteDeLimpieza;
-use App\Repository\Models\Limpieza\SolicitudLimpieza;
+use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-final class CrearSolicitudLimpiezaAlCheckOut implements ShouldQueue
+final readonly class CrearSolicitudLimpiezaAlCheckOut implements ShouldQueue
 {
+    public function __construct(
+        private RegistrarSolicitudLimpieza $registrarSolicitudLimpieza,
+    ) {}
+
     public function handle(HabitacionPendienteDeLimpieza $event): void
     {
-        SolicitudLimpieza::query()->create([
-            'limpiable_type' => $event->habitacion->getMorphClass(),
-            'limpiable_id' => $event->habitacion->id,
-            'estado' => EstadoLimpieza::Pendiente,
-            'notas' => $event->motivo,
-            'prioridad' => 'alta',
-        ]);
+        $this->registrarSolicitudLimpieza->execute(
+            limpiable: $event->habitacion,
+            prioridad: 'alta',
+            notas: $event->motivo,
+        );
     }
 }

@@ -13,9 +13,11 @@ import type {
     ReservaCreadaResponse,
     PoliticaReserva,
 } from '../types';
+import {
+    calcularTotalesReserva,
+    verificarConflictoFechas,
+} from '../utils/reservaCalculos';
 import { useDiasAgotados } from './useDiasAgotados';
-import { useReservaCalculos } from './useReservaCalculos';
-import { useReservaDisponibilidad } from './useReservaDisponibilidad';
 
 interface UseCrearReservaFormProps {
     room: RoomItem & {
@@ -133,11 +135,10 @@ export const useCrearReservaForm = ({
         ninos,
     });
 
-    const { tieneConflictoFechas } = useReservaDisponibilidad({
-        checkIn,
-        checkOut,
-        diasAgotados,
-    });
+    const tieneConflictoFechas = useMemo(
+        () => verificarConflictoFechas(checkIn, checkOut, diasAgotados),
+        [checkIn, checkOut, diasAgotados],
+    );
 
     const {
         noches,
@@ -149,17 +150,31 @@ export const useCrearReservaForm = ({
         totalNeto,
         porcentajeAnticipoPolitica,
         montoACobrarAhora,
-    } = useReservaCalculos({
-        checkIn,
-        checkOut,
-        room,
-        serviciosSeleccionados,
-        serviciosDisponibles,
-        beneficiosCliente,
-        beneficioId,
-        canalPago,
-        tipoPago,
-    });
+    } = useMemo(
+        () =>
+            calcularTotalesReserva({
+                checkIn,
+                checkOut,
+                room,
+                serviciosSeleccionados,
+                serviciosDisponibles,
+                beneficiosCliente,
+                beneficioId,
+                canalPago,
+                tipoPago,
+            }),
+        [
+            checkIn,
+            checkOut,
+            room,
+            serviciosSeleccionados,
+            serviciosDisponibles,
+            beneficiosCliente,
+            beneficioId,
+            canalPago,
+            tipoPago,
+        ],
+    );
 
     // 5. Mutaciones de Servicios Adicionales
     const toggleServicio = useCallback(

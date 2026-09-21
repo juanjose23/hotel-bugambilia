@@ -6,7 +6,7 @@ namespace App\Interactors\Reservas\Habitaciones;
 
 use App\BusinessLogic\CheckOut\ValidarRequisitosCheckOut;
 use App\BusinessLogic\Reservas\Data\RealizarCheckOutData;
-use App\BusinessLogic\Reservas\RecalcularEstadoReservaHabitacion;
+use App\BusinessLogic\Reservas\Resolutores\RecalcularEstadoReservaHabitacion;
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;

@@ -31,4 +31,24 @@ final class ConflictoIdentidadPersistencia
             'creado_por' => $usuarioId,
         ]);
     }
+
+    public function resolver(ConflictoIdentidad $conflicto, ?string $notas, ?int $usuarioId): void
+    {
+        $conflicto->update([
+            'estado' => EstadoConflictoIdentidad::Resuelto,
+            'resuelto_por' => $usuarioId,
+            'resuelto_en' => now(),
+            'notas' => $notas ?? 'Vinculado manualmente por administrador.',
+        ]);
+    }
+
+    public function rechazar(ConflictoIdentidad $conflicto, string $notas, ?int $usuarioId): void
+    {
+        $conflicto->update([
+            'estado' => EstadoConflictoIdentidad::Rechazado,
+            'resuelto_por' => $usuarioId,
+            'resuelto_en' => now(),
+            'notas' => $notas,
+        ]);
+    }
 }

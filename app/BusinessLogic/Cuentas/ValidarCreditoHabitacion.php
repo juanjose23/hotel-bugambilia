@@ -7,6 +7,7 @@ namespace App\BusinessLogic\Cuentas;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
+use App\Support\MonedaHelper;
 use DomainException;
 
 final class ValidarCreditoHabitacion
@@ -33,7 +34,12 @@ final class ValidarCreditoHabitacion
 
             if ($totalConNuevoConsumo > $limite) {
                 $exceso = round($totalConNuevoConsumo - $limite, 2);
-                throw new DomainException("El monto del consumo (C$ {$montoNuevoConsumo}) excede el límite de crédito autorizado de la habitación (Límite: C$ {$limite}, Saldo actual: C$ {$saldoActual}, Exceso: C$ {$exceso}).");
+                $montoFmt = MonedaHelper::formatear($montoNuevoConsumo, $cuentaEstancia->moneda);
+                $limiteFmt = MonedaHelper::formatear($limite, $cuentaEstancia->moneda);
+                $saldoFmt = MonedaHelper::formatear($saldoActual, $cuentaEstancia->moneda);
+                $excesoFmt = MonedaHelper::formatear($exceso, $cuentaEstancia->moneda);
+
+                throw new DomainException("El monto del consumo ({$montoFmt}) excede el límite de crédito autorizado de la habitación (Límite: {$limiteFmt}, Saldo actual: {$saldoFmt}, Exceso: {$excesoFmt}).");
             }
         }
     }

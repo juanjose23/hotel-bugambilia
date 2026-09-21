@@ -9,7 +9,7 @@ use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Queries\Compras\Recepciones\ObtenerRecepcionItemConProducto;
 use Illuminate\Support\Facades\DB;
 
-class ConvertirItemAUbicaciones
+final class ConvertirItemAUbicaciones
 {
     public function __construct(
         private readonly GeneradorEstructurasUbicacion $generador,

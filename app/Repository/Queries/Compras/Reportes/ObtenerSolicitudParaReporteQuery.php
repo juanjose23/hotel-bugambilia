@@ -13,11 +13,11 @@ final class ObtenerSolicitudParaReporteQuery
         return Solicitud::with([
             'items.producto',
             'cotizaciones.proveedor',
-            'cotizaciones.items.solicitudItem.producto',
+            'cotizaciones.items.producto',
             'ordenesCompra.proveedor',
             'ordenesCompra.items',
             'ordenesCompra.recepciones.items',
-            'ordenesCompra.recepciones.creador.persona',
+            'ordenesCompra.recepciones.receptor.persona',
         ])->find($solicitudId);
     }
 }

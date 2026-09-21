@@ -7,7 +7,7 @@ namespace App\BusinessLogic\Inventario\Estrategias;
 use App\Repository\Models\Inventario\Lote;
 use Illuminate\Database\Eloquent\Collection;
 
-class FEFOStrategy
+final readonly class FEFOStrategy
 {
     /**
      * @param  Collection<int, Lote>  $lotes

@@ -9,6 +9,7 @@ use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\Lote;
 use App\Traits\HasStockStatus;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -16,6 +17,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
+/**
+ * @property int $id
+ * @property string $stockable_type
+ * @property int $stockable_id
+ * @property int|null $producto_id
+ * @property int|null $producto_variante_id
+ * @property int|null $lote_id
+ * @property float $cantidad_ideal
+ * @property float $cantidad_actual
+ * @property string|null $estado
+ * @property CarbonInterface|null $ultima_verificacion
+ * @property-read Model|null $stockable
+ * @property-read Producto|null $producto
+ * @property-read ProductoVariante|null $variante
+ * @property-read Lote|null $lote
+ */
 class Stock extends Model implements AuditableContract
 {
     use Auditable, HasStockStatus, SoftDeletes;
@@ -23,6 +40,16 @@ class Stock extends Model implements AuditableContract
     protected $table = 'stocks';
 
     protected $guarded = ['id'];
+
+    public function tieneVariante(): bool
+    {
+        return ! empty($this->producto_variante_id);
+    }
+
+    public function esProductoSimple(): bool
+    {
+        return empty($this->producto_variante_id) && ! empty($this->producto_id);
+    }
 
     protected $casts = [
         'cantidad_ideal' => 'float',

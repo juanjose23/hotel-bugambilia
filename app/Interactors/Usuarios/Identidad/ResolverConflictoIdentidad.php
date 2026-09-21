@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Interactors\Usuarios\Identidad;
 
-use App\Enums\Usuarios\EstadoConflictoIdentidad;
 use App\Events\Usuarios\ClienteRegistrado;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\User;
 use App\Repository\Models\Usuarios\ConflictoIdentidad;
 use App\Repository\Persistencia\Usuarios\ClientePersistencia;
+use App\Repository\Persistencia\Usuarios\ConflictoIdentidadPersistencia;
 use Illuminate\Support\Facades\DB;
 
 final readonly class ResolverConflictoIdentidad
@@ -18,6 +18,7 @@ final readonly class ResolverConflictoIdentidad
     public function __construct(
         private VincularPersonaAUser $vincularAUser,
         private ClientePersistencia $clientes,
+        private ConflictoIdentidadPersistencia $conflictoPersistencia,
     ) {}
 
     /**
@@ -40,12 +41,8 @@ final readonly class ResolverConflictoIdentidad
 
             $user = $this->vincularAUser->ejecutar($persona, $datos);
 
-            $conflicto->update([
-                'estado' => EstadoConflictoIdentidad::Resuelto,
-                'resuelto_por' => $usuarioId,
-                'resuelto_en' => now(),
-                'notas' => $datos['notas'] ?? 'Vinculado manualmente por administrador.',
-            ]);
+            $notas = isset($datos['notas']) && is_string($datos['notas']) ? $datos['notas'] : null;
+            $this->conflictoPersistencia->resolver($conflicto, $notas, $usuarioId);
 
             ClienteRegistrado::dispatch($cliente, $persona, false);
 
@@ -65,11 +62,6 @@ final readonly class ResolverConflictoIdentidad
 
     public function rechazar(ConflictoIdentidad $conflicto, string $notas, ?int $usuarioId = null): void
     {
-        $conflicto->update([
-            'estado' => EstadoConflictoIdentidad::Rechazado,
-            'resuelto_por' => $usuarioId,
-            'resuelto_en' => now(),
-            'notas' => $notas,
-        ]);
+        $this->conflictoPersistencia->rechazar($conflicto, $notas, $usuarioId);
     }
 }

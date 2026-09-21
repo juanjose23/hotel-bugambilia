@@ -10,6 +10,7 @@ use App\Filament\Shared\Schemas\Cuentas\CamposCobroPagoForm;
 use App\Filament\Shared\Schemas\Cuentas\ResumenCuentaInfolist;
 use App\Filament\Shared\Schemas\Cuentas\SeccionClienteFacturacionForm;
 use App\Interactors\Cuentas\Cobros\CobrarCuenta;
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
@@ -103,9 +104,30 @@ final class CobrarCuentaAction
 
                 $monedaDefaultId = app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar()?->id;
 
+                $rucFiscal = null;
+                $razonSocialFiscal = null;
+
+                if ($clienteId !== null) {
+                    $cliente = Cliente::query()
+                        ->with(['persona.personaNatural', 'persona.personaJuridica'])
+                        ->find($clienteId);
+
+                    if ($cliente?->persona !== null) {
+                        $persona = $cliente->persona;
+                        $rucFiscal = $persona->personaJuridica !== null
+                            ? $persona->personaJuridica->numero_identificacion
+                            : $persona->personaNatural?->numero_identificacion;
+                        $razonSocialFiscal = $persona->personaJuridica !== null
+                            ? $persona->personaJuridica->razon_social
+                            : $persona->nombre_completo;
+                    }
+                }
+
                 return [
                     'cliente_id' => $clienteId,
                     'tipo_comprobante' => 'voucher',
+                    'ruc_factura' => $rucFiscal,
+                    'razon_social_factura' => $razonSocialFiscal,
                     'forma_pago' => MetodoPago::EFECTIVO->value,
                     'moneda_pago_id' => $monedaDefaultId,
                     'monto' => (float) $cuenta->saldo > 0 ? (float) $cuenta->saldo : 0.0,

@@ -147,12 +147,7 @@ final class ReporteHistoricoPrecios extends Page implements HasForms
             'orientation' => $this->orientation,
         ];
 
-        try {
-            $url = ReporteConfig::getUrl('servicios', $reporte, $params, 'pdf');
-            $this->dispatch('open-new-tab', url: $url);
-        } catch (InvalidArgumentException) {
-            return null;
-        }
+        $this->procesarDescargaReporte('servicios', $reporte, $params);
 
         return null;
     }
@@ -185,6 +180,8 @@ final class ReporteHistoricoPrecios extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('Servicios:ReporteHistoricoPrecios') ?? false;
+        $user = auth()->user();
+
+        return $user !== null && ($user->can('Page:ReporteHistoricoPrecios') || $user->can('Servicios:ReporteHistoricoPrecios'));
     }
 }

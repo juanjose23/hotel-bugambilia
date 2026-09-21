@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Restaurante\PlatoResource\Tables;
 
 use App\BusinessLogic\Restaurante\Platos\CalcularCostoPlato;
 use App\Enums\Catalogos\CatalogoTipo;
+use App\Enums\Restaurante\AreaCocina;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
@@ -25,6 +26,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
@@ -59,6 +61,11 @@ final class PlatoTable
 
                 EstadoBadgeColumn::make(EstadoGeneral::class),
 
+                TextColumn::make('area_cocina')
+                    ->label('Área')
+                    ->badge()
+                    ->sortable(),
+
                 IconColumn::make('web')
                     ->label('Web')
                     ->boolean()
@@ -70,6 +77,9 @@ final class PlatoTable
             ])
             ->filters([
                 FiltroCategoria::make(CatalogoTipo::CATEGORIA_SERVICIO),
+                SelectFilter::make('area_cocina')
+                    ->label('Área de Preparación')
+                    ->options(AreaCocina::class),
                 TernaryFilter::make('web')
                     ->label('Visible en Web'),
             ])

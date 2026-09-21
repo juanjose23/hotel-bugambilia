@@ -45,7 +45,7 @@ Este documento complementa `arquitectura-reservaciones.md` con el comportamiento
     1. El formulario usa componentes compartidos de `resources/js/modules/reservations`.
     2. El usuario selecciona fecha, hora, datos del titular y complementos.
     3. El backend resuelve el recurso con `ResolverIdEntidadPrincipal`.
-    4. Para restaurante/espacios, `ReservaDisponibilidadQuery` valida conflicto por fecha y hora.
+    4. Para restaurante/espacios, `DisponibilidadRecursoQuery` valida conflictos de horario del recurso.
     5. `CalcularResumenRestauranteLogica` completa espacios sugeridos cuando aplica.
     6. La reserva se guarda con detalles normalizados, adicionales y estado segun politica de pago.
 
@@ -111,7 +111,6 @@ app/BusinessLogic/Reservas/ResolverHabitacionDisponibleLogica.php
 app/BusinessLogic/Reservas/ValidarFechasReserva.php
 app/BusinessLogic/Reservas/AplicarPromocionReserva.php
 app/Repository/Queries/Reservas/ObtenerDiasAgotadosHabitacionQuery.php
-app/Repository/Queries/Reservas/ReservaDisponibilidadQuery.php
 app/Repository/Queries/Reservas/DisponibilidadRecursoQuery.php
 ```
 

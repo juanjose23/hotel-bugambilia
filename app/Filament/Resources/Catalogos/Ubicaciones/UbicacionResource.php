@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Catalogos\Ubicaciones;
 
+use App\Filament\Clusters\Configuracion\ConfiguracionCluster;
 use App\Filament\Resources\Catalogos\Ubicaciones\Pages\ArbolUbicacion;
 use App\Filament\Resources\Catalogos\Ubicaciones\Pages\ListUbicaciones;
 use App\Filament\Resources\Catalogos\Ubicaciones\Pages\ViewUbicacion;
@@ -24,6 +25,8 @@ use UnitEnum;
 
 class UbicacionResource extends Resource
 {
+    protected static ?string $cluster = ConfiguracionCluster::class;
+
     protected static ?string $model = Ubicacion::class;
 
     protected static ?string $slug = 'catalogos/ubicaciones';

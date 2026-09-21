@@ -1,3 +1,4 @@
+@use(App\Support\MonedaHelper)
 <x-filament-panels::page>
     <div class="space-y-6">
         {{-- ─── Subheader / Encabezado ─────────────────────────── --}}
@@ -31,7 +32,7 @@
                     {{-- KPI 1 --}}
                     <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-lg">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-2xl font-extrabold text-gray-950 dark:text-white">C$ {{ number_format($totalIngresosReservas, 2) }}</span>
+                            <span class="text-2xl font-extrabold text-gray-950 dark:text-white">{{ MonedaHelper::formatear($totalIngresosReservas) }}</span>
                             <x-heroicon-o-currency-dollar class="w-5 h-5 text-emerald-500" />
                         </div>
                         <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Total acumulado ({{ $cantidadReservas }} reservas)</span>
@@ -40,7 +41,7 @@
                     {{-- KPI 2 --}}
                     <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-lg">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-2xl font-extrabold text-teal-600 dark:text-teal-400">C$ {{ number_format($totalRecaudado, 2) }}</span>
+                            <span class="text-2xl font-extrabold text-teal-600 dark:text-teal-400">{{ MonedaHelper::formatear($totalRecaudado) }}</span>
                             <x-heroicon-o-banknotes class="w-5 h-5 text-teal-500" />
                         </div>
                         <span class="text-xs font-semibold text-teal-600/80 dark:text-teal-400/80">Recaudación neta Stripe/Efectivo</span>
@@ -49,7 +50,7 @@
                     {{-- KPI 3 --}}
                     <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-lg">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-2xl font-extrabold text-rose-600 dark:text-rose-400">C$ {{ number_format($totalCuentasPorCobrar, 2) }}</span>
+                            <span class="text-2xl font-extrabold text-rose-600 dark:text-rose-400">{{ MonedaHelper::formatear($totalCuentasPorCobrar) }}</span>
                             <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-rose-500" />
                         </div>
                         <span class="text-xs font-semibold text-rose-600/80 dark:text-rose-400/80">Cuentas pendientes por cobrar</span>
@@ -58,7 +59,7 @@
                     {{-- KPI 4 --}}
                     <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-lg">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">C$ {{ number_format($totalFacturadoFiscal, 2) }}</span>
+                            <span class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">{{ MonedaHelper::formatear($totalFacturadoFiscal) }}</span>
                             <x-heroicon-o-document-check class="w-5 h-5 text-indigo-500" />
                         </div>
                         <span class="text-xs font-semibold text-indigo-600/80 dark:text-indigo-400/80">Facturación fiscal emitida</span>
@@ -116,7 +117,7 @@
                                         <span>Gestión de Cobranza Pendiente</span>
                                     </div>
                                     <p class="text-[11px] text-rose-600 dark:text-rose-400 mt-1 leading-relaxed">
-                                        Hay <strong>C$ {{ number_format($totalCuentasPorCobrar, 2) }}</strong> pendientes por saldar. Se recomienda enviar recordatorios a clientes antes de su fecha de corte.
+                                        Hay <strong>{{ MonedaHelper::formatear($totalCuentasPorCobrar) }}</strong> pendientes por saldar. Se recomienda enviar recordatorios a clientes antes de su fecha de corte.
                                     </p>
                                 </div>
                             @endif

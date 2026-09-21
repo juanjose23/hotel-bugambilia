@@ -13,11 +13,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
-final class GenerarHistoricoPreciosPdfAction
+final readonly class GenerarHistoricoPreciosPdfAction
 {
     public function __construct(
-        private readonly RegistrarAuditoriaReporte $registrarAuditoria,
-        private readonly ObtenerHistoricoServiciosPrecios $obtenerHistorico,
+        private RegistrarAuditoriaReporte $registrarAuditoria,
+        private ObtenerHistoricoServiciosPrecios $obtenerHistorico,
     ) {}
 
     /** @param array<string, mixed> $filtros */
@@ -56,7 +56,7 @@ final class GenerarHistoricoPreciosPdfAction
         ]))->setPaper(
             $layout->tamano->dompdfName(),
             $layout->orientacion->dompdfName(),
-        )->download('HTB-SER-001-Historico-Precios-Servicios.pdf');
+        )->stream('HTB-SER-001-Historico-Precios-Servicios.pdf');
     }
 
     /**

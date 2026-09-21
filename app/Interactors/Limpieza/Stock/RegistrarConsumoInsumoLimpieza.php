@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Stock;
 
 use App\Interactors\Inventario\ConsumirStock;
-use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Persistencia\Catalogos\ProductoRepositorioInterface;
+use InvalidArgumentException;
 
-class RegistrarConsumoInsumoLimpieza
+final readonly class RegistrarConsumoInsumoLimpieza
 {
     public function __construct(
-        private readonly ConsumirStock $consumirStock
+        private ConsumirStock $consumirStock,
+        private ProductoRepositorioInterface $productoRepositorio,
     ) {}
 
     /**
@@ -18,14 +20,22 @@ class RegistrarConsumoInsumoLimpieza
      */
     public function execute(int $carritoId, int $productoId, float $cantidad, ?int $productoVarianteId = null, ?int $ejecucionId = null, ?int $creadoPorId = null): void
     {
+        $this->ejecutar($carritoId, $productoId, $cantidad, $productoVarianteId, $ejecucionId, $creadoPorId);
+    }
+
+    /**
+     * Registra consumo de insumos de limpieza desde el carrito físico.
+     */
+    public function ejecutar(int $carritoId, int $productoId, float $cantidad, ?int $productoVarianteId = null, ?int $ejecucionId = null, ?int $creadoPorId = null): void
+    {
         if ($cantidad <= 0) {
-            throw new \InvalidArgumentException('La cantidad a consumir debe ser mayor a cero.');
+            throw new InvalidArgumentException('La cantidad a consumir debe ser mayor a cero.');
         }
 
         if ($productoVarianteId !== null) {
-            $variante = ProductoVariante::find($productoVarianteId);
+            $variante = $this->productoRepositorio->buscarVariantePorId($productoVarianteId);
             if ($variante) {
-                $productoId = $variante->producto_id;
+                $productoId = (int) $variante->producto_id;
             }
         }
 

@@ -5,8 +5,8 @@
             <th>Categoría</th>
             <th>Ubicación / Bodega</th>
             <th style="text-align: right;">Stock Total</th>
-            <th style="text-align: right;">Costo Promedio ({{ $monedaSimbolo ?? 'C$' }})</th>
-            <th style="text-align: right;">Valor Total ({{ $monedaSimbolo ?? 'C$' }})</th>
+            <th style="text-align: right;">Costo Promedio ({{ $monedaSimbolo ?? \App\Support\MonedaHelper::simbolo() }})</th>
+            <th style="text-align: right;">Valor Total ({{ $monedaSimbolo ?? \App\Support\MonedaHelper::simbolo() }})</th>
         </tr>
     </thead>
     <tbody>
@@ -31,7 +31,7 @@
                 <td colspan="3" style="text-align:right; font-weight:bold; text-transform:uppercase; padding:10px;">Total General:</td>
                 <td style="text-align:right; font-weight:bold; padding:10px;">{{ number_format($totalStock ?? 0, 2) }}</td>
                 <td></td>
-                <td style="text-align:right; font-weight:bold; color:#711C37; font-size:14px; padding:10px;">{{ $monedaSimbolo ?? 'C$' }} {{ number_format($valorTotal ?? 0, 2) }}</td>
+                <td style="text-align:right; font-weight:bold; color:#711C37; font-size:14px; padding:10px;">{{ $monedaSimbolo ?? \App\Support\MonedaHelper::simbolo() }} {{ number_format($valorTotal ?? 0, 2) }}</td>
             </tr>
         </tfoot>
     @endif

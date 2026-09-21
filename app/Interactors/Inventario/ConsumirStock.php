@@ -9,7 +9,7 @@ use App\Repository\Models\Inventario\Stock;
 use App\Repository\Queries\Inventario\Stock\ObtenerStockParaConsumo;
 use Illuminate\Support\Facades\DB;
 
-class ConsumirStock
+final class ConsumirStock
 {
     public function __construct(
         private readonly ServicioConsumos $servicioConsumos,

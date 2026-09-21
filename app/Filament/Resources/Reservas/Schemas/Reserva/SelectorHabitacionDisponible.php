@@ -10,6 +10,7 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Promociones\Promocion;
 use App\Repository\Models\Servicios\Servicio;
+use App\Support\MonedaHelper;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 
@@ -85,7 +86,7 @@ class SelectorHabitacionDisponible
             TextInput::make('total')
                 ->label('Monto Total')
                 ->numeric()
-                ->prefix('C$')
+                ->prefix(MonedaHelper::simbolo())
                 ->default(0.00)
                 ->required()
                 ->disabled()

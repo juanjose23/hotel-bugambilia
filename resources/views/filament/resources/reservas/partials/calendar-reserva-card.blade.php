@@ -1,3 +1,4 @@
+@use(App\Support\MonedaHelper)
 @php
     $colorClass = match ($item['estado_color']) {
         'emerald' => 'border-l-emerald-500 bg-emerald-500/10 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-200 hover:bg-emerald-500/20',
@@ -13,7 +14,8 @@
         default => 'bg-amber-500',
     };
 
-    $tooltip = "{$item['codigo']} · {$item['cliente']} ({$item['recurso_nombre']}) · {$item['estado']} · Total: C$ " . number_format($item['total'], 0);
+    $totalFmt = MonedaHelper::formatear((float) $item['total']);
+    $tooltip = "{$item['codigo']} · {$item['cliente']} ({$item['recurso_nombre']}) · {$item['estado']} · Total: {$totalFmt}";
 @endphp
 
 <a
@@ -41,7 +43,7 @@
             <span class="rounded bg-gray-500 px-1 py-0.2 font-black text-white uppercase dark:bg-gray-600">Out</span>
         @endif
         <span class="font-extrabold tracking-tight opacity-90">
-            C${{ number_format($item['total'], 0) }}
+            {{ MonedaHelper::simbolo() }}{{ number_format((float) $item['total'], 0) }}
         </span>
     </div>
 </a>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Pedidos;
 
+use App\BusinessLogic\Restaurante\Validaciones\ValidarTransicionPedido;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -20,6 +21,7 @@ final readonly class SepararPedido
     public function __construct(
         private RestauranteRepositorioInterface $repositorio,
         private RecalcularTotalesPedido $recalcular,
+        private ValidarTransicionPedido $validarTransicion,
     ) {}
 
     /**
@@ -31,16 +33,7 @@ final readonly class SepararPedido
         Pedido $pedidoOriginal,
         array $itemIds,
     ): Pedido {
-        $estadosTerminales = [
-            EstadoPedido::PAGADO,
-            EstadoPedido::LISTO,
-            EstadoPedido::SERVIDO,
-            EstadoPedido::CANCELADO,
-        ];
-
-        if (in_array($pedidoOriginal->estado, $estadosTerminales, true)) {
-            throw new DomainException('No se puede dividir un pedido en estado terminal.');
-        }
+        $this->validarTransicion->puedeSeparar($pedidoOriginal);
 
         $pedidoOriginal->loadMissing('cuenta');
         if ($pedidoOriginal->cuenta instanceof Cuenta && ! $pedidoOriginal->cuenta->estaAbierta()) {

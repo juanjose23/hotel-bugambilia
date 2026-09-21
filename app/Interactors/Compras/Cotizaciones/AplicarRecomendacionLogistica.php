@@ -8,12 +8,12 @@ use App\BusinessLogic\Compras\VerificarSolicitudBloqueada;
 use App\Repository\Models\Compras\Solicitud;
 use DomainException;
 
-final class AplicarRecomendacionLogistica
+final readonly class AplicarRecomendacionLogistica
 {
     public function __construct(
-        private readonly ElegirCotizacionGanadora $elegirCotizacion,
-        private readonly SeleccionarItemGanador $seleccionarItem,
-        private readonly VerificarSolicitudBloqueada $verificarBloqueo,
+        private ElegirCotizacionGanadora $elegirCotizacion,
+        private SeleccionarItemGanador $seleccionarItem,
+        private VerificarSolicitudBloqueada $verificarBloqueo,
     ) {}
 
     /** @param array<string, mixed> $recomendacion */

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\CalcularUnidadesReserva;
+use App\BusinessLogic\Reservas\Calculos\CalcularUnidadesReserva;
 use App\Enums\Reservas\TipoReserva;
 
 test('calcula dias para tipo habitacion con check out especificado', function (): void {

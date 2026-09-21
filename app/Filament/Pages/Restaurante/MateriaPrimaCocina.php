@@ -18,6 +18,7 @@ use App\Repository\Models\Restaurante\TransformacionMateriaPrima;
 use App\Repository\Models\Shared\Stock;
 use App\Repository\Models\User;
 use App\Repository\Queries\Restaurante\Cocina\ObtenerHistorialTransformacionesCocina;
+use App\Support\MonedaHelper;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use DomainException;
@@ -161,7 +162,7 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
                                     ->schema([
                                         Repeater::make('items')
                                             ->label('Resultados del porcionado / transformación')
-                                            ->itemLabel(fn (array $state): string => ! empty($state['es_merma']) ? 'Merma / Desperdicio (C$ 0)' : 'Insumo Procesado Útil')
+                                            ->itemLabel(fn (array $state): string => ! empty($state['es_merma']) ? 'Merma / Desperdicio ('.MonedaHelper::simbolo().' 0)' : 'Insumo Procesado Útil')
                                             ->collapsible()
                                             ->live()
                                             ->afterStateUpdated(function (Get $get, Set $set): void {
@@ -175,7 +176,7 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
                                                     ->schema([
                                                         Toggle::make('es_merma')
                                                             ->label('¿Es Merma / Desperdicio?')
-                                                            ->helperText('Merma = C$ 0 costo')
+                                                            ->helperText('Merma = '.MonedaHelper::simbolo().' 0 costo')
                                                             ->live()
                                                             ->afterStateUpdated(function (Get $get, Set $set): void {
                                                                 self::recalcularCostosTransformacion($get, $set);
@@ -211,7 +212,7 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
                                                             }),
 
                                                         TextInput::make('costo_asignado')
-                                                            ->label('Costo asignado (C$)')
+                                                            ->label('Costo asignado ('.MonedaHelper::simbolo().')')
                                                             ->numeric()
                                                             ->default(0)
                                                             ->minValue(0)
@@ -621,6 +622,6 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
         /** @var User|null $user */
         $user = auth()->user();
 
-        return $user?->can('page_MateriaPrimaCocina') || $user?->can('page_CocinaPedidos') || ($user?->hasRole('super_admin') ?? false);
+        return $user !== null && ($user->can('Page:MateriaPrimaCocina') || $user->can('Page:CocinaPedidos'));
     }
 }

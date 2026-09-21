@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Repository\Models\Activos;
 
 use App\Enums\Activos\EstadoAsignacion;
+use App\Filament\Shared\Concerns\TipoDestinoAsignacionActivo;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -64,29 +66,19 @@ class ActivoAsignacion extends Model implements Auditable
 
     public function tipoDestinoLabel(): string
     {
-        return match ($this->asignable_type) {
-            Habitacion::class => 'Habitación',
-            Ubicacion::class => 'Ubicación / Bodega',
-            Espacio::class => 'Espacio / Área Común',
-            default => class_basename((string) $this->asignable_type),
-        };
+        return TipoDestinoAsignacionActivo::tipoDestinoLabel($this->asignable_type);
     }
 
     public function tipoDestinoColor(): string
     {
-        return match ($this->asignable_type) {
-            Habitacion::class => 'success',
-            Ubicacion::class => 'info',
-            Espacio::class => 'warning',
-            default => 'gray',
-        };
+        return TipoDestinoAsignacionActivo::tipoDestinoColor($this->asignable_type);
     }
 
     public function destinoLabel(): string
     {
         $asignable = $this->asignable;
 
-        if ($asignable instanceof Habitacion || $asignable instanceof Ubicacion || $asignable instanceof Espacio) {
+        if ($asignable instanceof Habitacion || $asignable instanceof Ubicacion || $asignable instanceof Espacio || $asignable instanceof Servicio) {
             return (string) ($asignable->nombre ?? '');
         }
 

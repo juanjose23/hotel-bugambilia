@@ -6,6 +6,7 @@ namespace App\BusinessLogic\Cuentas;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
+use App\Support\MonedaHelper;
 use DomainException;
 
 /**
@@ -34,10 +35,12 @@ final class ValidarCuenta
         $nuevoSaldo = (float) $cuenta->saldo + $montoCargo;
 
         if ($nuevoSaldo > (float) $cuenta->limite_autorizado) {
+            $cargoFmt = MonedaHelper::formatear($montoCargo, $cuenta->moneda);
+            $limiteFmt = MonedaHelper::formatear((float) $cuenta->limite_autorizado, $cuenta->moneda);
+            $saldoFmt = MonedaHelper::formatear((float) $cuenta->saldo, $cuenta->moneda);
+
             throw new DomainException(
-                'El cargo de C$ '.number_format($montoCargo, 2, '.', ',').
-                ' excede el límite autorizado de C$ '.number_format((float) $cuenta->limite_autorizado, 2, '.', ',').
-                '. Saldo actual: C$ '.number_format((float) $cuenta->saldo, 2, '.', ',').'.',
+                "El cargo de {$cargoFmt} excede el límite autorizado de {$limiteFmt}. Saldo actual: {$saldoFmt}.",
             );
         }
     }
@@ -53,7 +56,7 @@ final class ValidarCuenta
 
         if ($cuenta->tieneSaldoPendiente()) {
             throw new DomainException(
-                'No se puede cerrar la cuenta con saldo pendiente de C$ '.number_format((float) $cuenta->saldo, 2, '.', ',').'.',
+                'No se puede cerrar la cuenta con saldo pendiente de '.MonedaHelper::formatear((float) $cuenta->saldo, $cuenta->moneda).'.',
             );
         }
     }

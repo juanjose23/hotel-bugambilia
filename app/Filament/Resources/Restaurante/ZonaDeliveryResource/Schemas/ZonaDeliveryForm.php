@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\ZonaDeliveryResource\Schemas;
 
+use App\Support\MonedaHelper;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -34,9 +35,9 @@ final class ZonaDeliveryForm
                             ->maxLength(100),
 
                         TextInput::make('costo_envio')
-                            ->label('Costo de Envío (C$)')
+                            ->label('Costo de Envío ('.MonedaHelper::simbolo().')')
                             ->numeric()
-                            ->prefix('C$')
+                            ->prefix(MonedaHelper::simbolo())
                             ->minValue(0)
                             ->default(50.00)
                             ->required(),

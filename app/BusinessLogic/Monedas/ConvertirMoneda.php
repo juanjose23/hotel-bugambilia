@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace App\BusinessLogic\Monedas;
 
 use App\Repository\Queries\Monedas\ObtenerMonedaPorIdQuery;
-use App\Services\Shared\TasaCambioService;
+use App\Repository\Queries\Monedas\ObtenerTasaCambioQuery;
 
 /**
  * Regla de negocio: convierte un monto desde una moneda dada a la moneda
  * base del sistema (NIO), resolviendo la tasa de cambio vigente.
  */
-final class ConvertirMoneda
+final readonly class ConvertirMoneda
 {
     public const CODIGO_BASE = 'NIO';
 
     public function __construct(
-        private readonly ObtenerMonedaPorIdQuery $monedaPorId,
-        private readonly TasaCambioService $tasaCambio,
+        private ObtenerMonedaPorIdQuery $monedaPorId,
+        private ObtenerTasaCambioQuery $tasaCambioQuery,
     ) {}
 
     public function aBase(float $monto, ?int $monedaId): float
@@ -33,7 +33,7 @@ final class ConvertirMoneda
             return $monto;
         }
 
-        return $this->tasaCambio->convertir($monto, $codigo, self::CODIGO_BASE, now()->toDateString());
+        return $this->calcularConversion($monto, $codigo, self::CODIGO_BASE, now()->toDateString());
     }
 
     public function desdeBase(float $monto, ?int $monedaId): float
@@ -49,7 +49,7 @@ final class ConvertirMoneda
             return round($monto, 2);
         }
 
-        return round($this->tasaCambio->convertir(
+        return round($this->calcularConversion(
             $monto,
             self::CODIGO_BASE,
             strtoupper($codigo),
@@ -64,5 +64,26 @@ final class ConvertirMoneda
         }
 
         return $this->desdeBase($this->aBase($monto, $monedaOrigenId), $monedaDestinoId);
+    }
+
+    private function calcularConversion(float $monto, string $origenCodigo, string $destinoCodigo, \DateTimeInterface|string $fecha): float
+    {
+        if ($origenCodigo === $destinoCodigo) {
+            return $monto;
+        }
+
+        $tasa = $this->tasaCambioQuery->ejecutar($fecha, $origenCodigo, $destinoCodigo);
+
+        if ($tasa > 0.0 && $tasa !== 1.0) {
+            return round($monto * $tasa, 2);
+        }
+
+        $tasaInversa = $this->tasaCambioQuery->ejecutar($fecha, $destinoCodigo, $origenCodigo);
+
+        if ($tasaInversa > 0.0) {
+            return round($monto / $tasaInversa, 2);
+        }
+
+        return $monto;
     }
 }

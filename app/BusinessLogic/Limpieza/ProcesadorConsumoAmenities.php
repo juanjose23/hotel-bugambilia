@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Limpieza;
 
-use App\Repository\Models\Inventario\Lote;
-use App\Repository\Models\Inventario\MovimientoStock;
-use App\Repository\Models\Shared\Stock as SharedStock;
+use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
+use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 
-class ProcesadorConsumoAmenities
+final readonly class ProcesadorConsumoAmenities
 {
+    public function __construct(
+        private MovimientoStockRepositorioInterface $movimientoRepositorio,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
+        private LoteRepositorioInterface $loteRepositorio,
+    ) {}
+
     /** @param array<int, float|string> $consumosCantidad */
     public function procesar(array $consumosCantidad, int $ejecucionId, ?int $usuarioId): void
     {
@@ -19,9 +25,10 @@ class ProcesadorConsumoAmenities
                 continue;
             }
 
-            $sharedStock = SharedStock::where('id', $stockId)->lockForUpdate()->firstOrFail();
-            $sharedStock->cantidad_actual = max(0.0, (float) $sharedStock->cantidad_actual - $qty);
-            $sharedStock->save();
+            $sharedStock = $this->limpiezaRepositorio->descontarStockAmenity((int) $stockId, $qty);
+            if (! $sharedStock) {
+                continue;
+            }
 
             $variante = $sharedStock->variante;
             $productoId = $variante->producto_id ?? 0;
@@ -29,14 +36,14 @@ class ProcesadorConsumoAmenities
             $costoUnitario = null;
             $costoTotal = null;
             if ($sharedStock->lote_id) {
-                $lote = Lote::find($sharedStock->lote_id);
+                $lote = $this->loteRepositorio->buscarPorId((int) $sharedStock->lote_id);
                 if ($lote) {
                     $costoUnitario = $lote->costo_unitario;
                     $costoTotal = $costoUnitario !== null ? $costoUnitario * abs($qty) : null;
                 }
             }
 
-            MovimientoStock::create([
+            $this->movimientoRepositorio->registrar([
                 'tipo' => 'CONSUMO',
                 'lote_id' => $sharedStock->lote_id,
                 'producto_id' => $productoId,

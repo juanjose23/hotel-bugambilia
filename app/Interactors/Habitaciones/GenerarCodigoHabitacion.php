@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Interactors\Habitaciones;
 
-use App\Repository\Models\Habitaciones\Habitacion;
-use App\Services\Shared\GeneradorCodigoService;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
 
-class GenerarCodigoHabitacion
+final readonly class GenerarCodigoHabitacion
 {
     public function __construct(
-        private readonly GeneradorCodigoService $generadorCodigo
+        private HabitacionRepositorioInterface $habitacionRepositorio,
     ) {}
 
     public function ejecutar(): string
     {
-        return $this->generadorCodigo->generarCorrelativo('HAB', Habitacion::class, 'codigo');
+        return $this->habitacionRepositorio->generarCodigo();
     }
 }

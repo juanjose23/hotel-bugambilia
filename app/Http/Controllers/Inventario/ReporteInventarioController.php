@@ -6,8 +6,9 @@ namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\ReporteController;
 use App\Interactors\Inventario\Reportes\GenerarReporteInventario;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReporteInventarioController extends ReporteController
@@ -16,15 +17,17 @@ final class ReporteInventarioController extends ReporteController
         private readonly GenerarReporteInventario $generarReporteInventario,
     ) {}
 
-    public function stockPorProductoPdf(Request $request): StreamedResponse|RedirectResponse
+    public function stockPorProductoPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('stock', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('stockPorProductoPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-001-Stock-Producto.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-001',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('stockPorProductoPdf', $request->all()),
+                'HTB-INV-001-Stock-Producto.pdf',
+            ),
+        );
     }
 
     public function stockPorProductoExcel(Request $request): StreamedResponse
@@ -32,15 +35,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('stockPorProductoExcel', $request->all());
     }
 
-    public function movimientosPdf(Request $request): StreamedResponse|RedirectResponse
+    public function movimientosPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('movimientos', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('movimientosPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-003-Movimientos.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-002',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('movimientosPdf', $request->all()),
+                'HTB-INV-002-Movimientos.pdf',
+            ),
+        );
     }
 
     public function movimientosExcel(Request $request): StreamedResponse
@@ -48,15 +53,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('movimientosExcel', $request->all());
     }
 
-    public function cuarentenaPdf(Request $request): StreamedResponse|RedirectResponse
+    public function cuarentenaPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('cuarentena', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('cuarentenaPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-004-Cuarentena.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-004',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('cuarentenaPdf', $request->all()),
+                'HTB-INV-004-Cuarentena.pdf',
+            ),
+        );
     }
 
     public function cuarentenaExcel(Request $request): StreamedResponse
@@ -64,15 +71,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('cuarentenaExcel', $request->all());
     }
 
-    public function proximosVencerPdf(Request $request): StreamedResponse|RedirectResponse
+    public function proximosVencerPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('proximos_vencer', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('proximosVencerPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-005-Proximos-Vencer.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-005',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('proximosVencerPdf', $request->all()),
+                'HTB-INV-005-Proximos-Vencer.pdf',
+            ),
+        );
     }
 
     public function proximosVencerExcel(Request $request): StreamedResponse
@@ -80,15 +89,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('proximosVencerExcel', $request->all());
     }
 
-    public function mermasPdf(Request $request): StreamedResponse|RedirectResponse
+    public function mermasPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('mermas', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('mermasPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-006-Mermas.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-006',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('mermasPdf', $request->all()),
+                'HTB-INV-006-Mermas.pdf',
+            ),
+        );
     }
 
     public function mermasExcel(Request $request): StreamedResponse
@@ -96,15 +107,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('mermasExcel', $request->all());
     }
 
-    public function valorizacionPdf(Request $request): StreamedResponse|RedirectResponse
+    public function valorizacionPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('valorizacion', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('valorizacionPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-007-Valorizacion.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-007',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('valorizacionPdf', $request->all()),
+                'HTB-INV-007-Valorizacion.pdf',
+            ),
+        );
     }
 
     public function valorizacionExcel(Request $request): StreamedResponse
@@ -112,15 +125,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('valorizacionExcel', $request->all());
     }
 
-    public function rotacionPdf(Request $request): StreamedResponse|RedirectResponse
+    public function rotacionPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('rotacion', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('rotacionPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-008-Rotacion.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-008',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('rotacionPdf', $request->all()),
+                'HTB-INV-008-Rotacion.pdf',
+            ),
+        );
     }
 
     public function rotacionExcel(Request $request): StreamedResponse
@@ -128,26 +143,32 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('rotacionExcel', $request->all());
     }
 
-    public function trazabilidadLotePdf(Request $request, int $loteId): StreamedResponse|RedirectResponse
+    public function trazabilidadLotePdf(Request $request, int $loteId): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('trazabilidad_lote', array_merge($request->all(), ['lote_id' => $loteId]));
-        }
+        $params = array_merge($request->all(), ['lote_id' => $loteId]);
 
-        $pdf = $this->generarReporteInventario->execute('trazabilidadLotePdf', array_merge($request->all(), ['lote_id' => $loteId]));
-
-        return $this->streamPdf($pdf, "HTB-INV-011-Trazabilidad-Lote-{$loteId}.pdf");
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-011',
+            $params,
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('trazabilidadLotePdf', $params),
+                "HTB-INV-011-Trazabilidad-Lote-{$loteId}.pdf",
+            ),
+        );
     }
 
-    public function vencidosPdf(Request $request): StreamedResponse|RedirectResponse
+    public function vencidosPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('vencidos', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('vencidosPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-012-Lotes-Vencidos.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-012',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('vencidosPdf', $request->all()),
+                'HTB-INV-012-Lotes-Vencidos.pdf',
+            ),
+        );
     }
 
     public function vencidosExcel(Request $request): StreamedResponse
@@ -160,15 +181,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('mermasExcel', $request->all());
     }
 
-    public function stockMinimoPdf(Request $request): StreamedResponse|RedirectResponse
+    public function stockMinimoPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('stock_minimo', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('stockMinimoPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-009-Stock-Minimo.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-009',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('stockMinimoPdf', $request->all()),
+                'HTB-INV-009-Stock-Minimo.pdf',
+            ),
+        );
     }
 
     public function stockMinimoExcel(Request $request): StreamedResponse
@@ -176,15 +199,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('stockMinimoExcel', $request->all());
     }
 
-    public function ajustesPdf(Request $request): StreamedResponse|RedirectResponse
+    public function ajustesPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('ajustes', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('ajustesPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-010-Ajustes-Inventario.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-010',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('ajustesPdf', $request->all()),
+                'HTB-INV-010-Ajustes-Inventario.pdf',
+            ),
+        );
     }
 
     public function ajustesExcel(Request $request): StreamedResponse
@@ -192,15 +217,17 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('ajustesExcel', $request->all());
     }
 
-    public function costoVentasPdf(Request $request): StreamedResponse|RedirectResponse
+    public function costoVentasPdf(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('costo_ventas', $request->all());
-        }
-
-        $pdf = $this->generarReporteInventario->execute('costoVentasPdf', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-INV-013-Costo-Ventas.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-INV-013',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteInventario->execute('costoVentasPdf', $request->all()),
+                'HTB-INV-013-Costo-Ventas.pdf',
+            ),
+        );
     }
 
     public function costoVentasExcel(Request $request): StreamedResponse

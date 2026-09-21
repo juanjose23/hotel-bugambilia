@@ -6,6 +6,8 @@ namespace App\Repository\Models\Restaurante;
 
 use App\Enums\Restaurante\AreaCocina;
 use App\Enums\Restaurante\EstadoItemPedido;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\ProductoVariante;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +18,9 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property int $id
  * @property int $pedido_id
  * @property int|null $plato_id
+ * @property string $tipo_item
+ * @property int|null $producto_id
+ * @property int|null $producto_variante_id
  * @property AreaCocina|null $area_cocina
  * @property float $cantidad
  * @property float $precio_unitario
@@ -26,6 +31,8 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
  * @property string|null $notas
  * @property string|null $observaciones
  * @property Plato|null $plato
+ * @property Producto|null $producto
+ * @property ProductoVariante|null $variante
  * @property Pedido|null $pedido
  */
 final class PedidoItem extends Model implements AuditableContract
@@ -76,5 +83,32 @@ final class PedidoItem extends Model implements AuditableContract
     public function plato(): BelongsTo
     {
         return $this->belongsTo(Plato::class, 'plato_id');
+    }
+
+    /** @return BelongsTo<Producto, $this> */
+    public function producto(): BelongsTo
+    {
+        return $this->belongsTo(Producto::class, 'producto_id');
+    }
+
+    /** @return BelongsTo<ProductoVariante, $this> */
+    public function variante(): BelongsTo
+    {
+        return $this->belongsTo(ProductoVariante::class, 'producto_variante_id');
+    }
+
+    public function esProducto(): bool
+    {
+        return $this->tipo_item === 'producto' || ! empty($this->producto_id);
+    }
+
+    public function esPlato(): bool
+    {
+        return $this->tipo_item === 'plato' || ! empty($this->plato_id);
+    }
+
+    public function tieneVariante(): bool
+    {
+        return ! empty($this->producto_variante_id);
     }
 }

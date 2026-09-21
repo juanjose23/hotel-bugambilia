@@ -7,32 +7,28 @@ namespace App\Filament\Pages\Reservas;
 use App\BusinessLogic\Reservas\Data\RealizarCheckOutData;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\Reservas\EstadoReserva;
+use App\Filament\Pages\Reservas\Actions\CheckOutPagarStripeAction;
+use App\Filament\Pages\Reservas\Actions\CheckOutRegistrarPagoAction;
+use App\Filament\Pages\Reservas\Actions\CheckOutRegistrarPagosMultiplesAction;
+use App\Filament\Pages\Reservas\Schemas\CheckOutConsumosSchema;
+use App\Filament\Pages\Reservas\Schemas\CheckOutCuentaSchema;
+use App\Filament\Pages\Reservas\Schemas\CheckOutHabitacionSchema;
+use App\Filament\Pages\Reservas\Tables\CheckOutEstanciasTable;
+use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Interactors\Reservas\Habitaciones\RealizarCheckOutHabitacion;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Reservas\Reserva;
-use App\Support\MonedaHelper;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use DomainException;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Wizard;
-use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\Size;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -72,6 +68,16 @@ final class CheckOutPage extends Page implements HasForms, HasTable
     protected function getHeaderActions(): array
     {
         return [
+            CheckOutRegistrarPagoAction::make($this),
+            CheckOutRegistrarPagosMultiplesAction::make($this),
+            CheckOutPagarStripeAction::make($this),
+            Action::make('ver_cuenta')
+                ->label('Ver Folio / Cuenta')
+                ->icon('heroicon-o-document-magnifying-glass')
+                ->color('info')
+                ->url(fn (): ?string => $this->cuentaActiva() ? CuentaResource::getUrl('view', ['record' => $this->cuentaActiva()->id]) : null)
+                ->openUrlInNewTab()
+                ->visible(fn (): bool => $this->cuentaActiva() !== null),
             Action::make('volver_lista')
                 ->label('Volver a Lista de Check-Out')
                 ->icon('heroicon-o-arrow-left')
@@ -84,34 +90,81 @@ final class CheckOutPage extends Page implements HasForms, HasTable
     public function mount(): void
     {
         if ($this->record !== null) {
-            $reserva = Reserva::query()
-                ->with(['habitacion', 'espacio', 'estancias.cuenta.moneda', 'estancias.habitacion'])
-                ->find($this->record);
+            $this->inicializarRegistro($this->record);
 
-            if ($reserva !== null && in_array($reserva->estado, [
-                EstadoReserva::CHECKED_IN,
-                EstadoReserva::PARCIALMENTE_CHECKED_IN,
-                EstadoReserva::PARCIALMENTE_CHECKED_OUT,
-            ], true)) {
-                $this->reserva = $reserva;
-                $this->estancia = $this->resolverEstanciaActiva();
-
-                $this->form->fill([
-                    'reserva_id' => $reserva->id,
-                    'estancia_id' => $this->estancia?->id,
-                    'llaves_devueltas' => $this->estancia->cantidad_llaves ?? 1,
-                    'autorizar_llaves_pendientes' => false,
-                    'credito_autorizado' => false,
-                    'consumos_revisados' => false,
-                    'habitacion_inspeccionada' => false,
-                    'danos_reportados' => false,
-                ]);
-
-                return;
-            }
+            return;
         }
 
         $this->form->fill([]);
+    }
+
+    private function inicializarRegistro(int $recordId): void
+    {
+        $reserva = Reserva::query()
+            ->with([
+                'habitacion',
+                'espacio',
+                'moneda',
+                'estancia.cuenta.moneda',
+                'estancia.cuenta.pagos',
+                'estancia.cuenta.detalles',
+                'estancia.habitacion',
+                'estancias.cuenta.moneda',
+                'estancias.cuenta.pagos',
+                'estancias.cuenta.detalles',
+                'estancias.habitacion',
+            ])
+            ->find($recordId);
+
+        if ($reserva !== null && in_array($reserva->estado, [
+            EstadoReserva::CHECKED_IN,
+            EstadoReserva::PARCIALMENTE_CHECKED_IN,
+            EstadoReserva::PARCIALMENTE_CHECKED_OUT,
+        ], true)) {
+            $this->reserva = $reserva;
+            $this->estancia = $this->resolverEstanciaActiva();
+
+            $this->form->fill([
+                'reserva_id' => $reserva->id,
+                'estancia_id' => $this->estancia?->id,
+                'llaves_devueltas' => $this->estancia->cantidad_llaves ?? 1,
+                'autorizar_llaves_pendientes' => false,
+                'credito_autorizado' => false,
+                'consumos_revisados' => false,
+                'habitacion_inspeccionada' => false,
+                'danos_reportados' => false,
+            ]);
+
+            return;
+        }
+
+        // Si record es ID directo de Estancia
+        $estancia = Estancia::query()
+            ->with([
+                'cuenta.moneda',
+                'cuenta.pagos',
+                'cuenta.detalles',
+                'habitacion',
+                'reserva.moneda',
+                'reserva.habitacion',
+            ])
+            ->find($recordId);
+
+        if ($estancia !== null && in_array($estancia->estado, [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA], true)) {
+            $this->estancia = $estancia;
+            $this->reserva = $estancia->reserva;
+
+            $this->form->fill([
+                'reserva_id' => $this->reserva?->id,
+                'estancia_id' => $estancia->id,
+                'llaves_devueltas' => $estancia->cantidad_llaves ?? 1,
+                'autorizar_llaves_pendientes' => false,
+                'credito_autorizado' => false,
+                'consumos_revisados' => false,
+                'habitacion_inspeccionada' => false,
+                'danos_reportados' => false,
+            ]);
+        }
     }
 
     public function form(Schema $schema): Schema
@@ -119,104 +172,32 @@ final class CheckOutPage extends Page implements HasForms, HasTable
         return $schema
             ->statePath('data')
             ->schema([
-                Wizard::make([
-                    Step::make('Estancia')
-                        ->icon('heroicon-o-home')
-                        ->schema($this->buildPasoEstancia())
-                        ->extraAttributes(['dusk' => 'checkout-resumen-estancia']),
-
-                    Step::make('Consumos')
-                        ->icon('heroicon-o-clipboard-document-list')
-                        ->schema($this->buildPasoConsumos())
-                        ->extraAttributes(['dusk' => 'checkout-consumos']),
-
-                    Step::make('Cuenta')
-                        ->icon('heroicon-o-banknotes')
-                        ->schema($this->buildPasoCuenta())
-                        ->extraAttributes(['dusk' => 'checkout-saldo']),
-
-                    Step::make('Habitación')
-                        ->icon('heroicon-o-key')
-                        ->schema($this->buildPasoHabitacion())
-                        ->extraAttributes(['dusk' => 'checkout-habitacion']),
-
-                    Step::make('Confirmar')
-                        ->icon('heroicon-o-check-badge')
-                        ->schema($this->buildPasoConfirmar())
-                        ->extraAttributes(fn (): array => ['dusk' => $this->checkoutListo() ? 'checkout-listo' : 'checkout-bloqueado']),
-                ])
-                    ->submitAction(
-                        Action::make('confirmar_checkout')
-                            ->label('REALIZAR CHECK-OUT')
-                            ->icon('heroicon-o-arrow-right-on-rectangle')
-                            ->color('warning')
-                            ->size(Size::Large)
-                            ->submit('submit')
-                            ->extraAttributes(['dusk' => 'confirmar-checkout'])
-                    )
-                    ->visible(fn (): bool => $this->reserva !== null),
+                ...CheckOutConsumosSchema::make($this),
+                ...CheckOutCuentaSchema::make($this),
+                ...CheckOutHabitacionSchema::make($this),
             ]);
     }
 
     public function table(Table $table): Table
     {
-        return $table
-            ->query(
-                Reserva::query()
-                    ->with(['habitacion', 'espacio', 'estancia.cuenta', 'estancias.cuenta'])
-                    ->whereIn('estado', [
-                        EstadoReserva::CHECKED_IN,
-                        EstadoReserva::PARCIALMENTE_CHECKED_IN,
-                        EstadoReserva::PARCIALMENTE_CHECKED_OUT,
-                    ])
-            )
-            ->columns([
-                TextColumn::make('codigo_reserva')
-                    ->label('Código')
-                    ->badge()
-                    ->color('primary')
-                    ->sortable()
-                    ->searchable(),
-
-                TextColumn::make('nombre_cliente')
-                    ->label('Cliente / Huésped')
-                    ->sortable()
-                    ->searchable(),
-
-                TextColumn::make('habitacion.nombre')
-                    ->label('Habitación')
-                    ->placeholder('—')
-                    ->sortable(),
-
-                TextColumn::make('fecha_check_in')
-                    ->label('Check-In Entrada')
-                    ->date('d/m/Y')
-                    ->sortable(),
-
-                TextColumn::make('estancia.cuenta.saldo')
-                    ->label('Saldo Cuenta')
-                    ->money(fn (Reserva $record): string => MonedaHelper::codigo($record->moneda ?? $record->estancia?->cuenta?->moneda))
-                    ->placeholder('0.00'),
-            ])
-            ->defaultSort('fecha_check_in')
-            ->recordActions([
-                Action::make('iniciar_check_out')
-                    ->label('Completar Check-Out')
-                    ->icon('heroicon-o-arrow-right-on-rectangle')
-                    ->color('warning')
-                    ->url(fn (Reserva $record): string => self::getUrl(['record' => $record->id])),
-            ]);
+        return CheckOutEstanciasTable::configure($table, $this);
     }
 
-    /** @return array<string, int> */
+    /** @return array<string, int|float|string> */
     public function getMetricasCheckOut(): array
     {
         $hoy = now()->startOfDay();
+
+        $saldoPendienteTotal = Cuenta::query()
+            ->whereHas('estancia', fn ($q) => $q->whereIn('estado', [EstadoEstancia::ACTIVA->value, EstadoEstancia::EXTENDIDA->value]))
+            ->where('saldo', '>', 0)
+            ->sum('saldo');
 
         return [
             'checked_in_total' => Reserva::query()->whereIn('estado', [EstadoReserva::CHECKED_IN, EstadoReserva::PARCIALMENTE_CHECKED_IN])->count(),
             'salidas_hoy' => Reserva::query()->whereIn('estado', [EstadoReserva::CHECKED_IN, EstadoReserva::PARCIALMENTE_CHECKED_IN])->whereDate('fecha_check_out', '<=', $hoy)->count(),
             'finalizadas_hoy' => Estancia::query()->where('estado', EstadoEstancia::FINALIZADA)->whereDate('check_out_at', $hoy)->count(),
+            'saldo_pendiente_total' => (float) $saldoPendienteTotal,
         ];
     }
 
@@ -241,7 +222,9 @@ final class CheckOutPage extends Page implements HasForms, HasTable
 
             $estanciaId = $formData['estancia_id']
                 ?? $estanciaActiva->id
-                ?? $this->reserva->estancia?->id;
+                ?? $this->estancia->id
+                ?? $this->reserva->estancia->id
+                ?? null;
 
             if (! is_numeric($estanciaId) || (int) $estanciaId <= 0) {
                 throw new DomainException('No se encontró una estancia activa válida para realizar Check-Out.');
@@ -291,174 +274,89 @@ final class CheckOutPage extends Page implements HasForms, HasTable
         $this->form->fill([]);
     }
 
-    /** @return array<int, Component> */
-    private function buildPasoEstancia(): array
+    public function resolverEstanciaActiva(): ?Estancia
     {
-        return [
-            Section::make('Resumen operativo')
-                ->icon('heroicon-o-information-circle')
-                ->columns(4)
-                ->schema([
-                    TextEntry::make('reserva_codigo')->label('Reserva')->state(fn (): string => $this->reserva->codigo_reserva ?? '-')->badge()->color('primary'),
-                    TextEntry::make('estancia_codigo')->label('Estancia')->state(fn (): string => $this->codigoEstancia())->badge()->color('info'),
-                    TextEntry::make('habitacion')->label('Habitación')->state(fn (): string => $this->habitacionResumen()),
-                    TextEntry::make('titular')->label('Titular')->state(fn (): string => $this->reserva->nombre_cliente ?? '-'),
-                    TextEntry::make('check_in_real')->label('Check-in real')->state(fn (): string => $this->estancia?->check_in_at?->format('d/m/Y H:i') ?? '-'),
-                    TextEntry::make('check_out_programado')->label('Check-out programado')->state(fn (): string => $this->estancia?->fecha_salida_programada?->format('d/m/Y H:i') ?? $this->reserva?->fecha_check_out?->format('d/m/Y') ?? '-'),
-                    TextEntry::make('ahora')->label('Fecha/hora actual')->state(fn (): string => now()->format('d/m/Y H:i')),
-                    TextEntry::make('noches')->label('Noches')->state(fn (): string => (string) $this->nochesEstancia()),
-                ]),
+        if ($this->estancia !== null && $this->estancia->exists && in_array($this->estancia->estado, [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA], true)) {
+            return $this->estancia->loadMissing([
+                'cuenta.detalles',
+                'cuenta.pagos',
+                'cuenta.moneda',
+                'habitacion',
+            ]);
+        }
 
-            Section::make('Semáforo de cierre')
-                ->icon('heroicon-o-shield-check')
-                ->columns(3)
-                ->schema([
-                    IconEntry::make('consumos_ok')->label('Consumos registrados')->state(fn (): bool => (bool) ($this->data['consumos_revisados'] ?? false))->boolean(),
-                    IconEntry::make('cuenta_ok')->label('Cuenta revisada')->state(fn (): bool => $this->saldoPermitido())->boolean(),
-                    IconEntry::make('saldo_ok')->label('Saldo permitido')->state(fn (): bool => $this->saldoPermitido())->boolean(),
-                    IconEntry::make('danos_ok')->label('Daños / incidencias')->state(fn (): bool => ! (bool) ($this->data['danos_reportados'] ?? false))->boolean(),
-                    IconEntry::make('llaves_ok')->label('Llaves / tarjetas')->state(fn (): bool => $this->llavesPermitidas())->boolean(),
-                    IconEntry::make('housekeeping_ok')->label('Housekeeping')->state(fn (): bool => true)->boolean(),
-                    TextEntry::make('estado_checkout')->label('Estado')->state(fn (): string => $this->checkoutListo() ? 'LISTO PARA CHECK-OUT' : 'CHECK-OUT BLOQUEADO')->badge()->color(fn (): string => $this->checkoutListo() ? 'success' : 'danger')->columnSpanFull(),
-                ]),
-        ];
+        if ($this->reserva !== null) {
+            $estancia = Estancia::query()
+                ->with([
+                    'cuenta.detalles',
+                    'cuenta.pagos',
+                    'cuenta.moneda',
+                    'habitacion',
+                ])
+                ->where('reserva_id', $this->reserva->id)
+                ->whereIn('estado', [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA])
+                ->first();
+
+            if ($estancia !== null) {
+                $this->estancia = $estancia;
+
+                return $estancia;
+            }
+        }
+
+        if ($this->record !== null) {
+            $estancia = Estancia::query()
+                ->with([
+                    'cuenta.detalles',
+                    'cuenta.pagos',
+                    'cuenta.moneda',
+                    'habitacion',
+                    'reserva',
+                ])
+                ->find($this->record);
+
+            if ($estancia !== null && in_array($estancia->estado, [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA], true)) {
+                $this->estancia = $estancia;
+                if ($this->reserva === null && $estancia->reserva !== null) {
+                    $this->reserva = $estancia->reserva;
+                }
+
+                return $estancia;
+            }
+        }
+
+        return null;
     }
 
-    /** @return array<int, Component> */
-    private function buildPasoConsumos(): array
+    public function refrescarEstancia(): void
     {
-        return [
-            Section::make('Consumos y servicios pendientes')
-                ->icon('heroicon-o-clipboard-document-check')
-                ->columns(2)
-                ->schema([
-                    TextEntry::make('cuenta_numero')->label('Cuenta')->state(fn (): string => $this->cuentaActiva()->numero_cuenta ?? 'Sin cuenta'),
-                    TextEntry::make('total_cargos')->label('Total cargos')->state(fn (): string => MonedaHelper::formatear($this->montoCuenta('total'), $this->cuentaActiva()?->moneda)),
-                    TextEntry::make('consumos_estado')->label('Validación de consumos')->state(fn (): string => (bool) ($this->data['consumos_revisados'] ?? false) ? 'Consumos revisados' : 'Pendiente de revisión final')->badge()->color(fn (): string => (bool) ($this->data['consumos_revisados'] ?? false) ? 'success' : 'warning'),
-                    Toggle::make('consumos_revisados')
-                        ->label('Consumos finales revisados')
-                        ->helperText('Confirma que recepción revisó hospedaje, restaurante, minibar, lavandería y cargos finales reportados.')
-                        ->live()
-                        ->columnSpanFull(),
-                ]),
-        ];
+        $this->estancia = $this->resolverEstanciaActiva();
+        $this->reserva?->refresh();
     }
 
-    /** @return array<int, Component> */
-    private function buildPasoCuenta(): array
+    public function cuentaActiva(): ?Cuenta
     {
-        return [
-            Section::make('Cuenta y pagos')
-                ->icon('heroicon-o-banknotes')
-                ->columns(3)
-                ->schema([
-                    TextEntry::make('total_cuenta')->label('Total')->state(fn (): string => MonedaHelper::formatear($this->montoCuenta('total'), $this->cuentaActiva()?->moneda)),
-                    TextEntry::make('pagado_cuenta')->label('Pagado')->state(fn (): string => MonedaHelper::formatear($this->montoCuenta('total_pagado'), $this->cuentaActiva()?->moneda)),
-                    TextEntry::make('saldo_cuenta')->label('Saldo')->state(fn (): string => MonedaHelper::formatear($this->saldoCuenta(), $this->cuentaActiva()?->moneda))->badge()->color(fn (): string => $this->saldoPermitido() ? 'success' : 'danger'),
-                    Toggle::make('credito_autorizado')
-                        ->label('Saldo pendiente autorizado por crédito')
-                        ->helperText('Usar solo cuando exista autorización real. Si no hay autorización, primero registre el pago.')
-                        ->live()
-                        ->visible(fn (): bool => $this->saldoCuenta() > 0)
-                        ->columnSpanFull(),
-                    Textarea::make('motivo_credito')
-                        ->label('Motivo de autorización')
-                        ->maxLength(500)
-                        ->rows(2)
-                        ->visible(fn (): bool => $this->saldoCuenta() > 0 && (bool) ($this->data['credito_autorizado'] ?? false))
-                        ->columnSpanFull(),
-                ]),
-        ];
+        return $this->resolverEstanciaActiva()?->cuenta;
     }
 
-    /** @return array<int, Component> */
-    private function buildPasoHabitacion(): array
-    {
-        return [
-            Section::make('Estado final de habitación')
-                ->icon('heroicon-o-key')
-                ->columns(2)
-                ->schema([
-                    TextEntry::make('estado_habitacion')->label('Estado actual')->state(fn (): string => $this->estancia?->habitacion?->estado?->getLabel() ?? '-')->badge()->color(fn (): string => $this->estancia?->habitacion?->estado?->getColor() ?? 'gray'),
-                    TextEntry::make('destino_habitacion')->label('Destino posterior')->state('Sucia / pendiente de limpieza')->badge()->color('warning'),
-                    TextInput::make('llaves_devueltas')
-                        ->label('Llaves / tarjetas devueltas')
-                        ->integer()
-                        ->minValue(0)
-                        ->default(fn (): int => $this->estancia->cantidad_llaves ?? 1)
-                        ->live()
-                        ->required(),
-                    Toggle::make('autorizar_llaves_pendientes')
-                        ->label('Autorizar llaves pendientes')
-                        ->helperText('Debe usarse solo con autorización de recepción.')
-                        ->live(),
-                    Toggle::make('habitacion_inspeccionada')
-                        ->label('Habitación inspeccionada')
-                        ->live(),
-                    Toggle::make('danos_reportados')
-                        ->label('Daños o incidencias reportadas')
-                        ->live(),
-                    Textarea::make('observaciones')
-                        ->label('Observaciones de salida')
-                        ->placeholder('Inspección, llaves, incidencias, notas de recepción...')
-                        ->maxLength(2000)
-                        ->rows(3)
-                        ->columnSpanFull(),
-                ]),
-        ];
-    }
-
-    /** @return array<int, Component> */
-    private function buildPasoConfirmar(): array
-    {
-        return [
-            Section::make('Resumen final')
-                ->icon('heroicon-o-check-badge')
-                ->columns(3)
-                ->schema([
-                    TextEntry::make('final_reserva')->label('Reserva')->state(fn (): string => $this->reserva->codigo_reserva ?? '-'),
-                    TextEntry::make('final_estancia')->label('Estancia')->state(fn (): string => $this->codigoEstancia()),
-                    TextEntry::make('final_habitacion')->label('Habitación')->state(fn (): string => $this->habitacionResumen()),
-                    TextEntry::make('final_total')->label('Total')->state(fn (): string => MonedaHelper::formatear($this->montoCuenta('total'), $this->cuentaActiva()?->moneda)),
-                    TextEntry::make('final_pagado')->label('Pagado')->state(fn (): string => MonedaHelper::formatear($this->montoCuenta('total_pagado'), $this->cuentaActiva()?->moneda)),
-                    TextEntry::make('final_saldo')->label('Saldo')->state(fn (): string => MonedaHelper::formatear($this->saldoCuenta(), $this->cuentaActiva()?->moneda))->badge()->color(fn (): string => $this->saldoPermitido() ? 'success' : 'danger'),
-                    IconEntry::make('final_consumos')->label('Consumos revisados')->state(fn (): bool => (bool) ($this->data['consumos_revisados'] ?? false))->boolean(),
-                    IconEntry::make('final_saldo_ok')->label('Saldo permitido')->state(fn (): bool => $this->saldoPermitido())->boolean(),
-                    IconEntry::make('final_llaves')->label('Llaves validadas')->state(fn (): bool => $this->llavesPermitidas())->boolean(),
-                    TextEntry::make('final_estado')->label('Resultado')->state(fn (): string => $this->checkoutListo() ? 'Puede completar el check-out' : $this->motivoBloqueo())->badge()->color(fn (): string => $this->checkoutListo() ? 'success' : 'danger')->columnSpanFull(),
-                ]),
-        ];
-    }
-
-    private function resolverEstanciaActiva(): ?Estancia
-    {
-        return $this->reserva?->estancias
-            ->first(fn (Estancia $estancia): bool => in_array($estancia->estado, [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA], true));
-    }
-
-    private function cuentaActiva(): ?Cuenta
-    {
-        return $this->estancia?->cuenta;
-    }
-
-    private function montoCuenta(string $campo): float
+    public function montoCuenta(string $campo): float
     {
         $cuenta = $this->cuentaActiva();
 
         return $cuenta !== null && is_numeric($cuenta->{$campo} ?? null) ? (float) $cuenta->{$campo} : 0.0;
     }
 
-    private function saldoCuenta(): float
+    public function saldoCuenta(): float
     {
         return $this->montoCuenta('saldo');
     }
 
-    private function saldoPermitido(): bool
+    public function saldoPermitido(): bool
     {
         return $this->saldoCuenta() <= 0.0 || (bool) ($this->data['credito_autorizado'] ?? false);
     }
 
-    private function llavesPermitidas(): bool
+    public function llavesPermitidas(): bool
     {
         $entregadas = (int) ($this->estancia->cantidad_llaves ?? 1);
         $devueltas = is_numeric($this->data['llaves_devueltas'] ?? null) ? (int) $this->data['llaves_devueltas'] : $entregadas;
@@ -503,7 +401,7 @@ final class CheckOutPage extends Page implements HasForms, HasTable
 
     public function habitacionResumen(): string
     {
-        $habitacion = $this->estancia->habitacion ?? $this->reserva?->habitacion;
+        $habitacion = $this->estancia->habitacion ?? $this->reserva->habitacion ?? null;
 
         if ($habitacion === null) {
             return '-';
@@ -512,10 +410,10 @@ final class CheckOutPage extends Page implements HasForms, HasTable
         return trim(($habitacion->numero ?? '').' - '.($habitacion->nombre ?? '')) ?: '-';
     }
 
-    private function nochesEstancia(): int
+    public function nochesEstancia(): int
     {
-        $entrada = $this->estancia->fecha_entrada_programada ?? $this->estancia->check_in_at ?? $this->reserva?->fecha_check_in;
-        $salida = $this->estancia->fecha_salida_programada ?? $this->reserva?->fecha_check_out;
+        $entrada = $this->estancia->fecha_entrada_programada ?? $this->estancia->check_in_at ?? $this->reserva->fecha_check_in ?? null;
+        $salida = $this->estancia->fecha_salida_programada ?? $this->reserva->fecha_check_out ?? null;
 
         if ($entrada === null || $salida === null) {
             return 0;

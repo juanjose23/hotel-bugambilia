@@ -10,13 +10,13 @@ use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
 use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
 use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
 
-class ServicioTraslados
+final readonly class ServicioTraslados
 {
     public function __construct(
-        private readonly StockRepositorioInterface $stockRepositorio,
-        private readonly MovimientoStockRepositorioInterface $movimientoStockRepositorio,
-        private readonly LoteRepositorioInterface $loteRepositorio,
-        private readonly ValidacionLotes $validacion,
+        private StockRepositorioInterface $stockRepositorio,
+        private MovimientoStockRepositorioInterface $movimientoStockRepositorio,
+        private LoteRepositorioInterface $loteRepositorio,
+        private ValidacionLotes $validacion,
     ) {}
 
     public function ejecutarTrasladoLote(

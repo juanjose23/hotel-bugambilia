@@ -125,10 +125,18 @@
                                     #{{ $ordenNum }}
                                 </span>
 
-                                <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 {{ $estilo['borderCard'] ?? '' }}">
-                                    <span class="size-1.5 rounded-full {{ $estilo['bgDot'] ?? 'bg-gray-400' }}"></span>
-                                    {{ $estilo['badgeLabel'] ?? 'Estado' }}
-                                </span>
+                                <div class="flex items-center gap-1">
+                                    @if ($mesa->tipo === \App\Enums\HabitacionesEspacios\TipoEspacio::MESA && $mesa->tiene_activo_asignado === false)
+                                        <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800">
+                                            Sin Mobiliario
+                                        </span>
+                                    @endif
+
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 {{ $estilo['borderCard'] ?? '' }}">
+                                        <span class="size-1.5 rounded-full {{ $estilo['bgDot'] ?? 'bg-gray-400' }}"></span>
+                                        {{ $estilo['badgeLabel'] ?? 'Estado' }}
+                                    </span>
+                                </div>
                             </div>
 
                             {{-- Representación Geométrica de la Mesa y Sillas --}}
@@ -136,12 +144,8 @@
                                 <div class="relative flex size-20 items-center justify-center border-2 border-gray-300 dark:border-gray-700 bg-card shadow-xs transition-transform {{ $iconoForma }}">
                                     {{-- Nombre de la mesa en el centro --}}
                                     <div class="text-center">
-                                        <span class="text-xs font-black text-gray-900 dark:text-white block leading-tight">
-                                            {{ $mesa->nombre }}
-                                        </span>
-                                        <span class="text-[9px] font-bold text-gray-500 dark:text-gray-400">
-                                            {{ $capacidad }} pers.
-                                        </span>
+                                        <span class="text-xs font-black text-gray-900 dark:text-white block leading-tight">{{ $mesa->nombre }}</span>
+                                        <span class="text-[9px] font-bold text-gray-500 dark:text-gray-400">{{ $capacidad }} pers.</span>
                                     </div>
                                 </div>
                             </div>
@@ -151,18 +155,46 @@
                                 @if ($tienePedidos)
                                     <div class="flex items-center justify-between">
                                         <span class="text-[10px] text-gray-500 font-medium">Consumo:</span>
-                                        <span class="font-black text-rose-600 dark:text-rose-400">
-                                            {{ $simboloMoneda }} {{ number_format($totalMesa, 2, ',', '.') }}
-                                        </span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-black text-rose-600 dark:text-rose-400">
+                                                {{ $simboloMoneda }} {{ number_format($totalMesa, 2, ',', '.') }}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                dusk="mesa-{{ $mesa->id }}-cobrar"
+                                                wire:click.stop="verComandasMesa({{ $mesa->id }})"
+                                                class="rounded-lg bg-rose-600 px-2 py-0.5 text-[10px] font-black text-white shadow-xs hover:bg-rose-500 transition-colors cursor-pointer"
+                                            >
+                                                Cobrar
+                                            </button>
+                                        </div>
                                     </div>
-                                @elseif ($mesa->estado === \App\Enums\HabitacionesEspacios\EstadoEspacio::Reservado && !empty($meta['nombre_cliente']))
-                                    <div class="text-[10px] text-sky-700 dark:text-sky-300 truncate font-semibold">
-                                        👤 {{ $meta['nombre_cliente'] }} ({{ $meta['hora_reserva'] ?? 'Reserva' }})
+                                @elseif ($mesa->estado === \App\Enums\HabitacionesEspacios\EstadoEspacio::Reservado)
+                                    <div class="flex items-center justify-between gap-1">
+                                        <div class="text-[10px] text-sky-700 dark:text-sky-300 truncate font-semibold">
+                                            👤 {{ $meta['nombre_cliente'] ?? 'Reserva' }} ({{ $meta['hora_reserva'] ?? 'Hoy' }})
+                                        </div>
+                                        <button
+                                            type="button"
+                                            dusk="mesa-{{ $mesa->id }}-llegada"
+                                            wire:click.stop="confirmarLlegadaReserva({{ $mesa->id }})"
+                                            class="rounded-lg bg-sky-600 px-2 py-0.5 text-[10px] font-black text-white shadow-xs hover:bg-sky-500 transition-colors cursor-pointer"
+                                        >
+                                            Llegada
+                                        </button>
                                     </div>
                                 @else
                                     <div class="flex items-center justify-between text-[10px] text-gray-400">
                                         <span>Tipo: {{ ucfirst($tipoMesa) }}</span>
-                                        <span>ID #{{ $mesa->id }}</span>
+                                        @if ($mesa->estado === \App\Enums\HabitacionesEspacios\EstadoEspacio::Disponible && $mesa->tiene_activo_asignado !== false)
+                                            <a
+                                                href="/admin/restaurante/pedidos/create?espacio_id={{ $mesa->id }}"
+                                                dusk="mesa-{{ $mesa->id }}-comanda"
+                                                class="rounded-lg bg-emerald-600 px-2 py-0.5 text-[10px] font-black text-white shadow-xs hover:bg-emerald-500 transition-colors cursor-pointer"
+                                            >
+                                                + Comanda
+                                            </a>
+                                        @endif
                                     </div>
                                 @endif
 

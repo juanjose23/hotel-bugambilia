@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Reportes\Widgets;
 
+use App\Filament\Pages\Reportes\Widgets\Concerns\UsaRangoFechasDashboard;
 use App\Repository\Queries\Reportes\InteligenciaNegocioDashboardQuery;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
 
 final class IngresosReservasChart extends ChartWidget
 {
+    use UsaRangoFechasDashboard;
+
     protected ?string $heading = 'Tendencia de ingresos por reservas';
 
     protected ?string $description = 'Evolución diaria del período.';
@@ -24,10 +27,6 @@ final class IngresosReservasChart extends ChartWidget
         'md' => 1,
         'xl' => 1,
     ];
-
-    public ?string $fechaInicio = null;
-
-    public ?string $fechaFin = null;
 
     public static function canView(): bool
     {
@@ -46,8 +45,12 @@ final class IngresosReservasChart extends ChartWidget
                 [
                     'label' => 'Ingresos',
                     'data' => $data->pluck('total')->map(fn (mixed $value): float => is_numeric($value) ? (float) $value : 0.0)->values()->all(),
-                    'backgroundColor' => '#16A34A',
+                    'backgroundColor' => 'rgba(22, 163, 74, 0.15)',
                     'borderColor' => '#16A34A',
+                    'borderWidth' => 2,
+                    'pointRadius' => 2,
+                    'tension' => 0.4,
+                    'fill' => true,
                 ],
             ],
             'labels' => $data->pluck('fecha')
@@ -59,15 +62,28 @@ final class IngresosReservasChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'bar';
+        return 'line';
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                ],
+            ],
+        ];
     }
 
     /** @return array<string, mixed> */
     private function dashboard(): array
     {
+        $rango = $this->rangoDashboard();
+
         return app(InteligenciaNegocioDashboardQuery::class)->paraRango(
-            $this->fechaInicio ?? now()->startOfMonth()->format('Y-m-d'),
-            $this->fechaFin ?? now()->format('Y-m-d'),
+            $rango['inicio'],
+            $rango['fin'],
         );
     }
 }

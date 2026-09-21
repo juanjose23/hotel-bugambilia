@@ -8,6 +8,7 @@ use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Restaurante\Cocina\ObtenerDatosProcesoCocinaQuery;
+use App\Support\MonedaHelper;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -26,7 +27,7 @@ final class ProcesoCocinaForm
     {
         $cocinaQuery = app(ObtenerDatosProcesoCocinaQuery::class);
         $monedaPredeterminada = app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar();
-        $simboloMoneda = $monedaPredeterminada !== null ? ($monedaPredeterminada->simbolo ?? 'C$') : 'C$';
+        $simboloMoneda = MonedaHelper::simbolo($monedaPredeterminada);
 
         return $schema
             ->components([
@@ -194,7 +195,7 @@ final class ProcesoCocinaForm
                                     ->columnSpan(1),
 
                                 TextInput::make('costo_asignado')
-                                    ->label('Costo (C$)')
+                                    ->label("Costo ({$simboloMoneda})")
                                     ->numeric()
                                     ->prefix($simboloMoneda)
                                     ->required()

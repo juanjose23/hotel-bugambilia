@@ -27,6 +27,7 @@ return new class extends Migration
                 ->constrained('catalogos');
             $table->string('codigo', 50)->comment('Código único dentro del tipo de catálogo');
             $table->string('nombre', 200)->comment('Nombre del valor de catálogo');
+            $table->string('prefijo', 20)->nullable()->comment('Prefijo o abreviatura corta opcional para generación de códigos');
             $table->text('descripcion')->nullable()->comment('Descripción opcional del valor');
             $table->integer('orden')->default(0)->comment('Orden de visualización dentro del tipo');
             $table->integer('estado')->default(1)->comment('1=activo, 0=inactivo');

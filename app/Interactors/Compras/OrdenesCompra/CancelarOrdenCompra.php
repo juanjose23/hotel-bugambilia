@@ -11,12 +11,12 @@ use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Persistencia\Compras\OrdenCompraRepositorioInterface;
 use App\Repository\Queries\Compras\Recepciones\VerificarRecepcionesOrden;
 
-final class CancelarOrdenCompra
+final readonly class CancelarOrdenCompra
 {
     public function __construct(
-        private readonly OrdenCompraRepositorioInterface $ordenCompraRepositorio,
-        private readonly VerificarRecepcionesOrden $verificarRecepciones,
-        private readonly ValidarCancelacionOrden $validarCancelacion,
+        private OrdenCompraRepositorioInterface $ordenCompraRepositorio,
+        private VerificarRecepcionesOrden $verificarRecepciones,
+        private ValidarCancelacionOrden $validarCancelacion,
     ) {}
 
     public function ejecutar(OrdenCompra $orden): void

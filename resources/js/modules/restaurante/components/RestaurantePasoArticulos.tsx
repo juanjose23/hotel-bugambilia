@@ -76,13 +76,15 @@ export const RestaurantePasoArticulos = ({
                             para el chef.
                         </p>
                     </div>
-                    <button
+                    <Button
                         type="button"
+                        variant="link"
+                        size="sm"
                         onClick={vaciarCarrito}
-                        className="cursor-pointer text-xs font-bold text-rose-500 hover:underline"
+                        className="h-auto cursor-pointer p-0 text-xs font-bold text-rose-500 hover:underline"
                     >
                         Vaciar carrito
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Lista de platillos */}
@@ -128,29 +130,33 @@ export const RestaurantePasoArticulos = ({
                                     <div className="flex items-center justify-between gap-4 sm:justify-end">
                                         {/* Control de cantidad */}
                                         <div className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 p-1">
-                                            <button
+                                            <Button
                                                 type="button"
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() =>
                                                     disminuirItem(plato.id)
                                                 }
-                                                className="flex size-7 cursor-pointer items-center justify-center rounded-full text-foreground transition-all hover:bg-card"
+                                                className="flex size-7 cursor-pointer items-center justify-center rounded-full p-0 text-foreground transition-all hover:bg-card"
                                                 aria-label="Disminuir cantidad"
                                             >
                                                 <Minus className="size-3.5" />
-                                            </button>
+                                            </Button>
                                             <span className="w-6 text-center text-xs font-black">
                                                 {cantidad}
                                             </span>
-                                            <button
+                                            <Button
                                                 type="button"
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() =>
                                                     agregarItem(plato)
                                                 }
-                                                className="flex size-7 cursor-pointer items-center justify-center rounded-full text-foreground transition-all hover:bg-card"
+                                                className="flex size-7 cursor-pointer items-center justify-center rounded-full p-0 text-foreground transition-all hover:bg-card"
                                                 aria-label="Aumentar cantidad"
                                             >
                                                 <Plus className="size-3.5" />
-                                            </button>
+                                            </Button>
                                         </div>
 
                                         <div className="min-w-[70px] text-right">
@@ -159,16 +165,18 @@ export const RestaurantePasoArticulos = ({
                                             </span>
                                         </div>
 
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="ghost"
+                                            size="icon"
                                             onClick={() =>
                                                 eliminarItem(plato.id)
                                             }
-                                            className="cursor-pointer p-1.5 text-muted-foreground/60 transition-colors hover:text-rose-500"
+                                            className="size-8 cursor-pointer p-1.5 text-muted-foreground/60 transition-colors hover:text-rose-500"
                                             title="Eliminar del pedido"
                                         >
                                             <Trash2 className="size-4" />
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
 
@@ -178,15 +186,17 @@ export const RestaurantePasoArticulos = ({
                                         <span className="italic">
                                             💬 Nota chef: &quot;{notas}&quot;
                                         </span>
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="link"
+                                            size="sm"
                                             onClick={() =>
                                                 setPlatoEditandoNota(plato.id)
                                             }
-                                            className="ml-2 cursor-pointer text-[11px] font-bold text-primary hover:underline"
+                                            className="ml-2 h-auto cursor-pointer p-0 text-[11px] font-bold text-primary hover:underline"
                                         >
                                             Modificar
-                                        </button>
+                                        </Button>
                                     </div>
                                 )}
 
@@ -230,19 +240,21 @@ export const RestaurantePasoArticulos = ({
                                     </div>
                                 ) : (
                                     !notas && (
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() =>
                                                 setPlatoEditandoNota(plato.id)
                                             }
-                                            className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-primary"
+                                            className="inline-flex h-auto cursor-pointer items-center gap-1 p-0 text-[11px] font-medium text-muted-foreground transition-colors hover:text-primary"
                                         >
                                             <MessageSquareQuote className="size-3.5" />
                                             <span>
                                                 + Añadir nota para cocina
                                                 (término, aderezos, alergias)
                                             </span>
-                                        </button>
+                                        </Button>
                                     )
                                 )}
                             </div>

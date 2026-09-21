@@ -84,13 +84,27 @@ final readonly class ProcesarCobroCuenta
             $venta = null;
             if ($saldoRestante <= 0) {
                 $tipoComprobante = $data['tipo_comprobante'] ?? 'voucher';
-                $ruc = $data['ruc_factura'] ?? null;
-                $razonSocial = $data['razon_social_factura'] ?? null;
+                $ruc = is_string($data['ruc_factura'] ?? null) && trim($data['ruc_factura']) !== '' ? trim($data['ruc_factura']) : null;
+                $razonSocial = is_string($data['razon_social_factura'] ?? null) && trim($data['razon_social_factura']) !== '' ? trim($data['razon_social_factura']) : null;
+
+                if (($ruc === null || $razonSocial === null) && $cuenta->cliente?->persona !== null) {
+                    $persona = $cuenta->cliente->persona;
+                    if ($ruc === null) {
+                        $ruc = $persona->personaJuridica !== null
+                            ? $persona->personaJuridica->numero_identificacion
+                            : $persona->personaNatural?->numero_identificacion;
+                    }
+                    if ($razonSocial === null) {
+                        $razonSocial = $persona->personaJuridica !== null
+                            ? $persona->personaJuridica->razon_social
+                            : $persona->nombre_completo;
+                    }
+                }
 
                 $datosFiscales = [
                     'tipo_comprobante' => is_string($tipoComprobante) ? $tipoComprobante : 'voucher',
-                    'ruc' => is_string($ruc) ? $ruc : null,
-                    'razon_social' => is_string($razonSocial) ? $razonSocial : null,
+                    'ruc' => $ruc,
+                    'razon_social' => $razonSocial,
                     'fecha_emision' => now()->toIso8601String(),
                 ];
 

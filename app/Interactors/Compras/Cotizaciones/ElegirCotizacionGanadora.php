@@ -4,41 +4,27 @@ declare(strict_types=1);
 
 namespace App\Interactors\Compras\Cotizaciones;
 
-use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Persistencia\Compras\CotizacionRepositorioInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-final class ElegirCotizacionGanadora
+final readonly class ElegirCotizacionGanadora
 {
     public function __construct(
-        private readonly ActualizarEstadosCotizacionesSolicitud $actualizarEstados,
+        private ActualizarEstadosCotizacionesSolicitud $actualizarEstados,
+        private CotizacionRepositorioInterface $cotizacionRepositorio,
     ) {}
 
     public function ejecutar(int $cotizacionId): void
     {
         DB::transaction(function () use ($cotizacionId) {
-            $cotizacion = Cotizacion::findOrFail($cotizacionId);
-            $solicitudId = $cotizacion->solicitud_id;
+            $cotizacion = $this->cotizacionRepositorio->buscarPorId($cotizacionId);
+            $solicitudId = (int) $cotizacion->solicitud_id;
 
-            Cotizacion::where('solicitud_id', $solicitudId)->update([
-                'es_elegida' => false,
-                'elegida_por' => null,
-                'elegida_en' => null,
-            ]);
+            $userId = Auth::id();
+            $userIdInt = is_numeric($userId) ? (int) $userId : null;
 
-            DB::table('cotizacion_items')
-                ->whereIn('cotizacion_id', function ($query) use ($solicitudId) {
-                    $query->select('id')->from('cotizaciones')->where('solicitud_id', $solicitudId);
-                })
-                ->update(['es_elegido' => false]);
-
-            $cotizacion->update([
-                'es_elegida' => true,
-                'elegida_por' => Auth::id(),
-                'elegida_en' => now(),
-            ]);
-
-            $cotizacion->items()->update(['es_elegido' => true]);
+            $this->cotizacionRepositorio->marcarGanadora($cotizacion, $solicitudId, $userIdInt);
 
             $this->actualizarEstados->ejecutar($solicitudId);
         });

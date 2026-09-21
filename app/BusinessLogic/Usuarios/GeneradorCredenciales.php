@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\BusinessLogic\Usuarios;
 
 use App\Repository\Models\Personas\Persona;
-use App\Repository\Models\User;
+use App\Repository\Queries\Usuarios\BuscarUsuarioCuentaQuery;
 
-class GeneradorCredenciales
+final readonly class GeneradorCredenciales
 {
     private const ACCENT_MAP = [
         'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
@@ -15,13 +15,17 @@ class GeneradorCredenciales
         'ñ' => 'n', 'Ñ' => 'n',
     ];
 
+    public function __construct(
+        private BuscarUsuarioCuentaQuery $usuarioQuery,
+    ) {}
+
     /** @return array{name: string, email: string} */
     public function generar(Persona $persona): array
     {
         $primerNombre = str_replace(
             array_keys(self::ACCENT_MAP),
             array_values(self::ACCENT_MAP),
-            mb_strtolower($persona->primer_nombre)
+            mb_strtolower($persona->primer_nombre ?? 'usuario')
         );
 
         $primerApellido = str_replace(
@@ -35,7 +39,7 @@ class GeneradorCredenciales
         $username = $base;
         $counter = 1;
 
-        while (User::query()->where('name', $username)->exists()) {
+        while ($this->usuarioQuery->existePorName($username)) {
             $username = $base.$counter;
             $counter++;
         }

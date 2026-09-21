@@ -31,8 +31,13 @@ final readonly class AutorizarSustitucionIngrediente
             throw new DomainException('La variante sustituta debe ser diferente al ingrediente original.');
         }
 
-        $varianteOriginal = ProductoVariante::query()->with('producto')->findOrFail($varianteOriginalId);
-        $varianteSustituta = ProductoVariante::query()->with('producto')->findOrFail($varianteSustitutaId);
+        $varianteOriginal = $this->repositorio->obtenerVarianteConProducto($varianteOriginalId);
+        $varianteSustituta = $this->repositorio->obtenerVarianteConProducto($varianteSustitutaId);
+
+        if (! $varianteOriginal || ! $varianteSustituta) {
+            throw new DomainException('Las variantes especificadas no existen.');
+        }
+
         $cantidad = round($cantidadUsada ?? $cantidadRequerida, 4);
 
         if ($cantidad <= 0) {
@@ -64,14 +69,9 @@ final readonly class AutorizarSustitucionIngrediente
                 ));
             }
 
-            SustitucionIngrediente::query()
-                ->where('pedido_item_id', $item->id)
-                ->where('variante_original_id', $varianteOriginal->id)
-                ->where('estado', 1)
-                ->update(['estado' => 0]);
+            $this->repositorio->desactivarSustitucionesActivas((int) $item->id, (int) $varianteOriginal->id);
 
-            /** @var SustitucionIngrediente $sustitucion */
-            $sustitucion = SustitucionIngrediente::query()->create([
+            $sustitucion = $this->repositorio->crearSustitucionIngrediente([
                 'pedido_item_id' => $item->id,
                 'plato_id' => $item->plato_id,
                 'producto_original_id' => $varianteOriginal->producto_id,

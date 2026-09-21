@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Interactors\Cuentas\Gestion;
 
-use App\Enums\Shared\EstadoGeneral;
+use App\BusinessLogic\Cuentas\Calculos\CalcularDivisionEquitativaCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
+use App\Repository\Models\Cuentas\CuentaDetalle;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +21,8 @@ final readonly class DividirCuenta
     public function __construct(
         private AbrirCuenta $abrirCuenta,
         private RecalcularCuenta $recalcularCuenta,
+        private CalcularDivisionEquitativaCuenta $calcularDivision,
+        private CuentaRepositorioInterface $cuentaRepositorio,
     ) {}
 
     /**
@@ -38,31 +42,7 @@ final readonly class DividirCuenta
      */
     public function ejecutarFraccionado(Cuenta $cuenta, int $partes): array
     {
-        if ($partes < 2) {
-            throw new DomainException('La cantidad de separaciones debe ser al menos 2 partes.');
-        }
-
-        $saldo = (float) $cuenta->saldo;
-        if ($saldo <= 0) {
-            throw new DomainException('La cuenta no posee saldo pendiente para dividir.');
-        }
-
-        $montoBasePorParte = round($saldo / $partes, 2);
-        $diferenciaCentavos = round($saldo - ($montoBasePorParte * $partes), 2);
-
-        $resultado = [];
-        for ($i = 1; $i <= $partes; $i++) {
-            // Ajustar la última parte con cualquier sobrante por redondeo de centavos
-            $montoParte = ($i === $partes) ? round($montoBasePorParte + $diferenciaCentavos, 2) : $montoBasePorParte;
-
-            $resultado[] = [
-                'parte' => $i,
-                'subtotal' => round($montoParte, 2),
-                'monto_total' => round($montoParte, 2),
-            ];
-        }
-
-        return $resultado;
+        return $this->calcularDivision->calcular((float) $cuenta->saldo, $partes);
     }
 
     /**
@@ -84,10 +64,7 @@ final readonly class DividirCuenta
         }
 
         return DB::transaction(function () use ($cuentaOrigen, $detallesIds, $usuarioId): array {
-            $detallesMover = $cuentaOrigen->detalles()
-                ->whereIn('id', $detallesIds)
-                ->where('estado', EstadoGeneral::Activo->value)
-                ->get();
+            $detallesMover = $this->cuentaRepositorio->obtenerDetallesActivosPorIds($cuentaOrigen, $detallesIds);
 
             if ($detallesMover->isEmpty()) {
                 throw new DomainException('No se encontraron ítems válidos para transferir a la nueva cuenta.');
@@ -104,11 +81,8 @@ final readonly class DividirCuenta
             );
 
             // Reasignar los detalles a la nueva cuenta
-            foreach ($detallesMover as $detalle) {
-                $detalle->update([
-                    'cuenta_id' => $nuevaCuenta->id,
-                ]);
-            }
+            $detallesIdsMover = $detallesMover->map(fn (CuentaDetalle $d): int => (int) $d->id)->all();
+            $this->cuentaRepositorio->reasignarDetallesACuenta($detallesIdsMover, (int) $nuevaCuenta->id);
 
             // Recalcular ambas cuentas
             $origenRecalculada = $this->recalcularCuenta->ejecutar($cuentaOrigen, $usuarioId);

@@ -24,6 +24,11 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
             '¿Estás seguro de que deseas cancelar esta reserva? El reembolso se calculará y procesará de forma automática según la política de cancelación.',
     });
 
+    const esRestaurante =
+        reserva.tipo_reserva === 'restaurante' ||
+        reserva.recurso.categoria.toLowerCase().includes('mesa') ||
+        reserva.recurso.categoria.toLowerCase().includes('restaurante');
+
     const handleCancelarReserva = () => {
         cancelarReserva(reserva.id, reserva.codigo_reserva);
     };
@@ -57,7 +62,19 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
                                 <span className="font-mono text-xs font-bold text-primary">
                                     #{reserva.codigo_reserva}
                                 </span>
-                                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
+                                <span
+                                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                                        esRestaurante
+                                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                            : 'bg-primary/10 text-primary'
+                                    }`}
+                                >
+                                    {reserva.tipo_reserva_label ||
+                                        (esRestaurante
+                                            ? 'Restaurante'
+                                            : 'Habitación')}
+                                </span>
+                                <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-bold text-foreground">
                                     {reserva.estado_label}
                                 </span>
                             </div>
@@ -81,16 +98,29 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
                             <span>Descargar Voucher PDF</span>
                         </a>
 
-                        <Link
-                            href={`/portal/reservas/${reserva.id}/servicios`}
-                            className={buttonVariants({
-                                className:
-                                    'gap-2 rounded-xl text-xs font-bold shadow-sm',
-                            })}
-                        >
-                            <UtensilsCrossed className="size-4" />
-                            <span>Pedir Servicios</span>
-                        </Link>
+                        {!esRestaurante ? (
+                            <Link
+                                href={`/portal/reservas/${reserva.id}/servicios`}
+                                className={buttonVariants({
+                                    className:
+                                        'gap-2 rounded-xl text-xs font-bold shadow-sm',
+                                })}
+                            >
+                                <UtensilsCrossed className="size-4" />
+                                <span>Pedir Servicios</span>
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/portal/pedidos"
+                                className={buttonVariants({
+                                    className:
+                                        'gap-2 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm hover:bg-amber-700',
+                                })}
+                            >
+                                <UtensilsCrossed className="size-4" />
+                                <span>Ver Menú & Pedidos</span>
+                            </Link>
+                        )}
                     </div>
                 </div>
 
@@ -102,18 +132,20 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
                         <EstadoCuentaCard reserva={reserva} />
                     </div>
 
-                    {/* Barra lateral de información y acompañantes (1 columna) */}
+                    {/* Barra lateral de información y comensales / acompañantes */}
                     <div className="space-y-6">
-                        {/* Tarjeta de fechas y huésped titular */}
+                        {/* Tarjeta de fechas y titular */}
                         <div className="space-y-4 rounded-3xl border border-border/70 bg-card p-6 shadow-xs">
                             <h4 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                                Datos de la Reserva
+                                {esRestaurante
+                                    ? 'Datos de la Reserva de Mesa'
+                                    : 'Datos de la Estancia'}
                             </h4>
 
                             <div className="space-y-3 text-xs">
                                 <div>
                                     <span className="block text-muted-foreground">
-                                        Huésped Titular
+                                        Titular de la Reserva
                                     </span>
                                     <strong className="block text-sm font-bold text-foreground">
                                         {reserva.nombre_cliente}
@@ -125,19 +157,31 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
 
                                 <div className="border-t border-border/40 pt-2.5">
                                     <span className="block text-muted-foreground">
-                                        Estancia
+                                        {esRestaurante
+                                            ? 'Fecha & Horario'
+                                            : 'Fechas de Estancia'}
                                     </span>
                                     <div className="mt-0.5 flex items-center gap-1.5 font-bold text-foreground">
                                         <Calendar className="size-3.5 text-primary" />
                                         <span>
-                                            {reserva.fecha_check_in || 'N/D'} →{' '}
-                                            {reserva.fecha_check_out || 'N/D'}
+                                            {reserva.fecha_check_in || 'N/D'}
+                                            {!esRestaurante &&
+                                            reserva.fecha_check_out
+                                                ? ` → ${reserva.fecha_check_out}`
+                                                : ''}
                                         </span>
                                     </div>
-                                    <span className="text-[11px] text-muted-foreground">
-                                        {reserva.noches} noche
-                                        {reserva.noches > 1 ? 's' : ''}
-                                    </span>
+                                    {esRestaurante && reserva.hora_reserva && (
+                                        <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                                            Horario: {reserva.hora_reserva}
+                                        </span>
+                                    )}
+                                    {!esRestaurante && (
+                                        <span className="text-[11px] text-muted-foreground">
+                                            {reserva.noches} noche
+                                            {reserva.noches > 1 ? 's' : ''}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -7,14 +7,16 @@ namespace App\Interactors\Limpieza\Procesos;
 use App\BusinessLogic\Limpieza\Data\EnviarALavanderiaData;
 use App\BusinessLogic\Limpieza\Data\EnviarLavanderiaItemData;
 use App\Interactors\Limpieza\Lavanderia\EnviarALavanderia;
-use App\Repository\Models\Catalogos\Ubicacion;
-use App\Repository\Models\Limpieza\LavanderiaProceso;
-use App\Repository\Models\Shared\Stock as SharedStock;
+use App\Repository\Persistencia\Catalogos\UbicacionRepositorioInterface;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
+use RuntimeException;
 
-final class ProcesarEnvioBlancos
+final readonly class ProcesarEnvioBlancos
 {
     public function __construct(
-        private readonly EnviarALavanderia $enviarALavanderia,
+        private EnviarALavanderia $enviarALavanderia,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
+        private UbicacionRepositorioInterface $ubicacionRepositorio,
     ) {}
 
     /** @param array<int|string, int|float|string> $blancosEnviar */
@@ -27,7 +29,11 @@ final class ProcesarEnvioBlancos
                 continue;
             }
 
-            $sharedStock = SharedStock::where('id', $stockId)->lockForUpdate()->firstOrFail();
+            $sharedStock = $this->limpiezaRepositorio->descontarSharedStockConLock((int) $stockId, 0);
+            if (! $sharedStock) {
+                throw new RuntimeException("Stock shared #{$stockId} no encontrado.");
+            }
+
             $enviarItems[] = EnviarLavanderiaItemData::fromArray([
                 'stock_id' => $sharedStock->id,
                 'tipo' => $tipoDestino,
@@ -39,28 +45,14 @@ final class ProcesarEnvioBlancos
             return;
         }
 
-        $lavanderia = Ubicacion::where('tipo', 'lavanderia')->first();
-        $lavanderiaId = $lavanderia?->id ?: throw new \RuntimeException("No existe una ubicación de tipo 'lavanderia' configurada.");
+        $lavanderia = $this->ubicacionRepositorio->buscarActivaPorTipo('lavanderia');
+        $lavanderiaId = $lavanderia?->id ?: throw new RuntimeException("No existe una ubicación de tipo 'lavanderia' configurada.");
 
         $this->enviarALavanderia->execute(new EnviarALavanderiaData(
             items: $enviarItems,
-            ubicacionLavanderiaId: $lavanderiaId,
+            ubicacionLavanderiaId: (int) $lavanderiaId,
             creadoPorId: $usuarioId,
             notas: "Envío a lavandería desde ejecución #{$ejecucionId}"
         ));
-
-        foreach ($enviarItems as $item) {
-            $ss = SharedStock::find($item->stockId);
-            if ($ss) {
-                $productoId = $ss->variante?->producto_id ?: 0;
-                LavanderiaProceso::create([
-                    'producto_id' => $productoId,
-                    'producto_variante_id' => $ss->producto_variante_id,
-                    'lote_id' => $ss->lote_id,
-                    'cantidad' => $item->cantidad,
-                    'estado' => 'en_proceso',
-                ]);
-            }
-        }
     }
 }

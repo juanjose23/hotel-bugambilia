@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Promociones\PromocionResource\Schemas;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use App\Repository\Models\Promociones\Promocion;
+use App\Support\MonedaHelper;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -69,14 +70,14 @@ class PromocionInfolist
                             ->icon(Heroicon::Banknotes)
                             ->badge()
                             ->color('info')
-                            ->formatStateUsing(fn ($state) => $state ? "C$ {$state}" : 'Por Calcular'),
+                            ->formatStateUsing(fn ($state) => $state !== null ? MonedaHelper::formatear((float) $state) : 'Por Calcular'),
 
                         TextEntry::make('precio_final')
                             ->label('Precio Final Oferta')
                             ->icon(Heroicon::CheckBadge)
                             ->badge()
                             ->color('success')
-                            ->formatStateUsing(fn ($state) => $state !== null ? "C$ {$state}" : 'Consultar'),
+                            ->formatStateUsing(fn ($state) => $state !== null ? MonedaHelper::formatear((float) $state) : 'Consultar'),
 
                         TextEntry::make('descuento_porcentaje')
                             ->label('Descuento Porcentual')
@@ -90,7 +91,7 @@ class PromocionInfolist
                             ->icon(Heroicon::CurrencyDollar)
                             ->badge()
                             ->color('amber')
-                            ->formatStateUsing(fn ($state) => $state ? "C$ {$state}" : '-'),
+                            ->formatStateUsing(fn ($state) => $state ? MonedaHelper::formatear((float) $state) : '-'),
                     ]),
 
                 Section::make('Vigencia de la Oferta')
@@ -123,10 +124,11 @@ class PromocionInfolist
                             ->placeholder('Sin condiciones especificadas.')
                             ->columnSpanFull(),
 
-                        ImageEntry::make('imagenes.url')
+                        ImageEntry::make('imagenes')
                             ->label('Galería de Promoción')
-                            ->disk('public')
-                            ->visibility('public')
+                            ->state(fn (Promocion $record): array => $record->imagenes->sortBy('orden')->map(fn ($img): string => $img->url_completa)->values()->all())
+                            ->height(120)
+                            ->extraImgAttributes(['class' => 'rounded-lg object-cover shadow-sm'])
                             ->placeholder('Sin imágenes registradas.')
                             ->columnSpanFull(),
 

@@ -8,10 +8,10 @@ use App\BusinessLogic\Inventario\Data\Pack\DisponibilidadPackData;
 use App\BusinessLogic\Inventario\Data\Pack\ItemDisponibilidadData;
 use App\Repository\Queries\Inventario\Pack\ObtenerStockItemsPackQuery;
 
-class VerificarDisponibilidadPack
+final readonly class VerificarDisponibilidadPack
 {
     public function __construct(
-        private readonly ObtenerStockItemsPackQuery $obtenerStock,
+        private ObtenerStockItemsPackQuery $obtenerStock,
     ) {}
 
     public function ejecutar(int $productoPadreId): DisponibilidadPackData

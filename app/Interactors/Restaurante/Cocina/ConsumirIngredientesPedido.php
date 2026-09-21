@@ -103,16 +103,7 @@ final readonly class ConsumirIngredientesPedido
 
     private function sustitucionActiva(PedidoItem $item, int $varianteOriginalId): ?SustitucionIngrediente
     {
-        /** @var SustitucionIngrediente|null $sustitucion */
-        $sustitucion = SustitucionIngrediente::query()
-            ->with(['varianteSustituta.producto'])
-            ->where('pedido_item_id', $item->id)
-            ->where('variante_original_id', $varianteOriginalId)
-            ->where('estado', 1)
-            ->latest('id')
-            ->first();
-
-        return $sustitucion;
+        return $this->repositorio->obtenerSustitucionActiva((int) $item->id, $varianteOriginalId);
     }
 
     private function nombreSustitucion(SustitucionIngrediente $sustitucion): string

@@ -34,7 +34,6 @@ final class GenerarVoucherPDF
             'detalles.reservable.habitacion',
             'detalles.reservable.espacio',
             'detalles.reservable.servicio',
-            'serviciosAdicionalesItems.servicio',
             'huespedes',
             'estancia.cuenta',
             'cuentas.detalles',

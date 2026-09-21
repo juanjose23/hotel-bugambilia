@@ -9,14 +9,18 @@ use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
+use App\Repository\Models\Espacios\Espacio;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -25,8 +29,16 @@ class EspacioTable
     public function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['padre', 'ubicacion'])->whereNull('padre_id'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['padre', 'ubicacion', 'imagenes'])->whereNull('padre_id'))
             ->columns([
+                ImageColumn::make('imagen_principal')
+                    ->label('Foto')
+                    ->state(fn (Espacio $record): ?string => $record->imagenes->sortBy('orden')->first()?->url_completa)
+                    ->height(45)
+                    ->width(70)
+                    ->extraImgAttributes(['class' => 'rounded-md object-cover shadow-sm'])
+                    ->placeholder('-'),
+
                 TextColumn::make('codigo')
                     ->label('Código')
                     ->badge()
@@ -65,6 +77,11 @@ class EspacioTable
                 EstadoBadgeColumn::make(EstadoEspacio::class)
                     ->sortable(),
 
+                IconColumn::make('web')
+                    ->label('Web')
+                    ->boolean()
+                    ->sortable(),
+
                 FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -73,6 +90,8 @@ class EspacioTable
                 SelectFilter::make('tipo')
                     ->options(TipoEspacio::options()),
                 FiltroEstado::make(EstadoEspacio::class),
+                TernaryFilter::make('web')
+                    ->label('Visible en Web'),
             ])
             ->recordActions([
                 ActionGroup::make([

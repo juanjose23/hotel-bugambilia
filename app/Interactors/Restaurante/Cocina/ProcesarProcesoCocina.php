@@ -14,13 +14,13 @@ use App\Repository\Queries\Inventario\Stock\ObtenerStockParaConsumo;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 
-final class ProcesarProcesoCocina
+final readonly class ProcesarProcesoCocina
 {
     public function __construct(
-        private readonly CalcularCostoProcesoCocina $calcularCosto,
-        private readonly ObtenerStockParaConsumo $stockQuery,
-        private readonly FEFOStrategy $fefo,
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private CalcularCostoProcesoCocina $calcularCosto,
+        private ObtenerStockParaConsumo $stockQuery,
+        private FEFOStrategy $fefo,
+        private RestauranteRepositorioInterface $repositorio,
     ) {}
 
     /**

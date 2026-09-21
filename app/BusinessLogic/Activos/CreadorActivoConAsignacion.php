@@ -14,14 +14,14 @@ use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
 use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
 use App\Repository\Queries\Catalogos\ObtenerUbicacionAlmacen;
 
-class CreadorActivoConAsignacion
+final readonly class CreadorActivoConAsignacion
 {
     public function __construct(
-        private readonly ActivoRepositorioInterface $activoRepositorio,
-        private readonly ActivoAsignacionRepositorioInterface $asignacionRepositorio,
-        private readonly StockRepositorioInterface $stockRepositorio,
-        private readonly MovimientoStockRepositorioInterface $movimientoStockRepositorio,
-        private readonly ObtenerUbicacionAlmacen $obtenerAlmacen,
+        private ActivoRepositorioInterface $activoRepositorio,
+        private ActivoAsignacionRepositorioInterface $asignacionRepositorio,
+        private StockRepositorioInterface $stockRepositorio,
+        private MovimientoStockRepositorioInterface $movimientoStockRepositorio,
+        private ObtenerUbicacionAlmacen $obtenerAlmacen,
     ) {}
 
     public function execute(

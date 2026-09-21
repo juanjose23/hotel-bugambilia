@@ -60,7 +60,7 @@
 
                     <x-filament::dropdown.list.item
                         icon="heroicon-o-arrow-right-circle"
-                        x-on:click="$wire.set('mesaSeleccionadaId', {{ $mesa->id }}); $dispatch('open-modal', { id: 'modal-mover-cuenta' })"
+                        x-on:click="$wire.mountAction('moverCuenta', { mesa_origen_id: {{ $mesa->id }} })"
                         :disabled="! $tienePedidos"
                     >
                         Mover de mesa
@@ -108,7 +108,16 @@
     </div>
 
     {{-- Acciones contextuales según estado usando Filament UI Buttons --}}
-    @if ($estadoActual === 6 || $estadoActual === 3)
+    @if ($mesa->tipo === \App\Enums\HabitacionesEspacios\TipoEspacio::MESA && $mesa->tiene_activo_asignado === false)
+        <div class="rounded-xl border border-rose-200 bg-rose-50/80 p-2.5 text-center dark:border-rose-900/50 dark:bg-rose-950/40">
+            <p class="text-xs font-bold text-rose-700 dark:text-rose-300">
+                Mesa sin mobiliario físico
+            </p>
+            <p class="mt-0.5 text-[10px] text-rose-600/80 dark:text-rose-400/80">
+                Asigne un activo fijo en la ficha del espacio para poder habilitar comandas.
+            </p>
+        </div>
+    @elseif ($estadoActual === 6 || $estadoActual === 3)
         {{-- En Limpieza / Pendiente Limpieza --}}
         <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <x-filament::button

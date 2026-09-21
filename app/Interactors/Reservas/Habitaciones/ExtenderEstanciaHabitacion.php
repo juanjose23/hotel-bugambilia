@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interactors\Reservas\Habitaciones;
 
+use App\BusinessLogic\Reservas\Calculos\RecalcularTotalesReservaHabitacion;
 use App\BusinessLogic\Reservas\Data\ExtenderEstanciaData;
-use App\BusinessLogic\Reservas\RecalcularTotalesReservaHabitacion;
-use App\BusinessLogic\Reservas\ValidarDisponibilidadHabitacion;
+use App\BusinessLogic\Reservas\Validaciones\ValidarDisponibilidadHabitacion;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Events\Reservas\EstanciaHabitacionExtendida;
 use App\Repository\Models\Estancias\Estancia;

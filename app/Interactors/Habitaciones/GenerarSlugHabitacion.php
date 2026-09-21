@@ -7,7 +7,7 @@ namespace App\Interactors\Habitaciones;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
 use Illuminate\Support\Str;
 
-class GenerarSlugHabitacion
+final class GenerarSlugHabitacion
 {
     public function __construct(
         private readonly HabitacionRepositorioInterface $repositorio

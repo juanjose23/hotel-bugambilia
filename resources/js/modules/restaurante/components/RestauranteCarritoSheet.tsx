@@ -79,13 +79,15 @@ export const RestauranteCarritoSheet = ({
                                 <span className="text-xs font-black tracking-wider text-muted-foreground uppercase">
                                     Platillos Seleccionados ({items.length})
                                 </span>
-                                <button
+                                <Button
                                     type="button"
+                                    variant="link"
+                                    size="sm"
                                     onClick={vaciarCarrito}
-                                    className="cursor-pointer text-[11px] font-bold text-rose-500 hover:underline"
+                                    className="h-auto cursor-pointer p-0 text-[11px] font-bold text-rose-500 hover:underline"
                                 >
                                     Vaciar todo
-                                </button>
+                                </Button>
                             </div>
 
                             <div className="max-h-80 space-y-3 overflow-y-auto py-3 pr-1">

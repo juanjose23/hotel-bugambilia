@@ -14,6 +14,7 @@ final class ObtenerPlanesMantenimientoPreventivosActivos
     public function ejecutar(): Collection
     {
         return ActPlanMantenimiento::query()
+            ->with('activos')
             ->where('tipo', 'preventivo')
             ->where('estado', EstadoPlanMantenimiento::Activo)
             ->whereNotNull('frecuencia_dias')

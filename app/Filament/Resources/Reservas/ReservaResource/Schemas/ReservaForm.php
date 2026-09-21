@@ -18,11 +18,7 @@ use App\Filament\Resources\Reservas\Schemas\Reserva\Servicio\EsquemaReservaServi
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
-use Filament\Schemas\Components\Wizard;
-use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\HtmlString;
 
 class ReservaForm
 {
@@ -31,74 +27,76 @@ class ReservaForm
         return $schema
             ->columns(1)
             ->components([
+                // Aviso de pago pendiente en edición
                 Callout::make('Pago del 50 % pendiente')
                     ->description('Esta reserva aún no está pagada. Tiene que abonar el 50 % del total antes de confirmar la reserva.')
                     ->warning()
                     ->visibleOn('edit')
                     ->visible(fn ($record): bool => $record !== null && $record->tipo_pago !== TipoPagoReserva::PAGO_COMPLETO && (float) $record->total_pagado < $record->tipo_pago->monto((float) $record->total)),
 
-                Grid::make(['default' => 1, 'xl' => 3])
+                // =====================================================================
+                // LAYOUT CREATE — panel izquierdo (detalles) + panel derecho (resumen+pago)
+                // =====================================================================
+                Grid::make(['default' => 1, 'lg' => 12])
                     ->visibleOn('create')
                     ->schema([
-                        Wizard::make([
-                            Step::make('Reserva y cliente')
-                                ->description('Tipo de reserva y datos del titular')
-                                ->icon(Heroicon::User)
-                                ->schema([
-                                    InformacionGeneralSeccion::make(),
-                                    DatosClienteSeccion::make(),
-                                ]),
+                        // --- Columna izquierda: flujo de creación ---
+                        Group::make([
+                            // 1. Tipo de reserva (ToggleButtons visual) + moneda + promoción
+                            InformacionGeneralSeccion::make(),
 
-                            Step::make('Detalle')
-                                ->description('Habitación, mesa, servicio o paquete')
-                                ->icon(Heroicon::ClipboardDocumentList)
-                                ->schema([
-                                    ...EsquemaReservaHabitacion::make(),
-                                    ...EsquemaReservaRestaurante::make(),
-                                    ...EsquemaReservaEspacio::make(),
-                                    ...EsquemaReservaServicio::make(),
-                                    SelectorServiciosAdicionales::make(),
-                                ]),
+                            // 2. Cliente / Huésped titular
+                            DatosClienteSeccion::make(),
 
-                            Step::make('Pago y confirmación')
-                                ->description('Cobro inicial y notas')
-                                ->icon(Heroicon::CreditCard)
-                                ->schema([
-                                    ResumenFinancieroYAbonoSeccion::makeCobro(),
-                                    NotasReservaSeccion::make(),
-                                ]),
+                            // 3. Campos contextuales por tipo
+                            //    Cada esquema ya maneja su propia visibilidad condicional
+                            ...EsquemaReservaHabitacion::make(),
+                            ...EsquemaReservaRestaurante::make(),
+                            ...EsquemaReservaEspacio::make(),
+                            ...EsquemaReservaServicio::make(),
+
+                            // 4. Recursos adicionales (colapsado por defecto)
+                            SelectorServiciosAdicionales::make(),
+
+                            // 5. Notas (colapsado por defecto)
+                            NotasReservaSeccion::make(),
                         ])
-                            ->columnSpan(['default' => 1, 'xl' => 2])
-                            ->submitAction(new HtmlString('
-                                <div class="flex items-center gap-x-3">
-                                    <button type="submit" class="fi-btn fi-btn-color-primary fi-btn-size-md relative inline-flex items-center justify-center font-semibold rounded-lg shadow-sm focus:outline-none bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 text-sm gap-1.5 cursor-pointer">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15A2.25 2.25 0 0 0 2.25 6.75v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
-                                        <span>Crear reserva y registrar pago</span>
-                                    </button>
-                                    <button type="button" wire:click="createAnother" class="fi-btn fi-btn-color-gray fi-btn-size-md relative inline-flex items-center justify-center font-semibold rounded-lg shadow-sm focus:outline-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 text-sm cursor-pointer">
-                                        <span>Crear y crear otro</span>
-                                    </button>
-                                    <a href="/admin/reservas" class="fi-btn fi-btn-color-gray fi-btn-size-md relative inline-flex items-center justify-center font-semibold rounded-lg shadow-sm focus:outline-none text-gray-600 dark:text-gray-400 hover:underline px-3 py-2 text-sm">
-                                        <span>Cancelar</span>
-                                    </a>
-                                </div>
-                            '))
-                            ->skippable(false),
+                            ->columnSpan(['default' => 1, 'lg' => 7, 'xl' => 8]),
 
-                        ResumenFinancieroPreviewSeccion::make(),
+                        // --- Columna derecha: resumen en vivo + cobro ---
+                        Group::make([
+                            // Resumen financiero en vivo (sticky)
+                            ResumenFinancieroPreviewSeccion::make(),
+
+                            // Cobro inicial + cargos de facturación
+                            // Mover aquí elimina el scroll para llegar al botón de crear
+                            ResumenFinancieroYAbonoSeccion::makeCobro(),
+                        ])
+                            ->columnSpan(['default' => 1, 'lg' => 5, 'xl' => 4]),
                     ]),
 
-                Group::make([
-                    InformacionGeneralSeccion::make(),
-                    DatosClienteSeccion::make(),
-                    ...EsquemaReservaHabitacion::make(),
-                    ...EsquemaReservaRestaurante::make(),
-                    ...EsquemaReservaEspacio::make(),
-                    ...EsquemaReservaServicio::make(),
-                    SelectorServiciosAdicionales::make(),
-                    ResumenFinancieroYAbonoSeccion::make(),
-                    NotasReservaSeccion::make(),
-                ])->visibleOn('edit'),
+                // =====================================================================
+                // LAYOUT EDIT — sin cambios respecto a la implementación original
+                // =====================================================================
+                Grid::make(['default' => 1, 'lg' => 12])
+                    ->visibleOn('edit')
+                    ->schema([
+                        Group::make([
+                            InformacionGeneralSeccion::make(),
+                            DatosClienteSeccion::make(),
+                            ...EsquemaReservaHabitacion::make(),
+                            ...EsquemaReservaRestaurante::make(),
+                            ...EsquemaReservaEspacio::make(),
+                            ...EsquemaReservaServicio::make(),
+                            SelectorServiciosAdicionales::make(),
+                            ResumenFinancieroYAbonoSeccion::make(),
+                            NotasReservaSeccion::make(),
+                        ])
+                            ->columnSpan(['default' => 1, 'lg' => 7, 'xl' => 8]),
+
+                        ResumenFinancieroPreviewSeccion::make()
+                            ->columnSpan(['default' => 1, 'lg' => 5, 'xl' => 4]),
+                    ]),
             ]);
     }
 }

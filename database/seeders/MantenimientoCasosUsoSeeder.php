@@ -8,11 +8,14 @@ use App\Enums\Activos\EstadoActivo;
 use App\Enums\Activos\EstadoMantenimiento;
 use App\Enums\Activos\EstadoPlanMantenimiento;
 use App\Enums\Activos\TipoMantenimiento;
-use App\Models\Activos\Activo;
-use App\Models\Activos\ActPlanMantenimiento;
-use App\Models\Catalogos\Catalogo;
-use App\Models\Catalogos\Producto;
-use App\Models\User;
+use App\Interactors\Activos\Gestion\AsignarActivo;
+use App\Repository\Models\Activos\Activo;
+use App\Repository\Models\Activos\ActPlanMantenimiento;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -51,12 +54,20 @@ class MantenimientoCasosUsoSeeder extends Seeder
             return;
         }
 
-        $producto = Producto::create([
-            'categoria_id' => $categoria->id,
-            'nombre' => 'Equipo de Climatización Industrial',
-            'tipo' => 3, // Activo Fijo
-            'estado' => 1,
-        ]);
+        $producto = Producto::firstOrCreate(
+            ['nombre' => 'Equipo de Climatización Industrial'],
+            [
+                'categoria_id' => $categoria->id,
+                'tipo' => 3, // Activo Fijo
+                'estado' => 1,
+            ]
+        );
+
+        if (ActPlanMantenimiento::where('nombre', 'Plan de Mantenimiento Mensual Generador Eléctrico')->exists()) {
+            $this->command->info('Casos de uso de mantenimiento ya sembrados.');
+
+            return;
+        }
 
         // ====================================================================
         // CASO 1: Activo con garantía próxima a vencer (10 días)
@@ -70,6 +81,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'estado' => EstadoActivo::Activo,
         ]);
         $this->command->info("Caso Garantía Vence en 10 días: {$activoGarantia->codigo_inventario}");
+        $this->asignarActivo($activoGarantia, $admin, 'Lobby', 'Climatización central del lobby');
 
         // ====================================================================
         // CASO 2: Plan preventivo vencido (debe gatillar VerificarMantenimientosPreventivosJob)
@@ -93,6 +105,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
         ]);
         $plan->activos()->attach($activoPlan->id);
         $this->command->info(" Caso Plan Preventivo Vencido creado: '{$plan->nombre}'");
+        $this->asignarActivo($activoPlan, $admin, 'Cuarto de Máquinas', 'Respaldo eléctrico de emergencia');
 
         // ====================================================================
         // CASO 3: Ventana exacta: 7 días antes
@@ -112,6 +125,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'realizado_por_id' => $tecnico->id,
         ]);
         $this->command->info(' Caso Notificación Proxima (7 días) creado.');
+        $this->asignarActivo($activoProximo7, $admin, '101', 'Aire acondicionado de habitación');
 
         // ====================================================================
         // CASO 4: Ventana exacta: 3 días antes
@@ -131,6 +145,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'realizado_por_id' => $tecnico->id,
         ]);
         $this->command->info(' Caso Notificación Proxima (3 días) creado.');
+        $this->asignarActivo($activoProximo3, $admin, '102', 'Aire acondicionado de habitación');
 
         // ====================================================================
         // CASO 5: Ventana exacta: 1 día antes
@@ -150,6 +165,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'realizado_por_id' => $tecnico->id,
         ]);
         $this->command->info(' Caso Notificación Proxima (1 día) creado.');
+        $this->asignarActivo($activoProximo1, $admin, '103', 'Aire acondicionado de habitación');
 
         // ====================================================================
         // CASO 6: Ventana exacta: Mismo día (hoy)
@@ -169,6 +185,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'realizado_por_id' => $tecnico->id,
         ]);
         $this->command->info(' Caso Notificación (Hoy) creado.');
+        $this->asignarActivo($activoHoy, $admin, '104', 'Aire acondicionado de habitación');
 
         // ====================================================================
         // CASO 7: Mantenimiento vencido por 1 día
@@ -188,6 +205,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'realizado_por_id' => $tecnico->id,
         ]);
         $this->command->info('Caso Retrasado (1 día) creado.');
+        $this->asignarActivo($activoVencido, $admin, 'Lobby', 'Filtros de aire del lobby');
 
         // ====================================================================
         // CASO 8: Mantenimiento Crítico vencido por 8 días
@@ -207,6 +225,7 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'realizado_por_id' => $tecnico->id,
         ]);
         $this->command->info(' Caso Crítico (Vencido hace 8 días) creado.');
+        $this->asignarActivo($activoCritico, $admin, 'Cuarto de Máquinas', 'Caldera central de agua caliente');
 
         // ====================================================================
         // CASO 9: Mantenimiento en curso y prolongado por 20 días
@@ -226,5 +245,34 @@ class MantenimientoCasosUsoSeeder extends Seeder
             'realizado_por_id' => $tecnico->id,
         ]);
         $this->command->info(' Caso Mantenimiento Prolongado (En Proceso, 20 días) creado.');
+        $this->asignarActivo($activoProlongado, $admin, 'Edificio Principal', 'Ascensor principal de clientes (en mantenimiento)');
+    }
+
+    /**
+     * Asigna un activo al destino físico que lo usa, resolviéndolo por
+     * número de habitación o por nombre de Ubicación. Usa el interactor
+     * AsignarActivo para mantener la regla de negocio de una sola
+     * asignación vigente por activo.
+     */
+    private function asignarActivo(Activo $activo, User $admin, string $destino, string $motivo): void
+    {
+        $destinoModel = Habitacion::query()->where('numero', (int) $destino)->first()
+            ?? Ubicacion::query()->where('nombre', 'like', '%'.$destino.'%')->first();
+
+        if (! $destinoModel) {
+            $this->command->warn("No se encontró destino '{$destino}' para {$activo->codigo_inventario}.");
+
+            return;
+        }
+
+        app(AsignarActivo::class)->ejecutar(
+            activoId: $activo->id,
+            asignableType: $destinoModel::class,
+            asignableId: $destinoModel->id,
+            userId: $admin->id,
+            motivo: $motivo,
+        );
+
+        $this->command->info("Asignado {$activo->codigo_inventario} → {$destinoModel->nombre}.");
     }
 }

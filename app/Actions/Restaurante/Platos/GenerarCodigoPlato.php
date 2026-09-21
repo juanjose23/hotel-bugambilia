@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Actions\Restaurante\Platos;
 
+use App\Actions\Shared\GenerarCorrelativoCodigoAction;
 use App\Repository\Models\Restaurante\Plato;
-use App\Services\Shared\GeneradorCodigoService;
 
-final class GenerarCodigoPlato
+final readonly class GenerarCodigoPlato
 {
     public function __construct(
-        private readonly GeneradorCodigoService $generadorCodigo
+        private GenerarCorrelativoCodigoAction $generadorCodigo,
     ) {}
 
     public function ejecutar(): string
     {
-        return $this->generadorCodigo->generarCorrelativo('PLT', Plato::class, 'codigo');
+        return $this->generadorCodigo->ejecutar('PLT', Plato::class, 'codigo');
     }
 }

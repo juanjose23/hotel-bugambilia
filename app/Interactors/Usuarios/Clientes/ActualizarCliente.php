@@ -7,12 +7,14 @@ namespace App\Interactors\Usuarios\Clientes;
 use App\Interactors\Usuarios\Identidad\ActualizarDatosPersona;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Personas\Persona;
+use App\Repository\Persistencia\Usuarios\ClientePersistencia;
 use Illuminate\Support\Facades\DB;
 
-final class ActualizarCliente
+final readonly class ActualizarCliente
 {
     public function __construct(
-        private readonly ActualizarDatosPersona $actualizarPersona,
+        private ActualizarDatosPersona $actualizarPersona,
+        private ClientePersistencia $clientePersistencia,
     ) {}
 
     /**
@@ -29,21 +31,7 @@ final class ActualizarCliente
                 $this->actualizarPersona->ejecutar($persona, $datos);
             }
 
-            if (array_key_exists('catalogo_id', $datos)) {
-                $cliente->update(['catalogo_id' => $datos['catalogo_id']]);
-            }
-
-            if (array_key_exists('estado', $datos)) {
-                $cliente->update(['estado' => $datos['estado']]);
-            }
-
-            $refrescado = $cliente->fresh();
-
-            if (! $refrescado instanceof Cliente) {
-                throw new \RuntimeException('No se pudo refrescar el cliente.');
-            }
-
-            return $refrescado;
+            return $this->clientePersistencia->actualizar($cliente, $datos);
         });
     }
 }

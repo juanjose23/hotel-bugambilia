@@ -17,12 +17,12 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class AplicarDescuentoCuenta
+final readonly class AplicarDescuentoCuenta
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly CuentaRepositorioInterface $cuentas,
-        private readonly RecalcularCuenta $recalcularCuenta,
+        private RestauranteRepositorioInterface $repositorio,
+        private CuentaRepositorioInterface $cuentas,
+        private RecalcularCuenta $recalcularCuenta,
     ) {}
 
     public function ejecutar(

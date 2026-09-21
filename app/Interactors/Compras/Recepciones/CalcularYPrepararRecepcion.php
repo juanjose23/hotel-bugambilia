@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Interactors\Compras\Recepciones;
 
 use App\Enums\Compras\EstadoRecepcion;
-use App\Repository\Models\Compras\OrdenCompraItem;
+use App\Repository\Persistencia\Compras\RecepcionRepositorioInterface;
 
-final class CalcularYPrepararRecepcion
+final readonly class CalcularYPrepararRecepcion
 {
     public function __construct(
-        private readonly GenerarCodigoRecepcion $generarCodigo,
+        private GenerarCodigoRecepcion $generarCodigo,
+        private RecepcionRepositorioInterface $recepcionRepositorio,
     ) {}
 
     /**
@@ -31,9 +32,12 @@ final class CalcularYPrepararRecepcion
         foreach ($itemsData as $i => $item) {
             $item = (array) $item;
 
-            /** @var OrdenCompraItem $ordenItem */
-            $ordenItem = OrdenCompraItem::withSum('recepcionItems', 'cantidad_recibida')
-                ->findOrFail(is_numeric($item['orden_item_id'] ?? null) ? (int) $item['orden_item_id'] : 0);
+            $ordenItemId = is_numeric($item['orden_item_id'] ?? null) ? (int) $item['orden_item_id'] : 0;
+            $ordenItem = $this->recepcionRepositorio->buscarOrdenCompraItemConSumaRecepcion($ordenItemId);
+
+            if (! $ordenItem) {
+                throw new \InvalidArgumentException("Ítem de orden #{$ordenItemId} no encontrado.");
+            }
 
             $alreadyReceived = is_numeric($ordenItem->recepcion_items_sum_cantidad_recibida ?? null)
                 ? (float) $ordenItem->recepcion_items_sum_cantidad_recibida

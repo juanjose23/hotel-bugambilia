@@ -4,20 +4,30 @@ declare(strict_types=1);
 
 namespace App\Interactors\Inventario\Lotes;
 
-use App\Enums\Inventario\EstadoLote;
 use App\Notifications\Inventario\NotificadorInventario;
-use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\Lote;
-use App\Repository\Models\Inventario\MovimientoStock;
-use App\Repository\Models\Inventario\Stock;
+use App\Repository\Persistencia\Catalogos\UbicacionRepositorioInterface;
+use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
+use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
+use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
+use Illuminate\Database\Eloquent\Collection;
 
-class VerificarCaducidades
+final readonly class VerificarCaducidades
 {
     public function __construct(
-        private readonly NotificadorInventario $notificador,
+        private NotificadorInventario $notificador,
+        private LoteRepositorioInterface $loteRepositorio,
+        private StockRepositorioInterface $stockRepositorio,
+        private MovimientoStockRepositorioInterface $movimientoStockRepositorio,
+        private UbicacionRepositorioInterface $ubicacionRepositorio,
     ) {}
 
     public function execute(): void
+    {
+        $this->ejecutar();
+    }
+
+    public function ejecutar(): void
     {
         $this->procesarVencidos();
         $this->notificarProximos();
@@ -25,63 +35,50 @@ class VerificarCaducidades
 
     private function procesarVencidos(): void
     {
-        $ubicacionMerma = Ubicacion::query()
-            ->where('tipo', 'zona')
-            ->where('nombre', 'like', '%merma%')
-            ->orWhere('descripcion', 'like', '%merma%')
-            ->first();
+        $ubicacionMerma = $this->ubicacionRepositorio->buscarMerma();
 
-        Lote::query()
-            ->whereIn('estado', [EstadoLote::Disponible, EstadoLote::Cuarentena])
-            ->where('cantidad_disponible', '>', 0)
-            ->whereNotNull('fecha_vencimiento')
-            ->where('fecha_vencimiento', '<=', now()->toDateString())
-            ->chunkById(200, function ($vencidos) use ($ubicacionMerma) {
-                $ids = $vencidos->pluck('id')->toArray();
+        $this->loteRepositorio->procesarVencidosChunk(function (Collection $vencidos) use ($ubicacionMerma): void {
+            /** @var array<int, int> $ids */
+            $ids = $vencidos->pluck('id')->all();
 
-                Lote::query()->whereIn('id', $ids)->update([
-                    'estado' => EstadoLote::Vencido,
-                    'cantidad_disponible' => 0,
-                ]);
+            $this->loteRepositorio->marcarComoVencidos($ids);
+            $this->stockRepositorio->eliminarPorLoteIds($ids);
 
-                Stock::query()->whereIn('lote_id', $ids)->delete();
+            $movimientos = [];
+            $now = now()->toDateTimeString();
 
-                $movimientos = [];
-                $now = now()->toDateTimeString();
+            /** @var Lote $lote */
+            foreach ($vencidos as $lote) {
+                $movimientos[] = [
+                    'tipo' => 'MOV_AJUSTE',
+                    'lote_id' => $lote->id,
+                    'producto_id' => $lote->producto_id,
+                    'cantidad' => $lote->cantidad_disponible,
+                    'ubicacion_origen_id' => $lote->ubicacion_id,
+                    'ubicacion_destino_id' => $ubicacionMerma?->id,
+                    'referencia' => "Vencimiento lote {$lote->codigo_lote}",
+                    'created_at' => $now,
+                ];
 
-                foreach ($vencidos as $lote) {
-                    $movimientos[] = [
-                        'tipo' => 'MOV_AJUSTE',
-                        'lote_id' => $lote->id,
-                        'producto_id' => $lote->producto_id,
-                        'cantidad' => $lote->cantidad_disponible,
-                        'ubicacion_origen_id' => $lote->ubicacion_id,
-                        'ubicacion_destino_id' => $ubicacionMerma?->id,
-                        'referencia' => "Vencimiento lote {$lote->codigo_lote}",
-                        'created_at' => $now,
-                    ];
+                $this->notificador->loteCaducado($lote);
+            }
 
-                    $this->notificador->loteCaducado($lote);
-                }
-
-                MovimientoStock::query()->insert($movimientos);
-            });
+            if (! empty($movimientos)) {
+                $this->movimientoStockRepositorio->insertarMuchos($movimientos);
+            }
+        });
     }
 
     private function notificarProximos(): void
     {
-        Lote::query()
-            ->where('estado', EstadoLote::Disponible)
-            ->whereNotNull('fecha_vencimiento')
-            ->where('fecha_vencimiento', '>', now()->toDateString())
-            ->where('fecha_vencimiento', '<=', now()->addDays(30)->toDateString())
-            ->chunkById(200, function ($proximos) {
-                foreach ($proximos as $lote) {
+        $this->loteRepositorio->procesarProximosAVencerChunk(30, function (Collection $proximos): void {
+            /** @var Lote $lote */
+            foreach ($proximos as $lote) {
+                if ($lote->fecha_vencimiento !== null) {
                     $dias = now()->diffInDays($lote->fecha_vencimiento);
-
                     $this->notificador->loteProximoACaducar($lote, (int) $dias);
-                    // Evitar caídas si no hay mailer configurado
                 }
-            });
+            }
+        });
     }
 }

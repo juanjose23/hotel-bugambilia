@@ -7,13 +7,13 @@ namespace App\BusinessLogic\Activos;
 use App\Enums\Activos\EstadoIndividualizacion;
 use App\Repository\Persistencia\Activos\RegistroIndividualizacionRepositorioInterface;
 
-class ProcesadorIndividualizacionCompra
+final readonly class ProcesadorIndividualizacionCompra
 {
     public function __construct(
-        private readonly RegistroIndividualizacionRepositorioInterface $registroRepositorio,
+        private RegistroIndividualizacionRepositorioInterface $registroRepositorio,
     ) {}
 
-    public function procesar(int $recepcionItemId, int $productoId, ?int $productoVarianteId, float $cantidadRecibida, int $userId): ?int
+    public function procesar(int $recepcionItemId, int $productoId, ?int $productoVarianteId, float $cantidadRecibida, int $userId): int
     {
         $registro = $this->registroRepositorio->buscarOrCreate(
             recepcionItemId: $recepcionItemId,

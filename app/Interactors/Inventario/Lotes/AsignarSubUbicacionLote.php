@@ -8,7 +8,7 @@ use App\BusinessLogic\Inventario\Servicios\ServicioSubUbicacion;
 use App\Repository\Models\Inventario\Lote;
 use Illuminate\Support\Facades\DB;
 
-class AsignarSubUbicacionLote
+final class AsignarSubUbicacionLote
 {
     public function __construct(
         private readonly Lote $modeloLote,

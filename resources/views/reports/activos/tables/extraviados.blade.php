@@ -36,7 +36,7 @@
             'labelColspan' => 2,
             'label' => 'Total Costo Extraviados:',
             'total' => $totalCosto ?? 0,
-            'monedaSimbolo' => 'C$',
+            'monedaSimbolo' => \App\Support\MonedaHelper::simbolo(),
             'count' => ($totalRegistros ?? count($items)) . ' extraviados',
         ])
     @endif

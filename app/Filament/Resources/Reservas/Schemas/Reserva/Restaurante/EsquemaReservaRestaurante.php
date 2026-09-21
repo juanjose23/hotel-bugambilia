@@ -10,6 +10,7 @@ use App\Interactors\Reservas\Operaciones\UnirMesasReserva;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Reservas\CalcularResumenRestauranteQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
+use App\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -178,7 +179,7 @@ class EsquemaReservaRestaurante
                             TextInput::make('precio_unitario')
                                 ->label('Precio Unitario')
                                 ->numeric()
-                                ->prefix('C$')
+                                ->prefix(MonedaHelper::simbolo())
                                 ->readOnly()
                                 ->columnSpan(1),
 
@@ -352,16 +353,16 @@ class EsquemaReservaRestaurante
                         ->state(fn (Get $get): string => self::resumen($get)['capacidad_total'].' persona(s)'),
                     TextEntry::make('resumen_costo_mesas_restaurante')
                         ->label('Costo de mesa(s)')
-                        ->state(fn (Get $get): string => 'C$ '.number_format(self::resumen($get)['costo_mesas'], 2)),
+                        ->state(fn (Get $get): string => MonedaHelper::formatear(self::resumen($get)['costo_mesas'])),
                     TextEntry::make('resumen_costo_preorden_restaurante')
                         ->label('Total preorden')
-                        ->state(fn (Get $get): string => 'C$ '.number_format(self::resumen($get)['costo_preorden'], 2)),
+                        ->state(fn (Get $get): string => MonedaHelper::formatear(self::resumen($get)['costo_preorden'])),
                     TextEntry::make('resumen_subtotal_restaurante')
                         ->label('Subtotal de la reserva')
-                        ->state(fn (Get $get): string => 'C$ '.number_format(self::resumen($get)['subtotal'], 2)),
+                        ->state(fn (Get $get): string => MonedaHelper::formatear(self::resumen($get)['subtotal'])),
                     TextEntry::make('resumen_abono_restaurante')
                         ->label('Abono exacto del 50 %')
-                        ->state(fn (Get $get): string => 'C$ '.number_format(self::resumen($get)['abono_50'], 2)),
+                        ->state(fn (Get $get): string => MonedaHelper::formatear(self::resumen($get)['abono_50'])),
                 ]),
         ];
     }

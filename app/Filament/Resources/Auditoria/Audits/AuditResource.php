@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Auditoria\Audits;
 
+use App\Filament\Clusters\Auditoria\AuditoriaCluster;
 use App\Filament\Resources\Auditoria\Audits\Pages\ListAudits;
 use App\Filament\Resources\Auditoria\Audits\Pages\ViewAudit;
 use App\Filament\Resources\Auditoria\Audits\Schemas\AuditInfolist;
@@ -18,15 +19,19 @@ use UnitEnum;
 
 class AuditResource extends Resource
 {
+    protected static ?string $cluster = AuditoriaCluster::class;
+
     protected static ?string $model = Audit::class;
 
-    protected static ?string $navigationLabel = 'Auditoría';
+    protected static ?string $navigationLabel = 'Auditoría de Cambios';
 
     protected static ?string $pluralModelLabel = 'Auditoría de cambios';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShieldCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
+
+    protected static ?int $navigationSort = 4;
 
     public static function infolist(Schema $schema): Schema
     {

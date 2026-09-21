@@ -11,6 +11,8 @@ interface HabitacionRepositorioInterface
 {
     public function existePorSlug(string $slug, ?int $idAIgnorar = null): bool;
 
+    public function existePorNumero(int $numero, ?int $idAIgnorar = null): bool;
+
     /** @param array<string, mixed> $datos */
     public function crear(array $datos): Habitacion;
 
@@ -18,7 +20,22 @@ interface HabitacionRepositorioInterface
 
     public function buscarPorIdConLock(int $id): Habitacion;
 
+    public function buscarPorRecursoReservableId(int $recursoReservableId): ?Habitacion;
+
     public function buscarPorRecursoReservableIdConLock(int $recursoReservableId): ?Habitacion;
 
     public function actualizarEstado(Habitacion $habitacion, EstadoEspacio $estado): void;
+
+    /** @param array<array-key, mixed> $imagenes */
+    public function sincronizarImagenes(Habitacion $habitacion, array $imagenes): void;
+
+    public function clonar(
+        Habitacion $origen,
+        int $nuevoNumero,
+        ?string $nuevoNombre = null,
+        ?string $nuevoSlug = null,
+        ?string $nuevoCodigo = null,
+    ): Habitacion;
+
+    public function generarCodigo(): string;
 }

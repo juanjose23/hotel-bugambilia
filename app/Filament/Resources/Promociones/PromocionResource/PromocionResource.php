@@ -11,6 +11,7 @@ use App\Filament\Resources\Promociones\PromocionResource\Pages\ViewPromocion;
 use App\Filament\Resources\Promociones\PromocionResource\Schemas\PromocionForm;
 use App\Filament\Resources\Promociones\PromocionResource\Schemas\PromocionInfolist;
 use App\Filament\Resources\Promociones\PromocionResource\Tables\PromocionTable;
+use App\Filament\Shared\RelationManagers\ImagenesRelationManager;
 use App\Filament\Shared\RelationManagers\PoliticasRelationManager;
 use App\Filament\Shared\RelationManagers\StocksRelationManager;
 use App\Repository\Models\Promociones\Promocion;
@@ -59,6 +60,7 @@ class PromocionResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ImagenesRelationManager::class,
             StocksRelationManager::class,
             PoliticasRelationManager::class,
         ];
