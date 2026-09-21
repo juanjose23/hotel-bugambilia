@@ -9,7 +9,7 @@ use Picqer\Barcode\BarcodeGeneratorPNG;
 final class BarcodeGenerator
 {
     /**
-     * @param  array<int, int>|null  $color
+     * @param  array{int, int, int}|null  $color
      */
     public function png(
         string $code,
@@ -20,17 +20,20 @@ final class BarcodeGenerator
     ): string {
         $generator = new BarcodeGeneratorPNG;
 
+        /** @var array{int, int, int} $foregroundColor */
+        $foregroundColor = $color ?? BarcodeColor::HOTEL;
+
         return $generator->getBarcode(
             $code,
             $type->value,
             widthFactor: $widthFactor,
             height: $height,
-            foregroundColor: $color ?? BarcodeColor::HOTEL,
+            foregroundColor: $foregroundColor,
         );
     }
 
     /**
-     * @param  array<int, int>|null  $color
+     * @param  array{int, int, int}|null  $color
      */
     public function data(
         string $code,
@@ -52,7 +55,7 @@ final class BarcodeGenerator
     }
 
     /**
-     * @param  array<int, int>|null  $color
+     * @param  array{int, int, int}|null  $color
      */
     public function base64(
         string $code,

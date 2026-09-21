@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Reportes\Widgets;
 
+use App\Filament\Pages\Reportes\Widgets\Concerns\UsaRangoFechasDashboard;
 use App\Repository\Queries\Reportes\InteligenciaNegocioDashboardQuery;
+use App\Support\MonedaHelper;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 final class PromocionesInteligenciaNegocioWidget extends StatsOverviewWidget
 {
+    use UsaRangoFechasDashboard;
+
     protected ?string $pollingInterval = null;
 
     protected int|string|array $columnSpan = 'full';
@@ -18,10 +22,6 @@ final class PromocionesInteligenciaNegocioWidget extends StatsOverviewWidget
     protected ?string $heading = 'Promociones';
 
     protected ?string $description = 'Lectura rápida del uso, alcance e impacto económico de las promociones.';
-
-    public ?string $fechaInicio = null;
-
-    public ?string $fechaFin = null;
 
     public static function canView(): bool
     {
@@ -63,7 +63,7 @@ final class PromocionesInteligenciaNegocioWidget extends StatsOverviewWidget
                 ->descriptionIcon(Heroicon::Sparkles)
                 ->color('info'),
 
-            Stat::make('Descuento otorgado', 'C$ '.number_format($descuentoTotal, 2))
+            Stat::make('Descuento otorgado', MonedaHelper::formatear($descuentoTotal))
                 ->description('Reservas y beneficios de cliente')
                 ->descriptionIcon(Heroicon::ReceiptPercent)
                 ->color('warning'),
@@ -73,9 +73,11 @@ final class PromocionesInteligenciaNegocioWidget extends StatsOverviewWidget
     /** @return array<string, mixed> */
     private function dashboard(): array
     {
+        $rango = $this->rangoDashboard();
+
         return app(InteligenciaNegocioDashboardQuery::class)->paraRango(
-            $this->fechaInicio ?? now()->startOfMonth()->format('Y-m-d'),
-            $this->fechaFin ?? now()->format('Y-m-d'),
+            $rango['inicio'],
+            $rango['fin'],
         );
     }
 }

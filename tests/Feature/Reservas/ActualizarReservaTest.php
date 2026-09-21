@@ -22,15 +22,15 @@ use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use App\Repository\Queries\Reservas\CalcularVistaPreviaFinancieraReservaQuery;
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\MonedaSeeder;
+use Database\Seeders\Configuracion\PaisSeeder;
+use Database\Seeders\Configuracion\UbicacionSeeder;
 use Database\Seeders\EspacioSeeder;
 use Database\Seeders\HabitacionSeeder;
-use Database\Seeders\MonedaSeeder;
-use Database\Seeders\PaisSeeder;
 use Database\Seeders\ServicioSeeder;
 use Database\Seeders\TasaCambioSeeder;
-use Database\Seeders\UbicacionSeeder;
 
 beforeEach(function (): void {
     $this->seed([

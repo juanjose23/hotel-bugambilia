@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Pedidos;
 
+use App\BusinessLogic\Restaurante\Validaciones\ValidarTransicionPedido;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
@@ -12,25 +13,21 @@ use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
-use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class CancelarPedido
+final readonly class CancelarPedido
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly NotificadorRestaurante $notificador,
-        private readonly RecalcularTotalesPedido $recalcular,
-        private readonly CambiarEstadoMesa $cambiarEstadoMesa,
+        private RestauranteRepositorioInterface $repositorio,
+        private NotificadorRestaurante $notificador,
+        private RecalcularTotalesPedido $recalcular,
+        private CambiarEstadoMesa $cambiarEstadoMesa,
+        private ValidarTransicionPedido $validarTransicion,
     ) {}
 
     public function ejecutar(Pedido $pedido): Pedido
     {
-        $estadosTerminales = [EstadoPedido::PAGADO, EstadoPedido::CARGADO_A_HABITACION, EstadoPedido::CANCELADO];
-
-        if (in_array($pedido->estado, $estadosTerminales, true)) {
-            throw new DomainException("El pedido #{$pedido->codigo} no puede ser cancelado (estado: {$pedido->estado->getLabel()}).");
-        }
+        $this->validarTransicion->puedeCancelar($pedido);
 
         return DB::transaction(function () use ($pedido): Pedido {
             $pedido->loadMissing('items');

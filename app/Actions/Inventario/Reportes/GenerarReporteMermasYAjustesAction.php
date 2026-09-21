@@ -39,14 +39,13 @@ final readonly class GenerarReporteMermasYAjustesAction
             'periodo_hasta' => $fechaFin,
         ];
         $mermas = $this->lotesMerma->ejecutar($filtros);
-        $totales = $this->mermasTotales->ejecutar($filtros);
 
         return $this->generarPdf('reports.inventario.mermas.mermas', [
             'nombreReporte' => 'Mermas y Pérdidas de Inventario',
             'codigoReporte' => 'HTB-INV-006',
             'fechaInicio' => $fechaInicio ?? 'Inicio',
             'fechaFin' => $fechaFin ?? 'Hoy',
-            'totalPerdida' => $totales['costo_total'] ?? $mermas->sum('costo_total'),
+            'totalPerdida' => $this->mermasTotales->totalPerdidas($filtros),
             'totalRegistros' => $mermas->count(),
         ], collect($mermas->all()), $params);
     }

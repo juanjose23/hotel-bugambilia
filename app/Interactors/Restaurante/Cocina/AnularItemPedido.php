@@ -13,12 +13,12 @@ use App\Repository\Queries\Restaurante\Pedidos\ObtenerItemPedidoQuery;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class AnularItemPedido
+final readonly class AnularItemPedido
 {
     public function __construct(
-        private readonly ObtenerItemPedidoQuery $items,
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly RecalcularTotalesPedido $recalcular,
+        private ObtenerItemPedidoQuery $items,
+        private RestauranteRepositorioInterface $repositorio,
+        private RecalcularTotalesPedido $recalcular,
     ) {}
 
     public function ejecutar(int $itemId): ?PedidoItem

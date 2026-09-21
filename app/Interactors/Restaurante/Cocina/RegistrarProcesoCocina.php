@@ -10,10 +10,10 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-final class RegistrarProcesoCocina
+final readonly class RegistrarProcesoCocina
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private RestauranteRepositorioInterface $repositorio,
     ) {}
 
     /**

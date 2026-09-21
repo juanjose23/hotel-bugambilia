@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repository\Policies\Reservas;
 
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
@@ -20,19 +19,6 @@ class ReservaPolicy
 
     public function view(AuthUser $authUser, Reserva $reserva): bool
     {
-        if ($authUser instanceof User && ($authUser->is_admin || $authUser->can('View:Reserva'))) {
-            return true;
-        }
-
-        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
-        if ($clienteId !== null && $clienteId === $reserva->cliente_id) {
-            return true;
-        }
-
-        if ($authUser instanceof User && $reserva->email_cliente !== null && strcasecmp((string) $authUser->email, (string) $reserva->email_cliente) === 0) {
-            return true;
-        }
-
         return $authUser->can('View:Reserva');
     }
 
@@ -79,24 +65,6 @@ class ReservaPolicy
     public function replicate(AuthUser $authUser, Reserva $reserva): bool
     {
         return $authUser->can('Replicate:Reserva');
-    }
-
-    public function cancel(AuthUser $authUser, Reserva $reserva): bool
-    {
-        if ($authUser instanceof User && ($authUser->is_admin || $authUser->can('Update:Reserva'))) {
-            return true;
-        }
-
-        $clienteId = $authUser instanceof User ? $authUser->persona?->cliente?->id : null;
-        if ($clienteId !== null && $clienteId === $reserva->cliente_id) {
-            return true;
-        }
-
-        if ($authUser instanceof User && $reserva->email_cliente !== null && strcasecmp((string) $authUser->email, (string) $reserva->email_cliente) === 0) {
-            return true;
-        }
-
-        return $authUser->can('Update:Reserva');
     }
 
     public function reorder(AuthUser $authUser): bool

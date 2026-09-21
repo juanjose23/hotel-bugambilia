@@ -57,7 +57,12 @@ export interface ZonaRestauranteConfig {
     colorTitulo: string;
 }
 
-export const ZONAS_RESTAURANTE: Record<string, ZonaRestauranteConfig> = {
+export type ClaveZonaRestaurante = 'interior' | 'terraza' | 'barra' | 'vip';
+
+export const ZONAS_RESTAURANTE: Record<
+    ClaveZonaRestaurante,
+    ZonaRestauranteConfig
+> = {
     interior: {
         id: 'interior',
         nombre: 'Salón Principal Interior',
@@ -104,8 +109,6 @@ export const ZONAS_RESTAURANTE: Record<string, ZonaRestauranteConfig> = {
         colorTitulo: 'text-purple-600 dark:text-purple-400',
     },
 };
-
-export type ClaveZonaRestaurante = 'interior' | 'terraza' | 'barra' | 'vip';
 
 export const normalizarClaveZona = (zona?: string): ClaveZonaRestaurante => {
     const clean = (zona || 'interior').toLowerCase().trim();

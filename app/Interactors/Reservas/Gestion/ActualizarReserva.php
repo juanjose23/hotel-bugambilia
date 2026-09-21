@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Interactors\Reservas\Gestion;
 
-use App\BusinessLogic\Reservas\CalcularPeriodoReserva;
-use App\BusinessLogic\Reservas\CalcularResumenRestauranteLogica;
-use App\BusinessLogic\Reservas\ConstruirBitacoraReserva;
-use App\BusinessLogic\Reservas\LeerDatoReserva;
-use App\BusinessLogic\Reservas\ResolverIdEntidadPrincipal;
-use App\BusinessLogic\Reservas\ValidarDisponibilidadRecursoLote;
-use App\BusinessLogic\Reservas\ValidarFechasReserva;
-use App\BusinessLogic\Reservas\ValidarSeleccionAdicionales;
+use App\BusinessLogic\Reservas\Calculos\CalcularPeriodoReserva;
+use App\BusinessLogic\Reservas\Calculos\CalcularResumenRestauranteLogica;
+use App\BusinessLogic\Reservas\Resolutores\ResolverIdEntidadPrincipal;
+use App\BusinessLogic\Reservas\Support\ConstruirBitacoraReserva;
+use App\BusinessLogic\Reservas\Support\LeerDatoReserva;
+use App\BusinessLogic\Reservas\Validaciones\ValidarDisponibilidadRecursoLote;
+use App\BusinessLogic\Reservas\Validaciones\ValidarFechasReserva;
+use App\BusinessLogic\Reservas\Validaciones\ValidarSeleccionAdicionales;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Reservas\ControlDisponibilidad;
 use App\Enums\Reservas\EstadoReserva;

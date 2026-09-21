@@ -7,10 +7,10 @@ namespace App\Interactors\Restaurante\Platos;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 
-final class SincronizarGaleriaPlatoImagenes
+final readonly class SincronizarGaleriaPlatoImagenes
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private RestauranteRepositorioInterface $repositorio,
     ) {}
 
     /**

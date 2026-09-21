@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\Activos\EstadoActivo;
+use App\Enums\Activos\EstadoAsignacion;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
@@ -9,6 +11,9 @@ use App\Enums\Restaurante\EstadoPedido;
 use App\Interactors\Restaurante\Mesas\SepararMesas;
 use App\Interactors\Restaurante\Mesas\UnirMesas;
 use App\Interactors\Restaurante\Pedidos\AbrirPedidoMesa;
+use App\Repository\Models\Activos\Activo;
+use App\Repository\Models\Activos\ActivoAsignacion;
+use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Reservas\Reserva;
 
@@ -19,6 +24,24 @@ test('permite abrir multiples cuentas independientes en la misma mesa', function
         'tipo' => 'mesa',
         'estado' => EstadoEspacio::Disponible,
         'activo' => true,
+    ]);
+
+    $producto = Producto::factory()->create();
+
+    $activo = Activo::query()->create([
+        'codigo_inventario' => 'AF-TEST-M1',
+        'producto_id' => $producto->id,
+        'nombre_descriptivo' => 'Mesa Central 4S',
+        'estado' => EstadoActivo::Activo,
+        'fecha_adquisicion' => now()->toDateString(),
+    ]);
+
+    ActivoAsignacion::query()->create([
+        'activo_id' => $activo->id,
+        'asignable_type' => Espacio::class,
+        'asignable_id' => $mesa->id,
+        'fecha_inicio' => now()->toDateString(),
+        'estado' => EstadoAsignacion::Vigente,
     ]);
 
     $abrirInteractor = app(AbrirPedidoMesa::class);

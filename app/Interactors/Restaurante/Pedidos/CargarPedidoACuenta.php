@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Pedidos;
 
+use App\BusinessLogic\Restaurante\Validaciones\ValidarTransicionPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Notifications\Restaurante\NotificadorRestaurante;
@@ -13,12 +14,13 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class CargarPedidoACuenta
+final readonly class CargarPedidoACuenta
 {
     public function __construct(
-        private readonly RegistrarDetalleCuenta $registrarDetalle,
-        private readonly NotificadorRestaurante $notificador,
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private RegistrarDetalleCuenta $registrarDetalle,
+        private NotificadorRestaurante $notificador,
+        private RestauranteRepositorioInterface $repositorio,
+        private ValidarTransicionPedido $validarTransicion,
     ) {}
 
     public function ejecutar(
@@ -34,13 +36,7 @@ final class CargarPedidoACuenta
             throw new DomainException('El cliente del pedido no coincide con el cliente de la cuenta seleccionada.');
         }
 
-        if ($pedido->estado === EstadoPedido::CARGADO_A_HABITACION) {
-            throw new DomainException("El pedido #{$pedido->codigo} ya fue cargado a una cuenta.");
-        }
-
-        if (in_array($pedido->estado, [EstadoPedido::LISTO, EstadoPedido::SERVIDO, EstadoPedido::CANCELADO], true)) {
-            throw new DomainException("El pedido #{$pedido->codigo} ya no permite cambios.");
-        }
+        $this->validarTransicion->puedeCargarACuenta($pedido);
 
         return DB::transaction(function () use ($pedido, $cuenta, $usuarioId): Cuenta {
             $this->repositorio->actualizarPedido($pedido, [

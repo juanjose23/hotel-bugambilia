@@ -7,12 +7,14 @@ namespace App\Interactors\Compras\Cotizaciones;
 use App\BusinessLogic\Compras\VerificarSolicitudBloqueada;
 use App\Enums\Compras\EstadoCotizacion;
 use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Persistencia\Compras\CotizacionRepositorioInterface;
 use DomainException;
 
-final class RechazarCotizacion
+final readonly class RechazarCotizacion
 {
     public function __construct(
-        private readonly VerificarSolicitudBloqueada $verificarBloqueo,
+        private VerificarSolicitudBloqueada $verificarBloqueo,
+        private CotizacionRepositorioInterface $cotizacionRepositorio,
     ) {}
 
     public function ejecutar(Cotizacion $cotizacion, string $motivo): void
@@ -26,9 +28,6 @@ final class RechazarCotizacion
             throw new DomainException('No se puede rechazar la cotización porque la solicitud tiene órdenes activas.');
         }
 
-        $cotizacion->update([
-            'estado' => EstadoCotizacion::Rechazada,
-            'motivo_rechazo' => $motivo,
-        ]);
+        $this->cotizacionRepositorio->rechazar($cotizacion, $motivo);
     }
 }

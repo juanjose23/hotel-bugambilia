@@ -5,16 +5,26 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Pedidos;
 
 use App\Repository\Models\Clientes\Cliente;
-use App\Repository\Models\Personas\Persona;
-use App\Repository\Models\Personas\PersonaJuridica;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-final class RegistrarClienteRapido
+final readonly class RegistrarClienteRapido
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private RestauranteRepositorioInterface $repositorio,
     ) {}
+
+    /**
+     * Registra un cliente con datos mínimos desde el módulo de restaurante o cobro.
+     *
+     * Crea Persona + (PersonaNatural o PersonaJuridica) + Cliente con tipo "Regular" por defecto.
+     *
+     * @param  array{primer_nombre: string, primer_apellido?: string|null, razon_social?: string|null, tipo_persona?: string|null, tipo_identificacion?: string|null, identificacion?: string|null, telefono?: string|null}  $datos
+     */
+    public function execute(array $datos): Cliente
+    {
+        return $this->ejecutar($datos);
+    }
 
     /**
      * Registra un cliente con datos mínimos desde el módulo de restaurante o cobro.
@@ -38,7 +48,7 @@ final class RegistrarClienteRapido
                     'telefono' => $datos['telefono'] ?? null,
                 ]);
 
-                PersonaJuridica::create([
+                $this->repositorio->crearPersonaJuridica([
                     'persona_id' => $persona->id,
                     'razon_social' => $razonSocial,
                     'numero_identificacion' => $datos['identificacion'] ?? null,

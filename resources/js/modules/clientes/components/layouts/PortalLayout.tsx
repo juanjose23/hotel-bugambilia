@@ -37,12 +37,12 @@ export const PortalLayout = ({ children, cliente }: PortalLayoutProps) => {
                         <img
                             src="/images/logo-dark.webp"
                             alt="Hotel Bugambilias"
-                            className="hidden h-8 w-auto object-contain dark:block"
+                            className="h-8 w-auto object-contain dark:hidden"
                         />
                         <img
-                            src="/images/logo-white.webp"
+                            src="/images/logo-claro.webp"
                             alt="Hotel Bugambilias"
-                            className="block h-8 w-auto object-contain dark:hidden"
+                            className="hidden h-8 w-auto object-contain dark:block"
                         />
                     </Link>
 

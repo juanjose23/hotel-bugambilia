@@ -10,9 +10,8 @@ use App\Exceptions\StripeApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\WebServices\Stripe\ConfirmarPagoStripeClienteRequest;
 use App\Http\Requests\WebServices\Stripe\CrearIntentoPagoStripeRequest;
-use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripeReserva;
-use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripeReservaCliente;
-use App\Interactors\Facturacion\Stripe\CrearIntentoPagoStripeReserva;
+use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripe;
+use App\Interactors\Facturacion\Stripe\CrearIntentoPagoStripe;
 use App\Interactors\Facturacion\Stripe\MarcarPagoStripeFallido;
 use App\Interactors\Facturacion\Stripe\ProcesarReembolsoStripeWebhook;
 use App\Interactors\Facturacion\Stripe\ResolverReservaPagoStripe;
@@ -26,7 +25,7 @@ final class StripeReservaPaymentController extends Controller
 {
     public function crearIntento(
         CrearIntentoPagoStripeRequest $request,
-        CrearIntentoPagoStripeReserva $crearIntentoPago,
+        CrearIntentoPagoStripe $crearIntentoPago,
         ResolverReservaPagoStripe $resolverReserva,
     ): JsonResponse {
         /** @var array{reserva_id: int, codigo_reserva: string} $datos */
@@ -38,7 +37,7 @@ final class StripeReservaPaymentController extends Controller
         );
 
         try {
-            $resultado = $crearIntentoPago->ejecutar($reserva);
+            $resultado = $crearIntentoPago->ejecutarParaReserva($reserva);
         } catch (StripeApiException $exception) {
             report($exception);
 
@@ -78,13 +77,13 @@ final class StripeReservaPaymentController extends Controller
 
     public function confirmarCliente(
         ConfirmarPagoStripeClienteRequest $request,
-        ConfirmarPagoStripeReservaCliente $confirmarPagoCliente,
+        ConfirmarPagoStripe $confirmarPago,
     ): JsonResponse {
         /** @var array{reserva_id: int, codigo_reserva: string, payment_intent_id: string} $datos */
         $datos = $request->validated();
 
         try {
-            $transaccion = $confirmarPagoCliente->ejecutar(
+            $transaccion = $confirmarPago->ejecutarParaCliente(
                 reservaId: (int) $datos['reserva_id'],
                 codigoReserva: (string) $datos['codigo_reserva'],
                 paymentIntentId: (string) $datos['payment_intent_id'],
@@ -126,7 +125,7 @@ final class StripeReservaPaymentController extends Controller
     public function webhook(
         Request $request,
         VerificarFirmaWebhookStripe $verificarFirma,
-        ConfirmarPagoStripeReserva $confirmarPago,
+        ConfirmarPagoStripe $confirmarPago,
         MarcarPagoStripeFallido $marcarPagoFallido,
         ProcesarReembolsoStripeWebhook $procesarReembolso,
         CancelarReservaPorPagoFallido $cancelarPorPagoFallido,
@@ -192,7 +191,7 @@ final class StripeReservaPaymentController extends Controller
         }
 
         try {
-            $transaccion = $confirmarPago->ejecutar($paymentIntentId, $evento);
+            $transaccion = $confirmarPago->ejecutarParaReserva($paymentIntentId, $evento);
         } catch (DomainException $exception) {
             return response()->json(['message' => $exception->getMessage()], 422);
         }

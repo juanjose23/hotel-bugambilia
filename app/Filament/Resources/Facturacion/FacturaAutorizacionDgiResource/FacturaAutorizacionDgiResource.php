@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Facturacion\FacturaAutorizacionDgiResource;
 
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Repository\Models\Facturacion\FacturaAutorizacionDgi;
 use BackedEnum;
 use Filament\Actions\ActionGroup;
@@ -24,6 +25,8 @@ use UnitEnum;
 
 final class FacturaAutorizacionDgiResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = FacturaAutorizacionDgi::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShieldCheck;

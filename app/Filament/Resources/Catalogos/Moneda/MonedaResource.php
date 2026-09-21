@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Catalogos\Moneda;
 
+use App\Filament\Clusters\Configuracion\ConfiguracionCluster;
 use App\Filament\Resources\Catalogos\Moneda\Pages\CreateMoneda;
 use App\Filament\Resources\Catalogos\Moneda\Pages\EditMoneda;
 use App\Filament\Resources\Catalogos\Moneda\Pages\ListMonedas;
@@ -19,6 +20,8 @@ use UnitEnum;
 
 class MonedaResource extends Resource
 {
+    protected static ?string $cluster = ConfiguracionCluster::class;
+
     protected static ?string $model = Moneda::class;
 
     protected static ?string $slug = 'catalogos/monedas';

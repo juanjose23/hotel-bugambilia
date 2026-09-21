@@ -399,6 +399,18 @@ final readonly class ReporteConfig
     }
 
     /**
+     * Retorna el código identificador de un reporte (ej. HTB-FIN-001).
+     */
+    public static function getCodigo(string $modulo, ?string $key): ?string
+    {
+        if ($key === null) {
+            return null;
+        }
+
+        return self::getReportes()[$modulo][$key]['codigo'] ?? null;
+    }
+
+    /**
      * Retorna el nombre de la ruta para el formato solicitado (pdf o excel).
      */
     public static function getRuta(string $modulo, string $key, string $formato = 'pdf'): string
@@ -455,6 +467,6 @@ final readonly class ReporteConfig
     {
         $ruta = self::getRuta($modulo, $key, $formato);
 
-        return route($ruta, $params);
+        return route($ruta, $params, false);
     }
 }

@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\Colaboradores\Colaboradors\Pages;
 
+use App\Actions\Colaboradores\SincronizarFotoColaboradorAction;
 use App\Filament\Resources\Colaboradores\Colaboradors\ColaboradorResource;
 use App\Repository\Models\Personas\Persona;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @property Persona $record
@@ -37,16 +37,7 @@ class EditColaborador extends EditRecord
         $colaborador = $this->record->colaborador;
 
         if ($this->fotoUpload && $colaborador) {
-            $imagenActual = $colaborador->imagen;
-
-            if ($imagenActual && $imagenActual->url) {
-                Storage::disk('public')->delete($imagenActual->url);
-            }
-
-            $colaborador->imagen()->updateOrCreate(
-                [],
-                ['url' => $this->fotoUpload]
-            );
+            app(SincronizarFotoColaboradorAction::class)->ejecutar($colaborador, $this->fotoUpload);
         }
     }
 

@@ -31,18 +31,24 @@ class CreateEspacio extends CreateRecord
 
         if (($tipo === TipoEspacio::MESA->value || $tipo === TipoEspacio::MESA) && $padreId !== null) {
             $padre = Espacio::find($padreId);
-            if ($padre instanceof Espacio && $padre->tipo === TipoEspacio::RESTAURANTE) {
-                try {
-                    app(ValidarCapacidadMesas::class)->execute($padreId, false);
-                } catch (OverflowException $e) {
-                    Notification::make()
-                        ->title('Capacidad máxima de mesas alcanzada')
-                        ->body($e->getMessage())
-                        ->danger()
-                        ->persistent()
-                        ->send();
+            if ($padre instanceof Espacio) {
+                $restauranteId = $padre->tipo === TipoEspacio::RESTAURANTE
+                    ? $padre->id
+                    : ($padre->padre?->tipo === TipoEspacio::RESTAURANTE ? $padre->padre->id : null);
 
-                    $this->halt();
+                if ($restauranteId !== null) {
+                    try {
+                        app(ValidarCapacidadMesas::class)->execute($restauranteId, false);
+                    } catch (OverflowException $e) {
+                        Notification::make()
+                            ->title('Capacidad máxima de mesas alcanzada')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->persistent()
+                            ->send();
+
+                        $this->halt();
+                    }
                 }
             }
         }

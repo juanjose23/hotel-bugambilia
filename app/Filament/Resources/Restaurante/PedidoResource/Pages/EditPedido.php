@@ -23,6 +23,7 @@ use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\Plato;
+use App\Support\MonedaHelper;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -152,20 +153,20 @@ final class EditPedido extends EditRecord
                     }
 
                     $items = $cuenta->detalles
-                        ->map(function ($detalle): string {
+                        ->map(function ($detalle) use ($cuenta): string {
                             $concepto = e((string) $detalle->concepto);
                             $descripcion = filled($detalle->descripcion) ? '<span class="text-gray-500"> - '.e((string) $detalle->descripcion).'</span>' : '';
-                            $total = number_format((float) $detalle->total, 2);
+                            $total = MonedaHelper::formatear((float) $detalle->total, $cuenta->moneda);
 
-                            return "<li class=\"flex items-start justify-between gap-4 py-2 border-b border-gray-100 dark:border-gray-800\"><span>{$concepto}{$descripcion}</span><strong>C$ {$total}</strong></li>";
+                            return "<li class=\"flex items-start justify-between gap-4 py-2 border-b border-gray-100 dark:border-gray-800\"><span>{$concepto}{$descripcion}</span><strong>{$total}</strong></li>";
                         })
                         ->implode('');
 
-                    $saldo = number_format((float) $cuenta->saldo, 2);
-                    $total = number_format((float) $cuenta->total, 2);
+                    $saldo = MonedaHelper::formatear((float) $cuenta->saldo, $cuenta->moneda);
+                    $total = MonedaHelper::formatear((float) $cuenta->total, $cuenta->moneda);
 
                     return new HtmlString(
-                        "<div class=\"space-y-3 text-sm\"><div><strong>Cuenta #{$cuenta->numero_cuenta}</strong><br><span class=\"text-gray-500\">Total C$ {$total} · Saldo C$ {$saldo}</span></div><ul>{$items}</ul></div>"
+                        "<div class=\"space-y-3 text-sm\"><div><strong>Cuenta #{$cuenta->numero_cuenta}</strong><br><span class=\"text-gray-500\">Total {$total} · Saldo {$saldo}</span></div><ul>{$items}</ul></div>"
                     );
                 }),
 
@@ -402,14 +403,18 @@ final class EditPedido extends EditRecord
                             EstadoItemPedido::LISTO,
                             EstadoItemPedido::SERVIDO,
                         ])
-                        ->with('plato')
+                        ->with(['plato', 'producto', 'variante'])
                         ->get();
 
                     /** @var array<int|string, string> $opciones */
                     $opciones = $items->mapWithKeys(function ($item) {
-                        $nombre = $item->plato !== null ? $item->plato->nombre : 'Producto #'.$item->plato_id;
-                        $label = "{$nombre}  × {$item->cantidad}  —  C$ ".
-                            number_format((float) $item->subtotal, 2);
+                        $nombre = $item->plato !== null
+                            ? $item->plato->nombre
+                            : ($item->producto !== null
+                                ? ($item->producto->nombre.($item->variante ? ' ('.$item->variante->nombre_variante.')' : ''))
+                                : 'Ítem #'.$item->id);
+                        $subtotalFmt = MonedaHelper::formatear((float) $item->subtotal);
+                        $label = "{$nombre}  × {$item->cantidad}  —  {$subtotalFmt}";
 
                         return [$item->id => $label];
                     })->toArray();

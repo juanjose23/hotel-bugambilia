@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Cocina;
 
 use App\Enums\Compras\EstadoSolicitud;
-use App\Enums\Restaurante\UbicacionCocina;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Models\Compras\SolicitudItem;
@@ -36,9 +35,9 @@ final readonly class DespacharSolicitudAbastecimientoCocina
 
             $this->validarAutorizacionInventario($usuarioId);
 
-            $destinoId = $ubicacionDestinoId ?? $this->obtenerUbicacionCocinaId();
-            $origen = Ubicacion::query()->find($ubicacionOrigenId);
-            $destino = Ubicacion::query()->find($destinoId);
+            $destinoId = $ubicacionDestinoId ?? $this->repositorio->obtenerUbicacionCocinaId();
+            $origen = $this->repositorio->obtenerUbicacionPorId($ubicacionOrigenId);
+            $destino = $this->repositorio->obtenerUbicacionPorId($destinoId);
 
             if (! $origen instanceof Ubicacion || ! $destino instanceof Ubicacion) {
                 throw new DomainException('Seleccione ubicación origen y destino válidas.');
@@ -50,7 +49,7 @@ final readonly class DespacharSolicitudAbastecimientoCocina
 
             $nota = '['.now()->format('d/m/Y H:i')."] DESPACHO COCINA: {$origen->nombre} -> {$destino->nombre}";
             $solicitud->notas = trim((string) ($solicitud->notas ?? '')."\n".$nota);
-            $solicitud->save();
+            $this->repositorio->guardarSolicitudAbastecimiento($solicitud);
 
             return $solicitud->refresh();
         });
@@ -58,7 +57,7 @@ final readonly class DespacharSolicitudAbastecimientoCocina
 
     private function validarAutorizacionInventario(?int $usuarioId): void
     {
-        $usuario = $usuarioId !== null ? User::query()->find($usuarioId) : null;
+        $usuario = $usuarioId !== null ? $this->repositorio->obtenerUsuarioPorId($usuarioId) : null;
 
         if (! $usuario instanceof User || ! $usuario->can('Inventario:ResolverAbastecimientoCocina')) {
             throw new DomainException('Debe autorizar este despacho un usuario con permiso de inventario.');
@@ -101,7 +100,7 @@ final readonly class DespacharSolicitudAbastecimientoCocina
         $stockDestino = $this->repositorio->obtenerStockPorVariante($destinoId, $varianteId);
 
         if (! $stockDestino instanceof Stock) {
-            $stockDestino = Stock::query()->create([
+            $stockDestino = $this->repositorio->crearStock([
                 'stockable_type' => Ubicacion::class,
                 'stockable_id' => $destinoId,
                 'producto_variante_id' => $varianteId,
@@ -130,21 +129,5 @@ final readonly class DespacharSolicitudAbastecimientoCocina
             'referencia' => "Despacho de solicitud {$solicitud->codigo} hacia cocina",
             'creado_por_id' => $usuarioId,
         ]);
-    }
-
-    private function obtenerUbicacionCocinaId(): int
-    {
-        $id = Ubicacion::query()
-            ->where('nombre', UbicacionCocina::RESTAURANTE->value)
-            ->orWhere('nombre', 'Cocina')
-            ->orWhere('nombre', 'like', '%Cocina%')
-            ->orWhere('tipo', 'cocina')
-            ->value('id');
-
-        if (! is_numeric($id)) {
-            throw new DomainException('No existe una ubicación de cocina configurada para recibir abastecimiento.');
-        }
-
-        return (int) $id;
     }
 }

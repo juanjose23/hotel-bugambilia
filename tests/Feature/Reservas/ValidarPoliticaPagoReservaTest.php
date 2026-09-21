@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\ValidarPoliticaPagoReserva;
+use App\BusinessLogic\Reservas\Validaciones\ValidarPoliticaPagoReserva;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Pedidos;
 
+use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\BusinessLogic\Restaurante\Cobro\CalcularVueltoCobro;
 use App\BusinessLogic\Restaurante\Cobro\ResolverMonedaCobro;
 use App\BusinessLogic\Restaurante\Cobro\ValidarMetodoPago;
 use App\BusinessLogic\Restaurante\Cuentas\CalcularTotalesCuenta;
+use App\BusinessLogic\Restaurante\Validaciones\ValidarMontoSuficienteCobro;
+use App\BusinessLogic\Restaurante\Validaciones\ValidarTransicionPedido;
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Cuentas\TipoCuenta;
@@ -27,20 +30,23 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class CerrarPedidoMesa
+final readonly class CerrarPedidoMesa
 {
     public function __construct(
-        private readonly CalcularTotalesCuenta $calcularTotales,
-        private readonly RegistrarDetalleCuenta $registrarDetalle,
-        private readonly AbrirCuenta $abrirCuenta,
-        private readonly RegistrarPagoCuenta $registrarPago,
-        private readonly CerrarCuenta $cerrarCuenta,
-        private readonly CambiarEstadoMesa $cambiarEstadoMesa,
-        private readonly RegistrarSolicitudLimpieza $registrarLimpieza,
-        private readonly ValidarMetodoPago $validarMetodoPago,
-        private readonly ResolverMonedaCobro $resolverMonedaCobro,
-        private readonly CalcularVueltoCobro $calcularVuelto,
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private CalcularTotalesCuenta $calcularTotales,
+        private RegistrarDetalleCuenta $registrarDetalle,
+        private AbrirCuenta $abrirCuenta,
+        private RegistrarPagoCuenta $registrarPago,
+        private CerrarCuenta $cerrarCuenta,
+        private CambiarEstadoMesa $cambiarEstadoMesa,
+        private RegistrarSolicitudLimpieza $registrarLimpieza,
+        private ValidarMetodoPago $validarMetodoPago,
+        private ResolverMonedaCobro $resolverMonedaCobro,
+        private CalcularVueltoCobro $calcularVuelto,
+        private RestauranteRepositorioInterface $repositorio,
+        private ValidarTransicionPedido $validarTransicion,
+        private ValidarMontoSuficienteCobro $validarMontoSuficiente,
+        private ConvertirMoneda $convertirMoneda,
     ) {}
 
     /**
@@ -57,9 +63,7 @@ final class CerrarPedidoMesa
         ?int $clienteId = null,
         ?int $monedaId = null,
     ): Pedido {
-        if (in_array($pedido->estado, [EstadoPedido::PAGADO, EstadoPedido::CARGADO_A_HABITACION], true)) {
-            throw new DomainException("El pedido #{$pedido->codigo} ya fue cerrado previamente.");
-        }
+        $this->validarTransicion->puedeCerrar($pedido);
 
         return DB::transaction(function () use (
             $pedido,
@@ -78,22 +82,16 @@ final class CerrarPedidoMesa
             $subtotalPedido = $totales['subtotal'];
 
             // Convertir montoRecibido de moneda extranjera a NIO antes de validar
-            if ($montoRecibido !== null) {
-                $monedaPago = $this->resolverMonedaCobro->resolverMoneda($monedaId);
-                $monedaBase = $this->resolverMonedaCobro->resolverMoneda(null);
-
-                if ($monedaPago->codigo !== $monedaBase->codigo) {
-                    $tasa = $this->resolverMonedaCobro->resolverTasaCambio($monedaPago->codigo, $monedaBase->codigo);
-                    $montoRecibido = round($montoRecibido * $tasa, 2);
-                }
+            if ($montoRecibido !== null && $monedaId !== null) {
+                $montoRecibido = round($this->convertirMoneda->aBase($montoRecibido, $monedaId), 2);
             }
 
             if (! $cargarAHabitacion && $metodoPago !== null) {
                 $this->validarMetodoPago->validar($metodoPago, $montoRecibido ?? 0.0);
             }
 
-            if (! $cargarAHabitacion && $montoRecibido !== null && $montoRecibido < $subtotalPedido) {
-                throw new DomainException("El monto recibido (C$ {$montoRecibido}) es menor al subtotal (C$ {$subtotalPedido}).");
+            if (! $cargarAHabitacion && $montoRecibido !== null) {
+                $this->validarMontoSuficiente->validar($montoRecibido, $subtotalPedido);
             }
 
             $pedido->subtotal = $subtotalPedido;

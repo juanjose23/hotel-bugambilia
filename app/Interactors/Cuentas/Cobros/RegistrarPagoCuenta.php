@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interactors\Cuentas\Cobros;
 
+use App\BusinessLogic\Cuentas\Calculos\CalcularVuelto;
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
@@ -14,18 +15,20 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use App\Support\MonedaHelper;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Registra un pago/abono a favor de una Cuenta y actualiza el saldo.
  */
-final class RegistrarPagoCuenta
+final readonly class RegistrarPagoCuenta
 {
     public function __construct(
-        private readonly RecalcularCuenta $recalcularCuenta,
-        private readonly CuentaRepositorioInterface $cuentas,
-        private readonly ReservaRepositorioInterface $reservas,
+        private CuentaRepositorioInterface $cuentas,
+        private RecalcularCuenta $recalcularCuenta,
+        private ReservaRepositorioInterface $reservas,
+        private CalcularVuelto $calcularVuelto,
     ) {}
 
     public function ejecutar(
@@ -62,19 +65,13 @@ final class RegistrarPagoCuenta
         ): PagoCuenta {
             $cuentaBloqueada = $this->cuentas->bloquear((int) $cuenta->id);
             $cuentaBloqueada = $this->recalcularCuenta->ejecutar($cuentaBloqueada, $usuarioId);
-            $montoRedondeado = round($monto, 2);
-            $saldoActual = round((float) $cuentaBloqueada->saldo, 2);
 
-            $montoAplicado = $montoRedondeado;
-            $vuelto = 0.0;
-
-            if ($montoRedondeado > $saldoActual && $saldoActual > 0) {
-                $montoAplicado = $saldoActual;
-                $vuelto = round($montoRedondeado - $saldoActual, 2);
-            }
+            $calculoVuelto = $this->calcularVuelto->calcular($monto, (float) $cuentaBloqueada->saldo);
+            $montoAplicado = $calculoVuelto->montoAplicado;
+            $vuelto = $calculoVuelto->vuelto;
 
             if ($vuelto > 0 && (empty($observaciones) || ! str_contains($observaciones, 'Vuelto'))) {
-                $vueltoTexto = 'Vuelto: C$ '.number_format($vuelto, 2);
+                $vueltoTexto = 'Vuelto: '.MonedaHelper::formatear($vuelto, $cuentaBloqueada->moneda);
                 $observaciones = ! empty($observaciones) ? "{$observaciones} | {$vueltoTexto}" : $vueltoTexto;
             }
 

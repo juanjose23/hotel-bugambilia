@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Limpieza\ReportesLimpieza;
 use App\Filament\Pages\Reportes\TableroInteligenciaNegocio;
 use App\Http\Middleware\RequerirAdmin;
@@ -13,7 +14,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -41,7 +41,11 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->plugin(FilamentShieldPlugin::make()->navigationGroup('Personas & Accesos'))
+            ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\Filament\Clusters')
+            ->unsavedChangesAlerts()
+            ->databaseTransactions()
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->plugin(FilamentShieldPlugin::make()->navigationGroup('Seguridad'))
             ->path('admin')
             ->login()
             ->defaultThemeMode(ThemeMode::Dark)
@@ -67,6 +71,7 @@ class AdminPanelProvider extends PanelProvider
                 'Inicio & Análisis',
                 'Recepción & Reservas',
                 'Habitaciones & Espacios',
+                'Ventas',
                 'Caja & Facturación',
                 'Restaurante & Cocina',
                 'Inventario & Productos',
@@ -74,9 +79,9 @@ class AdminPanelProvider extends PanelProvider
                 'Activos & Mantenimiento',
                 'Limpieza & Lavandería',
                 'Servicios & Promociones',
-                'Personas & Accesos',
+                'Colaboradores & Personal',
+                'Seguridad',
                 'Configuración',
-                'Auditoría',
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->databaseNotifications()

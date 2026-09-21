@@ -14,7 +14,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -105,7 +104,7 @@ final class ReportesLimpieza extends Page implements HasForms
             ? $data['reporte']
             : 'operacion_hotelera';
 
-        $url = ReporteConfig::getUrl('limpieza', $reporte, [
+        $params = [
             'reporte' => $reporte,
             'fecha_desde' => $fechaDesde,
             'fecha_hasta' => $fechaHasta,
@@ -113,15 +112,9 @@ final class ReportesLimpieza extends Page implements HasForms
             'fecha_fin' => $fechaHasta,
             'pageSize' => $this->pageSize,
             'orientation' => $this->orientation,
-        ]);
+        ];
 
-        $this->dispatch('open-new-tab', url: $url);
-
-        Notification::make()
-            ->title('Reporte generado')
-            ->body('Se abrió el PDF seleccionado en una nueva pestaña.')
-            ->success()
-            ->send();
+        $this->procesarDescargaReporte('limpieza', $reporte, $params);
 
         return null;
     }
@@ -147,12 +140,7 @@ final class ReportesLimpieza extends Page implements HasForms
             return false;
         }
 
-        $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
-        $roleName = is_string($superAdminRole) ? $superAdminRole : 'super_admin';
-
-        return $user->is_admin === true
-            || $user->hasRole($roleName)
-            || $user->can('Limpieza:ReporteOperacionHotelera')
-            || $user->can('page_ReportesLimpieza');
+        return $user->can('Page:ReportesLimpieza')
+            || $user->can('Limpieza:ReporteOperacionHotelera');
     }
 }

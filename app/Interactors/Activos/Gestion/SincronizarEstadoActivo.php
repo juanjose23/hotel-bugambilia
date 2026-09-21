@@ -9,7 +9,7 @@ use App\Enums\Activos\EstadoMantenimiento;
 use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
 use App\Repository\Queries\Activos\ObtenerMantenimientosCompletados;
 
-class SincronizarEstadoActivo
+final class SincronizarEstadoActivo
 {
     public function __construct(
         private readonly ObtenerMantenimientosCompletados $obtenerMantenimientos,

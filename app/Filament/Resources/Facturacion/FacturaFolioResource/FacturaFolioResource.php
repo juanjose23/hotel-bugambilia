@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\FacturaFolioResource;
 
 use App\Enums\Facturacion\EstadoFolioFactura;
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Facturacion\FacturaFolio;
@@ -18,6 +19,8 @@ use UnitEnum;
 
 final class FacturaFolioResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = FacturaFolio::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QueueList;

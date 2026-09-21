@@ -6,21 +6,28 @@ namespace App\Repository\Persistencia\Restaurante;
 
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Producto;
+use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Facturacion\PagoTransaccion;
+use App\Repository\Models\Inventario\Lote;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Personas\Persona;
+use App\Repository\Models\Personas\PersonaJuridica;
 use App\Repository\Models\Personas\PersonaNatural;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\Restaurante\ProcesoCocina;
+use App\Repository\Models\Restaurante\SustitucionIngrediente;
+use App\Repository\Models\Restaurante\TransformacionMateriaPrima;
 use App\Repository\Models\Shared\Stock;
+use App\Repository\Models\User;
 use Illuminate\Support\Collection;
 
 interface RestauranteRepositorioInterface
@@ -79,7 +86,7 @@ interface RestauranteRepositorioInterface
     public function obtenerPlatoConReceta(int $platoId): ?Plato;
 
     /** @return Collection<int, Plato> */
-    public function obtenerMenuParaLanding(): Collection;
+    public function obtenerMenuPublico(): Collection;
 
     /** @return Collection<int, Plato> */
     public function obtenerPlatosActivos(?int $categoriaId = null): Collection;
@@ -113,10 +120,10 @@ interface RestauranteRepositorioInterface
     public function obtenerCatalogoClienteRegular(): ?Catalogo;
 
     // ============================================================
-    // Lectura - Landing
+    // Lectura - Público / Catálogo
     // ============================================================
 
-    public function obtenerRestauranteParaLanding(): ?Espacio;
+    public function obtenerRestaurantePublico(): ?Espacio;
 
     /** @return Collection<int, Espacio> */
     public function obtenerMesasDeRestaurante(int $restauranteId): Collection;
@@ -202,6 +209,9 @@ interface RestauranteRepositorioInterface
     public function crearPersonaNatural(array $datos): PersonaNatural;
 
     /** @param  array<string, mixed>  $datos */
+    public function crearPersonaJuridica(array $datos): PersonaJuridica;
+
+    /** @param  array<string, mixed>  $datos */
     public function crearCliente(array $datos): Cliente;
 
     // ============================================================
@@ -234,4 +244,50 @@ interface RestauranteRepositorioInterface
     // ============================================================
 
     public function contarMesasEnRestaurante(int $restauranteId, ?int $ignorarId = null): int;
+
+    /**
+     * @param  array<int, int>  $excluirIds
+     * @return Collection<int, Espacio>
+     */
+    public function obtenerMesasLibresExcluyendo(array $excluirIds): Collection;
+
+    public function tieneSolicitudLimpiezaActiva(string $limpiableType, int $limpiableId): bool;
+
+    /** @param array<string, mixed> $datos */
+    public function crearTransformacionMateriaPrima(array $datos): TransformacionMateriaPrima;
+
+    /** @param array<string, mixed> $datos */
+    public function crearTransformacionItem(TransformacionMateriaPrima $transformacion, array $datos): void;
+
+    /** @param array<string, mixed> $datos */
+    public function actualizarTransformacionMateriaPrima(TransformacionMateriaPrima $transformacion, array $datos): void;
+
+    /** @param array<string, mixed> $datos */
+    public function crearLote(array $datos): Lote;
+
+    /** @param array<string, mixed> $datos */
+    public function crearStock(array $datos): Stock;
+
+    public function obtenerVarianteConProducto(int $varianteId): ?ProductoVariante;
+
+    public function obtenerUsuarioPorId(int $usuarioId): ?User;
+
+    public function obtenerUbicacionPorId(int $id): ?Ubicacion;
+
+    public function obtenerUbicacionCocinaId(): int;
+
+    /** @return Collection<int, Stock> */
+    public function obtenerStocksDisponiblesParaTraslado(int $varianteId, int $destinoId): Collection;
+
+    public function obtenerSustitucionActiva(int $pedidoItemId, int $varianteOriginalId): ?SustitucionIngrediente;
+
+    public function desactivarSustitucionesActivas(int $pedidoItemId, int $varianteOriginalId): void;
+
+    /** @param array<string, mixed> $datos */
+    public function crearSustitucionIngrediente(array $datos): SustitucionIngrediente;
+
+    public function guardarSolicitudAbastecimiento(Solicitud $solicitud): void;
+
+    /** @param array<string, mixed> $intentPayload */
+    public function actualizarPagoStripeTransaccionYPedido(?PagoTransaccion $transaccion, Pedido $pedido, array $intentPayload, string $paymentIntentId): void;
 }

@@ -8,6 +8,7 @@ use App\Enums\Restaurante\UbicacionCocina;
 use App\Interactors\Inventario\Lotes\RegistrarMermaGlobalDiaria;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\Ubicacion;
+use App\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -101,11 +102,11 @@ final class MermaGlobalDiariaAction
                     usuarioId: $userId,
                 );
 
-                $fmtPerdida = number_format($resultado['total_perdida'], 2);
+                $fmtPerdida = MonedaHelper::formatear((float) $resultado['total_perdida']);
 
                 Notification::make()
                     ->title("Merma Global Registrada — {$fecha}")
-                    ->body("{$resultado['total_items']} producto(s) procesado(s). Pérdida total estimada: C$ {$fmtPerdida}")
+                    ->body("{$resultado['total_items']} producto(s) procesado(s). Pérdida total estimada: {$fmtPerdida}")
                     ->success()
                     ->send();
             });

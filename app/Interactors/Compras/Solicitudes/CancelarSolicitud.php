@@ -8,10 +8,10 @@ use App\Events\Compras\SolicitudCancelada;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
 
-final class CancelarSolicitud
+final readonly class CancelarSolicitud
 {
     public function __construct(
-        private readonly SolicitudRepositorioInterface $solicitudRepositorio,
+        private SolicitudRepositorioInterface $solicitudRepositorio,
     ) {}
 
     /**

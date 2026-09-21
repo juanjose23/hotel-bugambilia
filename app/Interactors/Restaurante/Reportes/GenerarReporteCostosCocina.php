@@ -8,10 +8,10 @@ use App\Repository\Models\Restaurante\ProcesoCocina;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Collection;
 
-final class GenerarReporteCostosCocina
+final readonly class GenerarReporteCostosCocina
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private RestauranteRepositorioInterface $repositorio,
     ) {}
 
     /**

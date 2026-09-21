@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Pages;
 
 use App\Filament\Resources\Habitaciones\HabitacionResource\HabitacionResource;
+use App\Interactors\Habitaciones\SincronizarGaleriaImagenesHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -35,22 +36,6 @@ class EditHabitacion extends EditRecord
             return;
         }
 
-        $record->imagenes()->delete();
-
-        $filas = [];
-        foreach ($imagenes as $index => $path) {
-            if ($path) {
-                $filas[] = [
-                    'imageable_type' => Habitacion::class,
-                    'imageable_id' => $record->id,
-                    'url' => $path,
-                    'orden' => $index + 1,
-                ];
-            }
-        }
-
-        if ($filas !== []) {
-            $record->imagenes()->insert($filas);
-        }
+        app(SincronizarGaleriaImagenesHabitacion::class)->ejecutar($record, $imagenes);
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\CalcularPenalizacionCancelacion;
+use App\BusinessLogic\Reservas\Calculos\CalcularPenalizacionCancelacion;
 use App\Enums\Politicas\UnidadAnticipacion;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Shared\EstadoGeneral;

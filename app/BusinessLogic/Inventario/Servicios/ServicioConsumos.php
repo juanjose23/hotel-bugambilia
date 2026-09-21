@@ -10,12 +10,12 @@ use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
 use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
 use App\Repository\Persistencia\Inventario\StockRepositorioInterface;
 
-class ServicioConsumos
+final readonly class ServicioConsumos
 {
     public function __construct(
-        private readonly MovimientoStockRepositorioInterface $movimientoStockRepositorio,
-        private readonly StockRepositorioInterface $stockRepositorio,
-        private readonly LoteRepositorioInterface $loteRepositorio,
+        private MovimientoStockRepositorioInterface $movimientoStockRepositorio,
+        private StockRepositorioInterface $stockRepositorio,
+        private LoteRepositorioInterface $loteRepositorio,
     ) {}
 
     /**

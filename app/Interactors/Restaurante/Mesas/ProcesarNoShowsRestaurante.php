@@ -7,21 +7,19 @@ namespace App\Interactors\Restaurante\Mesas;
 use App\BusinessLogic\Restaurante\Mesas\ValidarTransicionMesa;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
-use App\Enums\Reservas\TipoReserva;
 use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-final class ProcesarNoShowsRestaurante
+final readonly class ProcesarNoShowsRestaurante
 {
     public function __construct(
-        private readonly ReservaRepositorioInterface $reservas,
-        private readonly RestauranteRepositorioInterface $restaurante,
-        private readonly ValidarTransicionMesa $validarTransicion,
+        private ReservaRepositorioInterface $reservas,
+        private RestauranteRepositorioInterface $restaurante,
+        private ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**
@@ -37,18 +35,7 @@ final class ProcesarNoShowsRestaurante
         $fechaHoy = $ahora->toDateString();
         $horaLimiteStr = $ahora->subMinutes($minutosTolerancia)->format('H:i');
 
-        $reservacionesVencidas = Reserva::query()
-            ->where('tipo_reserva', TipoReserva::RESTAURANTE)
-            ->whereIn('estado', [EstadoReserva::CONFIRMADA, EstadoReserva::PENDIENTE])
-            ->whereDate('fecha_check_in', '<=', $fechaHoy)
-            ->where(function ($q) use ($fechaHoy, $horaLimiteStr): void {
-                $q->whereDate('fecha_check_in', '<', $fechaHoy)
-                    ->orWhere(function ($q2) use ($horaLimiteStr): void {
-                        $q2->whereNotNull('hora_reserva')
-                            ->where('hora_reserva', '<=', $horaLimiteStr);
-                    });
-            })
-            ->get();
+        $reservacionesVencidas = $this->reservas->obtenerReservasRestauranteVencidas($fechaHoy, $horaLimiteStr);
 
         $procesados = 0;
 

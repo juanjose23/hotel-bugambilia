@@ -1,3 +1,4 @@
+@use(App\Support\MonedaHelper)
 <div class="space-y-4">
     <div class="flex items-center justify-between">
         <div>
@@ -39,7 +40,7 @@
                                 </span>
                             @endif
                             <span class="font-bold text-gray-900 dark:text-white">
-                                Total: C$ {{ number_format((float) $trans->costo_total, 2) }}
+                                Total: {{ MonedaHelper::formatear((float) $trans->costo_total) }}
                             </span>
                         </div>
                     </div>
@@ -72,7 +73,7 @@
                                         <span class="font-medium">
                                             {{ number_format((float) $item->cantidad, 2) }}
                                             @if(! $item->es_merma)
-                                                (C$ {{ number_format((float) $item->costo_asignado, 2) }})
+                                                ({{ MonedaHelper::formatear((float) $item->costo_asignado) }})
                                             @endif
                                         </span>
                                     </li>

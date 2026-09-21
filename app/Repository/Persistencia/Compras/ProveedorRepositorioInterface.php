@@ -10,4 +10,7 @@ interface ProveedorRepositorioInterface
 {
     /** @param array<string, mixed> $datos */
     public function crear(array $datos): Proveedor;
+
+    /** @param array<string, mixed> $datos */
+    public function actualizar(Proveedor $proveedor, array $datos): Proveedor;
 }

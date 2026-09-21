@@ -4,24 +4,21 @@ declare(strict_types=1);
 
 namespace App\Interactors\Compras\Recepciones;
 
-use App\Repository\Models\Compras\RecepcionCompra;
+use App\Repository\Persistencia\Compras\RecepcionRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-final class GenerarCodigoRecepcion
+final readonly class GenerarCodigoRecepcion
 {
+    public function __construct(
+        private RecepcionRepositorioInterface $recepcionRepositorio,
+    ) {}
+
     public function ejecutar(): string
     {
         $year = now()->year;
 
         return DB::transaction(function () use ($year): string {
-            $ultimo = RecepcionCompra::withTrashed()
-                ->where('codigo', 'like', "REC-{$year}-%")
-                ->orderBy('codigo', 'desc')
-                ->lockForUpdate()
-                ->get()
-                ->first(fn ($rec) => (bool) preg_match('/\-(\d+)$/', $rec->codigo));
-
-            $ultimo = $ultimo?->codigo;
+            $ultimo = $this->recepcionRepositorio->obtenerUltimoCodigoPorAno($year);
             $secuencia = 0;
 
             if ($ultimo && preg_match('/\-(\d+)$/', $ultimo, $coincidencias)) {

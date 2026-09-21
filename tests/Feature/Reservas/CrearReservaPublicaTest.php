@@ -6,7 +6,7 @@ use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Reservas\Gestion\CrearReservaPublica;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Reservas\RecursoReservable;
@@ -57,7 +57,7 @@ test('crea reserva publica con sin pago y no requiere stripe', function (): void
         'moneda_id' => $moneda->id,
     ];
 
-    $resultado = app(CrearReservaPublica::class)->ejecutar($datos, [], [], null);
+    $resultado = app(CrearReserva::class)->ejecutarConPasarela($datos, [], [], [], null);
 
     expect($resultado['reserva'])->toBeInstanceOf(Reserva::class);
     expect($resultado['requiere_pago_stripe'])->toBeFalse();
@@ -87,7 +87,7 @@ test('normaliza canal de pago transferencia y no requiere stripe', function (): 
         'moneda_id' => $moneda->id,
     ];
 
-    $resultado = app(CrearReservaPublica::class)->ejecutar($datos, [], [], null);
+    $resultado = app(CrearReserva::class)->ejecutarConPasarela($datos, [], [], [], null);
 
     expect($resultado['reserva'])->toBeInstanceOf(Reserva::class);
     expect($resultado['requiere_pago_stripe'])->toBeFalse();

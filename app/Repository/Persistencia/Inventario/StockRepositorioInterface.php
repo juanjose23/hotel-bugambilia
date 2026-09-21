@@ -18,4 +18,7 @@ interface StockRepositorioInterface
     public function guardar(Stock $stock): void;
 
     public function eliminar(Stock $stock): void;
+
+    /** @param array<int, int> $loteIds */
+    public function eliminarPorLoteIds(array $loteIds): void;
 }

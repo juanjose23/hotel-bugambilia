@@ -186,6 +186,6 @@ final class AutoPedido extends Page
         /** @var User|null $user */
         $user = auth()->user();
 
-        return $user?->can('page_AutoPedido') || $user?->can('page_CocinaPedidos') || $user?->can('page_GestionMesas') || ($user?->hasRole('super_admin') ?? false);
+        return $user !== null && ($user->can('Page:AutoPedido') || $user->can('Page:CocinaPedidos') || $user->can('Page:GestionMesas'));
     }
 }

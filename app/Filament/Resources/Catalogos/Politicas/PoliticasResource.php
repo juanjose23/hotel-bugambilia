@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Catalogos\Politicas;
 
+use App\Filament\Clusters\Configuracion\ConfiguracionCluster;
 use App\Filament\Resources\Catalogos\Politicas\Pages\CreatePoliticas;
 use App\Filament\Resources\Catalogos\Politicas\Pages\EditPoliticas;
 use App\Filament\Resources\Catalogos\Politicas\Pages\ListPoliticas;
@@ -23,6 +24,8 @@ use UnitEnum;
 
 class PoliticasResource extends Resource
 {
+    protected static ?string $cluster = ConfiguracionCluster::class;
+
     protected static ?string $model = Politica::class;
 
     protected static string|UnitEnum|null $navigationGroup = 'Configuración';

@@ -12,6 +12,9 @@ use Illuminate\Support\Collection;
 
 final readonly class ReportePaginador
 {
+    /** Límite máximo seguro de filas detalladas en un único PDF para evitar OOM y timeouts en DomPDF. */
+    public const int MAX_ITEMS_DETALLE_PDF = 1000;
+
     private const int MARGEN_SEGURIDAD_MM = 6;
 
     private LayoutPdf $layout;
@@ -34,6 +37,10 @@ final readonly class ReportePaginador
         ?CalculadorAltura $calculador = null,
         int $altoExtraPrimeraPaginaMm = 0,
     ): array {
+        if ($tipo !== TiposReporte::ETIQUETA && $items->count() > self::MAX_ITEMS_DETALLE_PDF) {
+            $items = $items->take(self::MAX_ITEMS_DETALLE_PDF);
+        }
+
         $config = $tipo->configuracion();
 
         if ($calculador !== null) {
@@ -87,10 +94,14 @@ final readonly class ReportePaginador
      */
     public function chunkParaPdf(
         Collection $items,
-        int $altoFilaMm = 7,
+        int $altoFilaMm = 10,
         int $altoExtraPrimeraPaginaMm = 0,
         int $altoEncabezadoMm = 9,
     ): array {
+        if ($items->count() > self::MAX_ITEMS_DETALLE_PDF) {
+            $items = $items->take(self::MAX_ITEMS_DETALLE_PDF);
+        }
+
         $filasTotales = $this->filasPorPagina(
             altoFilaMm: $altoFilaMm,
             altoEncabezadoMm: $altoEncabezadoMm,

@@ -6,6 +6,12 @@ namespace App\Support\Pdf\Calculadores;
 
 class CalculadorTablaDetalle implements CalculadorAltura
 {
+    private const int ALTO_BASE_MM = 7;
+
+    private const int ALTO_POR_LINEA_MM = 4;
+
+    private const int CHARS_POR_LINEA = 40;
+
     public function altura(mixed $item): int
     {
         $descripcion = '';
@@ -21,10 +27,12 @@ class CalculadorTablaDetalle implements CalculadorAltura
         }
 
         $len = mb_strlen($descripcion);
-        if ($len <= 80) {
-            return 6;
+        if ($len <= self::CHARS_POR_LINEA) {
+            return self::ALTO_BASE_MM;
         }
 
-        return 6 + (int) (ceil($len / 80) * 3);
+        $lineasExtra = (int) ceil($len / self::CHARS_POR_LINEA) - 1;
+
+        return self::ALTO_BASE_MM + $lineasExtra * self::ALTO_POR_LINEA_MM;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Compras\Proveedors\Schemas;
 
+use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Personas\TipoIdentificacion;
 use App\Enums\Shared\EstadoGeneral;
@@ -9,6 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
@@ -87,15 +89,21 @@ class ProveedorForm
                             ->label('Tipo de Identificación')
                             ->options(TipoIdentificacion::options())
                             ->nullable()
-                            ->hidden(fn ($get): bool => $get('tipo_persona') !== 'natural')
+                            ->live()
+                            ->hidden(fn (Get $get): bool => $get('tipo_persona') !== 'natural')
                             ->prefixIcon(Heroicon::Identification),
 
                         TextInput::make('personaNatural.numero_identificacion')
                             ->label('Número de Identificación')
                             ->placeholder('Número de documento')
                             ->maxLength(30)
+                            ->rules([
+                                fn (Get $get) => in_array($get('personaNatural.tipo_identificacion'), ['cedula', TipoIdentificacion::Cedula, TipoIdentificacion::Cedula->value], true)
+                                    ? new ValidCedulaNicaragua
+                                    : null,
+                            ])
                             ->nullable()
-                            ->hidden(fn ($get): bool => $get('tipo_persona') !== 'natural'),
+                            ->hidden(fn (Get $get): bool => $get('tipo_persona') !== 'natural'),
 
                         Select::make('personaJuridica.tipo_identificacion')
                             ->label('Tipo de Identificación Fiscal')

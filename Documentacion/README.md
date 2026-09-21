@@ -2,19 +2,20 @@
 
 ## Módulos Documentados
 
-| Módulo              | Archivo                                              | Estado   |
-| ------------------- | ---------------------------------------------------- | -------- |
-| Catálogos           | [doc/catalogos/flujos.md](catalogos/flujos.md)       | Completo |
-| Servicios           | [doc/servicios/flujos.md](servicios/flujos.md)       | Completo |
-| Habitaciones        | [doc/habitaciones/flujos.md](habitaciones/flujos.md) | Completo |
-| Promociones         | [doc/promociones/flujos.md](promociones/flujos.md)   | Completo |
-| Clientes / Usuarios | [doc/clientes/flujos.md](clientes/flujos.md)         | Completo |
-| Limpieza            | [doc/limpieza/flujos.md](limpieza/flujos.md)         | Completo |
-| Compras             | [doc/compras/flujos.md](compras/flujos.md)           | Completo |
-| Inventario          | [doc/inventario/flujos.md](inventario/flujos.md)     | Completo |
-| Activos Fijos       | [doc/activos/flujos.md](activos/flujos.md)           | Completo |
-| Restaurante         | [doc/restaurante/flujos.md](restaurante/flujos.md)   | Completo |
-| Background Jobs     | [jobs/README.md](jobs/README.md)                     | Completo |
+| Módulo              | Archivo                                                  | Estado   |
+| ------------------- | -------------------------------------------------------- | -------- |
+| Catálogos           | [doc/catalogos/flujos.md](catalogos/flujos.md)           | Completo |
+| Servicios           | [doc/servicios/flujos.md](servicios/flujos.md)           | Completo |
+| Habitaciones        | [doc/habitaciones/flujos.md](habitaciones/flujos.md)     | Completo |
+| Espacios & Mesas    | [doc/habitaciones/espacios.md](habitaciones/espacios.md) | Completo |
+| Promociones         | [doc/promociones/flujos.md](promociones/flujos.md)       | Completo |
+| Clientes / Usuarios | [doc/clientes/flujos.md](clientes/flujos.md)             | Completo |
+| Limpieza            | [doc/limpieza/flujos.md](limpieza/flujos.md)             | Completo |
+| Compras             | [doc/compras/flujos.md](compras/flujos.md)               | Completo |
+| Inventario          | [doc/inventario/flujos.md](inventario/flujos.md)         | Completo |
+| Activos Fijos       | [doc/activos/flujos.md](activos/flujos.md)               | Completo |
+| Restaurante         | [doc/restaurante/flujos.md](restaurante/flujos.md)       | Completo |
+| Background Jobs     | [jobs/README.md](jobs/README.md)                         | Completo |
 
 ## Convenciones
 

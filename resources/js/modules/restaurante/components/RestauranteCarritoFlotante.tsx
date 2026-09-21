@@ -1,4 +1,5 @@
 import { ShoppingBag, ArrowRight } from 'lucide-react';
+import { Button } from '@/modules/shared/components/ui/button';
 import type { RetornoCarritoRestaurante } from '../hooks/useCarritoRestaurante';
 
 interface PropsRestauranteCarritoFlotante {
@@ -19,10 +20,10 @@ export const RestauranteCarritoFlotante = ({
             aria-label="Carrito de compras flotante"
             className="animate-in fade-in slide-in-from-bottom-5 fixed right-4 bottom-20 z-40 duration-300 sm:right-6 sm:bottom-6"
         >
-            <button
+            <Button
                 type="button"
                 onClick={() => setSheetAbierto(true)}
-                className="group flex cursor-pointer items-center gap-3 rounded-full border-2 border-white/20 bg-emerald-600 px-5 py-3 text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-emerald-500 active:scale-95"
+                className="group flex h-auto cursor-pointer items-center gap-3 rounded-full border-2 border-white/20 bg-emerald-600 px-5 py-3 text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-emerald-500 active:scale-95"
             >
                 <div className="relative flex size-7 items-center justify-center rounded-full bg-black/20 text-white">
                     <ShoppingBag className="size-4" />
@@ -41,7 +42,7 @@ export const RestauranteCarritoFlotante = ({
                 </div>
 
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-            </button>
+            </Button>
         </aside>
     );
 };

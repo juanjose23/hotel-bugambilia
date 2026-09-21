@@ -67,13 +67,13 @@ class PedidoPolicy
         return $authUser->can('Replicate:Pedido');
     }
 
-    public function viewComanda(AuthUser $authUser, Pedido $pedido): bool
-    {
-        return $authUser->can('View:Pedido') || $authUser->can('Restaurante:ImprimirComanda');
-    }
-
     public function reorder(AuthUser $authUser): bool
     {
         return $authUser->can('Reorder:Pedido');
+    }
+
+    public function viewComanda(AuthUser $authUser, Pedido $pedido): bool
+    {
+        return $authUser->can('Restaurante:ImprimirComanda') || $authUser->can('View:Pedido');
     }
 }

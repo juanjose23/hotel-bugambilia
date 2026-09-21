@@ -109,6 +109,6 @@ final class ReportesRestaurante extends Page implements HasTable
         /** @var User|null $user */
         $user = auth()->user();
 
-        return $user !== null && $user->can('page_ReportesRestaurante');
+        return $user !== null && $user->can('Page:ReportesRestaurante');
     }
 }

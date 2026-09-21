@@ -27,6 +27,9 @@ class ReservaTable
     public function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
+            ->persistFiltersInSession()
+            ->persistSearchInSession()
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['moneda', 'habitacion', 'espacio', 'servicio']))
             ->columns([
                 TextColumn::make('codigo_reserva')

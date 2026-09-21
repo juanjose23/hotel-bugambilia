@@ -450,6 +450,6 @@ final class CocinaPedidos extends Page implements HasForms
         /** @var User|null $user */
         $user = auth()->user();
 
-        return $user?->can('page_CocinaPedidos') ?? false;
+        return $user?->can('Page:CocinaPedidos') ?? false;
     }
 }

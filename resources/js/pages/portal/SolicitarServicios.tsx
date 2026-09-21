@@ -7,7 +7,7 @@ import type {
     CatalogoServicioItemData,
     PortalReservaDetalleCompleto,
 } from '@/modules/clientes/types';
-import { buttonVariants } from '@/modules/shared/components/ui/button';
+import { Button, buttonVariants } from '@/modules/shared/components/ui/button';
 
 interface SolicitarServiciosProps {
     reserva: PortalReservaDetalleCompleto;
@@ -96,18 +96,24 @@ export const SolicitarServicios = ({
                 {/* Filtros por Categoría */}
                 <div className="flex scrollbar-none items-center gap-2 overflow-x-auto pb-2">
                     {categorias.map((cat) => (
-                        <button
+                        <Button
                             key={cat}
                             type="button"
+                            variant={
+                                categoriaSeleccionada === cat
+                                    ? 'default'
+                                    : 'secondary'
+                            }
+                            size="sm"
                             onClick={() => setCategoriaSeleccionada(cat)}
                             className={`rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap capitalize transition-all ${
                                 categoriaSeleccionada === cat
-                                    ? 'bg-primary text-white shadow-sm'
+                                    ? 'bg-primary text-white shadow-sm hover:bg-primary/90'
                                     : 'bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground'
                             }`}
                         >
                             {cat === 'todos' ? 'Todos los Servicios' : cat}
-                        </button>
+                        </Button>
                     ))}
                 </div>
 

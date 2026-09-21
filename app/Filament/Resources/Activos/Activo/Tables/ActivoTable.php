@@ -9,6 +9,7 @@ use App\Enums\Activos\EstadoAsignacion;
 use App\Enums\Activos\TipoBaja;
 use App\Enums\Activos\TipoMantenimiento;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Filament\Shared\Concerns\TipoDestinoAsignacionActivo;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Filament\Shared\Forms\MonedaSelect;
 use App\Filament\Shared\Forms\ProveedorSelect;
@@ -18,12 +19,9 @@ use App\Interactors\Activos\Gestion\DarDeBajaActivo;
 use App\Interactors\Activos\Mantenimiento\EnviarAMantenimiento;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Catalogos\Ubicacion;
-use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Persistencia\Activos\ActivoAsignacionRepositorioInterface;
 use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
 use App\Repository\Queries\Catalogos\ObtenerUbicacionAlmacen;
-use App\Support\CachedOptions;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup as TableActionGroup;
 use Filament\Actions\BulkAction;
@@ -104,12 +102,7 @@ readonly class ActivoTable
                     })
                     ->placeholder('Sin asignar')
                     ->badge()
-                    ->color(fn (Activo $record): string => match ($record->asignacionActiva?->asignable_type) {
-                        Habitacion::class => 'success',
-                        Ubicacion::class => 'info',
-                        Espacio::class => 'warning',
-                        default => 'gray',
-                    }),
+                    ->color(fn (Activo $record): string => TipoDestinoAsignacionActivo::tipoDestinoColor($record->asignacionActiva?->asignable_type)),
 
                 EstadoBadgeColumn::make(EstadoActivo::class)
                     ->sortable(),
@@ -146,11 +139,7 @@ readonly class ActivoTable
                     ->relationship('producto', 'nombre'),
                 SelectFilter::make('ubicacion_tipo')
                     ->label('Tipo de Ubicación')
-                    ->options([
-                        Habitacion::class => 'Habitación',
-                        Ubicacion::class => 'Ubicación / Bodega',
-                        Espacio::class => 'Espacio / Área Común',
-                    ]),
+                    ->options(TipoDestinoAsignacionActivo::destinos()),
             ])
             ->groupedBulkActions([
                 ViewAction::make(),
@@ -165,11 +154,7 @@ readonly class ActivoTable
                         ->schema([
                             Select::make('asignable_type')
                                 ->label('Tipo de Destino')
-                                ->options([
-                                    Habitacion::class => 'Habitación',
-                                    Ubicacion::class => 'Ubicación / Bodega',
-                                    Espacio::class => 'Espacio / Área Común',
-                                ])
+                                ->options(TipoDestinoAsignacionActivo::destinos())
                                 ->required()
                                 ->live(),
 
@@ -177,17 +162,8 @@ readonly class ActivoTable
                                 ->label('Destino Específico')
                                 ->options(function (Get $get) {
                                     $type = $get('asignable_type');
-                                    if ($type === Habitacion::class) {
-                                        return CachedOptions::habitaciones();
-                                    }
-                                    if ($type === Ubicacion::class) {
-                                        return CachedOptions::ubicacionesAlmacen();
-                                    }
-                                    if ($type === Espacio::class) {
-                                        return CachedOptions::espacios();
-                                    }
 
-                                    return [];
+                                    return TipoDestinoAsignacionActivo::opcionesDestino(is_string($type) ? $type : null);
                                 })
                                 ->required()
                                 ->searchable(),
@@ -399,11 +375,7 @@ readonly class ActivoTable
                         ->schema([
                             Select::make('asignable_type')
                                 ->label('Tipo de Destino')
-                                ->options([
-                                    Habitacion::class => 'Habitación',
-                                    Espacio::class => 'Espacio Común',
-                                    Ubicacion::class => 'Ubicación / Área',
-                                ])
+                                ->options(TipoDestinoAsignacionActivo::destinos())
                                 ->required()
                                 ->live(),
 
@@ -411,17 +383,8 @@ readonly class ActivoTable
                                 ->label('Seleccionar Destino')
                                 ->options(function (Get $get) {
                                     $type = $get('asignable_type');
-                                    if ($type === Habitacion::class) {
-                                        return CachedOptions::habitaciones();
-                                    }
-                                    if ($type === Espacio::class) {
-                                        return CachedOptions::espacios();
-                                    }
-                                    if ($type === Ubicacion::class) {
-                                        return CachedOptions::ubicacionesAlmacen();
-                                    }
 
-                                    return [];
+                                    return TipoDestinoAsignacionActivo::opcionesDestino(is_string($type) ? $type : null);
                                 })
                                 ->required()
                                 ->searchable(),

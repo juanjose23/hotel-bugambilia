@@ -18,7 +18,6 @@ use App\Repository\Models\Servicios\Servicio;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -159,24 +158,6 @@ final class Reserva extends Model implements AuditableContract
     public function moneda(): BelongsTo
     {
         return $this->belongsTo(Moneda::class);
-    }
-
-    /**
-     * @return HasMany<ReservaServicio, $this>
-     */
-    public function serviciosAdicionalesItems(): HasMany
-    {
-        return $this->hasMany(ReservaServicio::class, 'reserva_id');
-    }
-
-    /**
-     * @return BelongsToMany<Servicio, $this>
-     */
-    public function serviciosAdicionales(): BelongsToMany
-    {
-        return $this->belongsToMany(Servicio::class, 'reserva_servicios', 'reserva_id', 'servicio_id')
-            ->withPivot(['cantidad', 'precio'])
-            ->withTimestamps();
     }
 
     /** @return HasMany<ReservaDetalle, $this> */

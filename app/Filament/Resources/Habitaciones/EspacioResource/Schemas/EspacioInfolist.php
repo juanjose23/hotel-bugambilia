@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\EspacioResource\Schemas;
 
 use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
+use App\Repository\Models\Shared\Imagen;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -22,7 +25,7 @@ class EspacioInfolist
                 ->description('Datos básicos e identificación del espacio.')
                 ->columns([
                     'default' => 1,
-                    'md' => 3,
+                    'md' => 4,
                 ])
                 ->schema([
                     TextEntry::make('codigo')
@@ -67,10 +70,50 @@ class EspacioInfolist
                         ->suffix(' personas')
                         ->weight(FontWeight::SemiBold),
 
+                    TextEntry::make('web')
+                        ->label('Visible en Portal Web')
+                        ->badge()
+                        ->color(fn (bool $state): string => $state ? 'success' : 'gray')
+                        ->formatStateUsing(fn (bool $state): string => $state ? 'Visible en Web' : 'Uso Interno')
+                        ->icon(fn (bool $state): Heroicon => $state ? Heroicon::GlobeAlt : Heroicon::EyeSlash),
+
+                    TextEntry::make('reservable')
+                        ->label('Reservable')
+                        ->badge()
+                        ->color(fn (bool $state): string => $state ? 'info' : 'warning')
+                        ->formatStateUsing(fn (bool $state): string => $state ? 'Reservable' : 'No Reservable')
+                        ->icon(fn (bool $state): Heroicon => $state ? Heroicon::CalendarDays : Heroicon::LockClosed),
+
                     TextEntry::make('orden')
                         ->label('Orden de Clasificación')
                         ->numeric()
                         ->icon(Heroicon::ArrowDownCircle),
+                ]),
+
+            Section::make('Galería de Fotos')
+                ->icon(Heroicon::Photo)
+                ->description('Imágenes registradas del espacio.')
+                ->collapsible()
+                ->schema([
+                    RepeatableEntry::make('imagenes')
+                        ->hiddenLabel()
+                        ->grid([
+                            'default' => 1,
+                            'sm' => 2,
+                            'md' => 3,
+                        ])
+                        ->schema([
+                            ImageEntry::make('url')
+                                ->hiddenLabel()
+                                ->state(fn (Imagen $record): string => $record->url_completa)
+                                ->imageHeight(180)
+                                ->columnSpanFull()
+                                ->extraImgAttributes([
+                                    'class' => 'rounded-2xl object-cover w-full shadow-sm border border-gray-200 dark:border-gray-800 transition duration-300 hover:scale-[1.02] hover:shadow-lg',
+                                    'style' => 'width: 100%; height: 180px; object-fit: cover;',
+                                ]),
+                        ])
+                        ->placeholder('No hay imágenes registradas.'),
                 ]),
 
             Section::make('Sub-espacios Asignados')

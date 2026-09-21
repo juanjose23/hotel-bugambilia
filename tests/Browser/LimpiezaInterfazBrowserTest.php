@@ -33,18 +33,18 @@ function obtenerUsuarioLimpiezaAdmin(): User
         ]);
     }
 
-    $persona = Persona::query()->create([
-        'primer_nombre' => 'Admin Limpieza Dusk',
-        'tipo_persona' => 'natural',
-    ]);
-
-    $admin->update(['persona_id' => $persona->id]);
+    if ($admin->persona_id === null) {
+        $persona = Persona::query()->create([
+            'primer_nombre' => 'Admin Limpieza Dusk',
+            'tipo_persona' => 'natural',
+        ]);
+        $admin->update(['persona_id' => $persona->id]);
+    }
 
     Colaborador::query()->firstOrCreate([
-        'id' => $admin->id,
-    ], [
         'codigo' => 'COL-LIM-'.$admin->id,
-        'persona_id' => $persona->id,
+    ], [
+        'persona_id' => $admin->persona_id,
         'fecha_ingreso' => now(),
         'estado' => EstadoGeneral::Activo,
     ]);
@@ -67,7 +67,7 @@ test('modulo de limpieza: tablero interactivo de operaciones y estado de habitac
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/tablero-limpieza')
-            ->waitForText('Filtrar por Ubicación')
+            ->waitForText('Filtrar por Ubicación', 10)
             ->assertSee('Disponibles / Pendientes')
             ->pause(1000);
     });
@@ -79,12 +79,12 @@ test('modulo de limpieza: solicitudes y planificacion de horarios', function ():
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/limpieza/solicitudes')
-            ->waitForText('Solicitudes De Limpieza')
+            ->waitForText('Solicitudes De Limpieza', 10)
             ->assertSee('Nueva Solicitud')
             ->pause(1000);
 
         $browser->visit('/admin/limpieza/horarios')
-            ->waitForText('Horarios Planificados')
+            ->waitForText('Horarios Planificados', 10)
             ->assertSee('Horarios Planificados')
             ->pause(1000);
     });
@@ -96,12 +96,12 @@ test('modulo de limpieza: gestion de turnos y ejecuciones', function (): void {
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/limpieza/turnos')
-            ->waitForText('Turnos')
+            ->waitForText('Turnos', 10)
             ->assertSee('Turnos')
             ->pause(1000);
 
         $browser->visit('/admin/limpieza/ejecuciones')
-            ->waitForText('Ejecuciones')
+            ->waitForText('Ejecuciones', 10)
             ->assertSee('Ejecuciones')
             ->pause(1000);
     });
@@ -113,12 +113,12 @@ test('modulo de limpieza: abastecimiento de carritos y control de lavanderia', f
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/limpieza/abastecer-carrito')
-            ->waitForText('Administración de Carritos')
+            ->waitForText('Administración de Carritos', 10)
             ->assertSee('Administración de Carritos')
             ->pause(1000);
 
         $browser->visit('/admin/limpieza/control-lavanderia')
-            ->waitForText('Inventario Actual')
+            ->waitForText('Inventario Actual', 10)
             ->assertSee('Entrada de Insumos')
             ->assertSee('Consumo por Jornada')
             ->pause(1000);

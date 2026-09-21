@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\BusinessLogic\Restaurante\Mesas;
 
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use Illuminate\Support\Collection;
 
@@ -34,7 +35,7 @@ final class ResolverUnionMesasAuto
         $capacidadAcumulada = 0;
 
         $metaPrincipal = is_array($mesaPrincipal->meta_datos) ? $mesaPrincipal->meta_datos : [];
-        $zonaPrincipal = $metaPrincipal['zona_restaurante'] ?? null;
+        $zonaPrincipal = $this->obtenerZonaMesa($mesaPrincipal);
         $tipoPrincipal = $metaPrincipal['tipo_mesa'] ?? '';
 
         // Filtrar mesas en la misma área/padre que estén completamente disponibles
@@ -46,7 +47,7 @@ final class ResolverUnionMesasAuto
 
                 $meta = is_array($m->meta_datos) ? $m->meta_datos : [];
                 $tipoMesa = (string) ($meta['tipo_mesa'] ?? '');
-                $zonaMesa = (string) ($meta['zona_restaurante'] ?? '');
+                $zonaMesa = $this->obtenerZonaMesa($m);
 
                 // Jamás unir asientos de barra con mesas de comedor
                 if ($tipoPrincipal === 'barra' || $tipoMesa === 'barra') {
@@ -54,7 +55,7 @@ final class ResolverUnionMesasAuto
                 }
 
                 // Jamás unir mesas de distintas zonas de restaurante
-                if ($zonaPrincipal !== null && $zonaMesa !== '' && $zonaMesa !== (string) $zonaPrincipal) {
+                if ($zonaMesa !== $zonaPrincipal) {
                     return false;
                 }
 
@@ -131,9 +132,7 @@ final class ResolverUnionMesasAuto
                 return $diffA <=> $diffB;
             })->first();
 
-            $meta = is_array($mejorMesa->meta_datos) ? $mejorMesa->meta_datos : [];
-            $ubicacionNombre = $mejorMesa->ubicacion !== null ? $mejorMesa->ubicacion->nombre : 'Salón Principal';
-            $zona = $this->formatearZona($meta['zona_restaurante'] ?? $ubicacionNombre);
+            $zona = $this->obtenerZonaMesa($mejorMesa);
 
             return [
                 'mesa_principal' => $mejorMesa,
@@ -156,12 +155,7 @@ final class ResolverUnionMesasAuto
             $mesasParaUnion = $mesasDisponibles;
         }
 
-        $porZona = $mesasParaUnion->groupBy(function (Espacio $m): string {
-            $meta = is_array($m->meta_datos) ? $m->meta_datos : [];
-            $ubicacionNombre = $m->ubicacion !== null ? $m->ubicacion->nombre : 'interior';
-
-            return (string) ($meta['zona_restaurante'] ?? $ubicacionNombre);
-        });
+        $porZona = $mesasParaUnion->groupBy(fn (Espacio $m): string => $this->obtenerZonaMesa($m));
 
         $mejorCombinacion = null;
         $menorExceso = PHP_INT_MAX;
@@ -188,7 +182,7 @@ final class ResolverUnionMesasAuto
                             'mesas_unidas' => $acumuladas,
                             'requiere_union' => count($acumuladas) > 1,
                             'capacidad_total' => $capAcumulada,
-                            'zona' => $this->formatearZona((string) $zonaKey),
+                            'zona' => (string) $zonaKey,
                         ];
                     }
                     break;
@@ -203,25 +197,37 @@ final class ResolverUnionMesasAuto
         // 3. Fallback: primera mesa disponible
         /** @var Espacio $fallbackMesa */
         $fallbackMesa = $mesasDisponibles->first();
-        $metaFallback = is_array($fallbackMesa->meta_datos) ? $fallbackMesa->meta_datos : [];
 
         return [
             'mesa_principal' => $fallbackMesa,
             'mesas_unidas' => [],
             'requiere_union' => false,
             'capacidad_total' => (int) ($fallbackMesa->capacidad_personas ?? 4),
-            'zona' => $this->formatearZona($metaFallback['zona_restaurante'] ?? 'Salón Principal'),
+            'zona' => $this->obtenerZonaMesa($fallbackMesa),
         ];
     }
 
-    private function formatearZona(string $zona): string
+    private function obtenerZonaMesa(Espacio $mesa): string
     {
-        return match (strtolower(trim($zona))) {
-            'interior' => 'Salón Interior',
-            'terraza' => 'Terraza al Aire Libre',
-            'bar' => 'Área de Barra',
-            'vip' => 'Área VIP',
-            default => ucfirst($zona),
-        };
+        if ($mesa->ubicacion !== null) {
+            return $mesa->ubicacion->nombre;
+        }
+
+        if ($mesa->padre !== null && $mesa->padre->tipo !== TipoEspacio::RESTAURANTE) {
+            return $mesa->padre->nombre;
+        }
+
+        $meta = is_array($mesa->meta_datos) ? $mesa->meta_datos : [];
+        if (! empty($meta['zona_restaurante'])) {
+            return match (strtolower((string) $meta['zona_restaurante'])) {
+                'interior' => 'Salón Interior',
+                'terraza' => 'Terraza al Aire Libre',
+                'bar', 'barra' => 'Área de Barra',
+                'vip' => 'Área VIP',
+                default => ucfirst((string) $meta['zona_restaurante']),
+            };
+        }
+
+        return 'Salón Principal';
     }
 }

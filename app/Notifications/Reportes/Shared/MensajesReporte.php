@@ -14,9 +14,20 @@ final class MensajesReporte
     public function reporteEnProceso(string $codigoReporte): DatosNotificacion
     {
         return new DatosNotificacion(
-            title: 'Reporte en proceso',
-            body: "El reporte {$codigoReporte} se esta generando. Recibiras una notificacion cuando este listo.",
-            type: TipoNotificacion::Info,
+            title: '⏳ Generando reporte en segundo plano',
+            body: "El reporte {$codigoReporte} contiene un volumen alto de registros y se está procesando. Te notificaremos con el enlace de descarga cuando esté listo.",
+            type: TipoNotificacion::Warning,
+            channels: [CanalNotificacion::BaseDeDatos],
+        );
+    }
+
+    public function reporteFallido(string $codigoReporte, string $motivo): DatosNotificacion
+    {
+        return new DatosNotificacion(
+            title: '❌ Error al generar reporte',
+            body: "No se pudo generar el reporte {$codigoReporte}. {$motivo}",
+            type: TipoNotificacion::Error,
+            channels: [CanalNotificacion::BaseDeDatos],
         );
     }
 

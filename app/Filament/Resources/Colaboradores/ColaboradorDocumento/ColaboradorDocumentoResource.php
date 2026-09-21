@@ -26,7 +26,7 @@ class ColaboradorDocumentoResource extends Resource
 
     public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return 'Personas & Accesos';
+        return 'Colaboradores & Personal';
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null

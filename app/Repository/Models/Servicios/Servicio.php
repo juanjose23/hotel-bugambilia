@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Models\Servicios;
 
+use App\Repository\Models\Activos\ActivoAsignacion;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Politicas\Politica;
 use App\Repository\Models\Reservas\RecursoReservable;
@@ -11,6 +12,7 @@ use App\Repository\Models\Shared\Imagen;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\Shared\ServicioAsignacion;
 use App\Repository\Models\Shared\Stock;
+use App\Repository\Queries\Servicios\ObtenerListadoHeroicons;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -73,6 +75,26 @@ class Servicio extends Model implements AuditableContract
         return $this->morphMany(Stock::class, 'stockable');
     }
 
+    /**
+     * Activos fijos asignados a este servicio (flota).
+     *
+     * @return MorphMany<ActivoAsignacion, $this>
+     */
+    public function asignacionesActivos(): MorphMany
+    {
+        return $this->morphMany(ActivoAsignacion::class, 'asignable');
+    }
+
+    /**
+     * Alias semántico: activos fijos actualmente asignados a este servicio.
+     *
+     * @return MorphMany<ActivoAsignacion, $this>
+     */
+    public function inventarioFijo(): MorphMany
+    {
+        return $this->asignacionesActivos()->whereNull('fecha_fin');
+    }
+
     /** @return MorphToMany<Politica, $this> */
     public function politicas(): MorphToMany
     {
@@ -82,11 +104,28 @@ class Servicio extends Model implements AuditableContract
     }
 
     /**
+     * Resuelve el identificador de icono para componentes de Filament.
+     */
+    public function getIconoFilamentAttribute(): string
+    {
+        return ObtenerListadoHeroicons::resolverParaFilament($this->icono);
+    }
+
+    /**
      * @param  Builder<static>  $query
      * @return Builder<static>
      */
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('estado', 1);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeActivosWeb(Builder $query): Builder
+    {
+        return $query->where('estado', 1)->where('web', true);
     }
 }

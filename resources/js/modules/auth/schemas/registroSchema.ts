@@ -65,6 +65,22 @@ export const registroSchema = z
                 path: ['password_confirmation'],
             });
         }
+
+        if (
+            data.tipo_identificacion === 'cedula' &&
+            data.numero_identificacion &&
+            data.numero_identificacion.trim().length > 0
+        ) {
+            const regexCedula = /^\d{3}-?\d{6}-?\d{4}[A-Za-z]$/;
+            if (!regexCedula.test(data.numero_identificacion.trim())) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'El formato de la cédula no es válido (ej. 001-010100-1234A)',
+                    path: ['numero_identificacion'],
+                });
+            }
+        }
     });
 
 export type RegistroFormValues = z.infer<typeof registroSchema>;

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Actions\Activos;
 
+use App\Actions\Shared\GenerarCorrelativoCodigoAction;
 use App\Enums\Activos\EstadoActivo;
 use App\Enums\Activos\TipoBaja;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoBaja;
 use App\Repository\Persistencia\Activos\ActivoBajaRepositorioInterface;
 use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
-use App\Services\Shared\GeneradorCodigoService;
 
-class RegistrarBajaAction
+final readonly class RegistrarBajaAction
 {
     public function __construct(
-        private readonly GeneradorCodigoService $generadorCodigo,
-        private readonly ActivoBajaRepositorioInterface $bajaRepositorio,
-        private readonly ActivoRepositorioInterface $activoRepositorio,
+        private GenerarCorrelativoCodigoAction $generadorCodigo,
+        private ActivoBajaRepositorioInterface $bajaRepositorio,
+        private ActivoRepositorioInterface $activoRepositorio,
     ) {}
 
     public function ejecutar(
@@ -32,7 +32,7 @@ class RegistrarBajaAction
         $activo->estado = EstadoActivo::DadoDeBaja;
         $this->activoRepositorio->guardar($activo);
 
-        $codigoBaja = $this->generadorCodigo->generarCorrelativo(
+        $codigoBaja = $this->generadorCodigo->ejecutar(
             'BAJA-'.now()->format('Y'),
             ActivoBaja::class,
             'codigo'

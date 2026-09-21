@@ -16,7 +16,7 @@ use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
 use App\Repository\Queries\Catalogos\ObtenerUbicacionAlmacen;
 use Illuminate\Support\Facades\DB;
 
-class DarDeBajaActivo
+final class DarDeBajaActivo
 {
     public function __construct(
         private readonly CerrarAsignacionActivaAction $cerrarAsignacion,

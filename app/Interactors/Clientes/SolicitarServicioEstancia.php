@@ -8,16 +8,22 @@ use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Reservas\EstadoReserva;
 use App\Repository\Models\Cuentas\Cuenta;
-use App\Repository\Models\Cuentas\CuentaDetalle;
-use App\Repository\Models\Monedas\Moneda;
-use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\User;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
+use App\Repository\Persistencia\Servicios\ServicioRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class SolicitarServicioEstancia
+final readonly class SolicitarServicioEstancia
 {
+    public function __construct(
+        private CuentaRepositorioInterface $cuentaRepositorio,
+        private ReservaRepositorioInterface $reservaRepositorio,
+        private ServicioRepositorioInterface $servicioRepositorio,
+    ) {}
+
     /**
      * @param  array{servicio_id: int, cantidad: float, notas?: string|null}  $datos
      * @return array<string, mixed>
@@ -25,8 +31,7 @@ final class SolicitarServicioEstancia
     public function ejecutar(int $reservaId, array $datos, ?User $user = null): array
     {
         return DB::transaction(function () use ($reservaId, $datos, $user): array {
-            /** @var Reserva|null $reserva */
-            $reserva = Reserva::with(['cuentas.detalles', 'moneda'])->lockForUpdate()->find($reservaId);
+            $reserva = $this->reservaRepositorio->obtenerPorIdConCuentasYMonedaConLock($reservaId);
             if ($reserva === null) {
                 throw new DomainException("La reserva #{$reservaId} no existe.");
             }
@@ -35,8 +40,7 @@ final class SolicitarServicioEstancia
                 throw new DomainException('Solo es posible solicitar servicios para reservaciones confirmadas o con estancia activa.');
             }
 
-            /** @var Servicio|null $servicio */
-            $servicio = Servicio::with(['precios.moneda'])->activos()->find($datos['servicio_id']);
+            $servicio = $this->servicioRepositorio->buscarActivoConPrecios((int) $datos['servicio_id']);
             if ($servicio === null) {
                 throw new DomainException('El servicio solicitado no está disponible en este momento.');
             }
@@ -51,8 +55,9 @@ final class SolicitarServicioEstancia
             $cuenta = $reserva->cuentas->firstWhere('estado', EstadoCuenta::ABIERTA);
 
             if ($cuenta === null) {
-                $monedaId = $reserva->moneda_id ?? Moneda::query()->where('es_predeterminada', true)->value('id') ?? 1;
-                $cuenta = Cuenta::create([
+                $monedaPredeterminada = $this->cuentaRepositorio->monedaPredeterminada();
+                $monedaId = $reserva->moneda_id ?? ($monedaPredeterminada !== null ? $monedaPredeterminada->id : 1);
+                $cuenta = $this->cuentaRepositorio->crear([
                     'numero_cuenta' => 'CTA-RES-'.$reserva->id.'-'.time(),
                     'tipo_cuenta' => TipoCuenta::ESTANCIA,
                     'estado' => EstadoCuenta::ABIERTA,
@@ -70,8 +75,7 @@ final class SolicitarServicioEstancia
 
             $notas = isset($datos['notas']) ? trim($datos['notas']) : null;
 
-            CuentaDetalle::create([
-                'cuenta_id' => $cuenta->id,
+            $this->cuentaRepositorio->crearDetalle($cuenta, [
                 'moneda_id' => $cuenta->moneda_id,
                 'origen_type' => Servicio::class,
                 'origen_id' => $servicio->id,
@@ -95,7 +99,7 @@ final class SolicitarServicioEstancia
             $nuevoTotal = round($nuevoSubtotal + (float) $cuenta->impuesto_total - (float) $cuenta->descuento_total, 2);
             $nuevoSaldo = round(max(0.0, $nuevoTotal - (float) $cuenta->total_pagado), 2);
 
-            $cuenta->update([
+            $this->cuentaRepositorio->actualizar($cuenta, [
                 'subtotal' => $nuevoSubtotal,
                 'total' => $nuevoTotal,
                 'saldo' => $nuevoSaldo,

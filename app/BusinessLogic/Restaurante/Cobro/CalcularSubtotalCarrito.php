@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Restaurante\Cobro;
 
+use App\BusinessLogic\Shared\Calculos\CalcularSubtotalItems;
+
 final class CalcularSubtotalCarrito
 {
+    public function __construct(
+        private readonly ?CalcularSubtotalItems $subtotalItems = null,
+    ) {}
+
     /**
      * Calcula el subtotal de un carrito de auto-pedido.
      *
@@ -13,11 +19,8 @@ final class CalcularSubtotalCarrito
      */
     public function calcular(array $carrito): float
     {
-        $subtotal = 0.0;
-        foreach ($carrito as $item) {
-            $subtotal += $item['precio'] * $item['cantidad'];
-        }
+        $calculator = $this->subtotalItems ?? new CalcularSubtotalItems;
 
-        return round($subtotal, 2);
+        return $calculator->calcular($carrito);
     }
 }

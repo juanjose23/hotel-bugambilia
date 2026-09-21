@@ -16,7 +16,9 @@ use App\Repository\Models\Cuentas\CuentaCargo;
 use App\Repository\Models\Cuentas\CuentaDetalle;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
+use App\Repository\Models\User;
 use Illuminate\Support\Collection;
 use RuntimeException;
 
@@ -353,5 +355,79 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
     public function insertarCuentaCargos(Cuenta $cuenta, array $registros): void
     {
         $cuenta->cargos()->insert($registros);
+    }
+
+    /** @return Collection<string, float> */
+    public function cargosPorTipoActivos(Cuenta $cuenta): Collection
+    {
+        /** @var Collection<string, float> $res */
+        $res = $cuenta->cargos()
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->selectRaw('tipo, SUM(monto) as total_monto')
+            ->groupBy('tipo')
+            ->pluck('total_monto', 'tipo');
+
+        return $res;
+    }
+
+    /** @return Collection<int, CuentaCargo> */
+    public function cargosFacturacionVigentesConCargoId(Cuenta $cuenta): Collection
+    {
+        /** @var Collection<int, CuentaCargo> $cargos */
+        $cargos = $cuenta->cargos()
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->whereNotNull('cargo_id')
+            ->get();
+
+        return $cargos;
+    }
+
+    /**
+     * @param  array<int, int>  $detallesIds
+     * @return Collection<int, CuentaDetalle>
+     */
+    public function obtenerDetallesActivosPorIds(Cuenta $cuenta, array $detallesIds): Collection
+    {
+        /** @var Collection<int, CuentaDetalle> $detalles */
+        $detalles = $cuenta->detalles()
+            ->whereIn('id', $detallesIds)
+            ->where('estado', EstadoGeneral::Activo->value)
+            ->get();
+
+        return $detalles;
+    }
+
+    /** @param array<int, int> $detallesIds */
+    public function reasignarDetallesACuenta(array $detallesIds, int $nuevaCuentaId): void
+    {
+        CuentaDetalle::query()
+            ->whereIn('id', $detallesIds)
+            ->update(['cuenta_id' => $nuevaCuentaId]);
+    }
+
+    public function generarNumeroCuenta(string|int $referencia): string
+    {
+        $baseNumero = sprintf('CTA-%s-%06d', now()->format('Y'), (int) $referencia);
+        $numeroCuenta = $baseNumero;
+        $contador = 1;
+        while (Cuenta::withTrashed()->where('numero_cuenta', $numeroCuenta)->exists()) {
+            $contador++;
+            $numeroCuenta = sprintf('%s-%d', $baseNumero, $contador);
+        }
+
+        return $numeroCuenta;
+    }
+
+    public function marcarSolicitaCuenta(int $reservaId): void
+    {
+        Reserva::query()
+            ->where('id', $reservaId)
+            ->where('solicita_cuenta', false)
+            ->update(['solicita_cuenta' => true]);
+    }
+
+    public function usuarioExiste(int $usuarioId): bool
+    {
+        return User::query()->where('id', $usuarioId)->exists();
     }
 }

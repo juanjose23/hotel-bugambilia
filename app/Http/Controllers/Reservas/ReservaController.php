@@ -6,12 +6,13 @@ namespace App\Http\Controllers\Reservas;
 
 use App\Actions\Voucher\GenerarVoucherPDF;
 use App\BusinessLogic\Reservas\Data\CancelarReservaHabitacionData;
+use App\BusinessLogic\Reservas\Data\ReservaPasarelaResultado;
 use App\Enums\Reservas\EstadoReserva;
 use App\Exceptions\StripeApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reservas\CrearReservaRequest;
-use App\Interactors\Reservas\Gestion\CancelarReservaPublica;
-use App\Interactors\Reservas\Gestion\CrearReservaPublica;
+use App\Interactors\Reservas\Gestion\CancelarReserva;
+use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Repository\Models\Reservas\Reserva;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -23,8 +24,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 final class ReservaController extends Controller
 {
     public function __construct(
-        private readonly CrearReservaPublica $crearReservaPublica,
-        private readonly CancelarReservaPublica $cancelarReservaPublica,
+        private readonly CrearReserva $crearReserva,
+        private readonly CancelarReserva $cancelarReserva,
     ) {}
 
     public function crear(CrearReservaRequest $request): JsonResponse|RedirectResponse
@@ -34,13 +35,13 @@ final class ReservaController extends Controller
         $espacios = is_array($datos['espacios_adicionales'] ?? null) ? $datos['espacios_adicionales'] : [];
 
         try {
-            $resultado = $this->crearReservaPublica->ejecutar(
+            $resultado = $this->crearReserva->ejecutarConPasarela(
                 datos: $datos,
-                servicios: $servicios,
-                espacios: $espacios,
+                serviciosAdicionales: $servicios,
+                espaciosAdicionales: $espacios,
                 clienteId: $request->user()?->persona?->cliente?->id,
             );
-            $reserva = $resultado['reserva'];
+            $reserva = $resultado->reserva;
 
             if ($request->expectsJson()) {
                 return $this->construirRespuestaJson($reserva, $resultado);
@@ -74,17 +75,15 @@ final class ReservaController extends Controller
 
     /**
      * Construye la respuesta JSON con los datos de la reserva y Stripe.
-     *
-     * @param  array{reserva: Reserva, requiere_pago_stripe: bool, stripe_pago: array<string, mixed>|null}  $resultado
      */
-    private function construirRespuestaJson(Reserva $reserva, array $resultado): JsonResponse
+    private function construirRespuestaJson(Reserva $reserva, ReservaPasarelaResultado $resultado): JsonResponse
     {
-        $stripePago = $resultado['stripe_pago'];
+        $stripePago = $resultado->stripePago;
 
         $stripeData = $stripePago !== null ? [
             'client_secret' => $stripePago['client_secret'],
             'publishable_key' => $stripePago['publishable_key'],
-            'transaccion_id' => $stripePago['transaccion']->id, // @phpstan-ignore property.nonObject (Stripe object)
+            'transaccion_id' => $stripePago['transaccion']->id,
             'monto' => $stripePago['monto'],
             'moneda' => $stripePago['moneda'],
         ] : null;
@@ -96,21 +95,19 @@ final class ReservaController extends Controller
                 'codigo_reserva' => $reserva->codigo_reserva,
                 'tipo_pago' => $reserva->tipo_pago->value,
             ],
-            'requiere_pago_stripe' => $resultado['requiere_pago_stripe'],
+            'requiere_pago_stripe' => $resultado->requierePagoStripe,
             'stripe_pago' => $stripeData,
         ]);
     }
 
     /**
      * Resuelve la URL de destino para el redirect post-creación.
-     *
-     * @param  array{reserva: Reserva, requiere_pago_stripe: bool}  $resultado
      */
-    private function resolverDestinoRedirect(array $resultado, ?object $usuario): string
+    private function resolverDestinoRedirect(ReservaPasarelaResultado $resultado, ?object $usuario): string
     {
-        $reserva = $resultado['reserva'];
+        $reserva = $resultado->reserva;
 
-        if ($resultado['requiere_pago_stripe'] === true) {
+        if ($resultado->requierePagoStripe === true) {
             return route('reservas.pago', ['reserva' => $reserva, 'codigo' => $reserva->codigo_reserva]);
         }
 
@@ -133,7 +130,7 @@ final class ReservaController extends Controller
         }
 
         try {
-            $resultado = $this->cancelarReservaPublica->ejecutar(new CancelarReservaHabitacionData(
+            $resultado = $this->cancelarReserva->ejecutar(new CancelarReservaHabitacionData(
                 reservaId: $reserva->id,
                 motivo: $request->string('motivo')->toString() ?: 'Reserva cancelada por el cliente',
                 usuarioId: $request->user()?->id,

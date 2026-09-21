@@ -6,9 +6,14 @@ namespace App\Interactors\Publico;
 
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Servicios\Servicio;
+use App\Repository\Queries\Habitaciones\ObtenerHabitacionDetalleWebQuery;
 
-final class ObtenerPagoPublico
+final readonly class ObtenerPagoPublico
 {
+    public function __construct(
+        private ObtenerHabitacionDetalleWebQuery $serviciosWebQuery,
+    ) {}
+
     /**
      * @return array{datosReserva: null, serviciosExtras: array<int, array{id: string, nombre: string, descripcion: string, precio: float, moneda: string}>}
      */
@@ -61,11 +66,8 @@ final class ObtenerPagoPublico
      */
     private function serviciosExtras(): array
     {
-        return Servicio::query()
-            ->activos()
-            ->where('web', true)
-            ->with(['precios.moneda'])
-            ->get()
+        return $this->serviciosWebQuery
+            ->obtenerServiciosDisponiblesWeb()
             ->map(function (Servicio $servicio): array {
                 $precio = $servicio->precios->first();
 

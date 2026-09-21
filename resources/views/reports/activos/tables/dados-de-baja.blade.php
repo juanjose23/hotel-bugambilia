@@ -36,7 +36,7 @@
             'labelColspan' => 5,
             'label' => 'Total Residual:',
             'total' => $totalValorResidual ?? 0,
-            'monedaSimbolo' => 'C$',
+            'monedaSimbolo' => \App\Support\MonedaHelper::simbolo(),
             'count' => ($totalRegistros ?? count($items)) . ' bajas',
         ])
     @endif

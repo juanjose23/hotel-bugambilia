@@ -88,12 +88,12 @@ export const PortalSidebar = ({ cliente }: PortalSidebarProps) => {
                         <img
                             src="/images/logo-dark.webp"
                             alt="Hotel Bugambilias"
-                            className="hidden h-10 w-auto object-contain dark:block"
+                            className="h-10 w-auto object-contain dark:hidden"
                         />
                         <img
-                            src="/images/logo-white.webp"
+                            src="/images/logo-claro.webp"
                             alt="Hotel Bugambilias"
-                            className="block h-10 w-auto object-contain dark:hidden"
+                            className="hidden h-10 w-auto object-contain dark:block"
                         />
                     </Link>
                 </div>

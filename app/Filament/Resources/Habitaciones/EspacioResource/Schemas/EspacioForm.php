@@ -10,6 +10,7 @@ use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\HabitacionesEspacios\TipoServicioEspacio;
 use App\Models\Catalogos\Ubicacion;
 use App\Models\Espacios\Espacio;
+use App\Support\MonedaHelper;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -187,20 +188,8 @@ class EspacioForm
 
                         // ─── Ambiente / Terraza / Bar de Restaurante ──────
                         Grid::make()
-                            ->columns(2)
+                            ->columns(1)
                             ->schema([
-                                Select::make('meta_datos.zona_restaurante')
-                                    ->label('Zona de Ubicación')
-                                    ->placeholder('Seleccione zona')
-                                    ->options([
-                                        'interior' => 'Salón Interior',
-                                        'terraza' => 'Terraza / Aire Libre',
-                                        'vip' => 'Zona Reservada / VIP',
-                                        'barra' => 'Barra de Tragos & Lounge',
-                                    ])
-                                    ->native(false)
-                                    ->prefixIcon(Heroicon::Map),
-
                                 CheckboxList::make('meta_datos.caracteristicas')
                                     ->label('Características del Ambiente')
                                     ->options([
@@ -233,20 +222,15 @@ class EspacioForm
                                         'rectangular' => 'Rectangular',
                                         'barra' => 'Espacio de Barra / Taburete',
                                     ])
+                                    ->default('cuadrada')
                                     ->native(false)
                                     ->prefixIcon(Heroicon::TableCells),
 
-                                Select::make('meta_datos.zona_restaurante')
-                                    ->label('Zona de Restaurante')
-                                    ->placeholder('Seleccione zona')
-                                    ->options([
-                                        'interior' => 'Salón Interior',
-                                        'terraza' => 'Terraza / Aire Libre',
-                                        'vip' => 'Zona Reservada / VIP',
-                                        'barra' => 'Barra de Tragos',
-                                    ])
-                                    ->native(false)
-                                    ->prefixIcon(Heroicon::Map),
+                                Toggle::make('meta_datos.permite_union')
+                                    ->label('Permite Unión con otras Mesas')
+                                    ->default(true)
+                                    ->inline(false)
+                                    ->helperText('Habilita unir esta mesa para grupos en su misma ubicación.'),
                             ])
                             ->visible(fn ($get) => $get('tipo') === TipoEspacio::MESA->value),
 
@@ -341,7 +325,7 @@ class EspacioForm
                                     ->label('Costo de Envío / Delivery')
                                     ->placeholder('Ej. 50')
                                     ->numeric()
-                                    ->prefix('C$')
+                                    ->prefix(MonedaHelper::simbolo())
                                     ->default(50)
                                     ->prefixIcon(Heroicon::Truck),
 
@@ -349,7 +333,7 @@ class EspacioForm
                                     ->label('Monto Mínimo de Pedido')
                                     ->placeholder('Ej. 100')
                                     ->numeric()
-                                    ->prefix('C$')
+                                    ->prefix(MonedaHelper::simbolo())
                                     ->default(0)
                                     ->prefixIcon(Heroicon::Banknotes),
                             ])

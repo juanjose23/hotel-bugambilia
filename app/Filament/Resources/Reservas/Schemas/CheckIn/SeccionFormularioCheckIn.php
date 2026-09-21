@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\Schemas\CheckIn;
 
+use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Utilities\Get;
 
 /**
  * Sección de formulario simplificada para check-in.
@@ -48,11 +50,15 @@ class SeccionFormularioCheckIn
                     ])
                     ->default('cedula')
                     ->required()
+                    ->live()
                     ->native(false),
 
                 TextInput::make('identificacion')
                     ->label('Número de Cédula / ID')
                     ->required()
+                    ->rules([
+                        fn (Get $get) => $get('tipo_identificacion') === 'cedula' ? new ValidCedulaNicaragua : null,
+                    ])
                     ->maxLength(100),
 
                 Select::make('tipo')

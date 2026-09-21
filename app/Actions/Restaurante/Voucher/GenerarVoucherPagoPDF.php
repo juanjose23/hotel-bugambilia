@@ -6,6 +6,7 @@ namespace App\Actions\Restaurante\Voucher;
 
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Support\HotelInfo;
+use App\Support\MonedaHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -19,7 +20,7 @@ final class GenerarVoucherPagoPDF
         $totalCuenta = (float) $cuenta->total;
         $montoPagado = (float) ($pago->monto ?? 0);
         $vuelto = max(0.0, $montoPagado - $totalCuenta);
-        $simboloMoneda = (string) ($cuenta->moneda->simbolo ?? 'C$');
+        $simboloMoneda = MonedaHelper::simbolo($cuenta->moneda);
 
         $datosHotel = HotelInfo::getBaseData();
 

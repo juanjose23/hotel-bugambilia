@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Cuentas;
 
+use App\Repository\Models\Monedas\Moneda;
+use App\Support\MonedaHelper;
 use DomainException;
 
 /**
@@ -12,11 +14,14 @@ use DomainException;
  */
 final class ValidarPagoCobroCuenta
 {
-    public function validar(float $monto, float $saldo, float $cargosObligatoriosTotal): void
+    public function validar(float $monto, float $saldo, float $cargosObligatoriosTotal, ?Moneda $moneda = null): void
     {
         if ($saldo > 0 && $monto < $saldo && $cargosObligatoriosTotal > 0 && $monto < $cargosObligatoriosTotal) {
+            $montoFmt = MonedaHelper::formatear($monto, $moneda);
+            $cargosFmt = MonedaHelper::formatear($cargosObligatoriosTotal, $moneda);
+
             throw new DomainException(
-                'El monto abonado (C$ '.number_format($monto, 2).') es inferior al total de cargos obligatorios aplicados (C$ '.number_format($cargosObligatoriosTotal, 2).').'
+                "El monto abonado ({$montoFmt}) es inferior al total de cargos obligatorios aplicados ({$cargosFmt})."
             );
         }
     }

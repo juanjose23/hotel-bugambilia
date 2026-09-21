@@ -7,10 +7,10 @@ namespace App\Interactors\Restaurante\Pedidos;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 
-final class AsignarCuentaAPedido
+final readonly class AsignarCuentaAPedido
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
+        private RestauranteRepositorioInterface $repositorio,
     ) {}
 
     public function ejecutar(Pedido $pedido, int $cuentaId): Pedido

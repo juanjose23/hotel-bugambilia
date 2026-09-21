@@ -20,6 +20,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Collection;
 use UnitEnum;
 
 /**
@@ -52,9 +53,6 @@ final class CalendarioReservas extends Page implements HasForms
     /** @var array<string, mixed>|null */
     public ?array $filterData = [];
 
-    /** @var array<string, mixed> */
-    public array $calendarioData = [];
-
     private ObtenerCalendarioReservasQuery $query;
 
     public function boot(ObtenerCalendarioReservasQuery $query): void
@@ -75,7 +73,6 @@ final class CalendarioReservas extends Page implements HasForms
         ];
 
         $this->form->fill($this->filterData);
-        $this->cargarCalendario();
     }
 
     public function form(Schema $schema): Schema
@@ -110,8 +107,7 @@ final class CalendarioReservas extends Page implements HasForms
                                 )
                                     ->placeholder('Todas las Categorías')
                                     ->nullable()
-                                    ->live()
-                                    ->afterStateUpdated(fn () => $this->cargarCalendario()),
+                                    ->live(),
 
                                 Select::make('estadoFiltro')
                                     ->label('Estado de Reserva')
@@ -123,14 +119,12 @@ final class CalendarioReservas extends Page implements HasForms
                                         EstadoReserva::options(),
                                     ))
                                     ->native(false)
-                                    ->live()
-                                    ->afterStateUpdated(fn () => $this->cargarCalendario()),
+                                    ->live(),
 
                                 TextInput::make('buscar')
                                     ->label('Búsqueda Rápida')
                                     ->placeholder('Nombre cliente, código RES...')
-                                    ->live(debounce: 300)
-                                    ->afterStateUpdated(fn () => $this->cargarCalendario()),
+                                    ->live(debounce: 300),
                             ]),
                     ]),
             ])
@@ -140,7 +134,6 @@ final class CalendarioReservas extends Page implements HasForms
     private function updatedFiltroTipoState(string $tipo): void
     {
         $this->tabActiva = $tipo;
-        $this->cargarCalendario();
     }
 
     public function cambiarTab(string $tab): void
@@ -148,19 +141,16 @@ final class CalendarioReservas extends Page implements HasForms
         $this->tabActiva = $tab;
         $this->filterData['filtroTipo'] = $tab;
         $this->form->fill($this->filterData);
-        $this->cargarCalendario();
     }
 
     public function updatedMonth(): void
     {
         $this->month = (int) $this->month;
-        $this->cargarCalendario();
     }
 
     public function updatedYear(): void
     {
         $this->year = (int) $this->year;
-        $this->cargarCalendario();
     }
 
     public function previousMonth(): void
@@ -168,7 +158,6 @@ final class CalendarioReservas extends Page implements HasForms
         $date = Carbon::createFromDate($this->year, $this->month, 1)->startOfDay()->subMonth();
         $this->month = $date->month;
         $this->year = $date->year;
-        $this->cargarCalendario();
     }
 
     public function nextMonth(): void
@@ -176,17 +165,35 @@ final class CalendarioReservas extends Page implements HasForms
         $date = Carbon::createFromDate($this->year, $this->month, 1)->startOfDay()->addMonth();
         $this->month = $date->month;
         $this->year = $date->year;
-        $this->cargarCalendario();
     }
 
     public function goToToday(): void
     {
         $this->month = now()->month;
         $this->year = now()->year;
-        $this->cargarCalendario();
     }
 
-    public function cargarCalendario(): void
+    protected function getViewData(): array
+    {
+        return [
+            'calendarioData' => $this->buildCalendarioData(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     days: array<int, int|null>,
+     *     nombreMes: string,
+     *     year: int,
+     *     month: int,
+     *     categorias_habitacion: array<int, string>,
+     *     reservasPorDia: Collection<int, Collection<int, array{id: int, codigo: string, cliente: string, telefono: string, tipo: string, estado: string, estado_enum: int, estado_color: string, fecha_check_in: string, fecha_check_out: string, habitacion_id: int|null, espacio_id: int|null, recurso_nombre: string, total: float, day_check_in: int, es_llegada: bool, es_salida: bool}>>,
+     *     disponibilidadHabitaciones: array{total_habitaciones: int, dias_agotados: array<int, string>, ocupacion_por_dia: array<string, array{ocupadas: int, total: int, disponibles: int, agotado: bool}>}|null,
+     *     totalReservas: int,
+     *     totalMonto: float
+     * }
+     */
+    private function buildCalendarioData(): array
     {
         /** @var array<string, mixed> $data */
         $data = $this->filterData ?? [];
@@ -196,7 +203,7 @@ final class CalendarioReservas extends Page implements HasForms
         $categoria = isset($data['categoriaFiltro']) && is_string($data['categoriaFiltro']) ? $data['categoriaFiltro'] : '';
         $buscar = isset($data['buscar']) && is_string($data['buscar']) ? $data['buscar'] : '';
 
-        $this->calendarioData = $this->query->ejecutar(
+        return $this->query->ejecutar(
             $this->month,
             $this->year,
             $tipo,

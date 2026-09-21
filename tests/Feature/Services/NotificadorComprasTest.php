@@ -14,7 +14,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\User;
 use Database\Factories\CatalogoFactory;
-use Database\Seeders\MonedaSeeder;
+use Database\Seeders\Configuracion\MonedaSeeder;
 use Database\Seeders\TasaCambioSeeder;
 use Spatie\Permission\Models\Role;
 

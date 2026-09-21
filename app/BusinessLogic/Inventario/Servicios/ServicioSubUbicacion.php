@@ -6,13 +6,15 @@ namespace App\BusinessLogic\Inventario\Servicios;
 
 use App\BusinessLogic\Inventario\Validacion\ValidacionLotes;
 use App\Repository\Models\Inventario\Lote;
-use App\Repository\Models\Inventario\MovimientoStock;
+use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
+use App\Repository\Persistencia\Inventario\MovimientoStockRepositorioInterface;
 
-class ServicioSubUbicacion
+final readonly class ServicioSubUbicacion
 {
     public function __construct(
-        private readonly MovimientoStock $modeloMovimiento,
-        private readonly ValidacionLotes $validacion,
+        private LoteRepositorioInterface $loteRepositorio,
+        private MovimientoStockRepositorioInterface $movimientoStockRepositorio,
+        private ValidacionLotes $validacion,
     ) {}
 
     public function ejecutarAsignacion(Lote $lote, int $ubicacionDetalleId): void
@@ -20,9 +22,9 @@ class ServicioSubUbicacion
         $this->validacion->validarCambioSubUbicacion($lote, $ubicacionDetalleId);
 
         $lote->ubicacion_detalle_id = abs($ubicacionDetalleId);
-        $lote->save();
+        $this->loteRepositorio->guardar($lote);
 
-        $this->modeloMovimiento->create([
+        $this->movimientoStockRepositorio->registrar([
             'tipo' => 'MOV_AJUSTE',
             'lote_id' => $lote->id,
             'producto_id' => $lote->producto_id,

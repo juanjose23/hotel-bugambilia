@@ -51,14 +51,13 @@ class InventarioFijoRelationManager extends RelationManager
                     ->options(fn (): array => Activo::query()
                         ->select(['id', 'codigo_inventario', 'nombre_descriptivo'])
                         ->where('estado', EstadoActivo::Activo->value)
-                        ->with(['asignacionActiva.asignable'])
+                        ->whereDoesntHave('asignaciones', fn (Builder $q) => $q->whereNull('fecha_fin'))
                         ->get()
                         ->mapWithKeys(fn (Activo $activo): array => [
                             $activo->id => sprintf(
-                                '%s - %s (Ubicación: %s)',
+                                '%s - %s',
                                 $activo->codigo_inventario,
-                                $activo->nombre_descriptivo,
-                                $activo->asignacionActiva?->destinoLabel() ?? 'Sin ubicación'
+                                $activo->nombre_descriptivo
                             ),
                         ])
                         ->all()

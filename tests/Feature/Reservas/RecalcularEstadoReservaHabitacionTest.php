@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\RecalcularEstadoReservaHabitacion;
+use App\BusinessLogic\Reservas\Resolutores\RecalcularEstadoReservaHabitacion;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoRecursoReservable;
@@ -35,7 +35,7 @@ test('recalcular estado devuelve CANCELADA si todos los detalles estan cancelado
         'estado' => EstadoReservaDetalle::CANCELADO,
     ]);
 
-    $service = new RecalcularEstadoReservaHabitacion;
+    $service = app(RecalcularEstadoReservaHabitacion::class);
     $nuevoEstado = $service->calcularNuevoEstado($reserva);
 
     expect($nuevoEstado)->toBe(EstadoReserva::CANCELADA);
@@ -65,7 +65,7 @@ test('recalcular estado devuelve CHECKED_IN si todos los detalles estan en uso',
         'estado' => EstadoReservaDetalle::EN_USO,
     ]);
 
-    $service = new RecalcularEstadoReservaHabitacion;
+    $service = app(RecalcularEstadoReservaHabitacion::class);
     $nuevoEstado = $service->calcularNuevoEstado($reserva);
 
     expect($nuevoEstado)->toBe(EstadoReserva::CHECKED_IN);

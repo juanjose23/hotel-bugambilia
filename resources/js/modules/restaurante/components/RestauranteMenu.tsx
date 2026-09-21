@@ -6,6 +6,7 @@ import {
     Plus,
     Minus,
 } from 'lucide-react';
+import { Button } from '@/modules/shared/components/ui/button';
 import { Input } from '@/modules/shared/components/ui/input';
 import type { RetornoCarritoRestaurante } from '../hooks/useCarritoRestaurante';
 import { useFiltrosMenu } from '../hooks/useFiltrosMenu';
@@ -63,8 +64,14 @@ export const RestauranteMenu = ({
                 <div className="mt-8 flex flex-col items-center justify-between gap-4 md:flex-row">
                     {/* Pills de categorías */}
                     <div className="flex flex-wrap items-center justify-center gap-2">
-                        <button
+                        <Button
                             type="button"
+                            variant={
+                                categoriaActiva === 'todos'
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            size="sm"
                             onClick={() => setCategoriaActiva('todos')}
                             className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                                 categoriaActiva === 'todos'
@@ -73,11 +80,17 @@ export const RestauranteMenu = ({
                             }`}
                         >
                             Todas las Categorías ({menu.length})
-                        </button>
+                        </Button>
                         {categoriasDisponibles.map((cat) => (
-                            <button
+                            <Button
                                 key={cat}
                                 type="button"
+                                variant={
+                                    categoriaActiva === cat
+                                        ? 'default'
+                                        : 'outline'
+                                }
+                                size="sm"
                                 onClick={() => setCategoriaActiva(cat)}
                                 className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                                     categoriaActiva === cat
@@ -86,7 +99,7 @@ export const RestauranteMenu = ({
                                 }`}
                             >
                                 {cat}
-                            </button>
+                            </Button>
                         ))}
                     </div>
 
@@ -193,8 +206,10 @@ export const RestauranteMenu = ({
                                                 </span>
 
                                                 {cantidadEnCarrito === 0 ? (
-                                                    <button
+                                                    <Button
                                                         type="button"
+                                                        variant="ghost"
+                                                        size="sm"
                                                         onClick={() =>
                                                             carrito.agregarItem(
                                                                 plato,
@@ -204,34 +219,38 @@ export const RestauranteMenu = ({
                                                     >
                                                         <Plus className="size-3.5" />
                                                         <span>+ Pedir</span>
-                                                    </button>
+                                                    </Button>
                                                 ) : (
                                                     <div className="flex items-center rounded-full border border-primary/40 bg-primary/5 p-0.5 shadow-xs">
-                                                        <button
+                                                        <Button
                                                             type="button"
+                                                            variant="ghost"
+                                                            size="icon"
                                                             onClick={() =>
                                                                 carrito.disminuirItem(
                                                                     plato.id,
                                                                 )
                                                             }
-                                                            className="flex size-6 cursor-pointer items-center justify-center rounded-full text-foreground transition-colors hover:bg-primary/20"
+                                                            className="flex size-6 cursor-pointer items-center justify-center rounded-full p-0 text-foreground transition-colors hover:bg-primary/20"
                                                         >
                                                             <Minus className="size-3" />
-                                                        </button>
+                                                        </Button>
                                                         <span className="w-6 text-center text-xs font-black text-primary dark:text-rose-400">
                                                             {cantidadEnCarrito}
                                                         </span>
-                                                        <button
+                                                        <Button
                                                             type="button"
+                                                            variant="ghost"
+                                                            size="icon"
                                                             onClick={() =>
                                                                 carrito.agregarItem(
                                                                     plato,
                                                                 )
                                                             }
-                                                            className="flex size-6 cursor-pointer items-center justify-center rounded-full text-foreground transition-colors hover:bg-primary/20"
+                                                            className="flex size-6 cursor-pointer items-center justify-center rounded-full p-0 text-foreground transition-colors hover:bg-primary/20"
                                                         >
                                                             <Plus className="size-3" />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 )}
                                             </div>

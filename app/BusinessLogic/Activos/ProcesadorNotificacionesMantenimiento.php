@@ -4,30 +4,28 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Activos;
 
-use App\Enums\Activos\EstadoMantenimiento;
 use App\Notifications\Activos\NotificadorActivos;
 use App\Repository\Models\Activos\ActivoMantenimiento;
-use App\Repository\Models\Activos\ActivoMantenimientoNotificacion;
 use App\Repository\Models\User;
+use App\Repository\Persistencia\Activos\ActivoMantenimientoRepositorioInterface;
 use Illuminate\Support\Collection;
 
-class ProcesadorNotificacionesMantenimiento
+final readonly class ProcesadorNotificacionesMantenimiento
 {
-    public function __construct(private readonly NotificadorActivos $notificador) {}
+    public function __construct(
+        private NotificadorActivos $notificador,
+        private ActivoMantenimientoRepositorioInterface $mantenimientoRepositorio,
+    ) {}
 
     public function procesarFuturos(int $dias, string $tipo): int
     {
         $enviados = 0;
         $fechaObjetivo = today()->addDays($dias)->toDateString();
 
-        $mantenimientos = ActivoMantenimiento::query()
-            ->with(['activo', 'realizadoPor'])
-            ->where('estado', EstadoMantenimiento::Programado)
-            ->whereDate('fecha_programada', $fechaObjetivo)
-            ->get();
+        $mantenimientos = $this->mantenimientoRepositorio->obtenerProgramadosPorFecha($fechaObjetivo);
 
         foreach ($mantenimientos as $mantenimiento) {
-            if ($this->yaFueNotificado($mantenimiento->id, $tipo)) {
+            if ($this->mantenimientoRepositorio->yaFueNotificado($mantenimiento->id, $tipo)) {
                 continue;
             }
 
@@ -46,14 +44,10 @@ class ProcesadorNotificacionesMantenimiento
         $enviados = 0;
         $fechaObjetivo = today()->subDays($dias)->toDateString();
 
-        $mantenimientos = ActivoMantenimiento::query()
-            ->with(['activo', 'realizadoPor'])
-            ->where('estado', EstadoMantenimiento::Programado)
-            ->whereDate('fecha_programada', $fechaObjetivo)
-            ->get();
+        $mantenimientos = $this->mantenimientoRepositorio->obtenerProgramadosPorFecha($fechaObjetivo);
 
         foreach ($mantenimientos as $mantenimiento) {
-            if ($this->yaFueNotificado($mantenimiento->id, $tipo)) {
+            if ($this->mantenimientoRepositorio->yaFueNotificado($mantenimiento->id, $tipo)) {
                 continue;
             }
 
@@ -72,14 +66,10 @@ class ProcesadorNotificacionesMantenimiento
         $enviados = 0;
         $fechaLimite = today()->subDays($diasMinimos)->toDateString();
 
-        $mantenimientos = ActivoMantenimiento::query()
-            ->with(['activo', 'realizadoPor'])
-            ->where('estado', EstadoMantenimiento::Programado)
-            ->whereDate('fecha_programada', '<=', $fechaLimite)
-            ->get();
+        $mantenimientos = $this->mantenimientoRepositorio->obtenerProgramadosAtrasados($fechaLimite);
 
         foreach ($mantenimientos as $mantenimiento) {
-            if ($this->yaFueNotificado($mantenimiento->id, $tipo)) {
+            if ($this->mantenimientoRepositorio->yaFueNotificado($mantenimiento->id, $tipo)) {
                 continue;
             }
 
@@ -99,14 +89,10 @@ class ProcesadorNotificacionesMantenimiento
         $enviados = 0;
         $fechaLimite = today()->subDays($diasMinimos)->toDateString();
 
-        $mantenimientos = ActivoMantenimiento::query()
-            ->with(['activo', 'realizadoPor'])
-            ->where('estado', EstadoMantenimiento::EnProceso)
-            ->whereDate('fecha_programada', '<=', $fechaLimite)
-            ->get();
+        $mantenimientos = $this->mantenimientoRepositorio->obtenerEnProcesoAtrasados($fechaLimite);
 
         foreach ($mantenimientos as $mantenimiento) {
-            if ($this->yaFueNotificado($mantenimiento->id, $tipo)) {
+            if ($this->mantenimientoRepositorio->yaFueNotificado($mantenimiento->id, $tipo)) {
                 continue;
             }
 
@@ -121,13 +107,6 @@ class ProcesadorNotificacionesMantenimiento
         return $enviados;
     }
 
-    private function yaFueNotificado(int $mantenimientoId, string $tipo): bool
-    {
-        return ActivoMantenimientoNotificacion::where('mantenimiento_id', $mantenimientoId)
-            ->where('tipo', $tipo)
-            ->exists();
-    }
-
     /**
      * @return Collection<int, User>
      */
@@ -137,7 +116,7 @@ class ProcesadorNotificacionesMantenimiento
             return collect([$mantenimiento->realizadoPor]);
         }
 
-        return User::all();
+        return $this->mantenimientoRepositorio->obtenerTodosUsuarios();
     }
 
     /**
@@ -146,15 +125,7 @@ class ProcesadorNotificacionesMantenimiento
     private function registrarEnvio(int $mantenimientoId, string $tipo, Collection $destinatarios): void
     {
         foreach ($destinatarios as $destinatario) {
-            ActivoMantenimientoNotificacion::create([
-                'mantenimiento_id' => $mantenimientoId,
-                'tipo' => $tipo,
-                'canal' => 'database',
-                'enviado_a' => $destinatario->id,
-                'metadata' => [
-                    'timestamp' => now()->toIso8601String(),
-                ],
-            ]);
+            $this->mantenimientoRepositorio->registrarNotificacion($mantenimientoId, $tipo, $destinatario->id);
         }
     }
 }

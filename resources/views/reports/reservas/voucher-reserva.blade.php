@@ -30,7 +30,7 @@
 
 @section('content')
     @php
-        $simbolo = $reserva->moneda?->simbolo ?? 'C$';
+        $simbolo = \App\Support\MonedaHelper::simbolo($reserva->moneda);
         $esRestaurante = $reserva->tipo_reserva === \App\Enums\Reservas\TipoReserva::RESTAURANTE;
         $resumenRestaurante = $reserva->ultimaEntradaBitacora('resumen_restaurante') ?? [];
         $costoMesa = $esRestaurante

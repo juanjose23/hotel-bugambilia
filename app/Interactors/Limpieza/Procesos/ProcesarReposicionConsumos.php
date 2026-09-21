@@ -7,13 +7,14 @@ namespace App\Interactors\Limpieza\Procesos;
 use App\BusinessLogic\Limpieza\Data\ReabastecerItemData;
 use App\BusinessLogic\Limpieza\Data\ReabastecerUbicacionData;
 use App\Interactors\Limpieza\Stock\ReabastecerUbicacion;
-use App\Repository\Models\Inventario\Stock as InventarioStock;
-use App\Repository\Models\Shared\Stock as SharedStock;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
+use RuntimeException;
 
-final class ProcesarReposicionConsumos
+final readonly class ProcesarReposicionConsumos
 {
     public function __construct(
-        private readonly ReabastecerUbicacion $reabastecerUbicacion,
+        private ReabastecerUbicacion $reabastecerUbicacion,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
 
     /** @param array<int|string, int|float|string> $consumosReponer */
@@ -25,13 +26,15 @@ final class ProcesarReposicionConsumos
                 continue;
             }
 
-            $sharedStock = SharedStock::where('id', $stockId)->lockForUpdate()->firstOrFail();
-            $varianteId = $sharedStock->producto_variante_id;
+            $sharedStock = $this->limpiezaRepositorio->descontarSharedStockConLock((int) $stockId, 0);
+            if (! $sharedStock) {
+                throw new RuntimeException("Stock shared #{$stockId} no encontrado.");
+            }
+
+            $varianteId = (int) $sharedStock->producto_variante_id;
 
             if ($carritoId) {
-                $available = (float) InventarioStock::where('ubicacion_id', $carritoId)
-                    ->where('producto_variante_id', $varianteId)
-                    ->sum('cantidad');
+                $available = $this->limpiezaRepositorio->obtenerStockDisponibleEnCarrito($carritoId, $varianteId);
 
                 $aReponer = min($qty, $available);
                 if ($aReponer > 0) {
@@ -39,7 +42,7 @@ final class ProcesarReposicionConsumos
                         tipoDestino: $tipoDestino,
                         destinoId: $destinoId,
                         items: [ReabastecerItemData::fromArray(['producto_variante_id' => $varianteId, 'cantidad' => $aReponer])],
-                        bodegaOrigenId: (int) $carritoId,
+                        bodegaOrigenId: $carritoId,
                         creadoPorId: $usuarioId,
                         notas: "Reposición de amenity en ejecución #{$ejecucionId}"
                     ));

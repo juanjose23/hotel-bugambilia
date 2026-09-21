@@ -22,6 +22,7 @@ final class UsuarioCuentaPersistencia
             'email' => $this->email($datos),
             'password' => Hash::make($this->password($datos)),
             'is_admin' => false,
+            'password_change_required' => (bool) ($datos['password_change_required'] ?? false),
         ]);
     }
 
@@ -39,6 +40,33 @@ final class UsuarioCuentaPersistencia
         $user->update([
             'password' => Hash::make($password),
         ]);
+    }
+
+    public function cambiarContrasena(User $user, string $newPassword): void
+    {
+        $user->update([
+            'password' => Hash::make($newPassword),
+            'password_change_required' => false,
+        ]);
+    }
+
+    public function buscarPorEmail(string $email): ?User
+    {
+        return User::query()->where('email', trim($email))->first();
+    }
+
+    /**
+     * @param  array<string, mixed>  $datos
+     */
+    public function actualizarDatosBasicos(User $user, array $datos): void
+    {
+        $user->update($datos);
+    }
+
+    public function asociarPersona(User $user, Persona $persona): void
+    {
+        $user->persona()->associate($persona);
+        $user->save();
     }
 
     /**

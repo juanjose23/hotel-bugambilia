@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
+use App\Interactors\Restaurante\Cocina\RegistrarReglaTransformacionMateriaPrima;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Repository\Models\Restaurante\RecetaTransformacionMateriaPrima;
 use App\Repository\Models\User;
 use App\Repository\Queries\Restaurante\Cocina\DiagnosticarConciliacionRecetas;
 use BackedEnum;
@@ -134,8 +134,8 @@ final class ConciliacionRecetasCocina extends Page
                                 ->columnSpanFull(),
                         ]),
                 ])
-                ->action(function (array $data, DiagnosticarConciliacionRecetas $diagnosticar): void {
-                    RecetaTransformacionMateriaPrima::query()->create($data);
+                ->action(function (array $data, RegistrarReglaTransformacionMateriaPrima $registrarRegla, DiagnosticarConciliacionRecetas $diagnosticar): void {
+                    $registrarRegla->ejecutar($data);
                     $this->diagnostico = $diagnosticar->ejecutar();
 
                     Notification::make()
@@ -192,6 +192,6 @@ final class ConciliacionRecetasCocina extends Page
         /** @var User|null $user */
         $user = auth()->user();
 
-        return $user?->can('page_ConciliacionRecetasCocina') || $user?->can('page_CocinaPedidos') || ($user?->hasRole('super_admin') ?? false);
+        return $user !== null && ($user->can('Page:ConciliacionRecetasCocina') || $user->can('Page:CocinaPedidos'));
     }
 }

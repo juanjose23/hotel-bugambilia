@@ -11,8 +11,9 @@ use App\Repository\Models\Compras\DevolucionCompra;
 use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Models\Compras\RecepcionCompra;
 use App\Repository\Models\Compras\Solicitud;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReporteCompraController extends ReporteController
@@ -63,114 +64,134 @@ final class ReporteCompraController extends ReporteController
         return $this->streamPdf($pdf, 'HTB-COM-005-'.$devolucion->codigo.'.pdf');
     }
 
-    public function imprimirResumenDepartamentos(Request $request): StreamedResponse|RedirectResponse
+    public function imprimirResumenDepartamentos(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('resumen_departamentos', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('resumen_departamentos', $request->all());
-
-        return $this->streamPdf($pdf, 'Resumen-Compras-Departamentos.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-017',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('resumen_departamentos', $request->all()),
+                'HTB-COM-017-Resumen-Compras-Departamentos.pdf',
+            ),
+        );
     }
 
-    public function rotacion(Request $request): StreamedResponse|RedirectResponse
+    public function rotacion(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('rotacion', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('rotacion_compras', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-007-Rotacion-Compras.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-007',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('rotacion_compras', $request->all()),
+                'HTB-COM-007-Rotacion-Compras.pdf',
+            ),
+        );
     }
 
-    public function tiemposEntrega(Request $request): StreamedResponse|RedirectResponse
+    public function tiemposEntrega(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('tiempos_entrega', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('tiempos_entrega', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-008-Tiempos-Entrega.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-008',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('tiempos_entrega', $request->all()),
+                'HTB-COM-008-Tiempos-Entrega.pdf',
+            ),
+        );
     }
 
-    public function solicitudesEstado(Request $request): StreamedResponse|RedirectResponse
+    public function solicitudesEstado(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('solicitudes_estado', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('solicitudes_estado', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-010-Solicitudes-Estado.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-010',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('solicitudes_estado', $request->all()),
+                'HTB-COM-010-Solicitudes-Estado.pdf',
+            ),
+        );
     }
 
-    public function seguimientoOc(Request $request): StreamedResponse|RedirectResponse
+    public function seguimientoOc(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('seguimiento_oc', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('seguimiento_oc', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-011-Seguimiento-OC.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-011',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('seguimiento_oc', $request->all()),
+                'HTB-COM-011-Seguimiento-OC.pdf',
+            ),
+        );
     }
 
-    public function recepcionesPorProveedor(Request $request): StreamedResponse|RedirectResponse
+    public function recepcionesPorProveedor(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('recepciones_proveedor', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('recepciones_proveedor', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-012-Recepciones-Proveedor.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-012',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('recepciones_proveedor', $request->all()),
+                'HTB-COM-012-Recepciones-Proveedor.pdf',
+            ),
+        );
     }
 
-    public function analisisPrecio(Request $request): StreamedResponse|RedirectResponse
+    public function analisisPrecio(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('analisis_precio', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('analisis_precio', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-013-Analisis-Precio.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-013',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('analisis_precio', $request->all()),
+                'HTB-COM-013-Analisis-Precio.pdf',
+            ),
+        );
     }
 
-    public function valorizacion(Request $request): StreamedResponse|RedirectResponse
+    public function valorizacion(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('valorizacion', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('valorizacion_categoria', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-014-Valorizacion.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-014',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('valorizacion_categoria', $request->all()),
+                'HTB-COM-014-Valorizacion.pdf',
+            ),
+        );
     }
 
-    public function rankingProveedores(Request $request): StreamedResponse|RedirectResponse
+    public function rankingProveedores(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('ranking_proveedores', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('ranking_proveedores', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-015-Ranking-Proveedores.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-015',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('ranking_proveedores', $request->all()),
+                'HTB-COM-015-Ranking-Proveedores.pdf',
+            ),
+        );
     }
 
-    public function devoluciones(Request $request): StreamedResponse|RedirectResponse
+    public function devoluciones(Request $request): Response|StreamedResponse|JsonResponse
     {
-        if ($request->boolean('background')) {
-            return $this->despacharEnSegundoPlano('devoluciones', $request->all());
-        }
-
-        $pdf = $this->generarReporteCompra->execute('devoluciones_proveedor', $request->all());
-
-        return $this->streamPdf($pdf, 'HTB-COM-016-Devoluciones.pdf');
+        return $this->manejarReporte(
+            $request,
+            'HTB-COM-016',
+            $request->all(),
+            fn () => $this->streamPdf(
+                $this->generarReporteCompra->execute('devoluciones_proveedor', $request->all()),
+                'HTB-COM-016-Devoluciones.pdf',
+            ),
+        );
     }
 
     public function trazabilidadCompleta(Solicitud $solicitud): StreamedResponse

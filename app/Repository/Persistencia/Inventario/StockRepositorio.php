@@ -6,7 +6,7 @@ namespace App\Repository\Persistencia\Inventario;
 
 use App\Repository\Models\Inventario\Stock;
 
-class StockRepositorio implements StockRepositorioInterface
+final class StockRepositorio implements StockRepositorioInterface
 {
     public function buscarPorLoteUbicacion(int $loteId, int $ubicacionId): ?Stock
     {
@@ -44,5 +44,11 @@ class StockRepositorio implements StockRepositorioInterface
     public function eliminar(Stock $stock): void
     {
         $stock->delete();
+    }
+
+    /** @param array<int, int> $loteIds */
+    public function eliminarPorLoteIds(array $loteIds): void
+    {
+        Stock::query()->whereIn('lote_id', $loteIds)->delete();
     }
 }

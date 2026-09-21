@@ -9,10 +9,10 @@ use App\Events\Compras\SolicitudRechazada;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
 
-final class RechazarSolicitud
+final readonly class RechazarSolicitud
 {
     public function __construct(
-        private readonly SolicitudRepositorioInterface $solicitudRepositorio,
+        private SolicitudRepositorioInterface $solicitudRepositorio,
     ) {}
 
     public function ejecutar(Solicitud $solicitud): void

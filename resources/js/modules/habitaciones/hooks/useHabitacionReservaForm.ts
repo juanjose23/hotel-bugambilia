@@ -1,5 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
+import {
+    calcularNoches,
+    verificarConflictoFechas,
+} from '@/modules/reservas/utils/reservaCalculos';
 import type { HabitacionReservaFormValues } from '../schemas/habitacionReservaSchema';
 import { habitacionReservaSchema } from '../schemas/habitacionReservaSchema';
 import type { HabitacionDetalleData } from '../types';
@@ -37,50 +41,16 @@ export const useHabitacionReservaForm = ({
     const checkOut = useWatch({ control, name: 'check_out' });
     const huespedes = useWatch({ control, name: 'huespedes' });
 
-    // Calcular noches entre fechas
-    const calcularNoches = (): number => {
-        if (!checkIn || !checkOut) {
-            return 1;
-        }
-
-        try {
-            const d1 = new Date(checkIn);
-            const d2 = new Date(checkOut);
-            const diffTime = d2.getTime() - d1.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            return diffDays > 0 ? diffDays : 1;
-        } catch {
-            return 1;
-        }
-    };
-
-    const noches = calcularNoches();
+    const totalNochesCalculadas = calcularNoches(checkIn, checkOut);
+    const noches = totalNochesCalculadas > 0 ? totalNochesCalculadas : 1;
     const precioNoche = Number(room.precio ?? room.precio_desde ?? 0);
     const totalEstimado = precioNoche * noches;
 
-    const tieneConflictoDisponibilidad = (() => {
-        if (!checkIn || !checkOut || diasAgotados.length === 0) {
-            return false;
-        }
-
-        try {
-            const d1 = new Date(checkIn);
-            const d2 = new Date(checkOut);
-
-            for (let d = new Date(d1); d < d2; d.setDate(d.getDate() + 1)) {
-                const fStr = d.toISOString().split('T')[0];
-
-                if (diasAgotados.includes(fStr)) {
-                    return true;
-                }
-            }
-        } catch {
-            return false;
-        }
-
-        return false;
-    })();
+    const tieneConflictoDisponibilidad = verificarConflictoFechas(
+        checkIn,
+        checkOut,
+        diasAgotados,
+    );
 
     const onSubmit = (data: HabitacionReservaFormValues) => {
         const moneda = room.moneda || '$';

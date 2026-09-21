@@ -21,6 +21,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,8 +35,16 @@ class HabitacionTable
     public function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['detalle', 'categoria', 'ubicacion']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['detalle', 'categoria', 'ubicacion', 'imagenes']))
             ->columns([
+                ImageColumn::make('imagen_principal')
+                    ->label('Foto')
+                    ->state(fn (Habitacion $record): ?string => $record->imagenes->sortBy('orden')->first()?->url_completa)
+                    ->height(45)
+                    ->width(70)
+                    ->extraImgAttributes(['class' => 'rounded-md object-cover shadow-sm'])
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 TextColumn::make('codigo')
                     ->label('Código')
                     ->badge()

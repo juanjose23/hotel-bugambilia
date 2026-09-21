@@ -10,6 +10,7 @@ use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Filament\Shared\Filters\FiltroEstado;
+use App\Repository\Models\Promociones\Promocion;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -31,12 +32,15 @@ class PromocionTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['tipo', 'imagenes', 'precios']))
             ->columns([
-                ImageColumn::make('imagenes.url')
-                    ->label('Imagen')
-                    ->circular()
-                    ->placeholder('-')
-                    ->limit(1),
+                ImageColumn::make('imagen_principal')
+                    ->label('Foto')
+                    ->state(fn (Promocion $record): ?string => $record->imagenes->sortBy('orden')->first()?->url_completa)
+                    ->height(45)
+                    ->width(70)
+                    ->extraImgAttributes(['class' => 'rounded-md object-cover shadow-sm'])
+                    ->placeholder('-'),
 
                 TextColumn::make('codigo')
                     ->label('Código')

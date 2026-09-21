@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Repository\Queries\Activos;
 
 use App\BusinessLogic\Monedas\ConvertirMoneda;
+use App\Filament\Shared\Concerns\TipoDestinoAsignacionActivo;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoAsignacion;
-use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Habitaciones\Habitacion;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
@@ -76,10 +75,6 @@ final class ObtenerActivosPorUbicacionUseCase
 
     private function etiquetaTipo(string $tipo): string
     {
-        return match ($tipo) {
-            Habitacion::class => 'Habitación',
-            Espacio::class => 'Espacio',
-            default => 'Ubicación',
-        };
+        return TipoDestinoAsignacionActivo::tipoDestinoLabel($tipo);
     }
 }

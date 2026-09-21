@@ -92,6 +92,7 @@
             "phpstan analyse --level=9 --memory-limit=1G"
         ],
         "test": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
             "@lint:check",
             "npm run types:check",
@@ -143,6 +144,7 @@
         }
     },
     "config": {
+        "process-timeout": 0,
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,

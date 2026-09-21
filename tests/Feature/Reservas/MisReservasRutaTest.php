@@ -2,32 +2,17 @@
 
 declare(strict_types=1);
 
-use App\Repository\Models\User;
-
-test('la ruta /mis-reservas es accesible para usuarios no autenticados', function (): void {
+test('la ruta /mis-reservas redirige al listado unificado de reservas del portal', function (): void {
     $this->get('/mis-reservas')
-        ->assertStatus(200);
+        ->assertRedirect(route('portal.reservas.index'));
 });
 
-test('la ruta /reservas/mis-reservas funciona como alias accesible para guests', function (): void {
+test('la ruta /reservas/mis-reservas funciona como alias redirigiendo al portal', function (): void {
     $this->get('/reservas/mis-reservas')
-        ->assertStatus(200);
+        ->assertRedirect(route('portal.reservas.index'));
 });
 
-test('la ruta /mis-reservas es accesible para usuarios autenticados', function (): void {
-    $user = User::factory()->create();
-
-    $this->actingAs($user)
-        ->get('/mis-reservas')
-        ->assertStatus(200);
-});
-
-test('el portal responde en la raiz del subdominio dedicado portal.localhost', function (): void {
-    $this->get('http://portal.localhost/')
-        ->assertStatus(200);
-});
-
-test('el portal responde en /mis-reservas en el subdominio dedicado portal.localhost', function (): void {
-    $this->get('http://portal.localhost/mis-reservas')
-        ->assertStatus(200);
+test('la ruta /mis-reservas con codigo redirige manteniendo los parametros al portal', function (): void {
+    $this->get('/mis-reservas?codigo=RES-1234')
+        ->assertRedirect(route('portal.reservas.index', ['codigo' => 'RES-1234']));
 });

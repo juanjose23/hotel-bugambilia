@@ -81,7 +81,7 @@ final class CreatePedido extends CreateRecord
         $clienteId = isset($data['cliente_id']) && is_numeric($data['cliente_id']) ? (int) $data['cliente_id'] : null;
         $notas = is_string($data['notas'] ?? null) ? $data['notas'] : null;
 
-        /** @var array<int, array{plato_id: int|string, cantidad?: float|int|string, precio_unitario?: float|int|string, observaciones?: string|null}> $itemsData */
+        /** @var array<int, array{tipo_item?: string, plato_id?: int|string|null, producto_id?: int|string|null, producto_variante_id?: int|string|null, cantidad?: float|int|string, precio_unitario?: float|int|string, observaciones?: string|null}> $itemsData */
         $itemsData = is_array($data['items'] ?? null) ? $data['items'] : [];
 
         $interactor = app(AbrirPedidoMesa::class);

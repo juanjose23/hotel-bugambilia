@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Activos\Activo\Schemas;
 
 use App\Enums\Activos\EstadoActivo;
+use App\Filament\Shared\Concerns\TipoDestinoAsignacionActivo;
 use App\Filament\Shared\Forms\MonedaSelect;
 use App\Filament\Shared\Forms\ProveedorSelect;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Repository\Models\Catalogos\Ubicacion;
-use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Queries\Activos\AutocompletarActivoDesdeRecepcion;
 use App\Repository\Queries\Activos\ObtenerOpcionesRecepcionItems;
-use App\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -192,11 +189,7 @@ class ActivoForm
                 Select::make('asignacion_tipo')
                     ->label('Tipo de Destino')
                     ->placeholder('Seleccione tipo de destino')
-                    ->options([
-                        Habitacion::class => 'Habitación',
-                        Ubicacion::class => 'Ubicación / Bodega',
-                        Espacio::class => 'Espacio / Área Común',
-                    ])
+                    ->options(TipoDestinoAsignacionActivo::destinos())
                     ->live()
                     ->native(false)
                     ->prefixIcon(Heroicon::BuildingOffice2)
@@ -207,12 +200,9 @@ class ActivoForm
                     ->label('Destino Específico')
                     ->placeholder('Primero seleccione un tipo de destino')
                     ->options(function (Get $get) {
-                        return match ($get('asignacion_tipo')) {
-                            Habitacion::class => CachedOptions::habitaciones(),
-                            Ubicacion::class => CachedOptions::ubicacionesAlmacen(),
-                            Espacio::class => CachedOptions::espacios(),
-                            default => [],
-                        };
+                        $tipo = $get('asignacion_tipo');
+
+                        return TipoDestinoAsignacionActivo::opcionesDestino(is_string($tipo) ? $tipo : null);
                     })
                     ->searchable()
                     ->preload()

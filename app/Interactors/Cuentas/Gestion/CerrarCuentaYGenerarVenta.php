@@ -13,6 +13,7 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\Venta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Ventas\VentaRepositorioInterface;
+use App\Support\MonedaHelper;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -50,8 +51,9 @@ final class CerrarCuentaYGenerarVenta
             $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
 
             if ($cuenta->tieneSaldoPendiente()) {
+                $saldoFmt = MonedaHelper::formatear((float) $cuenta->saldo, $cuenta->moneda);
                 throw new DomainException(
-                    'No se puede cerrar la cuenta con saldo pendiente de C$ '.number_format((float) $cuenta->saldo, 2).'.',
+                    "No se puede cerrar la cuenta con saldo pendiente de {$saldoFmt}.",
                 );
             }
 

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Shared\Concerns;
 
-use App\BusinessLogic\Shared\ServicioPrecios;
 use App\Enums\HabitacionesEspacios\TipoPrecioEspacio;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
+use App\Interactors\Shared\ActualizarPrecio;
 use App\Interactors\Shared\AsignarPrecio;
+use App\Repository\Models\Shared\Precio;
 use App\Repository\Queries\Shared\VerificarPrecioDuplicado;
 use Closure;
 use Filament\Actions\Action;
@@ -26,7 +27,6 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 trait TieneFormularioPrecios
 {
@@ -36,7 +36,7 @@ trait TieneFormularioPrecios
 
     protected AsignarPrecio $asignarPrecio;
 
-    protected ServicioPrecios $servicioPrecios;
+    protected ActualizarPrecio $actualizarPrecio;
 
     abstract protected function getPriceableModelClass(): string;
 
@@ -260,36 +260,12 @@ trait TieneFormularioPrecios
             EditAction::make()
                 ->iconButton()
                 ->using(function (Model $record, array $data): Model {
-                    DB::transaction(function () use ($record, $data) {
-                        $estado = (int) $data['estado'];
-                        $esOferta = (bool) ($data['es_oferta'] ?? false);
-                        $monedaId = (int) $data['moneda_id'];
-                        $tipoPrecio = $this->hasTipoPrecioField() ? (string) $data['tipo_precio'] : 'base';
-
-                        $priceableType = $record->getAttribute('priceable_type');
-                        $priceableId = $record->getAttribute('priceable_id');
-
-                        $this->servicioPrecios->expirarPreciosAnterioresSiCorresponde(
-                            priceableType: is_string($priceableType) ? $priceableType : '',
-                            priceableId: is_scalar($priceableId) ? intval($priceableId) : 0,
-                            monedaId: $monedaId,
-                            tipoPrecio: $tipoPrecio,
-                            estado: $estado,
-                            esOferta: $esOferta,
-                        );
-
-                        $record->update([
-                            'moneda_id' => $monedaId,
-                            'precio' => (float) $data['precio'],
-                            'fecha_inicio' => (string) $data['fecha_inicio'],
-                            'fecha_fin' => empty($data['fecha_fin']) ? null : (string) $data['fecha_fin'],
-                            'estado' => $estado,
-                            'es_oferta' => $esOferta,
-                            'tipo_precio' => $tipoPrecio,
-                        ]);
-                    });
-
-                    return $record;
+                    /** @var Precio $record */
+                    return $this->actualizarPrecio->ejecutar(
+                        $record,
+                        $data,
+                        $this->hasTipoPrecioField(),
+                    );
                 }),
             DeleteAction::make()->iconButton(),
         ];

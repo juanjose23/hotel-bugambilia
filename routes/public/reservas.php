@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Clientes\CuentaClienteController;
 use App\Http\Controllers\Publico\PagoController;
-use App\Http\Controllers\Reservas\DetalleReservaPortalController;
-use App\Http\Controllers\Reservas\MisReservasController;
 use App\Http\Controllers\Reservas\ReservaController;
 use App\Http\Controllers\WebServices\Reservas\CancelarReservaWebServiceController;
 use App\Http\Controllers\WebServices\Stripe\StripeReservaPaymentController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,14 +26,16 @@ Route::post('/stripe/webhook', [StripeReservaPaymentController::class, 'webhook'
 
 /*
 |--------------------------------------------------------------------------
-| Portal de Huéspedes
+| Redirecciones de conveniencia hacia el Portal Unificado
 |--------------------------------------------------------------------------
 */
-Route::get('/mis-reservas', MisReservasController::class)->name('mis-reservas');
-Route::get('/reservas/mis-reservas', MisReservasController::class);
-Route::get('/portal/reserva/{id}', [DetalleReservaPortalController::class, 'show'])->name('portal.reserva-detalle');
-Route::get('/portal/cuenta', [CuentaClienteController::class, 'show'])->middleware('auth')->name('portal.cuenta');
-Route::get('/portal/perfil', [CuentaClienteController::class, 'show'])->middleware('auth')->name('portal.perfil');
+Route::get('/mis-reservas', function (Request $request) {
+    return redirect()->route('portal.reservas.index', $request->query());
+})->name('mis-reservas');
+
+Route::get('/reservas/mis-reservas', function (Request $request) {
+    return redirect()->route('portal.reservas.index', $request->query());
+});
 
 /*
 |--------------------------------------------------------------------------

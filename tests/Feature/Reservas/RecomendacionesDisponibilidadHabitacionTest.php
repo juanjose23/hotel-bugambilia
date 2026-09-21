@@ -12,9 +12,9 @@ use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use App\Repository\Queries\Reservas\ObtenerDiasAgotadosHabitacionQuery;
 use Carbon\CarbonImmutable;
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
-use Database\Seeders\UbicacionSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\UbicacionSeeder;
 
 beforeEach(function (): void {
     $this->seed([

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Shared\Actions\Restaurante;
 
+use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\Interactors\Restaurante\Pedidos\RegistrarClienteRapido;
 use App\Repository\Models\Clientes\Cliente;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 
 final class RegistrarClienteRapidoAction
@@ -26,10 +29,24 @@ final class RegistrarClienteRapidoAction
             ->color('success')
             ->modalWidth('md')
             ->schema([
+                Select::make('tipo_identificacion')
+                    ->label('Tipo de Documento')
+                    ->options([
+                        'cedula' => 'Cédula',
+                        'ruc' => 'RUC',
+                        'pasaporte' => 'Pasaporte',
+                    ])
+                    ->default('cedula')
+                    ->required()
+                    ->live()
+                    ->native(false),
                 TextInput::make('identificacion')
-                    ->label('Identificación (Cédula / RUC)')
+                    ->label('Número de Identificación')
                     ->maxLength(30)
-                    ->placeholder('Ej. 001-010190-0001A'),
+                    ->placeholder('Ej. 001-010190-0001A')
+                    ->rules([
+                        fn (Get $get) => $get('tipo_identificacion') === 'cedula' ? new ValidCedulaNicaragua : null,
+                    ]),
                 TextInput::make('nombre')
                     ->label('Nombre')
                     ->required()
@@ -50,6 +67,7 @@ final class RegistrarClienteRapidoAction
                 $cliente = app(RegistrarClienteRapido::class)->ejecutar([
                     'primer_nombre' => $data['nombre'],
                     'primer_apellido' => $data['apellido'] ?? '',
+                    'tipo_identificacion' => $data['tipo_identificacion'] ?? 'cedula',
                     'identificacion' => $data['identificacion'] ?? null,
                     'telefono' => $data['telefono'] ?? null,
                 ]);

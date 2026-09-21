@@ -9,7 +9,10 @@ use App\Filament\Shared\Concerns\TieneAccionesImprimirExportar;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Interactors\Compras\Solicitudes\CancelarSolicitud;
+use App\Interactors\Compras\Solicitudes\EliminarSolicitud;
+use App\Interactors\Compras\Solicitudes\EliminarSolicitudPermanente;
 use App\Interactors\Compras\Solicitudes\RechazarSolicitud;
+use App\Interactors\Compras\Solicitudes\RestaurarSolicitud;
 use App\Repository\Models\Compras\Solicitud;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -135,14 +138,14 @@ readonly class SolicitudTable
                         ->icon(Heroicon::Trash)
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->action(fn (Solicitud $record) => $record->delete())
+                        ->action(fn (Solicitud $record, EliminarSolicitud $eliminar) => $eliminar->ejecutar($record))
                         ->visible(fn (?Solicitud $record) => $record && $record->estado === EstadoSolicitud::Borrador),
 
                     Action::make('restaurar')
                         ->label('Restaurar')
                         ->icon(Heroicon::ArrowUturnLeft)
                         ->color('warning')
-                        ->action(fn (Solicitud $record) => $record->restore())
+                        ->action(fn (Solicitud $record, RestaurarSolicitud $restaurar) => $restaurar->ejecutar($record))
                         ->visible(fn (?Solicitud $record) => $record && $record->trashed()),
 
                     Action::make('eliminar-permanente')
@@ -150,7 +153,7 @@ readonly class SolicitudTable
                         ->icon(Heroicon::Trash)
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->action(fn (Solicitud $record) => $record->forceDelete())
+                        ->action(fn (Solicitud $record, EliminarSolicitudPermanente $eliminarPermanente) => $eliminarPermanente->ejecutar($record))
                         ->visible(fn (?Solicitud $record) => $record && $record->trashed()),
                 ])
                     ->icon(Heroicon::EllipsisVertical)

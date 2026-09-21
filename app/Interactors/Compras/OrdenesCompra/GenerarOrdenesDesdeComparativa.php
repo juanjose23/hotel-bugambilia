@@ -5,31 +5,34 @@ declare(strict_types=1);
 namespace App\Interactors\Compras\OrdenesCompra;
 
 use App\BusinessLogic\Compras\CalcularTotalesOrden;
-use App\Enums\Compras\EstadoOrdenCompra;
 use App\Events\Compras\SolicitudAprobada;
 use App\Repository\Models\Compras\Cotizacion;
 use App\Repository\Models\Compras\CotizacionItem;
 use App\Repository\Models\Compras\OrdenCompra;
 use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Persistencia\Compras\CotizacionRepositorioInterface;
 use App\Repository\Persistencia\Compras\OrdenCompraRepositorioInterface;
+use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
 use Illuminate\Support\Collection;
 
-final class GenerarOrdenesDesdeComparativa
+final readonly class GenerarOrdenesDesdeComparativa
 {
     public function __construct(
-        private readonly GenerarCodigoOrdenCompra $generarCodigo,
-        private readonly CalcularTotalesOrden $calcularTotales,
-        private readonly OrdenCompraRepositorioInterface $ordenCompraRepositorio,
+        private GenerarCodigoOrdenCompra $generarCodigo,
+        private CalcularTotalesOrden $calcularTotales,
+        private OrdenCompraRepositorioInterface $ordenCompraRepositorio,
+        private CotizacionRepositorioInterface $cotizacionRepositorio,
+        private SolicitudRepositorioInterface $solicitudRepositorio,
     ) {}
 
     public function ejecutar(int $solicitudId): int
     {
-        $solicitud = Solicitud::with('items')->findOrFail($solicitudId);
+        $solicitud = $this->solicitudRepositorio->buscarPorIdConItems($solicitudId);
+        if (! $solicitud) {
+            return 0;
+        }
 
-        $cotizacionesConGanadores = Cotizacion::where('solicitud_id', $solicitudId)
-            ->with(['items' => fn ($q) => $q->where('es_elegido', true)])
-            ->whereHas('items', fn ($q) => $q->where('es_elegido', true))
-            ->get();
+        $cotizacionesConGanadores = $this->cotizacionRepositorio->obtenerGanadorasPorSolicitud($solicitudId);
 
         if ($cotizacionesConGanadores->isEmpty()) {
             return 0;
@@ -38,18 +41,14 @@ final class GenerarOrdenesDesdeComparativa
         $ordenesCreadas = 0;
 
         foreach ($cotizacionesConGanadores as $cot) {
+            /** @var Collection<int, CotizacionItem> $itemsElegidos */
             $itemsElegidos = $cot->items;
 
             if ($itemsElegidos->isEmpty()) {
                 continue;
             }
 
-            $yaExiste = OrdenCompra::where('solicitud_id', $solicitudId)
-                ->where('cotizacion_id', $cot->id)
-                ->where('estado', '!=', EstadoOrdenCompra::Cancelada)
-                ->exists();
-
-            if ($yaExiste) {
+            if ($this->ordenCompraRepositorio->existeOrdenParaCotizacion($solicitudId, $cot->id)) {
                 continue;
             }
 

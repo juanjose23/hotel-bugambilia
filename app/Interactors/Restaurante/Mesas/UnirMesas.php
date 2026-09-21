@@ -14,12 +14,12 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class UnirMesas
+final readonly class UnirMesas
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly NormalizarMetaDatosAction $normalizarMetaDatosAction,
-        private readonly ValidarTransicionMesa $validarTransicion,
+        private RestauranteRepositorioInterface $repositorio,
+        private NormalizarMetaDatosAction $normalizarMetaDatosAction,
+        private ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**

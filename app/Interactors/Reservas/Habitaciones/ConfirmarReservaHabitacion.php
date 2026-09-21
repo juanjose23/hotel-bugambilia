@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Interactors\Reservas\Habitaciones;
 
 use App\BusinessLogic\Reservas\Data\ConfirmarReservaHabitacionData;
-use App\BusinessLogic\Reservas\RecalcularEstadoReservaHabitacion;
-use App\BusinessLogic\Reservas\ValidarDisponibilidadHabitacion;
-use App\BusinessLogic\Reservas\ValidarPoliticaPagoReserva;
+use App\BusinessLogic\Reservas\Resolutores\RecalcularEstadoReservaHabitacion;
+use App\BusinessLogic\Reservas\Validaciones\ValidarDisponibilidadHabitacion;
+use App\BusinessLogic\Reservas\Validaciones\ValidarPoliticaPagoReserva;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Events\Reservas\ReservaConfirmada;
