@@ -7,10 +7,10 @@ namespace App\BusinessLogic\Inventario\Servicios;
 use App\Interactors\Activos\Gestion\IndividualizarActivos;
 use App\Repository\Models\Activos\RegistroIndividualizacion;
 
-class IndividualizadorAutomaticoRecepcion
+final readonly class IndividualizadorAutomaticoRecepcion
 {
     public function __construct(
-        private readonly IndividualizarActivos $individualizarActivos
+        private IndividualizarActivos $individualizarActivos
     ) {}
 
     public function execute(RegistroIndividualizacion $registro, int $cantidad, ?int $creadoPorId): void

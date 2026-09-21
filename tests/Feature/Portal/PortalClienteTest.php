@@ -19,6 +19,7 @@ use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 test('un huesped autenticado puede ver el dashboard del portal', function (): void {
     $user = User::factory()->create([
@@ -36,6 +37,54 @@ test('un huesped autenticado puede ver el dashboard del portal', function (): vo
         ->has('reservas_activas')
         ->has('historial_reservas')
     );
+});
+
+test('un huesped puede acceder y autenticarse mediante su codigo de reserva', function (): void {
+    $habitacion = Habitacion::query()->first() ?? Habitacion::factory()->create();
+    $moneda = Moneda::query()->first() ?? Moneda::create([
+        'codigo' => 'USD',
+        'nombre' => 'Dólar',
+        'simbolo' => '$',
+        'es_predeterminada' => true,
+        'tasa_cambio' => 1.0,
+    ]);
+
+    $reserva = Reserva::create([
+        'codigo_reserva' => 'RES-AUTENTICAR-1',
+        'tipo_reserva' => TipoReserva::HABITACION,
+        'estado' => EstadoReserva::CONFIRMADA,
+        'nombre_cliente' => 'Huésped Código',
+        'email_cliente' => 'huesped.codigo@example.com',
+        'habitacion_id' => $habitacion->id,
+        'moneda_id' => $moneda->id,
+        'fecha_check_in' => now()->addDays(2),
+        'fecha_check_out' => now()->addDays(5),
+        'subtotal' => 300.0,
+        'total' => 300.0,
+        'total_pagado' => 300.0,
+        'saldo' => 0.0,
+        'tipo_pago' => TipoPagoReserva::PAGO_COMPLETO,
+        'adultos' => 2,
+        'ninos' => 0,
+    ]);
+
+    // Enviar código al endpoint del portal
+    $response = $this->post(route('portal.acceso-codigo'), [
+        'codigo' => 'RES-AUTENTICAR-1',
+    ]);
+
+    $response->assertRedirect(route('portal.reservas.show', ['id' => $reserva->id]));
+    expect(Auth::check())->toBeTrue()
+        ->and(Auth::user()?->email)->toBe('huesped.codigo@example.com');
+});
+
+test('el acceso por codigo falla adecuadamente si el codigo es inexistente', function (): void {
+    $response = $this->post(route('portal.acceso-codigo'), [
+        'codigo' => 'CODIGO-INEXISTENTE',
+    ]);
+
+    $response->assertSessionHasErrors('codigo');
+    expect(Auth::check())->toBeFalse();
 });
 
 test('un huesped puede ver el listado de sus reservas', function (): void {

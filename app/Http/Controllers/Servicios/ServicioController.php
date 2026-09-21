@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Servicios;
 
 use App\Http\Controllers\Controller;
-use App\Interactors\Landing\ObtenerServicioDetalleLanding;
-use App\Interactors\Landing\ObtenerServiciosLanding;
+use App\Interactors\Servicios\ObtenerServicioDetalle;
+use App\Interactors\Servicios\ObtenerServicios;
 use App\Support\Utilidades\FormatearPaginacion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,7 +14,7 @@ use Inertia\Response;
 
 final class ServicioController extends Controller
 {
-    public function index(Request $request, ObtenerServiciosLanding $interactor): Response
+    public function index(Request $request, ObtenerServicios $interactor): Response
     {
         $categoria = $request->query('categoria');
         $busqueda = $request->query('buscar');
@@ -39,7 +39,7 @@ final class ServicioController extends Controller
         ]);
     }
 
-    public function show(string $slug, ObtenerServicioDetalleLanding $interactor): Response
+    public function show(string $slug, ObtenerServicioDetalle $interactor): Response
     {
         return Inertia::render('servicios/ServicioDetalle', $interactor->ejecutar($slug));
     }

@@ -1,5 +1,5 @@
 (() => {
-    var o = () => ({
+    var a = () => ({
         isSticky: !1,
         width: 0,
         resizeObserver: null,
@@ -24,11 +24,11 @@
         updateWidth() {
             let i = this.$el.parentElement;
             if (!i) return;
-            let t = getComputedStyle(this.$root.querySelector('.fi-ac'));
+            let e = getComputedStyle(this.$root.querySelector('.fi-ac'));
             this.width =
                 i.offsetWidth +
-                parseInt(t.marginInlineStart, 10) * -1 +
-                parseInt(t.marginInlineEnd, 10) * -1;
+                parseInt(e.marginInlineStart, 10) * -1 +
+                parseInt(e.marginInlineEnd, 10) * -1;
         },
         destroy() {
             (this.resizeObserver &&
@@ -42,42 +42,93 @@
                     (this.boundUpdateWidth = null)));
         },
     });
-    var a = function (i, t, n) {
-            let e = i;
-            if ((t.startsWith('/') && ((n = !0), (t = t.slice(1))), n))
-                return t;
-            for (; t.startsWith('../');)
-                ((e = e.includes('.') ? e.slice(0, e.lastIndexOf('.')) : null),
-                    (t = t.slice(3)));
-            return ['', null, void 0].includes(e)
-                ? t
-                : ['', null, void 0].includes(t)
-                  ? e
-                  : `${e}.${t}`;
+    var l = function (i, e, n) {
+            let t = i;
+            if ((e.startsWith('/') && ((n = !0), (e = e.slice(1))), n))
+                return e;
+            for (; e.startsWith('../');)
+                ((t = t.includes('.') ? t.slice(0, t.lastIndexOf('.')) : null),
+                    (e = e.slice(3)));
+            return ['', null, void 0].includes(t)
+                ? e
+                : ['', null, void 0].includes(e)
+                  ? t
+                  : `${t}.${e}`;
         },
-        d = (i) => {
-            let t = Alpine.findClosest(i, (n) => n.__livewire);
-            if (!t) throw 'Could not find Livewire component in DOM tree.';
-            return t.__livewire;
-        };
+        c = (i) => {
+            let e = Alpine.findClosest(i, (n) => n.__livewire);
+            if (!e) throw 'Could not find Livewire component in DOM tree.';
+            return e.__livewire;
+        },
+        o = !1;
+    document.addEventListener(
+        'invalid',
+        (i) => {
+            let e = i.target;
+            if (
+                !e.closest('[data-field-wrapper]') ||
+                (e.offsetParent !== null &&
+                    getComputedStyle(e).visibility !== 'hidden') ||
+                (i.preventDefault(), o)
+            )
+                return;
+            o = !0;
+            let n = e;
+            for (; n;)
+                (n.dispatchEvent(new CustomEvent('expand')),
+                    (n = n.parentNode));
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                    (e.form?.reportValidity(), setTimeout(() => (o = !1), 100));
+                }),
+            );
+        },
+        !0,
+    );
     document.addEventListener('alpine:init', () => {
         (window.Alpine.data(
             'filamentSchema',
-            ({ livewireId: i, schemaKey: t }) => ({
-                handleFormValidationError(n) {
-                    n.detail.livewireId === i &&
+            ({ livewireId: i, schemaKey: e, isLoadingDeferred: n = !1 }) => ({
+                intersectionObserver: null,
+                isLoadingDeferredSchema: !1,
+                init() {
+                    n &&
+                        ((this.intersectionObserver = new IntersectionObserver(
+                            async (t) => {
+                                if (!(
+                                    !t[0]?.isIntersecting ||
+                                    this.isLoadingDeferredSchema
+                                )) {
+                                    this.isLoadingDeferredSchema = !0;
+                                    try {
+                                        (await this.$wire.loadDeferredSchema(e),
+                                            this.intersectionObserver?.disconnect());
+                                    } catch {
+                                    } finally {
+                                        this.isLoadingDeferredSchema = !1;
+                                    }
+                                }
+                            },
+                        )),
+                        this.intersectionObserver.observe(this.$el));
+                },
+                destroy() {
+                    this.intersectionObserver?.disconnect();
+                },
+                handleFormValidationError(t) {
+                    t.detail.livewireId === i &&
                         this.$nextTick(() => {
-                            let e = this.$el.querySelector(
+                            let r = this.$el.querySelector(
                                 '[data-validation-error]',
                             );
-                            if (!e) return;
-                            let r = e;
-                            for (; r;)
-                                (r.dispatchEvent(new CustomEvent('expand')),
-                                    (r = r.parentNode));
+                            if (!r) return;
+                            let s = r;
+                            for (; s;)
+                                (s.dispatchEvent(new CustomEvent('expand')),
+                                    (s = s.parentNode));
                             setTimeout(
                                 () =>
-                                    e
+                                    r
                                         .closest('[data-field-wrapper]')
                                         .scrollIntoView({
                                             behavior: 'smooth',
@@ -88,59 +139,59 @@
                             );
                         });
                 },
-                handleClientSideStateReset(n) {
-                    n.detail.livewireId !== i ||
-                        n.detail.schemaKey !== t ||
+                handleClientSideStateReset(t) {
+                    t.detail.livewireId !== i ||
+                        t.detail.schemaKey !== e ||
                         this.$nextTick(() => {
-                            let e = this.$el.querySelectorAll('[autofocus]');
-                            for (let r of e)
+                            let r = this.$el.querySelectorAll('[autofocus]');
+                            for (let s of r)
                                 if (
-                                    r.offsetParent !== null &&
-                                    (r.focus(), document.activeElement === r)
+                                    s.offsetParent !== null &&
+                                    (s.focus(), document.activeElement === s)
                                 )
                                     break;
                         });
                 },
-                isStateChanged(n, e) {
-                    if (n === void 0) return !1;
+                isStateChanged(t, r) {
+                    if (t === void 0) return !1;
                     try {
-                        return JSON.stringify(n) !== JSON.stringify(e);
+                        return JSON.stringify(t) !== JSON.stringify(r);
                     } catch {
-                        return n !== e;
+                        return t !== r;
                     }
                 },
             }),
         ),
             window.Alpine.data(
                 'filamentSchemaComponent',
-                ({ path: i, containerPath: t, $wire: n }) => ({
+                ({ path: i, containerPath: e, $wire: n }) => ({
                     $statePath: i,
-                    $get: (e, r) => n.$get(a(t, e, r)),
-                    $set: (e, r, s, l = !1) => n.$set(a(t, e, s), r, l),
+                    $get: (t, r) => n.$get(l(e, t, r)),
+                    $set: (t, r, s, d = !1) => n.$set(l(e, t, s), r, d),
                     get $state() {
                         return n.$get(i);
                     },
                 }),
             ),
-            window.Alpine.data('filamentActionsSchemaComponent', o),
-            Livewire.interceptMessage(({ message: i, onSuccess: t }) => {
-                t(({ payload: n }) => {
-                    n.effects?.dispatches?.forEach((e) => {
-                        if (!e.params?.awaitSchemaComponent) return;
+            window.Alpine.data('filamentActionsSchemaComponent', a),
+            Livewire.interceptMessage(({ message: i, onSuccess: e }) => {
+                e(({ payload: n }) => {
+                    n.effects?.dispatches?.forEach((t) => {
+                        if (!t.params?.awaitSchemaComponent) return;
                         let r = Array.from(
                             i.component.el.querySelectorAll(
-                                `[wire\\:partial="schema-component::${e.params.awaitSchemaComponent}"]`,
+                                `[wire\\:partial="schema-component::${t.params.awaitSchemaComponent}"]`,
                             ),
-                        ).filter((s) => d(s) === i.component);
+                        ).filter((s) => c(s) === i.component);
                         if (r.length !== 1) {
                             if (r.length > 1)
-                                throw `Multiple schema components found with key [${e.params.awaitSchemaComponent}].`;
+                                throw `Multiple schema components found with key [${t.params.awaitSchemaComponent}].`;
                             window.addEventListener(
-                                `schema-component-${i.component.id}-${e.params.awaitSchemaComponent}-loaded`,
+                                `schema-component-${i.component.id}-${t.params.awaitSchemaComponent}-loaded`,
                                 () => {
                                     window.dispatchEvent(
-                                        new CustomEvent(e.name, {
-                                            detail: e.params,
+                                        new CustomEvent(t.name, {
+                                            detail: t.params,
                                         }),
                                     );
                                 },

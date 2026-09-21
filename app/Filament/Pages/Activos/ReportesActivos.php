@@ -224,12 +224,7 @@ class ReportesActivos extends Page implements HasForms
             $params['activo_id'] = $data['activo_id'];
         }
 
-        try {
-            $url = ReporteConfig::getUrl('activos', $reporte, $params, 'pdf');
-            $this->dispatch('open-new-tab', url: $url);
-        } catch (\InvalidArgumentException $e) {
-            return null;
-        }
+        $this->procesarDescargaReporte('activos', $reporte, $params);
 
         return null;
     }
@@ -246,7 +241,7 @@ class ReportesActivos extends Page implements HasForms
         $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
         $roleName = is_string($superAdminRole) ? $superAdminRole : 'super_admin';
 
-        return $user->hasRole($roleName)
+        return $user->can('Page:ReportesActivos')
             || self::tieneAlgunPermisoReporte();
     }
 

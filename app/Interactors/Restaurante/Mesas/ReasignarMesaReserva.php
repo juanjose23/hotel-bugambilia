@@ -74,11 +74,7 @@ final readonly class ReasignarMesaReserva
             // 2. Resolver unión automática si la nueva mesa requiere más espacio para los comensales
             $mesaAnteriorId = (int) $reserva->espacio_id;
             $comensales = (int) ($reserva->adultos + $reserva->ninos);
-            $mesasLibres = Espacio::query()
-                ->where('estado', EstadoEspacio::Disponible->value)
-                ->where('id', '!=', $nuevaMesa->id)
-                ->where('id', '!=', $mesaAnteriorId)
-                ->get();
+            $mesasLibres = $this->repositorio->obtenerMesasLibresExcluyendo([$nuevaMesa->id, $mesaAnteriorId]);
             $secundariasParaUnir = $this->resolverUnionAuto->resolver($nuevaMesa, $comensales, $mesasLibres);
 
             // 3. Actualizar la reserva con la nueva mesa asignada

@@ -7,7 +7,7 @@ namespace App\Interactors\Usuarios\Credenciales;
 use App\BusinessLogic\Usuarios\GeneradorCredenciales;
 use App\Repository\Models\Personas\Persona;
 
-class GenerarCredencialesUsuario
+final class GenerarCredencialesUsuario
 {
     public function __construct(
         private readonly GeneradorCredenciales $generador,

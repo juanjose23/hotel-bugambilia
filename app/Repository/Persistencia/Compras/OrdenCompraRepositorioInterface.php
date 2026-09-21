@@ -28,4 +28,8 @@ interface OrdenCompraRepositorioInterface
     ): OrdenCompra;
 
     public function actualizarEstado(OrdenCompra $orden, EstadoOrdenCompra $estado): void;
+
+    public function obtenerUltimoCodigoPorAno(int $year): ?string;
+
+    public function existeOrdenParaCotizacion(int $solicitudId, int $cotizacionId): bool;
 }

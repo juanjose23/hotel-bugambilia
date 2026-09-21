@@ -10,7 +10,9 @@ use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\User;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
 use App\Repository\Queries\Limpieza\Ejecucion\ResolverTurnoParaLimpiable;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +21,7 @@ final readonly class AsignarSolicitudLimpieza
 {
     public function __construct(
         private ResolverTurnoParaLimpiable $resolverTurno,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
 
     /**
@@ -30,20 +33,26 @@ final readonly class AsignarSolicitudLimpieza
      */
     public function execute(User $usuario, int $solicitudId): LimpiezaEjecucion
     {
+        return $this->ejecutar($usuario, $solicitudId);
+    }
+
+    public function ejecutar(User $usuario, int $solicitudId): LimpiezaEjecucion
+    {
         if (! $this->puedeAsignar($usuario)) {
             throw new OperacionLimpiezaNoPermitida('Solo personal autorizado puede asignar solicitudes de limpieza.');
         }
 
         return DB::transaction(function () use ($usuario, $solicitudId): LimpiezaEjecucion {
-            $solicitud = SolicitudLimpieza::query()
-                ->with(['limpiable.ubicacion', 'ejecuciones'])
-                ->findOrFail($solicitudId);
+            $solicitud = $this->limpiezaRepositorio->buscarSolicitudPorIdConRelaciones(
+                $solicitudId,
+                ['limpiable.ubicacion', 'ejecuciones']
+            );
 
             $colaborador = $usuario->persona?->colaborador;
 
             $ejecucion = $this->asignarEjecucion($solicitud, $colaborador);
 
-            $solicitud->update([
+            $this->limpiezaRepositorio->actualizarSolicitud($solicitud, [
                 'personal_id' => $colaborador instanceof Colaborador ? $usuario->id : $solicitud->personal_id,
                 'estado' => EstadoLimpieza::Pendiente,
             ]);
@@ -58,7 +67,7 @@ final readonly class AsignarSolicitudLimpieza
 
         if ($ejecucion !== null) {
             if ($colaborador instanceof Colaborador && $ejecucion->colaborador_id === null) {
-                $ejecucion->update([
+                $this->limpiezaRepositorio->actualizarEjecucion($ejecucion, [
                     'colaborador_id' => $colaborador->id,
                 ]);
             }
@@ -74,13 +83,13 @@ final readonly class AsignarSolicitudLimpieza
 
         $turno = $this->resolverTurno->execute($limpiable);
 
-        return LimpiezaEjecucion::create([
+        return $this->limpiezaRepositorio->crearEjecucion([
             'solicitud_id' => $solicitud->id,
             'limpiable_type' => $solicitud->limpiable_type,
             'limpiable_id' => $solicitud->limpiable_id,
             'turno_id' => $turno?->id,
             'colaborador_id' => $colaborador?->id,
-            'fecha' => now()->toDateString(),
+            'fecha' => Carbon::now()->toDateString(),
             'estado' => EstadoLimpieza::Pendiente,
         ]);
     }

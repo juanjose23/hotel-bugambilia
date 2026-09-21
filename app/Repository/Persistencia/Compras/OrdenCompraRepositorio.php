@@ -71,4 +71,24 @@ final class OrdenCompraRepositorio implements OrdenCompraRepositorioInterface
     {
         $orden->update(['estado' => $estado]);
     }
+
+    public function obtenerUltimoCodigoPorAno(int $year): ?string
+    {
+        $latest = OrdenCompra::withTrashed()
+            ->where('codigo', 'like', "OC-{$year}-%")
+            ->orderBy('codigo', 'desc')
+            ->lockForUpdate()
+            ->get()
+            ->first(fn ($order) => (bool) preg_match('/\-(\d+)$/', $order->codigo));
+
+        return $latest?->codigo;
+    }
+
+    public function existeOrdenParaCotizacion(int $solicitudId, int $cotizacionId): bool
+    {
+        return OrdenCompra::where('solicitud_id', $solicitudId)
+            ->where('cotizacion_id', $cotizacionId)
+            ->where('estado', '!=', EstadoOrdenCompra::Cancelada)
+            ->exists();
+    }
 }

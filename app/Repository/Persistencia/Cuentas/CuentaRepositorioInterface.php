@@ -105,4 +105,25 @@ interface CuentaRepositorioInterface
 
     /** @param array<int, array<string, mixed>> $registros */
     public function insertarCuentaCargos(Cuenta $cuenta, array $registros): void;
+
+    /** @return Collection<string, float> */
+    public function cargosPorTipoActivos(Cuenta $cuenta): Collection;
+
+    /** @return Collection<int, CuentaCargo> */
+    public function cargosFacturacionVigentesConCargoId(Cuenta $cuenta): Collection;
+
+    /**
+     * @param  array<int, int>  $detallesIds
+     * @return Collection<int, CuentaDetalle>
+     */
+    public function obtenerDetallesActivosPorIds(Cuenta $cuenta, array $detallesIds): Collection;
+
+    /** @param array<int, int> $detallesIds */
+    public function reasignarDetallesACuenta(array $detallesIds, int $nuevaCuentaId): void;
+
+    public function generarNumeroCuenta(string|int $referencia): string;
+
+    public function marcarSolicitaCuenta(int $reservaId): void;
+
+    public function usuarioExiste(int $usuarioId): bool;
 }

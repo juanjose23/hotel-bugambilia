@@ -1,5 +1,6 @@
 import { Users, Check, LayoutGrid, MapPin } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/modules/shared/components/ui/button';
 import type { AmbienteData, MesaData } from '../types';
 import { RestaurantePlanoMesasVisual } from './RestaurantePlanoMesasVisual';
 
@@ -41,31 +42,35 @@ export const RestauranteAmbientes = ({
 
                 {/* Switcher de Vista */}
                 <div className="flex items-center gap-1.5 rounded-2xl border border-border/80 bg-muted/50 p-1 shadow-xs">
-                    <button
+                    <Button
                         type="button"
+                        variant={vistaModo === 'galeria' ? 'default' : 'ghost'}
+                        size="sm"
                         onClick={() => setVistaModo('galeria')}
                         className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                             vistaModo === 'galeria'
-                                ? 'bg-background font-black text-foreground shadow-xs'
+                                ? 'bg-background font-black text-foreground shadow-xs hover:bg-background/90'
                                 : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <LayoutGrid className="size-4 text-primary dark:text-rose-400" />
                         <span>Ambientes</span>
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                         type="button"
+                        variant={vistaModo === 'plano' ? 'default' : 'ghost'}
+                        size="sm"
                         onClick={() => setVistaModo('plano')}
                         className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                             vistaModo === 'plano'
-                                ? 'bg-background font-black text-foreground shadow-xs'
+                                ? 'bg-background font-black text-foreground shadow-xs hover:bg-background/90'
                                 : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         <MapPin className="size-4 text-primary dark:text-rose-400" />
                         <span>Plano de Mesas</span>
-                    </button>
+                    </Button>
                 </div>
             </div>
 

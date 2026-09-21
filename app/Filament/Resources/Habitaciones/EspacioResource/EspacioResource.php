@@ -12,6 +12,7 @@ use App\Filament\Resources\Habitaciones\EspacioResource\RelationManagers\SubEspa
 use App\Filament\Resources\Habitaciones\EspacioResource\Schemas\EspacioForm;
 use App\Filament\Resources\Habitaciones\EspacioResource\Schemas\EspacioInfolist;
 use App\Filament\Resources\Habitaciones\EspacioResource\Tables\EspacioTable;
+use App\Filament\Shared\RelationManagers\ImagenesRelationManager;
 use App\Filament\Shared\RelationManagers\InventarioFijoRelationManager;
 use App\Filament\Shared\RelationManagers\PoliticasRelationManager;
 use App\Filament\Shared\RelationManagers\PreciosRelationManager;
@@ -59,6 +60,7 @@ class EspacioResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ImagenesRelationManager::class,
             SubEspaciosRelationManager::class,
             PoliticasRelationManager::class,
             PreciosRelationManager::class,

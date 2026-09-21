@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Usuarios\Clientes\Schemas;
 
+use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\Enums\Personas\TipoIdentificacion;
 use App\Repository\Models\Catalogos\Pais;
 use App\Support\CachedOptions;
@@ -120,6 +121,7 @@ class ClienteForm
                                     ->options(TipoIdentificacion::class)
                                     ->prefixIcon(Heroicon::DocumentText)
                                     ->requiredWith('numero_identificacion')
+                                    ->live()
                                     ->native(false),
 
                                 TextInput::make('numero_identificacion')
@@ -127,6 +129,11 @@ class ClienteForm
                                     ->placeholder('ej. 001-123456-0000X o RUC J03100000123')
                                     ->prefixIcon(Heroicon::Hashtag)
                                     ->requiredWith('tipo_identificacion')
+                                    ->rules([
+                                        fn (Get $get) => in_array($get('tipo_identificacion'), ['cedula', TipoIdentificacion::Cedula, TipoIdentificacion::Cedula->value], true)
+                                            ? new ValidCedulaNicaragua
+                                            : null,
+                                    ])
                                     ->maxLength(30),
 
                                 Select::make('pais_id')

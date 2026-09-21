@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Servicios\Reportes;
 
+use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Reportes\RegistrarAuditoriaReporte;
 use App\Repository\Queries\Servicios\ObtenerHistoricoServiciosPrecios;
 use App\Support\Excel\ColumnaExcel;
@@ -11,11 +12,11 @@ use App\Support\Excel\GeneradorExcel;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class GenerarHistoricoPreciosExcelAction
+final readonly class GenerarHistoricoPreciosExcelAction
 {
     public function __construct(
-        private readonly RegistrarAuditoriaReporte $registrarAuditoria,
-        private readonly ObtenerHistoricoServiciosPrecios $obtenerHistorico,
+        private RegistrarAuditoriaReporte $registrarAuditoria,
+        private ObtenerHistoricoServiciosPrecios $obtenerHistorico,
     ) {}
 
     /**
@@ -42,7 +43,7 @@ final class GenerarHistoricoPreciosExcelAction
                 ColumnaExcel::make('Precio', fn ($r) => (float) $r->precio, numerica: true),
                 ColumnaExcel::make('Fecha Inicio', fn ($r) => $r->fecha_inicio ?? 'N/A'),
                 ColumnaExcel::make('Fecha Fin', fn ($r) => $r->fecha_fin ?? 'N/A'),
-                ColumnaExcel::make('Estado', fn ($r) => (int) $r->estado === 1 ? 'Vigente' : 'No Vigente'),
+                ColumnaExcel::make('Estado', fn ($r) => (int) $r->estado === EstadoGeneral::Activo->value ? 'Vigente' : 'No Vigente'),
             ],
         );
     }

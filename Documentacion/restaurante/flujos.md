@@ -493,3 +493,26 @@ app/
 │   merma si aplica)   │
 └─────────────────────┘
 ```
+
+---
+
+## 12. Submódulo / Funcionalidad: Mapa Visual de Mesas y Control de Mobiliario Físico
+
+- **Descripción de la Pantalla / Vista:** Vista interactiva `/admin/restaurante/mapa-mesas` con selector de zonas/ambientes (Salón Principal, Terraza, Bar), tarjetas visuales de mesas con capacidad, estado (Disponible, Ocupada, Cuenta Abierta, Mantenimiento), alertas de mobiliario y acciones rápidas para abrir comandas o cobrar.
+- **Disparador (Trigger):** Menú lateral `Restaurante > Mapa de Mesas` o TPV de comandas.
+- **Regla de Operatividad:** Una mesa no puede abrir comanda si no tiene al menos un activo físico asignado (`ValidarEspacioOperativoConActivo`).
+- **Flujo Paso a Paso:**
+    1. El usuario accede al Mapa de Mesas.
+    2. El sistema ejecuta `ObtenerMapaMesasQuery` que consulta las mesas (directas del restaurante y de sus sub-espacios) y comprueba `inventarioFijo` vigente.
+    3. Si una mesa tiene activo asignado:
+        - Muestra badge de capacidad y estado operativo.
+        - Permite hacer clic en "Abrir Comanda" o "Ver Pedido".
+    4. Si una mesa **NO tiene activo asignado**:
+        - Muestra badge rojo `Sin Mobiliario`.
+        - Deshabilita la apertura de comanda con un tooltip explicativo.
+    5. Al abrir comanda (`AbrirPedidoMesa`):
+        - Valida el estado de la mesa (`Disponible`).
+        - Valida que tenga activo físico (`ValidarEspacioOperativoConActivo`).
+        - Crea el pedido en estado `ABIERTO` y actualiza la mesa a `Ocupada`.
+
+> Para más detalles sobre la jerarquía y asignación de activos físicos, consultar la documentación en [doc/habitaciones/espacios.md](../habitaciones/espacios.md).

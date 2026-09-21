@@ -6,9 +6,14 @@ namespace App\Interactors\Compras\Cotizaciones;
 
 use App\Enums\Compras\EstadoCotizacion;
 use App\Repository\Models\Compras\Solicitud;
+use App\Repository\Persistencia\Compras\CotizacionRepositorioInterface;
 
-final class ActualizarEstadosCotizacionesSolicitud
+final readonly class ActualizarEstadosCotizacionesSolicitud
 {
+    public function __construct(
+        private CotizacionRepositorioInterface $cotizacionRepositorio,
+    ) {}
+
     public function ejecutar(int $solicitudId): void
     {
         $solicitud = Solicitud::with(['items', 'cotizaciones.items'])->findOrFail($solicitudId);
@@ -32,10 +37,11 @@ final class ActualizarEstadosCotizacionesSolicitud
             }
 
             if ($cot->estado !== $nuevoEstado) {
-                $cot->update([
-                    'estado' => $nuevoEstado,
-                    'es_elegida' => ($nuevoEstado === EstadoCotizacion::Aceptada),
-                ]);
+                $this->cotizacionRepositorio->actualizarEstado(
+                    $cot,
+                    $nuevoEstado,
+                    $nuevoEstado === EstadoCotizacion::Aceptada
+                );
             }
         }
     }

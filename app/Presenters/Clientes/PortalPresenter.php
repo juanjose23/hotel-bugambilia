@@ -6,6 +6,7 @@ namespace App\Presenters\Clientes;
 
 use App\BusinessLogic\Restaurante\Delivery\CalcularCostoYDetalleDelivery;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
@@ -59,6 +60,7 @@ final class PortalPresenter
             'tipo_reserva_label' => $reserva->tipo_reserva->getLabel(),
             'fecha_check_in' => $reserva->fecha_check_in?->format('Y-m-d'),
             'fecha_check_out' => $reserva->fecha_check_out?->format('Y-m-d'),
+            'hora_reserva' => $reserva->hora_reserva,
             'noches' => $reserva->noches,
             'adultos' => $reserva->adultos,
             'ninos' => $reserva->ninos,
@@ -66,6 +68,9 @@ final class PortalPresenter
             'total_pagado' => (float) $reserva->total_pagado,
             'saldo' => (float) $reserva->saldo,
             'moneda_simbolo' => $reserva->moneda !== null ? (string) $reserva->moneda->simbolo : '$',
+            'es_habitacion' => in_array($reserva->tipo_reserva, [TipoReserva::HABITACION, TipoReserva::PAQUETE], true),
+            'es_restaurante' => $reserva->tipo_reserva === TipoReserva::RESTAURANTE,
+            'es_servicio' => $reserva->tipo_reserva === TipoReserva::SERVICIO,
             'recurso' => [
                 'id' => $habitacion !== null ? (int) $habitacion->id : ($espacio !== null ? (int) $espacio->id : null),
                 'nombre' => $recursoNombre,

@@ -6,6 +6,7 @@ namespace App\Repository\Persistencia\Compras;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Events\Compras\SolicitudCreada;
+use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Compras\Solicitud;
 use Illuminate\Support\Facades\DB;
 
@@ -83,5 +84,42 @@ final class SolicitudRepositorio implements SolicitudRepositorioInterface
                 'estado' => EstadoSolicitud::Cancelada,
             ]);
         });
+    }
+
+    public function eliminar(Solicitud $solicitud): void
+    {
+        $solicitud->delete();
+    }
+
+    public function restaurar(Solicitud $solicitud): void
+    {
+        $solicitud->restore();
+    }
+
+    public function eliminarPermanente(Solicitud $solicitud): void
+    {
+        $solicitud->forceDelete();
+    }
+
+    public function obtenerCodigoDepartamento(int $departamentoId): ?string
+    {
+        $depto = Catalogo::find($departamentoId);
+
+        return $depto ? (string) $depto->codigo : null;
+    }
+
+    public function obtenerUltimoCodigoPorPrefijo(string $prefijo): ?string
+    {
+        $ultimo = Solicitud::withTrashed()
+            ->where('codigo', 'like', "{$prefijo}%")
+            ->orderByDesc('codigo')
+            ->first();
+
+        return $ultimo?->codigo;
+    }
+
+    public function buscarPorIdConItems(int $id): ?Solicitud
+    {
+        return Solicitud::with('items')->find($id);
     }
 }

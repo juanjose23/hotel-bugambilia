@@ -6,11 +6,16 @@ namespace App\Interactors\Clientes;
 
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\User;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
-final class GestionarAcompanantesReserva
+final readonly class GestionarAcompanantesReserva
 {
+    public function __construct(
+        private ReservaRepositorioInterface $reservaRepositorio,
+    ) {}
+
     /**
      * @param  array<int, array{nombre: string, identificacion?: string|null, tipo?: string|null}>  $acompanantes
      * @return array<string, mixed>
@@ -19,7 +24,7 @@ final class GestionarAcompanantesReserva
     {
         return DB::transaction(function () use ($reservaId, $acompanantes, $user): array {
             /** @var Reserva|null $reserva */
-            $reserva = Reserva::find($reservaId);
+            $reserva = $this->reservaRepositorio->obtenerPorId($reservaId);
             if ($reserva === null) {
                 throw new DomainException("La reserva #{$reservaId} no existe.");
             }
@@ -43,7 +48,7 @@ final class GestionarAcompanantesReserva
                 ];
             }
 
-            $reserva->update([
+            $this->reservaRepositorio->actualizar($reserva, [
                 'acompanantes' => $acompanantesLimpios,
             ]);
 

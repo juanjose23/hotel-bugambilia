@@ -6,7 +6,7 @@ namespace App\Repository\Persistencia\Activos;
 
 use App\Repository\Models\Activos\RegistroIndividualizacion;
 
-class RegistroIndividualizacionRepositorio implements RegistroIndividualizacionRepositorioInterface
+final class RegistroIndividualizacionRepositorio implements RegistroIndividualizacionRepositorioInterface
 {
     public function buscarPorId(int $id): ?RegistroIndividualizacion
     {

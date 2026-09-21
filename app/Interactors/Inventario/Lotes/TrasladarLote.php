@@ -9,7 +9,7 @@ use App\Events\Inventario\LoteTrasladado;
 use App\Repository\Models\Inventario\Lote;
 use Illuminate\Support\Facades\DB;
 
-class TrasladarLote
+final class TrasladarLote
 {
     public function __construct(
         private readonly Lote $modeloLote,

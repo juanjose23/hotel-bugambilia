@@ -65,13 +65,15 @@ export const CatalogoServicioItem = ({
                         />
                     </div>
                 ) : (
-                    <button
+                    <Button
                         type="button"
+                        variant="link"
+                        size="sm"
                         onClick={() => setMostrarNotas(true)}
-                        className="text-[11px] font-semibold text-primary hover:underline"
+                        className="h-auto p-0 text-[11px] font-semibold text-primary hover:underline"
                     >
                         + Agregar instrucciones especiales
-                    </button>
+                    </Button>
                 )}
             </div>
 

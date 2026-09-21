@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    <div class="flex shrink-0 items-center self-start">
+    <div class="flex shrink-0 flex-col items-end gap-1 self-start">
         @if ($estadoActualEnum)
             <x-filament::badge
                 dusk="mesa-{{ $mesa->id }}-estado"
@@ -98,6 +98,16 @@
             <x-filament::badge color="gray" size="sm">
                 Sin estado
             </x-filament::badge>
+        @endif
+
+        @if ($mesa->tipo === \App\Enums\HabitacionesEspacios\TipoEspacio::MESA && $mesa->tiene_activo_asignado === false)
+            <x-filament::badge color="danger" icon="heroicon-o-exclamation-triangle" size="xs">
+                Sin Mobiliario
+            </x-filament::badge>
+        @elseif ($mesa->activo_codigo)
+            <span class="text-[9px] font-mono text-gray-400 dark:text-gray-500">
+                {{ $mesa->activo_codigo }}
+            </span>
         @endif
     </div>
 </header>

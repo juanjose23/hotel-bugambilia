@@ -6,12 +6,21 @@ namespace App\Interactors\Limpieza\Procesos;
 
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 
-class ProcesarBlancosLimpieza
+final readonly class ProcesarBlancosLimpieza
 {
     public function __construct(
-        private readonly ProcesarEnvioBlancos $procesarEnvioBlancos,
-        private readonly ProcesarReposicionBlancos $procesarReposicionBlancos,
+        private ProcesarEnvioBlancos $procesarEnvioBlancos,
+        private ProcesarReposicionBlancos $procesarReposicionBlancos,
     ) {}
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<int, array{variante_id: int|null, nombre: string, required: float, available: float}>
+     */
+    public function execute(LimpiezaEjecucion $ejecucion, array $data, ?int $carritoId, string $tipoDestino, ?int $usuarioId): array
+    {
+        return $this->ejecutar($ejecucion, $data, $carritoId, $tipoDestino, $usuarioId);
+    }
 
     /**
      * @param  array<string, mixed>  $data
@@ -19,7 +28,6 @@ class ProcesarBlancosLimpieza
      */
     public function ejecutar(LimpiezaEjecucion $ejecucion, array $data, ?int $carritoId, string $tipoDestino, ?int $usuarioId): array
     {
-
         /** @var array<int|string, int|float|string> $blancosEnviar */
         $blancosEnviar = $data['blancos_enviar'] ?? [];
         $this->procesarEnvioBlancos->procesar($blancosEnviar, $tipoDestino, $usuarioId, (int) $ejecucion->id);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Reservas\Schemas\Reserva\Comun;
 
 use App\Repository\Queries\Reservas\CalcularVistaPreviaFinancieraReservaQuery;
+use App\Support\MonedaHelper;
 use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\HtmlString;
 
@@ -42,7 +43,7 @@ final class ResumenFinancieroVistaPrevia
     public static function html(Get $get, bool $compacto = false): HtmlString
     {
         $resumen = self::calcular($get);
-        $dinero = static fn (float $monto): string => 'C$ '.number_format($monto, 2);
+        $dinero = static fn (float $monto): string => MonedaHelper::formatear($monto);
 
         $duracionStr = is_string($resumen['duracion'] ?? null) ? $resumen['duracion'] : '—';
         $tarifaBase = is_numeric($resumen['tarifa_base'] ?? null) ? (float) $resumen['tarifa_base'] : 0.0;

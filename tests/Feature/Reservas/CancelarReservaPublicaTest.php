@@ -6,7 +6,7 @@ use App\BusinessLogic\Reservas\Data\CancelarReservaHabitacionData;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
-use App\Interactors\Reservas\Gestion\CancelarReservaPublica;
+use App\Interactors\Reservas\Gestion\CancelarReserva;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Reservas\Reserva;
 
@@ -35,7 +35,7 @@ test('cancela reserva publica y retorna estado cancelado', function (): void {
         motivo: 'Cancelacion publica',
     );
 
-    $resultado = app(CancelarReservaPublica::class)->ejecutar($data);
+    $resultado = app(CancelarReserva::class)->ejecutar($data);
 
     expect($resultado['reserva']->estado)->toBe(EstadoReserva::CANCELADA);
     expect($resultado['reembolso_pendiente_administracion'])->toBeBool();

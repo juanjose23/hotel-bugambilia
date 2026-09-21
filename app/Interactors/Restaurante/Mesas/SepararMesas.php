@@ -12,12 +12,12 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-final class SepararMesas
+final readonly class SepararMesas
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly NormalizarMetaDatosAction $normalizarMetaDatosAction,
-        private readonly ValidarTransicionMesa $validarTransicion,
+        private RestauranteRepositorioInterface $repositorio,
+        private NormalizarMetaDatosAction $normalizarMetaDatosAction,
+        private ValidarTransicionMesa $validarTransicion,
     ) {}
 
     /**

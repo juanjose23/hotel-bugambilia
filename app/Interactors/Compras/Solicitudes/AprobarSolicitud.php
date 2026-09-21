@@ -10,10 +10,10 @@ use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-final class AprobarSolicitud
+final readonly class AprobarSolicitud
 {
     public function __construct(
-        private readonly SolicitudRepositorioInterface $solicitudRepositorio,
+        private SolicitudRepositorioInterface $solicitudRepositorio,
     ) {}
 
     /**

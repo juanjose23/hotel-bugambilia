@@ -11,6 +11,7 @@ use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEliminados;
 use App\Filament\Shared\Filters\FiltroEstado;
+use App\Repository\Models\Servicios\Servicio;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -24,18 +25,20 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ServiciosTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['categoria', 'politicas', 'imagenes']))
             ->columns([
-                ImageColumn::make('imagenes.url')
+                ImageColumn::make('imagen_principal')
                     ->label('Imagen')
+                    ->state(fn (Servicio $record): ?string => $record->imagenes->sortBy('orden')->first()?->url_completa)
                     ->circular()
-                    ->placeholder('-')
-                    ->limit(1),
+                    ->placeholder('-'),
 
                 TextColumn::make('codigo')
                     ->label('Código')
@@ -46,44 +49,7 @@ class ServiciosTable
                     ->label('Nombre')
                     ->searchable()
                     ->sortable()
-                    ->icon(function ($record): string {
-                        $st = $record->icono;
-                        if (! $st) {
-                            return 'heroicon-o-check-badge';
-                        }
-                        if (str_starts_with($st, 'heroicon-')) {
-                            return $st;
-                        }
-
-                        return match ($st) {
-                            'wifi' => 'heroicon-o-wifi',
-                            'coffee' => 'heroicon-o-cup-soda',
-                            'utensils', 'restaurant' => 'heroicon-o-building-storefront',
-                            'bar' => 'heroicon-o-cake',
-                            'pool', 'swimming' => 'heroicon-o-lifebuoy',
-                            'car', 'parking' => 'heroicon-o-truck',
-                            'gym' => 'heroicon-o-trophy',
-                            'laundry', 'shirt' => 'heroicon-o-scissors',
-                            'concierge', 'bell' => 'heroicon-o-bell',
-                            'ac', 'wind' => 'heroicon-o-sun',
-                            'tv' => 'heroicon-o-computer-desktop',
-                            'bath' => 'heroicon-o-home-modern',
-                            'lock' => 'heroicon-o-lock-closed',
-                            'key' => 'heroicon-o-key',
-                            'sun' => 'heroicon-o-sun',
-                            'flame' => 'heroicon-o-fire',
-                            'gift' => 'heroicon-o-gift',
-                            'phone' => 'heroicon-o-phone',
-                            'bed' => 'heroicon-o-home',
-                            'calendar' => 'heroicon-o-calendar',
-                            'card' => 'heroicon-o-credit-card',
-                            'scissors' => 'heroicon-o-scissors',
-                            'plane' => 'heroicon-o-paper-airplane',
-                            'briefcase' => 'heroicon-o-briefcase',
-                            'map' => 'heroicon-o-map',
-                            default => 'heroicon-o-check-badge',
-                        };
-                    }),
+                    ->icon(fn (Servicio $record): string => $record->icono_filament),
 
                 TextColumn::make('categoria.nombre')
                     ->label('Categoría')

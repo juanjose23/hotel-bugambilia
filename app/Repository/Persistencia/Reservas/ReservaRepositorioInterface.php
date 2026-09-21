@@ -18,7 +18,13 @@ interface ReservaRepositorioInterface
 {
     public function obtenerPorId(int $id): ?Reserva;
 
+    public function buscarPorCodigoReserva(string $codigo): ?Reserva;
+
     public function obtenerPorIdConLock(int $id): Reserva;
+
+    public function obtenerPorIdConCuentasYMonedaConLock(int $id): ?Reserva;
+
+    public function obtenerPorIdYCodigoConCuentasYMoneda(int $id, string $codigo): Reserva;
 
     public function obtenerDetalleConLock(int $detalleId): ReservaDetalle;
 
@@ -63,9 +69,6 @@ interface ReservaRepositorioInterface
 
     /** @param array<string, mixed> $datos */
     public function actualizarDatosGenerales(Reserva $reserva, array $datos): Reserva;
-
-    /** @param array<int, array{servicio_id: int, cantidad: int, precio: float}> $servicios */
-    public function adjuntarServicios(Reserva $reserva, array $servicios): void;
 
     public function resolverRecurso(TipoReserva $tipo, int $entidadId): RecursoReservable;
 
@@ -157,4 +160,14 @@ interface ReservaRepositorioInterface
         int $unidades,
         ?float $horasVal,
     ): void;
+
+    /** @return Collection<int, Reserva> */
+    public function obtenerReservasRestauranteVencidas(string $fechaHoy, string $horaLimiteStr): Collection;
+
+    public function buscarEstanciaConRelaciones(int $estanciaId): Estancia;
+
+    public function obtenerPrecioRecurso(RecursoReservable $recurso): float;
+
+    /** @param array<string, mixed> $datos */
+    public function crearDetalleDirecto(array $datos): ReservaDetalle;
 }

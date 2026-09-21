@@ -163,6 +163,14 @@
             overflow-wrap: break-word;
             line-height: 1.25;
         }
+        /* .data-table td {
+            padding: 5px 7px;
+            font-size: 8.25pt;
+            line-height: 1.2;
+            white-space: nowrap;           
+            overflow: hidden;
+            text-overflow: ellipsis;
+        } */
 
         .data-table tr:nth-child(even) td {
             background-color: #f3f6fa;

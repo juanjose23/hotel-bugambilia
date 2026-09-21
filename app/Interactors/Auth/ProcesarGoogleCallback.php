@@ -6,7 +6,8 @@ namespace App\Interactors\Auth;
 
 use App\Interactors\Usuarios\Clientes\RegistrarClienteNuevo;
 use App\Repository\Models\User;
-use App\Repository\Models\Usuarios\SocialAccount;
+use App\Repository\Persistencia\Usuarios\SocialAccountRepositorioInterface;
+use App\Repository\Persistencia\Usuarios\UsuarioCuentaPersistencia;
 use App\Repository\Queries\Catalogos\ObtenerCatalogoClienteRegularQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,6 +19,8 @@ final readonly class ProcesarGoogleCallback
     public function __construct(
         private RegistrarClienteNuevo $registrarClienteNuevo,
         private ObtenerCatalogoClienteRegularQuery $catalogoRegularQuery,
+        private SocialAccountRepositorioInterface $socialAccountRepositorio,
+        private UsuarioCuentaPersistencia $usuarioPersistencia,
     ) {}
 
     public function ejecutar(SocialiteUser $googleUser): User
@@ -34,22 +37,21 @@ final readonly class ProcesarGoogleCallback
             ]);
 
             // 1. Verificar si ya existe una cuenta social vinculada
-            $cuentaSocial = SocialAccount::where('provider', 'google')
-                ->where('provider_id', $googleId)
-                ->first();
+            $cuentaSocial = $this->socialAccountRepositorio->buscarPorProvider('google', $googleId);
+            $usuarioVinculado = $cuentaSocial?->user;
 
-            if ($cuentaSocial !== null && $cuentaSocial->user !== null) {
+            if ($cuentaSocial !== null && $usuarioVinculado instanceof User) {
                 Log::info('[ProcesarGoogleCallback] Cuenta social encontrada y vinculada a usuario', [
-                    'user_id' => $cuentaSocial->user->id,
-                    'email' => $cuentaSocial->user->email,
+                    'user_id' => $usuarioVinculado->id,
+                    'email' => $usuarioVinculado->email,
                 ]);
 
                 // Actualizar avatar si cambió
                 if ($avatar !== null && $cuentaSocial->avatar !== $avatar) {
-                    $cuentaSocial->update(['avatar' => $avatar]);
+                    $this->socialAccountRepositorio->actualizarAvatar($cuentaSocial, $avatar);
                 }
 
-                return $cuentaSocial->user;
+                return $usuarioVinculado;
             }
 
             Log::info('[ProcesarGoogleCallback] No existe cuenta social previa. Buscando usuario por email', [
@@ -57,7 +59,7 @@ final readonly class ProcesarGoogleCallback
             ]);
             $usuarioExistente = null;
             if ($email !== null && $email !== '') {
-                $usuarioExistente = User::where('email', $email)->first();
+                $usuarioExistente = $this->usuarioPersistencia->buscarPorEmail($email);
             }
 
             if ($usuarioExistente !== null) {
@@ -67,17 +69,17 @@ final readonly class ProcesarGoogleCallback
                 ]);
 
                 // Vincular cuenta social a usuario existente
-                SocialAccount::create([
-                    'user_id' => $usuarioExistente->id,
-                    'provider' => 'google',
-                    'provider_id' => $googleId,
-                    'provider_email' => $email,
-                    'avatar' => $avatar,
-                    'provider_data' => [
+                $this->socialAccountRepositorio->vincular(
+                    userId: $usuarioExistente->id,
+                    provider: 'google',
+                    providerId: $googleId,
+                    email: $email,
+                    avatar: $avatar,
+                    providerData: [
                         'name' => $name,
                         'nickname' => $googleUser->getNickname(),
                     ],
-                ]);
+                );
 
                 return $usuarioExistente;
             }
@@ -121,17 +123,17 @@ final readonly class ProcesarGoogleCallback
             ]);
 
             // Registrar cuenta social
-            SocialAccount::create([
-                'user_id' => $nuevoUsuario->id,
-                'provider' => 'google',
-                'provider_id' => $googleId,
-                'provider_email' => $email,
-                'avatar' => $avatar,
-                'provider_data' => [
+            $this->socialAccountRepositorio->vincular(
+                userId: $nuevoUsuario->id,
+                provider: 'google',
+                providerId: $googleId,
+                email: $email,
+                avatar: $avatar,
+                providerData: [
                     'name' => $name,
                     'nickname' => $googleUser->getNickname(),
                 ],
-            ]);
+            );
 
             return $nuevoUsuario;
         });

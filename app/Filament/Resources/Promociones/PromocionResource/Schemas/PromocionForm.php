@@ -7,10 +7,12 @@ namespace App\Filament\Resources\Promociones\PromocionResource\Schemas;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Promociones\GenerarCodigoPromocion;
+use App\Interactors\Promociones\SincronizarGaleriaPromocion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Promociones\Promocion;
 use App\Repository\Models\Servicios\Servicio;
+use App\Support\MonedaHelper;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -95,7 +97,7 @@ class PromocionForm
                             ->label('Precio Total del Paquete')
                             ->numeric()
                             ->minValue(0)
-                            ->prefix('C$')
+                            ->prefix(MonedaHelper::simbolo())
                             ->prefixIcon(Heroicon::Banknotes)
                             ->placeholder('1500.00')
                             ->helperText('Precio global del combo / paquete promocional.'),
@@ -112,7 +114,7 @@ class PromocionForm
                             ->label('Descuento Adicional (Monto)')
                             ->numeric()
                             ->minValue(0)
-                            ->prefix('C$')
+                            ->prefix(MonedaHelper::simbolo())
                             ->prefixIcon(Heroicon::CurrencyDollar),
 
                         TextInput::make('orden')
@@ -166,21 +168,7 @@ class PromocionForm
                             ->dehydrated(false)
                             ->saveRelationshipsUsing(function (Promocion $record, $state) {
                                 $imageUrls = array_map(fn (mixed $val): string => is_string($val) || $val instanceof \Stringable ? (string) $val : '', is_array($state) ? $state : []);
-                                /** @var array<int, string> $existingUrls */
-                                $existingUrls = $record->imagenes()->pluck('url')->map(fn (mixed $u): string => is_scalar($u) ? strval($u) : '')->toArray();
-                                $toDelete = array_diff($existingUrls, $imageUrls);
-                                if ($toDelete !== []) {
-                                    $record->imagenes()->whereIn('url', $toDelete)->delete();
-                                }
-                                foreach ($imageUrls as $index => $url) {
-                                    if ($url === '') {
-                                        continue;
-                                    }
-                                    $record->imagenes()->updateOrCreate(
-                                        ['url' => $url],
-                                        ['orden' => $index + 1],
-                                    );
-                                }
+                                app(SincronizarGaleriaPromocion::class)->ejecutar($record, $imageUrls);
                             }),
                     ]),
 

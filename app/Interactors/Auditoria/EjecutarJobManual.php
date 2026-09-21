@@ -7,17 +7,22 @@ namespace App\Interactors\Auditoria;
 use App\Enums\Shared\EstadoEjecucionJob;
 use App\Enums\Shared\TipoJob;
 use App\Repository\Models\Audits\AuditoriaJob;
+use App\Repository\Persistencia\Shared\AuditoriaJobRepositorioInterface;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
 
-final class EjecutarJobManual
+final readonly class EjecutarJobManual
 {
+    public function __construct(
+        private AuditoriaJobRepositorioInterface $auditoriaJobRepositorio,
+    ) {}
+
     public function ejecutar(TipoJob $tipoJob): AuditoriaJob
     {
         $usuarioId = Auth::id();
 
-        $registro = AuditoriaJob::create([
+        $registro = $this->auditoriaJobRepositorio->registrarInicio([
             'usuario_id' => $usuarioId,
             'tipo_job' => $tipoJob,
             'nombre_job' => $tipoJob->getLabel(),
@@ -34,21 +39,17 @@ final class EjecutarJobManual
                 dispatch_sync(new $clase);
             }
 
-            $registro->update([
+            return $this->auditoriaJobRepositorio->actualizarEstado($registro, [
                 'estado' => EstadoEjecucionJob::Completado,
                 'mensaje' => 'Job ejecutado exitosamente.',
                 'completado_en' => now(),
             ]);
         } catch (Throwable $e) {
-            $registro->update([
+            return $this->auditoriaJobRepositorio->actualizarEstado($registro, [
                 'estado' => EstadoEjecucionJob::Fallido,
                 'mensaje' => $e->getMessage(),
                 'completado_en' => now(),
             ]);
         }
-
-        $refrescado = $registro->fresh();
-
-        return $refrescado ?? $registro;
     }
 }

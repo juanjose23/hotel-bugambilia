@@ -28,4 +28,14 @@ final class BuscarUsuarioCuentaQuery
             ->where('email', $emailNormalizado)
             ->first();
     }
+
+    public function porId(int $id): ?User
+    {
+        return User::query()->find($id);
+    }
+
+    public function existePorName(string $name): bool
+    {
+        return User::query()->where('name', $name)->exists();
+    }
 }

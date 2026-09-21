@@ -89,4 +89,23 @@ final class DisponibilidadRecursoQuery
             ->values()
             ->all();
     }
+
+    /**
+     * @param  array<int, int>  $recursoIds
+     * @return array<int, bool> Mapa [recurso_id => bool]
+     */
+    public function existenConflictosLote(
+        array $recursoIds,
+        DateTimeInterface $inicio,
+        DateTimeInterface $fin,
+        ?int $reservaExcluidaId = null,
+    ): array {
+        $conflictivos = $this->existeConflictos($recursoIds, $inicio, $fin, $reservaExcluidaId);
+        $mapa = [];
+        foreach ($conflictivos as $id) {
+            $mapa[$id] = true;
+        }
+
+        return $mapa;
+    }
 }

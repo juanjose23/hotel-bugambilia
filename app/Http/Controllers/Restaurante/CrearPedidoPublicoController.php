@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Restaurante;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Restaurante\CrearPedidoPublicoRequest;
-use App\Interactors\Landing\CrearPedidoPublicoLanding;
+use App\Interactors\Restaurante\Pedidos\CrearPedidoPublico;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
@@ -15,7 +15,7 @@ final class CrearPedidoPublicoController extends Controller
 {
     public function __invoke(
         CrearPedidoPublicoRequest $request,
-        CrearPedidoPublicoLanding $interactor,
+        CrearPedidoPublico $interactor,
     ): JsonResponse {
         $validated = $request->validated();
 

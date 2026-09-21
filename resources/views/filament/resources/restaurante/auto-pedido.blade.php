@@ -1,3 +1,4 @@
+@use(App\Support\MonedaHelper)
 <x-filament-panels::page>
     <div class="space-y-6 font-sans select-none">
 
@@ -61,7 +62,7 @@
 
                                     <div class="absolute top-2.5 right-2.5">
                                         <x-filament::badge color="primary">
-                                            C$ {{ number_format($precio, 2) }}
+                                            {{ MonedaHelper::formatear($precio) }}
                                         </x-filament::badge>
                                     </div>
                                 </div>
@@ -143,7 +144,7 @@
                                         {{ $item['nombre'] }}
                                     </span>
                                     <span class="font-bold text-xs text-primary-600 dark:text-primary-400 shrink-0">
-                                        C$ {{ number_format($item['precio'] * $item['cantidad'], 2) }}
+                                        {{ MonedaHelper::formatear($item['precio'] * $item['cantidad']) }}
                                     </span>
                                 </div>
 
@@ -195,7 +196,7 @@
                         <div class="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-3">
                             <div class="flex justify-between text-sm font-bold text-gray-900 dark:text-white">
                                 <span>TOTAL</span>
-                                <span class="text-primary-600 dark:text-primary-400 text-base">C$ {{ number_format($this->calcularSubtotal(), 2) }}</span>
+                                <span class="text-primary-600 dark:text-primary-400 text-base">{{ MonedaHelper::formatear($this->calcularSubtotal()) }}</span>
                             </div>
 
                             <x-filament::button

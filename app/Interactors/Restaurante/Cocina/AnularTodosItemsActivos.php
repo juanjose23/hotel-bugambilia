@@ -8,11 +8,11 @@ use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerItemPedidoQuery;
 use DomainException;
 
-final class AnularTodosItemsActivos
+final readonly class AnularTodosItemsActivos
 {
     public function __construct(
-        private readonly AnularItemPedido $anularItem,
-        private readonly ObtenerItemPedidoQuery $items,
+        private AnularItemPedido $anularItem,
+        private ObtenerItemPedidoQuery $items,
     ) {}
 
     /**

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\CheckIn;
 
-use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio as EstadoHabitacion;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Enums\Reservas\TipoHuesped;
-use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
 use App\Repository\Models\Reservas\ReservaHuesped;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -41,15 +41,20 @@ use Illuminate\Support\Collection;
  *     capacidad_habitacion: int,
  * }
  */
-final class ObtenerReadinessCheckIn
+final readonly class ObtenerReadinessCheckIn
 {
+    public function __construct(
+        private ReservaRepositorioInterface $reservaRepositorio,
+        private HabitacionRepositorioInterface $habitacionRepositorio,
+    ) {}
+
     /**
      * @return ReadinessArray
      */
     public function calcular(ReservaDetalle $detalle): array
     {
-        $reserva = $detalle->reserva()->with(['huespedes', 'detalles'])->first();
-        $huespedes = $detalle->huespedes()->get();
+        $reserva = $detalle->reserva;
+        $huespedes = $detalle->huespedes;
         $habitacion = $this->resolverHabitacion($detalle);
 
         $bloqueos = [];
@@ -103,10 +108,7 @@ final class ObtenerReadinessCheckIn
         }
 
         // ── Validación 6: Sin estancia activa en ese detalle ─────────────────
-        $sinEstanciaActiva = ! Estancia::query()
-            ->where('reserva_detalle_id', $detalle->id)
-            ->whereIn('estado', [EstadoEstancia::ACTIVA->value, EstadoEstancia::EXTENDIDA->value])
-            ->exists();
+        $sinEstanciaActiva = ! $this->reservaRepositorio->existeEstanciaActivaParaDetalle((int) $detalle->id);
         if (! $sinEstanciaActiva) {
             $bloqueos[] = 'Ya existe una estancia activa para esta habitación.';
         }
@@ -164,9 +166,7 @@ final class ObtenerReadinessCheckIn
             return null;
         }
 
-        return Habitacion::query()
-            ->where('reservable_id', $recurso->id)
-            ->first();
+        return $this->habitacionRepositorio->buscarPorRecursoReservableId((int) $recurso->id);
     }
 
     /**

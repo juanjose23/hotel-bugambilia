@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Schemas;
 
 use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
-use App\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Shared\Imagen;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -86,7 +87,7 @@ class HabitacionInfolist
                         ->schema([
                             ImageEntry::make('url')
                                 ->hiddenLabel()
-                                ->disk('local')
+                                ->state(fn (Imagen $record): string => $record->url_completa)
                                 ->imageHeight(180)
                                 ->columnSpanFull()
                                 ->extraImgAttributes([

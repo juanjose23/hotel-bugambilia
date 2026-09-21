@@ -7,12 +7,18 @@ namespace App\Interactors\Limpieza\Procesos;
 use App\BusinessLogic\Limpieza\ProcesadorConsumoAmenities;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 
-class ProcesarConsumosLimpieza
+final readonly class ProcesarConsumosLimpieza
 {
     public function __construct(
-        private readonly ProcesadorConsumoAmenities $procesadorConsumoAmenities,
-        private readonly ProcesarReposicionConsumos $procesarReposicionConsumos,
+        private ProcesadorConsumoAmenities $procesadorConsumoAmenities,
+        private ProcesarReposicionConsumos $procesarReposicionConsumos,
     ) {}
+
+    /** @param array<string, mixed> $data */
+    public function execute(LimpiezaEjecucion $ejecucion, array $data, ?int $usuarioId, ?int $carritoId, string $tipoDestino): void
+    {
+        $this->ejecutar($ejecucion, $data, $usuarioId, $carritoId, $tipoDestino);
+    }
 
     /** @param array<string, mixed> $data */
     public function ejecutar(LimpiezaEjecucion $ejecucion, array $data, ?int $usuarioId, ?int $carritoId, string $tipoDestino): void

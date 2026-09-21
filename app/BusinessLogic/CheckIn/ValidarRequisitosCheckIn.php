@@ -7,17 +7,20 @@ namespace App\BusinessLogic\CheckIn;
 use App\BusinessLogic\Huespedes\ValidarCapacidadEstancia;
 use App\BusinessLogic\Huespedes\ValidarDocumentacionHuesped;
 use App\BusinessLogic\Huespedes\ValidarTitularUnico;
+use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
+use App\Enums\Reservas\EstadoReservaDetalle;
+use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
 use DomainException;
 
-final class ValidarRequisitosCheckIn
+final readonly class ValidarRequisitosCheckIn
 {
     public function __construct(
-        private readonly ValidarCapacidadEstancia $validarCapacidad = new ValidarCapacidadEstancia,
-        private readonly ValidarTitularUnico $validarTitular = new ValidarTitularUnico,
-        private readonly ValidarDocumentacionHuesped $validarDocumentacion = new ValidarDocumentacionHuesped,
+        private ValidarCapacidadEstancia $validarCapacidad,
+        private ValidarTitularUnico $validarTitular,
+        private ValidarDocumentacionHuesped $validarDocumentacion,
     ) {}
 
     /**
@@ -32,6 +35,27 @@ final class ValidarRequisitosCheckIn
 
         if (! $this->validarDocumentacion->estaCompletaParaCheckIn($reserva->huespedes)) {
             throw new DomainException('No se puede completar el Check-in: Existen huéspedes adultos sin documento de identificación verificado.');
+        }
+    }
+
+    public function validarEstadoDetalle(ReservaDetalle $detalle): void
+    {
+        if (! in_array($detalle->estado, [EstadoReservaDetalle::CONFIRMADO, EstadoReservaDetalle::PENDIENTE], true)) {
+            throw new DomainException("El detalle de reserva #{$detalle->id} no está en estado confirmado o pendiente para Check-In.");
+        }
+    }
+
+    public function validarEstadoHabitacion(Habitacion $habitacion): void
+    {
+        if (! in_array($habitacion->estado, [EstadoEspacio::Disponible, EstadoEspacio::Reservado], true)) {
+            throw new DomainException("La habitación {$habitacion->nombre} (N° {$habitacion->numero}) no está operacionalmente disponible para Check-In. Estado actual: {$habitacion->estado->getLabel()}.");
+        }
+    }
+
+    public function validarSinEstanciaActiva(bool $existeEstanciaActiva, int $detalleId): void
+    {
+        if ($existeEstanciaActiva) {
+            throw new DomainException("Ya existe una estancia activa para el detalle de reserva #{$detalleId}.");
         }
     }
 

@@ -17,6 +17,7 @@ use App\Repository\Models\Cuentas\Venta;
 use App\Repository\Models\Promociones\PromocionBeneficio;
 use App\Repository\Models\Promociones\PromocionBeneficioUso;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Promociones\PromocionRepositorioInterface;
 use App\Repository\Persistencia\Promociones\RegistrarUsoBeneficioCliente;
 use App\Repository\Queries\Cuentas\ResolverClienteDeCuentaQuery;
 use App\Repository\Queries\Promociones\ObtenerBeneficiosClienteElegiblesQuery;
@@ -32,6 +33,7 @@ final readonly class AplicarBeneficioClienteCuenta
         private RegistrarUsoBeneficioCliente $registrarUso,
         private RecalcularCuenta $recalcularCuenta,
         private CuentaRepositorioInterface $cuentas,
+        private PromocionRepositorioInterface $promocionRepositorio,
     ) {}
 
     public function aplicar(Cuenta $cuenta, ?int $usuarioId = null): ?CuentaCargo
@@ -117,7 +119,7 @@ final readonly class AplicarBeneficioClienteCuenta
         }
 
         /** @var PromocionBeneficio|null $beneficio */
-        $beneficio = PromocionBeneficio::query()->find((int) $cargo->origen_id);
+        $beneficio = $this->promocionRepositorio->buscarBeneficioPorId((int) $cargo->origen_id);
         if (! $beneficio instanceof PromocionBeneficio) {
             return null;
         }

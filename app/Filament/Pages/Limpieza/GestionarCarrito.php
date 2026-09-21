@@ -204,7 +204,7 @@ class GestionarCarrito extends Page implements HasForms, HasTable
         $superAdmin = config('filament-shield.super_admin.name', 'super_admin');
         $superAdmin = is_string($superAdmin) ? $superAdmin : 'super_admin';
 
-        return $user->hasRole([$superAdmin, 'admin', 'limpieza-supervisor'])
+        return $user->hasRole([$superAdmin, 'admin', 'limpieza_supervisor'])
             || $user->can('liberar-carrito');
     }
 

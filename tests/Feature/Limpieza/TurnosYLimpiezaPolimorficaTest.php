@@ -21,9 +21,9 @@ use App\Repository\Models\Limpieza\LimpiezaHorario;
 use App\Repository\Models\Limpieza\Turno;
 use App\Repository\Models\User;
 use Carbon\Carbon;
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
-use Database\Seeders\UbicacionSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\UbicacionSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 

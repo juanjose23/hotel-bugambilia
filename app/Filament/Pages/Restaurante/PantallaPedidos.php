@@ -12,6 +12,7 @@ use App\Interactors\Restaurante\Cocina\MarcarItemServido;
 use App\Interactors\Restaurante\Cuentas\AbrirCuentaYConsumoRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
+use App\Repository\Models\User;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerPedidosPantallaQuery;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -222,6 +223,13 @@ final class PantallaPedidos extends Page
 
     public static function canAccess(): bool
     {
-        return app(VerificarRestauranteActivo::class)->estaActivo();
+        if (! app(VerificarRestauranteActivo::class)->estaActivo()) {
+            return false;
+        }
+
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        return $user?->can('Page:PantallaPedidos') ?? false;
     }
 }

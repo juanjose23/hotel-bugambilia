@@ -13,10 +13,10 @@ use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\Reserva;
-use Database\Seeders\CatalogoSeeder;
-use Database\Seeders\CatalogoTipoSeeder;
-use Database\Seeders\MonedaSeeder;
-use Database\Seeders\PaisSeeder;
+use Database\Seeders\Configuracion\CatalogoSeeder;
+use Database\Seeders\Configuracion\CatalogoTipoSeeder;
+use Database\Seeders\Configuracion\MonedaSeeder;
+use Database\Seeders\Configuracion\PaisSeeder;
 
 test('guarda la persona del cliente en la cuenta creada para la reserva', function (): void {
     $this->seed([

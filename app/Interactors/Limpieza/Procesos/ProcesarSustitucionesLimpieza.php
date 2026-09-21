@@ -5,17 +5,24 @@ declare(strict_types=1);
 namespace App\Interactors\Limpieza\Procesos;
 
 use App\Interactors\Inventario\ConsumirStock;
-use App\Repository\Models\Catalogos\ProductoVariante;
-use App\Repository\Models\Inventario\Stock as InventarioStock;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
-use App\Repository\Models\Limpieza\SustitucionStock as SustitucionStockModel;
-use App\Repository\Models\Shared\Stock as SharedStock;
+use App\Repository\Persistencia\Catalogos\ProductoRepositorioInterface;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
+use RuntimeException;
 
-class ProcesarSustitucionesLimpieza
+final readonly class ProcesarSustitucionesLimpieza
 {
     public function __construct(
-        private readonly ConsumirStock $consumirStock,
+        private ConsumirStock $consumirStock,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
+        private ProductoRepositorioInterface $productoRepositorio,
     ) {}
+
+    /** @param array<string, mixed> $data */
+    public function execute(LimpiezaEjecucion $ejecucion, array $data, ?int $carritoId, ?int $usuarioId): void
+    {
+        $this->ejecutar($ejecucion, $data, $carritoId, $usuarioId);
+    }
 
     /** @param array<string, mixed> $data */
     public function ejecutar(LimpiezaEjecucion $ejecucion, array $data, ?int $carritoId, ?int $usuarioId): void
@@ -31,25 +38,27 @@ class ProcesarSustitucionesLimpieza
                 continue;
             }
 
-            $originalVar = ProductoVariante::findOrFail($originalVarId);
-            $sustitutoVar = ProductoVariante::findOrFail($sustitutoVarId);
+            $originalVar = $this->productoRepositorio->buscarVariantePorId($originalVarId);
+            $sustitutoVar = $this->productoRepositorio->buscarVariantePorId($sustitutoVarId);
 
-            SustitucionStockModel::create([
-                'ejecucion_id' => $ejecucion->id,
-                'producto_id' => $originalVar->producto_id,
-                'sustituto_producto_id' => $sustitutoVar->producto_id,
-                'producto_variante_id' => $originalVarId,
-                'sustituto_variante_id' => $sustitutoVarId,
-                'cantidad' => $qty,
-            ]);
+            if (! $originalVar || ! $sustitutoVar) {
+                continue;
+            }
+
+            $this->limpiezaRepositorio->registrarSustitucionStock(
+                ejecucionId: (int) $ejecucion->id,
+                productoId: (int) $originalVar->producto_id,
+                sustitutoProductoId: (int) $sustitutoVar->producto_id,
+                varianteId: $originalVarId,
+                sustitutoVarianteId: $sustitutoVarId,
+                cantidad: $qty,
+            );
 
             if ($carritoId) {
-                $available = (float) InventarioStock::where('ubicacion_id', $carritoId)
-                    ->where('producto_variante_id', $sustitutoVarId)
-                    ->sum('cantidad');
+                $available = $this->limpiezaRepositorio->obtenerStockDisponibleEnCarrito($carritoId, $sustitutoVarId);
 
                 if ($available < $qty) {
-                    throw new \RuntimeException(sprintf(
+                    throw new RuntimeException(sprintf(
                         'El carrito no cuenta con stock suficiente del producto sustituto "%s". Requerido para sustitución: %f, Disponible en Carro: %f. No se puede realizar la sustitución.',
                         $sustitutoVar->producto->nombre ?? 'Sustituto',
                         $qty,
@@ -58,28 +67,24 @@ class ProcesarSustitucionesLimpieza
                 }
 
                 $this->consumirStock->execute(
-                    productoId: $sustitutoVar->producto_id,
+                    productoId: (int) $sustitutoVar->producto_id,
                     cantidadRequerida: $qty,
                     ubicacionId: $carritoId,
                     tipoMovimiento: 'TRASLADO',
                     productoVarianteId: $sustitutoVarId,
-                    documentoId: $ejecucion->id,
+                    documentoId: (int) $ejecucion->id,
                     documentoTipo: 'limp_ejecuciones',
                     creadoPorId: $usuarioId,
                     referencia: "Sustitución en ejecución #{$ejecucion->id}",
                     notas: "Sustituye variante #{$originalVarId} por variante #{$sustitutoVarId}"
                 );
 
-                $sharedStock = SharedStock::where([
-                    'stockable_type' => $ejecucion->limpiable_type,
-                    'stockable_id' => $ejecucion->limpiable_id,
-                    'producto_variante_id' => $originalVarId,
-                ])->first();
-
-                if ($sharedStock) {
-                    $sharedStock->cantidad_actual = (float) $sharedStock->cantidad_actual + $qty;
-                    $sharedStock->save();
-                }
+                $this->limpiezaRepositorio->incrementarSharedStock(
+                    stockableType: (string) $ejecucion->limpiable_type,
+                    stockableId: (int) $ejecucion->limpiable_id,
+                    varianteId: $originalVarId,
+                    cantidad: $qty,
+                );
             }
         }
     }

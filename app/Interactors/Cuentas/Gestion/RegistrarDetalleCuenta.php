@@ -9,7 +9,6 @@ use App\Enums\Shared\EstadoGeneral;
 use App\Events\Cuentas\DetalleCuentaRegistrado;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\CuentaDetalle;
-use App\Repository\Models\User;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -23,12 +22,12 @@ use Illuminate\Support\Facades\DB;
  *   - Estancias: origen = Estancia
  *   - Spa/Lavandería: origen = Servicio
  */
-final class RegistrarDetalleCuenta
+final readonly class RegistrarDetalleCuenta
 {
     public function __construct(
-        private readonly ValidarCuenta $validarCuenta,
-        private readonly RecalcularCuenta $recalcularCuenta,
-        private readonly CuentaRepositorioInterface $cuentas,
+        private ValidarCuenta $validarCuenta,
+        private RecalcularCuenta $recalcularCuenta,
+        private CuentaRepositorioInterface $cuentas,
     ) {}
 
     /**
@@ -60,7 +59,7 @@ final class RegistrarDetalleCuenta
             $cantidad, $subtotal, $origen, $espacioIdResuelto, $creadorIdResuelto,
             $descripcion, $tipoDetalle, $metadatos
         ): CuentaDetalle {
-            $creadorIdFinal = ($creadorIdResuelto !== null && User::query()->where('id', $creadorIdResuelto)->exists())
+            $creadorIdFinal = ($creadorIdResuelto !== null && $this->cuentas->usuarioExiste($creadorIdResuelto))
                 ? $creadorIdResuelto
                 : null;
 

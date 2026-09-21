@@ -11,7 +11,7 @@ final readonly class ConfiguracionPagina
     public function __construct(
         public int $filas = 28,
         public ?int $columnas = null,
-        public int $altoFilaMm = 4,
+        public int $altoFilaMm = 10,
         public int $altoEncabezadoMm = 4,
         public int $altoPieMm = 15,
     ) {

@@ -8,7 +8,7 @@ use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Role;
 
-class SincronizarPermisosRole
+final class SincronizarPermisosRole
 {
     /**
      * @param  array<string, mixed>  $formData

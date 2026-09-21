@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Auditoria\AuditoriaJobs;
 
+use App\Filament\Clusters\Auditoria\AuditoriaCluster;
 use App\Filament\Resources\Auditoria\AuditoriaJobs\Pages\ListAuditoriaJobs;
 use App\Filament\Resources\Auditoria\AuditoriaJobs\Pages\ViewAuditoriaJob;
 use App\Filament\Resources\Auditoria\AuditoriaJobs\Schemas\AuditoriaJobInfolist;
@@ -18,17 +19,19 @@ use UnitEnum;
 
 class AuditoriaJobResource extends Resource
 {
+    protected static ?string $cluster = AuditoriaCluster::class;
+
     protected static ?string $model = AuditoriaJob::class;
 
-    protected static ?string $navigationLabel = 'Jobs';
+    protected static ?string $navigationLabel = 'Auditoría de Jobs';
 
     protected static ?string $pluralModelLabel = 'Auditoría de Jobs';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Cog;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 5;
 
     public static function infolist(Schema $schema): Schema
     {

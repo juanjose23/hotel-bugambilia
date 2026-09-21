@@ -12,7 +12,7 @@
         'tableData' => [
             'totalStock' => $totalStock ?? 0,
             'valorTotal' => $valorTotal ?? 0,
-            'monedaSimbolo' => $monedaSimbolo ?? 'C$',
+            'monedaSimbolo' => $monedaSimbolo ?? \App\Support\MonedaHelper::simbolo(),
         ],
         'tableView' => 'reports.inventario.stock.tables.valorizacion',
     ])

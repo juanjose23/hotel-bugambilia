@@ -6,30 +6,31 @@ namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Enums\Reservas\TipoReserva;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
+use App\Filament\Shared\Actions\Restaurante\AplicarDescuentoPedidoAction;
+use App\Filament\Shared\Actions\Restaurante\MoverCuentaMesaAction;
+use App\Filament\Shared\Actions\Restaurante\UnirMesasAction;
 use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
 use App\Interactors\Restaurante\Cocina\ReimprimirComanda;
 use App\Interactors\Restaurante\Cuentas\AbrirCuentaYConsumoRestaurante;
-use App\Interactors\Restaurante\Cuentas\AplicarDescuentoCuenta;
 use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
 use App\Interactors\Restaurante\Mesas\CancelarReservaMesa;
 use App\Interactors\Restaurante\Mesas\ConfirmarLlegadaReservaMesa;
-use App\Interactors\Restaurante\Mesas\MoverCuentaMesa;
 use App\Interactors\Restaurante\Mesas\SepararMesas;
-use App\Interactors\Restaurante\Mesas\UnirMesas;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
-use App\Repository\Models\User;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
-use App\Repository\Queries\Restaurante\Landing\ObtenerReservasRestauranteQuery;
 use App\Repository\Queries\Restaurante\Mesas\ObtenerMapaMesasQuery;
+use App\Repository\Queries\Restaurante\Mesas\ObtenerReservasRestauranteQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerComandasMesaConDetalleQuery;
+use App\Support\MonedaHelper;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Exception;
@@ -37,19 +38,11 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
-use Throwable;
 use UnitEnum;
 
 final class GestionMesas extends Page
 {
     use HasPageShield;
-
-    public function __construct(
-        private readonly ConfirmarLlegadaReservaMesa $confirmarLlegadaReserva,
-        private readonly CancelarReservaMesa $cancelarReservaMesa,
-        private readonly RegistrarSolicitudLimpieza $registrarSolicitudLimpieza,
-        private readonly AbrirCuentaYConsumoRestaurante $abrirCuentaYConsumoRestaurante,
-    ) {}
 
     protected static string|BackedEnum|null $navigationIcon = 'hugeicons-restaurant-table';
 
@@ -93,7 +86,7 @@ final class GestionMesas extends Page
     /** @var Collection<int, Espacio> */
     public Collection $mesasFiltradas;
 
-    public string $vistaModo = 'mapa';
+    public string $vistaModo = 'cuadricula';
 
     /** @var array<int, EstadoEspacio> */
     public array $estadosMesa = [];
@@ -104,29 +97,8 @@ final class GestionMesas extends Page
 
     public string $ordenarPor = 'orden';
 
-    // ── Unión de mesas ──
-    public ?int $mesaSeleccionadaId = null;
-
-    public ?int $mesaDestinoId = null;
-
-    /** @var int[] */
-    public array $mesasParaUnir = [];
-
-    public string $motivoUnion = 'uso_inmediato';
-
-    public ?int $reservaIdParaUnion = null;
-
     /** @var Collection<int, Reserva> */
     public Collection $reservasRestaurante;
-
-    // ── Descuento ──
-    public ?int $pedidoDescuentoId = null;
-
-    public float $descuentoPorcentaje = 0.0;
-
-    public float $descuentoMonto = 0.0;
-
-    public ?string $motivoDescuento = null;
 
     // ── Detalle del pedido ──
     public ?Pedido $pedidoDetalle = null;
@@ -136,18 +108,14 @@ final class GestionMesas extends Page
 
     public string $simboloMoneda = 'C$';
 
+    public ?int $pedidoCobroId = null;
+
     // ── DI ──
     private ObtenerMapaMesasQuery $mapaMesas;
 
     private CambiarEstadoMesa $cambiarEstado;
 
-    private UnirMesas $unirMesasInteractor;
-
     private SepararMesas $separarMesasInteractor;
-
-    private MoverCuentaMesa $moverCuentaInteractor;
-
-    private AplicarDescuentoCuenta $aplicarDescuentoInteractor;
 
     private ReimprimirComanda $reimprimirComandaInteractor;
 
@@ -157,32 +125,43 @@ final class GestionMesas extends Page
 
     private RestauranteRepositorioInterface $repositorio;
 
+    private ConfirmarLlegadaReservaMesa $confirmarLlegadaReserva;
+
+    private CancelarReservaMesa $cancelarReservaMesa;
+
+    private RegistrarSolicitudLimpieza $registrarSolicitudLimpieza;
+
+    private AbrirCuentaYConsumoRestaurante $abrirCuentaYConsumoRestaurante;
+
     public function boot(
         ObtenerMapaMesasQuery $mapaMesas,
         CambiarEstadoMesa $cambiarEstado,
-        UnirMesas $unirMesasInteractor,
         SepararMesas $separarMesasInteractor,
-        MoverCuentaMesa $moverCuentaInteractor,
-        AplicarDescuentoCuenta $aplicarDescuentoInteractor,
         ReimprimirComanda $reimprimirComandaInteractor,
         ObtenerReservasRestauranteQuery $reservasQuery,
         ObtenerComandasMesaConDetalleQuery $comandasMesaDetalleQuery,
         RestauranteRepositorioInterface $repositorio,
+        ConfirmarLlegadaReservaMesa $confirmarLlegadaReserva,
+        CancelarReservaMesa $cancelarReservaMesa,
+        RegistrarSolicitudLimpieza $registrarSolicitudLimpieza,
+        AbrirCuentaYConsumoRestaurante $abrirCuentaYConsumoRestaurante,
     ): void {
         $this->mapaMesas = $mapaMesas;
         $this->cambiarEstado = $cambiarEstado;
-        $this->unirMesasInteractor = $unirMesasInteractor;
         $this->separarMesasInteractor = $separarMesasInteractor;
-        $this->moverCuentaInteractor = $moverCuentaInteractor;
-        $this->aplicarDescuentoInteractor = $aplicarDescuentoInteractor;
         $this->reimprimirComandaInteractor = $reimprimirComandaInteractor;
         $this->reservasQuery = $reservasQuery;
         $this->comandasMesaDetalleQuery = $comandasMesaDetalleQuery;
         $this->repositorio = $repositorio;
+        $this->confirmarLlegadaReserva = $confirmarLlegadaReserva;
+        $this->cancelarReservaMesa = $cancelarReservaMesa;
+        $this->registrarSolicitudLimpieza = $registrarSolicitudLimpieza;
+        $this->abrirCuentaYConsumoRestaurante = $abrirCuentaYConsumoRestaurante;
     }
 
     public function mount(): void
     {
+        $this->simboloMoneda = MonedaHelper::simbolo();
         $this->comandasDetalle = collect();
         $this->recargarMesas();
         $this->reservasRestaurante = $this->reservasQuery->ejecutar();
@@ -234,6 +213,7 @@ final class GestionMesas extends Page
             $filtro = mb_strtolower(trim($this->filtroMesa));
             $this->mesasFiltradas = $this->mesasFiltradas->filter(
                 static fn (Espacio $mesa): bool => str_contains(mb_strtolower((string) $mesa->nombre), $filtro)
+                    || str_contains(mb_strtolower((string) $mesa->codigo), $filtro)
                     || str_contains((string) $mesa->id, $filtro)
             );
         }
@@ -268,52 +248,49 @@ final class GestionMesas extends Page
     }
 
     /**
-     * Retorna las mesas filtradas agrupadas por zona/ambiente con sus metadatos y orden.
+     * Retorna las mesas filtradas agrupadas dinámicamente por Ubicación / Sub-ubicación o Ambiente con sus metadatos y orden.
      *
      * @return array<string, array{nombre: string, icono: string, color: string, mesas: Collection<int, Espacio>}>
      */
     public function obtenerMesasAgrupadasPorZona(): array
     {
-        $zonasConfig = [
-            'interior' => [
-                'nombre' => 'Salón Principal (Interior)',
-                'icono' => 'hugeicons-restaurant-01',
-                'color' => 'rose',
-            ],
-            'terraza' => [
-                'nombre' => 'Terraza al Aire Libre',
-                'icono' => 'hugeicons-tree-01',
-                'color' => 'emerald',
-            ],
-            'bar' => [
-                'nombre' => 'Bar & Lounge',
-                'icono' => 'hugeicons-cocktail',
-                'color' => 'amber',
-            ],
-            'vip' => [
-                'nombre' => 'Cenador Privado (VIP)',
-                'icono' => 'hugeicons-crown',
-                'color' => 'violet',
-            ],
-        ];
-
         $agrupadas = [];
 
         foreach ($this->mesasFiltradas as $mesa) {
-            $meta = is_array($mesa->meta_datos) ? $mesa->meta_datos : [];
-            $zonaKey = (string) ($meta['zona_restaurante'] ?? 'interior');
+            $zonaKey = 'general';
+            $zonaNombre = 'Área Principal';
+            $zonaTipo = null;
+
+            if ($mesa->ubicacion !== null) {
+                $zonaKey = 'ubicacion_'.$mesa->ubicacion->id;
+                $zonaNombre = $mesa->ubicacion->nombre;
+                $zonaTipo = $mesa->ubicacion->tipo;
+            } elseif ($mesa->padre !== null && $mesa->padre->tipo !== TipoEspacio::RESTAURANTE) {
+                $zonaKey = 'ambiente_'.$mesa->padre->id;
+                $zonaNombre = $mesa->padre->nombre;
+                $zonaTipo = $mesa->padre->tipo->value;
+            } else {
+                $meta = is_array($mesa->meta_datos) ? $mesa->meta_datos : [];
+                if (! empty($meta['zona_restaurante'])) {
+                    $legacyKey = (string) $meta['zona_restaurante'];
+                    $zonaKey = 'legacy_'.$legacyKey;
+                    $zonaNombre = match (strtolower($legacyKey)) {
+                        'interior' => 'Salón Principal (Interior)',
+                        'terraza' => 'Terraza al Aire Libre',
+                        'bar', 'barra' => 'Bar & Lounge',
+                        'vip' => 'Cenador Privado (VIP)',
+                        default => ucfirst($legacyKey),
+                    };
+                }
+            }
 
             if (! isset($agrupadas[$zonaKey])) {
-                $config = $zonasConfig[$zonaKey] ?? [
-                    'nombre' => ucfirst($zonaKey),
-                    'icono' => 'hugeicons-restaurant-table',
-                    'color' => 'blue',
-                ];
+                $estiloZona = $this->resolverEstiloZona($zonaNombre, $zonaTipo);
 
                 $agrupadas[$zonaKey] = [
-                    'nombre' => $config['nombre'],
-                    'icono' => $config['icono'],
-                    'color' => $config['color'],
+                    'nombre' => $zonaNombre,
+                    'icono' => $estiloZona['icono'],
+                    'color' => $estiloZona['color'],
                     'mesas' => collect(),
                 ];
             }
@@ -330,8 +307,94 @@ final class GestionMesas extends Page
         return $agrupadas;
     }
 
+    /**
+     * Resuelve icono y color temático para una zona/ubicación según su nombre o tipo.
+     *
+     * @return array{icono: string, color: string}
+     */
+    private function resolverEstiloZona(string $nombre, ?string $tipo = null): array
+    {
+        $busqueda = mb_strtolower($nombre.' '.($tipo ?? ''));
+
+        if (str_contains($busqueda, 'terraza') || str_contains($busqueda, 'jardín') || str_contains($busqueda, 'aire libre') || str_contains($busqueda, 'exterior')) {
+            return ['icono' => 'hugeicons-tree-01', 'color' => 'emerald'];
+        }
+
+        if (str_contains($busqueda, 'bar') || str_contains($busqueda, 'barra') || str_contains($busqueda, 'lounge') || str_contains($busqueda, 'coctel')) {
+            return ['icono' => 'hugeicons-bottle-wine', 'color' => 'amber'];
+        }
+
+        if (str_contains($busqueda, 'vip') || str_contains($busqueda, 'privad') || str_contains($busqueda, 'cenador') || str_contains($busqueda, 'exclusiv')) {
+            return ['icono' => 'hugeicons-crown', 'color' => 'violet'];
+        }
+
+        if (str_contains($busqueda, 'piscina') || str_contains($busqueda, 'deck') || str_contains($busqueda, 'agua')) {
+            return ['icono' => 'hugeicons-swimming', 'color' => 'cyan'];
+        }
+
+        if (str_contains($busqueda, 'interior') || str_contains($busqueda, 'salón') || str_contains($busqueda, 'comedor') || str_contains($busqueda, 'principal')) {
+            return ['icono' => 'hugeicons-restaurant-01', 'color' => 'rose'];
+        }
+
+        return ['icono' => 'hugeicons-restaurant-table', 'color' => 'blue'];
+    }
+
     // ────────────────────────────────────────────
-    // Cambio de estado
+    // Acciones Filament Modulares (Fase 2)
+    // ────────────────────────────────────────────
+
+    public function unirMesasAction(): Action
+    {
+        return UnirMesasAction::make(
+            onSuccess: fn () => $this->recargarMesas()
+        );
+    }
+
+    public function moverCuentaAction(): Action
+    {
+        return MoverCuentaMesaAction::make(
+            onSuccess: fn () => $this->recargarMesas()
+        );
+    }
+
+    public function aplicarDescuentoAction(): Action
+    {
+        return AplicarDescuentoPedidoAction::make(
+            onSuccess: fn () => $this->recargarMesas()
+        );
+    }
+
+    public function cobrarCuentaAction(): Action
+    {
+        return CobrarCuentaAction::makeFromResolver(
+            resolverCuenta: function (): ?Cuenta {
+                if (! is_numeric($this->pedidoCobroId)) {
+                    return null;
+                }
+
+                $pedido = Pedido::find((int) $this->pedidoCobroId);
+
+                if ($pedido === null) {
+                    return null;
+                }
+
+                if ($pedido->cuenta_id !== null && $pedido->cuenta !== null && $pedido->cuenta->estaAbierta()) {
+                    return $pedido->cuenta;
+                }
+
+                $userId = auth()->id() !== null ? (int) auth()->id() : null;
+                $resultado = $this->abrirCuentaYConsumoRestaurante->ejecutar($pedido, $userId);
+
+                return $resultado['cuenta'];
+            },
+            onSuccess: function (): void {
+                $this->recargarMesas();
+            }
+        )->name('cobrarCuenta');
+    }
+
+    // ────────────────────────────────────────────
+    // Cambio de estado y Operaciones de Mesa
     // ────────────────────────────────────────────
 
     public function cambiarEstadoMesa(int $mesaId, EstadoEspacio|int|string $nuevoEstado): void
@@ -449,101 +512,24 @@ final class GestionMesas extends Page
         $this->cambiarEstadoMesa($mesaId, EstadoEspacio::Reservado);
     }
 
-    // ────────────────────────────────────────────
-    // Unión y Separación de Mesas
-    // ────────────────────────────────────────────
-
-    // ────────────────────────────────────────────
-    // Mover cuenta
-    // ────────────────────────────────────────────
-
-    public function moverCuentaMesa(): void
+    public function separarMesas(int $mesaId): void
     {
-        if ($this->mesaSeleccionadaId === null || $this->mesaDestinoId === null) {
-            Notification::make()
-                ->title('Selección incompleta')
-                ->body('Debe seleccionar la mesa origen y la mesa destino.')
-                ->warning()
-                ->send();
-
-            return;
-        }
-
         try {
-            $this->moverCuentaInteractor->ejecutar(
-                mesaOrigenId: $this->mesaSeleccionadaId,
-                mesaDestinoId: $this->mesaDestinoId
-            );
-
-            $this->mesaSeleccionadaId = null;
-            $this->mesaDestinoId = null;
+            $this->separarMesasInteractor->ejecutar($mesaId);
             $this->recargarMesas();
 
-            $this->dispatch('close-modal', id: 'modal-mover-cuenta');
-
             Notification::make()
-                ->title('Cuenta trasladada exitosamente')
+                ->title('Mesa desvinculada y liberada')
                 ->success()
                 ->send();
         } catch (Exception $e) {
             Notification::make()
-                ->title('Error al mover cuenta')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        } catch (Throwable $e) {
-            Notification::make()
-                ->title('Error al mover cuenta')
+                ->title('Error al separar mesa')
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
         }
     }
-
-    // ────────────────────────────────────────────
-    // Descuento
-    // ────────────────────────────────────────────
-
-    public function aplicarDescuento(): void
-    {
-        if ($this->pedidoDescuentoId === null) {
-            Notification::make()->title('Pedido no seleccionado')->danger()->send();
-
-            return;
-        }
-
-        try {
-            $this->aplicarDescuentoInteractor->ejecutar(
-                pedidoId: $this->pedidoDescuentoId,
-                descuentoPorcentaje: $this->descuentoPorcentaje,
-                descuentoMonto: $this->descuentoMonto,
-                motivo: $this->motivoDescuento
-            );
-
-            $this->pedidoDescuentoId = null;
-            $this->descuentoPorcentaje = 0.0;
-            $this->descuentoMonto = 0.0;
-            $this->motivoDescuento = null;
-            $this->recargarMesas();
-
-            $this->dispatch('close-modal', id: 'modal-descuento');
-
-            Notification::make()
-                ->title('Descuento aplicado correctamente')
-                ->success()
-                ->send();
-        } catch (Exception $e) {
-            Notification::make()
-                ->title('Error al aplicar descuento')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
-    // ────────────────────────────────────────────
-    // Reimprimir comanda
-    // ────────────────────────────────────────────
 
     public function reimprimir(int $pedidoId, ?string $area = null): void
     {
@@ -572,70 +558,7 @@ final class GestionMesas extends Page
     }
 
     // ────────────────────────────────────────────
-    // Unir / Separar mesas
-    // ────────────────────────────────────────────
-
-    public function unirMesas(): void
-    {
-        if ($this->mesaSeleccionadaId === null || empty($this->mesasParaUnir)) {
-            Notification::make()
-                ->title('Selección incompleta')
-                ->body('Debe seleccionar una mesa principal y al menos una mesa secundaria para unir.')
-                ->warning()
-                ->send();
-
-            return;
-        }
-
-        try {
-            $this->unirMesasInteractor->ejecutar(
-                mesaPrincipalId: $this->mesaSeleccionadaId,
-                mesasSecundariasIds: $this->mesasParaUnir,
-                reservaId: $this->reservaIdParaUnion,
-                motivo: $this->motivoUnion
-            );
-
-            $this->mesaSeleccionadaId = null;
-            $this->mesasParaUnir = [];
-            $this->reservaIdParaUnion = null;
-            $this->recargarMesas();
-
-            $this->dispatch('close-modal', id: 'modal-unir-mesas');
-
-            Notification::make()
-                ->title('Mesas unidas exitosamente')
-                ->success()
-                ->send();
-        } catch (Exception $e) {
-            Notification::make()
-                ->title('Error al unir mesas')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
-    public function separarMesas(int $mesaId): void
-    {
-        try {
-            $this->separarMesasInteractor->ejecutar($mesaId);
-            $this->recargarMesas();
-
-            Notification::make()
-                ->title('Mesa desvinculada y liberada')
-                ->success()
-                ->send();
-        } catch (Exception $e) {
-            Notification::make()
-                ->title('Error al separar mesa')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
-    // ────────────────────────────────────────────
-    // Detalle del pedido
+    // Detalle del pedido y Cobro
     // ────────────────────────────────────────────
 
     public function verComandasMesa(int $mesaId): void
@@ -659,8 +582,6 @@ final class GestionMesas extends Page
         $this->dispatch('close-modal', id: 'modal-detalle-pedido');
     }
 
-    public ?int $pedidoCobroId = null;
-
     public function irACobrarDesdeDetalle(): void
     {
         if ($this->pedidoDetalle === null) {
@@ -670,39 +591,6 @@ final class GestionMesas extends Page
         $this->pedidoCobroId = $this->pedidoDetalle->id;
         $this->cerrarDetallePedido();
         $this->mountAction('cobrarCuenta');
-    }
-
-    // ────────────────────────────────────────────
-    // Cobro / Pago — Acción Unificada CobrarCuentaAction
-    // ────────────────────────────────────────────
-
-    public function cobrarCuentaAction(): Action
-    {
-        return CobrarCuentaAction::makeFromResolver(
-            resolverCuenta: function (): ?Cuenta {
-                if (! is_numeric($this->pedidoCobroId)) {
-                    return null;
-                }
-
-                $pedido = Pedido::find((int) $this->pedidoCobroId);
-
-                if ($pedido === null) {
-                    return null;
-                }
-
-                if ($pedido->cuenta_id !== null && $pedido->cuenta !== null && $pedido->cuenta->estaAbierta()) {
-                    return $pedido->cuenta;
-                }
-
-                $userId = auth()->id() !== null ? (int) auth()->id() : null;
-                $resultado = $this->abrirCuentaYConsumoRestaurante->ejecutar($pedido, $userId);
-
-                return $resultado['cuenta'];
-            },
-            onSuccess: function (): void {
-                $this->recargarMesas();
-            }
-        )->name('cobrarCuenta');
     }
 
     public function iniciarCobroMesa(int $mesaId): void
@@ -785,20 +673,10 @@ final class GestionMesas extends Page
 
     public static function canAccess(): bool
     {
-        if (! self::restauranteActivo()) {
+        if (! app(VerificarRestauranteActivo::class)->estaActivo()) {
             return false;
         }
 
-        /** @var User|null $user */
-        $user = auth()->user();
-
-        return $user?->can('page_GestionMesas') ?? false;
+        return auth()->user()?->can('Page:GestionMesas') ?? false;
     }
-
-    private static function restauranteActivo(): bool
-    {
-        return self::$restauranteActivo ??= app(VerificarRestauranteActivo::class)->estaActivo();
-    }
-
-    private static ?bool $restauranteActivo = null;
 }

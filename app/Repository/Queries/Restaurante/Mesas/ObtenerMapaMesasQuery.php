@@ -20,31 +20,42 @@ final class ObtenerMapaMesasQuery
     /** @return array{ambientes: Collection<int, Espacio>, mesas: Collection<int, Espacio>} */
     public function ejecutar(): array
     {
-        $restaurante = Espacio::query()->where('tipo', TipoEspacio::RESTAURANTE->value)->first();
+        $restaurantes = Espacio::query()->where('tipo', TipoEspacio::RESTAURANTE->value)->get();
 
-        if (! $restaurante instanceof Espacio) {
+        if ($restaurantes->isEmpty()) {
             return ['ambientes' => collect(), 'mesas' => collect()];
         }
 
+        $restauranteIds = $restaurantes->pluck('id')->all();
+
         $ambientes = Espacio::query()
-            ->where('padre_id', $restaurante->id)
-            ->whereIn('tipo', [
-                TipoEspacio::AMBIENTE->value,
-                TipoEspacio::TERRAZA->value,
-                TipoEspacio::BAR->value,
-            ])
+            ->whereIn('padre_id', $restauranteIds)
+            ->where('tipo', '!=', TipoEspacio::MESA->value)
             ->orderBy('orden')
             ->get();
 
+        $subEspacioIds = $ambientes->pluck('id')->all();
+        $validParentIds = array_merge($restauranteIds, $subEspacioIds);
+
         $mesas = Espacio::query()
-            ->with(['pedidosActivos' => fn ($query) => $query->whereIn('estado', [
-                EstadoPedido::ABIERTO,
-                EstadoPedido::EN_PREPARACION,
-                EstadoPedido::LISTO,
-                EstadoPedido::SERVIDO,
-            ])->latest('id')])
-            ->where('padre_id', $restaurante->id)
+            ->with([
+                'ubicacion.padre',
+                'padre',
+                'inventarioFijo.activo',
+                'pedidosActivos' => fn ($query) => $query->whereIn('estado', [
+                    EstadoPedido::ABIERTO,
+                    EstadoPedido::EN_PREPARACION,
+                    EstadoPedido::LISTO,
+                    EstadoPedido::SERVIDO,
+                ])->latest('id'),
+            ])
             ->where('tipo', TipoEspacio::MESA->value)
+            ->where(function ($query) use ($validParentIds): void {
+                $query->whereNull('padre_id');
+                if (! empty($validParentIds)) {
+                    $query->orWhereIn('padre_id', $validParentIds);
+                }
+            })
             ->orderBy('orden')
             ->orderBy('id')
             ->get();
@@ -55,6 +66,11 @@ final class ObtenerMapaMesasQuery
             $mesa->setAttribute('cuentas_activas_count', $pedidos->count());
             $sum = $pedidos->sum('subtotal');
             $mesa->setAttribute('total_mesa', is_numeric($sum) ? (float) $sum : 0.0);
+
+            $activoAsignado = $mesa->inventarioFijo->first()?->activo;
+            $mesa->setAttribute('tiene_activo_asignado', $activoAsignado !== null);
+            $mesa->setAttribute('activo_codigo', $activoAsignado?->codigo_inventario);
+            $mesa->setAttribute('activo_nombre', $activoAsignado?->nombre_descriptivo);
 
             $primerPedido = $pedidos->first();
             $mesa->setAttribute('pedido_abierto_id', $primerPedido?->id);

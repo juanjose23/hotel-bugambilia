@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useRef } from 'react';
 import { Button } from '@/modules/shared/components/ui/button';
+import { Input } from '@/modules/shared/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -182,7 +183,7 @@ export const Hero = ({ categorias = [] }: HeroProps) => {
                                     {textoCheckIn || 'Seleccionar'}
                                 </span>
                             </div>
-                            <input
+                            <Input
                                 type="date"
                                 aria-label="Fecha de llegada"
                                 {...checkInProps}
@@ -217,7 +218,7 @@ export const Hero = ({ categorias = [] }: HeroProps) => {
                                     {textoCheckOut || 'Seleccionar'}
                                 </span>
                             </div>
-                            <input
+                            <Input
                                 type="date"
                                 aria-label="Fecha de salida"
                                 {...checkOutProps}

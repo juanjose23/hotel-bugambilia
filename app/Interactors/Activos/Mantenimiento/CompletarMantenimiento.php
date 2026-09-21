@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
  * Completa una orden de mantenimiento, restaura el activo a estado Activo
  * y lo devuelve físicamente al almacén general.
  */
-class CompletarMantenimiento
+final class CompletarMantenimiento
 {
     public function __construct(
         private readonly ActivoMantenimientoRepositorioInterface $mantenimientoRepositorio,

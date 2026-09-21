@@ -6,9 +6,14 @@ namespace App\BusinessLogic\Inventario\Generadores;
 
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Compras\RecepcionItem;
+use App\Repository\Persistencia\Catalogos\UbicacionRepositorioInterface;
 
-class GeneradorEstructurasUbicacion
+final readonly class GeneradorEstructurasUbicacion
 {
+    public function __construct(
+        private UbicacionRepositorioInterface $ubicacionRepositorio,
+    ) {}
+
     /**
      * @return array<int, Ubicacion>
      */
@@ -25,10 +30,9 @@ class GeneradorEstructurasUbicacion
         for ($u = 1; $u <= $cantidad; $u++) {
             $nombreEstructura = $cantidad > 1 ? "{$prefijo} {$u}" : $prefijo;
 
-            $maxVal = Ubicacion::query()->where('padre_id', $parentId)->max('orden');
-            $maxOrden = is_numeric($maxVal) ? (int) $maxVal : 0;
+            $maxOrden = $this->ubicacionRepositorio->obtenerMaxOrden($parentId);
 
-            $estructura = Ubicacion::query()->create([
+            $estructura = $this->ubicacionRepositorio->crear([
                 'nombre' => $nombreEstructura,
                 'descripcion' => 'Estructura física convertida desde la recepción '.($item->recepcion ? $item->recepcion->codigo : 'N/A').' del producto: '.($item->producto ? $item->producto->nombre : 'N/A').'.',
                 'tipo' => 'estante',
@@ -40,7 +44,7 @@ class GeneradorEstructurasUbicacion
             $creadas[] = $estructura;
 
             for ($n = 1; $n <= $niveles; $n++) {
-                $nivel = Ubicacion::query()->create([
+                $nivel = $this->ubicacionRepositorio->crear([
                     'nombre' => "Nivel {$n}",
                     'descripcion' => "Nivel jerárquico físico de {$nombreEstructura}.",
                     'tipo' => 'nivel',
@@ -52,7 +56,7 @@ class GeneradorEstructurasUbicacion
                 $creadas[] = $nivel;
 
                 for ($p = 1; $p <= $posiciones; $p++) {
-                    $posicion = Ubicacion::query()->create([
+                    $posicion = $this->ubicacionRepositorio->crear([
                         'nombre' => "Posición {$p}",
                         'descripcion' => "Compartimiento o posición física en {$nombreEstructura} > Nivel {$n}.",
                         'tipo' => 'posicion',

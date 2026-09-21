@@ -11,11 +11,11 @@ use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Queries\Limpieza\Ejecucion\ObtenerEjecucionParaActualizar;
 use Illuminate\Support\Facades\DB;
 
-final class CompletarEjecucionAsignada
+final readonly class CompletarEjecucionAsignada
 {
     public function __construct(
-        private readonly ObtenerEjecucionParaActualizar $obtenerEjecucion,
-        private readonly TerminarLimpieza $terminarLimpieza,
+        private ObtenerEjecucionParaActualizar $obtenerEjecucion,
+        private TerminarLimpieza $terminarLimpieza,
     ) {}
 
     /**
@@ -23,6 +23,28 @@ final class CompletarEjecucionAsignada
      * @param  array<int|string, float>  $consumos
      */
     public function execute(
+        int $ejecucionId,
+        int $colaboradorId,
+        array $checklist,
+        string $observaciones,
+        array $consumos,
+        ?int $usuarioId = null,
+    ): LimpiezaEjecucion {
+        return $this->ejecutar(
+            $ejecucionId,
+            $colaboradorId,
+            $checklist,
+            $observaciones,
+            $consumos,
+            $usuarioId,
+        );
+    }
+
+    /**
+     * @param  array<int|string, bool>  $checklist
+     * @param  array<int|string, float>  $consumos
+     */
+    public function ejecutar(
         int $ejecucionId,
         int $colaboradorId,
         array $checklist,

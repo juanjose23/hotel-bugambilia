@@ -9,57 +9,66 @@ use App\Enums\Limpieza\EstadoLimpieza;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
-use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
-use App\Repository\Models\Limpieza\Turno;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class RegistrarSolicitudLimpieza
+final readonly class RegistrarSolicitudLimpieza
 {
-    /**
-     * @param  mixed  $limpiable
-     */
+    public function __construct(
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
+        private HabitacionRepositorioInterface $habitacionRepositorio,
+    ) {}
+
     public function execute(
-        $limpiable,
+        mixed $limpiable,
         ?int $limpiableId = null,
         string $prioridad = 'normal',
         ?string $notas = null,
     ): SolicitudLimpieza {
-        return DB::transaction(function () use ($limpiable, $limpiableId, $prioridad, $notas) {
+        return $this->ejecutar($limpiable, $limpiableId, $prioridad, $notas);
+    }
+
+    public function ejecutar(
+        mixed $limpiable,
+        ?int $limpiableId = null,
+        string $prioridad = 'normal',
+        ?string $notas = null,
+    ): SolicitudLimpieza {
+        return DB::transaction(function () use ($limpiable, $limpiableId, $prioridad, $notas): SolicitudLimpieza {
             if ($limpiable instanceof Model) {
                 $instance = $limpiable;
                 $modelClass = get_class($instance);
-                $modelId = $instance->getKey();
+                $rawKey = $instance->getKey();
+                $modelId = is_numeric($rawKey) ? (int) $rawKey : 0;
             } elseif (is_string($limpiable) && $limpiableId !== null) {
                 $modelClass = $limpiable;
                 $modelId = $limpiableId;
-                $instance = $modelClass::findOrFail($modelId);
+                if ($modelClass === Habitacion::class) {
+                    $instance = $this->habitacionRepositorio->buscarPorIdConLock($modelId);
+                } else {
+                    $instance = $this->limpiezaRepositorio->buscarLimpiablePorTipoYId($modelClass, $modelId);
+                }
             } else {
                 assert(is_numeric($limpiable), 'El valor limpiable debe ser numérico en este contexto.');
                 $modelId = (int) $limpiable;
                 $modelClass = Habitacion::class;
-                $instance = Habitacion::findOrFail($modelId);
+                $instance = $this->habitacionRepositorio->buscarPorIdConLock($modelId);
             }
 
             if ($instance instanceof Habitacion) {
-                $instance->update([
-                    'estado' => EstadoEspacio::SUCIA,
-                ]);
+                $this->habitacionRepositorio->actualizarEstado($instance, EstadoEspacio::SUCIA);
             }
-            // Espacio (mesa) no cambia estado aquí: el caller (CerrarPedidoMesa) ya lo establece vía CambiarEstadoMesa
 
-            $solicitudExistente = SolicitudLimpieza::query()
-                ->where('limpiable_type', $modelClass)
-                ->where('limpiable_id', $modelId)
-                ->whereIn('estado', [EstadoLimpieza::Pendiente, EstadoLimpieza::EnProgreso])
-                ->first();
-
+            $solicitudExistente = $this->limpiezaRepositorio->buscarSolicitudActivaPorLimpiable($modelClass, $modelId);
             if ($solicitudExistente !== null) {
                 return $solicitudExistente;
             }
 
-            $solicitud = SolicitudLimpieza::create([
+            $solicitud = $this->limpiezaRepositorio->crearSolicitud([
                 'limpiable_type' => $modelClass,
                 'limpiable_id' => $modelId,
                 'prioridad' => $prioridad,
@@ -76,63 +85,25 @@ class RegistrarSolicitudLimpieza
             }
 
             $turno = null;
-
             if ($instance instanceof Espacio || $modelClass === Espacio::class) {
-                $turno = Turno::where('estado', true)
-                    ->where(function ($q) {
-                        $q->where('nombre', 'like', '%restaurante%')
-                            ->orWhere('nombre', 'like', '%comedor%');
-                    })
-                    ->first();
+                $turno = $this->limpiezaRepositorio->buscarTurnoRestaurante();
+            }
 
-                if (! $turno) {
-                    $turno = Turno::query()->firstOrCreate(
-                        ['nombre' => 'Turno Restaurante'],
-                        [
-                            'hora_inicio' => '06:00:00',
-                            'hora_fin' => '23:00:00',
-                            'estado' => true,
-                        ]
-                    );
-                }
+            if (! $turno && $ubicacion) {
+                $turno = $this->limpiezaRepositorio->buscarTurnoPorUbicacion((int) $ubicacion->id);
             }
 
             if (! $turno) {
-                $currentUbicacion = $ubicacion;
-                while ($currentUbicacion) {
-                    $turno = Turno::where('estado', true)
-                        ->whereHas('carritos', fn ($q) => $q->where('ubicacion_id', $currentUbicacion->id))
-                        ->first();
-
-                    if ($turno) {
-                        break;
-                    }
-
-                    $currentUbicacion->loadMissing('padre');
-                    $currentUbicacion = $currentUbicacion->padre;
-                }
+                $turno = $this->limpiezaRepositorio->buscarTurnoDefault();
             }
 
-            if (! $turno) {
-                $turno = Turno::where('estado', true)->first() ?: Turno::first();
-            }
-
-            if (! $turno) {
-                $turno = Turno::query()->create([
-                    'nombre' => 'Turno Mañana',
-                    'hora_inicio' => '07:00:00',
-                    'hora_fin' => '15:00:00',
-                    'estado' => true,
-                ]);
-            }
-
-            LimpiezaEjecucion::create([
+            $this->limpiezaRepositorio->crearEjecucion([
                 'solicitud_id' => $solicitud->id,
                 'limpiable_type' => $modelClass,
                 'limpiable_id' => $modelId,
                 'turno_id' => $turno->id,
                 'colaborador_id' => null,
-                'fecha' => now()->toDateString(),
+                'fecha' => Carbon::now()->toDateString(),
                 'estado' => EstadoLimpieza::Pendiente,
             ]);
 

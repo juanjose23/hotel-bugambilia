@@ -13,11 +13,14 @@ use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Limpieza\LimpiezaEjecucion;
+use App\Repository\Persistencia\Limpieza\LimpiezaRepositorioInterface;
+use Carbon\Carbon;
 
-final class FinalizarEjecucionLimpieza
+final readonly class FinalizarEjecucionLimpieza
 {
     public function __construct(
-        private readonly ReabastecerUbicacion $reabastecerUbicacion,
+        private ReabastecerUbicacion $reabastecerUbicacion,
+        private LimpiezaRepositorioInterface $limpiezaRepositorio,
     ) {}
 
     public function finalizar(LimpiezaEjecucion $ejecucion, TerminarLimpiezaData $dto): void
@@ -26,9 +29,9 @@ final class FinalizarEjecucionLimpieza
             ? EstadoLimpieza::CompletadaConDiscrepancia
             : EstadoLimpieza::Completada;
 
-        $ejecucion->update([
+        $this->limpiezaRepositorio->actualizarEjecucion($ejecucion, [
             'estado' => $estado,
-            'hora_fin' => now()->format('H:i:s'),
+            'hora_fin' => Carbon::now()->format('H:i:s'),
             'detalles_checklist' => $dto->checklist,
             'observaciones' => $dto->observaciones,
             'consumos' => $dto->consumos,
@@ -82,7 +85,7 @@ final class FinalizarEjecucionLimpieza
         $this->reabastecerUbicacion->execute(
             new ReabastecerUbicacionData(
                 tipoDestino: $tipoDestino,
-                destinoId: $ejecucion->limpiable_id,
+                destinoId: (int) $ejecucion->limpiable_id,
                 items: array_map(
                     fn (array $item) => ReabastecerItemData::fromArray($item),
                     $items

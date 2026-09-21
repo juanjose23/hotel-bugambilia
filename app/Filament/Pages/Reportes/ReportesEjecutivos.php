@@ -68,11 +68,12 @@ class ReportesEjecutivos extends Page implements HasForms
     public function mount(): void
     {
         $this->reportData = [
-            'reporte' => null,
+            'reporte' => 'resumen_ejecutivo',
             'fecha_inicio' => now()->startOfMonth()->format('Y-m-d'),
             'fecha_fin' => now()->format('Y-m-d'),
         ];
 
+        $this->reportForm->fill($this->reportData);
         $this->cargarMetricas();
     }
 
@@ -133,32 +134,6 @@ class ReportesEjecutivos extends Page implements HasForms
         ];
     }
 
-    public function descargarReporte(): mixed
-    {
-        $data = $this->reportForm->getState();
-        $rawReporte = $data['reporte'] ?? null;
-        $reporte = is_string($rawReporte) ? $rawReporte : '';
-        if (! $reporte) {
-            return null;
-        }
-
-        $params = [
-            'fecha_inicio' => $data['fecha_inicio'] ?? now()->startOfMonth()->format('Y-m-d'),
-            'fecha_fin' => $data['fecha_fin'] ?? now()->format('Y-m-d'),
-            'pageSize' => $this->pageSize,
-            'orientation' => $this->orientation,
-        ];
-
-        try {
-            $url = ReporteConfig::getUrl('financiero', $reporte, $params, 'pdf');
-            $this->dispatch('open-new-tab', url: $url);
-        } catch (\InvalidArgumentException $e) {
-            return null;
-        }
-
-        return null;
-    }
-
     public static function canAccess(): bool
     {
         $user = auth()->user();
@@ -166,11 +141,7 @@ class ReportesEjecutivos extends Page implements HasForms
             return false;
         }
 
-        $superAdminRole = config('filament-shield.super_admin.name', 'super_admin');
-        $roleName = is_string($superAdminRole) ? $superAdminRole : 'super_admin';
-
-        return $user->hasRole($roleName)
-            || $user->can('page_ReportesEjecutivos')
+        return $user->can('Page:ReportesEjecutivos')
             || $user->can('Financiero:ReporteResumenEjecutivo')
             || $user->can('Financiero:ReporteCuentasCobrar')
             || $user->can('Financiero:ReporteFacturacionVentas');

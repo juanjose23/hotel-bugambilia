@@ -6,10 +6,10 @@ namespace App\Interactors\Restaurante\Platos;
 
 use App\Actions\Restaurante\Platos\GenerarCodigoPlato as GenerarCodigoPlatoAction;
 
-final class GenerarCodigoPlato
+final readonly class GenerarCodigoPlato
 {
     public function __construct(
-        private readonly GenerarCodigoPlatoAction $action
+        private GenerarCodigoPlatoAction $action
     ) {}
 
     public function ejecutar(): string

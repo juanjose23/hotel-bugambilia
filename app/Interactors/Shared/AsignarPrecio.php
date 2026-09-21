@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Interactors\Shared;
 
-use App\BusinessLogic\Shared\ServicioPrecios;
 use App\Repository\Models\Shared\Precio;
+use App\Repository\Persistencia\Shared\PrecioRepositorioInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class AsignarPrecio
+final readonly class AsignarPrecio
 {
     public function __construct(
-        private readonly ServicioPrecios $servicioPrecios,
+        private PrecioRepositorioInterface $repositorio,
     ) {}
 
-    public function execute(
+    public function ejecutar(
         string $priceableType,
         int $priceableId,
         int $monedaId,
@@ -33,7 +33,7 @@ class AsignarPrecio
             $priceableType, $priceableId, $monedaId, $precio,
             $fechaInicio, $fechaFin, $estado, $esOferta, $tipoPrecio,
         ) {
-            $this->servicioPrecios->expirarPreciosAnterioresSiCorresponde(
+            $this->repositorio->expirarPreciosAnterioresSiCorresponde(
                 priceableType: $priceableType,
                 priceableId: $priceableId,
                 monedaId: $monedaId,
@@ -42,18 +42,42 @@ class AsignarPrecio
                 esOferta: $esOferta,
             );
 
-            return $this->servicioPrecios->crearPrecio(
-                priceableType: $priceableType,
-                priceableId: $priceableId,
-                monedaId: $monedaId,
-                precio: $precio,
-                fechaInicio: $fechaInicio,
-                fechaFin: $fechaFin,
-                estado: $estado,
-                esOferta: $esOferta,
-                tipoPrecio: $tipoPrecio,
-            );
+            return $this->repositorio->crear([
+                'priceable_type' => $priceableType,
+                'priceable_id' => $priceableId,
+                'moneda_id' => $monedaId,
+                'precio' => $precio,
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin,
+                'estado' => $estado,
+                'es_oferta' => $esOferta,
+                'tipo_precio' => $tipoPrecio,
+            ]);
         });
+    }
+
+    public function execute(
+        string $priceableType,
+        int $priceableId,
+        int $monedaId,
+        float $precio,
+        string $fechaInicio,
+        ?string $fechaFin = null,
+        int $estado = 1,
+        bool $esOferta = false,
+        string $tipoPrecio = 'base',
+    ): Precio {
+        return $this->ejecutar(
+            $priceableType,
+            $priceableId,
+            $monedaId,
+            $precio,
+            $fechaInicio,
+            $fechaFin,
+            $estado,
+            $esOferta,
+            $tipoPrecio,
+        );
     }
 
     private function loadPriceable(string $type, int $id): void

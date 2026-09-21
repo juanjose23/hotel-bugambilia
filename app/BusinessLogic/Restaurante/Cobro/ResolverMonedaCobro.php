@@ -8,6 +8,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Queries\Monedas\ObtenerMonedaPorIdQuery;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Monedas\ObtenerTasaCambioQuery;
+use App\Support\MonedaHelper;
 
 final class ResolverMonedaCobro
 {
@@ -19,7 +20,7 @@ final class ResolverMonedaCobro
 
     public function obtenerSimbolo(Moneda $moneda): string
     {
-        return $moneda->simbolo ?? 'C$';
+        return MonedaHelper::simbolo($moneda);
     }
 
     /**

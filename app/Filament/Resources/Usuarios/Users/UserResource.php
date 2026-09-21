@@ -7,7 +7,7 @@ namespace App\Filament\Resources\Usuarios\Users;
 use App\Filament\Resources\Usuarios\Users\Pages\ManageUsers;
 use App\Filament\Resources\Usuarios\Users\Schemas\UserForm;
 use App\Filament\Resources\Usuarios\Users\Tables\UsersTable;
-use App\Models\User;
+use App\Repository\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -23,11 +23,11 @@ class UserResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Usuarios';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::User;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::Users;
 
     protected static ?string $recordTitleAttribute = 'email';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Personas & Accesos';
+    protected static string|UnitEnum|null $navigationGroup = 'Seguridad';
 
     protected static ?int $navigationSort = 1;
 

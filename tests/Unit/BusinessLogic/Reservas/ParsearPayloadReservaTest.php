@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\ParsearPayloadReserva;
+use App\BusinessLogic\Reservas\Support\ParsearPayloadReserva;
 use App\Enums\Reservas\TipoReserva;
 
 test('parsea payload de reserva valido', function (): void {

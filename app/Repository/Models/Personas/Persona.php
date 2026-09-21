@@ -20,7 +20,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
-/** @use HasFactory<PersonaFactory> */
+/**
+ * @use HasFactory<PersonaFactory>
+ *
+ * @property int $id
+ * @property string|null $primer_nombre
+ * @property string|null $segundo_nombre
+ * @property string|null $telefono
+ * @property string|null $email
+ * @property string|null $nombre_completo
+ * @property PersonaNatural|null $personaNatural
+ * @property PersonaJuridica|null $personaJuridica
+ * @property Cliente|null $cliente
+ * @property User|null $user
+ */
 class Persona extends Model implements AuditableContract
 {
     /** @phpstan-ignore missingType.generics */

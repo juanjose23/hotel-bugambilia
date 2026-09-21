@@ -10,6 +10,7 @@ use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Queries\Reservas\ConsultarHabitacionesDisponibles;
+use App\Support\MonedaHelper;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -88,7 +89,7 @@ class EsquemaReservaHabitacion
                     TextInput::make('limite_cuenta_solicitado')
                         ->label('Límite solicitado')
                         ->numeric()
-                        ->prefix('C$')
+                        ->prefix(MonedaHelper::simbolo())
                         ->minValue(0)
                         ->visible(fn ($get): bool => (bool) $get('solicita_cuenta'))
                         ->columnSpan(1),
@@ -173,7 +174,9 @@ class EsquemaReservaHabitacion
             Section::make('Registro de Acompañantes / Huéspedes')
                 ->columnSpanFull()
                 ->icon(Heroicon::UserGroup)
-                ->description('Registre los nombres e identificación de los acompañantes')
+                ->description('Registre los nombres e identificación de los acompañantes (opcional)')
+                ->collapsible()
+                ->collapsed()
                 ->visible(fn ($get): bool => in_array($get('tipo_reserva'), [TipoReserva::HABITACION->value, TipoReserva::PAQUETE->value], true))
                 ->schema([
                     Repeater::make('acompanantes')

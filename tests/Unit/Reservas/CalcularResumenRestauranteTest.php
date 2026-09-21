@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\CalcularResumenRestaurante;
+use App\BusinessLogic\Reservas\Calculos\CalcularResumenRestaurante;
 
 test('calcula horas mesas preorden total y abono del cincuenta por ciento', function (): void {
     $resumen = app(CalcularResumenRestaurante::class)->calcular(

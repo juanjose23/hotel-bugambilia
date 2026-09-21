@@ -7,10 +7,6 @@ namespace App\Filament\Shared\Concerns;
 use App\Enums\Activos\EstadoAsignacion;
 use App\Interactors\Activos\Gestion\AsignarActivo;
 use App\Repository\Models\Activos\ActivoAsignacion;
-use App\Repository\Models\Catalogos\Ubicacion;
-use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Habitaciones\Habitacion;
-use App\Support\CachedOptions;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -31,11 +27,7 @@ trait TieneActivoAsignaciones
             Select::make('asignable_type')
                 ->label('Tipo de Destino')
                 ->placeholder('Seleccione tipo de destino')
-                ->options([
-                    Habitacion::class => 'Habitación',
-                    Ubicacion::class => 'Ubicación / Bodega',
-                    Espacio::class => 'Espacio / Área Común',
-                ])
+                ->options(TipoDestinoAsignacionActivo::destinos())
                 ->live()
                 ->native(false)
                 ->required()
@@ -45,12 +37,9 @@ trait TieneActivoAsignaciones
                 ->label('Destino Específico')
                 ->placeholder('Primero seleccione un tipo de destino')
                 ->options(function (Get $get) {
-                    return match ($get('asignable_type')) {
-                        Habitacion::class => CachedOptions::habitaciones(),
-                        Ubicacion::class => CachedOptions::ubicacionesAlmacen(),
-                        Espacio::class => CachedOptions::espacios(),
-                        default => [],
-                    };
+                    $tipo = $get('asignable_type');
+
+                    return TipoDestinoAsignacionActivo::opcionesDestino(is_string($tipo) ? $tipo : null);
                 })
                 ->searchable()
                 ->preload()

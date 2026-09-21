@@ -2,7 +2,7 @@ import type { EstadisticaHotel } from '../types';
 
 const ESTADISTICAS: EstadisticaHotel[] = [
     {
-        cifra: '3+',
+        cifra: '1+',
         etiqueta: 'Años de Experiencia',
         descripcion: 'Hospitalidad y tradición hotelera en Estelí.',
     },

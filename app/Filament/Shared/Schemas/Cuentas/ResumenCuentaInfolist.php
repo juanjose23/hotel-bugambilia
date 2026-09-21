@@ -6,6 +6,7 @@ namespace App\Filament\Shared\Schemas\Cuentas;
 
 use App\Presenters\Cuentas\ResumenCuentaPresenter;
 use App\Repository\Models\Cuentas\Cuenta;
+use App\Support\MonedaHelper;
 use Filament\Infolists\Components\TextEntry;
 use Illuminate\Support\HtmlString;
 
@@ -22,7 +23,7 @@ final class ResumenCuentaInfolist
 
                 $resumen = app(ResumenCuentaPresenter::class)->paraModal($cuenta);
 
-                $simbolo = e(is_string($resumen['moneda_simbolo'] ?? null) ? $resumen['moneda_simbolo'] : 'C$');
+                $simbolo = e(is_string($resumen['moneda_simbolo'] ?? null) ? $resumen['moneda_simbolo'] : MonedaHelper::simbolo($cuenta->moneda));
                 $saldoNum = is_numeric($resumen['saldo'] ?? null) ? (float) $resumen['saldo'] : 0.0;
                 $saldoFmt = "{$simbolo} ".number_format($saldoNum, 2);
 
@@ -56,7 +57,7 @@ final class ResumenCuentaInfolist
 
                 $resumen = app(ResumenCuentaPresenter::class)->paraModal($cuenta);
 
-                $simboloStr = is_string($resumen['moneda_simbolo'] ?? null) ? $resumen['moneda_simbolo'] : 'C$';
+                $simboloStr = is_string($resumen['moneda_simbolo'] ?? null) ? $resumen['moneda_simbolo'] : MonedaHelper::simbolo($cuenta->moneda);
                 $simbolo = e($simboloStr);
                 $fmt = static fn (mixed $v): string => "{$simbolo} ".number_format(is_numeric($v) ? (float) $v : 0.0, 2);
 

@@ -6,16 +6,15 @@ namespace App\Interactors\Restaurante\Cocina;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Notifications\Compras\NotificadorCompras;
-use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-final class CrearSolicitudAbastecimientoCocina
+final readonly class CrearSolicitudAbastecimientoCocina
 {
     public function __construct(
-        private readonly RestauranteRepositorioInterface $repositorio,
-        private readonly NotificadorCompras $notificadorCompras,
+        private RestauranteRepositorioInterface $repositorio,
+        private NotificadorCompras $notificadorCompras,
     ) {}
 
     /**
@@ -58,7 +57,7 @@ final class CrearSolicitudAbastecimientoCocina
                 }
 
                 $variante = $productoVarianteId !== null && $productoVarianteId > 0
-                    ? ProductoVariante::query()->with('producto')->find($productoVarianteId)
+                    ? $this->repositorio->obtenerVarianteConProducto($productoVarianteId)
                     : null;
 
                 if ($variante !== null) {

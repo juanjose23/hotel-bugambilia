@@ -6,26 +6,31 @@ namespace App\Listeners\Shared;
 
 use App\Events\Shared\ReporteGenerado;
 use App\Notifications\Reportes\Shared\NotificadorReportes;
-use App\Repository\Models\User;
+use App\Repository\Queries\Usuarios\BuscarUsuarioCuentaQuery;
 
-final class EnviarNotificacionReporteGenerado
+final readonly class EnviarNotificacionReporteGenerado
 {
     public function __construct(
-        private readonly NotificadorReportes $notificador,
+        private NotificadorReportes $notificador,
+        private BuscarUsuarioCuentaQuery $buscarUsuario,
     ) {}
 
     public function handle(ReporteGenerado $event): void
     {
-        $usuario = User::find($event->usuarioId);
+        $usuario = $this->buscarUsuario->porId($event->usuarioId);
 
         if (! $usuario) {
             return;
         }
 
-        $this->notificador->reporteListo(
-            $usuario,
-            $event->codigoReporte,
-            $event->urlDescarga,
-        );
+        try {
+            $this->notificador->reporteListo(
+                $usuario,
+                $event->codigoReporte,
+                $event->urlDescarga,
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

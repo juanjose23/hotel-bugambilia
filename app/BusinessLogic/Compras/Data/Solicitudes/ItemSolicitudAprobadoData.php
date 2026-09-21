@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\BusinessLogic\Compras\Data\Solicitudes;
 
-final class ItemSolicitudAprobadoData
+final readonly class ItemSolicitudAprobadoData
 {
     public function __construct(
         public int $id,

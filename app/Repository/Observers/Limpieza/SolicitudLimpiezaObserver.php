@@ -13,7 +13,10 @@ class SolicitudLimpiezaObserver
     public function creating(SolicitudLimpieza $solicitud): void
     {
         if ($solicitud->creador_id === null && auth()->check()) {
-            $solicitud->creador_id = (int) auth()->id();
+            $id = (int) auth()->id();
+            if ($id >= 0) {
+                $solicitud->creador_id = $id;
+            }
         }
     }
 

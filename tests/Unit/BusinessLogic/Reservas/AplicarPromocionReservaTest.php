@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\BusinessLogic\Reservas\AplicarPromocionReserva;
+use App\BusinessLogic\Reservas\Calculos\AplicarPromocionReserva;
 
 test('calcula descuento por porcentaje correctamente', function (): void {
     $promocion = new AplicarPromocionReserva;

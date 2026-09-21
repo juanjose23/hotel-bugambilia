@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Reportes\Widgets;
 
+use App\Filament\Pages\Reportes\Widgets\Concerns\UsaRangoFechasDashboard;
 use App\Repository\Queries\Reportes\InteligenciaNegocioDashboardQuery;
 use Filament\Widgets\ChartWidget;
 
 final class ReservasEstadoChart extends ChartWidget
 {
+    use UsaRangoFechasDashboard;
+
     protected ?string $heading = 'Reservas por estado';
 
     protected ?string $description = 'Distribución por estado.';
@@ -23,10 +26,6 @@ final class ReservasEstadoChart extends ChartWidget
         'md' => 1,
         'xl' => 1,
     ];
-
-    public ?string $fechaInicio = null;
-
-    public ?string $fechaFin = null;
 
     public static function canView(): bool
     {
@@ -53,6 +52,8 @@ final class ReservasEstadoChart extends ChartWidget
                         '#64748B',
                         '#DC2626',
                     ],
+                    'borderColor' => 'rgba(255, 255, 255, 0.35)',
+                    'borderWidth' => 2,
                 ],
             ],
             'labels' => $data->pluck('estado')->values()->all(),
@@ -64,12 +65,21 @@ final class ReservasEstadoChart extends ChartWidget
         return 'doughnut';
     }
 
+    protected function getOptions(): array
+    {
+        return [
+            'cutout' => '62%',
+        ];
+    }
+
     /** @return array<string, mixed> */
     private function dashboard(): array
     {
+        $rango = $this->rangoDashboard();
+
         return app(InteligenciaNegocioDashboardQuery::class)->paraRango(
-            $this->fechaInicio ?? now()->startOfMonth()->format('Y-m-d'),
-            $this->fechaFin ?? now()->format('Y-m-d'),
+            $rango['inicio'],
+            $rango['fin'],
         );
     }
 }

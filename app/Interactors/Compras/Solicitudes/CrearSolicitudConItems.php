@@ -7,11 +7,11 @@ namespace App\Interactors\Compras\Solicitudes;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Persistencia\Compras\SolicitudRepositorioInterface;
 
-final class CrearSolicitudConItems
+final readonly class CrearSolicitudConItems
 {
     public function __construct(
-        private readonly GenerarCodigoSolicitud $generarCodigo,
-        private readonly SolicitudRepositorioInterface $solicitudRepositorio,
+        private GenerarCodigoSolicitud $generarCodigo,
+        private SolicitudRepositorioInterface $solicitudRepositorio,
     ) {}
 
     /**

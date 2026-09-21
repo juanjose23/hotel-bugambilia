@@ -6,18 +6,18 @@ namespace App\Interactors\Facturacion\Stripe;
 
 use App\Enums\Reservas\EstadoReserva;
 use App\Repository\Models\Reservas\Reserva;
+use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use DomainException;
 
 final readonly class ResolverReservaPagoStripe
 {
+    public function __construct(
+        private ReservaRepositorioInterface $reservaRepositorio,
+    ) {}
+
     public function ejecutar(int $reservaId, string $codigoReserva): Reserva
     {
-        /** @var Reserva $reserva */
-        $reserva = Reserva::query()
-            ->with(['cuentas', 'moneda'])
-            ->where('id', $reservaId)
-            ->where('codigo_reserva', $codigoReserva)
-            ->firstOrFail();
+        $reserva = $this->reservaRepositorio->obtenerPorIdYCodigoConCuentasYMoneda($reservaId, $codigoReserva);
 
         if (in_array($reserva->estado, [
             EstadoReserva::PARCIALMENTE_CHECKED_IN,

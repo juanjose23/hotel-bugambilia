@@ -5,11 +5,13 @@
 ])
 
 @php
+    $pedido->loadMissing(['mesa', 'items.plato', 'items.producto', 'items.variante']);
+
     $numComanda = str_contains((string)$pedido->codigo, '-')
         ? ('#' . last(explode('-', (string)$pedido->codigo)))
         : ('#' . $pedido->codigo);
 
-    $mesaNombre = $pedido->getRelation('mesa')?->nombre ?? 'Llevar / Domicilio';
+    $mesaNombre = $pedido->mesa?->nombre ?? 'Llevar / Domicilio';
     $minutosEspera = $pedido->created_at ? $pedido->created_at->diffInMinutes(now()) : 0;
     $slaNivel = match (true) {
         $minutosEspera > 20 => 'critico',
@@ -149,8 +151,17 @@
                                 @endif
 
                                 <div class="flex flex-col">
-                                    <span class="font-bold text-xs sm:text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $item->getRelation('plato')?->nombre ?? 'Plato General' }}
+                                    <span class="font-bold text-xs sm:text-sm text-gray-900 dark:text-gray-100 flex items-center gap-1.5 flex-wrap">
+                                        @if($item->plato)
+                                            {{ $item->plato->nombre }}
+                                        @elseif($item->producto)
+                                            {{ $item->producto->nombre }}{{ $item->variante ? ' ('.$item->variante->nombre_variante.')' : '' }}
+                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                                                Stock Bar
+                                            </span>
+                                        @else
+                                            Ítem
+                                        @endif
                                     </span>
                                     @if($item->observaciones)
                                         <span class="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-0.5 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border border-rose-200/50 dark:border-rose-800/40 w-fit">

@@ -1,5 +1,6 @@
 import { MessageSquareQuote, Minus, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/modules/shared/components/ui/button';
 import { Input } from '@/modules/shared/components/ui/input';
 import type { ItemCarritoRestaurante, MenuItemData } from '../types';
 
@@ -37,44 +38,52 @@ export const RestauranteCarritoItem = ({
                 </div>
 
                 <div className="flex items-center gap-1 rounded-full border border-border bg-muted/30 p-0.5">
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => onDisminuir(plato.id)}
-                        className="flex size-6 cursor-pointer items-center justify-center rounded-full text-foreground hover:bg-muted"
+                        className="flex size-6 cursor-pointer items-center justify-center rounded-full p-0 text-foreground hover:bg-muted"
                     >
                         <Minus className="size-3" />
-                    </button>
+                    </Button>
                     <span className="w-5 text-center text-xs font-bold">
                         {cantidad}
                     </span>
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => onAgregar(plato)}
-                        className="flex size-6 cursor-pointer items-center justify-center rounded-full text-foreground hover:bg-muted"
+                        className="flex size-6 cursor-pointer items-center justify-center rounded-full p-0 text-foreground hover:bg-muted"
                     >
                         <Plus className="size-3" />
-                    </button>
+                    </Button>
                 </div>
 
-                <button
+                <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => onEliminar(plato.id)}
-                    className="cursor-pointer p-1 text-muted-foreground/60 hover:text-rose-500"
+                    className="size-7 cursor-pointer p-1 text-muted-foreground/60 hover:text-rose-500"
                 >
                     <Trash2 className="size-3.5" />
-                </button>
+                </Button>
             </div>
 
             {notas && !editandoNota && (
                 <p className="flex items-center justify-between rounded-lg bg-muted/50 px-2.5 py-1 text-[11px] text-muted-foreground italic">
                     <span>💬 {notas}</span>
-                    <button
+                    <Button
                         type="button"
+                        variant="link"
+                        size="sm"
                         onClick={() => setEditandoNota(true)}
-                        className="ml-2 cursor-pointer text-[10px] font-bold text-primary not-italic hover:underline"
+                        className="ml-2 h-auto cursor-pointer p-0 text-[10px] font-bold text-primary not-italic hover:underline"
                     >
                         Editar
-                    </button>
+                    </Button>
                 </p>
             )}
 
@@ -101,14 +110,16 @@ export const RestauranteCarritoItem = ({
                 </div>
             ) : (
                 !notas && (
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setEditandoNota(true)}
-                        className="inline-flex cursor-pointer items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-primary"
+                        className="inline-flex h-auto cursor-pointer items-center gap-1 p-0 text-[10px] font-medium text-muted-foreground hover:text-primary"
                     >
                         <MessageSquareQuote className="size-3" />
                         <span>+ Observación para cocina</span>
-                    </button>
+                    </Button>
                 )
             )}
         </div>

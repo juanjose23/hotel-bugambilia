@@ -1,15 +1,25 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
-import { RestaurantePasoDatosContacto } from '@/modules/restaurante/components/reserva/RestaurantePasoDatosContacto';
+import { ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
+import { ReservaConfirmada } from '@/modules/reservas/components/ReservaConfirmada';
+import { ReservaPasoCliente } from '@/modules/reservas/components/ReservaPasoCliente';
 import { RestaurantePasoMesaHorario } from '@/modules/restaurante/components/reserva/RestaurantePasoMesaHorario';
 import { RestaurantePasoPreordenMenu } from '@/modules/restaurante/components/reserva/RestaurantePasoPreordenMenu';
-import { RestauranteReservaExitosa } from '@/modules/restaurante/components/reserva/RestauranteReservaExitosa';
 import { RestauranteResumenReservaSidebar } from '@/modules/restaurante/components/reserva/RestauranteResumenReservaSidebar';
-import { RestauranteStepperReserva } from '@/modules/restaurante/components/reserva/RestauranteStepperReserva';
-import { crearRestaurantePorDefecto } from '@/modules/restaurante/constants';
+import {
+    OCASIONES_RAPIDAS,
+    crearRestaurantePorDefecto,
+} from '@/modules/restaurante/constants';
 import { useReservaFlujoReserva } from '@/modules/restaurante/hooks/useReservaFlujoReserva';
 import { useReservaMesaForm } from '@/modules/restaurante/hooks/useReservaMesaForm';
 import type { RestaurantePageProps } from '@/modules/restaurante/types';
+import { StepperHeader } from '@/modules/shared/components/StepperHeader';
+import { Button } from '@/modules/shared/components/ui/button';
+
+const PASOS_RESTAURANTE = [
+    { num: 1, titulo: 'Mesa & Horario', subtitulo: 'Plano y fecha' },
+    { num: 2, titulo: 'Pre-ordenar Menú', subtitulo: 'Opcional' },
+    { num: 3, titulo: 'Confirmación', subtitulo: 'Datos de contacto' },
+];
 
 export const RestauranteReservar = ({
     restaurante,
@@ -77,15 +87,29 @@ export const RestauranteReservar = ({
                     </span>
                 </div>
 
-                <RestauranteStepperReserva
+                <StepperHeader
+                    pasos={PASOS_RESTAURANTE}
                     pasoActual={pasoActual}
-                    alHacerClic={irPaso}
+                    onCambiarPaso={(p) => irPaso(p as 1 | 2 | 3)}
                 />
 
                 {reservaCreada ? (
-                    <RestauranteReservaExitosa
-                        reservaCreada={reservaCreada}
-                        nombreRestaurante={datosRestaurante.nombre}
+                    <ReservaConfirmada
+                        codigoReserva={reservaCreada.codigo_reserva}
+                        reservaId={reservaCreada.reserva_id}
+                        titulo={`¡Mesa Reservada en ${datosRestaurante.nombre}!`}
+                        subtitulo={`Hemos asegurado tu reservación en ${datosRestaurante.nombre}. Te esperamos puntualmente.`}
+                        detalles={[
+                            { label: 'Fecha', valor: reservaCreada.fecha },
+                            { label: 'Horario', valor: reservaCreada.hora },
+                            {
+                                label: 'Mesa(s) Asignada(s)',
+                                valor: reservaCreada.mesas_unidas.join(' + '),
+                            },
+                        ]}
+                        whatsappUrl={reservaCreada.whatsapp_url}
+                        urlRetorno="/restaurante"
+                        textoRetorno="Volver al Menú"
                         variante="pagina"
                     />
                 ) : (
@@ -131,14 +155,42 @@ export const RestauranteReservar = ({
                             )}
 
                             {pasoActual === 3 && (
-                                <RestaurantePasoDatosContacto
-                                    register={register}
-                                    errors={errors}
-                                    onSubmit={onSubmit}
-                                    isSubmitting={isSubmitting}
-                                    errorEnvio={errorEnvio}
-                                    alAgregarNotaRapida={agregarNotaRapida}
-                                />
+                                <form onSubmit={onSubmit} className="space-y-4">
+                                    <ReservaPasoCliente
+                                        register={register}
+                                        errors={errors}
+                                        ocasionesRapidas={OCASIONES_RAPIDAS}
+                                        alAgregarNotaRapida={agregarNotaRapida}
+                                        titulo="Datos del Titular de la Reserva"
+                                        subtitulo="Completa tus datos para confirmar tu mesa de inmediato."
+                                        placeholderNotas="Indícanos si celebras algún evento especial o tienes alguna preferencia..."
+                                        variante="pagina"
+                                    />
+
+                                    {errorEnvio && (
+                                        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-xs font-bold text-destructive">
+                                            {errorEnvio}
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="h-12 w-full cursor-pointer rounded-2xl text-sm font-black shadow-md"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 className="mr-2 size-4 animate-spin" />
+                                                Confirmando Reserva...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle2 className="mr-2 size-4" />
+                                                Confirmar Reservación de Mesa
+                                            </>
+                                        )}
+                                    </Button>
+                                </form>
                             )}
                         </div>
 

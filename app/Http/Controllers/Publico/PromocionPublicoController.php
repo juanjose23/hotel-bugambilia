@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Publico;
 
 use App\Http\Controllers\Controller;
-use App\Interactors\Landing\ObtenerPromocionesLanding;
+use App\Interactors\Promociones\ObtenerPromociones;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class PromocionPublicoController extends Controller
 {
-    public function index(Request $request, ObtenerPromocionesLanding $interactor): Response
+    public function index(Request $request, ObtenerPromociones $interactor): Response
     {
         $categoria = $request->string('categoria')->toString();
         $busqueda = $request->string('buscar')->toString();

@@ -15,7 +15,7 @@ use App\Repository\Persistencia\Activos\ActivoRepositorioInterface;
 use App\Repository\Queries\Catalogos\ObtenerUbicacionTaller;
 use Illuminate\Support\Facades\DB;
 
-class EnviarAMantenimiento
+final class EnviarAMantenimiento
 {
     public function __construct(
         private readonly CerrarAsignacionActivaAction $cerrarAsignacion,

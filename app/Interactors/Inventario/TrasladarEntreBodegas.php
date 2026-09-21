@@ -8,7 +8,7 @@ use App\BusinessLogic\Inventario\Servicios\ServicioTraslados;
 use App\Repository\Persistencia\Inventario\LoteRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-class TrasladarEntreBodegas
+final class TrasladarEntreBodegas
 {
     public function __construct(
         private readonly LoteRepositorioInterface $loteRepositorio,

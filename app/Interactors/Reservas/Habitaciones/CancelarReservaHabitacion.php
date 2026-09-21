@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Interactors\Reservas\Habitaciones;
 
 use App\BusinessLogic\Cuentas\CalcularReembolsoCancelacion;
-use App\BusinessLogic\Reservas\CalcularPenalizacionCancelacion;
+use App\BusinessLogic\Reservas\Calculos\CalcularPenalizacionCancelacion;
+use App\BusinessLogic\Reservas\Calculos\ResultadoPenalizacion;
 use App\BusinessLogic\Reservas\Data\CancelarReservaHabitacionData;
-use App\BusinessLogic\Reservas\ResultadoPenalizacion;
 use App\Enums\Cuentas\BaseCalculo;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
@@ -18,7 +18,7 @@ use App\Enums\Shared\EstadoGeneral;
 use App\Events\Reservas\ReservaCancelada;
 use App\Interactors\Cuentas\Cobros\ReembolsarPagoCuenta;
 use App\Interactors\Cuentas\Gestion\AnularCuenta;
-use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripeReserva;
+use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripe;
 use App\Interactors\Facturacion\Stripe\ReembolsarPagoStripeReserva;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Reservas\Reserva;
@@ -39,7 +39,7 @@ final readonly class CancelarReservaHabitacion
         private AnularCuenta $anularCuenta,
         private ReembolsarPagoStripeReserva $reembolsarPagoStripe,
         private StripePaymentIntentClient $stripe,
-        private ConfirmarPagoStripeReserva $confirmarPagoStripe,
+        private ConfirmarPagoStripe $confirmarPagoStripe,
         private ReservaRepositorioInterface $reservas,
         private CuentaRepositorioInterface $cuentas,
         private ObtenerTransaccionesPagoReservaQuery $totalTransacciones,
@@ -270,7 +270,7 @@ final readonly class CancelarReservaHabitacion
                     continue;
                 }
 
-                $this->confirmarPagoStripe->ejecutar($paymentIntentId, [
+                $this->confirmarPagoStripe->ejecutarParaReserva($paymentIntentId, [
                     'id' => "sincronizacion-cancelacion-{$paymentIntentId}",
                     'type' => EventoWebhookStripe::PaymentIntentSucceeded->value,
                     'data' => [

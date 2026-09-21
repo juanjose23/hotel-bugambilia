@@ -10,7 +10,7 @@ use App\Repository\Persistencia\Activos\ActivoMantenimientoRepositorioInterface;
 use App\Repository\Persistencia\Activos\ActPlanMantenimientoRepositorioInterface;
 use App\Repository\Queries\Activos\ObtenerPlanesMantenimientoPreventivosActivos;
 
-class DetectarMantenimientosPreventivos
+final class DetectarMantenimientosPreventivos
 {
     public function __construct(
         private readonly ObtenerPlanesMantenimientoPreventivosActivos $obtenerPlanes,

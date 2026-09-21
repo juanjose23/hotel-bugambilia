@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Reportes\Widgets;
 
+use App\Filament\Pages\Reportes\Widgets\Concerns\UsaRangoFechasDashboard;
 use App\Repository\Queries\Reportes\InteligenciaNegocioDashboardQuery;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
 
 final class TendenciaTemporadaChart extends ChartWidget
 {
+    use UsaRangoFechasDashboard;
+
     protected ?string $heading = 'Tendencia por temporada';
 
     protected ?string $description = 'Ingresos y reservas por mes.';
@@ -24,10 +27,6 @@ final class TendenciaTemporadaChart extends ChartWidget
         'md' => 1,
         'xl' => 1,
     ];
-
-    public ?string $fechaInicio = null;
-
-    public ?string $fechaFin = null;
 
     public static function canView(): bool
     {
@@ -101,9 +100,11 @@ final class TendenciaTemporadaChart extends ChartWidget
     /** @return array<string, mixed> */
     private function dashboard(): array
     {
+        $rango = $this->rangoDashboard();
+
         return app(InteligenciaNegocioDashboardQuery::class)->paraRango(
-            $this->fechaInicio ?? now()->startOfMonth()->format('Y-m-d'),
-            $this->fechaFin ?? now()->format('Y-m-d'),
+            $rango['inicio'],
+            $rango['fin'],
         );
     }
 }

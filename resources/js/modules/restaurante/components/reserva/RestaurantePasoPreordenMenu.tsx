@@ -48,18 +48,22 @@ export const RestaurantePasoPreordenMenu = ({
 
             <div className="flex scrollbar-none items-center gap-1.5 overflow-x-auto pb-1">
                 {categoriasMenu.map((cat) => (
-                    <button
+                    <Button
                         key={cat}
                         type="button"
+                        variant={
+                            categoriaMenuFiltro === cat ? 'default' : 'ghost'
+                        }
+                        size="sm"
                         onClick={() => alCambiarCategoria(cat)}
                         className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
                             categoriaMenuFiltro === cat
-                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90'
                                 : 'bg-muted/60 text-muted-foreground hover:text-foreground'
                         }`}
                     >
                         {cat === 'todos' ? 'Todas las Categorías' : cat}
-                    </button>
+                    </Button>
                 ))}
             </div>
 
@@ -98,27 +102,31 @@ export const RestaurantePasoPreordenMenu = ({
                             <div className="flex shrink-0 items-center gap-1.5">
                                 {enPreorden ? (
                                     <div className="flex items-center gap-1 rounded-xl border border-border/80 bg-card p-1">
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="ghost"
+                                            size="icon"
                                             onClick={() =>
                                                 removerPlatoPreorden(plato.id)
                                             }
-                                            className="flex size-6 cursor-pointer items-center justify-center rounded-lg bg-muted text-foreground hover:bg-destructive/20"
+                                            className="flex size-6 cursor-pointer items-center justify-center rounded-lg bg-muted p-0 text-foreground hover:bg-destructive/20"
                                         >
                                             <Minus className="size-3" />
-                                        </button>
+                                        </Button>
                                         <span className="px-1.5 text-xs font-black">
                                             {enPreorden.cantidad}
                                         </span>
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="ghost"
+                                            size="icon"
                                             onClick={() =>
                                                 agregarPlatoPreorden(plato)
                                             }
-                                            className="flex size-6 cursor-pointer items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                                            className="flex size-6 cursor-pointer items-center justify-center rounded-lg bg-primary p-0 text-primary-foreground hover:bg-primary/90"
                                         >
                                             <Plus className="size-3" />
-                                        </button>
+                                        </Button>
                                     </div>
                                 ) : (
                                     <Button

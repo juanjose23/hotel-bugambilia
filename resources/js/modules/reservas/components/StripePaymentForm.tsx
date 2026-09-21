@@ -159,15 +159,17 @@ export const StripePaymentForm = ({
                         <span>Pago Seguro Stripe</span>
                     </div>
                     {onCancel && (
-                        <button
+                        <Button
                             type="button"
+                            variant="ghost"
+                            size="icon"
                             onClick={onCancel}
                             disabled={processing}
-                            className="cursor-pointer rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className="size-8 rounded-full p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             title="Volver"
                         >
                             <X className="size-5" />
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>

@@ -4,17 +4,33 @@ declare(strict_types=1);
 
 namespace App\Interactors\Habitaciones;
 
-use App\BusinessLogic\Habitaciones\ServicioClonacionHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
 use Illuminate\Support\Facades\DB;
 
-class ClonarHabitacion
+final readonly class ClonarHabitacion
 {
     public function __construct(
-        private readonly ServicioClonacionHabitacion $servicioClonacion,
+        private HabitacionRepositorioInterface $habitacionRepositorio,
     ) {}
 
     public function execute(
+        Habitacion $origen,
+        int $nuevoNumero,
+        ?string $nuevoNombre = null,
+        ?string $nuevoSlug = null,
+        ?string $nuevoCodigo = null,
+    ): Habitacion {
+        return $this->ejecutar(
+            $origen,
+            $nuevoNumero,
+            $nuevoNombre,
+            $nuevoSlug,
+            $nuevoCodigo,
+        );
+    }
+
+    public function ejecutar(
         Habitacion $origen,
         int $nuevoNumero,
         ?string $nuevoNombre = null,
@@ -25,16 +41,13 @@ class ClonarHabitacion
             throw new \InvalidArgumentException('El número de habitación debe ser mayor a cero.');
         }
 
-        $numeroExiste = Habitacion::withTrashed()
-            ->where('numero', $nuevoNumero)
-            ->where('id', '!=', $origen->id)
-            ->exists();
+        $numeroExiste = $this->habitacionRepositorio->existePorNumero($nuevoNumero, $origen->id);
 
         if ($numeroExiste) {
             throw new \InvalidArgumentException("El número {$nuevoNumero} ya está en uso.");
         }
 
-        return DB::transaction(fn () => $this->servicioClonacion->clonar(
+        return DB::transaction(fn () => $this->habitacionRepositorio->clonar(
             $origen,
             $nuevoNumero,
             $nuevoNombre,

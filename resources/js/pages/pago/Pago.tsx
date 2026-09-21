@@ -74,7 +74,7 @@ export const Pago = ({ datosReserva }: PagoPageProps) => {
 
             <div className="mx-auto max-w-3xl px-4 py-8 font-sans sm:px-6 sm:py-12">
                 <Link
-                    href={`/mis-reservas?codigo=${encodeURIComponent(datosReserva.codigoReserva)}`}
+                    href={`/portal/reservas/${datosReserva.id}?codigo=${encodeURIComponent(datosReserva.codigoReserva)}`}
                     className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <ArrowLeft className="size-4" />
@@ -117,10 +117,10 @@ export const Pago = ({ datosReserva }: PagoPageProps) => {
                                 Descargar Comprobante PDF
                             </a>
                             <Link
-                                href="/mis-reservas"
+                                href="/portal/reservas"
                                 className="inline-flex h-11 items-center justify-center rounded-2xl bg-primary px-5 text-xs font-bold text-primary-foreground shadow-md hover:bg-primary/90"
                             >
-                                Ir a Mis Reservas
+                                Ir al Portal de Reservas
                             </Link>
                         </div>
                     </div>
