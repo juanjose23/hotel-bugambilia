@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Restaurante\Cocina;
 
+use App\BusinessLogic\Restaurante\Cocina\MedidasCocina;
 use App\Interactors\Restaurante\Cocina\TransformarMateriaPrimaCocina;
+use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Restaurante\TransformacionMateriaPrima;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
@@ -80,12 +82,25 @@ final class TransformacionMateriaPrimaSeeder extends BaseCocinaSeeder
             return;
         }
 
+        $unidad = $origen->unidadMedida ?? $origen->producto?->unidadMedida;
+        $medida = app(MedidasCocina::class)->resolver(
+            (int) ($unidad->id ?? 0), (string) ($unidad->nombre ?? ''), (string) ($unidad->codigo ?? ''),
+            (float) ($origen->volumen ?? 0), (float) ($origen->peso ?? 0),
+        );
+        if ($medida['dimension'] !== 'masa') {
+            throw new DomainException('La transformación de demostración requiere materia prima medida en masa.');
+        }
+        $destino = ProductoVariante::firstOrCreate(
+            ['producto_id' => $destino->producto_id, 'codigo' => 'TMP-KG-'.$destino->producto_id],
+            ['nombre_variante' => '1 kg para preparación', 'unidad_medida_id' => Catalogo::query()->where('codigo', 'UNI_KG')->sole()->id, 'peso' => 1000],
+        );
+
         app(TransformarMateriaPrimaCocina::class)->ejecutar([
             'codigo' => $codigo,
             'producto_origen_id' => $origen->producto_id,
             'variante_origen_id' => $origen->id,
             'ubicacion_origen_id' => $cocinaId,
-            'cantidad_procesada' => $cantidadProcesada,
+            'cantidad_procesada' => $cantidadProcesada * 1000 / $medida['factor'],
             'observaciones' => $observaciones,
             'items' => [
                 [
@@ -97,9 +112,9 @@ final class TransformacionMateriaPrimaSeeder extends BaseCocinaSeeder
                     'observaciones' => 'Materia prima obtenida de la transformación.',
                 ],
                 [
-                    'producto_destino_id' => $destino->producto_id,
-                    'variante_destino_id' => $destino->id,
-                    'cantidad' => $merma,
+                    'producto_destino_id' => $origen->producto_id,
+                    'variante_destino_id' => $origen->id,
+                    'cantidad' => $merma * 1000 / $medida['factor'],
                     'costo_asignado' => 200.0,
                     'es_merma' => true,
                     'observaciones' => 'Merma estimada de la transformación.',

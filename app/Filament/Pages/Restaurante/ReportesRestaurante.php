@@ -94,7 +94,7 @@ final class ReportesRestaurante extends Page implements HasTable
                 TextColumn::make('mesa.nombre')->label('Mesa'),
                 TextColumn::make('mesero.persona.nombre_completo')->label('Mesero'),
                 EstadoBadgeColumn::make(EstadoPedido::class),
-                MontoMonedaColumn::make('total')->label('Total'),
+                MontoMonedaColumn::make('subtotal')->label('Consumo operativo'),
                 FechaStandardColumn::make('created_at', 'Fecha'),
             ])
             ->poll('30s');

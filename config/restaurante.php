@@ -12,6 +12,10 @@ return [
     | domicilio, costo de envío base y pedido mínimo.
     |
     */
+    'historico' => [
+        'merma_cocina_escala' => (float) env('MERMA_COCINA_ESCALA', 1.0),
+    ],
+
     'delivery' => [
         'habilitado' => (bool) env('RESTAURANTE_DELIVERY_HABILITADO', true),
         'costo_base' => (float) env('RESTAURANTE_DELIVERY_COSTO', 50.0),

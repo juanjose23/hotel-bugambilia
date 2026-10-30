@@ -15,10 +15,12 @@ class DetalleHabitacion extends Model implements AuditableContract
 
     protected $table = 'detalles_habitacion';
 
+    protected $hidden = ['vistas_legacy'];
+
     protected $guarded = ['id'];
 
     protected $casts = [
-        'vistas' => 'array',
+        'vistas_legacy' => 'array',
         'medidas' => 'decimal:2',
     ];
 
@@ -28,7 +30,6 @@ class DetalleHabitacion extends Model implements AuditableContract
         'capacidad_adultos',
         'capacidad_ninos',
         'medidas',
-        'vistas',
     ];
 
     /**

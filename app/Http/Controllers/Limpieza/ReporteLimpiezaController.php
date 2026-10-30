@@ -92,7 +92,7 @@ final class ReporteLimpiezaController extends ReporteController
             $request,
             $reporte,
             array_merge($request->all(), ['reporte' => $reporte]),
-            fn (): StreamedResponse => $this->streamPdf(
+            fn (): Response => $this->streamPdf(
                 $this->reporteOperacionHotelera->pdf(array_merge($request->all(), ['reporte' => $reporte])),
                 $archivo,
             ),

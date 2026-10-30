@@ -307,7 +307,10 @@ final readonly class CrearReserva
             is_array($datos['cargos_facturacion_ids'] ?? null) ? $datos['cargos_facturacion_ids'] : [],
         );
 
-        if ($this->normalizarPagoPublico->esPagoPorStripe($datos)) {
+        $pagoStripe = $this->normalizarPagoPublico->esPagoPorStripe($datos);
+        $pagoPublicoPorRevisar = ($datos['origen_pago_reserva'] ?? null) === 'publico'
+            && $this->resolverTipoPago->resolver($datos) !== TipoPagoReserva::SIN_PAGO;
+        if ($pagoStripe || $pagoPublicoPorRevisar) {
             $reserva = $this->registrarCobroInicial->ejecutar(
                 reserva: $reserva,
                 tipoPago: TipoPagoReserva::SIN_PAGO,
@@ -322,12 +325,12 @@ final readonly class CrearReserva
             $tipoPagoPolitica = $this->resolverTipoPago->resolver($datos);
             $reserva->crearEntradaBitacora('politica_pago', [
                 'canal' => 'sistema_publico',
-                'pasarela' => 'stripe',
+                'pasarela' => $pagoStripe ? 'stripe' : 'transferencia',
                 'tipo_cliente' => is_string($datos['tipo_cliente_pago'] ?? null) ? trim($datos['tipo_cliente_pago']) : 'publico',
                 'tipo_pago_requerido' => $tipoPagoPolitica->value,
                 'porcentaje_requerido' => 50,
                 'opciones_disponibles' => ['stripe', 'transferencia'],
-                'estado' => 'pendiente_pasarela',
+                'estado' => $pagoStripe ? 'pendiente_pasarela' : 'pendiente_revision',
             ]);
 
             return $this->reservas->actualizar($reserva, [

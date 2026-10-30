@@ -61,7 +61,9 @@ final class PortalPresenter
             'fecha_check_in' => $reserva->fecha_check_in?->format('Y-m-d'),
             'fecha_check_out' => $reserva->fecha_check_out?->format('Y-m-d'),
             'hora_reserva' => $reserva->hora_reserva,
-            'noches' => $reserva->noches,
+            'noches' => $reserva->fecha_check_in !== null && $reserva->fecha_check_out !== null
+                ? max(1, (int) $reserva->fecha_check_in->diffInDays($reserva->fecha_check_out))
+                : 1,
             'adultos' => $reserva->adultos,
             'ninos' => $reserva->ninos,
             'total' => (float) $reserva->total,
@@ -82,6 +84,10 @@ final class PortalPresenter
                 'reserva' => $reserva->id,
                 'codigo' => $reserva->codigo_reserva,
             ]),
+            'url_pago_saldo' => (float) $reserva->saldo > 0 ? route('reservas.pago', [
+                'reserva' => $reserva->id,
+                'codigo' => $reserva->codigo_reserva,
+            ]) : null,
         ];
     }
 

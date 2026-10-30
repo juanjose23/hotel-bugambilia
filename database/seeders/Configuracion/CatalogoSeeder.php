@@ -267,6 +267,12 @@ class CatalogoSeeder extends Seeder
             ['codigo' => 'VISTA_MONTANA', 'nombre' => 'Vista a la Montaña'],
             ['codigo' => 'VISTA_PISCINA', 'nombre' => 'Vista a la Piscina'],
             ['codigo' => 'VISTA_INTERIOR', 'nombre' => 'Vista Interior'],
+            ['codigo' => 'VISTA_PANORAMICA', 'nombre' => 'Vista Panorámica'],
+            ['codigo' => 'VISTA_TERRAZA', 'nombre' => 'Vista a la Terraza'],
+            ['codigo' => 'VISTA_MAR_MONTANA', 'nombre' => 'Vista al Mar / Montaña'],
+            ['codigo' => 'VISTA_360', 'nombre' => 'Vista 360°'],
+            ['codigo' => 'VISTA_JARDIN_TROPICAL', 'nombre' => 'Vista al Jardín Tropical'],
+            ['codigo' => 'VISTA_NATURALEZA', 'nombre' => 'Vista a la Naturaleza'],
         ]);
 
         // ─── 15. TIPOS DE PROVEEDOR (PLANO) ───

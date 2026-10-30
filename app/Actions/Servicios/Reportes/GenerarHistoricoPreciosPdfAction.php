@@ -6,9 +6,9 @@ namespace App\Actions\Servicios\Reportes;
 
 use App\Interactors\Reportes\RegistrarAuditoriaReporte;
 use App\Repository\Queries\Servicios\ObtenerHistoricoServiciosPrecios;
-use App\Support\HotelInfo;
-use App\Support\Pdf\LayoutPdf;
-use App\Support\ReportePaginador;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;

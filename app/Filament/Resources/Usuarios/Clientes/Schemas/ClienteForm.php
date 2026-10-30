@@ -7,7 +7,7 @@ namespace App\Filament\Resources\Usuarios\Clientes\Schemas;
 use App\BusinessLogic\Personas\PersonaNatural\ValidCedulaNicaragua;
 use App\Enums\Personas\TipoIdentificacion;
 use App\Repository\Models\Catalogos\Pais;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;

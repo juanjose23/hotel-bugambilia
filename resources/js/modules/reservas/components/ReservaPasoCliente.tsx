@@ -83,10 +83,19 @@ const BeneficiosClienteBadge = ({
     );
 };
 
-export interface ReservaPasoClienteProps {
-    register: UseFormRegister<any>;
+export interface ReservaPasoClienteFormValues {
+    nombre_cliente: string;
+    telefono_cliente: string;
+    email_cliente?: string;
+    notas?: string;
+}
 
-    errors: FieldErrors<any>;
+export interface ReservaPasoClienteProps<
+    TFieldValues extends ReservaPasoClienteFormValues =
+        ReservaPasoClienteFormValues,
+> {
+    register: UseFormRegister<TFieldValues>;
+    errors: FieldErrors<TFieldValues>;
     beneficiosCliente?: BeneficioClienteItem[];
     ocasionesRapidas?: readonly string[];
     alAgregarNotaRapida?: (tag: string) => void;
@@ -97,7 +106,10 @@ export interface ReservaPasoClienteProps {
     placeholderNotas?: string;
 }
 
-export const ReservaPasoCliente = ({
+export const ReservaPasoCliente = <
+    TFieldValues extends ReservaPasoClienteFormValues =
+        ReservaPasoClienteFormValues,
+>({
     register,
     errors,
     beneficiosCliente = [],
@@ -108,8 +120,10 @@ export const ReservaPasoCliente = ({
     variante = 'pagina',
     mostrarPeticionesEspeciales = true,
     placeholderNotas = 'Indícanos si tienes alguna preferencia especial, ocasión o requerimiento...',
-}: ReservaPasoClienteProps) => {
+}: ReservaPasoClienteProps<TFieldValues>) => {
     const esModal = variante === 'modal';
+    const registrarCampo =
+        register as unknown as UseFormRegister<ReservaPasoClienteFormValues>;
     const etiquetaClase = esModal
         ? 'text-[11px] font-bold'
         : 'text-xs font-bold';
@@ -168,7 +182,7 @@ export const ReservaPasoCliente = ({
                             <Input
                                 type="text"
                                 placeholder="Ej. Carlos Mendoza"
-                                {...register('nombre_cliente')}
+                                {...registrarCampo('nombre_cliente')}
                                 className={inputClase}
                             />
                         </div>
@@ -195,7 +209,7 @@ export const ReservaPasoCliente = ({
                                 <Input
                                     type="tel"
                                     placeholder="+505 8888 8888"
-                                    {...register('telefono_cliente')}
+                                    {...registrarCampo('telefono_cliente')}
                                     className={inputClase}
                                 />
                             </div>
@@ -220,7 +234,7 @@ export const ReservaPasoCliente = ({
                                 <Input
                                     type="email"
                                     placeholder="carlos@correo.com"
-                                    {...register('email_cliente')}
+                                    {...registrarCampo('email_cliente')}
                                     className={inputClase}
                                 />
                             </div>
@@ -272,14 +286,14 @@ export const ReservaPasoCliente = ({
                                 <Textarea
                                     rows={3}
                                     placeholder={placeholderNotas}
-                                    {...register('notas')}
+                                    {...registrarCampo('notas')}
                                     className="rounded-xl text-xs"
                                 />
                             ) : (
                                 <Input
                                     type="text"
                                     placeholder={placeholderNotas}
-                                    {...register('notas')}
+                                    {...registrarCampo('notas')}
                                     className="h-11 rounded-2xl bg-background text-xs font-bold"
                                 />
                             )}

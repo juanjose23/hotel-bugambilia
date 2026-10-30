@@ -23,7 +23,7 @@ use App\Interactors\Restaurante\Pedidos\SepararPedido;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -70,10 +70,11 @@ final class PedidoTable
                     ->label('Ítems')
                     ->sortable(),
                 MontoMonedaColumn::make('subtotal')
-                    ->label('Subtotal'),
-                MontoMonedaColumn::make('total')
-                    ->label('Total')
-                    ->state(fn (Pedido $record): float => (float) ($record->cuenta->total ?? $record->calcularSubtotal())),
+                    ->label('Consumo del pedido'),
+                MontoMonedaColumn::make('cuenta.total')
+                    ->label('Total de cuenta compartida')
+                    ->tooltip('Incluye todos los consumos de la cuenta, no solamente este pedido.')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 EstadoBadgeColumn::make(EstadoPedido::class),
                 FechaStandardColumn::make()
                     ->toggleable(isToggledHiddenByDefault: false),

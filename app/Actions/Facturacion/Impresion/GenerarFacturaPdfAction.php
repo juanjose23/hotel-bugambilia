@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Actions\Facturacion\Impresion;
 
 use App\Repository\Models\Facturacion\Factura;
-use App\Support\Barcode\BarcodeGenerator;
-use App\Support\HotelInfo;
-use App\Support\MonedaHelper;
-use App\Support\NumeroALetras;
-use App\Support\Pdf\Concerns\GuardaReporte;
-use App\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Barcode\BarcodeGenerator;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\MonedaHelper;
+use App\Support\Barcode\Support\NumeroALetras;
+use App\Support\Barcode\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

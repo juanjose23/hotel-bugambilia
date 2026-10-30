@@ -6,7 +6,7 @@
 ])
 
 @php
-    $simboloMoneda = $simboloMoneda ?? \App\Support\MonedaHelper::simbolo();
+    $simboloMoneda = $simboloMoneda ?? \App\Support\Barcode\Support\MonedaHelper::simbolo();
     $capacidad = (int) ($mesa->capacidad_personas ?? 0);
 
     $estadoActual = is_object($mesa->estado)

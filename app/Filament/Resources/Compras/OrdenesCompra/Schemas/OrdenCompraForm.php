@@ -15,7 +15,7 @@ use App\Repository\Models\Compras\ProveedorContacto;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionConItemsProveedor;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionesPorSolicitud;
 use App\Repository\Queries\Compras\Solicitudes\ObtenerSolicitudConItems;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;

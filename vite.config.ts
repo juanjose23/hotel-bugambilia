@@ -11,12 +11,18 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
         },
     },
+    server: {
+        watch: {
+            ignored: ['**/.local/**'],
+        },
+    },
     plugins: [
         laravel({
             input: [
                 'resources/css/app.css',
                 'resources/css/filament/admin/theme.css',
                 'resources/js/app.tsx',
+                'resources/js/filament/guias/index.ts',
             ],
             refresh: true,
             fonts: [
@@ -26,6 +32,7 @@ export default defineConfig({
             ],
         }),
         react({
+            exclude: [/\/node_modules\//, /\/\.local\//],
             babel: {
                 plugins: ['babel-plugin-react-compiler'],
             },
@@ -37,6 +44,9 @@ export default defineConfig({
             output: {
                 manualChunks(id) {
                     if (id.includes('node_modules')) {
+                        if (id.includes('node_modules/driver.js/')) {
+                            return 'driver';
+                        }
                         if (id.includes('react') || id.includes('react-dom')) {
                             return 'vendor-react';
                         }

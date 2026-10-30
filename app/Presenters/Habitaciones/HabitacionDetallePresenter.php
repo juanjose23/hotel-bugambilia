@@ -136,23 +136,7 @@ final class HabitacionDetallePresenter
      */
     private function vistas(Habitacion $habitacion): array
     {
-        $detalle = $habitacion->detalle;
-
-        if ($detalle === null || ! is_array($detalle->vistas) || $detalle->vistas === []) {
-            return [];
-        }
-
-        $vistaIds = array_filter($detalle->vistas, fn ($v) => is_numeric($v));
-        if ($vistaIds !== []) {
-            return Catalogo::whereIn('id', $vistaIds)
-                ->pluck('nombre')
-                ->filter()
-                ->map(fn (mixed $v): string => is_string($v) ? $v : '')
-                ->values()
-                ->all();
-        }
-
-        return array_values(array_filter($detalle->vistas, fn ($v) => is_string($v) && $v !== ''));
+        return $habitacion->vistas->map(fn (Catalogo $vista): string => $vista->nombre)->values()->all();
     }
 
     /**

@@ -1,0 +1,86 @@
+x-production: &production
+  image: ${HOTEL_IMAGE:?Configura HOTEL_IMAGE con la imagen publicada en GHCR}
+  pull_policy: always
+  restart: unless-stopped
+  init: true
+  environment: &environment
+    APP_NAME: Hotel Bugambilia
+    APP_ENV: production
+    APP_DEBUG: "false"
+    APP_KEY: ${APP_KEY:?Configura la clave propia de producción}
+    APP_URL: ${APP_URL:?Configura la URL HTTPS del hotel}
+    TRUSTED_PROXIES: ${TRUSTED_PROXIES:?Configura las IP o CIDR del proxy interno de la plataforma}
+    APP_LOCALE: es
+    APP_FALLBACK_LOCALE: es
+    APP_TIMEZONE: America/Managua
+    LOG_CHANNEL: stderr
+    LOG_LEVEL: warning
+    DB_CONNECTION: pgsql
+    DB_HOST: ${DB_HOST:?Configura PostgreSQL de producción}
+    DB_PORT: ${DB_PORT:-5432}
+    DB_DATABASE: ${DB_DATABASE:?Configura la base de producción}
+    DB_USERNAME: ${DB_USERNAME:?Configura el usuario de producción}
+    DB_PASSWORD: ${DB_PASSWORD:?Configura la contraseña de producción}
+    DB_SSLMODE: ${DB_SSLMODE:-prefer}
+    DB_URL: ""
+    CACHE_STORE: database
+    SESSION_DRIVER: database
+    SESSION_SECURE_COOKIE: "true"
+    SESSION_HTTP_ONLY: "true"
+    SESSION_SAME_SITE: lax
+    QUEUE_CONNECTION: database
+    DB_QUEUE_RETRY_AFTER: "660"
+    MAIL_MAILER: ${MAIL_MAILER:-smtp}
+    MAIL_SCHEME: ${MAIL_SCHEME:-smtp}
+    MAIL_HOST: ${MAIL_HOST:-}
+    MAIL_PORT: ${MAIL_PORT:-587}
+    MAIL_USERNAME: ${MAIL_USERNAME:-}
+    MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+    MAIL_FROM_NAME: Hotel Bugambilia
+    STRIPE_KEY: ${STRIPE_KEY:-}
+    STRIPE_SECRET: ${STRIPE_SECRET:-}
+    STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    TESORERIA_HABILITADO: ${TESORERIA_HABILITADO:-true}
+    COCINA_DEMO: "false"
+    TELESCOPE_ENABLED: "false"
+    PULSE_ENABLED: "false"
+  volumes:
+    - hotel-uploads:/var/www/html/storage/app
+  stop_grace_period: 120s
+services:
+  release:
+    <<: *production
+    restart: "no"
+    command: ["php", "artisan", "migrate", "--force", "--no-interaction"]
+    healthcheck:
+      disable: true
+  app:
+    <<: *production
+    expose: ["80"]
+    depends_on:
+      release:
+        condition: service_completed_successfully
+  worker:
+    <<: *production
+    user: www-data
+    stop_signal: SIGTERM
+    stop_grace_period: 660s
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=600", "--max-time=3600"]
+    depends_on:
+      release:
+        condition: service_completed_successfully
+    healthcheck:
+      disable: true
+  scheduler:
+    <<: *production
+    user: www-data
+    stop_signal: SIGTERM
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      release:
+        condition: service_completed_successfully
+    healthcheck:
+      disable: true
+volumes:
+  hotel-uploads:

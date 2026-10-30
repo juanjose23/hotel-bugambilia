@@ -10,7 +10,7 @@ use App\Filament\Resources\Estancias\EstanciaResource\Pages\ViewEstancia;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Estancias\Estancia;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;

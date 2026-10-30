@@ -9,11 +9,13 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Shared\Stock;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 final class HabitacionRepositorio implements HabitacionRepositorioInterface
 {
     public function __construct(
         private readonly GenerarCorrelativoCodigoAction $generadorCodigo,
+        private readonly VistasHabitacionRepositorio $vistas,
     ) {}
 
     public function existePorSlug(string $slug, ?int $idAIgnorar = null): bool
@@ -87,23 +89,26 @@ final class HabitacionRepositorio implements HabitacionRepositorioInterface
     /** @param array<array-key, mixed> $imagenes */
     public function sincronizarImagenes(Habitacion $habitacion, array $imagenes): void
     {
-        $habitacion->imagenes()->delete();
-
-        $filas = [];
-        foreach ($imagenes as $index => $path) {
-            if ($path) {
-                $filas[] = [
-                    'imageable_type' => Habitacion::class,
-                    'imageable_id' => $habitacion->id,
-                    'url' => $path,
-                    'orden' => $index + 1,
-                ];
+        $rutas = [];
+        foreach ($imagenes as $path) {
+            if (! is_string($path) || trim($path) === '') {
+                throw ValidationException::withMessages(['imagenes' => 'Seleccione imagenes validas para la galeria.']);
             }
+            $rutas[] = $path;
         }
-
-        if ($filas !== []) {
-            $habitacion->imagenes()->insert($filas);
+        $actuales = $habitacion->imagenes()->get()->keyBy('url');
+        $conservadas = [];
+        foreach (array_values(array_unique($rutas)) as $index => $path) {
+            $imagen = $actuales->get($path);
+            if ($imagen === null) {
+                $imagen = $habitacion->imagenes()->create(['url' => $path, 'orden' => $index + 1]);
+            } elseif ($imagen->orden !== $index + 1) {
+                $imagen->update(['orden' => $index + 1]);
+            }
+            $conservadas[] = $imagen->id;
         }
+        $habitacion->imagenes()->whereNotIn('id', $conservadas)->delete();
+        $habitacion->unsetRelation('imagenes');
     }
 
     public function clonar(
@@ -135,8 +140,10 @@ final class HabitacionRepositorio implements HabitacionRepositorioInterface
         ]);
 
         if ($origen->detalle) {
-            $nueva->detalle()->create($origen->detalle->replicate(['id', 'habitacion_id', 'created_at', 'updated_at'])->toArray());
+            $nueva->detalle()->create($origen->detalle->replicate(['id', 'habitacion_id', 'vistas_legacy', 'created_at', 'updated_at'])->toArray());
         }
+
+        $this->vistas->sincronizar($nueva, $origen->vistas->modelKeys());
 
         foreach ($origen->servicioAsignaciones as $servicio) {
             $nueva->servicioAsignaciones()->create([

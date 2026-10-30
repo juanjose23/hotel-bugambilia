@@ -18,7 +18,7 @@ final class ObtenerPedidosConItemsQuery
         /** @var Collection<int, Pedido> $pedidos */
         $pedidos = Pedido::query()
             ->whereIn('id', $pedidoIds)
-            ->with(['items.plato', 'mesa', 'cliente.persona.personaNatural'])
+            ->with(['items.plato', 'items.producto', 'items.variante', 'mesa', 'cliente.persona.personaNatural'])
             ->get();
 
         return $pedidos;

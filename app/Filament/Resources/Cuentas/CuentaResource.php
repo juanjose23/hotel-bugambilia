@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Cuentas;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Filament\Resources\Cuentas\CuentaResource\Pages;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\DetallesRelationManager;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\PagosRelationManager;
@@ -14,7 +15,7 @@ use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Personas\Persona;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -33,13 +34,15 @@ use UnitEnum;
 
 final class CuentaResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = Cuenta::class;
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::FolderOpen;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
+    protected static string|UnitEnum|null $navigationGroup = 'Cobros y documentos';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 10;
 
     protected static ?string $modelLabel = 'Cuenta';
 

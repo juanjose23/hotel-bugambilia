@@ -9,7 +9,7 @@ use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Repository\Models\Cuentas\Cuenta;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;

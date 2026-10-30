@@ -31,14 +31,28 @@ export const useAcompanantesForm = ({
         name: 'acompanantes',
     });
 
-    const onSubmit = (data: AcompanantesFormData) => {
-        router.post(`/portal/reservas/${reservaId}/acompanantes`, data, {
-            preserveScroll: true,
-            onSuccess: () => {
-                onSuccessCallback?.();
-            },
+    const onSubmit = (data: AcompanantesFormData) =>
+        new Promise<void>((resolve) => {
+            router.post(`/portal/reservas/${reservaId}/acompanantes`, data, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onSuccessCallback?.();
+                },
+                onError: (errors) => {
+                    for (const [key, message] of Object.entries(errors)) {
+                        if (key.startsWith('acompanantes.')) {
+                            form.setError(
+                                key as `acompanantes.${number}.nombre`,
+                                { message: String(message) },
+                            );
+                        } else {
+                            form.setError('root', { message: String(message) });
+                        }
+                    }
+                },
+                onFinish: () => resolve(),
+            });
         });
-    };
 
     return {
         form,

@@ -1,0 +1,516 @@
+flowchart LR
+  n_act_plan_activos["act_plan_activos"]
+  n_auditoria_jobs["auditoria_jobs"]
+  n_auditoria_reportes["auditoria_reportes"]
+  n_audits["audits"]
+  n_cache["cache"]
+  n_cache_locks["cache_locks"]
+  n_cargos_facturacion["cargos_facturacion"]
+  n_catalogo_tipos["catalogo_tipos"]
+  n_catalogos["catalogos"]
+  n_clientes["clientes"]
+  n_colaborador_cargos_historial["colaborador_cargos_historial"]
+  n_colaborador_contactos_emergencia["colaborador_contactos_emergencia"]
+  n_colaborador_datos_medicos["colaborador_datos_medicos"]
+  n_colaborador_documentos["colaborador_documentos"]
+  n_colaborador_salarios["colaborador_salarios"]
+  n_colaboradores["colaboradores"]
+  n_compra_historial["compra_historial"]
+  n_conflictos_identidad["conflictos_identidad"]
+  n_cotizacion_items["cotizacion_items"]
+  n_cotizaciones["cotizaciones"]
+  n_cuenta_cargos["cuenta_cargos"]
+  n_cuenta_detalles["cuenta_detalles"]
+  n_cuentas["cuentas"]
+  n_detalles_habitacion["detalles_habitacion"]
+  n_devolucion_items["devolucion_items"]
+  n_devoluciones_compra["devoluciones_compra"]
+  n_driverjs_tour_completions["driverjs_tour_completions"]
+  n_espacios["espacios"]
+  n_estancias["estancias"]
+  n_factura_autorizaciones_dgi["factura_autorizaciones_dgi"]
+  n_factura_detalles["factura_detalles"]
+  n_factura_folios["factura_folios"]
+  n_factura_series["factura_series"]
+  n_facturas["facturas"]
+  n_failed_jobs["failed_jobs"]
+  n_habitacion_historial["habitacion_historial"]
+  n_habitacion_vistas["habitacion_vistas"]
+  n_habitaciones["habitaciones"]
+  n_imagenes["imagenes"]
+  n_inv_activo_asignaciones["inv_activo_asignaciones"]
+  n_inv_activo_bajas["inv_activo_bajas"]
+  n_inv_activos["inv_activos"]
+  n_inv_inventarios_fisicos["inv_inventarios_fisicos"]
+  n_inv_lotes["inv_lotes"]
+  n_inv_mantenimiento_notificaciones["inv_mantenimiento_notificaciones"]
+  n_inv_mantenimientos["inv_mantenimientos"]
+  n_inv_movimientos["inv_movimientos"]
+  n_inv_planes_mantenimiento["inv_planes_mantenimiento"]
+  n_inv_prefijos_codigo["inv_prefijos_codigo"]
+  n_inv_registro_individualizacion["inv_registro_individualizacion"]
+  n_inv_stock["inv_stock"]
+  n_job_batches["job_batches"]
+  n_jobs["jobs"]
+  n_limp_ejecuciones["limp_ejecuciones"]
+  n_limp_horario_detalles["limp_horario_detalles"]
+  n_limp_horario_turnos["limp_horario_turnos"]
+  n_limp_horarios["limp_horarios"]
+  n_limp_lavanderia_procesos["limp_lavanderia_procesos"]
+  n_limp_sustituciones_stock["limp_sustituciones_stock"]
+  n_limp_turno_carritos["limp_turno_carritos"]
+  n_migrations["migrations"]
+  n_model_has_permissions["model_has_permissions"]
+  n_model_has_roles["model_has_roles"]
+  n_monedas["monedas"]
+  n_notifications["notifications"]
+  n_orden_compra_items["orden_compra_items"]
+  n_ordenes_compra["ordenes_compra"]
+  n_pago_conciliaciones["pago_conciliaciones"]
+  n_pago_transacciones["pago_transacciones"]
+  n_pagos_cuenta["pagos_cuenta"]
+  n_paises["paises"]
+  n_pasarelas_pago["pasarelas_pago"]
+  n_password_reset_tokens["password_reset_tokens"]
+  n_pedido_items["pedido_items"]
+  n_pedidos["pedidos"]
+  n_permissions["permissions"]
+  n_personas["personas"]
+  n_personas_juridicas["personas_juridicas"]
+  n_personas_naturales["personas_naturales"]
+  n_platos["platos"]
+  n_politica_penalizaciones["politica_penalizaciones"]
+  n_politicaables["politicaables"]
+  n_politicas["politicas"]
+  n_precios["precios"]
+  n_proceso_items["proceso_items"]
+  n_procesos_cocina["procesos_cocina"]
+  n_producto_kit["producto_kit"]
+  n_producto_variantes["producto_variantes"]
+  n_productos["productos"]
+  n_promocion_beneficio_reglas["promocion_beneficio_reglas"]
+  n_promocion_beneficio_usos["promocion_beneficio_usos"]
+  n_promocion_beneficios["promocion_beneficios"]
+  n_promocion_items["promocion_items"]
+  n_promociones["promociones"]
+  n_proveedor_contactos["proveedor_contactos"]
+  n_proveedores["proveedores"]
+  n_recepcion_items["recepcion_items"]
+  n_recepciones_compra["recepciones_compra"]
+  n_recursos_reservables["recursos_reservables"]
+  n_reserva_detalles["reserva_detalles"]
+  n_reserva_estado_historial["reserva_estado_historial"]
+  n_reserva_huespedes["reserva_huespedes"]
+  n_reserva_servicios["reserva_servicios"]
+  n_reservas["reservas"]
+  n_reservas_bitacora["reservas_bitacora"]
+  n_restaurante_buffet_cierres["restaurante_buffet_cierres"]
+  n_restaurante_buffet_platos["restaurante_buffet_platos"]
+  n_restaurante_buffets["restaurante_buffets"]
+  n_restaurante_recetas_transformacion_materia_prima["restaurante_recetas_transformacion_materia_prima"]
+  n_restaurante_sustituciones_ingredientes["restaurante_sustituciones_ingredientes"]
+  n_restaurante_transformacion_materia_prima_items["restaurante_transformacion_materia_prima_items"]
+  n_restaurante_transformaciones_materia_prima["restaurante_transformaciones_materia_prima"]
+  n_restaurante_zonas_delivery["restaurante_zonas_delivery"]
+  n_role_has_permissions["role_has_permissions"]
+  n_roles["roles"]
+  n_secuencias["secuencias"]
+  n_servicio_asignaciones["servicio_asignaciones"]
+  n_servicios["servicios"]
+  n_servicios_precios["servicios_precios"]
+  n_sessions["sessions"]
+  n_social_accounts["social_accounts"]
+  n_solicitud_items["solicitud_items"]
+  n_solicitud_limpiezas["solicitud_limpiezas"]
+  n_solicitudes_compra["solicitudes_compra"]
+  n_stocks["stocks"]
+  n_tarjeta_cliente["tarjeta_cliente"]
+  n_tasas_cambio["tasas_cambio"]
+  n_tes_abastecimientos["tes_abastecimientos"]
+  n_tes_caja_monedas["tes_caja_monedas"]
+  n_tes_cajas["tes_cajas"]
+  n_tes_comprobantes["tes_comprobantes"]
+  n_tes_conciliaciones["tes_conciliaciones"]
+  n_tes_decisiones_comprobante["tes_decisiones_comprobante"]
+  n_tes_devoluciones["tes_devoluciones"]
+  n_tes_entregas["tes_entregas"]
+  n_tes_evidencias["tes_evidencias"]
+  n_tes_extractos["tes_extractos"]
+  n_tes_fondos["tes_fondos"]
+  n_tes_movimientos_caja["tes_movimientos_caja"]
+  n_tes_movimientos_fondo["tes_movimientos_fondo"]
+  n_tes_operaciones["tes_operaciones"]
+  n_tes_operaciones_cobro["tes_operaciones_cobro"]
+  n_tes_saldos_sesion["tes_saldos_sesion"]
+  n_tes_sesiones_caja["tes_sesiones_caja"]
+  n_tes_vales["tes_vales"]
+  n_ubicaciones["ubicaciones"]
+  n_users["users"]
+  n_venta_detalles["venta_detalles"]
+  n_ventas["ventas"]
+  n_act_plan_activos -->|"activo_id"| n_inv_activos
+  n_act_plan_activos -->|"plan_id"| n_inv_planes_mantenimiento
+  n_auditoria_jobs -->|"usuario_id"| n_users
+  n_auditoria_reportes -->|"usuario_id"| n_users
+  n_catalogos -->|"catalogo_tipo_id"| n_catalogo_tipos
+  n_catalogos -->|"padre_id"| n_catalogos
+  n_clientes -->|"catalogo_id"| n_catalogos
+  n_clientes -->|"persona_id"| n_personas
+  n_colaborador_cargos_historial -->|"cargo_id"| n_catalogos
+  n_colaborador_cargos_historial -->|"colaborador_id"| n_colaboradores
+  n_colaborador_cargos_historial -->|"departamento_id"| n_catalogos
+  n_colaborador_contactos_emergencia -->|"colaborador_id"| n_colaboradores
+  n_colaborador_datos_medicos -->|"colaborador_id"| n_colaboradores
+  n_colaborador_documentos -->|"colaborador_id"| n_colaboradores
+  n_colaborador_salarios -->|"colaborador_id"| n_colaboradores
+  n_colaboradores -->|"persona_id"| n_personas
+  n_compra_historial -->|"usuario_id"| n_users
+  n_conflictos_identidad -->|"creado_por"| n_users
+  n_conflictos_identidad -->|"persona_id"| n_personas
+  n_conflictos_identidad -->|"resuelto_por"| n_users
+  n_cotizacion_items -->|"cotizacion_id"| n_cotizaciones
+  n_cotizacion_items -->|"producto_id"| n_productos
+  n_cotizacion_items -->|"producto_variante_id"| n_producto_variantes
+  n_cotizaciones -->|"condicion_pago_id"| n_catalogos
+  n_cotizaciones -->|"creada_por"| n_users
+  n_cotizaciones -->|"elegida_por"| n_users
+  n_cotizaciones -->|"moneda_id"| n_monedas
+  n_cotizaciones -->|"proveedor_id"| n_proveedores
+  n_cotizaciones -->|"solicitud_id"| n_solicitudes_compra
+  n_cuenta_cargos -->|"anulado_por"| n_users
+  n_cuenta_cargos -->|"aplicado_por"| n_users
+  n_cuenta_cargos -->|"cargo_id"| n_cargos_facturacion
+  n_cuenta_cargos -->|"cuenta_id"| n_cuentas
+  n_cuenta_cargos -->|"moneda_id"| n_monedas
+  n_cuenta_detalles -->|"anulado_por"| n_users
+  n_cuenta_detalles -->|"creador_id"| n_users
+  n_cuenta_detalles -->|"cuenta_id"| n_cuentas
+  n_cuenta_detalles -->|"espacio_id"| n_espacios
+  n_cuenta_detalles -->|"moneda_id"| n_monedas
+  n_cuentas -->|"abierta_por"| n_users
+  n_cuentas -->|"actualizado_por"| n_users
+  n_cuentas -->|"cerrada_por"| n_users
+  n_cuentas -->|"cliente_id"| n_clientes
+  n_cuentas -->|"estancia_id"| n_estancias
+  n_cuentas -->|"estancia_id, reserva_id"| n_estancias
+  n_cuentas -->|"moneda_id"| n_monedas
+  n_cuentas -->|"reserva_id"| n_reservas
+  n_detalles_habitacion -->|"habitacion_id"| n_habitaciones
+  n_devolucion_items -->|"devolucion_id"| n_devoluciones_compra
+  n_devolucion_items -->|"lote_id"| n_inv_lotes
+  n_devolucion_items -->|"producto_id"| n_productos
+  n_devolucion_items -->|"producto_variante_id"| n_producto_variantes
+  n_devolucion_items -->|"recepcion_item_id"| n_recepcion_items
+  n_devolucion_items -->|"unidad_medida_id"| n_catalogos
+  n_devoluciones_compra -->|"creado_por_id"| n_users
+  n_devoluciones_compra -->|"orden_compra_id"| n_ordenes_compra
+  n_devoluciones_compra -->|"recepcion_compra_id"| n_recepciones_compra
+  n_driverjs_tour_completions -->|"user_id"| n_users
+  n_espacios -->|"padre_id"| n_espacios
+  n_espacios -->|"reservable_id"| n_recursos_reservables
+  n_espacios -->|"ubicacion_bar_id"| n_ubicaciones
+  n_espacios -->|"ubicacion_cocina_id"| n_ubicaciones
+  n_espacios -->|"ubicacion_id"| n_ubicaciones
+  n_estancias -->|"reserva_detalle_id, reserva_id"| n_reserva_detalles
+  n_estancias -->|"habitacion_id"| n_habitaciones
+  n_estancias -->|"reserva_detalle_id"| n_reserva_detalles
+  n_estancias -->|"reserva_id"| n_reservas
+  n_estancias -->|"usuario_check_in_id"| n_users
+  n_estancias -->|"usuario_check_out_id"| n_users
+  n_factura_autorizaciones_dgi -->|"factura_serie_id"| n_factura_series
+  n_factura_detalles -->|"factura_id"| n_facturas
+  n_factura_detalles -->|"venta_detalle_id"| n_venta_detalles
+  n_factura_folios -->|"factura_autorizacion_dgi_id"| n_factura_autorizaciones_dgi
+  n_factura_folios -->|"factura_id"| n_facturas
+  n_factura_folios -->|"factura_serie_id"| n_factura_series
+  n_factura_folios -->|"reservado_por"| n_users
+  n_factura_series -->|"caja_id"| n_tes_cajas
+  n_facturas -->|"anulada_por"| n_users
+  n_facturas -->|"cliente_id"| n_clientes
+  n_facturas -->|"cuenta_id"| n_cuentas
+  n_facturas -->|"emitida_por"| n_users
+  n_facturas -->|"factura_autorizacion_dgi_id"| n_factura_autorizaciones_dgi
+  n_facturas -->|"factura_serie_id"| n_factura_series
+  n_facturas -->|"moneda_base_id"| n_monedas
+  n_facturas -->|"moneda_id"| n_monedas
+  n_facturas -->|"tasa_cambio_id"| n_tasas_cambio
+  n_facturas -->|"venta_id, cuenta_id"| n_ventas
+  n_facturas -->|"venta_id"| n_ventas
+  n_habitacion_historial -->|"usuario_id"| n_users
+  n_habitacion_vistas -->|"catalogo_id"| n_catalogos
+  n_habitacion_vistas -->|"habitacion_id"| n_habitaciones
+  n_habitaciones -->|"categoria_id"| n_catalogos
+  n_habitaciones -->|"reservable_id"| n_recursos_reservables
+  n_habitaciones -->|"ubicacion_id"| n_ubicaciones
+  n_inv_activo_asignaciones -->|"activo_id"| n_inv_activos
+  n_inv_activo_asignaciones -->|"asignado_por_id"| n_users
+  n_inv_activo_asignaciones -->|"recibido_por_id"| n_users
+  n_inv_activo_bajas -->|"activo_id"| n_inv_activos
+  n_inv_activo_bajas -->|"aprobado_por_id"| n_users
+  n_inv_activo_bajas -->|"creado_por_id"| n_users
+  n_inv_activos -->|"individualizacion_id"| n_inv_registro_individualizacion
+  n_inv_activos -->|"moneda_id"| n_monedas
+  n_inv_activos -->|"producto_id"| n_productos
+  n_inv_activos -->|"producto_variante_id"| n_producto_variantes
+  n_inv_activos -->|"proveedor_id"| n_proveedores
+  n_inv_activos -->|"recepcion_item_id"| n_recepcion_items
+  n_inv_inventarios_fisicos -->|"creado_por_id"| n_users
+  n_inv_lotes -->|"producto_id"| n_productos
+  n_inv_lotes -->|"producto_variante_id"| n_producto_variantes
+  n_inv_lotes -->|"proveedor_id"| n_proveedores
+  n_inv_lotes -->|"recepcion_item_id"| n_recepcion_items
+  n_inv_lotes -->|"ubicacion_detalle_id"| n_ubicaciones
+  n_inv_lotes -->|"ubicacion_id"| n_ubicaciones
+  n_inv_mantenimiento_notificaciones -->|"enviado_a"| n_users
+  n_inv_mantenimiento_notificaciones -->|"mantenimiento_id"| n_inv_mantenimientos
+  n_inv_mantenimientos -->|"activo_id"| n_inv_activos
+  n_inv_mantenimientos -->|"plan_id"| n_inv_planes_mantenimiento
+  n_inv_mantenimientos -->|"realizado_por_id"| n_users
+  n_inv_movimientos -->|"creado_por_id"| n_users
+  n_inv_movimientos -->|"lote_id"| n_inv_lotes
+  n_inv_movimientos -->|"producto_id"| n_productos
+  n_inv_movimientos -->|"ubicacion_destino_id"| n_ubicaciones
+  n_inv_movimientos -->|"ubicacion_origen_id"| n_ubicaciones
+  n_inv_planes_mantenimiento -->|"moneda_id"| n_monedas
+  n_inv_planes_mantenimiento -->|"proveedor_id"| n_proveedores
+  n_inv_registro_individualizacion -->|"producto_id"| n_productos
+  n_inv_registro_individualizacion -->|"producto_variante_id"| n_producto_variantes
+  n_inv_registro_individualizacion -->|"recepcion_item_id"| n_recepcion_items
+  n_inv_registro_individualizacion -->|"registrado_por_id"| n_users
+  n_inv_stock -->|"lote_id"| n_inv_lotes
+  n_inv_stock -->|"producto_id"| n_productos
+  n_inv_stock -->|"producto_variante_id"| n_producto_variantes
+  n_inv_stock -->|"ubicacion_detalle_id"| n_ubicaciones
+  n_inv_stock -->|"ubicacion_id"| n_ubicaciones
+  n_limp_ejecuciones -->|"carrito_id"| n_ubicaciones
+  n_limp_ejecuciones -->|"colaborador_id"| n_colaboradores
+  n_limp_ejecuciones -->|"horario_id"| n_limp_horarios
+  n_limp_ejecuciones -->|"solicitud_id"| n_solicitud_limpiezas
+  n_limp_ejecuciones -->|"turno_id"| n_limp_horario_turnos
+  n_limp_horario_detalles -->|"horario_id"| n_limp_horarios
+  n_limp_horario_turnos -->|"apoyo_id"| n_colaboradores
+  n_limp_horario_turnos -->|"lider_id"| n_colaboradores
+  n_limp_horarios -->|"turno_id"| n_limp_horario_turnos
+  n_limp_lavanderia_procesos -->|"lote_id"| n_inv_lotes
+  n_limp_lavanderia_procesos -->|"producto_id"| n_productos
+  n_limp_lavanderia_procesos -->|"producto_variante_id"| n_producto_variantes
+  n_limp_sustituciones_stock -->|"ejecucion_id"| n_limp_ejecuciones
+  n_limp_sustituciones_stock -->|"producto_id"| n_productos
+  n_limp_sustituciones_stock -->|"producto_variante_id"| n_producto_variantes
+  n_limp_sustituciones_stock -->|"sustituto_producto_id"| n_productos
+  n_limp_sustituciones_stock -->|"sustituto_variante_id"| n_producto_variantes
+  n_limp_turno_carritos -->|"turno_id"| n_limp_horario_turnos
+  n_limp_turno_carritos -->|"ubicacion_id"| n_ubicaciones
+  n_model_has_permissions -->|"permission_id"| n_permissions
+  n_model_has_roles -->|"role_id"| n_roles
+  n_orden_compra_items -->|"orden_compra_id"| n_ordenes_compra
+  n_orden_compra_items -->|"producto_id"| n_productos
+  n_orden_compra_items -->|"producto_variante_id"| n_producto_variantes
+  n_orden_compra_items -->|"unidad_medida_id"| n_catalogos
+  n_ordenes_compra -->|"condicion_pago_id"| n_catalogos
+  n_ordenes_compra -->|"cotizacion_id"| n_cotizaciones
+  n_ordenes_compra -->|"proveedor_contacto_id"| n_proveedor_contactos
+  n_ordenes_compra -->|"proveedor_id"| n_proveedores
+  n_ordenes_compra -->|"solicitud_id"| n_solicitudes_compra
+  n_pago_conciliaciones -->|"conciliada_por"| n_users
+  n_pago_conciliaciones -->|"pago_transaccion_id"| n_pago_transacciones
+  n_pago_transacciones -->|"cuenta_id"| n_cuentas
+  n_pago_transacciones -->|"factura_id"| n_facturas
+  n_pago_transacciones -->|"moneda_base_id"| n_monedas
+  n_pago_transacciones -->|"moneda_id"| n_monedas
+  n_pago_transacciones -->|"pago_cuenta_id"| n_pagos_cuenta
+  n_pago_transacciones -->|"pasarela_pago_id"| n_pasarelas_pago
+  n_pago_transacciones -->|"reserva_id"| n_reservas
+  n_pago_transacciones -->|"venta_id"| n_ventas
+  n_pagos_cuenta -->|"cuenta_id"| n_cuentas
+  n_pagos_cuenta -->|"moneda_id"| n_monedas
+  n_pagos_cuenta -->|"usuario_id"| n_users
+  n_pagos_cuenta -->|"venta_id, cuenta_id"| n_ventas
+  n_pagos_cuenta -->|"venta_id"| n_ventas
+  n_pedido_items -->|"pedido_id"| n_pedidos
+  n_pedido_items -->|"plato_id"| n_platos
+  n_pedido_items -->|"producto_id"| n_productos
+  n_pedido_items -->|"producto_variante_id"| n_producto_variantes
+  n_pedidos -->|"cliente_id"| n_clientes
+  n_pedidos -->|"cuenta_id"| n_cuentas
+  n_pedidos -->|"mesa_id"| n_espacios
+  n_pedidos -->|"mesero_id"| n_colaboradores
+  n_pedidos -->|"padre_pedido_id"| n_pedidos
+  n_personas -->|"pais_id"| n_paises
+  n_personas_juridicas -->|"persona_id"| n_personas
+  n_personas_naturales -->|"persona_id"| n_personas
+  n_platos -->|"categoria_id"| n_catalogos
+  n_platos -->|"producto_receta_id"| n_productos
+  n_politica_penalizaciones -->|"politica_id"| n_politicas
+  n_politicaables -->|"politica_id"| n_politicas
+  n_precios -->|"moneda_id"| n_monedas
+  n_proceso_items -->|"proceso_id"| n_procesos_cocina
+  n_proceso_items -->|"producto_destino_id"| n_productos
+  n_proceso_items -->|"ubicacion_destino_id"| n_ubicaciones
+  n_proceso_items -->|"variante_destino_id"| n_producto_variantes
+  n_procesos_cocina -->|"lote_resultado_id"| n_inv_lotes
+  n_procesos_cocina -->|"pedido_item_id"| n_pedido_items
+  n_procesos_cocina -->|"plato_id"| n_platos
+  n_procesos_cocina -->|"producto_origen_id"| n_productos
+  n_procesos_cocina -->|"realizado_por"| n_users
+  n_procesos_cocina -->|"variante_origen_id"| n_producto_variantes
+  n_producto_kit -->|"lote_id"| n_inv_lotes
+  n_producto_kit -->|"producto_padre_id"| n_productos
+  n_producto_kit -->|"producto_variante_id"| n_producto_variantes
+  n_producto_variantes -->|"producto_id"| n_productos
+  n_producto_variantes -->|"unidad_medida_id"| n_catalogos
+  n_productos -->|"categoria_id"| n_catalogos
+  n_productos -->|"marca_id"| n_catalogos
+  n_productos -->|"unidad_medida_id"| n_catalogos
+  n_promocion_beneficio_reglas -->|"beneficio_id"| n_promocion_beneficios
+  n_promocion_beneficio_usos -->|"beneficio_id"| n_promocion_beneficios
+  n_promocion_beneficio_usos -->|"cliente_id"| n_clientes
+  n_promocion_beneficio_usos -->|"cuenta_id"| n_cuentas
+  n_promocion_beneficio_usos -->|"reserva_id"| n_reservas
+  n_promocion_beneficio_usos -->|"venta_id"| n_ventas
+  n_promocion_beneficios -->|"promocion_id"| n_promociones
+  n_promocion_beneficios -->|"segmento_cliente_id"| n_catalogos
+  n_promocion_items -->|"promocion_id"| n_promociones
+  n_promociones -->|"tipo_promocion_id"| n_catalogos
+  n_proveedor_contactos -->|"proveedor_id"| n_proveedores
+  n_proveedores -->|"persona_id"| n_personas
+  n_proveedores -->|"tipo_proveedor_id"| n_catalogos
+  n_recepcion_items -->|"orden_item_id"| n_orden_compra_items
+  n_recepcion_items -->|"producto_id"| n_productos
+  n_recepcion_items -->|"producto_variante_id"| n_producto_variantes
+  n_recepcion_items -->|"recepcion_id"| n_recepciones_compra
+  n_recepcion_items -->|"ubicacion_id"| n_ubicaciones
+  n_recepcion_items -->|"unidad_medida_id"| n_catalogos
+  n_recepciones_compra -->|"orden_compra_id"| n_ordenes_compra
+  n_recepciones_compra -->|"recibido_por_id"| n_users
+  n_recepciones_compra -->|"ubicacion_id"| n_ubicaciones
+  n_reserva_detalles -->|"estancia_id"| n_estancias
+  n_reserva_detalles -->|"parent_id"| n_reserva_detalles
+  n_reserva_detalles -->|"reserva_id"| n_reservas
+  n_reserva_detalles -->|"reservable_id"| n_recursos_reservables
+  n_reserva_estado_historial -->|"reserva_id"| n_reservas
+  n_reserva_estado_historial -->|"usuario_id"| n_users
+  n_reserva_huespedes -->|"reserva_detalle_id"| n_reserva_detalles
+  n_reserva_servicios -->|"reserva_id"| n_reservas
+  n_reserva_servicios -->|"servicio_id"| n_servicios
+  n_reservas -->|"cliente_id"| n_clientes
+  n_reservas -->|"espacio_id"| n_espacios
+  n_reservas -->|"habitacion_id"| n_habitaciones
+  n_reservas -->|"moneda_id"| n_monedas
+  n_reservas -->|"promocion_id"| n_promociones
+  n_reservas -->|"servicio_id"| n_servicios
+  n_reservas_bitacora -->|"reserva_id"| n_reservas
+  n_restaurante_buffet_cierres -->|"buffet_id"| n_restaurante_buffets
+  n_restaurante_buffet_cierres -->|"stock_id"| n_stocks
+  n_restaurante_buffet_platos -->|"buffet_id"| n_restaurante_buffets
+  n_restaurante_buffet_platos -->|"plato_id"| n_platos
+  n_restaurante_buffet_platos -->|"producto_variante_id"| n_producto_variantes
+  n_restaurante_buffets -->|"creado_por"| n_users
+  n_restaurante_buffets -->|"cuenta_id"| n_cuentas
+  n_restaurante_buffets -->|"moneda_id"| n_monedas
+  n_restaurante_buffets -->|"reserva_id"| n_reservas
+  n_restaurante_recetas_transformacion_materia_prima -->|"producto_bruto_id"| n_productos
+  n_restaurante_recetas_transformacion_materia_prima -->|"producto_materia_prima_id"| n_productos
+  n_restaurante_recetas_transformacion_materia_prima -->|"unidad_medida_id"| n_catalogos
+  n_restaurante_recetas_transformacion_materia_prima -->|"variante_bruta_id"| n_producto_variantes
+  n_restaurante_recetas_transformacion_materia_prima -->|"variante_materia_prima_id"| n_producto_variantes
+  n_restaurante_sustituciones_ingredientes -->|"autorizado_por"| n_users
+  n_restaurante_sustituciones_ingredientes -->|"pedido_item_id"| n_pedido_items
+  n_restaurante_sustituciones_ingredientes -->|"plato_id"| n_platos
+  n_restaurante_sustituciones_ingredientes -->|"producto_original_id"| n_productos
+  n_restaurante_sustituciones_ingredientes -->|"producto_sustituto_id"| n_productos
+  n_restaurante_sustituciones_ingredientes -->|"variante_original_id"| n_producto_variantes
+  n_restaurante_sustituciones_ingredientes -->|"variante_sustituta_id"| n_producto_variantes
+  n_restaurante_transformacion_materia_prima_items -->|"producto_destino_id"| n_productos
+  n_restaurante_transformacion_materia_prima_items -->|"transformacion_id"| n_restaurante_transformaciones_materia_prima
+  n_restaurante_transformacion_materia_prima_items -->|"ubicacion_destino_id"| n_ubicaciones
+  n_restaurante_transformacion_materia_prima_items -->|"variante_destino_id"| n_producto_variantes
+  n_restaurante_transformaciones_materia_prima -->|"producto_origen_id"| n_productos
+  n_restaurante_transformaciones_materia_prima -->|"realizado_por"| n_users
+  n_restaurante_transformaciones_materia_prima -->|"ubicacion_origen_id"| n_ubicaciones
+  n_restaurante_transformaciones_materia_prima -->|"variante_origen_id"| n_producto_variantes
+  n_role_has_permissions -->|"permission_id"| n_permissions
+  n_role_has_permissions -->|"role_id"| n_roles
+  n_servicio_asignaciones -->|"servicio_id"| n_servicios
+  n_servicios -->|"categoria_id"| n_catalogos
+  n_servicios -->|"reservable_id"| n_recursos_reservables
+  n_servicios_precios -->|"moneda_id"| n_monedas
+  n_servicios_precios -->|"servicio_id"| n_servicios
+  n_social_accounts -->|"user_id"| n_users
+  n_solicitud_items -->|"producto_id"| n_productos
+  n_solicitud_items -->|"producto_variante_id"| n_producto_variantes
+  n_solicitud_items -->|"solicitud_id"| n_solicitudes_compra
+  n_solicitud_items -->|"unidad_medida_id"| n_catalogos
+  n_solicitud_limpiezas -->|"creador_id"| n_users
+  n_solicitud_limpiezas -->|"personal_id"| n_users
+  n_solicitudes_compra -->|"colaborador_id"| n_colaboradores
+  n_solicitudes_compra -->|"departamento_solicitante_id"| n_catalogos
+  n_stocks -->|"lote_id"| n_inv_lotes
+  n_stocks -->|"producto_id"| n_productos
+  n_stocks -->|"producto_variante_id"| n_producto_variantes
+  n_tarjeta_cliente -->|"cliente_id"| n_clientes
+  n_tasas_cambio -->|"moneda_destino_id"| n_monedas
+  n_tasas_cambio -->|"moneda_origen_id"| n_monedas
+  n_tes_abastecimientos -->|"aprobado_por"| n_users
+  n_tes_abastecimientos -->|"fondo_id"| n_tes_fondos
+  n_tes_abastecimientos -->|"sesion_id"| n_tes_sesiones_caja
+  n_tes_abastecimientos -->|"solicitante_id"| n_users
+  n_tes_caja_monedas -->|"caja_id"| n_tes_cajas
+  n_tes_caja_monedas -->|"moneda_id"| n_monedas
+  n_tes_cajas -->|"creada_por"| n_users
+  n_tes_comprobantes -->|"cuenta_id"| n_cuentas
+  n_tes_comprobantes -->|"extracto_id"| n_tes_extractos
+  n_tes_comprobantes -->|"fondo_id"| n_tes_fondos
+  n_tes_comprobantes -->|"pago_cuenta_id"| n_pagos_cuenta
+  n_tes_comprobantes -->|"revisado_por"| n_users
+  n_tes_comprobantes -->|"usuario_id"| n_users
+  n_tes_conciliaciones -->|"extracto_id"| n_tes_extractos
+  n_tes_conciliaciones -->|"movimiento_id"| n_tes_movimientos_fondo
+  n_tes_conciliaciones -->|"pago_transaccion_id"| n_pago_transacciones
+  n_tes_conciliaciones -->|"usuario_id"| n_users
+  n_tes_decisiones_comprobante -->|"comprobante_id"| n_tes_comprobantes
+  n_tes_decisiones_comprobante -->|"usuario_id"| n_users
+  n_tes_devoluciones -->|"aprobado_por"| n_users
+  n_tes_devoluciones -->|"pago_cuenta_id"| n_pagos_cuenta
+  n_tes_devoluciones -->|"sesion_id"| n_tes_sesiones_caja
+  n_tes_devoluciones -->|"solicitante_id"| n_users
+  n_tes_entregas -->|"entregado_por"| n_users
+  n_tes_entregas -->|"fondo_id"| n_tes_fondos
+  n_tes_entregas -->|"recibido_por"| n_users
+  n_tes_entregas -->|"sesion_id"| n_tes_sesiones_caja
+  n_tes_evidencias -->|"comprobante_id"| n_tes_comprobantes
+  n_tes_evidencias -->|"usuario_id"| n_users
+  n_tes_extractos -->|"fondo_id"| n_tes_fondos
+  n_tes_extractos -->|"registrado_por"| n_users
+  n_tes_fondos -->|"moneda_id"| n_monedas
+  n_tes_fondos -->|"responsable_id"| n_users
+  n_tes_movimientos_caja -->|"moneda_id"| n_monedas
+  n_tes_movimientos_caja -->|"pago_cuenta_id"| n_pagos_cuenta
+  n_tes_movimientos_caja -->|"sesion_id"| n_tes_sesiones_caja
+  n_tes_movimientos_caja -->|"usuario_id"| n_users
+  n_tes_movimientos_fondo -->|"fondo_id"| n_tes_fondos
+  n_tes_movimientos_fondo -->|"operacion_id"| n_tes_operaciones
+  n_tes_movimientos_fondo -->|"usuario_id"| n_users
+  n_tes_operaciones -->|"usuario_id"| n_users
+  n_tes_operaciones_cobro -->|"cuenta_id"| n_cuentas
+  n_tes_operaciones_cobro -->|"pago_cuenta_id"| n_pagos_cuenta
+  n_tes_operaciones_cobro -->|"usuario_id"| n_users
+  n_tes_operaciones_cobro -->|"venta_id"| n_ventas
+  n_tes_saldos_sesion -->|"moneda_id"| n_monedas
+  n_tes_saldos_sesion -->|"sesion_id"| n_tes_sesiones_caja
+  n_tes_sesiones_caja -->|"caja_id"| n_tes_cajas
+  n_tes_sesiones_caja -->|"cerrada_por"| n_users
+  n_tes_sesiones_caja -->|"usuario_id"| n_users
+  n_tes_vales -->|"aprobado_por"| n_users
+  n_tes_vales -->|"fondo_id"| n_tes_fondos
+  n_tes_vales -->|"liquidado_por"| n_users
+  n_tes_vales -->|"solicitante_id"| n_users
+  n_ubicaciones -->|"padre_id"| n_ubicaciones
+  n_users -->|"persona_id"| n_personas
+  n_venta_detalles -->|"moneda_id"| n_monedas
+  n_venta_detalles -->|"venta_id"| n_ventas
+  n_ventas -->|"anulada_por"| n_users
+  n_ventas -->|"cliente_id"| n_clientes
+  n_ventas -->|"creada_por"| n_users
+  n_ventas -->|"cuenta_id"| n_cuentas
+  n_ventas -->|"moneda_id"| n_monedas

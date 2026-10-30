@@ -6,14 +6,11 @@ namespace App\Filament\Pages\Reportes;
 
 use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Repository\Queries\Reportes\ObtenerMetricasEjecutivasQuery;
-use App\Support\ReporteConfig;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
+use Closure;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -24,7 +21,9 @@ use UnitEnum;
  */
 class ReportesEjecutivos extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte {
+        ManejaPaginaReporte::getForms insteadof InteractsWithForms;
+    }
 
     protected ObtenerMetricasEjecutivasQuery $metricasQuery;
 
@@ -96,42 +95,14 @@ class ReportesEjecutivos extends Page implements HasForms
         $this->totalFacturadoFiscal = $metricas['totalFacturadoFiscal'];
     }
 
-    /** @return array<string, mixed> */
-    protected function getForms(): array
+    protected function getLabelReporte(): string
     {
-        return [
-            'reportForm' => $this->makeSchema()
-                ->schema([
-                    Select::make('reporte')
-                        ->label('Reporte Financiero')
-                        ->options(ReporteConfig::getSelectOptions('financiero'))
-                        ->required()
-                        ->live()
-                        ->native(false)
-                        ->searchable()
-                        ->placeholder('Selecciona un reporte de la lista...'),
+        return 'Reporte Financiero';
+    }
 
-                    TextEntry::make('reporte_descripcion')
-                        ->hiddenLabel()
-                        ->state(fn ($get) => ReporteConfig::getDescripcion('financiero', $get('reporte')) ?? 'Seleccione un reporte de la lista para ver su descripción...')
-                        ->extraAttributes(['class' => 'text-sm text-gray-500 italic mt-1 dark:text-gray-400']),
-
-                    DatePicker::make('fecha_inicio')
-                        ->label('Fecha Inicio')
-                        ->default(now()->startOfMonth()->format('Y-m-d'))
-                        ->required()
-                        ->live()
-                        ->afterStateUpdated(fn () => $this->cargarMetricas()),
-
-                    DatePicker::make('fecha_fin')
-                        ->label('Fecha Fin')
-                        ->default(now()->format('Y-m-d'))
-                        ->required()
-                        ->live()
-                        ->afterStateUpdated(fn () => $this->cargarMetricas()),
-                ])
-                ->statePath('reportData'),
-        ];
+    protected function getOnFechasActualizadasCallback(): ?Closure
+    {
+        return fn () => $this->cargarMetricas();
     }
 
     public static function canAccess(): bool

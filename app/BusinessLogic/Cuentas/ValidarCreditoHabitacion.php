@@ -7,7 +7,7 @@ namespace App\BusinessLogic\Cuentas;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 
 final class ValidarCreditoHabitacion

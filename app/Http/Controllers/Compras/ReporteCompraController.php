@@ -22,42 +22,42 @@ final class ReporteCompraController extends ReporteController
         private readonly GenerarReporteCompra $generarReporteCompra,
     ) {}
 
-    public function imprimirCotizacion(Cotizacion $cotizacion): StreamedResponse
+    public function imprimirCotizacion(Cotizacion $cotizacion): Response
     {
         $pdf = $this->generarReporteCompra->execute('cotizacion', ['cotizacion' => $cotizacion]);
 
         return $this->streamPdf($pdf, 'HTB-COM-002-Cotizacion.pdf');
     }
 
-    public function imprimirComparativa(Solicitud $solicitud): StreamedResponse
+    public function imprimirComparativa(Solicitud $solicitud): Response
     {
         $pdf = $this->generarReporteCompra->execute('comparativa', ['solicitud' => $solicitud]);
 
         return $this->streamPdf($pdf, 'HTB-COM-006-Comparativa.pdf');
     }
 
-    public function imprimirSolicitud(Solicitud $solicitud): StreamedResponse
+    public function imprimirSolicitud(Solicitud $solicitud): Response
     {
         $pdf = $this->generarReporteCompra->execute('solicitud', ['solicitud' => $solicitud]);
 
         return $this->streamPdf($pdf, 'HTB-COM-001-'.$solicitud->codigo.'.pdf');
     }
 
-    public function imprimirOrdenCompra(OrdenCompra $ordenCompra): StreamedResponse
+    public function imprimirOrdenCompra(OrdenCompra $ordenCompra): Response
     {
         $pdf = $this->generarReporteCompra->execute('orden_compra', ['orden' => $ordenCompra]);
 
         return $this->streamPdf($pdf, 'HTB-COM-003-'.$ordenCompra->codigo.'.pdf');
     }
 
-    public function imprimirRecepcion(RecepcionCompra $recepcion): StreamedResponse
+    public function imprimirRecepcion(RecepcionCompra $recepcion): Response
     {
         $pdf = $this->generarReporteCompra->execute('recepcion', ['recepcion' => $recepcion]);
 
         return $this->streamPdf($pdf, 'HTB-COM-004-'.$recepcion->codigo.'.pdf');
     }
 
-    public function devolucion(DevolucionCompra $devolucion): StreamedResponse
+    public function devolucion(DevolucionCompra $devolucion): Response
     {
         $pdf = $this->generarReporteCompra->execute('devolucion', ['devolucion' => $devolucion]);
 
@@ -194,7 +194,7 @@ final class ReporteCompraController extends ReporteController
         );
     }
 
-    public function trazabilidadCompleta(Solicitud $solicitud): StreamedResponse
+    public function trazabilidadCompleta(Solicitud $solicitud): Response
     {
         $pdf = $this->generarReporteCompra->execute('trazabilidad_completa', ['solicitud' => $solicitud]);
 

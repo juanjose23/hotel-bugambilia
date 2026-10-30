@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Shared\Forms;
 
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\Select;
 use Filament\Support\Icons\Heroicon;
 

@@ -6,7 +6,7 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Reservas\ObtenerDetallePreordenReservaQuery;
-use App\Support\Barcode\BarcodeGenerator;
+use App\Support\Barcode\Support\Barcode\BarcodeGenerator;
 
 test('prepara los valores de cada platillo y el código de barras del voucher', function (): void {
     $reserva = Reserva::query()->create([

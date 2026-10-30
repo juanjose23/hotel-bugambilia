@@ -339,7 +339,7 @@ readonly class ActivoTable
                         ->label('Imprimir Ficha')
                         ->icon(Heroicon::Printer)
                         ->color('info')
-                        ->url(fn (Activo $record) => route('admin.activos.reportes.ficha.pdf', $record))
+                        ->url(fn (Activo $record) => route('admin.activos.reportes.ficha.pdf', ['activo' => $record->codigo_inventario]))
                         ->openUrlInNewTab()
                         ->visible(fn (Activo $record) => ! $record->trashed() && auth()->user()?->can('Activos:ReporteFicha')),
                 ])

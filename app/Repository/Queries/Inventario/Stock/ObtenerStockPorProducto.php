@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class ObtenerStockPorProducto
 {
     /**
-     * @param  array{producto_id?: int|null, ubicacion_id?: int|null}  $filtros
+     * @param  array{producto_id?: int|null, ubicacion_id?: int|null, categoria_id?: int|null}  $filtros
      * @return Collection<int, StockProductoData>
      */
     public function ejecutar(array $filtros = []): Collection
@@ -38,7 +38,7 @@ class ObtenerStockPorProducto
     }
 
     /**
-     * @param  array{producto_id?: int|null, ubicacion_id?: int|null}  $filtros
+     * @param  array{producto_id?: int|null, ubicacion_id?: int|null, categoria_id?: int|null}  $filtros
      */
     private function consultaBase(array $filtros): Builder
     {
@@ -55,6 +55,10 @@ class ObtenerStockPorProducto
             ->when(
                 isset($filtros['ubicacion_id']) && $filtros['ubicacion_id'],
                 fn ($q) => $q->where('l.ubicacion_id', $filtros['ubicacion_id'])
+            )
+            ->when(
+                isset($filtros['categoria_id']) && $filtros['categoria_id'],
+                fn ($q) => $q->where('p.categoria_id', $filtros['categoria_id'])
             )
             ->select([
                 'p.id as producto_id',

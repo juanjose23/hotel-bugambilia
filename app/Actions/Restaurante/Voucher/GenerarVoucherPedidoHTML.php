@@ -6,7 +6,7 @@ namespace App\Actions\Restaurante\Voucher;
 
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Repository\Models\Restaurante\Pedido;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 
 final class GenerarVoucherPedidoHTML
 {

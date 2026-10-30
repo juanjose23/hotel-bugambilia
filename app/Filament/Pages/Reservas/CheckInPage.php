@@ -20,7 +20,7 @@ use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use DomainException;

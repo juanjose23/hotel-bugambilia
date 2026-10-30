@@ -426,3 +426,19 @@ test('la solicitud inteligente sugiere stock bajo y faltantes de pedidos bloquea
         ->and($item['justificacion'])->toContain('Stock actual')
         ->and($item['justificacion'])->toContain('Pedido bloqueado');
 });
+
+test('un despacho confirmado no puede repetirse con la misma solicitud', function (): void {
+    require_once __DIR__.'/../../Support/CocinaFixtures.php';
+    $f = fixtureCorreccionesCocina();
+    $bodega = Ubicacion::query()->create(['nombre' => 'Bodega de prueba '.str()->random(5), 'tipo' => 'almacen', 'orden' => 100, 'estado' => 1]);
+    $stock = Stock::query()->create(['stockable_type' => Ubicacion::class, 'stockable_id' => $bodega->id, 'producto_variante_id' => $f['varianteOrigen']->id, 'cantidad_actual' => 10, 'cantidad_ideal' => 10]);
+    $colaborador = Colaborador::factory()->create();
+    $solicitud = app(CrearSolicitudAbastecimientoCocina::class)->ejecutar(motivo: 'Abastecimiento único', items: [['producto_variante_id' => $f['varianteOrigen']->id, 'cantidad' => 3]], colaboradorId: $colaborador->id);
+    $solicitud->items()->firstOrFail()->update(['cantidad_aprobada' => 3]);
+    $solicitud->update(['estado' => EstadoSolicitud::Aprobada]);
+    $usuario = usuarioAutorizaInventario();
+    app(DespacharSolicitudAbastecimientoCocina::class)->ejecutar($solicitud, $bodega->id, $f['cocina']->id, $usuario->id);
+    expect(fn () => app(DespacharSolicitudAbastecimientoCocina::class)->ejecutar($solicitud, $bodega->id, $f['cocina']->id, $usuario->id))->toThrow(DomainException::class, 'ya fue abastecida');
+    expect((float) $stock->refresh()->cantidad_actual)->toBe(7.0)
+        ->and((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(13.0);
+});

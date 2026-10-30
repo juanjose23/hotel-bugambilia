@@ -95,6 +95,7 @@ class AuditoriaJobsTable
                         if ($resultado->estado === EstadoEjecucionJob::Completado) {
                             Notification::make()
                                 ->title('Job ejecutado exitosamente')
+                                ->body($resultado->mensaje ?? $resultado->nombre_job)
                                 ->success()
                                 ->send();
                         } else {

@@ -7,10 +7,10 @@ namespace App\Actions\Compras\Solicitudes;
 use App\BusinessLogic\Compras\Data\Solicitudes\SolicitudReporteData;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Queries\Compras\Solicitudes\ObtenerSolicitudReporteQuery;
-use App\Support\Barcode\BarcodeGenerator;
-use App\Support\HotelInfo;
-use App\Support\Pdf\Concerns\GuardaReporte;
-use App\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Barcode\BarcodeGenerator;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocumento;
 

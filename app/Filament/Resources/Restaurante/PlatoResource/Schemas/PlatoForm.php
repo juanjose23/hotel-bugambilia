@@ -76,6 +76,8 @@ final class PlatoForm
                             ->columnSpanFull()
                             ->rows(3),
 
+                        Textarea::make('instrucciones_preparacion')->label('Ficha de preparación para el equipo')->helperText('Escriba un paso por línea. Estas instrucciones aparecerán en el asistente de cocina. Registre el procedimiento aprobado del platillo.')->rows(6)->maxLength(12000)->columnSpanFull(),
+
                         TextInput::make('tiempo_preparacion')
                             ->label('Tiempo de Preparacion')
                             ->placeholder('Ej: 15 - 25 min')

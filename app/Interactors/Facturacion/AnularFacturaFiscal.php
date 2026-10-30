@@ -23,8 +23,8 @@ final readonly class AnularFacturaFiscal
 
     public function ejecutar(Factura $factura, string $motivo, ?int $usuarioId = null): Factura
     {
-        if (trim($motivo) === '') {
-            throw new DomainException('Debe indicar el motivo de anulacion de la factura.');
+        if (mb_strlen(trim($motivo)) < 10) {
+            throw new DomainException('Debe indicar un motivo de anulación de al menos diez caracteres.');
         }
 
         return DB::transaction(function () use ($factura, $motivo, $usuarioId): Factura {

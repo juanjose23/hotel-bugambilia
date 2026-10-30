@@ -8,7 +8,7 @@ use App\Enums\Cuentas\MetodoPago;
 use App\Filament\Shared\Forms\MonedaSelect;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;

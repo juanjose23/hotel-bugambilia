@@ -49,19 +49,25 @@ final readonly class EnviarPedidoACocina
 
     public function ejecutar(Pedido $pedido): Pedido
     {
-        if ($pedido->estado !== EstadoPedido::ABIERTO) {
-            throw new DomainException('Este pedido ya fue enviado a preparación.');
-        }
-
-        $pedido->load(['items.plato.receta', 'items.producto', 'items.variante']);
-
-        if ($pedido->items->isEmpty()) {
-            throw new DomainException('No se puede enviar un pedido a cocina sin platillos seleccionados.');
-        }
-
         $this->bloquearItemsPorFaltaStock->ejecutar($pedido);
 
         return DB::transaction(function () use ($pedido): Pedido {
+            $pedido = $this->repositorio->obtenerPedidoPorId((int) $pedido->id);
+            if ($pedido === null) {
+                throw new DomainException('Pedido no encontrado.');
+            }
+            if ($pedido->estado !== EstadoPedido::ABIERTO) {
+                throw new DomainException('Este pedido ya fue enviado a preparación.');
+            }
+
+            $pedido->load(['items.plato.receta', 'items.producto', 'items.variante']);
+
+            if ($pedido->items->isEmpty()) {
+                throw new DomainException('No se puede enviar un pedido a cocina sin platillos seleccionados.');
+            }
+
+            $this->bloquearItemsPorFaltaStock->ejecutar($pedido);
+
             $procesados = [];
             $nuevosItems = [];
 

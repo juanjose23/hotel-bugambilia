@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Reservas\ReservaResource\RelationManagers;
 
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;

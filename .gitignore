@@ -35,3 +35,16 @@ yarn-error.log
 /.ai/**
 /.opencode/**
 /demo/**
+/.local/
+.env.cocina-demo
+
+/storage/framework/testing/
+/tests/Browser/screenshots/*
+/tests/Browser/console/*
+/tests/Browser/source/*
+!/tests/Browser/screenshots/.gitignore
+!/tests/Browser/console/.gitignore
+!/tests/Browser/source/.gitignore
+
+.hotel-checks.json
+.env.testing.local

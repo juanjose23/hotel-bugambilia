@@ -157,6 +157,7 @@ final class Espacio extends Model implements AuditableContract
             ->whereIn('estado', [
                 EstadoPedido::ABIERTO,
                 EstadoPedido::EN_PREPARACION,
+                EstadoPedido::LISTO,
                 EstadoPedido::SERVIDO,
             ]);
     }

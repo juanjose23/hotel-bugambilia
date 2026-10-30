@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Cocina;
 
-use App\Enums\Restaurante\UbicacionCocina;
+use App\Enums\Restaurante\EstadoItemPedido;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\SustitucionIngrediente;
+use App\Repository\Persistencia\Restaurante\ExistenciasCocinaRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerItemPedidoQuery;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +18,8 @@ final readonly class AutorizarSustitucionIngrediente
 {
     public function __construct(
         private RestauranteRepositorioInterface $repositorio,
+        private ExistenciasCocinaRepositorio $existencias,
+        private ObtenerItemPedidoQuery $items,
     ) {}
 
     public function ejecutar(
@@ -53,12 +57,12 @@ final readonly class AutorizarSustitucionIngrediente
             $usuarioId,
             $motivo,
         ): SustitucionIngrediente {
-            $cocina = $this->repositorio->obtenerUbicacionPorNombre(UbicacionCocina::RESTAURANTE->value)
-                ?? $this->repositorio->obtenerUbicacionPorNombre('Cocina');
-            $stock = $cocina !== null
-                ? $this->repositorio->obtenerStockPorVariante((int) $cocina->id, (int) $varianteSustituta->id)
-                : null;
-            $disponible = $stock !== null ? (float) $stock->cantidad_actual : 0.0;
+            $item = $this->items->bloquear($item->id) ?? throw new DomainException('Partida no encontrada.');
+            if (! in_array($item->estado, [EstadoItemPedido::PENDIENTE, EstadoItemPedido::BLOQUEADO_STOCK], true)) {
+                throw new DomainException('No se pueden sustituir ingredientes de una partida ya preparada.');
+            }
+            $ubicacionId = $this->existencias->ubicacion($item->area_cocina ?? $item->plato?->area_cocina, $item->pedido?->mesa_id !== null ? (int) $item->pedido->mesa_id : null);
+            $disponible = $this->existencias->cantidad($this->existencias->porVariante((int) $varianteSustituta->id, $ubicacionId, true));
 
             if ($disponible < $cantidad) {
                 throw new DomainException(sprintf(

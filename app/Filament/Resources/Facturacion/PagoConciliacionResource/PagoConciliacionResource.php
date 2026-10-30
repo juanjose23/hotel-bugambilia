@@ -25,13 +25,13 @@ final class PagoConciliacionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ReceiptPercent;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
+    protected static string|UnitEnum|null $navigationGroup = 'Fondos y bancos';
 
-    protected static ?string $navigationLabel = 'Conciliacion';
+    protected static ?string $navigationLabel = 'Conciliación de pasarela';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 35;
 
-    protected static ?string $slug = 'facturacion/conciliacion';
+    protected static ?string $slug = 'conciliacion';
 
     public static function canCreate(): bool
     {

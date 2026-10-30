@@ -14,7 +14,7 @@ use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;

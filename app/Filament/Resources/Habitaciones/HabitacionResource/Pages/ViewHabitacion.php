@@ -10,7 +10,7 @@ use App\Interactors\Habitaciones\ClonarHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Queries\Shared\ObtenerOpcionesColaborador;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;

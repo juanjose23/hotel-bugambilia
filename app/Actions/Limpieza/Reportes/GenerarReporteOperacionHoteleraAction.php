@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Limpieza\Reportes;
 
 use App\Repository\Queries\Limpieza\Reportes\ObtenerReporteOperacionHoteleraQuery;
-use App\Support\HotelInfo;
+use App\Support\Barcode\Support\HotelInfo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPdfInstance;
 

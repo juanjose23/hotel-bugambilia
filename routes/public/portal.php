@@ -9,6 +9,8 @@ use App\Http\Controllers\Clientes\PortalPedidosController;
 use App\Http\Controllers\Clientes\PortalPerfilController;
 use App\Http\Controllers\Clientes\PortalReservasController;
 use App\Http\Controllers\Clientes\PortalServiciosEstanciaController;
+use App\Http\Controllers\Tesoreria\ArchivosTesoreriaController;
+use App\Http\Controllers\Tesoreria\ComprobanteClienteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,4 +44,11 @@ Route::prefix('portal')->name('portal.')->group(function (): void {
         Route::get('/perfil', [PortalPerfilController::class, 'edit'])->name('perfil');
         Route::post('/perfil', [PortalPerfilController::class, 'update'])->name('perfil.update');
     });
+});
+
+Route::middleware('auth')->group(function (): void {
+    Route::get('/portal/cuentas/{cuenta}/comprobantes', [ComprobanteClienteController::class, 'index'])->name('portal.comprobantes');
+    Route::post('/portal/cuentas/{cuenta}/comprobantes', [ComprobanteClienteController::class, 'store'])->middleware('throttle:12,1')->name('portal.comprobantes.store');
+    Route::get('/tesoreria/archivo/{tipo}/{id}', [ArchivosTesoreriaController::class, 'archivo'])->name('tesoreria.archivo');
+    Route::get('/tesoreria/auditoria.csv', [ArchivosTesoreriaController::class, 'auditoria'])->name('tesoreria.auditoria');
 });

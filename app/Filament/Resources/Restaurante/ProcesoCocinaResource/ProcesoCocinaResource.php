@@ -28,11 +28,11 @@ final class ProcesoCocinaResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
-    protected static ?string $navigationLabel = 'Procesos Cocina';
+    protected static ?string $navigationLabel = 'Preparaciones y costeo';
 
     protected static ?string $modelLabel = 'Proceso';
 
-    protected static ?string $pluralModelLabel = 'Procesos Cocina';
+    protected static ?string $pluralModelLabel = 'Preparaciones y costeo';
 
     public static function form(Schema $schema): Schema
     {

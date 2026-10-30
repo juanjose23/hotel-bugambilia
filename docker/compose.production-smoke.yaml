@@ -1,0 +1,31 @@
+x-smoke: &smoke
+  pull_policy: never
+  environment:
+    MAIL_MAILER: log
+services:
+  release:
+    <<: *smoke
+    depends_on:
+      smoke-db:
+        condition: service_healthy
+  app:
+    <<: *smoke
+    ports:
+      - "127.0.0.1:${SMOKE_PORT:-8097}:80"
+  worker:
+    <<: *smoke
+  scheduler:
+    <<: *smoke
+  smoke-db:
+    image: postgres:18-bookworm
+    environment:
+      POSTGRES_DB: hotel_production_smoke
+      POSTGRES_USER: smoke
+      POSTGRES_PASSWORD: smoke-only
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smoke -d hotel_production_smoke"]
+      interval: 2s
+      timeout: 3s
+      retries: 30

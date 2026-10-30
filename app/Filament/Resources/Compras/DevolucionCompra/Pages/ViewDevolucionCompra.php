@@ -34,7 +34,7 @@ class ViewDevolucionCompra extends ViewRecord
                 ->label('Imprimir')
                 ->icon(Heroicon::Printer)
                 ->color('gray')
-                ->url(fn (DevolucionCompra $record) => route('admin.compras.reportes.devolucion', $record))
+                ->url(fn (DevolucionCompra $record) => route('admin.compras.reportes.devolucion', ['devolucion' => $record->codigo]))
                 ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->can('Compras:ImprimirDevolucion') ?? false),
 

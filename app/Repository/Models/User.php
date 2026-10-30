@@ -45,6 +45,7 @@ class User extends Authenticatable implements AuditableContract, FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'password_change_required' => 'boolean',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -54,9 +55,14 @@ class User extends Authenticatable implements AuditableContract, FilamentUser
         return $this->belongsTo(Persona::class);
     }
 
+    public function esAdmin(): bool
+    {
+        return $this->is_admin === true || $this->hasRole('super_admin');
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_admin === true;
+        return $this->esAdmin();
     }
 
     /**

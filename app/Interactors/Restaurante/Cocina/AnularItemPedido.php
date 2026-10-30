@@ -8,6 +8,7 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use App\Interactors\Restaurante\Pedidos\RecalcularTotalesPedido;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
+use App\Repository\Persistencia\Restaurante\CargosPedidoRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerItemPedidoQuery;
 use DomainException;
@@ -19,6 +20,7 @@ final readonly class AnularItemPedido
         private ObtenerItemPedidoQuery $items,
         private RestauranteRepositorioInterface $repositorio,
         private RecalcularTotalesPedido $recalcular,
+        private CargosPedidoRepositorio $cargos,
     ) {}
 
     public function ejecutar(int $itemId): ?PedidoItem
@@ -34,6 +36,7 @@ final readonly class AnularItemPedido
                 throw new DomainException('No se puede anular un plato que ya fue servido al cliente.');
             }
 
+            $this->cargos->anular($item);
             $item->estado = EstadoItemPedido::ANULADO;
             $this->repositorio->guardarItem($item);
 

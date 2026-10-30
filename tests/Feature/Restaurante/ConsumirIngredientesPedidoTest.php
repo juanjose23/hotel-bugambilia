@@ -520,4 +520,7 @@ test('bloquea pedido por falta de stock y permite resolver con sustitucion autor
 
     expect($item->refresh()->estado)->toBe(EstadoItemPedido::PENDIENTE)
         ->and($item->bloqueo_stock_detalle)->toBeNull();
+
+    app(EnviarPedidoACocina::class)->ejecutar($pedido->refresh());
+    expect((float) Stock::query()->where('stockable_id', $cocina->id)->where('producto_variante_id', $varianteSustituta->id)->value('cantidad_actual'))->toBe(3.0);
 });

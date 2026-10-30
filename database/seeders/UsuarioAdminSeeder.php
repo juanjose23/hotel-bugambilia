@@ -138,16 +138,9 @@ final class UsuarioAdminSeeder extends Seeder
                 ]
             );
 
-            // 4. Asignar rol si Spatie Permission está disponible
-            try {
-                if (class_exists(Role::class)) {
-                    $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-                    if (! $user->hasRole($roleName)) {
-                        $user->assignRole($role);
-                    }
-                }
-            } catch (\Throwable) {
-                // Si aún no están listas las tablas de roles, continuar
+            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+            if (! $user->hasRole($roleName)) {
+                $user->assignRole($role);
             }
 
             return $user;

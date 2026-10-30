@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\PagoTransaccionResource;
 
 use App\Enums\Facturacion\EstadoTransaccionPago;
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
@@ -19,17 +20,19 @@ use UnitEnum;
 
 final class PagoTransaccionResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = PagoTransaccion::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ArrowsRightLeft;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
+    protected static string|UnitEnum|null $navigationGroup = 'Cobros y documentos';
 
     protected static ?string $navigationLabel = 'Transacciones';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 13;
 
-    protected static ?string $slug = 'facturacion/transacciones';
+    protected static ?string $slug = 'transacciones';
 
     public static function canCreate(): bool
     {

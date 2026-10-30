@@ -56,8 +56,12 @@ export const MisReservas = ({
                 (r) =>
                     r.es_restaurante ||
                     r.tipo_reserva === 'restaurante' ||
-                    r.recurso.categoria.toLowerCase().includes('mesa') ||
-                    r.recurso.categoria.toLowerCase().includes('restaurante'),
+                    (r.recurso?.categoria?.toLowerCase() || '').includes(
+                        'mesa',
+                    ) ||
+                    (r.recurso?.categoria?.toLowerCase() || '').includes(
+                        'restaurante',
+                    ),
             ).length,
             servicio: listaBase.filter(
                 (r) => r.es_servicio || r.tipo_reserva === 'servicio',
@@ -85,8 +89,12 @@ export const MisReservas = ({
                 (r) =>
                     r.es_restaurante ||
                     r.tipo_reserva === 'restaurante' ||
-                    r.recurso.categoria.toLowerCase().includes('mesa') ||
-                    r.recurso.categoria.toLowerCase().includes('restaurante'),
+                    (r.recurso?.categoria?.toLowerCase() || '').includes(
+                        'mesa',
+                    ) ||
+                    (r.recurso?.categoria?.toLowerCase() || '').includes(
+                        'restaurante',
+                    ),
             );
         }
 
@@ -101,8 +109,7 @@ export const MisReservas = ({
 
     return (
         <PortalLayout cliente={cliente ?? undefined}>
-            <Head>
-                <title>Mis Reservaciones — Portal de Huéspedes</title>
+            <Head title="Mis Reservaciones — Portal de Huéspedes">
                 <meta
                     name="description"
                     content="Administra y consulta tus reservaciones de habitaciones y mesas de restaurante en Hotel Bugambilias Estelí."

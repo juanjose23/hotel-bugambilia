@@ -23,7 +23,7 @@ use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\Plato;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;

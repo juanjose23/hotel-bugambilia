@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\CodigoQR;
 
 use App\Repository\Models\Reservas\Reserva;
-use App\Support\Barcode\QrCodeGenerator;
+use App\Support\Barcode\Support\Barcode\QrCodeGenerator;
 
 final class GenerarTokenQR
 {

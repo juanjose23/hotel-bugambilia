@@ -13,7 +13,7 @@ use App\Filament\Resources\Reservas\Schemas\Reserva\InsigniaEstadoReserva;
 use App\Filament\Shared\Filters\FiltroCategoria;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Reservas\Reserva;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;

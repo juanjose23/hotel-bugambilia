@@ -63,8 +63,6 @@ use Illuminate\Support\Facades\DB;
  */
 final class ReservaHistoricaSeeder extends Seeder
 {
-    private const TOTAL_RESERVAS = 10000;
-
     private const DIAS_HISTORICOS = 365;
 
     private const TASA_CAMBIO = 36.50;
@@ -132,7 +130,8 @@ final class ReservaHistoricaSeeder extends Seeder
 
     private function programarAnioCompleto(Moneda $monedaUsd, Moneda $monedaNio): int
     {
-        $tamanoBloque = 500;
+        $totalReservas = max(1, config()->integer('demo.reservas_historicas'));
+        $tamanoBloque = 100;
 
         DB::beginTransaction();
 
@@ -141,14 +140,14 @@ final class ReservaHistoricaSeeder extends Seeder
         $habitaciones = $this->habitaciones->values();
         $habitacionesCount = $habitaciones->count();
 
-        $porHabitacion = intdiv(self::TOTAL_RESERVAS, $habitacionesCount);
-        $sobrante = self::TOTAL_RESERVAS - ($porHabitacion * $habitacionesCount);
+        $porHabitacion = intdiv($totalReservas, $habitacionesCount);
+        $sobrante = $totalReservas - ($porHabitacion * $habitacionesCount);
 
         $secuencia = 0;
         $pendientesEnBloque = 0;
 
         foreach ($habitaciones as $habitacionIndex => $habitacion) {
-            if ($secuencia >= self::TOTAL_RESERVAS) {
+            if ($secuencia >= $totalReservas) {
                 break;
             }
 
@@ -182,7 +181,7 @@ final class ReservaHistoricaSeeder extends Seeder
             $cursor = $inicio->copy()->addDays($margenInicio);
 
             foreach ($longitudes as $index => $noches) {
-                if ($secuencia >= self::TOTAL_RESERVAS) {
+                if ($secuencia >= $totalReservas) {
                     break 2;
                 }
 
@@ -209,13 +208,13 @@ final class ReservaHistoricaSeeder extends Seeder
                 $pendientesEnBloque++;
                 if ($pendientesEnBloque >= $tamanoBloque) {
                     DB::commit();
-                    $this->command->info("  bloque confirmado: {$secuencia} / ".self::TOTAL_RESERVAS);
+                    $this->command->info("  bloque confirmado: {$secuencia} / ".$totalReservas);
                     DB::beginTransaction();
                     $pendientesEnBloque = 0;
                 }
 
                 if ($secuencia % 1000 === 0) {
-                    $this->command->info("  progreso: {$secuencia} / ".self::TOTAL_RESERVAS);
+                    $this->command->info("  progreso: {$secuencia} / ".$totalReservas);
                 }
 
                 $cursor = $salida;

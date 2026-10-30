@@ -109,7 +109,11 @@ class DevolucionCompraTable
                     ->visible(fn (DevolucionCompra $record) => $record->estado !== EstadoDevolucion::Confirmada),
 
                 ActionGroup::make([
-                    self::makeImprimirAction('admin.compras.reportes.devolucion', 'Compras:ImprimirDevolucion'),
+                    self::makeImprimirAction(
+                        'admin.compras.reportes.devolucion',
+                        'Compras:ImprimirDevolucion',
+                        urlCallback: fn (DevolucionCompra $record) => route('admin.compras.reportes.devolucion', ['devolucion' => $record->codigo]),
+                    ),
                     EditAction::make()
                         ->visible(fn (DevolucionCompra $record) => $record->estado !== EstadoDevolucion::Confirmada),
                     DeleteAction::make()

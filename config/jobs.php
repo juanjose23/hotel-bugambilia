@@ -35,4 +35,6 @@ return [
     'reservas_limpiar_no_confirmadas' => env('JOB_RESERVAS_LIMPIAR_NO_CONFIRMADAS_AT', 'everyfifteenminutes'),
 
     'reservas_checkouts_proximos' => env('JOB_RESERVAS_CHECKOUTS_PROXIMOS_AT', 'everyfifteenminutes'),
+
+    'reportes_limpiar_temporales' => env('JOB_REPORTES_LIMPIAR_TEMPORALES_AT', 'hourly'),
 ];

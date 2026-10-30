@@ -188,10 +188,11 @@ final class RestauranteStockBebidasProductosSeeder extends Seeder
                 [
                     'stockable_type' => Espacio::class,
                     'stockable_id' => $restaurante->id,
-                    'producto_id' => $producto->id,
                     'producto_variante_id' => $variante->id,
+                    'lote_id' => null,
                 ],
                 [
+                    'producto_id' => $producto->id,
                     'cantidad_ideal' => $item['ideal'],
                     'cantidad_actual' => $item['actual'],
                     'estado' => 'disponible',
@@ -271,15 +272,14 @@ final class RestauranteStockBebidasProductosSeeder extends Seeder
         $categoriaAbarrotes = Catalogo::query()
             ->where('codigo', 'CAT_PRO_ABARROTES')
             ->first()
-            ?? Catalogo::query()->where('codigo', 'CAT_PRO_BEBIDAS')->first();
+            ?? Catalogo::query()->where('codigo', 'CAT_PRO_BEBIDAS')->firstOrFail();
 
         $unidadUnidad = Catalogo::query()
-            ->where('codigo', 'UNI_UND')
-            ->orWhere('codigo', 'like', '%UND%')
-            ->first();
+            ->where('codigo', 'UNI_UD')
+            ->sole();
 
-        $catId = $categoriaAbarrotes instanceof Catalogo ? $categoriaAbarrotes->id : 1;
-        $undId = $unidadUnidad instanceof Catalogo ? $unidadUnidad->id : 1;
+        $catId = $categoriaAbarrotes->id;
+        $undId = $unidadUnidad->id;
 
         foreach ($this->snacksProductosSimples as $snack) {
             $producto = Producto::firstOrCreate(

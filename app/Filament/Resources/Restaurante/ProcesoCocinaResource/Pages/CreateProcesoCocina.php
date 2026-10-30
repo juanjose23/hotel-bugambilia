@@ -12,7 +12,19 @@ use Illuminate\Support\Facades\Auth;
 
 final class CreateProcesoCocina extends CreateRecord
 {
+    protected static ?string $title = 'Preparar una receta';
+
     protected static string $resource = ProcesoCocinaResource::class;
+
+    protected function getFormActions(): array
+    {
+        return [];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('edit', ['record' => $this->getRecord()]);
+    }
 
     protected function handleRecordCreation(array $data): Model
     {

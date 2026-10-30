@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Reservas\Schemas\CheckIn;
 
 use App\Repository\Models\Reservas\Reserva;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;

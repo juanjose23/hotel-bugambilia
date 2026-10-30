@@ -6,7 +6,6 @@ namespace Database\Seeders\Restaurante;
 
 use Database\Seeders\Restaurante\Cocina\ProcesoCocinaSeeder;
 use Database\Seeders\Restaurante\Cocina\RecetaTransformacionMateriaPrimaSeeder;
-use Database\Seeders\Restaurante\Cocina\SustitucionIngredienteSeeder;
 use Database\Seeders\Restaurante\Cocina\TransformacionMateriaPrimaSeeder;
 use Database\Seeders\Restaurante\Delivery\ZonaDeliverySeeder;
 use Database\Seeders\Restaurante\Menu\MenuRestauranteSeeder;
@@ -32,7 +31,6 @@ final class RestauranteSeeder extends Seeder
             ProcesoCocinaSeeder::class,
             ZonaDeliverySeeder::class,
             PedidoDemoSeeder::class,
-            SustitucionIngredienteSeeder::class,
             RestauranteStockBebidasProductosSeeder::class,
         ]);
 

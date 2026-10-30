@@ -8,6 +8,7 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use App\Events\Restaurante\PedidoEnviadoACocina;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Interactors\Restaurante\Pedidos\BloquearItemsPorFaltaStock;
+use App\Interactors\Restaurante\Pedidos\DescontarStockProductoPedido;
 use App\Interactors\Restaurante\Pedidos\RecalcularTotalesPedido;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -20,6 +21,7 @@ final readonly class ReenviarItemsPendientesACocina
 {
     public function __construct(
         private ConsumirIngredientesPedido $consumirIngredientes,
+        private DescontarStockProductoPedido $descontarProducto,
         private RestauranteRepositorioInterface $repositorio,
         private RegistrarDetalleCuenta $registrarDetalle,
         private NotificadorRestaurante $notificador,
@@ -29,26 +31,36 @@ final readonly class ReenviarItemsPendientesACocina
 
     public function ejecutar(Pedido $pedido): Pedido
     {
-        $pedido->loadMissing(['items.plato.receta', 'cuenta']);
-
-        $itemsPendientes = $pedido->items->filter(
-            fn ($item) => $item->estado === EstadoItemPedido::PENDIENTE
-        );
-
-        if ($itemsPendientes->isEmpty()) {
-            throw new DomainException('No hay items pendientes para reenviar a cocina.');
-        }
-
         $this->bloquearItemsPorFaltaStock->ejecutar($pedido);
 
-        return DB::transaction(function () use ($pedido, $itemsPendientes): Pedido {
+        return DB::transaction(function () use ($pedido): Pedido {
+            $pedido = $this->repositorio->obtenerPedidoPorId((int) $pedido->id);
+            if ($pedido === null) {
+                throw new DomainException('Pedido no encontrado.');
+            }
+            $pedido->load(['items.plato.receta', 'cuenta']);
+
+            $itemsPendientes = $pedido->items->filter(
+                fn ($item) => $item->estado === EstadoItemPedido::PENDIENTE
+            );
+
+            if ($itemsPendientes->isEmpty()) {
+                throw new DomainException('No hay items pendientes para reenviar a cocina.');
+            }
+
+            $this->bloquearItemsPorFaltaStock->ejecutar($pedido);
+
             $procesados = [];
 
             foreach ($itemsPendientes as $item) {
                 $item->estado = EstadoItemPedido::EN_PREPARACION;
                 $this->repositorio->guardarItem($item);
 
-                $this->consumirIngredientes->ejecutar($item);
+                if ($item->esProducto()) {
+                    $this->descontarProducto->ejecutar($item);
+                } else {
+                    $this->consumirIngredientes->ejecutar($item);
+                }
                 $procesados[] = $item->id;
             }
 

@@ -9,7 +9,7 @@ use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use BackedEnum;
 use DomainException;
 use Filament\Actions\CreateAction;

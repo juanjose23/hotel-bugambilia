@@ -8,7 +8,7 @@ use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Servicios\Servicio;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;

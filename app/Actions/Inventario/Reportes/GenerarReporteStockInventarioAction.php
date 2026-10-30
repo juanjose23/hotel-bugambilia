@@ -6,14 +6,14 @@ namespace App\Actions\Inventario\Reportes;
 
 use App\Repository\Queries\Inventario\Stock\ObtenerStockMinimo;
 use App\Repository\Queries\Inventario\Stock\ObtenerStockPorProducto;
-use App\Support\Excel\ColumnaExcel;
-use App\Support\Excel\GeneradorExcel;
-use App\Support\HotelInfo;
-use App\Support\Pdf\LayoutPdf;
-use App\Support\Pdf\Orientacion;
-use App\Support\Pdf\TamanoPapel;
-use App\Support\Pdf\TiposReporte;
-use App\Support\ReportePaginador;
+use App\Support\Barcode\Support\Excel\ColumnaExcel;
+use App\Support\Barcode\Support\Excel\GeneradorExcel;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Pdf\Orientacion;
+use App\Support\Barcode\Support\Pdf\TamanoPapel;
+use App\Support\Barcode\Support\Pdf\TiposReporte;
+use App\Support\Barcode\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPdfInstance;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -30,9 +30,11 @@ final readonly class GenerarReporteStockInventarioAction
     {
         $productoId = is_numeric($params['producto_id'] ?? null) ? (int) $params['producto_id'] : null;
         $ubicacionId = is_numeric($params['ubicacion_id'] ?? null) ? (int) $params['ubicacion_id'] : null;
+        $categoriaId = is_numeric($params['categoria_id'] ?? null) ? (int) $params['categoria_id'] : null;
         $stock = $this->stockPorProducto->ejecutar([
             'producto_id' => $productoId,
             'ubicacion_id' => $ubicacionId,
+            'categoria_id' => $categoriaId,
         ]);
 
         $tamano = TamanoPapel::fromRequest(is_string($params['pageSize'] ?? null) ? $params['pageSize'] : 'letter');

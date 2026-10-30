@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository\Queries\Restaurante\Pedidos;
 
 use App\Enums\Restaurante\EstadoItemPedido;
+use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use Illuminate\Support\Collection;
 
@@ -12,6 +13,11 @@ final class ObtenerItemPedidoQuery
 {
     public function bloquear(int $itemId): ?PedidoItem
     {
+        $pedidoId = PedidoItem::query()->whereKey($itemId)->value('pedido_id');
+        if (is_numeric($pedidoId)) {
+            Pedido::query()->lockForUpdate()->find((int) $pedidoId);
+        }
+
         return PedidoItem::query()
             ->with(['plato.receta', 'pedido'])
             ->lockForUpdate()

@@ -1,6 +1,18 @@
-import { Calendar, Minus, Plus, Users, Loader2, MapPin } from 'lucide-react';
+import {
+    Minus,
+    Plus,
+    Users,
+    Loader2,
+    MapPin,
+    CheckCircle2,
+    Sparkles,
+    ChevronDown,
+    ChevronUp,
+    UtensilsCrossed,
+} from 'lucide-react';
 import { useState } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import { AvailabilitySkeleton } from '@/modules/shared/components/skeletons/PageSkeleton';
 import { Button } from '@/modules/shared/components/ui/button';
 import {
     Field,
@@ -54,16 +66,17 @@ export const RestaurantePasoMesaHorario = ({
     variante = 'pagina',
 }: PasoMesaHorarioProps) => {
     const [filtroTurno, setFiltroTurno] = useState<TurnoFiltro>('todos');
+    const [mostrarPlanoAvanzado, setMostrarPlanoAvanzado] = useState(false);
+    const [zonaPreferencia, setZonaPreferencia] =
+        useState<string>('cualquiera');
     const [mesaSeleccionadaManual, setMesaSeleccionadaManual] =
         useState<MesaData | null>(null);
 
     const esModal = variante === 'modal';
     const hoy = new Date().toISOString().split('T')[0];
     const campoFecha = register('fecha');
-    const tamanoInput = esModal ? 'h-10' : 'h-11';
-    const etiquetaBase = esModal ? 'text-[11px]' : 'text-xs';
 
-    const mesaIndividualAsignada = !disponibilidad?.requiere_union
+    const mesaAsignada = !disponibilidad?.requiere_union
         ? disponibilidad?.mesa_asignada
         : null;
 
@@ -83,154 +96,144 @@ export const RestaurantePasoMesaHorario = ({
 
     return (
         <div className="space-y-6">
+            {/* 1. "¿Cuándo quieres venir?" - Fecha, Comensales y Horarios */}
             <div
                 className={`space-y-6 rounded-3xl border border-border/80 bg-card shadow-xs ${
                     esModal ? 'p-4' : 'p-6'
                 }`}
             >
                 <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-                    <div className="flex size-9 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary dark:text-rose-400">
-                        <Calendar className="size-4" />
+                    <div className="flex size-10 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary dark:text-rose-400">
+                        <UtensilsCrossed className="size-5" />
                     </div>
                     <div>
                         <h3 className="text-base font-black text-foreground">
-                            Fecha, Comensales y Horario
+                            ¿Cuándo quieres venir?
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                            Indica cuándo y con cuántas personas nos visitarás.
+                            Indica la fecha, cantidad de comensales y tu horario
+                            preferido.
                         </p>
                     </div>
                 </div>
 
-                {/* Sección 1: Selector de Fecha y Comensales */}
-                <div className="space-y-3">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <Field>
-                            <FieldLabel
-                                className={`${etiquetaBase} flex items-center gap-1.5 font-bold`}
-                            >
-                                {esModal && (
-                                    <Calendar className="size-3.5 text-primary" />
-                                )}
-                                Fecha de Reserva *
-                            </FieldLabel>
-                            <Input
-                                type="date"
-                                min={hoy}
-                                className={`${tamanoInput} rounded-xl text-xs font-medium`}
-                                {...campoFecha}
-                                onChange={(e) => {
-                                    campoFecha.onChange(e);
-                                    cambiarFecha(e.target.value);
-                                }}
-                            />
-                            {errors.fecha && (
-                                <FieldError className="text-[10px]">
-                                    {errors.fecha.message}
-                                </FieldError>
-                            )}
-                        </Field>
+                {/* Fecha y Cantidad de Personas */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Field>
+                        <FieldLabel className="text-xs font-bold text-foreground">
+                            Fecha de Visita *
+                        </FieldLabel>
+                        <Input
+                            type="date"
+                            min={hoy}
+                            className="h-11 rounded-2xl text-xs font-bold"
+                            {...campoFecha}
+                            onChange={(e) => {
+                                campoFecha.onChange(e);
+                                cambiarFecha(e.target.value);
+                            }}
+                        />
+                        {errors.fecha && (
+                            <FieldError className="text-[10px]">
+                                {errors.fecha.message}
+                            </FieldError>
+                        )}
+                    </Field>
 
-                        <Field>
-                            <FieldLabel
-                                className={`${etiquetaBase} flex items-center justify-between font-bold`}
-                            >
-                                <span className="flex items-center gap-1.5">
-                                    {esModal && (
-                                        <Users className="size-3.5 text-primary" />
-                                    )}
-                                    Comensales *
-                                </span>
-                                <span className="text-[10px] font-normal text-muted-foreground">
-                                    {adultosSeleccionados === 1
-                                        ? '1 persona'
-                                        : `${adultosSeleccionados} personas`}
-                                </span>
-                            </FieldLabel>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => ajustarComensales(-1)}
-                                    disabled={adultosSeleccionados <= 1}
-                                    className={`${tamanoInput} w-11 shrink-0 cursor-pointer rounded-xl`}
-                                >
-                                    <Minus className="size-4" />
-                                </Button>
-                                <Input
-                                    type="number"
-                                    min={1}
-                                    max={30}
-                                    className={`${tamanoInput} rounded-xl text-center text-xs font-black`}
-                                    {...register('adultos', {
-                                        valueAsNumber: true,
-                                    })}
-                                />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => ajustarComensales(1)}
-                                    disabled={adultosSeleccionados >= 30}
-                                    className={`${tamanoInput} w-11 shrink-0 cursor-pointer rounded-xl`}
-                                >
-                                    <Plus className="size-4" />
-                                </Button>
-                            </div>
-                            {errors.adultos && (
-                                <FieldError className="text-[10px]">
-                                    {errors.adultos.message}
-                                </FieldError>
-                            )}
-                        </Field>
-                    </div>
-
-                    {/* Atajos de comensales rápidos */}
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        <span className="mr-1 text-[11px] text-muted-foreground">
-                            Atajos:
-                        </span>
-                        {OPCIONES_COMENSALES.map((num) => (
+                    <Field>
+                        <FieldLabel className="flex items-center justify-between text-xs font-bold text-foreground">
+                            <span className="flex items-center gap-1.5">
+                                <Users className="size-3.5 text-primary dark:text-rose-400" />
+                                Personas *
+                            </span>
+                            <span className="text-[11px] font-normal text-muted-foreground">
+                                {adultosSeleccionados === 1
+                                    ? '1 comensal'
+                                    : `${adultosSeleccionados} comensales`}
+                            </span>
+                        </FieldLabel>
+                        <div className="flex items-center gap-2">
                             <Button
-                                key={num}
                                 type="button"
-                                variant={
-                                    adultosSeleccionados === num
-                                        ? 'default'
-                                        : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => seleccionarComensales(num)}
-                                className={`h-7 px-2.5 text-[11px] font-bold ${
-                                    adultosSeleccionados === num
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'text-muted-foreground'
-                                }`}
+                                variant="outline"
+                                size="icon"
+                                onClick={() => ajustarComensales(-1)}
+                                disabled={adultosSeleccionados <= 1}
+                                className="h-11 w-11 shrink-0 rounded-2xl"
                             >
-                                {num}p
+                                <Minus className="size-4" />
                             </Button>
-                        ))}
-                    </div>
+                            <Input
+                                type="number"
+                                min={1}
+                                max={30}
+                                className="h-11 rounded-2xl text-center text-xs font-black"
+                                {...register('adultos', {
+                                    valueAsNumber: true,
+                                })}
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => ajustarComensales(1)}
+                                disabled={adultosSeleccionados >= 30}
+                                className="h-11 w-11 shrink-0 rounded-2xl"
+                            >
+                                <Plus className="size-4" />
+                            </Button>
+                        </div>
+                        {errors.adultos && (
+                            <FieldError className="text-[10px]">
+                                {errors.adultos.message}
+                            </FieldError>
+                        )}
+                    </Field>
                 </div>
 
-                {/* Sección 2: Selector de Horarios y Turnos */}
-                <div className="space-y-3 pt-2">
+                {/* Atajos de Comensales */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <span className="text-xs font-bold text-muted-foreground">
+                        Atajos rápidos:
+                    </span>
+                    {OPCIONES_COMENSALES.map((num) => (
+                        <Button
+                            key={num}
+                            type="button"
+                            variant={
+                                adultosSeleccionados === num
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            size="sm"
+                            onClick={() => seleccionarComensales(num)}
+                            className={`h-8 rounded-xl px-3 text-xs font-bold ${
+                                adultosSeleccionados === num
+                                    ? 'bg-primary text-primary-foreground shadow-xs'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            {num} {num === 1 ? 'persona' : 'personas'}
+                        </Button>
+                    ))}
+                </div>
+
+                {/* Horarios de Llegada */}
+                <div className="space-y-3 border-t border-border/60 pt-3">
                     <div className="flex items-center justify-between">
                         <FieldLabel className="text-xs font-bold text-foreground">
                             Hora de Llegada *
                         </FieldLabel>
                         {cargandoDisponibilidad && (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                                <Loader2 className="size-3 animate-spin text-primary" />
-                                {esModal
-                                    ? 'Actualizando...'
-                                    : 'Consultando disponibilidad...'}
+                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary">
+                                <Loader2 className="size-3.5 animate-spin" />
+                                <span>Verificando disponibilidad...</span>
                             </span>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 rounded-xl border border-border/50 bg-muted/40 p-1 text-xs">
+                    {/* Selector de Turno */}
+                    <div className="flex items-center gap-1.5 rounded-2xl border border-border/60 bg-muted/40 p-1 text-xs">
                         {TURNOS_RESTAURANTE.map((turno) => {
                             const activo = filtroTurno === turno.id;
                             const Icon = turno.icono;
@@ -244,64 +247,65 @@ export const RestaurantePasoMesaHorario = ({
                                     onClick={() =>
                                         setFiltroTurno(turno.id as TurnoFiltro)
                                     }
-                                    className={`flex h-auto flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] font-bold transition-all ${
+                                    className={`flex h-auto flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
                                         activo
-                                            ? 'bg-background font-black text-foreground shadow-xs hover:bg-background/90'
+                                            ? 'bg-background font-black text-foreground shadow-xs'
                                             : 'text-muted-foreground hover:text-foreground'
                                     }`}
                                 >
-                                    <Icon className="size-3" />
-                                    <span
-                                        className={
-                                            esModal ? '' : 'hidden sm:inline'
+                                    <Icon className="size-3.5" />
+                                    <span>{turno.label}</span>
+                                </Button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Chips de Horarios */}
+                    {cargandoDisponibilidad ? (
+                        <AvailabilitySkeleton />
+                    ) : (
+                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                            {horariosFiltrados.map((slot) => {
+                                const esSeleccionado =
+                                    horaSeleccionada === slot.hora;
+                                const IconoTurno = iconoTurnoRapido(slot.turno);
+
+                                return (
+                                    <Button
+                                        key={slot.hora}
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={!slot.disponible}
+                                        onClick={() =>
+                                            seleccionarHora(slot.hora)
                                         }
+                                        className={`flex h-auto flex-col items-center justify-center rounded-2xl p-2.5 text-xs transition-all ${
+                                            esSeleccionado
+                                                ? 'border-2 border-primary bg-primary font-black text-primary-foreground shadow-md ring-2 ring-primary/20 hover:bg-primary/90'
+                                                : slot.disponible
+                                                  ? 'border border-border/80 bg-card font-bold text-foreground hover:border-primary/50 hover:bg-muted'
+                                                  : 'cursor-not-allowed border border-border/30 bg-muted/20 text-muted-foreground/30 line-through opacity-40'
+                                        }`}
                                     >
-                                        {turno.label}
-                                    </span>
-                                </Button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:grid-cols-6">
-                        {horariosFiltrados.map((slot) => {
-                            const esSeleccionado =
-                                horaSeleccionada === slot.hora;
-                            const IconoTurno = iconoTurnoRapido(slot.turno);
-
-                            return (
-                                <Button
-                                    key={slot.hora}
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    disabled={!slot.disponible}
-                                    onClick={() => seleccionarHora(slot.hora)}
-                                    className={`flex h-auto cursor-pointer flex-col items-center justify-center rounded-xl p-2 text-xs transition-all ${
-                                        esSeleccionado
-                                            ? 'border border-primary bg-primary font-black text-primary-foreground shadow-md ring-2 ring-primary/20 hover:bg-primary/90'
-                                            : slot.disponible
-                                              ? 'border border-border/80 bg-card font-medium text-foreground hover:border-primary/40 hover:bg-muted'
-                                              : 'cursor-not-allowed border border-border/40 bg-muted/20 text-muted-foreground/40 line-through opacity-50'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-1">
-                                        {!esSeleccionado && IconoTurno && (
-                                            <IconoTurno className="size-3 text-primary" />
-                                        )}
-                                        <span className="text-[11px] font-bold">
-                                            {slot.hora}
+                                        <div className="flex items-center gap-1">
+                                            {!esSeleccionado && IconoTurno && (
+                                                <IconoTurno className="size-3 text-primary" />
+                                            )}
+                                            <span className="text-xs font-black">
+                                                {slot.hora}
+                                            </span>
+                                        </div>
+                                        <span className="mt-0.5 text-[10px] opacity-80">
+                                            {slot.disponible
+                                                ? slot.turno
+                                                : 'Completo'}
                                         </span>
-                                    </div>
-                                    <span className="mt-0.5 text-[9px] opacity-80">
-                                        {slot.disponible
-                                            ? slot.turno
-                                            : 'Completo'}
-                                    </span>
-                                </Button>
-                            );
-                        })}
-                    </div>
+                                    </Button>
+                                );
+                            })}
+                        </div>
+                    )}
                     {errors.hora && (
                         <FieldError className="text-[10px]">
                             {errors.hora.message}
@@ -310,51 +314,130 @@ export const RestaurantePasoMesaHorario = ({
                 </div>
             </div>
 
-            {/* Sección 3: Plano Visual Interactivo de Mesas */}
+            {/* 2. "Disponibilidad de Mesa Confirmada" - Asignación Inteligente */}
             <div
                 className={`space-y-4 rounded-3xl border border-border/80 bg-card shadow-xs ${
                     esModal ? 'p-4' : 'p-6'
                 }`}
             >
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center justify-between">
                     <div>
-                        <div className="flex items-center gap-2">
-                            <MapPin className="size-4 text-primary" />
-                            <h4 className="text-sm font-black text-foreground">
-                                Distribución de Mesas en Planta
-                            </h4>
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                            Haz clic sobre tu mesa preferida para seleccionarla
-                            o cambiarla.
-                        </p>
+                        <span className="text-[11px] font-black tracking-wider text-primary uppercase dark:text-rose-400">
+                            Disponibilidad Confirmada
+                        </span>
+                        <h4 className="mt-0.5 text-base font-black text-foreground">
+                            Asignación Automática de Mesa
+                        </h4>
                     </div>
 
-                    {mesaIndividualAsignada && (
-                        <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold text-primary dark:text-rose-400">
-                            Asignada: {mesaIndividualAsignada.nombre}
-                        </span>
-                    )}
+                    <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="size-4" />
+                        <span>Mesa Garantizada</span>
+                    </div>
                 </div>
 
-                <RestaurantePlanoMesasVisual
-                    mesas={mesas}
-                    mesaSeleccionadaId={
-                        mesaSeleccionadaManual?.id ||
-                        mesaIndividualAsignada?.id ||
-                        espacioIdSeleccionado ||
-                        null
-                    }
-                    mesasUnidasIds={
-                        disponibilidad?.requiere_union
-                            ? disponibilidad.mesas_sugeridas_union.map(
-                                  (m) => m.id,
-                              )
-                            : []
-                    }
-                    alSeleccionarMesa={manejarSeleccionMesa}
-                    esModoModal={esModal}
-                />
+                {/* Tarjeta de Mesa Asignada */}
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 dark:bg-rose-950/20">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="size-4 text-primary dark:text-rose-400" />
+                                <span className="text-sm font-black text-foreground">
+                                    {disponibilidad?.requiere_union
+                                        ? `Mesa unida para ${adultosSeleccionados} personas`
+                                        : mesaAsignada?.nombre
+                                          ? `Mesa: ${mesaAsignada.nombre}`
+                                          : `Mesa lista para ${adultosSeleccionados} comensales`}
+                                </span>
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {disponibilidad?.requiere_union
+                                    ? `Unión de mesas (${disponibilidad.mesas_sugeridas_union.map((m) => m.nombre).join(' + ')}) preparada para tu grupo.`
+                                    : 'Mesa compatible con tu horario y grupo sin demoras a la llegada.'}
+                            </p>
+                        </div>
+
+                        {/* Preferencia de Ambiente */}
+                        <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-center">
+                            <span className="mr-1 text-[11px] font-bold text-muted-foreground">
+                                Ambiente:
+                            </span>
+                            {['Cualquiera', 'Interior', 'Terraza'].map(
+                                (zona) => (
+                                    <button
+                                        key={zona}
+                                        type="button"
+                                        onClick={() =>
+                                            setZonaPreferencia(
+                                                zona.toLowerCase(),
+                                            )
+                                        }
+                                        className={`rounded-xl px-2.5 py-1 text-[11px] font-bold transition-all ${
+                                            zonaPreferencia ===
+                                            zona.toLowerCase()
+                                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                                : 'border border-border bg-background text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        {zona}
+                                    </button>
+                                ),
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Selección Manual Avanzada Opcional (Toggle) */}
+                <div className="pt-2">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() =>
+                            setMostrarPlanoAvanzado(!mostrarPlanoAvanzado)
+                        }
+                        className="h-auto w-full justify-between rounded-2xl border border-dashed border-border/80 bg-background/50 p-3 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                        <div className="flex items-center gap-2">
+                            <MapPin className="size-4 text-primary" />
+                            <span>
+                                ¿Deseas elegir una mesa específica en el plano?
+                                (Opcional)
+                            </span>
+                        </div>
+                        {mostrarPlanoAvanzado ? (
+                            <ChevronUp className="size-4" />
+                        ) : (
+                            <ChevronDown className="size-4" />
+                        )}
+                    </Button>
+
+                    {mostrarPlanoAvanzado && (
+                        <div className="animate-in fade-in mt-4 rounded-2xl border border-border bg-background p-4 duration-200">
+                            <p className="mb-3 text-xs text-muted-foreground">
+                                Haz clic sobre la mesa de tu preferencia para
+                                seleccionarla.
+                            </p>
+                            <RestaurantePlanoMesasVisual
+                                mesas={mesas}
+                                mesaSeleccionadaId={
+                                    mesaSeleccionadaManual?.id ||
+                                    mesaAsignada?.id ||
+                                    espacioIdSeleccionado ||
+                                    null
+                                }
+                                mesasUnidasIds={
+                                    disponibilidad?.requiere_union
+                                        ? disponibilidad.mesas_sugeridas_union.map(
+                                              (m) => m.id,
+                                          )
+                                        : []
+                                }
+                                alSeleccionarMesa={manejarSeleccionMesa}
+                                esModoModal={esModal}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

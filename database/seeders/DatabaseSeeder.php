@@ -20,6 +20,7 @@ use Database\Seeders\Inventario\InventarioSeeder;
 use Database\Seeders\Limpieza\LimpiezaSeeder;
 use Database\Seeders\Restaurante\RestauranteSeeder;
 use Database\Seeders\Servicios\ServicioActivoAsignacionSeeder;
+use Database\Seeders\Tesoreria\TesoreriaRolesSeeder;
 use Database\Seeders\Usuarios\RolAdministracionSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -38,6 +39,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MonedaSeeder::class);
         $this->call(UsuarioAdminSeeder::class);
         $this->call(RolAdministracionSeeder::class);
+        $this->call(TesoreriaRolesSeeder::class);
         $this->call(CatalogoTipoSeeder::class);
         $this->call(CatalogoSeeder::class);
         $this->call(UbicacionSeeder::class);

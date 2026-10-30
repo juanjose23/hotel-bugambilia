@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Restaurante\Voucher;
 
 use App\Repository\Models\Cuentas\Cuenta;
-use App\Support\HotelInfo;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\MonedaHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

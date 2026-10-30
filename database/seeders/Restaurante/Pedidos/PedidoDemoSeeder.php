@@ -21,6 +21,7 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\Plato;
+use Database\Seeders\Restaurante\Cocina\SustitucionIngredienteSeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -233,6 +234,7 @@ final class PedidoDemoSeeder extends Seeder
         $pedido->subtotal = $pedido->calcularSubtotal();
         $pedido->save();
 
+        $this->call(SustitucionIngredienteSeeder::class);
         app(EnviarPedidoACocina::class)->ejecutar($pedido->refresh());
     }
 

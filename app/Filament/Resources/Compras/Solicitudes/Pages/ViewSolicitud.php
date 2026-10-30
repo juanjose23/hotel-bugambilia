@@ -40,7 +40,7 @@ class ViewSolicitud extends ViewRecord
                 ->label('Imprimir')
                 ->icon(Heroicon::Printer)
                 ->color('gray')
-                ->url(fn (): string => route('admin.compras.reportes.solicitud', $this->getRecord()))
+                ->url(fn (): string => route('admin.compras.reportes.solicitud', ['solicitud' => $this->getRecord()->codigo]))
                 ->openUrlInNewTab()
                 ->visible(fn () => auth()->user()?->can('Compras:ImprimirSolicitud') ?? false),
 

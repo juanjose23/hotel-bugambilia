@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Actions\CodigoQR\GenerarTokenQR;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Reservas\Reserva;
-use App\Support\Barcode\QrCodeGenerator;
+use App\Support\Barcode\Support\Barcode\QrCodeGenerator;
 use Illuminate\Support\Facades\Http;
 
 test('generarTokenQR produce una firma HMAC valida y un QR Base64', function (): void {

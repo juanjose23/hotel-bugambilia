@@ -19,12 +19,21 @@ export const useHabitacionReservaForm = ({
     telefonoWhatsApp = '50587136805',
     diasAgotados = [],
 }: UseHabitacionReservaFormProps) => {
+    const urlParams =
+        typeof window !== 'undefined'
+            ? new URLSearchParams(window.location.search)
+            : null;
+    const initialCheckIn = urlParams?.get('check_in') || '';
+    const initialCheckOut = urlParams?.get('check_out') || '';
+    const initialHuespedes =
+        urlParams?.get('huespedes') || String(room.capacidad || 2);
+
     const form = useForm<HabitacionReservaFormValues>({
         resolver: zodResolver(habitacionReservaSchema),
         defaultValues: {
-            check_in: '',
-            check_out: '',
-            huespedes: String(room.capacidad || 2),
+            check_in: initialCheckIn,
+            check_out: initialCheckOut,
+            huespedes: initialHuespedes,
             notas: '',
         },
     });

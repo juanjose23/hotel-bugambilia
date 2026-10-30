@@ -18,9 +18,9 @@ final readonly class RegistrarProcesoCocina
 
     /**
      * Registra un proceso de cocina basado en la receta de un plato.
-     * El costo se obtiene del Stock en Cocina Restaurante → Lote → costo_unitario.
+     * El costo se obtiene del Stock en Cocina Restaurante â†’ Lote â†’ costo_unitario.
      *
-     * @param  array{codigo: string, plato_id: int, cantidad_platos: int, realizado_por?: int|null, observaciones?: string|null}  $data
+     * @param  array{codigo: string, plato_id: int, cantidad_platos: int, pedido_item_id?: int, realizado_por?: int|null, observaciones?: string|null}  $data
      */
     public function ejecutar(array $data): ProcesoCocina
     {
@@ -48,7 +48,8 @@ final readonly class RegistrarProcesoCocina
             foreach ($ingredientes as $ingrediente) {
                 $variante = $ingrediente->variante;
                 $productoDestino = $variante?->producto;
-                $cantidadIngrediente = (float) $ingrediente->cantidad * $cantidadPlatos;
+                $rendimiento = ((float) ($productoReceta->rendimiento_porciones ?? 1) > 0 ? (float) $productoReceta->rendimiento_porciones : 1.0);
+                $cantidadIngrediente = round(((float) $ingrediente->cantidad / $rendimiento) * $cantidadPlatos, 4);
 
                 $costoUnitario = 0.0;
                 if ($cocinaId && $variante) {
@@ -72,9 +73,19 @@ final readonly class RegistrarProcesoCocina
                 ];
             }
 
+            if (isset($data['pedido_item_id'])) {
+                $movimientos = $this->repositorio->consumosDePartida($data['pedido_item_id']);
+                $costoTotal = 0.0;
+                foreach ($movimientos as $movimiento) {
+                    $costoTotal += (is_numeric($movimiento->getAttribute('costo_total')) ? (float) $movimiento->getAttribute('costo_total') : 0.0);
+                }
+            }
+
             $proceso = new ProcesoCocina([
                 'codigo' => $data['codigo'],
                 'plato_id' => $plato->id,
+                'pedido_item_id' => $data['pedido_item_id'] ?? null,
+                'tipo_registro' => isset($data['pedido_item_id']) ? 'consumo_pedido' : 'costeo',
                 'cantidad_platos' => $cantidadPlatos,
                 'producto_origen_id' => $productoReceta->id,
                 'cantidad_procesada' => $cantidadPlatos,
@@ -85,42 +96,35 @@ final readonly class RegistrarProcesoCocina
 
             $this->repositorio->guardarProcesoCocina($proceso);
 
-            foreach ($itemsData as $item) {
-                $ingrediente = $item['ingrediente'];
-                $variante = $item['variante'];
-                $productoDestino = $item['productoDestino'];
-                $cantidadIngrediente = $item['cantidadIngrediente'];
-
-                $this->repositorio->guardarProcesoItem($proceso, [
-                    'producto_destino_id' => $productoDestino !== null ? $productoDestino->id : $ingrediente->producto_padre_id,
-                    'variante_destino_id' => $variante?->id,
-                    'cantidad' => $cantidadIngrediente,
-                    'peso_unitario' => $variante?->peso,
-                    'peso_total' => $cantidadIngrediente,
-                    'costo_asignado' => $item['costoAsignado'],
-                    'es_merma' => false,
-                    'ubicacion_destino_id' => null,
-                ]);
-
-                if ($cocinaId && $variante) {
-                    $stockExistente = $this->repositorio->obtenerStockPorVariante($cocinaId, $variante->id);
-
-                    if ($stockExistente) {
-                        $stockExistente->cantidad_actual -= $cantidadIngrediente;
-                        $this->repositorio->guardarStock($stockExistente);
-                    }
-
-                    $this->repositorio->registrarMovimiento([
-                        'tipo' => 'CONSUMO',
-                        'lote_id' => $stockExistente?->lote_id,
-                        'producto_id' => $productoDestino?->id,
-                        'cantidad' => -$cantidadIngrediente,
-                        'costo_unitario' => $item['costoUnitario'],
-                        'costo_total' => $item['costoUnitario'] * $cantidadIngrediente,
-                        'ubicacion_origen_id' => $cocinaId,
-                        'documento_tipo' => 'proceso_cocina',
-                        'referencia' => "Proceso cocina #{$proceso->id}: {$plato->nombre}",
+            if (isset($data['pedido_item_id'])) {
+                foreach ($this->repositorio->consumosDePartida($data['pedido_item_id']) as $movimiento) {
+                    $this->repositorio->guardarProcesoItem($proceso, [
+                        'producto_destino_id' => $movimiento->producto_id,
+                        'variante_destino_id' => $movimiento->lote?->producto_variante_id,
+                        'cantidad' => abs((float) $movimiento->cantidad),
+                        'peso_unitario' => null, 'peso_total' => null,
+                        'costo_asignado' => (is_numeric($movimiento->getAttribute('costo_total')) ? (float) $movimiento->getAttribute('costo_total') : 0.0),
+                        'es_merma' => false, 'ubicacion_destino_id' => null,
                     ]);
+                }
+            } else {
+                foreach ($itemsData as $item) {
+                    $ingrediente = $item['ingrediente'];
+                    $variante = $item['variante'];
+                    $productoDestino = $item['productoDestino'];
+                    $cantidadIngrediente = $item['cantidadIngrediente'];
+
+                    $this->repositorio->guardarProcesoItem($proceso, [
+                        'producto_destino_id' => $productoDestino !== null ? $productoDestino->id : $ingrediente->producto_padre_id,
+                        'variante_destino_id' => $variante?->id,
+                        'cantidad' => $cantidadIngrediente,
+                        'peso_unitario' => $variante?->peso,
+                        'peso_total' => $cantidadIngrediente,
+                        'costo_asignado' => $item['costoAsignado'],
+                        'es_merma' => false,
+                        'ubicacion_destino_id' => null,
+                    ]);
+
                 }
             }
 

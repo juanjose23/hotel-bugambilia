@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Cuentas\VentaResource\Widgets;
 
 use App\Repository\Queries\Cuentas\ObtenerEstadisticasVentasQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;

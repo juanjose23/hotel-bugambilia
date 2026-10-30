@@ -15,7 +15,7 @@ use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Restaurante\Pedidos\BuscarClientesRapidoQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
 use App\Repository\Queries\Restaurante\Stock\ObtenerStockDisponibleRestauranteQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;

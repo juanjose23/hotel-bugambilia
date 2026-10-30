@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\ReporteVisorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -9,6 +10,10 @@ use Illuminate\Support\Facades\Route;
 | Panel de Administración y Reportes (Agrupados por Módulos)
 |--------------------------------------------------------------------------
 */
+Route::get('/admin/reportes/visor/{token}', [ReporteVisorController::class, 'ver'])
+    ->middleware(['auth'])
+    ->name('admin.reportes.visor');
+
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/reportes/en-proceso/{codigo?}', function (?string $codigo = null) {
         return response()->view('reports.layout.segundo-plano', [

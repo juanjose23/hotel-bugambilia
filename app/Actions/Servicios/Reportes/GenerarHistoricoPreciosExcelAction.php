@@ -7,8 +7,8 @@ namespace App\Actions\Servicios\Reportes;
 use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Reportes\RegistrarAuditoriaReporte;
 use App\Repository\Queries\Servicios\ObtenerHistoricoServiciosPrecios;
-use App\Support\Excel\ColumnaExcel;
-use App\Support\Excel\GeneradorExcel;
+use App\Support\Barcode\Support\Excel\ColumnaExcel;
+use App\Support\Barcode\Support\Excel\GeneradorExcel;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

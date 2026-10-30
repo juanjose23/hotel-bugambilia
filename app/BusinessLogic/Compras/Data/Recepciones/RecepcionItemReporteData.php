@@ -15,6 +15,7 @@ final readonly class RecepcionItemReporteData
         public ?ProductoReporteData $producto,
         public ?VarianteReporteData $variante,
         public ?ValorReporteData $unidadMedida,
+        public float $cantidad_ordenada,
         public float $cantidad_recibida,
         public float $cantidad_rechazada,
         public ?string $observaciones,

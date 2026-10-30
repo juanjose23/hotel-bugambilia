@@ -375,7 +375,11 @@ final class MenuRestauranteSeeder extends Seeder
         if (! $variante instanceof ProductoVariante) {
             $variante = ProductoVariante::firstOrCreate(
                 ['producto_id' => $producto->id, 'nombre_variante' => $nombreVariante],
-                ['codigo' => 'VAR-'.strtoupper(substr(md5($nombreProducto.$nombreVariante), 0, 6))]
+                [
+                    'codigo' => 'VAR-'.strtoupper(substr(md5($nombreProducto.$nombreVariante), 0, 6)),
+                    'peso' => preg_match('/(\d+(?:\.\d+)?)\s*g\b/i', $nombreVariante, $peso) === 1 ? (float) $peso[1] : null,
+                    'volumen' => preg_match('/(\d+(?:\.\d+)?)\s*ml\b/i', $nombreVariante, $volumen) === 1 ? (float) $volumen[1] : null,
+                ]
             );
         }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Repository\Queries\Reportes;
 
 use App\Interactors\Reportes\RegistrarAuditoriaReporte;
-use App\Support\HotelInfo;
+use App\Support\Barcode\Support\HotelInfo;
 
 final class ObtenerDatosBaseReporte
 {

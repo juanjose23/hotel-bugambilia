@@ -23,10 +23,10 @@ use Tests\TestCase;
 
 final class PanelClustersTest extends TestCase
 {
-    public function test_clusters_tienen_posicion_subnavegacion_lateral_derecha(): void
+    public function test_clusters_conservan_su_posicion_de_subnavegacion(): void
     {
         $this->assertEquals(SubNavigationPosition::End, ConfiguracionCluster::getSubNavigationPosition());
-        $this->assertEquals(SubNavigationPosition::End, FacturacionConfigCluster::getSubNavigationPosition());
+        $this->assertEquals(SubNavigationPosition::Start, FacturacionConfigCluster::getSubNavigationPosition());
         $this->assertEquals(SubNavigationPosition::End, AuditoriaCluster::getSubNavigationPosition());
     }
 

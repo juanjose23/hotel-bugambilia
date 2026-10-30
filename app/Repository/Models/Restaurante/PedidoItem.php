@@ -9,6 +9,7 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OwenIt\Auditing\Auditable;
@@ -71,6 +72,28 @@ final class PedidoItem extends Model implements AuditableContract
         self::updating(function (PedidoItem $item): void {
             $item->subtotal = round($item->precio_unitario * $item->cantidad, 2);
         });
+    }
+
+    /** @param Builder<self> $query */
+    public function scopePorPreparar(Builder $query): void
+    {
+        $query->whereIn('pedido_items.estado', [EstadoItemPedido::PENDIENTE, EstadoItemPedido::EN_PREPARACION, EstadoItemPedido::BLOQUEADO_STOCK]);
+    }
+
+    /** @param Builder<self> $query */
+    public function scopePorDespachar(Builder $query): void
+    {
+        $query->whereIn('pedido_items.estado', [EstadoItemPedido::PENDIENTE, EstadoItemPedido::EN_PREPARACION, EstadoItemPedido::LISTO, EstadoItemPedido::BLOQUEADO_STOCK]);
+    }
+
+    /** @param Builder<self> $query */
+    public function scopeParaArea(Builder $query, ?string $area): void
+    {
+        if ($area !== null && $area !== '') {
+            $query->where(fn (Builder $q) => $q->where('pedido_items.area_cocina', $area)
+                ->orWhere(fn (Builder $sinArea) => $sinArea->whereNull('pedido_items.area_cocina')
+                    ->whereHas('plato', fn (Builder $plato) => $plato->where('area_cocina', $area))));
+        }
     }
 
     /** @return BelongsTo<Pedido, $this> */

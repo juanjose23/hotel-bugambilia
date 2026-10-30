@@ -6,6 +6,7 @@ import {
     UtensilsCrossed,
     Users,
     AlertCircle,
+    CreditCard,
 } from 'lucide-react';
 import { PortalLayout } from '@/modules/clientes/components/layouts/PortalLayout';
 import { DetalleSuiteCard } from '@/modules/clientes/components/reservas/DetalleSuiteCard';
@@ -16,18 +17,29 @@ import { Button, buttonVariants } from '@/modules/shared/components/ui/button';
 
 interface ReservaDetalleProps {
     reserva: PortalReservaDetalleCompleto;
+    tesoreria_habilitada?: boolean;
 }
 
-export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
+export const ReservaDetalle = ({
+    reserva,
+    tesoreria_habilitada = false,
+}: ReservaDetalleProps) => {
     const { cancelarReserva } = useCancelarReserva({
         confirmMessage:
             '¿Estás seguro de que deseas cancelar esta reserva? El reembolso se calculará y procesará de forma automática según la política de cancelación.',
     });
 
+    const categoria = reserva.recurso?.categoria?.toLowerCase() || '';
     const esRestaurante =
         reserva.tipo_reserva === 'restaurante' ||
-        reserva.recurso.categoria.toLowerCase().includes('mesa') ||
-        reserva.recurso.categoria.toLowerCase().includes('restaurante');
+        categoria.includes('mesa') ||
+        categoria.includes('restaurante');
+
+    const saldoNum = Number(reserva.saldo || 0);
+    const simbolo = reserva.moneda?.simbolo || '$';
+    const acompanantes = Array.isArray(reserva.acompanantes)
+        ? reserva.acompanantes
+        : [];
 
     const handleCancelarReserva = () => {
         cancelarReserva(reserva.id, reserva.codigo_reserva);
@@ -35,8 +47,9 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
 
     return (
         <PortalLayout>
-            <Head>
-                <title>{`Reserva #${reserva.codigo_reserva} — Portal de Huéspedes`}</title>
+            <Head
+                title={`Reserva #${reserva.codigo_reserva} — Portal de Huéspedes`}
+            >
                 <meta
                     name="description"
                     content={`Detalle de la reserva ${reserva.codigo_reserva} en Hotel Bugambilias Estelí.`}
@@ -79,12 +92,28 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
                                 </span>
                             </div>
                             <h1 className="mt-0.5 text-xl font-black text-foreground sm:text-2xl">
-                                {reserva.recurso.nombre}
+                                {reserva.recurso?.nombre || 'Hospedaje'}
                             </h1>
                         </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2.5">
+                        {saldoNum > 0 && reserva.url_pago_saldo && (
+                            <Link
+                                href={reserva.url_pago_saldo}
+                                className={buttonVariants({
+                                    className:
+                                        'gap-2 rounded-xl bg-emerald-600 text-xs font-bold text-white shadow-sm hover:bg-emerald-700',
+                                })}
+                            >
+                                <CreditCard className="size-4" />
+                                <span>
+                                    Pagar Saldo ({simbolo}
+                                    {saldoNum.toFixed(2)})
+                                </span>
+                            </Link>
+                        )}
+
                         <a
                             href={reserva.url_voucher}
                             target="_blank"
@@ -130,6 +159,19 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
                     <div className="space-y-8 lg:col-span-2">
                         <DetalleSuiteCard reserva={reserva} />
                         <EstadoCuentaCard reserva={reserva} />
+                        {tesoreria_habilitada &&
+                            reserva.cuenta &&
+                            saldoNum > 0 && (
+                                <Link
+                                    href={`/portal/cuentas/${reserva.cuenta.id}/comprobantes`}
+                                    className={buttonVariants({
+                                        variant: 'outline',
+                                        className: 'mt-3 w-full',
+                                    })}
+                                >
+                                    Reportar transferencia o depósito
+                                </Link>
+                            )}
                     </div>
 
                     {/* Barra lateral de información y comensales / acompañantes */}
@@ -190,7 +232,7 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
                         <div className="space-y-4 rounded-3xl border border-border/70 bg-card p-6 shadow-xs">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                                    Acompañantes ({reserva.acompanantes.length})
+                                    Acompañantes ({acompanantes.length})
                                 </h4>
                                 <Link
                                     href={`/portal/reservas/${reserva.id}/acompanantes`}
@@ -205,9 +247,9 @@ export const ReservaDetalle = ({ reserva }: ReservaDetalleProps) => {
                                 </Link>
                             </div>
 
-                            {reserva.acompanantes.length > 0 ? (
+                            {acompanantes.length > 0 ? (
                                 <div className="space-y-2">
-                                    {reserva.acompanantes.map((ac, idx) => (
+                                    {acompanantes.map((ac, idx) => (
                                         <div
                                             key={idx}
                                             className="flex items-center justify-between rounded-xl bg-secondary/40 px-3.5 py-2.5 text-xs"

@@ -1,0 +1,9 @@
+{
+  "esquema_sin_cambios": true,
+  "huella_esquema": "a4ce82e7fc6ca1a0cc625c6152b1c3ac5ff44e277206a94bf94d4fd1cfb8417b",
+  "transacciones_solo_lectura": true,
+  "tablas_en_matriz": 148,
+  "tablas_en_diccionario": 148,
+  "diagrama_completo_FK": 357,
+  "sin_migraciones_generadas": true
+}
