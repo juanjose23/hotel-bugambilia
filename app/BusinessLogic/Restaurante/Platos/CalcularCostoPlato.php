@@ -22,6 +22,9 @@ final class CalcularCostoPlato
     public function ejecutar(int $productoRecetaId): array
     {
         $ingredientes = $this->repositorio->obtenerIngredientesReceta($productoRecetaId);
+        $receta = $this->repositorio->obtenerProductoPorId($productoRecetaId);
+        $rendimiento = (float) ($receta->rendimiento_porciones ?? 1);
+        $rendimiento = $rendimiento > 0 ? $rendimiento : 1.0;
         $cocina = $this->repositorio->obtenerUbicacionPorNombre(UbicacionCocina::RESTAURANTE->value);
         $cocinaId = $cocina?->id;
 
@@ -34,7 +37,7 @@ final class CalcularCostoPlato
                 ? $variante->nombre_variante
                 : ($ingrediente->productoPadre->nombre ?? 'Ingrediente');
 
-            $cantidad = (float) $ingrediente->cantidad;
+            $cantidad = round((float) $ingrediente->cantidad / $rendimiento, 4);
             $costoUnitario = 0.0;
             $conStock = false;
 

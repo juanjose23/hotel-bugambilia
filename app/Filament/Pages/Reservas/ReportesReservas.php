@@ -10,14 +10,11 @@ use App\Enums\Reservas\TipoPagoReserva;
 use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Filament\Shared\Forms\CategoriaSelect;
 use App\Repository\Queries\Reservas\Reportes\ObtenerMetricasReporteReservasQuery;
-use App\Support\ReporteConfig;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -28,7 +25,9 @@ use UnitEnum;
  */
 class ReportesReservas extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte {
+        ManejaPaginaReporte::getForms insteadof InteractsWithForms;
+    }
 
     protected ObtenerMetricasReporteReservasQuery $metricasQuery;
 
@@ -79,57 +78,27 @@ class ReportesReservas extends Page implements HasForms
         return $this->metricasQuery->ejecutar();
     }
 
-    /** @return array<string, mixed> */
-    protected function getForms(): array
+    /** @return array<int, mixed> */
+    protected function getCamposFiltrosEspecificos(): array
     {
         return [
-            'reportForm' => $this->makeSchema()
-                ->schema([
-                    Select::make('reporte')
-                        ->label('Reporte Analítico')
-                        ->options(ReporteConfig::getSelectOptions('reservas'))
-                        ->required()
-                        ->live()
-                        ->native(false)
-                        ->searchable()
-                        ->placeholder('Selecciona un reporte de la lista...'),
+            Select::make('estado')
+                ->label('Filtrar por Estado de Reserva (Opcional)')
+                ->options(EstadoReserva::class)
+                ->placeholder('Todos los estados')
+                ->native(false)
+                ->visible(fn ($get) => in_array($get('reporte'), ['reservas_estado', 'ocupacion'], true)),
 
-                    TextEntry::make('reporte_descripcion')
-                        ->hiddenLabel()
-                        ->state(fn ($get) => ReporteConfig::getDescripcion('reservas', $get('reporte')) ?? 'Seleccione un reporte de la lista para ver su descripción...')
-                        ->extraAttributes(['class' => 'text-sm text-gray-500 italic mt-1 dark:text-gray-400']),
+            Select::make('tipo_pago')
+                ->label('Filtrar por Canal / Garantía (Opcional)')
+                ->options(TipoPagoReserva::class)
+                ->placeholder('Todos los métodos')
+                ->native(false)
+                ->visible(fn ($get) => $get('reporte') === 'ventas_ingresos'),
 
-                    Select::make('estado')
-                        ->label('Filtrar por Estado de Reserva (Opcional)')
-                        ->options(EstadoReserva::class)
-                        ->placeholder('Todos los estados')
-                        ->native(false)
-                        ->visible(fn ($get) => in_array($get('reporte'), ['reservas_estado', 'ocupacion'], true)),
-
-                    Select::make('tipo_pago')
-                        ->label('Filtrar por Canal / Garantía (Opcional)')
-                        ->options(TipoPagoReserva::class)
-                        ->placeholder('Todos los métodos')
-                        ->native(false)
-                        ->visible(fn ($get) => $get('reporte') === 'ventas_ingresos'),
-
-                    CategoriaSelect::make(CatalogoTipo::CATEGORIA_HABITACION, label: 'Filtrar por Categoría de Habitación')
-                        ->placeholder('Todas las categorías')
-                        ->visible(fn ($get) => $get('reporte') === 'rendimiento_habitaciones'),
-
-                    DatePicker::make('fecha_inicio')
-                        ->label('Fecha Inicio')
-                        ->default(now()->startOfMonth())
-                        ->required()
-                        ->native(false),
-
-                    DatePicker::make('fecha_fin')
-                        ->label('Fecha Fin')
-                        ->default(now())
-                        ->required()
-                        ->native(false),
-                ])
-                ->statePath('reportData'),
+            CategoriaSelect::make(CatalogoTipo::CATEGORIA_HABITACION, label: 'Filtrar por Categoría de Habitación')
+                ->placeholder('Todas las categorías')
+                ->visible(fn ($get) => $get('reporte') === 'rendimiento_habitaciones'),
         ];
     }
 

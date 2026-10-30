@@ -60,6 +60,9 @@ final readonly class EmitirFacturaDesdeVenta
             $moneda = $venta->moneda ?? $this->monedaPredeterminada();
             $monedaBase = $this->monedaBase();
             $tasaRegistro = $this->resolverTasaCambio($moneda, $monedaBase);
+            if ($moneda->id !== $monedaBase->id && ($tasaRegistro === null || ! is_finite((float) $tasaRegistro->tasa) || (float) $tasaRegistro->tasa <= 0)) {
+                throw new DomainException('No existe una tasa válida entre la moneda de la venta y la moneda base.');
+            }
             $tasa = $moneda->id === $monedaBase->id
                 ? 1.0
                 : (float) ($tasaRegistro !== null ? $tasaRegistro->tasa : 1.0);

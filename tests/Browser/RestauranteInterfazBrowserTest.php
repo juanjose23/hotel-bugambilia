@@ -7,6 +7,7 @@ use App\Enums\Activos\EstadoAsignacion;
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
+use App\Enums\Inventario\EstadoLote;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Enums\Reservas\ControlDisponibilidad;
 use App\Enums\Reservas\EstadoRecursoReservable;
@@ -29,13 +30,13 @@ use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Colaboradores\Colaborador;
 use App\Repository\Models\Espacios\Espacio;
+use App\Repository\Models\Inventario\Lote;
+use App\Repository\Models\Inventario\Stock;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
-use App\Repository\Models\Restaurante\Pedido;
-use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\User;
 use Laravel\Dusk\Browser;
@@ -85,16 +86,6 @@ function asegurarMobiliarioEnMesasDusk(): void
         }
     }
 }
-
-afterEach(function (): void {
-    PedidoItem::query()->forceDelete();
-    Pedido::query()->forceDelete();
-    Reserva::query()->forceDelete();
-    Espacio::query()->where('tipo', TipoEspacio::MESA)->update([
-        'estado' => EstadoEspacio::Disponible,
-        'meta_datos' => null,
-    ]);
-});
 
 function obtenerUsuarioDuskAdmin(): User
 {
@@ -218,8 +209,8 @@ test('flujo de mesa sin reservacion: apertura de comanda, navegacion a cocina KD
             ->pause(1000);
 
         $browser->visit('/admin/restaurante/cocina')
-            ->waitForText('Centro de Cocina')
-            ->assertSee('Centro de Cocina')
+            ->waitForText('Comandas en preparación')
+            ->assertSee('Comandas en preparación')
             ->pause(1000);
 
         $browser->visit('/admin/restaurante/mesas')
@@ -295,8 +286,8 @@ test('modulo de procesos de cocina y transformacion de materia prima', function 
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/procesos-cocina')
-            ->waitForText('Procesos')
-            ->assertSee('Procesos')
+            ->waitForText('Preparaciones Y Costeo')
+            ->assertSee('Preparaciones Y Costeo')
             ->pause(1000);
     });
 });
@@ -404,37 +395,33 @@ test('flujo E2E de transformacion de materia prima, abastecimiento de cocina y r
 
     $ubicacionRestaurante = Ubicacion::query()
         ->where('nombre', UbicacionCocina::RESTAURANTE->value)
-        ->first();
-
-    if ($ubicacionRestaurante !== null && $producto !== null) {
-        try {
-            app(RegistrarMermaGlobalDiaria::class)->ejecutar(
-                fecha: now()->toDateString(),
-                ubicacionId: $ubicacionRestaurante->id,
-                items: [
-                    [
-                        'producto_id' => $producto->id,
-                        'cantidad' => 0.5,
-                        'motivo' => 'Derrame accidental en preparación Dusk',
-                    ],
-                ],
-                usuarioId: $user->id
-            );
-        } catch (Throwable) {
-            // Ignorar si no hay stock suficiente en la ubicación para la merma demo
-        }
-    }
+        ->firstOrFail();
+    $stock = Stock::query()->where('ubicacion_id', $ubicacionRestaurante->id)
+        ->where('cantidad', '>=', 0.5)
+        ->whereHas('lote', fn ($query) => $query->where('estado', EstadoLote::Disponible)
+            ->where(fn ($fechas) => $fechas->whereNull('fecha_vencimiento')->orWhere('fecha_vencimiento', '>=', today())))
+        ->firstOrFail();
+    $lotesProducto = Lote::query()->where('producto_id', $stock->producto_id)->where('ubicacion_id', $ubicacionRestaurante->id);
+    $cantidadAnterior = (float) $lotesProducto->sum('cantidad_disponible');
+    $resultadoMerma = app(RegistrarMermaGlobalDiaria::class)->ejecutar(
+        fecha: now()->toDateString(),
+        ubicacionId: $ubicacionRestaurante->id,
+        items: [['producto_id' => (int) $stock->producto_id, 'cantidad' => 0.5, 'motivo' => 'Derrame accidental en preparación Dusk']],
+        usuarioId: $user->id,
+    );
+    expect($resultadoMerma['total_items'])->toBe(1);
+    expect((float) $lotesProducto->sum('cantidad_disponible'))->toBe(round($cantidadAnterior - 0.5, 4));
 
     $this->browse(function (Browser $browser) use ($user): void {
         $browser->loginAs($user)
             ->visit('/admin/restaurante/procesos-cocina')
-            ->waitForText('Procesos')
-            ->assertSee('Procesos')
+            ->waitForText('Preparaciones Y Costeo')
+            ->assertSee('Preparaciones Y Costeo')
             ->pause(1000);
 
         $browser->visit('/admin/restaurante/cocina')
-            ->waitForText('Centro de Cocina')
-            ->assertSee('Centro de Cocina')
+            ->waitForText('Comandas en preparación')
+            ->assertSee('Comandas en preparación')
             ->pause(1000);
     });
 });

@@ -280,3 +280,9 @@
       - any-glob-to-any-file: 'Documentacion/**'
       - any-glob-to-any-file: '*.md'
       - any-glob-to-any-file: '.github/copilot-instructions.md'
+
+'type: ci -cd':
+  -changed-files:
+    - any-glob-to-any-file: 'docker/**'
+    - any-glob-to-any-file: '*.yaml'
+

@@ -32,7 +32,7 @@ export const HistorialResumen = ({ reservas }: HistorialResumenProps) => {
                         </div>
                         <div className="min-w-0">
                             <h5 className="truncate text-sm font-bold text-foreground">
-                                {r.recurso.nombre}
+                                {r.recurso?.nombre || 'Hospedaje'}
                             </h5>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <span className="font-mono">

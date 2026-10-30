@@ -8,18 +8,15 @@ use App\Enums\Catalogos\CatalogoTipo;
 use App\Filament\Shared\Concerns\ManejaPaginaReporte;
 use App\Filament\Shared\Forms\ServicioSelect;
 use App\Repository\Queries\Servicios\Reportes\ObtenerMetricasReporteServiciosQuery;
-use App\Support\CachedOptions;
-use App\Support\ReporteConfig;
+use App\Support\Barcode\Support\CachedOptions;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use InvalidArgumentException;
 use UnitEnum;
 
 /**
@@ -27,7 +24,9 @@ use UnitEnum;
  */
 final class ReporteHistoricoPrecios extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte {
+        ManejaPaginaReporte::getForms insteadof InteractsWithForms;
+    }
 
     protected ObtenerMetricasReporteServiciosQuery $metricasQuery;
 
@@ -77,105 +76,42 @@ final class ReporteHistoricoPrecios extends Page implements HasForms
         return $this->metricasQuery->ejecutar();
     }
 
-    /** @return array<string, mixed> */
-    protected function getForms(): array
+    protected function incluyeFechasReporte(): bool
+    {
+        return false;
+    }
+
+    /** @return array<int, mixed> */
+    protected function getCamposFiltrosEspecificos(): array
     {
         return [
-            'reportForm' => $this->makeSchema()
-                ->schema([
-                    Select::make('reporte')
-                        ->label('Reporte Analítico')
-                        ->options(ReporteConfig::getSelectOptions('servicios'))
-                        ->default('historico_precios')
-                        ->required()
-                        ->live()
-                        ->native(false)
-                        ->searchable()
-                        ->placeholder('Selecciona un reporte de la lista...'),
+            Select::make('categoria_id')
+                ->label('Filtrar por Categoría (Opcional)')
+                ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CATEGORIA_SERVICIO->value))
+                ->searchable()
+                ->placeholder('Todas las categorías')
+                ->native(false),
 
-                    TextEntry::make('reporte_descripcion')
-                        ->hiddenLabel()
-                        ->state(fn ($get) => ReporteConfig::getDescripcion('servicios', $get('reporte')) ?? 'Seleccione un reporte de la lista para ver su descripción...')
-                        ->extraAttributes(['class' => 'text-sm text-gray-500 italic mt-1 dark:text-gray-400']),
+            ServicioSelect::make('servicio_id')
+                ->placeholder('Todos los servicios'),
 
-                    Select::make('categoria_id')
-                        ->label('Filtrar por Categoría (Opcional)')
-                        ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CATEGORIA_SERVICIO->value))
-                        ->searchable()
-                        ->placeholder('Todas las categorías')
-                        ->native(false),
+            Select::make('moneda_id')
+                ->label('Filtrar por Moneda (Opcional)')
+                ->options(fn () => CachedOptions::monedas())
+                ->searchable()
+                ->placeholder('Todas las monedas')
+                ->native(false),
 
-                    ServicioSelect::make('servicio_id')
-                        ->placeholder('Todos los servicios'),
-
-                    Select::make('moneda_id')
-                        ->label('Filtrar por Moneda (Opcional)')
-                        ->options(fn () => CachedOptions::monedas())
-                        ->searchable()
-                        ->placeholder('Todas las monedas')
-                        ->native(false),
-
-                    Select::make('estado')
-                        ->label('Estado del Precio')
-                        ->options([
-                            '' => 'Todos',
-                            '1' => 'Vigente',
-                            '2' => 'No Vigente',
-                        ])
-                        ->default('')
-                        ->native(false),
+            Select::make('estado')
+                ->label('Estado del Precio')
+                ->options([
+                    '' => 'Todos',
+                    '1' => 'Vigente',
+                    '2' => 'No Vigente',
                 ])
-                ->statePath('reportData'),
+                ->default('')
+                ->native(false),
         ];
-    }
-
-    public function descargarReporte(): mixed
-    {
-        $data = $this->reportForm->getState();
-        $rawReporte = $data['reporte'] ?? null;
-        $reporte = is_string($rawReporte) ? $rawReporte : 'historico_precios';
-        if (! $reporte) {
-            return null;
-        }
-
-        $params = [
-            'categoria_id' => $data['categoria_id'] ?? null,
-            'servicio_id' => $data['servicio_id'] ?? null,
-            'moneda_id' => $data['moneda_id'] ?? null,
-            'estado' => $data['estado'] ?: null,
-            'pageSize' => $this->pageSize,
-            'orientation' => $this->orientation,
-        ];
-
-        $this->procesarDescargaReporte('servicios', $reporte, $params);
-
-        return null;
-    }
-
-    public function descargarExcel(): mixed
-    {
-        $data = $this->reportForm->getState();
-        $rawReporte = $data['reporte'] ?? null;
-        $reporte = is_string($rawReporte) ? $rawReporte : 'historico_precios';
-        if (! $reporte) {
-            return null;
-        }
-
-        $params = [
-            'categoria_id' => $data['categoria_id'] ?? null,
-            'servicio_id' => $data['servicio_id'] ?? null,
-            'moneda_id' => $data['moneda_id'] ?? null,
-            'estado' => $data['estado'] ?: null,
-        ];
-
-        try {
-            $url = ReporteConfig::getUrl('servicios', $reporte, $params, 'excel');
-            $this->dispatch('open-new-tab', url: $url);
-        } catch (InvalidArgumentException) {
-            return null;
-        }
-
-        return null;
     }
 
     public static function canAccess(): bool

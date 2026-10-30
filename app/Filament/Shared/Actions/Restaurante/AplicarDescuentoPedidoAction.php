@@ -7,7 +7,7 @@ namespace App\Filament\Shared\Actions\Restaurante;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Interactors\Restaurante\Cuentas\AplicarDescuentoCuenta;
 use App\Repository\Models\Restaurante\Pedido;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;

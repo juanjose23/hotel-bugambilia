@@ -1,4 +1,4 @@
-@use(App\Support\MonedaHelper)
+@use(App\Support\Barcode\Support\MonedaHelper)
 <x-filament-panels::page>
     <div class="space-y-6 font-sans select-none">
 
@@ -53,11 +53,14 @@
                         <x-filament::section class="flex flex-col justify-between group h-full">
                             <div class="space-y-3">
                                 {{-- Imagen --}}
-                                <div class="h-36 w-full bg-gray-100 dark:bg-gray-800 rounded-xl relative overflow-hidden flex items-center justify-center">
+                                <div
+                                    class="h-36 w-full bg-gray-100 dark:bg-gray-800 rounded-xl relative overflow-hidden flex items-center justify-center">
                                     @if($imagen)
-                                        <img src="{{ asset('storage/' . $imagen) }}" alt="{{ $plato->nombre }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        <img src="{{ asset('storage/' . $imagen) }}" alt="{{ $plato->nombre }}"
+                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                     @else
-                                        <x-filament::icon icon="heroicon-o-cake" class="w-10 h-10 text-gray-400 dark:text-gray-600" />
+                                        <x-filament::icon icon="heroicon-o-cake"
+                                                          class="w-10 h-10 text-gray-400 dark:text-gray-600" />
                                     @endif
 
                                     <div class="absolute top-2.5 right-2.5">
@@ -69,7 +72,8 @@
 
                                 {{-- Texto --}}
                                 <div>
-                                    <span class="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wide">
+                                    <span
+                                        class="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wide">
                                         {{ $plato->categoria?->nombre ?? 'Menú' }}
                                     </span>
                                     <h3 class="font-bold text-sm text-gray-900 dark:text-white leading-snug mt-0.5">
@@ -94,7 +98,8 @@
                             </div>
                         </x-filament::section>
                     @empty
-                        <div class="col-span-full py-12 text-center bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 text-gray-500">
+                        <div
+                            class="col-span-full py-12 text-center bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 text-gray-500">
                             <p class="text-xs font-semibold">Sin platillos disponibles en esta categoría.</p>
                         </div>
                     @endforelse
@@ -105,9 +110,11 @@
             {{-- Columna Derecha: Mi Orden (4 cols) --}}
             <div class="lg:col-span-4 sticky top-6">
                 <x-filament::section>
-                    <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800 mb-4">
+                    <div
+                        class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800 mb-4">
                         <div class="flex items-center gap-2">
-                            <x-filament::icon icon="heroicon-o-shopping-cart" class="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                            <x-filament::icon icon="heroicon-o-shopping-cart"
+                                              class="w-5 h-5 text-primary-600 dark:text-primary-400" />
                             <h3 class="font-bold text-base text-gray-900 dark:text-white">Mi Comanda</h3>
                         </div>
                         @if(count($this->carrito) > 0)
@@ -124,7 +131,8 @@
 
                     {{-- Selección Opcional de Mesa --}}
                     <div class="space-y-1 mb-4">
-                        <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">Asignar Mesa (Opcional)</label>
+                        <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">Asignar Mesa
+                            (Opcional)</label>
                         <x-filament::input.wrapper>
                             <x-filament::input.select wire:model="mesaId">
                                 <option value="">-- Sin mesa por el momento (Para Llevar / Libre) --</option>
@@ -138,7 +146,8 @@
                     {{-- Lista de Items --}}
                     <div class="space-y-2.5 max-h-87.5 overflow-y-auto pr-1 mb-4">
                         @forelse($this->carrito as $pId => $item)
-                            <div class="bg-gray-50 dark:bg-gray-950 p-3 rounded-xl border border-gray-200/60 dark:border-gray-800/60 space-y-2">
+                            <div
+                                class="bg-gray-50 dark:bg-gray-950 p-3 rounded-xl border border-gray-200/60 dark:border-gray-800/60 space-y-2">
                                 <div class="flex items-start justify-between gap-2">
                                     <span class="font-bold text-xs text-gray-900 dark:text-white leading-tight">
                                         {{ $item['nombre'] }}
@@ -157,7 +166,8 @@
                                         >
                                             -
                                         </x-filament::button>
-                                        <span class="text-xs font-bold text-gray-900 dark:text-white px-2">{{ $item['cantidad'] }}</span>
+                                        <span
+                                            class="text-xs font-bold text-gray-900 dark:text-white px-2">{{ $item['cantidad'] }}</span>
                                         <x-filament::button
                                             wire:click="cambiarCantidad({{ $pId }}, 1)"
                                             color="gray"
@@ -196,7 +206,8 @@
                         <div class="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-3">
                             <div class="flex justify-between text-sm font-bold text-gray-900 dark:text-white">
                                 <span>TOTAL</span>
-                                <span class="text-primary-600 dark:text-primary-400 text-base">{{ MonedaHelper::formatear($this->calcularSubtotal()) }}</span>
+                                <span
+                                    class="text-primary-600 dark:text-primary-400 text-base">{{ MonedaHelper::formatear($this->calcularSubtotal()) }}</span>
                             </div>
 
                             <x-filament::button

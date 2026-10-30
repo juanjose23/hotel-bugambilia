@@ -34,7 +34,9 @@ use UnitEnum;
  */
 class ReportesCompras extends Page implements HasForms, HasTable
 {
-    use HasPageShield, InteractsWithForms, InteractsWithTable, ManejaPaginaReporte;
+    use HasPageShield, InteractsWithForms, InteractsWithTable, ManejaPaginaReporte {
+        ManejaPaginaReporte::getForms insteadof InteractsWithForms;
+    }
 
     protected ObtenerSolicitudParaReporteQuery $solicitudQuery;
 
@@ -100,42 +102,12 @@ class ReportesCompras extends Page implements HasForms, HasTable
                 ->schema([
                     TextInput::make('codigo')
                         ->label('Código de Documento')
-                        ->placeholder('Ej. SOL-2026-0001, COT-2026-0001, OC-2026-0001')
+                        ->placeholder('Ej. SOL-2026-0001, COT-#123, OC-2026-0001')
                         ->required()
                         ->prefixIcon(Heroicon::MagnifyingGlass),
                 ])
                 ->statePath('searchData'),
         ];
-    }
-
-    public function descargarReporte(): null
-    {
-        $data = $this->reportForm->getState();
-        $rawReporte = $data['reporte'] ?? null;
-        $reporte = is_string($rawReporte) ? $rawReporte : '';
-
-        if ($reporte === '') {
-            return null;
-        }
-
-        $params = [
-            'fecha_inicio' => is_string($data['fecha_inicio'] ?? null) ? $data['fecha_inicio'] : '',
-            'fecha_fin' => is_string($data['fecha_fin'] ?? null) ? $data['fecha_fin'] : '',
-            'pageSize' => $this->pageSize,
-            'orientation' => $this->orientation,
-        ];
-
-        if ($reporte === 'solicitudes_estado') {
-            $params['estado'] = $data['estado'] ?? null;
-        }
-
-        if ($reporte === 'analisis_precio') {
-            $params['meses'] = $data['meses'] ?? 6;
-        }
-
-        $this->procesarDescargaReporte('compras', $reporte, $params);
-
-        return null;
     }
 
     public function buscarTrazabilidad(BuscarTrazabilidadPorCodigoQuery $query): null
@@ -208,20 +180,20 @@ class ReportesCompras extends Page implements HasForms, HasTable
                     ->label('PDF Solicitud')
                     ->icon(Heroicon::DocumentArrowDown)
                     ->color('gray')
-                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.solicitud', ['solicitud' => $record->id]))
+                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.solicitud', ['solicitud' => $record->codigo]))
                     ->openUrlInNewTab(),
                 Action::make('descargar_comparativa')
                     ->label('PDF Comparativa')
                     ->icon(Heroicon::TableCells)
                     ->color('gray')
-                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.comparativa', ['solicitud' => $record->id]))
+                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.comparativa', ['solicitud' => $record->codigo]))
                     ->openUrlInNewTab()
                     ->visible(fn (Solicitud $record) => $record->cotizaciones()->count() > 0),
                 Action::make('imprimir_trazabilidad')
                     ->label('Imprimir Trazabilidad')
                     ->icon(Heroicon::Printer)
                     ->color('primary')
-                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.trazabilidad-completa', ['solicitud' => $record->id]))
+                    ->url(fn (Solicitud $record) => route('admin.compras.reportes.trazabilidad-completa', ['solicitud' => $record->codigo]))
                     ->openUrlInNewTab()
                     ->tooltip('Genera el PDF HTB-COM-009 con el proceso completo de esta compra'),
             ]);

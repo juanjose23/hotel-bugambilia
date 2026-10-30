@@ -6,22 +6,61 @@ interface UseFiltrosHabitacionesPageProps {
     rooms: RoomItem[];
     selectedCategory?: string | null;
     searchQuery?: string;
+    initialCheckIn?: string;
+    initialCheckOut?: string;
+    initialHuespedes?: string;
 }
 
 export const useFiltrosHabitacionesPage = ({
     rooms,
     selectedCategory = null,
     searchQuery = '',
+    initialCheckIn = '',
+    initialCheckOut = '',
+    initialHuespedes = 'todos',
 }: UseFiltrosHabitacionesPageProps) => {
+    // Leer parámetros de URL si no vienen por props
+    const urlParams =
+        typeof window !== 'undefined'
+            ? new URLSearchParams(window.location.search)
+            : null;
+    const defaultCheckIn = initialCheckIn || urlParams?.get('check_in') || '';
+    const defaultCheckOut =
+        initialCheckOut || urlParams?.get('check_out') || '';
+    const defaultHuespedes =
+        initialHuespedes !== 'todos'
+            ? initialHuespedes
+            : urlParams?.get('huespedes') || 'todos';
+
     const [categoria, setCategoria] = useState<string>(
         selectedCategory || 'todas',
     );
     const [buscar, setBuscar] = useState<string>(searchQuery || '');
-    const [huespedes, setHuespedes] = useState<string>('todos');
+    const [huespedes, setHuespedes] = useState<string>(defaultHuespedes);
+    const [checkIn, setCheckIn] = useState<string>(defaultCheckIn);
+    const [checkOut, setCheckOut] = useState<string>(defaultCheckOut);
     const [orden, setOrden] = useState<
         'precio_asc' | 'precio_desc' | 'popular'
     >('popular');
     const [isPending, startTransition] = useTransition();
+
+    // Cálculo reactivo de noches
+    const noches = useMemo(() => {
+        if (!checkIn || !checkOut) {
+            return 0;
+        }
+
+        try {
+            const fechaIn = new Date(`${checkIn}T12:00:00`);
+            const fechaOut = new Date(`${checkOut}T12:00:00`);
+            const diffTime = fechaOut.getTime() - fechaIn.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            return diffDays > 0 ? diffDays : 0;
+        } catch {
+            return 0;
+        }
+    }, [checkIn, checkOut]);
 
     const manejarCambioCategoria = (nuevaCat: string) => {
         startTransition(() => {
@@ -32,6 +71,8 @@ export const useFiltrosHabitacionesPage = ({
                     categoria: nuevaCat === 'todas' ? undefined : nuevaCat,
                     buscar: buscar || undefined,
                     huespedes: huespedes === 'todos' ? undefined : huespedes,
+                    check_in: checkIn || undefined,
+                    check_out: checkOut || undefined,
                 },
                 {
                     preserveState: true,
@@ -50,6 +91,8 @@ export const useFiltrosHabitacionesPage = ({
                     categoria: categoria === 'todas' ? undefined : categoria,
                     buscar: buscar || undefined,
                     huespedes: huespedes === 'todos' ? undefined : huespedes,
+                    check_in: checkIn || undefined,
+                    check_out: checkOut || undefined,
                 },
                 {
                     preserveState: true,
@@ -65,6 +108,8 @@ export const useFiltrosHabitacionesPage = ({
             setCategoria('todas');
             setBuscar('');
             setHuespedes('todos');
+            setCheckIn('');
+            setCheckOut('');
             setOrden('popular');
             router.get(
                 '/habitaciones',
@@ -122,11 +167,16 @@ export const useFiltrosHabitacionesPage = ({
         categoria,
         buscar,
         huespedes,
+        checkIn,
+        checkOut,
+        noches,
         orden,
         isPending,
         habitacionesFiltradas,
         setBuscar,
         setHuespedes,
+        setCheckIn,
+        setCheckOut,
         setOrden,
         manejarCambioCategoria,
         manejarSubmitBusqueda,

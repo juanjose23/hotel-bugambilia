@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\Compras\Cotizaciones;
 
 use App\Repository\Models\Compras\Cotizacion;
+use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\User;
 use Database\Seeders\Compras\Solicitudes\SolicitudesSeeder;
 use Illuminate\Database\Seeder;
@@ -38,7 +39,16 @@ class CotizacionesSeeder extends Seeder
 
         $proveedores = $ctx['proveedores'];
         $condicionPago = $ctx['condicionPago'];
-        $usdId = 1;
+
+        $moneda = Moneda::query()->where('codigo', 'USD')->first()
+            ?? Moneda::query()->where('codigo', 'NIO')->first()
+            ?? Moneda::query()->first();
+
+        if (! $moneda instanceof Moneda) {
+            return $ctx;
+        }
+
+        $monedaId = $moneda->id;
 
         // --- ESCENARIO 2: COMPARATIVA DE PRECIOS (COTIZACIONES PARA SOL-COMP-2026) ---
         if (Cotizacion::where('solicitud_id', $solicitudComp->id)->doesntExist()) {
@@ -64,7 +74,7 @@ class CotizacionesSeeder extends Seeder
                     'condicion_pago_id' => $condicionPago?->id,
                     'observaciones' => $observaciones[$i],
                     'creada_por' => $admin->id,
-                    'moneda_id' => $usdId,
+                    'moneda_id' => $monedaId,
                     'subtotal' => 0,
                     'total' => 0,
                 ]);
@@ -94,6 +104,7 @@ class CotizacionesSeeder extends Seeder
                 'fecha_cotizacion' => now()->subDays(18),
                 'dias_entrega' => 2,
                 'condicion_pago_id' => $condicionPago?->id,
+                'moneda_id' => $monedaId,
                 'es_elegida' => true,
                 'elegida_por' => $admin->id,
                 'elegida_en' => now()->subDays(17),
@@ -126,7 +137,7 @@ class CotizacionesSeeder extends Seeder
                     'condicion_pago_id' => $condicionPago?->id,
                     'observaciones' => 'Propuesta técnica '.($i + 1),
                     'creada_por' => $admin->id,
-                    'moneda_id' => $usdId,
+                    'moneda_id' => $monedaId,
                     'subtotal' => 0,
                     'total' => 0,
                 ]);

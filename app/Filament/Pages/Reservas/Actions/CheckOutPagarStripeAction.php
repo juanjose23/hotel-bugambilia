@@ -7,7 +7,7 @@ namespace App\Filament\Pages\Reservas\Actions;
 use App\Filament\Pages\Reservas\CheckOutPage;
 use App\Interactors\Facturacion\Stripe\ConfirmarPagoStripe;
 use App\Interactors\Facturacion\Stripe\CrearIntentoPagoStripe;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;

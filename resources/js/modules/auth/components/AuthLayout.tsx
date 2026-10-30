@@ -10,6 +10,7 @@ import {
     Lock,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { PageLoadingBoundary } from '@/modules/shared/components/loading/NavigationLoadingProvider';
 import { Button } from '@/modules/shared/components/ui/button';
 import { useTema } from '@/modules/shared/hooks/useTema';
 
@@ -248,7 +249,9 @@ export const AuthLayout = ({
                         </div>
 
                         {/* Formulario */}
-                        {children}
+                        <PageLoadingBoundary layout="auth">
+                            {children}
+                        </PageLoadingBoundary>
                     </div>
                 </div>
 

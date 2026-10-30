@@ -31,6 +31,7 @@ final class ReservaController extends Controller
     public function crear(CrearReservaRequest $request): JsonResponse|RedirectResponse
     {
         $datos = $request->validated();
+        $datos['origen_pago_reserva'] = 'publico';
         $servicios = is_array($datos['servicios_adicionales'] ?? null) ? $datos['servicios_adicionales'] : [];
         $espacios = is_array($datos['espacios_adicionales'] ?? null) ? $datos['espacios_adicionales'] : [];
 

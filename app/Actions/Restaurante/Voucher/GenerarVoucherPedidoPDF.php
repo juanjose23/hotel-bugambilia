@@ -6,8 +6,8 @@ namespace App\Actions\Restaurante\Voucher;
 
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Repository\Models\Restaurante\Pedido;
-use App\Support\HotelInfo;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\MonedaHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

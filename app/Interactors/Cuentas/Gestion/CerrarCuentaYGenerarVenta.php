@@ -13,7 +13,7 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\Venta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Ventas\VentaRepositorioInterface;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -46,6 +46,9 @@ final class CerrarCuentaYGenerarVenta
         return DB::transaction(function () use ($cuenta, $usuarioId, $datosFiscales): Venta {
             // Bloquear cuenta para evitar concurrencia
             $cuenta = $this->cuentas->bloquear($cuenta->id);
+            if (! $cuenta->estado->puedeCerrarse()) {
+                throw new DomainException('La cuenta ya fue cerrada o cambió de estado. Consulta su venta existente.');
+            }
 
             // Recalcular por última vez antes de congelar
             $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);

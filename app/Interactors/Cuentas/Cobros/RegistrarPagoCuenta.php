@@ -11,11 +11,12 @@ use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Events\Cuentas\PagoCuentaRegistrado;
 use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
+use App\Interactors\Tesoreria\GestionarCaja;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +30,7 @@ final readonly class RegistrarPagoCuenta
         private RecalcularCuenta $recalcularCuenta,
         private ReservaRepositorioInterface $reservas,
         private CalcularVuelto $calcularVuelto,
+        private GestionarCaja $caja,
     ) {}
 
     public function ejecutar(
@@ -42,21 +44,8 @@ final readonly class RegistrarPagoCuenta
         ?int $monedaId = null,
         ?int $usuarioId = null,
     ): PagoCuenta {
-        if ($monto <= 0) {
+        if ($monto <= 0 || ! is_finite($monto) || ! is_finite($propina)) {
             throw new DomainException('El monto del pago debe ser mayor a cero.');
-        }
-
-        $estadosQueAceptanPagos = [
-            EstadoCuenta::SOLICITADA,
-            EstadoCuenta::ABIERTA,
-            EstadoCuenta::BLOQUEADA,
-            EstadoCuenta::PENDIENTE_PAGO,
-        ];
-
-        if (! in_array($cuenta->estado, $estadosQueAceptanPagos, true)) {
-            throw new DomainException(
-                "La cuenta {$cuenta->numero_cuenta} está en estado '{$cuenta->estado->getLabel()}' y no acepta pagos.",
-            );
         }
 
         return DB::transaction(function () use (
@@ -64,7 +53,33 @@ final readonly class RegistrarPagoCuenta
             $referenciaTransaccion, $observaciones, $monedaId, $usuarioId
         ): PagoCuenta {
             $cuentaBloqueada = $this->cuentas->bloquear((int) $cuenta->id);
+
+            $estadosQueAceptanPagos = [
+                EstadoCuenta::SOLICITADA,
+                EstadoCuenta::ABIERTA,
+                EstadoCuenta::BLOQUEADA,
+                EstadoCuenta::PENDIENTE_PAGO,
+            ];
+
+            if (! in_array($cuentaBloqueada->estado, $estadosQueAceptanPagos, true)) {
+                throw new DomainException(
+                    "La cuenta {$cuentaBloqueada->numero_cuenta} está en estado '{$cuentaBloqueada->estado->getLabel()}' y no acepta pagos.",
+                );
+            }
+
             $cuentaBloqueada = $this->recalcularCuenta->ejecutar($cuentaBloqueada, $usuarioId);
+
+            if (config('tesoreria.habilitado') && $metodoPago === MetodoPago::EFECTIVO && $estado === EstadoPago::APLICADO) {
+                if ($usuarioId === null || (float) $cuentaBloqueada->saldo <= 0) {
+                    throw new DomainException('El cobro en efectivo requiere cajero identificado y saldo pendiente.');
+                }
+                if (($monedaId ?? $cuentaBloqueada->moneda_id) !== $cuentaBloqueada->moneda_id) {
+                    throw new DomainException('Cobra en la moneda de la cuenta; el cambio entre divisas requiere un desglose específico.');
+                }
+                if ($propina > 0) {
+                    throw new DomainException('Agrega la propina como cargo de la cuenta antes de cobrar en caja.');
+                }
+            }
 
             $calculoVuelto = $this->calcularVuelto->calcular($monto, (float) $cuentaBloqueada->saldo);
             $montoAplicado = $calculoVuelto->montoAplicado;
@@ -85,6 +100,14 @@ final readonly class RegistrarPagoCuenta
                 'observaciones' => $observaciones,
                 'usuario_id' => $usuarioId,
             ]);
+
+            if (config('tesoreria.habilitado') && $metodoPago === MetodoPago::EFECTIVO && $estado === EstadoPago::APLICADO && $usuarioId !== null) {
+                $monedaEfectivo = $monedaId ?? $cuentaBloqueada->moneda_id;
+                if ($monedaEfectivo === null) {
+                    throw new DomainException('La cuenta necesita una moneda para cobrar en caja.');
+                }
+                $this->caja->registrarEfectivo($usuarioId, $pago, $monedaEfectivo, $monto, $vuelto);
+            }
 
             $cuentaActualizada = $this->recalcularCuenta->ejecutar($cuentaBloqueada, $usuarioId);
 

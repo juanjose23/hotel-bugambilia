@@ -7,10 +7,10 @@ namespace App\Actions\Voucher;
 use App\Actions\CodigoQR\GenerarTokenQR;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Reservas\ObtenerDetallePreordenReservaQuery;
-use App\Support\Barcode\BarcodeGenerator;
-use App\Support\HotelInfo;
-use App\Support\Pdf\Concerns\GuardaReporte;
-use App\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Barcode\BarcodeGenerator;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

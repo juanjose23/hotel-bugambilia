@@ -23,6 +23,7 @@ use App\Interactors\Reservas\Operaciones\SincronizarCuentaReserva;
 use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
+use App\Repository\Persistencia\Reservas\AcompanantesReservaRepositorio;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use App\Repository\Queries\Cuentas\ObtenerCuentaReservaQuery;
 use App\Repository\Queries\Reservas\CalcularVistaPreviaFinancieraReservaQuery;
@@ -50,6 +51,7 @@ final class ActualizarReserva
         private readonly LeerDatoReserva $leerDato,
         private readonly ConstruirBitacoraReserva $construirBitacoraReserva,
         private readonly ValidarDisponibilidadRecursoLote $validarLote,
+        private readonly AcompanantesReservaRepositorio $acompanantes,
     ) {}
 
     /** @param array<string, mixed> $datos */
@@ -91,6 +93,10 @@ final class ActualizarReserva
                 $datos, $datosRecalculo, $tipo, $entidadPrincipalId,
                 $checkIn, $checkOut, $horaReserva, $resumen, $totalPagado, $saldo,
             ));
+
+            if (is_array($datos['acompanantes'] ?? null)) {
+                $this->acompanantes->reemplazar($reserva, array_values($datos['acompanantes']));
+            }
 
             $entradaBitacora = $this->construirBitacoraReserva->paraActualizacion($reserva, $datosRecalculo);
             $reserva->actualizarOCrearEntradaBitacora($entradaBitacora['tipo'], $entradaBitacora['datos']);
@@ -214,7 +220,6 @@ final class ActualizarReserva
                 ? (float) $datos['limite_cuenta_solicitado']
                 : null,
             'notas' => $datos['notas'] ?? null,
-            'acompanantes' => $datos['acompanantes'] ?? null,
             'subtotal' => $resumen['subtotal'],
             'descuento' => $resumen['descuento'],
             'total' => $total,

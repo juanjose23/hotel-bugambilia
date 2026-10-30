@@ -12,6 +12,7 @@ use DomainException;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -28,7 +29,16 @@ final class HuespedesRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->schema(FormularioHuesped::make());
+            ->schema([
+                Select::make('reserva_detalle_id')->label('Alojamiento reservado')
+                    ->options(function (): array {
+                        /** @var Reserva $reserva */
+                        $reserva = $this->getOwnerRecord();
+
+                        return $reserva->detalles()->with('reservable')->get()->mapWithKeys(fn ($d): array => [$d->id => (string) ($d->reservable->nombre ?? 'Recurso reservado')])->all();
+                    })->searchable()->helperText('Obligatorio cuando hay varios alojamientos.'),
+                ...FormularioHuesped::make(),
+            ]);
     }
 
     public function table(Table $table): Table
@@ -36,6 +46,7 @@ final class HuespedesRelationManager extends RelationManager
         return $table
             ->columns([
                 TextColumn::make('nombre')->searchable()->sortable(),
+                TextColumn::make('detalle.reservable.nombre')->label('Alojamiento'),
                 TextColumn::make('tipo_huesped')
                     ->label('Tipo')
                     ->badge()

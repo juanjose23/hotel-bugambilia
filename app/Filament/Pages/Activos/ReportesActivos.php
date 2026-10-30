@@ -10,16 +10,13 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Queries\Activos\Reportes\ObtenerMetricasReporteActivosQuery;
 use App\Repository\Queries\Activos\Reportes\ObtenerOpcionesReportesActivosQuery;
-use App\Support\ReporteConfig;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -30,7 +27,9 @@ use UnitEnum;
  */
 class ReportesActivos extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte {
+        ManejaPaginaReporte::getForms insteadof InteractsWithForms;
+    }
 
     protected ObtenerMetricasReporteActivosQuery $metricasQuery;
 
@@ -88,100 +87,70 @@ class ReportesActivos extends Page implements HasForms
         return $this->metricasQuery->ejecutar();
     }
 
-    /** @return array<string, mixed> */
-    protected function getForms(): array
+    /** @return array<int, mixed> */
+    protected function getCamposFiltrosEspecificos(): array
     {
         return [
-            'reportForm' => $this->makeSchema()
-                ->schema([
-                    Select::make('reporte')
-                        ->label('Reporte Analítico')
-                        ->options(ReporteConfig::getSelectOptions('activos'))
-                        ->required()
-                        ->live()
-                        ->native(false)
-                        ->searchable()
-                        ->placeholder('Selecciona un reporte de la lista...'),
+            Select::make('estado')
+                ->label('Filtrar por Estado (Opcional)')
+                ->options(EstadoActivo::class)
+                ->placeholder('Todos los estados')
+                ->native(false)
+                ->visible(fn ($get) => $get('reporte') === 'inventario_general'),
 
-                    TextEntry::make('reporte_descripcion')
-                        ->hiddenLabel()
-                        ->state(fn ($get) => ReporteConfig::getDescripcion('activos', $get('reporte')) ?? 'Seleccione un reporte de la lista para ver su descripción...')
-                        ->extraAttributes(['class' => 'text-sm text-gray-500 italic mt-1 dark:text-gray-400']),
-
-                    Select::make('estado')
-                        ->label('Filtrar por Estado (Opcional)')
-                        ->options(EstadoActivo::class)
-                        ->placeholder('Todos los estados')
-                        ->native(false)
-                        ->visible(fn ($get) => $get('reporte') === 'inventario_general'),
-
-                    Select::make('ubicacion_tipo')
-                        ->label('Filtrar por Tipo de Ubicación (Opcional)')
-                        ->options([
-                            Habitacion::class => 'Habitaciones',
-                            Espacio::class => 'Espacios / Áreas Comunes',
-                        ])
-                        ->placeholder('Todas las ubicaciones')
-                        ->native(false)
-                        ->visible(fn ($get) => $get('reporte') === 'por_ubicacion'),
-
-                    Radio::make('tipo')
-                        ->label('Tipo de Entidad')
-                        ->options([
-                            'habitacion' => 'Habitación',
-                            'espacio' => 'Espacio / Área Común',
-                        ])
-                        ->default('habitacion')
-                        ->required()
-                        ->live()
-                        ->inline()
-                        ->visible(fn ($get) => $get('reporte') === 'hoja_habitacion'),
-
-                    Select::make('entidad_id')
-                        ->label('Seleccionar Habitación o Espacio')
-                        ->options(fn (callable $get) => $get('tipo') === 'habitacion'
-                            ? $this->opcionesQuery->opcionesHabitaciones()
-                            : $this->opcionesQuery->opcionesEspacios()
-                        )
-                        ->searchable()
-                        ->required()
-                        ->visible(fn ($get) => $get('reporte') === 'hoja_habitacion'),
-
-                    Select::make('espacio_id')
-                        ->label('Seleccionar Espacio')
-                        ->options(fn () => $this->opcionesQuery->opcionesEspacios())
-                        ->searchable()
-                        ->required()
-                        ->visible(fn ($get) => $get('reporte') === 'ficha_espacio'),
-
-                    TextInput::make('dias')
-                        ->label('Días de anticipación')
-                        ->numeric()
-                        ->default(90)
-                        ->minValue(1)
-                        ->required()
-                        ->visible(fn ($get) => $get('reporte') === 'garantias'),
-
-                    Select::make('activo_id')
-                        ->label('Seleccionar Activo Específico')
-                        ->options(fn () => $this->opcionesQuery->opcionesActivos())
-                        ->searchable()
-                        ->required()
-                        ->visible(fn ($get) => $get('reporte') === 'historial'),
-
-                    DatePicker::make('fecha_inicio')
-                        ->label('Fecha Inicio')
-                        ->default(now()->startOfMonth())
-                        ->required()
-                        ->native(false),
-
-                    DatePicker::make('fecha_fin')
-                        ->label('Fecha Fin')
-                        ->default(now())
-                        ->required()
-                        ->native(false),
+            Select::make('ubicacion_tipo')
+                ->label('Filtrar por Tipo de Ubicación (Opcional)')
+                ->options([
+                    Habitacion::class => 'Habitaciones',
+                    Espacio::class => 'Espacios / Áreas Comunes',
                 ])
-                ->statePath('reportData'),
+                ->placeholder('Todas las ubicaciones')
+                ->native(false)
+                ->visible(fn ($get) => $get('reporte') === 'por_ubicacion'),
+
+            Radio::make('tipo')
+                ->label('Tipo de Entidad')
+                ->options([
+                    'habitacion' => 'Habitación',
+                    'espacio' => 'Espacio / Área Común',
+                ])
+                ->default('habitacion')
+                ->required()
+                ->live()
+                ->inline()
+                ->visible(fn ($get) => $get('reporte') === 'hoja_habitacion'),
+
+            Select::make('entidad_id')
+                ->label('Seleccionar Habitación o Espacio')
+                ->options(fn (callable $get) => $get('tipo') === 'habitacion'
+                    ? $this->opcionesQuery->opcionesHabitaciones()
+                    : $this->opcionesQuery->opcionesEspacios()
+                )
+                ->searchable()
+                ->required()
+                ->visible(fn ($get) => $get('reporte') === 'hoja_habitacion'),
+
+            Select::make('espacio_id')
+                ->label('Seleccionar Espacio')
+                ->options(fn () => $this->opcionesQuery->opcionesEspacios())
+                ->searchable()
+                ->required()
+                ->visible(fn ($get) => $get('reporte') === 'ficha_espacio'),
+
+            TextInput::make('dias')
+                ->label('Días de anticipación')
+                ->numeric()
+                ->default(90)
+                ->minValue(1)
+                ->required()
+                ->visible(fn ($get) => $get('reporte') === 'garantias'),
+
+            Select::make('activo_id')
+                ->label('Seleccionar Activo Específico')
+                ->options(fn () => $this->opcionesQuery->opcionesActivos())
+                ->searchable()
+                ->required()
+                ->visible(fn ($get) => $get('reporte') === 'historial'),
         ];
     }
 

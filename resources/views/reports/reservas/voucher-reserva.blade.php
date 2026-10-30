@@ -30,7 +30,7 @@
 
 @section('content')
     @php
-        $simbolo = \App\Support\MonedaHelper::simbolo($reserva->moneda);
+        $simbolo = \App\Support\Barcode\Support\MonedaHelper::simbolo($reserva->moneda);
         $esRestaurante = $reserva->tipo_reserva === \App\Enums\Reservas\TipoReserva::RESTAURANTE;
         $resumenRestaurante = $reserva->ultimaEntradaBitacora('resumen_restaurante') ?? [];
         $costoMesa = $esRestaurante
@@ -55,20 +55,25 @@
                 <tr>
                     <td style="width: 48%; vertical-align: middle; padding: 0; border: 0;">
                         <div class="voucher-label">Expediente de Reserva / Comprobante</div>
-                        <div style="font-size: 17px; font-weight: bold; color: #711C37; margin-top: 2px;">{{ $reserva->codigo_reserva }}</div>
-                        <div class="voucher-muted" style="margin-top: 3px;">Emitido: {{ $fechaEmision }} · {{ $estadoLabel }}</div>
+                        <div
+                            style="font-size: 17px; font-weight: bold; color: #711C37; margin-top: 2px;">{{ $reserva->codigo_reserva }}</div>
+                        <div class="voucher-muted" style="margin-top: 3px;">Emitido: {{ $fechaEmision }}
+                            · {{ $estadoLabel }}</div>
                     </td>
                     <td style="width: 52%; vertical-align: middle; text-align: right; padding: 0; border: 0;">
                         @if (!empty($barcodeBase64))
-                            <img src="{{ $barcodeBase64 }}" style="width: 250px; height: 48px; display: inline-block;" alt="Código de barras de la reserva">
-                            <div style="width: 250px; margin-left: auto; text-align: center; font-family: monospace; font-size: 8px; letter-spacing: 1px;">{{ $reserva->codigo_reserva }}</div>
+                            <img src="{{ $barcodeBase64 }}" style="width: 250px; height: 48px; display: inline-block;"
+                                 alt="Código de barras de la reserva">
+                            <div
+                                style="width: 250px; margin-left: auto; text-align: center; font-family: monospace; font-size: 8px; letter-spacing: 1px;">{{ $reserva->codigo_reserva }}</div>
                         @endif
                     </td>
                 </tr>
             </table>
 
             {{-- Datos esenciales del cliente y viaje --}}
-            <table style="width: 100%; border-collapse: separate; border-spacing: 5px; margin: 0 -5px 8px; page-break-inside: avoid;">
+            <table
+                style="width: 100%; border-collapse: separate; border-spacing: 5px; margin: 0 -5px 8px; page-break-inside: avoid;">
                 <tr>
                     <td class="voucher-card" style="width: 38%; vertical-align: top;">
                         <div class="voucher-label">Cliente / Titular</div>
@@ -80,15 +85,21 @@
                         <div class="voucher-label">Fechas del viaje</div>
                         <div class="voucher-value">Entrada: {{ $reserva->fecha_check_in->format('d/m/Y') }}</div>
                         @if ($esRestaurante)
-                            <div class="voucher-muted">{{ $reserva->hora_reserva ?? 'Hora pendiente' }} · {{ $resumenRestaurante['horas'] ?? 1 }} hora(s)</div>
+                            <div class="voucher-muted">{{ $reserva->hora_reserva ?? 'Hora pendiente' }}
+                                · {{ $resumenRestaurante['horas'] ?? 1 }} hora(s)
+                            </div>
                         @else
-                            <div class="voucher-muted">Salida: {{ $reserva->fecha_check_out?->format('d/m/Y') ?? 'N/D' }}</div>
+                            <div class="voucher-muted">
+                                Salida: {{ $reserva->fecha_check_out?->format('d/m/Y') ?? 'N/D' }}</div>
                         @endif
                     </td>
                     <td class="voucher-card" style="width: 30%; vertical-align: top;">
                         <div class="voucher-label">Ocupación & Recurso</div>
-                        <div class="voucher-value">{{ $reserva->habitacion?->nombre ?? $reserva->espacio?->nombre ?? 'Habitación asignada' }}</div>
-                        <div class="voucher-muted">{{ $reserva->adultos }} adulto(s) @if($reserva->ninos > 0) · {{ $reserva->ninos }} niño(s) @endif</div>
+                        <div
+                            class="voucher-value">{{ $reserva->habitacion?->nombre ?? $reserva->espacio?->nombre ?? 'Habitación asignada' }}</div>
+                        <div class="voucher-muted">{{ $reserva->adultos }} adulto(s) @if($reserva->ninos > 0)
+                                · {{ $reserva->ninos }} niño(s)
+                            @endif</div>
                         @if ($reserva->habitacion?->categoria)
                             <div class="voucher-muted">Categoría: {{ $reserva->habitacion->categoria->nombre }}</div>
                         @endif
@@ -99,7 +110,9 @@
             {{-- Servicios e Instalaciones Incluidos con la Habitación --}}
             @if ($serviciosIncluidos->count() > 0)
                 <div class="voucher-card" style="margin-bottom: 10px; page-break-inside: avoid;">
-                    <div class="voucher-label"><span class="badge-star">&#9733;</span> Servicios e Instalaciones Incluidos en la Habitación</div>
+                    <div class="voucher-label"><span class="badge-star">&#9733;</span> Servicios e Instalaciones
+                        Incluidos en la Habitación
+                    </div>
                     <ul class="amenities-list">
                         @foreach ($serviciosIncluidos as $srv)
                             <li><span class="badge-check">&#10003;</span> <strong>{{ $srv->nombre }}</strong></li>
@@ -111,125 +124,127 @@
             {{-- Tabla consolidada de servicios reservados e ítems --}}
             <table class="financial-table" style="page-break-inside: avoid;">
                 <thead>
-                    <tr>
-                        <th style="text-align: left;">Recurso / Servicio / Consumo</th>
-                        <th style="width: 110px; text-align: center;">Detalle / Agenda</th>
-                        <th style="width: 55px; text-align: center;">Cant.</th>
-                        <th style="width: 95px; text-align: right;">Importe</th>
-                    </tr>
+                <tr>
+                    <th style="text-align: left;">Recurso / Servicio / Consumo</th>
+                    <th style="width: 110px; text-align: center;">Detalle / Agenda</th>
+                    <th style="width: 55px; text-align: center;">Cant.</th>
+                    <th style="width: 95px; text-align: right;">Importe</th>
+                </tr>
                 </thead>
                 <tbody>
-                    @if ($detallesReservados->count() > 0)
-                        @foreach ($detallesReservados as $det)
-                            @php
-                                $nombreRecurso = $det->reservable?->nombre
-                                    ?? $det->reservable?->habitacion?->nombre
-                                    ?? $det->reservable?->espacio?->nombre
-                                    ?? $det->reservable?->servicio?->nombre
-                                    ?? 'Servicio agendado';
-                                $esPrincipal = $det->parent_id === null;
-                            @endphp
-                            <tr>
-                                <td>
-                                    @if ($esPrincipal)
-                                        <span class="tag-included">Principal</span>
-                                        <span class="badge-star">&#9733;</span>
-                                    @else
-                                        <span class="tag-service">Agendado</span>
-                                        <span class="badge-bullet">&#8226;</span>
-                                    @endif
-                                    <strong style="color: {{ $esPrincipal ? '#711C37' : '#172033' }};">
-                                        {{ $nombreRecurso }}
-                                    </strong>
-                                    @if ($det->origen !== null)
-                                        <span class="voucher-muted">({{ $det->origen->getLabel() }})</span>
-                                    @endif
-                                    @if (!empty($det->notas))
-                                        <div class="voucher-muted">Nota: {{ $det->notas }}</div>
-                                    @endif
-                                </td>
-                                <td style="text-align: center;" class="voucher-muted">
-                                    {{ $det->fecha_inicio ? $det->fecha_inicio->format('d/m H:i') : '-' }}
-                                    @if ($det->fecha_fin)
-                                        - {{ $det->fecha_fin->format('d/m H:i') }}
-                                    @endif
-                                </td>
-                                <td style="text-align: center;">{{ $det->cantidad }}</td>
-                                <td style="text-align: right; font-weight: bold;">{{ $simbolo }} {{ number_format((float) $det->subtotal, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    @else
+                @if ($detallesReservados->count() > 0)
+                    @foreach ($detallesReservados as $det)
+                        @php
+                            $nombreRecurso = $det->reservable?->nombre
+                                ?? $det->reservable?->habitacion?->nombre
+                                ?? $det->reservable?->espacio?->nombre
+                                ?? $det->reservable?->servicio?->nombre
+                                ?? 'Servicio agendado';
+                            $esPrincipal = $det->parent_id === null;
+                        @endphp
                         <tr>
                             <td>
-                                <span class="tag-included">Principal</span>
-                                <strong>{{ $esRestaurante ? 'Reserva de mesa' : 'Reserva de recurso' }}</strong>
-                                <div class="voucher-muted">
-                                    {{ $reserva->habitacion?->nombre ?? $reserva->espacio?->nombre ?? $reserva->tipo_reserva->getLabel() }}
-                                </div>
+                                @if ($esPrincipal)
+                                    <span class="tag-included">Principal</span>
+                                    <span class="badge-star">&#9733;</span>
+                                @else
+                                    <span class="tag-service">Agendado</span>
+                                    <span class="badge-bullet">&#8226;</span>
+                                @endif
+                                <strong style="color: {{ $esPrincipal ? '#711C37' : '#172033' }};">
+                                    {{ $nombreRecurso }}
+                                </strong>
+                                @if ($det->origen !== null)
+                                    <span class="voucher-muted">({{ $det->origen->getLabel() }})</span>
+                                @endif
+                                @if (!empty($det->notas))
+                                    <div class="voucher-muted">Nota: {{ $det->notas }}</div>
+                                @endif
                             </td>
-                            <td style="text-align: center;" class="voucher-muted">{{ $reserva->fecha_check_in->format('d/m/Y') }}</td>
-                            <td style="text-align: center;">1</td>
-                            <td style="text-align: right; font-weight: bold;">{{ $simbolo }} {{ number_format((float) $reserva->subtotal, 2) }}</td>
+                            <td style="text-align: center;" class="voucher-muted">
+                                {{ $det->fecha_inicio ? $det->fecha_inicio->format('d/m H:i') : '-' }}
+                                @if ($det->fecha_fin)
+                                    - {{ $det->fecha_fin->format('d/m H:i') }}
+                                @endif
+                            </td>
+                            <td style="text-align: center;">{{ $det->cantidad }}</td>
+                            <td style="text-align: right; font-weight: bold;">{{ $simbolo }} {{ number_format((float) $det->subtotal, 2) }}</td>
                         </tr>
-                    @endif
+                    @endforeach
+                @else
+                    <tr>
+                        <td>
+                            <span class="tag-included">Principal</span>
+                            <strong>{{ $esRestaurante ? 'Reserva de mesa' : 'Reserva de recurso' }}</strong>
+                            <div class="voucher-muted">
+                                {{ $reserva->habitacion?->nombre ?? $reserva->espacio?->nombre ?? $reserva->tipo_reserva->getLabel() }}
+                            </div>
+                        </td>
+                        <td style="text-align: center;"
+                            class="voucher-muted">{{ $reserva->fecha_check_in->format('d/m/Y') }}</td>
+                        <td style="text-align: center;">1</td>
+                        <td style="text-align: right; font-weight: bold;">{{ $simbolo }} {{ number_format((float) $reserva->subtotal, 2) }}</td>
+                    </tr>
+                @endif
 
-                    @if (! empty($detallePreorden))
-                        @foreach ($detallePreorden as $itemPre)
+                @if (! empty($detallePreorden))
+                    @foreach ($detallePreorden as $itemPre)
+                        <tr>
+                            <td style="padding-left: 12px;">
+                                <span class="tag-food">Comida</span>
+                                <strong>{{ $itemPre['nombre'] ?? 'Platillo preordenado' }}</strong>
+                                @if (! empty($itemPre['observaciones']))
+                                    <div class="voucher-muted">Nota: {{ $itemPre['observaciones'] }}</div>
+                                @endif
+                            </td>
+                            <td style="text-align: center;" class="voucher-muted">Preorden</td>
+                            <td style="text-align: center;">{{ $itemPre['cantidad'] ?? 1 }}</td>
+                            <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) ($itemPre['subtotal'] ?? 0), 2) }}</td>
+                        </tr>
+                    @endforeach
+                @endif
+
+                @if ($consumosDirectos->count() > 0)
+                    @foreach ($consumosDirectos as $itemConsumo)
+                        @if ($detallesReservados->pluck('id')->doesntContain($itemConsumo->origen_id))
                             <tr>
                                 <td style="padding-left: 12px;">
-                                    <span class="tag-food">Comida</span>
-                                    <strong>{{ $itemPre['nombre'] ?? 'Platillo preordenado' }}</strong>
-                                    @if (! empty($itemPre['observaciones']))
-                                        <div class="voucher-muted">Nota: {{ $itemPre['observaciones'] }}</div>
+                                    <span class="tag-consumption">Consumo</span>
+                                    <strong>{{ $itemConsumo->concepto }}</strong>
+                                    @if (! empty($itemConsumo->descripcion))
+                                        <div class="voucher-muted">{{ $itemConsumo->descripcion }}</div>
                                     @endif
                                 </td>
-                                <td style="text-align: center;" class="voucher-muted">Preorden</td>
-                                <td style="text-align: center;">{{ $itemPre['cantidad'] ?? 1 }}</td>
-                                <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) ($itemPre['subtotal'] ?? 0), 2) }}</td>
+                                <td style="text-align: center;" class="voucher-muted">Consumo Estancia</td>
+                                <td style="text-align: center;">{{ (int) $itemConsumo->cantidad }}</td>
+                                <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) $itemConsumo->subtotal, 2) }}</td>
                             </tr>
-                        @endforeach
-                    @endif
-
-                    @if ($consumosDirectos->count() > 0)
-                        @foreach ($consumosDirectos as $itemConsumo)
-                            @if ($detallesReservados->pluck('id')->doesntContain($itemConsumo->origen_id))
-                                <tr>
-                                    <td style="padding-left: 12px;">
-                                        <span class="tag-consumption">Consumo</span>
-                                        <strong>{{ $itemConsumo->concepto }}</strong>
-                                        @if (! empty($itemConsumo->descripcion))
-                                            <div class="voucher-muted">{{ $itemConsumo->descripcion }}</div>
-                                        @endif
-                                    </td>
-                                    <td style="text-align: center;" class="voucher-muted">Consumo Estancia</td>
-                                    <td style="text-align: center;">{{ (int) $itemConsumo->cantidad }}</td>
-                                    <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) $itemConsumo->subtotal, 2) }}</td>
-                                </tr>
-                            @endif
-                        @endforeach
-                    @endif
+                        @endif
+                    @endforeach
+                @endif
                 </tbody>
                 <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: right;">Subtotal de conceptos</td>
+                    <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) $reserva->subtotal, 2) }}</td>
+                </tr>
+                @if ((float) $reserva->descuento > 0)
                     <tr>
-                        <td colspan="3" style="text-align: right;">Subtotal de conceptos</td>
-                        <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) $reserva->subtotal, 2) }}</td>
+                        <td colspan="3" style="text-align: right;">Descuento aplicable</td>
+                        <td style="text-align: right;">
+                            - {{ $simbolo }} {{ number_format((float) $reserva->descuento, 2) }}</td>
                     </tr>
-                    @if ((float) $reserva->descuento > 0)
-                        <tr>
-                            <td colspan="3" style="text-align: right;">Descuento aplicable</td>
-                            <td style="text-align: right;">- {{ $simbolo }} {{ number_format((float) $reserva->descuento, 2) }}</td>
-                        </tr>
-                    @endif
-                    @if ($otrosCargos > 0)
-                        <tr>
-                            <td colspan="3" style="text-align: right;">Impuestos y cargos del servicio</td>
-                            <td style="text-align: right;">{{ $simbolo }} {{ number_format($otrosCargos, 2) }}</td>
-                        </tr>
-                    @endif
-                    <tr class="grand-total">
-                        <td colspan="3" style="text-align: right;">Total del expediente de reserva</td>
-                        <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) $reserva->total, 2) }}</td>
+                @endif
+                @if ($otrosCargos > 0)
+                    <tr>
+                        <td colspan="3" style="text-align: right;">Impuestos y cargos del servicio</td>
+                        <td style="text-align: right;">{{ $simbolo }} {{ number_format($otrosCargos, 2) }}</td>
                     </tr>
+                @endif
+                <tr class="grand-total">
+                    <td colspan="3" style="text-align: right;">Total del expediente de reserva</td>
+                    <td style="text-align: right;">{{ $simbolo }} {{ number_format((float) $reserva->total, 2) }}</td>
+                </tr>
                 </tfoot>
             </table>
 
@@ -240,23 +255,30 @@
                         <div class="voucher-card">
                             <div class="voucher-label">Estado financiero de la cuenta</div>
                             <div style="margin-top: 5px; font-size: 10px;">
-                                Total Pagado: <strong>{{ $simbolo }} {{ number_format((float) $reserva->total_pagado, 2) }}</strong>
+                                Total Pagado:
+                                <strong>{{ $simbolo }} {{ number_format((float) $reserva->total_pagado, 2) }}</strong>
                                 &nbsp; · &nbsp;
-                                Saldo Pendiente: <strong style="color: #711C37;">{{ $simbolo }} {{ number_format((float) $reserva->saldo, 2) }}</strong>
+                                Saldo Pendiente: <strong
+                                    style="color: #711C37;">{{ $simbolo }} {{ number_format((float) $reserva->saldo, 2) }}</strong>
                             </div>
                             <div class="voucher-muted" style="margin-top: 4px;">
                                 {{ $pagos->isEmpty() ? 'No se registran abonados previos.' : $pagos->count().' pago(s) o abono(s) registrado(s).' }}
                             </div>
                         </div>
-                        <div style="margin-top: 8px; border-left: 3px solid #711C37; padding: 6px 8px; background: #f8fafc; color: #475569; font-size: 8px; line-height: 1.45;">
-                            Presente este expediente al ingresar al hotel. Los servicios agendados (sauna, spa, restaurante) están reservados a las horas indicadas.
+                        <div
+                            style="margin-top: 8px; border-left: 3px solid #711C37; padding: 6px 8px; background: #f8fafc; color: #475569; font-size: 8px; line-height: 1.45;">
+                            Presente este expediente al ingresar al hotel. Los servicios agendados (sauna, spa,
+                            restaurante) están reservados a las horas indicadas.
                         </div>
                     </td>
                     <td style="width: 32%; text-align: center; vertical-align: top; border: 0;">
                         @if (!empty($qrCodeBase64))
-                            <img src="{{ $qrCodeBase64 }}" style="width: 88px; height: 88px; display: block; margin: 0 auto 3px;" alt="Código QR de verificación">
+                            <img src="{{ $qrCodeBase64 }}"
+                                 style="width: 88px; height: 88px; display: block; margin: 0 auto 3px;"
+                                 alt="Código QR de verificación">
                             <div class="voucher-label">Verificación QR</div>
-                            <div class="voucher-muted" style="font-family: monospace;">{{ substr($tokenQr, 0, 16) }}</div>
+                            <div class="voucher-muted"
+                                 style="font-family: monospace;">{{ substr($tokenQr, 0, 16) }}</div>
                         @endif
                     </td>
                 </tr>

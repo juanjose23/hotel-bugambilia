@@ -6,7 +6,7 @@ namespace App\Filament\Shared\Forms;
 
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Component;

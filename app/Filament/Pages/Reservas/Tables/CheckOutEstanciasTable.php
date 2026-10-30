@@ -9,7 +9,7 @@ use App\Enums\Reservas\EstadoReserva;
 use App\Filament\Pages\Reservas\CheckOutPage;
 use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Repository\Models\Reservas\Reserva;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;

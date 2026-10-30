@@ -1,7 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { StripePaymentForm } from '@/modules/reservas/components/StripePaymentForm';
 import { usePagoReserva } from '@/modules/reservas/hooks/usePagoReserva';
+import { PaymentFormSkeleton } from '@/modules/shared/components/skeletons/PageSkeleton';
 
 interface PagoPageProps {
     datosReserva?: {
@@ -41,9 +42,7 @@ export const Pago = ({ datosReserva }: PagoPageProps) => {
     if (!datosReserva) {
         return (
             <>
-                <Head>
-                    <title>Pago de Reserva — Hotel Bugambilias</title>
-                </Head>
+                <Head title="Pago de Reserva — Hotel Bugambilias" />
                 <div className="mx-auto max-w-3xl px-4 py-16 text-center font-sans">
                     <h2 className="text-xl font-black text-foreground">
                         No hay reserva seleccionada para pago
@@ -65,12 +64,9 @@ export const Pago = ({ datosReserva }: PagoPageProps) => {
 
     return (
         <>
-            <Head>
-                <title>
-                    Pago Seguro de Reserva {datosReserva.codigoReserva} — Hotel
-                    Bugambilias
-                </title>
-            </Head>
+            <Head
+                title={`Pago Seguro de Reserva ${datosReserva.codigoReserva} — Hotel Bugambilias`}
+            />
 
             <div className="mx-auto max-w-3xl px-4 py-8 font-sans sm:px-6 sm:py-12">
                 <Link
@@ -201,14 +197,7 @@ export const Pago = ({ datosReserva }: PagoPageProps) => {
 
                         {/* Formulario Stripe */}
                         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-                            {cargandoIntento && (
-                                <div className="flex flex-col items-center justify-center gap-2 py-8 text-muted-foreground">
-                                    <Loader2 className="size-6 animate-spin text-primary" />
-                                    <span className="text-xs font-bold">
-                                        Conectando con Stripe...
-                                    </span>
-                                </div>
-                            )}
+                            {cargandoIntento && <PaymentFormSkeleton />}
 
                             {errorIntento && (
                                 <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-bold text-destructive">

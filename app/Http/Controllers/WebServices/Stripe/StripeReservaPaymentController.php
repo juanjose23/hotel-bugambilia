@@ -28,7 +28,7 @@ final class StripeReservaPaymentController extends Controller
         CrearIntentoPagoStripe $crearIntentoPago,
         ResolverReservaPagoStripe $resolverReserva,
     ): JsonResponse {
-        /** @var array{reserva_id: int, codigo_reserva: string} $datos */
+        /** @var array{reserva_id: int, codigo_reserva: string, monto?: float|int|string|null} $datos */
         $datos = $request->validated();
 
         $reserva = $resolverReserva->ejecutar(
@@ -36,8 +36,10 @@ final class StripeReservaPaymentController extends Controller
             codigoReserva: (string) $datos['codigo_reserva'],
         );
 
+        $monto = isset($datos['monto']) && is_numeric($datos['monto']) ? (float) $datos['monto'] : null;
+
         try {
-            $resultado = $crearIntentoPago->ejecutarParaReserva($reserva);
+            $resultado = $crearIntentoPago->ejecutarParaReserva($reserva, $monto);
         } catch (StripeApiException $exception) {
             report($exception);
 

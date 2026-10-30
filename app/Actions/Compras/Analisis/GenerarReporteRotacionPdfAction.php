@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Compras\Analisis;
 
 use App\BusinessLogic\Compras\Data\Reportes\RotacionComprasReporteData;
-use App\Support\HotelInfo;
-use App\Support\Pdf\Concerns\GuardaReporte;
-use App\Support\Pdf\LayoutPdf;
-use App\Support\Pdf\Orientacion;
-use App\Support\Pdf\TamanoPapel;
-use App\Support\Pdf\TiposReporte;
-use App\Support\ReportePaginador;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Pdf\Orientacion;
+use App\Support\Barcode\Support\Pdf\TamanoPapel;
+use App\Support\Barcode\Support\Pdf\TiposReporte;
+use App\Support\Barcode\Support\ReportePaginador;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocumento;
 

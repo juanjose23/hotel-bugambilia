@@ -17,6 +17,7 @@ final class ObtenerReservasPortalClienteQuery
     {
         /** @var Builder<Reserva> $query */
         $query = Reserva::with([
+            'huespedes',
             'habitacion.categoria',
             'habitacion.imagenes',
             'espacio',

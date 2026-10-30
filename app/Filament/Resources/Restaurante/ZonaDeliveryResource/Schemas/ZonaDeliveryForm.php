@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Restaurante\ZonaDeliveryResource\Schemas;
 
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;

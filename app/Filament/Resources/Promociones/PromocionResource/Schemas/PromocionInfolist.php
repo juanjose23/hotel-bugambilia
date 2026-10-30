@@ -7,7 +7,7 @@ namespace App\Filament\Resources\Promociones\PromocionResource\Schemas;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
 use App\Repository\Models\Promociones\Promocion;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;

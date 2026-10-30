@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <div class="space-y-6">
+    <div data-guia="checkout-contenido" class="space-y-6">
 
         @if ($this->reserva === null)
             {{-- ══ Dashboard & Lista de Recepción (Salidas) ══ --}}

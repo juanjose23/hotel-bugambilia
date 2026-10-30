@@ -13,7 +13,7 @@ final readonly class ObtenerHabitacionDetalleWebQuery
     public function resolverHabitacion(string $slug): ?Habitacion
     {
         $query = Habitacion::query()->with([
-            'categoria', 'ubicacion', 'detalle', 'imagenes', 'precios.moneda',
+            'categoria', 'ubicacion', 'detalle', 'vistas', 'imagenes', 'precios.moneda',
             'politicas.penalizaciones', 'servicioAsignaciones.servicio', 'inventarioFijo.activo.producto.categoria',
         ])->activas();
 

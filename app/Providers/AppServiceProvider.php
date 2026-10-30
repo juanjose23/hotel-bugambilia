@@ -110,6 +110,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use OwenIt\Auditing\Models\Audit;
@@ -317,6 +318,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('cocina.demo')) {
+            Vite::useHotFile(base_path('.local/interfaz-cocina/hot'));
+        }
+
         // @phpstan-ignore argument.type (Larastan factory namespace resolution)
         Factory::guessFactoryNamesUsing(function (string $modelClass): string {
             $prefix = 'App\\Repository\\Models\\';

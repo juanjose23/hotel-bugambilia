@@ -23,6 +23,7 @@ final class ObtenerReservasVigentesMesaQuery
         $limiteLlegada = $momento->copy()->addMinutes(self::VENTANA_PREVIA_MINUTOS);
 
         return Reserva::query()
+            ->with(['bitacora' => fn ($q) => $q->where('tipo', 'preorden')->latest('created_at')->latest('id')])
             ->whereIn('espacio_id', $mesaIds)
             ->whereIn('estado', [EstadoReserva::PENDIENTE, EstadoReserva::CONFIRMADA])
             ->whereHas('detalles', fn ($query) => $query

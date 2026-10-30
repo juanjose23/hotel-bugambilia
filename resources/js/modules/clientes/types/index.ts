@@ -78,9 +78,12 @@ export interface PortalReservaResumen {
     };
     puede_cancelar: boolean;
     url_voucher: string;
+    url_pago_saldo?: string | null;
 }
 
 export interface AcompananteItem {
+    huesped_id?: number | null;
+    reserva_detalle_id?: number | null;
     nombre: string;
     identificacion?: string;
     tipo: 'adulto' | 'nino' | 'bebe';
@@ -153,6 +156,7 @@ export interface PortalReservaDetalleCompleto {
         servicios_incluidos: Array<{ id: number; nombre: string }>;
     };
     acompanantes: AcompananteItem[];
+    alojamientos?: Array<{ id: number; nombre: string }>;
     cuenta?: CuentaEstanciaDetalle | null;
     puede_cancelar: boolean;
     puede_solicitar_servicios: boolean;

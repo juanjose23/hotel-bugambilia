@@ -8,7 +8,6 @@
 @endphp
 <x-filament-panels::page>
     <div x-data="{ activeTab: (new URLSearchParams(window.location.search).get('tab')) || 'reports' }" class="space-y-6">
-        <x-reportes.descarga-alpine />
 
         {{-- ─── Subheader / Encabezado ─────────────────────────── --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-3 gap-4 dark:border-gray-700">
@@ -47,23 +46,11 @@
 
         {{-- ─── PESTAÑA 1: CENTRO DE REPORTES (ESTÁNDAR HOTEL BUGAMBILIAS) ────────── --}}
         <div x-show="activeTab === 'reports'" x-transition class="space-y-6">
-            @php
-                $reporteKey = $reportData['reporte'] ?? 'stock';
-                $reporteConfig = \App\Support\ReporteConfig::getReportes()['inventario'][$reporteKey] ?? null;
-                $tituloReporte = $reporteConfig['titulo'] ?? ($reporteKey ?: 'Inventario de Productos');
-                $codigoReporte = $reporteConfig['codigo'] ?? 'HTB-INV-001';
-            @endphp
-
             <x-reportes.layout
-                titulo="Configuración del Informe"
-                subtitulo="Seleccione el modelo de datos base y ajuste los parámetros requeridos"
-                modulo="Módulo de Inventario & Suministros"
+                modulo="inventario"
                 color="indigo"
                 icon="heroicon-o-archive-box"
-                :codigo="$codigoReporte"
-                :tituloReporte="$tituloReporte"
                 :reportData="$reportData"
-                :tieneExcel="\App\Support\ReporteConfig::tieneFormatoExcel('inventario', $reporteKey)"
             >
                 <x-slot:kpis>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

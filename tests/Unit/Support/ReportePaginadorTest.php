@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Support\Pdf\LayoutPdf;
-use App\Support\Pdf\Orientacion;
-use App\Support\Pdf\TamanoPapel;
-use App\Support\ReportePaginador;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Pdf\Orientacion;
+use App\Support\Barcode\Support\Pdf\TamanoPapel;
+use App\Support\Barcode\Support\ReportePaginador;
 
 test('calcula menos filas cuando la pagina carta esta horizontal', function (): void {
     $vertical = new ReportePaginador(new LayoutPdf(

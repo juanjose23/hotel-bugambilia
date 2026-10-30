@@ -13,24 +13,34 @@ use Illuminate\Database\Eloquent\Model;
 final class ObtenerHojaHabitacionEspacioUseCase
 {
     /**
-     * @return array{entidad: Model, activos: Collection<int, ActivoAsignacion>}
+     * @return array{entidad: ?Model, activos: Collection<int, ActivoAsignacion>}
      */
     public function ejecutar(string $tipo, int $id): array
     {
         if ($tipo === 'habitacion') {
-            $entidad = Habitacion::with(['categoria', 'ubicacion', 'detalle'])->findOrFail($id);
-            $activos = ActivoAsignacion::with('activo.producto', 'activo.moneda')
-                ->where('asignable_type', Habitacion::class)
-                ->where('asignable_id', $id)
-                ->whereNull('fecha_fin')
-                ->get();
+            $entidad = $id > 0
+                ? Habitacion::with(['categoria', 'ubicacion', 'detalle'])->find($id)
+                : Habitacion::with(['categoria', 'ubicacion', 'detalle'])->first();
+
+            $activos = $entidad
+                ? ActivoAsignacion::with('activo.producto', 'activo.moneda')
+                    ->where('asignable_type', Habitacion::class)
+                    ->where('asignable_id', $entidad->id)
+                    ->whereNull('fecha_fin')
+                    ->get()
+                : new Collection;
         } else {
-            $entidad = Espacio::with(['padre', 'ubicacion'])->findOrFail($id);
-            $activos = ActivoAsignacion::with('activo.producto', 'activo.moneda')
-                ->where('asignable_type', Espacio::class)
-                ->where('asignable_id', $id)
-                ->whereNull('fecha_fin')
-                ->get();
+            $entidad = $id > 0
+                ? Espacio::with(['padre', 'ubicacion'])->find($id)
+                : Espacio::with(['padre', 'ubicacion'])->first();
+
+            $activos = $entidad
+                ? ActivoAsignacion::with('activo.producto', 'activo.moneda')
+                    ->where('asignable_type', Espacio::class)
+                    ->where('asignable_id', $entidad->id)
+                    ->whereNull('fecha_fin')
+                    ->get()
+                : new Collection;
         }
 
         return [

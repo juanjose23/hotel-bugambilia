@@ -25,13 +25,13 @@ final class FacturaFolioResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QueueList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración fiscal';
 
     protected static ?string $navigationLabel = 'Folios fiscales';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 42;
 
-    protected static ?string $slug = 'facturacion/folios';
+    protected static ?string $slug = 'folios';
 
     public static function canCreate(): bool
     {

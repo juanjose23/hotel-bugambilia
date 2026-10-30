@@ -20,7 +20,13 @@ final class PagoController extends Controller
 
     public function reserva(Request $request, Reserva $reserva, ObtenerPagoPublico $pago): Response
     {
-        abort_unless($request->query('codigo') === $reserva->codigo_reserva, 404);
+        $usuario = $request->user();
+        $clienteId = $usuario?->persona?->cliente?->id;
+        $esDuenio = $clienteId !== null && $clienteId === $reserva->cliente_id;
+        $esAdmin = $usuario?->hasAnyRole(['admin', 'super_admin', 'recepcionista']) === true;
+        $codigoValido = $request->query('codigo') === $reserva->codigo_reserva;
+
+        abort_unless($codigoValido || $esDuenio || $esAdmin, 404);
 
         return Inertia::render('pago/Pago', $pago->paraReserva($reserva));
     }

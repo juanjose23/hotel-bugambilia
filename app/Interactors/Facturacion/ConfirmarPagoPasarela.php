@@ -68,12 +68,12 @@ final readonly class ConfirmarPagoPasarela
             $this->pagoConciliacionPersistencia->actualizarOCrear(
                 ['pago_transaccion_id' => $transaccion->id],
                 [
-                    'estado' => EstadoConciliacionPago::Conciliada,
+                    'estado' => EstadoConciliacionPago::Pendiente,
                     'monto_esperado' => $transaccion->monto,
-                    'monto_recibido' => $pago->monto,
-                    'diferencia' => round((float) $pago->monto - (float) $transaccion->monto, 2),
-                    'conciliada_at' => now(),
-                    'conciliada_por' => $usuarioId,
+                    'monto_recibido' => 0,
+                    'diferencia' => -(float) $transaccion->monto,
+                    'conciliada_at' => null,
+                    'conciliada_por' => null,
                 ],
             );
 

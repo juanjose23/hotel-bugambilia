@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Restaurante\Validaciones;
 
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 
 final class ValidarMontoSuficienteCobro

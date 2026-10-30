@@ -8,7 +8,6 @@ use App\Enums\Compras\EstadoSolicitud;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Models\Compras\SolicitudItem;
-use App\Repository\Models\Shared\Stock;
 use App\Repository\Models\User;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
@@ -18,6 +17,7 @@ final readonly class DespacharSolicitudAbastecimientoCocina
 {
     public function __construct(
         private RestauranteRepositorioInterface $repositorio,
+        private TrasladarExistenciasCocina $trasladar,
     ) {}
 
     public function ejecutar(
@@ -27,7 +27,11 @@ final readonly class DespacharSolicitudAbastecimientoCocina
         ?int $usuarioId = null,
     ): Solicitud {
         return DB::transaction(function () use ($solicitud, $ubicacionOrigenId, $ubicacionDestinoId, $usuarioId): Solicitud {
-            $solicitud->loadMissing(['items.producto', 'items.variante']);
+            $solicitud = $this->repositorio->solicitudConLock($solicitud->id);
+            if ($this->repositorio->solicitudYaAbastecida($solicitud->id)) {
+                throw new DomainException('La solicitud ya fue abastecida; no se puede repetir el despacho.');
+            }
+            $solicitud->load(['items.producto', 'items.variante']);
 
             if ($solicitud->estado !== EstadoSolicitud::Aprobada) {
                 throw new DomainException('Solo se puede despachar una solicitud aprobada.');
@@ -78,56 +82,6 @@ final readonly class DespacharSolicitudAbastecimientoCocina
             return;
         }
 
-        $stockOrigen = $this->repositorio->obtenerStockPorVariante($origenId, $varianteId);
-
-        if (! $stockOrigen instanceof Stock) {
-            throw new DomainException('No existe stock registrado para el insumo solicitado.');
-        }
-
-        $disponible = (float) $stockOrigen->cantidad_actual;
-
-        if ($disponible < $cantidad) {
-            $nombre = $item->variante !== null ? ($item->variante->producto->nombre ?? 'Producto') : ($item->producto->nombre ?? 'Producto');
-            $variante = $item->variante !== null ? ($item->variante->nombre_variante ?: $item->variante->codigo) : null;
-            $label = $variante !== null ? "{$nombre} - {$variante}" : $nombre;
-
-            throw new DomainException("Stock insuficiente en bodega para {$label}. Disponible: {$disponible}; requerido: {$cantidad}.");
-        }
-
-        $stockOrigen->cantidad_actual = $disponible - $cantidad;
-        $this->repositorio->guardarStock($stockOrigen);
-
-        $stockDestino = $this->repositorio->obtenerStockPorVariante($destinoId, $varianteId);
-
-        if (! $stockDestino instanceof Stock) {
-            $stockDestino = $this->repositorio->crearStock([
-                'stockable_type' => Ubicacion::class,
-                'stockable_id' => $destinoId,
-                'producto_variante_id' => $varianteId,
-                'lote_id' => $stockOrigen->lote_id,
-                'cantidad_ideal' => 0,
-                'cantidad_actual' => 0,
-            ]);
-        }
-
-        $stockDestino->cantidad_actual = (float) $stockDestino->cantidad_actual + $cantidad;
-        $this->repositorio->guardarStock($stockDestino);
-
-        $costoUnitario = $stockOrigen->lote?->costo_unitario;
-
-        $this->repositorio->registrarMovimiento([
-            'tipo' => 'TRASLADO',
-            'lote_id' => $stockOrigen->lote_id,
-            'producto_id' => $productoId,
-            'cantidad' => $cantidad,
-            'costo_unitario' => $costoUnitario,
-            'costo_total' => $costoUnitario !== null ? (float) $costoUnitario * $cantidad : null,
-            'ubicacion_origen_id' => $origenId,
-            'ubicacion_destino_id' => $destinoId,
-            'documento_tipo' => 'solicitud_abastecimiento_cocina',
-            'documento_id' => $solicitud->id,
-            'referencia' => "Despacho de solicitud {$solicitud->codigo} hacia cocina",
-            'creado_por_id' => $usuarioId,
-        ]);
+        $this->trasladar->ejecutar($varianteId, $origenId, $destinoId, $cantidad, ['documento_tipo' => 'solicitud_abastecimiento_cocina', 'documento_id' => $solicitud->id, 'referencia' => 'Despacho de '.$solicitud->codigo, 'creado_por_id' => $usuarioId]);
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Catalogos\Productos;
 
-use App\BusinessLogic\Shared\Reportes\ContarRegistrosReporte;
 use App\Filament\Resources\Catalogos\Productos\Pages\CreateProducto;
 use App\Filament\Resources\Catalogos\Productos\Pages\EditProducto;
 use App\Filament\Resources\Catalogos\Productos\Pages\ListProductos;
@@ -77,26 +76,22 @@ class ProductoResource extends Resource
                 ->icon(Heroicon::Document)
                 ->color('danger')
                 ->action(function (array $data) {
-                    $contador = app(ContarRegistrosReporte::class);
-                    if ($contador->superaUmbral('HTB-CP002', $data)) {
-                        dispatch(new GenerarReporteJob(
-                            codigoReporte: 'HTB-CP002',
-                            parametros: $data,
-                            usuarioId: (int) auth()->id(),
-                        ));
-                        Notification::make()
-                            ->title('⏳ Reporte en segundo plano')
-                            ->body('El reporte contiene un volumen alto de registros para generarse en tiempo real. Se está procesando en segundo plano y recibirás una notificación cuando esté listo para descargar.')
-                            ->warning()
-                            ->duration(10000)
-                            ->send();
+                    // Catálogos de productos no tienen rango de fechas.
+                    // Siempre se generan en segundo plano para no bloquear al usuario.
+                    dispatch(new GenerarReporteJob(
+                        codigoReporte: 'HTB-CP002',
+                        parametros: $data,
+                        usuarioId: (int) auth()->id(),
+                    ));
 
-                        return null;
-                    }
+                    Notification::make()
+                        ->title('Reporte en segundo plano')
+                        ->body('El reporte de catálogo se está procesando. Recibirás una notificación en la campana cuando esté listo para descargar.')
+                        ->warning()
+                        ->duration(10000)
+                        ->send();
 
-                    $pdf = app(GenerarReporteProductos::class)->detallado($data);
-
-                    return response()->streamDownload(fn () => print ($pdf->output()), 'HTB-CP-Reporte-'.now()->format('Ymd_His').'.pdf');
+                    return null;
                 }),
         ];
     }

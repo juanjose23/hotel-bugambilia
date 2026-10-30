@@ -32,7 +32,7 @@ function datosRegistroNatural(array $sobrescribir = []): array
         'primer_nombre' => 'Lionel',
         'primer_apellido' => 'Messi',
         'tipo_identificacion' => 'cedula',
-        'numero_identificacion' => '001-010285-0001A',
+        'numero_identificacion' => '001-010285-0001W',
         'email' => 'lionel@test.com',
         'phone' => '88888888',
         'password' => 'password123',
@@ -76,5 +76,5 @@ it('permite registrarse cuando la identificación está completa', function () {
 
     $persona = Persona::firstOrFail();
     expect($persona->personaNatural->tipo_identificacion)->toBe('cedula');
-    expect($persona->personaNatural->numero_identificacion)->toBe('001-010285-0001A');
+    expect($persona->personaNatural->numero_identificacion)->toBe('001-010285-0001W');
 });

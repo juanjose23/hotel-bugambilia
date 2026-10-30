@@ -8,7 +8,7 @@
     $capacidadTotal = $mesasFiltradas->sum(fn ($m) => (int) ($m->capacidad_personas ?? 0));
 @endphp
 
-<div class="space-y-6">
+<div data-guia="mesas-mapa" class="space-y-6">
     {{-- Leyenda y estadísticas de ocupación del plano --}}
     <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-gray-900">
         <div class="flex flex-wrap items-center gap-2">

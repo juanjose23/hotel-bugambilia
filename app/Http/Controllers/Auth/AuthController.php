@@ -12,7 +12,8 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegistroRequest;
 use App\Interactors\Usuarios\Clientes\RegistrarCliente;
 use App\Interactors\Usuarios\Credenciales\CambiarContrasena;
-use App\Support\UsuarioAutenticado;
+use App\Repository\Models\User;
+use App\Support\Barcode\Support\UsuarioAutenticado;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,9 +34,10 @@ final class AuthController extends Controller
     public function mostrarLogin(): RedirectResponse|Response
     {
         if (Auth::check()) {
+            /** @var User|null $user */
             $user = Auth::user();
 
-            return redirect($user !== null && $user->is_admin ? '/admin' : route('home'));
+            return redirect($user !== null && $user->esAdmin() ? '/admin' : route('home'));
         }
 
         return Inertia::render('auth/IniciarSesion');
@@ -48,10 +50,20 @@ final class AuthController extends Controller
 
         if (Auth::attempt($credenciales, $recordar)) {
             $request->session()->regenerate();
+            /** @var User|null $user */
             $user = Auth::user();
-            $target = $user !== null && $user->is_admin ? '/admin' : route('home');
 
-            return redirect()->intended($target)->with('exito', '¡Bienvenido de vuelta!');
+            if ($user !== null && $user->esAdmin()) {
+                $intended = $request->session()->get('url.intended');
+                $request->session()->forget('url.intended');
+
+                $intendedStr = is_string($intended) ? $intended : '';
+                $destino = str_contains($intendedStr, '/admin') ? $intendedStr : '/admin';
+
+                return redirect($destino)->with('exito', '¡Bienvenido al panel administrativo!');
+            }
+
+            return redirect()->intended(route('home'))->with('exito', '¡Bienvenido de vuelta!');
         }
 
         throw ValidationException::withMessages([
@@ -62,9 +74,10 @@ final class AuthController extends Controller
     public function mostrarRegistro(): RedirectResponse|Response
     {
         if (Auth::check()) {
+            /** @var User|null $user */
             $user = Auth::user();
 
-            return redirect($user !== null && $user->is_admin ? '/admin' : route('home'));
+            return redirect($user !== null && $user->esAdmin() ? '/admin' : route('home'));
         }
 
         return Inertia::render('auth/Registro');

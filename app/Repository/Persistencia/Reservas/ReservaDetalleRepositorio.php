@@ -125,9 +125,6 @@ final readonly class ReservaDetalleRepositorio
         array $espacios,
         array $habitaciones = [],
     ): void {
-        $reserva->detalles()
-            ->whereNotNull('parent_id')
-            ->delete();
 
         $inicio = $principal->fecha_inicio;
         $fin = $principal->fecha_fin ?? $inicio;
@@ -150,7 +147,7 @@ final readonly class ReservaDetalleRepositorio
         foreach ($habitaciones as $hab) {
             $recurso = $recursos[$idx++] ?? $this->recursosRepo->resolverRecurso(TipoReserva::HABITACION, $hab['habitacion_id']);
 
-            $this->crearDetalle($reserva, $recurso, [
+            $this->guardarAdicional($reserva, $recurso, [
                 'parent_id' => $principal->id,
                 'estado' => EstadoReservaDetalle::CONFIRMADO,
                 'fecha_inicio' => $inicio,
@@ -164,7 +161,7 @@ final readonly class ReservaDetalleRepositorio
         foreach ($servicios as $servicio) {
             $recurso = $recursos[$idx++] ?? $this->recursosRepo->resolverRecurso(TipoReserva::SERVICIO, $servicio['servicio_id']);
 
-            $this->crearDetalle($reserva, $recurso, [
+            $this->guardarAdicional($reserva, $recurso, [
                 'parent_id' => $principal->id,
                 'estado' => EstadoReservaDetalle::PENDIENTE,
                 'fecha_inicio' => $inicio,
@@ -181,7 +178,7 @@ final readonly class ReservaDetalleRepositorio
             $horasVal = max(1, (int) $principal->cantidad);
             $mult = $this->tarifas->espacioEsPorHora($espacio['espacio_id']) ? $horasVal : 1;
 
-            $this->crearDetalle($reserva, $recurso, [
+            $this->guardarAdicional($reserva, $recurso, [
                 'parent_id' => $principal->id,
                 'estado' => EstadoReservaDetalle::CONFIRMADO,
                 'fecha_inicio' => $inicio,
@@ -190,6 +187,26 @@ final readonly class ReservaDetalleRepositorio
                 'precio_unitario' => $espacio['precio'],
                 'subtotal' => round($espacio['precio'] * $espacio['cantidad'] * $mult, 2),
             ]);
+        }
+        $descartados = $reserva->detalles()->whereNotNull('parent_id')
+            ->whereNotIn('reservable_id', array_map(fn (RecursoReservable $r): int => $r->id, $recursos))->get();
+        foreach ($descartados as $detalle) {
+            if ($detalle->huespedes()->exists() || $detalle->estancia_id !== null) {
+                throw new \DomainException('Reasigne los huespedes y resuelva la estancia antes de retirar ese recurso.');
+            }
+            $detalle->delete();
+        }
+    }
+
+    /** @param array<string, mixed> $datos */
+    private function guardarAdicional(Reserva $reserva, RecursoReservable $recurso, array $datos): void
+    {
+        $actual = $reserva->detalles()->whereNotNull('parent_id')->where('reservable_id', $recurso->id)->lockForUpdate()->first();
+        if ($actual !== null) {
+            unset($datos['estado']);
+            $actual->update($datos);
+        } else {
+            $this->crearDetalle($reserva, $recurso, $datos);
         }
     }
 

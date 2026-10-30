@@ -44,7 +44,7 @@ final class ReporteActivoController extends ReporteController
         return $result;
     }
 
-    public function fichaActivoPdf(Request $request, Activo $activo): StreamedResponse
+    public function fichaActivoPdf(Request $request, Activo $activo): Response
     {
         $params = array_merge($request->all(), ['activo' => $activo]);
 
@@ -53,7 +53,7 @@ final class ReporteActivoController extends ReporteController
         return $this->streamPdf($pdf, 'HTB-ACT-002-Ficha-Activo.pdf');
     }
 
-    public function fichaMantenimientoPdf(Request $request, ActivoMantenimiento $mantenimiento): StreamedResponse
+    public function fichaMantenimientoPdf(Request $request, ActivoMantenimiento $mantenimiento): Response
     {
         $params = array_merge($request->all(), ['mantenimiento' => $mantenimiento]);
 

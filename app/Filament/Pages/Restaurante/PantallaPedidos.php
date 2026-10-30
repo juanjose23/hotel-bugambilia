@@ -102,8 +102,9 @@ final class PantallaPedidos extends Page
             ->values()
             ->all();
 
-        if ($this->pantallaInicializada && $idsListos !== []) {
-            $mesas = $this->pedidosListos
+        $nuevosListos = array_values(array_diff($idsListos, $this->pedidoListosNotificados));
+        if ($this->pantallaInicializada && $nuevosListos !== []) {
+            $mesas = $this->pedidosListos->whereIn('id', $nuevosListos)
                 ->map(fn (Pedido $pedido): string => is_string($pedido->mesa?->nombre) && trim($pedido->mesa->nombre) !== ''
                     ? trim($pedido->mesa->nombre)
                     : 'sin mesa')

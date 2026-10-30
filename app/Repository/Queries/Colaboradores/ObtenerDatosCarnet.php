@@ -6,7 +6,7 @@ namespace App\Repository\Queries\Colaboradores;
 
 use App\Enums\Personas\TipoSangre;
 use App\Repository\Models\Personas\Persona;
-use App\Support\HotelInfo;
+use App\Support\Barcode\Support\HotelInfo;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 
 class ObtenerDatosCarnet

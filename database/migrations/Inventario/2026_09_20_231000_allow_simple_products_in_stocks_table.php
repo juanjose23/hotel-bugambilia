@@ -42,10 +42,27 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::table('stocks')->whereNull('producto_variante_id')->exists()) {
+            throw new RuntimeException('No se puede revertir: existen stocks sin variante. Asígneles una variante antes de continuar.');
+        }
+
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['pgsql', 'sqlite'], true)) {
+            DB::statement('DROP INDEX IF EXISTS uq_stock_variante');
+        }
+
+        Schema::table('stocks', function (Blueprint $table): void {
+            $table->foreignId('producto_variante_id')->nullable(false)->change();
+        });
+
         Schema::table('stocks', function (Blueprint $table): void {
             $table->dropForeign(['producto_id']);
             $table->dropIndex(['producto_id']);
             $table->dropColumn(['producto_id']);
         });
+
+        if (in_array($driver, ['pgsql', 'sqlite'], true)) {
+            DB::statement('CREATE UNIQUE INDEX uq_stock_variante ON stocks (stockable_type, stockable_id, producto_variante_id) WHERE deleted_at IS NULL');
+        }
     }
 };

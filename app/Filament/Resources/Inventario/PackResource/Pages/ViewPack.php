@@ -10,7 +10,7 @@ use App\Interactors\Habitaciones\AsignarPackAHabitacion;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Queries\Inventario\Pack\ObtenerStockItemsPackQuery;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;

@@ -1,4 +1,4 @@
-@use(App\Support\MonedaHelper)
+@use(App\Support\Barcode\Support\MonedaHelper)
 @php
     $colorClass = match ($item['estado_color']) {
         'emerald' => 'border-l-emerald-500 bg-emerald-500/10 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-200 hover:bg-emerald-500/20',
@@ -37,7 +37,8 @@
     {{-- Derecha: Badges Entrada / Salida + Precio --}}
     <div class="flex shrink-0 items-center gap-1 text-[9px]">
         @if ($item['es_llegada'] ?? false)
-            <span class="rounded bg-emerald-600 px-1 py-0.2 font-black text-white uppercase dark:bg-emerald-500">In</span>
+            <span
+                class="rounded bg-emerald-600 px-1 py-0.2 font-black text-white uppercase dark:bg-emerald-500">In</span>
         @endif
         @if ($item['es_salida'] ?? false)
             <span class="rounded bg-gray-500 px-1 py-0.2 font-black text-white uppercase dark:bg-gray-600">Out</span>

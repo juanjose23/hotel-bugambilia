@@ -1,0 +1,140 @@
+name: hotel-bugambilia
+x-test-environment: &test-environment
+  APP_LOCALE: es
+  APP_FALLBACK_LOCALE: es
+  APP_ENV: testing
+  APP_KEY: "base64:n1M8EUQLYLSLBZaUDcTrUqV0aGsChkJHm/K6q38jiAU="
+  APP_URL: http://localhost
+  DB_CONNECTION: pgsql
+  DB_HOST: test-db
+  DB_PORT: 5432
+  DB_DATABASE: hotel_testing
+  DB_USERNAME: hotel
+  DB_PASSWORD: testing
+  DB_URL: ""
+  CACHE_STORE: array
+  SESSION_DRIVER: file
+  MAIL_MAILER: array
+  QUEUE_CONNECTION: sync
+  TESORERIA_HABILITADO: "false"
+  HUSKY: "0"
+services:
+  app:
+    image: hotel-bugambilia:local
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "127.0.0.1:${HOTEL_PORT:-8080}:80"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "false"
+      APP_KEY: "${DOCKER_APP_KEY:-base64:n1M8EUQLYLSLBZaUDcTrUqV0aGsChkJHm/K6q38jiAU=}"
+      APP_URL: "http://localhost:${HOTEL_PORT:-8080}"
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: hotel
+      DB_USERNAME: hotel
+      DB_PASSWORD: "${DOCKER_DB_PASSWORD:-local-hotel}"
+      DB_URL: ""
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      MAIL_MAILER: log
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - hotel-storage:/var/www/html/storage
+  db:
+    image: postgres:18-bookworm
+    environment:
+      POSTGRES_DB: hotel
+      POSTGRES_USER: hotel
+      POSTGRES_PASSWORD: "${DOCKER_DB_PASSWORD:-local-hotel}"
+    volumes:
+      - hotel-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotel -d hotel"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  tools:
+    image: hotel-bugambilia:tools
+    build:
+      context: .
+      target: tooling
+    profiles: [quality]
+    environment: *test-environment
+    command: ["node", "scripts/project.mjs", "test"]
+    depends_on:
+      test-db:
+        condition: service_healthy
+  test-db:
+    image: postgres:18-bookworm
+    profiles: [quality, dusk]
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: hotel
+      POSTGRES_PASSWORD: testing
+    tmpfs:
+      - /var/lib/postgresql
+    volumes:
+      - ./docker/init-testing.sql:/docker-entrypoint-initdb.d/testing.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotel -d hotel_dusk"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  dusk-app:
+    image: hotel-bugambilia:tools
+    build:
+      context: .
+      target: tooling
+    profiles: [dusk]
+    environment:
+      <<: *test-environment
+      APP_ENV: dusk.local
+      APP_URL: http://dusk-app
+      DB_DATABASE: hotel_dusk
+    depends_on:
+      test-db:
+        condition: service_healthy
+  selenium:
+    image: selenium/standalone-chromium:4.38.0
+    profiles: [dusk]
+    shm_size: 2gb
+    environment:
+      SE_NODE_MAX_SESSIONS: 1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:4444/status | grep -q '\"ready\": true'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  dusk:
+    image: hotel-bugambilia:tools
+    build:
+      context: .
+      target: tooling
+    profiles: [dusk]
+    environment:
+      <<: *test-environment
+      APP_ENV: dusk.local
+      APP_URL: http://dusk-app
+      DB_DATABASE: hotel_dusk
+      DUSK_EXTERNAL_SERVER: "1"
+      DUSK_DRIVER_URL: http://selenium:4444
+    command: ["node", "scripts/project.mjs", "dusk"]
+    depends_on:
+      dusk-app:
+        condition: service_started
+      selenium:
+        condition: service_healthy
+    volumes:
+      - ./tests/Browser/screenshots:/var/www/html/tests/Browser/screenshots
+      - ./tests/Browser/console:/var/www/html/tests/Browser/console
+volumes:
+  hotel-db:
+  hotel-storage:
+

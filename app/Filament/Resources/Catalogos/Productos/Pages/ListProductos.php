@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Catalogos\Productos\Pages;
 
-use App\BusinessLogic\Shared\Reportes\ContarRegistrosReporte;
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\Shared\EstadoGeneral;
 use App\Filament\Resources\Catalogos\Productos\ProductoResource;
@@ -11,8 +10,8 @@ use App\Interactors\Catalogos\Productos\ImportarProductos;
 use App\Jobs\GenerarReporteJob;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\User;
-use App\Support\CachedOptions;
-use App\Support\Pdf\FormatoPagina;
+use App\Support\Barcode\Support\CachedOptions;
+use App\Support\Barcode\Support\Pdf\FormatoPagina;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -129,37 +128,24 @@ class ListProductos extends ListRecords
                     ->icon(Heroicon::Document)
                     ->schema([
                         ...$pdfFilters(),
-                        Checkbox::make('background')
-                            ->label('Generar en segundo plano (notificar cuando esté listo)')
-                            ->default(false),
                     ])
                     ->action(function (array $data) {
-                        $contador = app(ContarRegistrosReporte::class);
-                        if (! empty($data['background']) || $contador->superaUmbral('HTB-CP001', $data)) {
-                            $user = auth()->user();
-                            dispatch(new GenerarReporteJob(
-                                codigoReporte: 'HTB-CP001',
-                                parametros: $data,
-                                usuarioId: (int) auth()->id(),
-                            ));
-                            $notif = Notification::make()
-                                ->title('⏳ Generando reporte en segundo plano')
-                                ->body('El reporte contiene un volumen alto de registros para generarse en tiempo real. Se está procesando en segundo plano y recibirás una notificación cuando esté listo para descargar.')
-                                ->warning()
-                                ->duration(10000);
-                            $notif->send();
-                            if ($user instanceof User) {
-                                $notif->sendToDatabase($user);
-                            }
-
-                            return;
+                        // Sin rango de fechas → siempre segundo plano.
+                        $user = auth()->user();
+                        dispatch(new GenerarReporteJob(
+                            codigoReporte: 'HTB-CP001',
+                            parametros: $data,
+                            usuarioId: (int) auth()->id(),
+                        ));
+                        $notif = Notification::make()
+                            ->title('⏳ Generando reporte en segundo plano')
+                            ->body('El reporte de catálogo simple se está procesando. Recibirás una notificación cuando esté listo para descargar.')
+                            ->warning()
+                            ->duration(10000);
+                        $notif->send();
+                        if ($user instanceof User) {
+                            $notif->sendToDatabase($user);
                         }
-                        $pdf = app(GenerarReporteProductos::class)->simple($data);
-
-                        return response()->stream(fn () => print ($pdf->output()), 200, [
-                            'Content-Type' => 'application/pdf',
-                            'Content-Disposition' => 'inline; filename="HTB-CP001-Simple.pdf"',
-                        ]);
                     }),
 
                 Action::make('detallado')
@@ -167,37 +153,24 @@ class ListProductos extends ListRecords
                     ->icon(Heroicon::DocumentCheck)
                     ->schema([
                         ...$pdfFilters(),
-                        Checkbox::make('background')
-                            ->label('Generar en segundo plano (notificar cuando esté listo)')
-                            ->default(false),
                     ])
                     ->action(function (array $data) {
-                        $contador = app(ContarRegistrosReporte::class);
-                        if (! empty($data['background']) || $contador->superaUmbral('HTB-CP002', $data)) {
-                            $user = auth()->user();
-                            dispatch(new GenerarReporteJob(
-                                codigoReporte: 'HTB-CP002',
-                                parametros: $data,
-                                usuarioId: (int) auth()->id(),
-                            ));
-                            $notif = Notification::make()
-                                ->title('⏳ Generando reporte en segundo plano')
-                                ->body('El reporte contiene un volumen alto de registros para generarse en tiempo real. Se está procesando en segundo plano y recibirás una notificación cuando esté listo para descargar.')
-                                ->warning()
-                                ->duration(10000);
-                            $notif->send();
-                            if ($user instanceof User) {
-                                $notif->sendToDatabase($user);
-                            }
-
-                            return;
+                        // Sin rango de fechas → siempre segundo plano.
+                        $user = auth()->user();
+                        dispatch(new GenerarReporteJob(
+                            codigoReporte: 'HTB-CP002',
+                            parametros: $data,
+                            usuarioId: (int) auth()->id(),
+                        ));
+                        $notif = Notification::make()
+                            ->title('⏳ Generando reporte en segundo plano')
+                            ->body('El reporte de catálogo detallado se está procesando. Recibirás una notificación cuando esté listo para descargar.')
+                            ->warning()
+                            ->duration(10000);
+                        $notif->send();
+                        if ($user instanceof User) {
+                            $notif->sendToDatabase($user);
                         }
-                        $pdf = app(GenerarReporteProductos::class)->detallado($data);
-
-                        return response()->stream(fn () => print ($pdf->output()), 200, [
-                            'Content-Type' => 'application/pdf',
-                            'Content-Disposition' => 'inline; filename="HTB-CP002-Detallado.pdf"',
-                        ]);
                     }),
 
                 Action::make('etiquetas')
@@ -215,35 +188,23 @@ class ListProductos extends ListRecords
                             ->default(FormatoPagina::A4_Vertical->value)
                             ->columns(3)
                             ->required(),
-                        Checkbox::make('background')
-                            ->label('Generar en segundo plano (notificar cuando esté listo)')
-                            ->default(false),
                     ])
                     ->action(function (array $data) {
-                        if (! empty($data['background'])) {
-                            $user = auth()->user();
-                            dispatch(new GenerarReporteJob(
-                                codigoReporte: 'HTB-CP003',
-                                parametros: $data,
-                                usuarioId: (int) auth()->id(),
-                            ));
-                            $notif = Notification::make()
-                                ->title('⏳ Reporte en proceso')
-                                ->body('Recibirás una notificación cuando esté listo.')
-                                ->warning();
-                            $notif->send();
-                            if ($user instanceof User) {
-                                $notif->sendToDatabase($user);
-                            }
-
-                            return;
+                        // Sin rango de fechas → siempre segundo plano.
+                        $user = auth()->user();
+                        dispatch(new GenerarReporteJob(
+                            codigoReporte: 'HTB-CP003',
+                            parametros: $data,
+                            usuarioId: (int) auth()->id(),
+                        ));
+                        $notif = Notification::make()
+                            ->title('⏳ Reporte en proceso')
+                            ->body('Las etiquetas se están generando. Recibirás una notificación cuando estén listas.')
+                            ->warning();
+                        $notif->send();
+                        if ($user instanceof User) {
+                            $notif->sendToDatabase($user);
                         }
-                        $pdf = app(GenerarReporteProductos::class)->etiquetas($data);
-
-                        return response()->stream(fn () => print ($pdf->output()), 200, [
-                            'Content-Type' => 'application/pdf',
-                            'Content-Disposition' => 'inline; filename="HTB-CP003-Etiquetas.pdf"',
-                        ]);
                     }),
             ])
                 ->label('PDF')

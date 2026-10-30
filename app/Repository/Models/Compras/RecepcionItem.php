@@ -38,6 +38,12 @@ final class RecepcionItem extends Model implements AuditableContract
 
     protected $table = 'recepcion_items';
 
+    protected $with = [
+        'producto',
+        'variante',
+        'unidadMedida',
+    ];
+
     protected $casts = [
         'fecha_vencimiento' => 'date:Y-m-d',
     ];

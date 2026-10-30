@@ -1,0 +1,788 @@
+{
+  "perfil": {
+    "variante:cotizacion_items:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 21660,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:devolucion_items:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 129,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:inv_activos:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 11506,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:inv_lotes:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 479130,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:inv_registro_individualizacion:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 1826,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:inv_stock:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 5964,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:limp_lavanderia_procesos:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 0,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:limp_sustituciones_stock:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 0,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:orden_compra_items:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 9177,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:pedido_items:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 0,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:proceso_items:variante_destino_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 11418,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:procesos_cocina:variante_origen_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 0,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:recepcion_items:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 8278,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:restaurante_recetas_transformacion_materia_prima:variante_materia_prima_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 2,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:restaurante_recetas_transformacion_materia_prima:variante_bruta_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 2,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:restaurante_transformacion_materia_prima_items:variante_destino_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 17650,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:restaurante_transformaciones_materia_prima:variante_origen_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 3208,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:solicitud_items:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 10931,
+          "variante_inexistente": 0,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "variante:stocks:producto_variante_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_variante": 1999,
+          "variante_inexistente": 0,
+          "producto_incompatible": 1974
+        }
+      ]
+    },
+    "relacion:cuentas.estancia_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "referencias": 9702,
+          "huerfanos": 0
+        }
+      ]
+    },
+    "relacion:pagos_cuenta.venta_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "referencias": 0,
+          "huerfanos": 0
+        }
+      ]
+    },
+    "relacion:pedidos.cuenta_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "referencias": 1,
+          "huerfanos": 0
+        }
+      ]
+    },
+    "relacion:sessions.user_id": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "referencias": 1,
+          "huerfanos": 0
+        }
+      ]
+    },
+    "clave:inv_stock": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "grupos_duplicados": 7,
+          "filas_excedentes": "7"
+        }
+      ]
+    },
+    "clave:recetas_activas": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "grupos_duplicados": 0,
+          "filas_excedentes": "0"
+        }
+      ]
+    },
+    "cadena:inv_stock_lote": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_lote": 15755,
+          "producto_incompatible": 0,
+          "variante_incompatible": 0
+        }
+      ]
+    },
+    "cadena:inv_movimientos_lote": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_lote": 1414879,
+          "producto_incompatible": 0
+        }
+      ]
+    },
+    "cadena:recepcion_orden": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "filas": 22891,
+          "producto_incompatible": 0,
+          "variante_incompatible": 0
+        }
+      ]
+    },
+    "cadena:pago_venta_cuenta": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_venta": 0,
+          "cuenta_incompatible": 0
+        }
+      ]
+    },
+    "cadena:estancia_detalle": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "con_detalle": 9702,
+          "reserva_incompatible": 0
+        }
+      ]
+    },
+    "relacion:ventas_cuenta": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "cuentas_con_varias_ventas": 0
+        }
+      ]
+    },
+    "json:auditoria_reportes.parametros": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 2
+        }
+      ]
+    },
+    "json:cargos_facturacion.areas": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "json:conflictos_identidad.datos_providos": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 2
+        }
+      ]
+    },
+    "json:conflictos_identidad.datos_existentes": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 2
+        }
+      ]
+    },
+    "json:cuenta_detalles.metadatos": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 2
+        }
+      ]
+    },
+    "json:detalles_habitacion.vistas": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "array",
+          "filas": 122
+        }
+      ]
+    },
+    "json:espacios.meta_datos": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 13
+        }
+      ]
+    },
+    "json:facturas.datos_receptor": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 9726
+        }
+      ]
+    },
+    "json:inv_mantenimiento_notificaciones.metadata": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "json:limp_ejecuciones.detalles_checklist": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 8
+        }
+      ]
+    },
+    "json:limp_ejecuciones.consumos": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "json:limp_horarios.checklist": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "array",
+          "filas": 20
+        }
+      ]
+    },
+    "json:notifications.data": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 22
+        }
+      ]
+    },
+    "json:pago_transacciones.request_payload": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 15
+        }
+      ]
+    },
+    "json:pago_transacciones.response_payload": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 15
+        }
+      ]
+    },
+    "json:pago_transacciones.webhook_payload": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 2
+        }
+      ]
+    },
+    "json:pasarelas_pago.configuracion": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 1
+        }
+      ]
+    },
+    "json:pedido_items.bloqueo_stock_detalle": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "json:producto_variantes.atributos": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 707
+        }
+      ]
+    },
+    "json:promocion_beneficio_usos.metadata": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 5
+        }
+      ]
+    },
+    "json:promocion_beneficios.metadata": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 11
+        }
+      ]
+    },
+    "json:reservas.acompanantes": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "array",
+          "filas": 2
+        }
+      ]
+    },
+    "json:reservas_bitacora.datos": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 324
+        }
+      ]
+    },
+    "json:restaurante_zonas_delivery.municipios": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "array",
+          "filas": 17
+        }
+      ]
+    },
+    "json:social_accounts.provider_data": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 2
+        }
+      ]
+    },
+    "json:tes_operaciones.resultado": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "json:ventas.datos_fiscales": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "forma": "object",
+          "filas": 9735
+        }
+      ]
+    },
+    "estructura:restaurante_zonas_delivery.municipios": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "estructura:reservas.acompanantes": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "clave": "tipo"
+        },
+        {
+          "clave": "nombre"
+        },
+        {
+          "clave": "identificacion"
+        }
+      ]
+    },
+    "estructura:detalles_habitacion.vistas": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "estructura:limp_horarios.checklist": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "estructura:limp_ejecuciones.consumos": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "estructura:limp_ejecuciones.detalles_checklist": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "estructura:producto_variantes.atributos": {
+      "estado": "consultado",
+      "resultado": []
+    },
+    "tipos:imagenes": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "tipo": "App\\Repository\\Models\\Habitaciones\\Habitacion",
+          "filas": 412
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Servicios\\Servicio",
+          "filas": 31
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Espacios\\Espacio",
+          "filas": 16
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Promociones\\Promocion",
+          "filas": 16
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Colaboradores\\Colaborador",
+          "filas": 15
+        }
+      ]
+    },
+    "tipos:stocks": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "tipo": "App\\Repository\\Models\\Habitaciones\\Habitacion",
+          "filas": 1706
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Catalogos\\Ubicacion",
+          "filas": 220
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Espacios\\Espacio",
+          "filas": 45
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Servicios\\Servicio",
+          "filas": 23
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Promociones\\Promocion",
+          "filas": 10
+        }
+      ]
+    },
+    "tipos:cuenta_detalles": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "tipo": "App\\Repository\\Models\\Estancias\\Estancia",
+          "filas": 18787
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Servicios\\Servicio",
+          "filas": 3224
+        },
+        {
+          "tipo": null,
+          "filas": 60
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Reservas\\Reserva",
+          "filas": 2
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Restaurante\\PedidoItem",
+          "filas": 2
+        }
+      ]
+    },
+    "tipos:inv_movimientos": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "tipo": null,
+          "filas": 491425
+        },
+        {
+          "tipo": "recepcion_cocina",
+          "filas": 460242
+        },
+        {
+          "tipo": "pedido_item",
+          "filas": 408401
+        },
+        {
+          "tipo": "inv_activos",
+          "filas": 31934
+        },
+        {
+          "tipo": "transformacion_materia_prima",
+          "filas": 24792
+        },
+        {
+          "tipo": "recepcion_item",
+          "filas": 17879
+        },
+        {
+          "tipo": "proceso_cocina",
+          "filas": 14527
+        },
+        {
+          "tipo": "inv_lotes",
+          "filas": 2555
+        },
+        {
+          "tipo": "inventario_inicial",
+          "filas": 641
+        },
+        {
+          "tipo": "devolucion",
+          "filas": 354
+        }
+      ]
+    },
+    "tipos:servicio_asignaciones": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "tipo": "App\\Repository\\Models\\Habitaciones\\Habitacion",
+          "filas": 488
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Espacios\\Espacio",
+          "filas": 10
+        }
+      ]
+    },
+    "tipos:precios": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "tipo": "App\\Repository\\Models\\Habitaciones\\Habitacion",
+          "filas": 488
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Servicios\\Servicio",
+          "filas": 100
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Catalogos\\ProductoVariante",
+          "filas": 50
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Espacios\\Espacio",
+          "filas": 28
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Promociones\\Promocion",
+          "filas": 22
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Restaurante\\Plato",
+          "filas": 19
+        },
+        {
+          "tipo": "App\\Repository\\Models\\Catalogos\\Producto",
+          "filas": 10
+        }
+      ]
+    },
+    "tipos:model_has_roles": {
+      "estado": "consultado",
+      "resultado": [
+        {
+          "tipo": "App\\Repository\\Models\\User",
+          "filas": 24
+        }
+      ]
+    }
+  },
+  "validaciones": {
+    "vistas_formato": [
+      {
+        "total": 188,
+        "numericas": 0,
+        "textuales": 188
+      }
+    ],
+    "servicios_asignados_duplicados": [
+      {
+        "grupos_duplicados": 0
+      }
+    ],
+    "stocks_identidad": [
+      {
+        "total": 2004,
+        "solo_variante": 1974,
+        "producto_realmente_incompatible": 0,
+        "sin_identidad": 0,
+        "solo_producto": 5
+      }
+    ],
+    "stock_duplicado_detalle": [
+      {
+        "grupos": 7,
+        "excedentes": "7",
+        "con_variante_nula": 0,
+        "con_lote_nulo": 7,
+        "con_cantidades_distintas": 7,
+        "con_distintos_detalles_ubicacion": 0
+      }
+    ],
+    "reservas_y_huespedes": [
+      {
+        "con_acompanantes": 1,
+        "tambien_huespedes": 0
+      }
+    ],
+    "delivery_repeticiones": [
+      {
+        "nombres_municipio_en_mas_de_una_zona": 0
+      }
+    ],
+    "checklist_modelos": [
+      {
+        "tipo_elemento": "string",
+        "elementos": 140
+      }
+    ],
+    "interpretaciones": {
+      "vistas": "Las 188 referencias son etiquetas textuales admitidas por el presenter y el seeder; no son 188 claves foráneas huérfanas.",
+      "stocks": "1974 producto_id nulos corresponden a variantes existentes. Hay cero productos no nulos incompatibles."
+    }
+  }
+}

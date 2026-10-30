@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Restaurante\Voucher;
 
 use App\Repository\Models\Cuentas\Cuenta;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 
 final class GenerarVoucherPagoHTML
 {

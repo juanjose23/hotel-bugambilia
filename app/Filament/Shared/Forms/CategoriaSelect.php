@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Forms;
 
 use App\Enums\Catalogos\CatalogoTipo;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\Select;
 
 final class CategoriaSelect

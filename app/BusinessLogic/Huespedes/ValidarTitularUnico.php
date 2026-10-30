@@ -14,7 +14,7 @@ final class ValidarTitularUnico
      *
      * @param  array<string, mixed>  $datosHuesped
      */
-    public function validarRegistroNuevo(Reserva $reserva, array $datosHuesped): void
+    public function validarRegistroNuevo(Reserva $reserva, array $datosHuesped, ?int $exceptoId = null): void
     {
         $esTitular = (bool) ($datosHuesped['es_titular'] ?? false);
         if (! $esTitular) {
@@ -23,6 +23,7 @@ final class ValidarTitularUnico
 
         $titularExistente = $reserva->huespedes()
             ->where('es_titular', true)
+            ->when($exceptoId !== null, fn ($q) => $q->where('reserva_huespedes.id', '!=', $exceptoId))
             ->exists();
 
         if ($titularExistente) {

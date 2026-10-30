@@ -86,8 +86,6 @@ final readonly class RegistrarClienteRapido
 
     private function obtenerCatalogoClienteDefault(): int
     {
-        $catalogo = $this->repositorio->obtenerCatalogoClienteRegular();
-
-        return $catalogo !== null ? $catalogo->id : 1;
+        return $this->repositorio->obtenerOCrearCatalogoClienteRegular()->id;
     }
 }

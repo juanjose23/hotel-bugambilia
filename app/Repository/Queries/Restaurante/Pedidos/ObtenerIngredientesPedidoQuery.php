@@ -4,53 +4,26 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Restaurante\Pedidos;
 
-use App\Enums\Restaurante\UbicacionCocina;
-use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Restaurante\PedidoItem;
-use App\Repository\Models\Shared\Stock;
+use App\Repository\Persistencia\Restaurante\ExistenciasCocinaRepositorio;
 use Illuminate\Support\Collection;
 
-final class ObtenerIngredientesPedidoQuery
+final readonly class ObtenerIngredientesPedidoQuery
 {
-    /**
-     * @return array{ubicacion_id: int, ingredientes: Collection<int, ProductoKit>, stocks: Collection<int, Stock>}|null
-     */
+    public function __construct(private ExistenciasCocinaRepositorio $existencias) {}
+
+    /** @return array{ubicacion_id: int, ingredientes: Collection<int, ProductoKit>}|null */
     public function ejecutar(PedidoItem $item): ?array
     {
-        $item->loadMissing(['plato.receta']);
-
-        $productoId = $item->plato?->receta?->id;
-        $cocinaId = Ubicacion::query()
-            ->where('nombre', UbicacionCocina::RESTAURANTE->value)
-            ->orWhere('nombre', 'Cocina')
-            ->orWhere('nombre', 'like', '%Cocina%')
-            ->value('id');
-
-        if (! is_int($productoId) || ! is_numeric($cocinaId)) {
+        $item->loadMissing(['plato.receta', 'pedido']);
+        $productoId = $item->plato->receta->id ?? null;
+        if (! is_int($productoId)) {
             return null;
         }
+        $cocinaId = $this->existencias->ubicacion($item->area_cocina ?? $item->plato?->area_cocina, $item->pedido?->mesa_id !== null ? (int) $item->pedido->mesa_id : null);
+        $ingredientes = ProductoKit::query()->with('variante.producto')->where('producto_padre_id', $productoId)->get();
 
-        $ingredientes = ProductoKit::query()
-            ->with('variante.producto')
-            ->where('producto_padre_id', $productoId)
-            ->get();
-
-        $varianteIds = $ingredientes->pluck('producto_variante_id')->filter()->values();
-
-        $stocks = Stock::query()
-            ->with('lote')
-            ->where('stockable_type', Ubicacion::class)
-            ->where('stockable_id', (int) $cocinaId)
-            ->whereIn('producto_variante_id', $varianteIds)
-            ->lockForUpdate()
-            ->get()
-            ->keyBy('producto_variante_id');
-
-        return [
-            'ubicacion_id' => (int) $cocinaId,
-            'ingredientes' => $ingredientes,
-            'stocks' => $stocks,
-        ];
+        return ['ubicacion_id' => $cocinaId, 'ingredientes' => $ingredientes];
     }
 }

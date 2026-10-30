@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Actions\Restaurante;
 
 use App\Enums\Restaurante\UbicacionCocina;
-use App\Interactors\Inventario\Lotes\RegistrarMermaGlobalDiaria;
+use App\Interactors\Restaurante\Cocina\RegistrarMermaCocina;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\Ubicacion;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -61,7 +61,7 @@ final class MermaGlobalDiariaAction
 
                         Textarea::make('motivo')
                             ->label('Motivo')
-                            ->placeholder('Ej. Caducidad, calidad, derrame...')
+                            ->placeholder('Ej. Caducidad, calidad, derrame...')->required()
                             ->rows(1)
                             ->columnSpan(4),
                     ])
@@ -95,7 +95,7 @@ final class MermaGlobalDiariaAction
                     ];
                 }
 
-                $resultado = app(RegistrarMermaGlobalDiaria::class)->ejecutar(
+                $resultado = app(RegistrarMermaCocina::class)->ejecutar(
                     fecha: $fecha,
                     ubicacionId: $ubicacionId,
                     items: $itemsTipados,

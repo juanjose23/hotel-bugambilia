@@ -4,7 +4,11 @@ import { PortalLayout } from '@/modules/clientes/components/layouts/PortalLayout
 import { useAcompanantesForm } from '@/modules/clientes/hooks/useAcompanantesForm';
 import type { PortalReservaDetalleCompleto } from '@/modules/clientes/types';
 import { Button, buttonVariants } from '@/modules/shared/components/ui/button';
-import { Field, FieldLabel } from '@/modules/shared/components/ui/field';
+import {
+    Field,
+    FieldLabel,
+    FieldError,
+} from '@/modules/shared/components/ui/field';
 import { Input } from '@/modules/shared/components/ui/input';
 import {
     Select,
@@ -27,6 +31,7 @@ export const GestionAcompanantes = ({ reserva }: GestionAcompanantesProps) => {
         setValue,
         handleSubmit,
         isSubmitting,
+        errors,
     } = useAcompanantesForm({
         reservaId: reserva.id,
         acompanantesIniciales: reserva.acompanantes,
@@ -34,8 +39,7 @@ export const GestionAcompanantes = ({ reserva }: GestionAcompanantesProps) => {
 
     return (
         <PortalLayout>
-            <Head>
-                <title>{`Acompañantes — Reserva #${reserva.codigo_reserva}`}</title>
+            <Head title={`Acompañantes — Reserva #${reserva.codigo_reserva}`}>
                 <meta
                     name="description"
                     content="Registra a tus acompañantes para agilizar el check-in en Hotel Bugambilias."
@@ -63,7 +67,7 @@ export const GestionAcompanantes = ({ reserva }: GestionAcompanantesProps) => {
                                 </span>
                                 <span>·</span>
                                 <span className="text-xs text-muted-foreground">
-                                    {reserva.recurso.nombre}
+                                    {reserva.recurso?.nombre || 'Hospedaje'}
                                 </span>
                             </div>
                             <h1 className="mt-0.5 text-xl font-black text-foreground sm:text-2xl">
@@ -83,6 +87,15 @@ export const GestionAcompanantes = ({ reserva }: GestionAcompanantesProps) => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {errors.root?.message && (
+                            <p
+                                role="alert"
+                                className="text-sm text-destructive"
+                            >
+                                {errors.root.message}
+                            </p>
+                        )}
+
                         <div className="space-y-4">
                             {fields.map((field, index) => (
                                 <div
@@ -94,6 +107,50 @@ export const GestionAcompanantes = ({ reserva }: GestionAcompanantesProps) => {
                                     </div>
 
                                     <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
+                                        {(reserva.alojamientos?.length ?? 0) >
+                                            1 && (
+                                            <Field className="sm:col-span-3">
+                                                <FieldLabel>
+                                                    Habitación o espacio del
+                                                    acompañante
+                                                </FieldLabel>
+                                                <Select
+                                                    defaultValue={field.reserva_detalle_id?.toString()}
+                                                    onValueChange={(value) =>
+                                                        setValue(
+                                                            `acompanantes.${index}.reserva_detalle_id`,
+                                                            Number(value),
+                                                            {
+                                                                shouldValidate: true,
+                                                            },
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Selecciona un recurso reservado" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {reserva.alojamientos?.map(
+                                                            (alojamiento) => (
+                                                                <SelectItem
+                                                                    key={
+                                                                        alojamiento.id
+                                                                    }
+                                                                    value={String(
+                                                                        alojamiento.id,
+                                                                    )}
+                                                                >
+                                                                    {
+                                                                        alojamiento.nombre
+                                                                    }
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            </Field>
+                                        )}
+
                                         <Field className="space-y-1 sm:col-span-1">
                                             <FieldLabel className="text-xs font-semibold">
                                                 Nombre Completo
@@ -102,9 +159,20 @@ export const GestionAcompanantes = ({ reserva }: GestionAcompanantesProps) => {
                                                 {...register(
                                                     `acompanantes.${index}.nombre` as const,
                                                 )}
+                                                aria-invalid={
+                                                    !!errors.acompanantes?.[
+                                                        index
+                                                    ]?.nombre
+                                                }
                                                 placeholder="Nombre del huésped"
                                                 className="text-xs"
                                             />
+                                            <FieldError>
+                                                {
+                                                    errors.acompanantes?.[index]
+                                                        ?.nombre?.message
+                                                }
+                                            </FieldError>
                                         </Field>
 
                                         <Field className="space-y-1 sm:col-span-1">

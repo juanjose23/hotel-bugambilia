@@ -29,10 +29,12 @@ final class CrearPedidoPublicoController extends Controller
                 'items' => [$e->getMessage()],
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage() ?: 'Error al procesar el pedido con Stripe.',
-            ], 422);
+                'message' => 'No se pudo procesar el pedido. Intenta nuevamente más tarde.',
+            ], 500);
         }
     }
 }
