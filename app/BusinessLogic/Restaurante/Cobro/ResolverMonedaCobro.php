@@ -8,7 +8,7 @@ use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Queries\Monedas\ObtenerMonedaPorIdQuery;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Repository\Queries\Monedas\ObtenerTasaCambioQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 
 final class ResolverMonedaCobro
 {

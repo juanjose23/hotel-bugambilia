@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\BusinessLogic\Shared\Reportes\ReporteDispatcher;
-use App\Support\ReporteConfig;
+use App\Support\Barcode\Support\ReporteConfig;
 use Tests\TestCase;
 
 uses(TestCase::class);

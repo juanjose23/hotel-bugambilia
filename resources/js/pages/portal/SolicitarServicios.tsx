@@ -54,8 +54,9 @@ export const SolicitarServicios = ({
 
     return (
         <PortalLayout>
-            <Head>
-                <title>{`Servicios a la Habitación — Reserva #${reserva.codigo_reserva}`}</title>
+            <Head
+                title={`Servicios a la Habitación — Reserva #${reserva.codigo_reserva}`}
+            >
                 <meta
                     name="description"
                     content="Solicita platillos, bebidas, spa y servicios de habitación directamente para tu estancia."
@@ -83,7 +84,7 @@ export const SolicitarServicios = ({
                                 </span>
                                 <span>·</span>
                                 <span className="text-xs text-muted-foreground">
-                                    {reserva.recurso.nombre}
+                                    {reserva.recurso?.nombre || 'Hospedaje'}
                                 </span>
                             </div>
                             <h1 className="mt-0.5 text-xl font-black text-foreground sm:text-2xl">

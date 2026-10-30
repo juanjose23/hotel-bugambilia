@@ -9,6 +9,7 @@ use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Tesoreria\CajaRepositorio;
 
 final class ReembolsarPagoCuenta
 {
@@ -31,6 +32,9 @@ final class ReembolsarPagoCuenta
             return $cuenta;
         }
 
+        if (config('tesoreria.habilitado') && app(CajaRepositorio::class)->cuentaTieneEfectivoRegistrado($cuenta->id, $pagoCuentaIds)) {
+            throw new \DomainException('La devolución de efectivo necesita un movimiento de salida autorizado; el pago original no se modifica.');
+        }
         $pagosAplicados = $this->cuentas->pagosAplicadosDeCuenta($cuenta, $pagoCuentaIds);
 
         $reembolsoRestante = $montoReembolso;

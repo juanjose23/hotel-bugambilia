@@ -24,24 +24,10 @@ final class GoogleAuthController extends Controller
 
     public function redireccionar(Request $request): Response
     {
-        Log::info('[GoogleAuth] Iniciando redirección a Google OAuth', [
-            'url_solicitada' => $request->fullUrl(),
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'x_inertia' => $request->header('X-Inertia'),
-            'client_id_configurado' => ! empty(config('services.google.client_id')),
-            'client_id_preview' => substr(is_string(config('services.google.client_id')) ? config('services.google.client_id') : '', 0, 15).'...',
-            'redirect_uri_configurado' => config('services.google.redirect'),
-        ]);
-
         try {
             /** @var GoogleProvider $driver */
             $driver = Socialite::driver('google');
             $targetUrl = $driver->stateless()->redirect()->getTargetUrl();
-
-            Log::info('[GoogleAuth] URL generada para Google OAuth', [
-                'target_url' => $targetUrl,
-            ]);
 
             if ($request->header('X-Inertia') !== null) {
                 Log::info('[GoogleAuth] Retornando Inertia::location');
@@ -53,23 +39,17 @@ final class GoogleAuthController extends Controller
 
             return redirect()->away($targetUrl);
         } catch (Throwable $e) {
-            Log::error('[GoogleAuth] Error generando redirección a Google: '.$e->getMessage(), [
-                'exception' => get_class($e),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('[GoogleAuth] Error generando redirección', ['exception_type' => $e::class]);
 
-            return redirect()->route('login')->with('error', 'Error al conectar con Google: '.$e->getMessage());
+            return redirect()->route('login')->with('error', 'No se pudo conectar con Google. Intenta nuevamente más tarde.');
         }
     }
 
     public function callback(Request $request): RedirectResponse
     {
-        Log::info('[GoogleAuth] Callback recibido desde Google OAuth', [
-            'query_params' => $request->all(),
+        Log::info('[GoogleAuth] Callback recibido', [
             'has_code' => $request->has('code'),
             'has_error' => $request->has('error'),
-            'error' => $request->input('error'),
-            'error_description' => $request->input('error_description'),
         ]);
 
         try {
@@ -79,20 +59,11 @@ final class GoogleAuthController extends Controller
             Log::info('[GoogleAuth] Solicitando datos de usuario a Google...');
             $googleUser = $driver->stateless()->user();
 
-            Log::info('[GoogleAuth] Usuario obtenido de Google exitosamente', [
-                'google_id' => $googleUser->getId(),
-                'email' => $googleUser->getEmail(),
-                'name' => $googleUser->getName(),
-                'nickname' => $googleUser->getNickname(),
-                'avatar' => $googleUser->getAvatar(),
-            ]);
-
             Log::info('[GoogleAuth] Procesando usuario en base de datos...');
             $usuario = $this->procesarGoogleCallback->ejecutar($googleUser);
 
             Log::info('[GoogleAuth] Usuario procesado con éxito', [
                 'user_id' => $usuario->id,
-                'email' => $usuario->email,
             ]);
 
             Auth::login($usuario, true);
@@ -102,17 +73,21 @@ final class GoogleAuthController extends Controller
                 'user_id' => $usuario->id,
             ]);
 
+            if ($usuario->esAdmin()) {
+                $intended = $request->session()->get('url.intended');
+                $request->session()->forget('url.intended');
+
+                $intendedStr = is_string($intended) ? $intended : '';
+                $destino = str_contains($intendedStr, '/admin') ? $intendedStr : '/admin';
+
+                return redirect($destino)->with('exito', '¡Has iniciado sesión en el panel administrativo!');
+            }
+
             return redirect()->intended(route('home'))->with('exito', '¡Has iniciado sesión con Google exitosamente!');
         } catch (Throwable $e) {
-            Log::error('[GoogleAuth] Error crítico en callback de Google: '.$e->getMessage(), [
-                'exception' => get_class($e),
-                'code' => $e->getCode(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('[GoogleAuth] Error en callback', ['exception_type' => $e::class]);
 
-            return redirect()->route('login')->with('error', 'No se pudo completar el inicio de sesión con Google: '.$e->getMessage());
+            return redirect()->route('login')->with('error', 'No se pudo completar el inicio de sesión con Google. Intenta nuevamente más tarde.');
         }
     }
 }

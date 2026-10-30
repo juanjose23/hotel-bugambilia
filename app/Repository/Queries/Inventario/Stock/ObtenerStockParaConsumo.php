@@ -33,6 +33,8 @@ final class ObtenerStockParaConsumo
             ->when($productoVarianteId !== null, function ($q) use ($productoVarianteId) {
                 $q->where('producto_variante_id', $productoVarianteId);
             })
+            ->orderBy('id')
+            ->lockForUpdate()
             ->get();
     }
 }

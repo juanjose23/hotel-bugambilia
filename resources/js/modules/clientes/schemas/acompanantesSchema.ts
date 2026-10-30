@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const acompananteIndividualSchema = z.object({
+    huesped_id: z.number().int().positive().nullable().optional(),
+    reserva_detalle_id: z.number().int().positive().nullable().optional(),
     nombre: z
         .string()
         .min(2, 'El nombre debe tener al menos 2 caracteres')

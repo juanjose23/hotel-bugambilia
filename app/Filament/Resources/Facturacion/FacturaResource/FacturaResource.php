@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\FacturaResource;
 
 use App\Enums\Facturacion\EstadoFactura;
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
@@ -12,7 +13,7 @@ use App\Interactors\Facturacion\AnularFacturaFiscal;
 use App\Repository\Models\Facturacion\Factura;
 use App\Repository\Models\Facturacion\FacturaDetalle;
 use App\Repository\Models\Personas\Persona;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -32,11 +33,13 @@ use UnitEnum;
 
 final class FacturaResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = Factura::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
+    protected static string|UnitEnum|null $navigationGroup = 'Cobros y documentos';
 
     protected static ?string $navigationLabel = 'Facturas';
 
@@ -44,9 +47,9 @@ final class FacturaResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Facturas';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 11;
 
-    protected static ?string $slug = 'facturacion/facturas';
+    protected static ?string $slug = 'facturas';
 
     public static function canCreate(): bool
     {
@@ -214,12 +217,12 @@ final class FacturaResource extends Resource
                         ->color('gray')
                         ->url(fn (Factura $record): string => route('admin.facturacion.facturas.pdf', $record))
                         ->openUrlInNewTab(),
-                    Action::make('anular')
+                    Action::make('anular')->authorize(fn (Factura $record): bool => auth()->user()?->can('anular', $record) ?? false)
                         ->icon(Heroicon::XCircle)
                         ->color('danger')
                         ->visible(fn (Factura $record): bool => $record->estado === EstadoFactura::Emitida)
                         ->schema([
-                            Textarea::make('motivo')->required()->rows(3),
+                            Textarea::make('motivo')->required()->minLength(10)->rows(3),
                         ])
                         ->action(function (Factura $record, array $data): Factura {
                             $usuarioId = auth()->id();

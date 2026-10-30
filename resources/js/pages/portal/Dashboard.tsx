@@ -35,8 +35,7 @@ export const Dashboard = ({
 
     return (
         <PortalLayout cliente={cliente}>
-            <Head>
-                <title>Portal de Huéspedes — Hotel Bugambilias</title>
+            <Head title="Portal de Huéspedes — Hotel Bugambilias">
                 <meta
                     name="description"
                     content="Panel de administración y gestión de estancias y pedidos para huéspedes de Hotel Bugambilias Estelí."

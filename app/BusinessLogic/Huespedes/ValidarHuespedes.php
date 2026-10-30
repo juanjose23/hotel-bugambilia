@@ -37,6 +37,9 @@ final class ValidarHuespedes
     public function validarActualizacion(Reserva $reserva, array $datos, ReservaHuesped $huesped): void
     {
         $this->validarEstadoReserva($reserva);
+        $this->validarPertenencia($reserva, $huesped);
+        $this->validarTitularUnico->validarRegistroNuevo($reserva, $datos, $huesped->id);
+        $this->validarCapacidad($reserva, $datos, $huesped);
         $this->validarDocumentacion->validar($datos);
         $this->validarDuplicadosExcepto($reserva, $datos, $huesped->id);
         $this->validarCantidadesNoNegativas($datos);
@@ -45,6 +48,7 @@ final class ValidarHuespedes
     public function validarEliminacion(Reserva $reserva, ReservaHuesped $huesped): void
     {
         $this->validarEstadoReserva($reserva);
+        $this->validarPertenencia($reserva, $huesped);
 
         if ($huesped->es_titular) {
             throw new DomainException('No se puede eliminar el huésped titular. Asigne otro titular primero.');
@@ -61,11 +65,11 @@ final class ValidarHuespedes
     /**
      * @param  array<string, mixed>  $datos
      */
-    private function validarCapacidad(Reserva $reserva, array $datos): void
+    private function validarCapacidad(Reserva $reserva, array $datos, ?ReservaHuesped $actual = null): void
     {
-        $reserva->loadMissing('habitacion.detalle', 'detalles.huespedes');
-
-        $habitacion = $reserva->habitacion;
+        $reserva->loadMissing('detalles.reservable.habitacion.detalle', 'detalles.huespedes');
+        $destino = $reserva->detalles->firstWhere('id', $datos['reserva_detalle_id'] ?? null);
+        $habitacion = $destino?->reservable?->habitacion;
         if ($habitacion === null) {
             return;
         }
@@ -76,10 +80,10 @@ final class ValidarHuespedes
         $capacidadAdultos = (int) ($detalle->capacidad_adultos ?? 0);
         $capacidadNinos = (int) ($detalle->capacidad_ninos ?? 0);
 
-        $adultosExistentes = $reserva->detalles->flatMap->huespedes
+        $adultosExistentes = $destino->huespedes->where('id', '!=', $actual?->id)
             ->where('tipo_huesped', TipoHuesped::ADULTO)
             ->count();
-        $ninosExistentes = $reserva->detalles->flatMap->huespedes
+        $ninosExistentes = $destino->huespedes->where('id', '!=', $actual?->id)
             ->where('tipo_huesped', TipoHuesped::NINO)
             ->count();
 
@@ -98,9 +102,9 @@ final class ValidarHuespedes
         }
 
         $declarados = (int) $reserva->adultos + (int) $reserva->ninos;
-        $totalRegistrados = $reserva->detalles->flatMap->huespedes->count() + 1;
+        $totalRegistrados = $reserva->detalles->flatMap->huespedes->where('id', '!=', $actual?->id)->count() + 1;
 
-        if ($totalRegistrados > $declarados) {
+        if ($reserva->detalles->count() === 1 && $totalRegistrados > $declarados) {
             throw new DomainException("La cantidad de huéspedes registrados ({$totalRegistrados}) supera la declarada en la reserva ({$declarados}).");
         }
     }
@@ -135,7 +139,7 @@ final class ValidarHuespedes
             ->where('identificacion', $identificacion);
 
         if ($exceptoId !== null) {
-            $query->where('id', '!=', $exceptoId);
+            $query->where('reserva_huespedes.id', '!=', $exceptoId);
         }
 
         if ($query->exists()) {
@@ -149,5 +153,12 @@ final class ValidarHuespedes
     private function validarCantidadesNoNegativas(array $datos): void
     {
         // Cantidades validated at form level, this is a safety net
+    }
+
+    private function validarPertenencia(Reserva $reserva, ReservaHuesped $huesped): void
+    {
+        if ($huesped->detalle?->reserva_id !== $reserva->id) {
+            throw new DomainException('El huesped no pertenece a la reserva indicada.');
+        }
     }
 }

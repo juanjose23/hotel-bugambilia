@@ -14,11 +14,11 @@ use App\Interactors\Restaurante\Cocina\AutorizarSustitucionIngrediente;
 use App\Interactors\Restaurante\Cocina\MarcarItemPedidoListo;
 use App\Interactors\Restaurante\Cocina\MarcarItemServido;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
-use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Models\User;
 use App\Repository\Queries\Restaurante\Cocina\AnalizarFaltantesPedidoCocina;
+use App\Repository\Queries\Restaurante\Cocina\ObtenerOpcionesSustitutosQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerPedidosCocinaQuery;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
@@ -48,9 +48,9 @@ final class CocinaPedidos extends Page implements HasForms
 
     protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
-    protected static ?string $navigationLabel = 'Cocina';
+    protected static ?string $navigationLabel = 'Comandas';
 
-    protected static ?string $title = 'Centro de Cocina';
+    protected static ?string $title = 'Comandas en preparación';
 
     protected static ?string $slug = 'restaurante/cocina';
 
@@ -76,7 +76,16 @@ final class CocinaPedidos extends Page implements HasForms
     /** @var array<string, mixed>|null */
     public ?array $sustitucionData = [];
 
+    private bool $pedidosCargados = false;
+
+    public bool $cocinaInicializada = false;
+
+    /** @var list<int> */
+    public array $pedidosPrevios = [];
+
     private ObtenerPedidosCocinaQuery $pedidosQuery;
+
+    private ObtenerOpcionesSustitutosQuery $sustitutosQuery;
 
     private MarcarItemPedidoListo $marcarItemListo;
 
@@ -92,6 +101,7 @@ final class CocinaPedidos extends Page implements HasForms
 
     public function boot(
         ObtenerPedidosCocinaQuery $pedidosQuery,
+        ObtenerOpcionesSustitutosQuery $sustitutosQuery,
         MarcarItemPedidoListo $marcarItemListo,
         MarcarItemServido $marcarItemServido,
         AnularItemPedido $anularItemPedido,
@@ -100,6 +110,7 @@ final class CocinaPedidos extends Page implements HasForms
         AutorizarSustitucionIngrediente $autorizarSustitucion,
     ): void {
         $this->pedidosQuery = $pedidosQuery;
+        $this->sustitutosQuery = $sustitutosQuery;
         $this->marcarItemListo = $marcarItemListo;
         $this->marcarItemServido = $marcarItemServido;
         $this->anularItemPedido = $anularItemPedido;
@@ -115,14 +126,11 @@ final class CocinaPedidos extends Page implements HasForms
         $this->sustitucionForm->fill();
     }
 
-    public function hydrate(): void
-    {
-        $this->cargarPedidos();
-    }
-
     protected function getViewData(): array
     {
-        $this->cargarPedidos();
+        if (! $this->pedidosCargados) {
+            $this->cargarPedidos();
+        }
 
         return [
             'pedidos' => $this->pedidos,
@@ -134,11 +142,20 @@ final class CocinaPedidos extends Page implements HasForms
         $this->areaSeleccionada = $this->normalizarAreaCocina($this->areaSeleccionada);
         $this->pedidos = $this->pedidosQuery->ejecutar($this->areaSeleccionada);
 
-        $nuevoTotal = $this->pedidos->count();
-        if ($nuevoTotal > $this->ultimoTotalPedidos && $this->ultimoTotalPedidos > 0) {
+        $ids = array_values($this->pedidos->map(fn (Pedido $pedido): int => $pedido->id)->all());
+        if ($this->cocinaInicializada && array_diff($ids, $this->pedidosPrevios) !== []) {
             $this->dispatch('nuevo-pedido-audio');
         }
-        $this->ultimoTotalPedidos = $nuevoTotal;
+        $this->pedidosPrevios = $ids;
+        $this->cocinaInicializada = true;
+        $this->ultimoTotalPedidos = count($ids);
+        $this->pedidosCargados = true;
+    }
+
+    public function updatedAreaSeleccionada(): void
+    {
+        $this->cocinaInicializada = false;
+        $this->cargarPedidos();
     }
 
     public function marcarItemListo(int $itemId): void
@@ -312,21 +329,7 @@ final class CocinaPedidos extends Page implements HasForms
     /** @return array<int, string> */
     public function opcionesSustitutos(int $varianteOriginalId): array
     {
-        return ProductoVariante::query()
-            ->with(['producto', 'unidadMedida'])
-            ->where('id', '!=', $varianteOriginalId)
-            ->where('estado', 1)
-            ->orderBy('codigo')
-            ->get()
-            ->mapWithKeys(function (ProductoVariante $variante): array {
-                $producto = $variante->producto->nombre ?? 'Producto';
-                $nombre = $variante->nombre_variante ?: $variante->codigo;
-                $unidad = $variante->unidadMedida?->nombre;
-                $suffix = $unidad !== null ? " ({$unidad})" : '';
-
-                return [(int) $variante->id => "{$producto} - {$nombre}{$suffix}"];
-            })
-            ->all();
+        return $this->sustitutosQuery->buscar($varianteOriginalId);
     }
 
     public function sustitucionForm(Schema $schema): Schema
@@ -356,7 +359,8 @@ final class CocinaPedidos extends Page implements HasForms
                                 ->placeholder('Seleccione producto / variante')
                                 ->options(fn (): array => $this->opcionesSustitutos($varianteOriginalId))
                                 ->searchable()
-                                ->preload()
+                                ->getSearchResultsUsing(fn (string $search): array => $this->sustitutosQuery->buscar($varianteOriginalId, $search))
+                                ->getOptionLabelUsing(fn (mixed $value): ?string => is_numeric($value) ? $this->sustitutosQuery->etiqueta((int) $value, $varianteOriginalId) : null)
                                 ->native(false)
                                 ->required(),
                         ]),
@@ -396,6 +400,7 @@ final class CocinaPedidos extends Page implements HasForms
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('controlCocina')->label('Control de cocina')->icon('heroicon-o-squares-2x2')->color('gray')->url(ControlCocina::getUrl()),
             MermaGlobalDiariaAction::make()
                 ->color('gray'),
             SolicitudAbastecimientoCocinaAction::make()

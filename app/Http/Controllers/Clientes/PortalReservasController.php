@@ -77,7 +77,7 @@ final class PortalReservasController extends Controller
         }
 
         return Inertia::render('portal/ReservaDetalle', [
-            'reserva' => $detalle,
+            'reserva' => $detalle, 'tesoreria_habilitada' => config('tesoreria.habilitado') === true,
         ]);
     }
 }

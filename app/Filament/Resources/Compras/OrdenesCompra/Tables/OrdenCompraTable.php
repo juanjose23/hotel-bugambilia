@@ -197,7 +197,11 @@ class OrdenCompraTable
                         ->action(fn (OrdenCompra $record) => $this->finalizarOrdenCompra->ejecutar($record))
                         ->visible(fn (OrdenCompra $record) => $record->estado === EstadoOrdenCompra::Parcial),
 
-                    self::makeImprimirAction('admin.compras.reportes.orden-compra', 'Compras:ImprimirOrdenCompra'),
+                    self::makeImprimirAction(
+                        'admin.compras.reportes.orden-compra',
+                        'Compras:ImprimirOrdenCompra',
+                        urlCallback: fn (OrdenCompra $record) => route('admin.compras.reportes.orden-compra', ['ordenCompra' => $record->codigo]),
+                    ),
 
                     Action::make('cancelar')
                         ->label('Cancelar')

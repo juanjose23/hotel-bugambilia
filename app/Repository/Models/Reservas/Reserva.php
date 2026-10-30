@@ -44,6 +44,8 @@ final class Reserva extends Model implements AuditableContract
 
     protected $table = 'reservas';
 
+    protected $hidden = ['acompanantes_legacy'];
+
     protected $attributes = [
         'solicita_cuenta' => false,
     ];
@@ -75,7 +77,6 @@ final class Reserva extends Model implements AuditableContract
         'total_pagado',
         'saldo',
         'notas',
-        'acompanantes',
     ];
 
     protected $casts = [
@@ -94,8 +95,21 @@ final class Reserva extends Model implements AuditableContract
         'tipo_pago' => TipoPagoReserva::class,
         'total_pagado' => 'decimal:2',
         'saldo' => 'decimal:2',
-        'acompanantes' => 'array',
+        'acompanantes_legacy' => 'array',
     ];
+
+    /** @return Attribute<array<int, array{huesped_id: int, reserva_detalle_id: int, nombre: string, identificacion: string|null, tipo: string}>, never> */
+    protected function acompanantes(): Attribute
+    {
+        return Attribute::make(get: fn (): array => $this->huespedes->where('es_titular', false)
+            ->map(fn (ReservaHuesped $h): array => [
+                'huesped_id' => $h->id, 'reserva_detalle_id' => $h->reserva_detalle_id,
+                'nombre' => $h->nombre, 'identificacion' => $h->identificacion ?? '',
+                'tipo' => match ($h->tipo_huesped->value) {
+                    2 => 'nino', 3 => 'bebe', default => 'adulto'
+                },
+            ])->values()->all());
+    }
 
     /**
      * @return Attribute<int, never>

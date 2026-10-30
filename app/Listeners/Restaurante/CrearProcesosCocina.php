@@ -39,6 +39,7 @@ final class CrearProcesosCocina
             $this->registrarProceso->ejecutar([
                 'codigo' => $this->generarCodigo($pedido->id, $plato->id, $indice),
                 'plato_id' => $plato->id,
+                'pedido_item_id' => $item->id,
                 'cantidad_platos' => max((int) $item->cantidad, 1),
                 'observaciones' => $item->observaciones,
             ]);

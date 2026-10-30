@@ -14,6 +14,7 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Models\Inventario\Lote;
+use App\Repository\Models\Inventario\MovimientoStock;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Personas\Persona;
@@ -32,6 +33,13 @@ use Illuminate\Support\Collection;
 
 interface RestauranteRepositorioInterface
 {
+    public function solicitudConLock(int $id): Solicitud;
+
+    public function solicitudYaAbastecida(int $id): bool;
+
+    /** @return Collection<int, MovimientoStock> */
+    public function consumosDePartida(int $id): Collection;
+
     // ============================================================
     // Lectura - Mesas / Espacios
     // ============================================================
@@ -118,6 +126,8 @@ interface RestauranteRepositorioInterface
     public function obtenerProcesosCocinaFiltrados(?string $fechaInicio = null, ?string $fechaFin = null): Collection;
 
     public function obtenerCatalogoClienteRegular(): ?Catalogo;
+
+    public function obtenerOCrearCatalogoClienteRegular(): Catalogo;
 
     // ============================================================
     // Lectura - Público / Catálogo

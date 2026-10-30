@@ -6,6 +6,7 @@ namespace App\Interactors\Habitaciones;
 
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
+use Illuminate\Support\Facades\DB;
 
 final readonly class SincronizarGaleriaImagenesHabitacion
 {
@@ -18,6 +19,6 @@ final readonly class SincronizarGaleriaImagenesHabitacion
      */
     public function ejecutar(Habitacion $habitacion, array $imagenes): void
     {
-        $this->repositorio->sincronizarImagenes($habitacion, $imagenes);
+        DB::transaction(fn () => $this->repositorio->sincronizarImagenes($habitacion, $imagenes));
     }
 }

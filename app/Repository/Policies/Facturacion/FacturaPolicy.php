@@ -27,6 +27,11 @@ class FacturaPolicy
         return $authUser->can('Create:Factura');
     }
 
+    public function anular(AuthUser $authUser, Factura $factura): bool
+    {
+        return $authUser->can('Anular:Factura');
+    }
+
     public function update(AuthUser $authUser, Factura $factura): bool
     {
         return $authUser->can('Update:Factura');

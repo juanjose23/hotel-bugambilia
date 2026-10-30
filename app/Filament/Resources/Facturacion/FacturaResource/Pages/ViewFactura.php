@@ -51,17 +51,17 @@ final class ViewFactura extends ViewRecord
                 ->url(fn (): string => $factura->venta_id ? VentaResource::getUrl('view', ['record' => $factura->venta_id]) : '#'),
 
             // Anular Factura Fiscal
-            Action::make('anular_factura')
-                ->label('Anular Factura Fiscal DGI')
+            Action::make('anular_factura')->authorize(fn (): bool => auth()->user()?->can('anular', $this->getRecord()) ?? false)
+                ->label('Anular factura')
                 ->icon(Heroicon::XCircle)
                 ->color('danger')
                 ->visible(fn (): bool => $factura->estado === EstadoFactura::Emitida)
                 ->requiresConfirmation()
-                ->modalHeading('¿Anular esta Factura Fiscal ante la DGI?')
+                ->modalHeading('Registrar anulación de la factura')
                 ->modalDescription('Esta acción anulará el folio fiscal en el sistema y registrará el motivo oficial en auditoría.')
                 ->schema([
                     Textarea::make('motivo')
-                        ->label('Motivo fiscal de la anulación')
+                        ->label('Motivo fiscal de la anulación')->minLength(10)
                         ->placeholder('Ej: Error en datos del receptor, devolución de mercadería...')
                         ->required()
                         ->rows(3),

@@ -391,7 +391,6 @@ final class ReservaBuilder
             'saldo' => $this->total,
             'estado' => EstadoReserva::CONFIRMADA,
             'notas' => $this->notas,
-            'acompanantes' => $this->acompanantes,
         ];
     }
 }

@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Sun, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { PageLoadingBoundary } from '@/modules/shared/components/loading/NavigationLoadingProvider';
 import { Toast } from '@/modules/shared/components/Toast';
 import { Button } from '@/modules/shared/components/ui/button';
 import { useTema } from '@/modules/shared/hooks/useTema';
@@ -82,7 +83,11 @@ export const PortalLayout = ({ children, cliente }: PortalLayoutProps) => {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto">{children}</main>
+                <main className="flex-1 overflow-y-auto">
+                    <PageLoadingBoundary layout="portal">
+                        {children}
+                    </PageLoadingBoundary>
+                </main>
             </div>
 
             <PortalBottomNav />

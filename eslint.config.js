@@ -110,11 +110,33 @@ export default [
         },
     },
     {
+        files: ['tests/k6/**/*.js'],
+        languageOptions: {
+            globals: {
+                __ENV: 'readonly',
+                open: 'readonly',
+                http: 'readonly',
+                check: 'readonly',
+                sleep: 'readonly',
+                group: 'readonly',
+            },
+        },
+    },
+    {
         ignores: [
-            'vendor',
-            'node_modules',
-            'public',
-            'bootstrap/ssr',
+            '**/vendor/**',
+            '**/node_modules/**',
+            '**/public/**',
+            '**/storage/**',
+            '**/bootstrap/**',
+            '.local/**',
+            '.opencode/**',
+            '.agents/**',
+            '.ai/**',
+            '.cursor/**',
+            '.github/**',
+            '.idea/**',
+            '.vscode/**',
             'tailwind.config.js',
             'vite.config.ts',
             'resources/js/actions/**',
@@ -123,6 +145,7 @@ export default [
             'resources/js/wayfinder/**',
         ],
     },
+    { files: ['scripts/**/*.mjs', '.husky/*.mjs'], languageOptions: { globals: globals.node } },
     prettier, // Turn off all rules that might conflict with Prettier
     {
         plugins: {

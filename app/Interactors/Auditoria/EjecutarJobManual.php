@@ -18,7 +18,10 @@ final readonly class EjecutarJobManual
         private AuditoriaJobRepositorioInterface $auditoriaJobRepositorio,
     ) {}
 
-    public function ejecutar(TipoJob $tipoJob): AuditoriaJob
+    /**
+     * @param  array<string, mixed>  $parametros
+     */
+    public function ejecutar(TipoJob $tipoJob, array $parametros = []): AuditoriaJob
     {
         $usuarioId = Auth::id();
 
@@ -33,15 +36,18 @@ final readonly class EjecutarJobManual
 
         try {
             if ($tipoJob->esComando()) {
-                Artisan::call($tipoJob->claseJob());
+                Artisan::call($tipoJob->claseJob(), $parametros);
+                $salida = trim(Artisan::output());
+                $mensaje = $salida !== '' ? $salida : 'Comando ejecutado exitosamente.';
             } else {
                 $clase = $tipoJob->claseJob();
                 dispatch_sync(new $clase);
+                $mensaje = 'Job ejecutado exitosamente.';
             }
 
             return $this->auditoriaJobRepositorio->actualizarEstado($registro, [
                 'estado' => EstadoEjecucionJob::Completado,
-                'mensaje' => 'Job ejecutado exitosamente.',
+                'mensaje' => $mensaje,
                 'completado_en' => now(),
             ]);
         } catch (Throwable $e) {

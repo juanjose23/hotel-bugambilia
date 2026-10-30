@@ -8,23 +8,11 @@
             </div>
         </div>
 
-        @php
-            $reporteKey = $reportData['reporte'] ?? '';
-            $reporteConfig = \App\Support\ReporteConfig::getReportes()['servicios'][$reporteKey] ?? null;
-            $tituloReporte = $reporteConfig['titulo'] ?? ($reporteKey ?: 'No seleccionado');
-            $codigoReporte = $reporteConfig['codigo'] ?? null;
-        @endphp
-
         <x-reportes.layout
-            titulo="Configuración del Informe"
-            subtitulo="Seleccione el modelo de datos base y ajuste los parámetros requeridos"
-            modulo="Módulo de Servicios & Tarifas"
+            modulo="servicios"
             color="indigo"
             icon="heroicon-o-currency-dollar"
-            :codigo="$codigoReporte"
-            :tituloReporte="$tituloReporte"
             :reportData="$reportData"
-            :tieneExcel="\App\Support\ReporteConfig::tieneFormatoExcel('servicios', $reporteKey)"
         >
             <x-slot:kpis>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

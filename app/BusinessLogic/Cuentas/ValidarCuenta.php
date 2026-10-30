@@ -6,7 +6,7 @@ namespace App\BusinessLogic\Cuentas;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 
 /**

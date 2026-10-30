@@ -5,24 +5,22 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Restaurante;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
-use App\Enums\Inventario\EstadoLote;
 use App\Enums\Restaurante\UbicacionCocina;
 use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Filament\Shared\Forms\ProductoSelect;
 use App\Filament\Shared\Forms\ProductoVarianteSelect;
 use App\Interactors\Restaurante\Cocina\TransformarMateriaPrimaCocina;
-use App\Repository\Models\Catalogos\Producto;
-use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Restaurante\TransformacionMateriaPrima;
 use App\Repository\Models\Shared\Stock;
 use App\Repository\Models\User;
+use App\Repository\Queries\Restaurante\Cocina\ControlOperacionCocinaQuery;
 use App\Repository\Queries\Restaurante\Cocina\ObtenerHistorialTransformacionesCocina;
-use App\Support\MonedaHelper;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use DomainException;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -39,6 +37,8 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Wizard;
+use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -47,6 +47,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 use UnitEnum;
 
 /**
@@ -60,9 +62,9 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
 
     protected static string|UnitEnum|null $navigationGroup = 'Restaurante & Cocina';
 
-    protected static ?string $navigationLabel = 'Materia Prima Cocina';
+    protected static ?string $navigationLabel = 'Preparar insumos';
 
-    protected static ?string $title = 'Materia Prima Cocina';
+    protected static ?string $title = 'Preparar y porcionar insumos';
 
     protected static ?string $slug = 'restaurante/materia-prima-cocina';
 
@@ -78,173 +80,94 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
         $this->form->fill([
             'ubicacion_origen_id' => self::ubicacionCocinaId(),
             'cantidad_procesada' => 1,
-            'items' => [[]],
+            'items' => [['ubicacion_destino_id' => self::ubicacionCocinaId()]],
         ]);
     }
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->schema([
-                Tabs::make('materia_prima_tabs')
-                    ->tabs([
-                        Tab::make('Registrar Transformación')
-                            ->icon('heroicon-o-beaker')
-                            ->schema([
-                                Section::make('Producto a transformar')
-                                    ->description('Seleccione el producto real que saldrá de inventario para convertirse en materia prima.')
-                                    ->icon('heroicon-o-arrow-path')
-                                    ->columns([
-                                        'default' => 1,
-                                        'md' => 2,
-                                    ])
+        $consulta = app(ControlOperacionCocinaQuery::class);
+
+        return $schema->schema([
+            Tabs::make('operacion_insumos')->tabs([
+                Tab::make('Preparar insumos')->icon('heroicon-o-scissors')->schema([
+                    Wizard::make([
+                        Step::make('Elegir insumo')->description('Qué retirarás y de dónde')->icon('heroicon-o-archive-box')->schema([
+                            Section::make('¿Qué vas a preparar?')->description('Empieza por la bodega. Solo aparecen insumos disponibles y en buen estado.')->columns(['default' => 1, 'md' => 2])->schema([
+                                Select::make('ubicacion_origen_id')->label('Retirar de')->options(fn (): array => $consulta->ubicaciones())->native(false)->searchable()->required()->live()
+                                    ->afterStateUpdated(function (Set $set, mixed $state): void {
+                                        $set('producto_origen_id', null);
+                                        $set('variante_origen_id', null);
+                                        $set('items', [['ubicacion_destino_id' => is_numeric($state) ? (int) $state : null]]);
+                                    }),
+                                Select::make('producto_origen_id')->label('Insumo que vas a usar')->options(fn (Get $get): array => $consulta->productos(self::idOpcional($get('ubicacion_origen_id'))))->native(false)->searchable()->required()->live()
+                                    ->afterStateUpdated(fn (Set $set) => $set('variante_origen_id', null)),
+                                Select::make('variante_origen_id')->label('Presentación disponible')->options(fn (Get $get): array => $consulta->variantes(self::idOpcional($get('producto_origen_id')), self::idOpcional($get('ubicacion_origen_id'))))->native(false)->searchable()->required()->live(),
+                                TextInput::make('cantidad_procesada')->label('Cantidad que vas a retirar')->numeric()->minValue(.001)->required()->live(onBlur: true)
+                                    ->maxValue(fn (Get $get): float => $consulta->seleccion(self::idOpcional($get('variante_origen_id')), self::idOpcional($get('ubicacion_origen_id')))['cantidad'])
+                                    ->helperText(fn (Get $get): string => 'Escribe la cantidad en '.$consulta->seleccion(self::idOpcional($get('variante_origen_id')), null)['unidad'].'.'),
+                            ]),
+                        ]),
+                        Step::make('Registrar resultado')->description('Lo útil y lo que se perdió')->icon('heroicon-o-beaker')->schema([
+                            Section::make('¿Qué obtuviste?')->description('Agrega cada corte, preparación o bebida obtenida. Si el rendimiento es menor, la diferencia se registra como pérdida.')->schema([
+                                Repeater::make('items')->label('Resultados de la preparación')->minItems(1)->defaultItems(1)->reorderable(false)->addActionLabel('Agregar otro resultado')->collapsible()
+                                    ->itemLabel(fn (array $state): string => ! empty($state['es_merma']) ? 'Pérdida registrada' : 'Producto obtenido')
                                     ->schema([
-                                        Select::make('producto_origen_id')
-                                            ->label('Producto origen')
-                                            ->options(fn (): array => self::opcionesProductosMateriaPrimaCocina())
-                                            ->searchable()
-                                            ->preload()
-                                            ->native(false)
-                                            ->live()
-                                            ->required()
-                                            ->helperText('Producto bruto disponible en inventario.')
-                                            ->afterStateUpdated(function (Set $set): void {
-                                                $set('variante_origen_id', null);
-                                            }),
-
-                                        Select::make('variante_origen_id')
-                                            ->label('Variante origen')
-                                            ->options(fn (Get $get): array => self::opcionesVariantesMateriaPrimaCocina($get('producto_origen_id')))
-                                            ->searchable()
-                                            ->preload()
-                                            ->native(false)
-                                            ->live()
-                                            ->required()
-                                            ->helperText('Muestra unidades y stock disponible.')
-                                            ->afterStateUpdated(function (Get $get, Set $set): void {
-                                                self::recalcularCostosTransformacion($get, $set);
-                                            }),
-
-                                        Select::make('ubicacion_origen_id')
-                                            ->label('Ubicación origen')
-                                            ->options(fn (): array => self::opcionesUbicacionCocina())
-                                            ->default(fn (): ?int => self::ubicacionCocinaId())
-                                            ->searchable()
-                                            ->preload()
-                                            ->live()
-                                            ->required()
-                                            ->helperText('Bodega o sub-área de cocina desde donde se retirará el insumo.')
-                                            ->afterStateUpdated(function (Get $get, Set $set): void {
-                                                self::recalcularCostosTransformacion($get, $set);
-                                            }),
-
-                                        TextInput::make('cantidad_procesada')
-                                            ->label('Cantidad a transformar')
-                                            ->numeric()
-                                            ->minValue(0.001)
-                                            ->live(onBlur: true)
-                                            ->required()
-                                            ->helperText('Cantidad bruta que saldrá de inventario.')
-                                            ->afterStateUpdated(function (Get $get, Set $set): void {
-                                                self::recalcularCostosTransformacion($get, $set);
-                                            }),
-
-                                        Textarea::make('observaciones')
-                                            ->label('Observaciones')
-                                            ->rows(2)
-                                            ->placeholder('Ej. Se lavaron y pelaron 4 aguacates para preparar guacamole de la semana.')
-                                            ->columnSpanFull(),
+                                        Grid::make(['default' => 1, 'md' => 2])->schema([
+                                            ProductoSelect::make('producto_destino_id')->label('Producto que obtuviste')->live()->required()->afterStateUpdated(fn (Set $set) => $set('variante_destino_id', null)),
+                                            ProductoVarianteSelect::make('variante_destino_id', 'producto_destino_id')->label('Presentación obtenida')->live()->required(fn (Get $get): bool => ! (bool) $get('es_merma'))->hidden(fn (Get $get): bool => (bool) $get('es_merma')),
+                                            TextInput::make('cantidad')->label('Cantidad realmente obtenida')->numeric()->minValue(.001)->required()->live(onBlur: true)
+                                                ->helperText(fn (Get $get): string => 'Cantidad en '.$consulta->seleccion(self::idOpcional($get((bool) $get('es_merma') ? '../../variante_origen_id' : 'variante_destino_id')), null)['unidad'].'.'),
+                                            Select::make('ubicacion_destino_id')->label('Guardar en')->options(fn (): array => $consulta->ubicaciones())->default(fn (Get $get): mixed => $get('../../ubicacion_origen_id'))->searchable()->required(fn (Get $get): bool => ! (bool) $get('es_merma'))->hidden(fn (Get $get): bool => (bool) $get('es_merma')),
+                                            Toggle::make('es_merma')->label('Este resultado es una pérdida')->helperText('Úsalo solo para registrar desperdicio, no para productos que vas a conservar.')->live()->columnSpanFull()
+                                                ->afterStateUpdated(function (Get $get, Set $set, mixed $state): void {
+                                                    if ($state) {
+                                                        $set('producto_destino_id', $get('../../producto_origen_id'));
+                                                        $set('variante_destino_id', null);
+                                                        $set('ubicacion_destino_id', $get('../../ubicacion_origen_id'));
+                                                    }
+                                                }),
+                                            TextInput::make('observaciones')->label('Detalle opcional')->placeholder('Ej.: cortes para el almuerzo')->columnSpanFull(),
+                                        ]),
                                     ]),
-
-                                Section::make('Materia prima obtenida y merma')
-                                    ->description('Registre los insumos netos útiles que entran a inventario. Los costos se distribuyen automáticamente según las porciones.')
-                                    ->icon('heroicon-o-clipboard-document-list')
-                                    ->schema([
-                                        Repeater::make('items')
-                                            ->label('Resultados del porcionado / transformación')
-                                            ->itemLabel(fn (array $state): string => ! empty($state['es_merma']) ? 'Merma / Desperdicio ('.MonedaHelper::simbolo().' 0)' : 'Insumo Procesado Útil')
-                                            ->collapsible()
-                                            ->live()
-                                            ->afterStateUpdated(function (Get $get, Set $set): void {
-                                                self::recalcularCostosTransformacion($get, $set);
-                                            })
-                                            ->schema([
-                                                Grid::make([
-                                                    'default' => 1,
-                                                    'md' => 3,
-                                                ])
-                                                    ->schema([
-                                                        Toggle::make('es_merma')
-                                                            ->label('¿Es Merma / Desperdicio?')
-                                                            ->helperText('Merma = '.MonedaHelper::simbolo().' 0 costo')
-                                                            ->live()
-                                                            ->afterStateUpdated(function (Get $get, Set $set): void {
-                                                                self::recalcularCostosTransformacion($get, $set);
-                                                            })
-                                                            ->columnSpanFull(),
-
-                                                        ProductoSelect::make('producto_destino_id')
-                                                            ->live()
-                                                            ->required()
-                                                            ->afterStateUpdated(fn (Set $set): mixed => $set('variante_destino_id', null)),
-
-                                                        ProductoVarianteSelect::make('variante_destino_id', 'producto_destino_id')
-                                                            ->required(fn (Get $get): bool => ! (bool) $get('es_merma'))
-                                                            ->hidden(fn (Get $get): bool => (bool) $get('es_merma')),
-
-                                                        Select::make('ubicacion_destino_id')
-                                                            ->label('Ubicación destino')
-                                                            ->options(fn (): array => self::opcionesUbicaciones())
-                                                            ->searchable()
-                                                            ->preload()
-                                                            ->required(fn (Get $get): bool => ! (bool) $get('es_merma'))
-                                                            ->hidden(fn (Get $get): bool => (bool) $get('es_merma')),
-
-                                                        TextInput::make('cantidad')
-                                                            ->label('Cantidad')
-                                                            ->numeric()
-                                                            ->minValue(0.001)
-                                                            ->live(onBlur: true)
-                                                            ->required()
-                                                            ->helperText('Cantidad obtenida/desperdiciada')
-                                                            ->afterStateUpdated(function (Get $get, Set $set): void {
-                                                                self::recalcularCostosTransformacion($get, $set);
-                                                            }),
-
-                                                        TextInput::make('costo_asignado')
-                                                            ->label('Costo asignado ('.MonedaHelper::simbolo().')')
-                                                            ->numeric()
-                                                            ->default(0)
-                                                            ->minValue(0)
-                                                            ->helperText('Calculado automáticamente'),
-
-                                                        TextInput::make('observaciones')
-                                                            ->label('Notas del ítem')
-                                                            ->placeholder('Ej. Merma de piel y semilla'),
-                                                    ]),
-                                            ])
-                                            ->defaultItems(1)
-                                            ->addActionLabel('Agregar resultado / merma')
-                                            ->columnSpanFull(),
-                                    ]),
+                                DatePicker::make('fecha_vencimiento')->label('Usar hasta (opcional)')->minDate(today())->helperText('Puedes indicar una fecha menor que la del insumo original.'),
+                                Textarea::make('observaciones')->label('Nota para el equipo (opcional)')->rows(2),
                             ]),
+                        ]),
+                        Step::make('Revisar y guardar')->description('Confirma las cantidades')->icon('heroicon-o-check-circle')->schema([
+                            ViewField::make('resumen_operacion')->view('filament.pages.restaurante.components.resumen-preparacion')->dehydrated(false),
+                        ]),
+                    ])->nextAction(fn (Action $action): Action => $action->label('Continuar'))->previousAction(fn (Action $action): Action => $action->label('Volver'))
+                        ->submitAction(new HtmlString(Blade::render('<x-filament::button type="submit" icon="heroicon-o-check-circle" wire:loading.attr="disabled" wire:target="guardar">Guardar preparación</x-filament::button>'))),
+                ]),
+                Tab::make('Existencias')->icon('heroicon-o-archive-box')->schema([ViewField::make('stock_cocina_tabla')->view('filament.pages.restaurante.components.stock-cocina-tabla')->dehydrated(false)]),
+                Tab::make('Movimientos recientes')->icon('heroicon-o-clock')->schema([ViewField::make('historial_transformaciones_tabla')->view('filament.pages.restaurante.components.historial-transformaciones-tabla')->dehydrated(false)]),
+            ]),
+        ])->statePath('data');
+    }
 
-                        Tab::make('Stock de Insumos en Cocina')
-                            ->icon('heroicon-o-archive-box')
-                            ->schema([
-                                ViewField::make('stock_cocina_tabla')
-                                    ->view('filament.pages.restaurante.components.stock-cocina-tabla'),
-                            ]),
+    private static function idOpcional(mixed $valor): ?int
+    {
+        return is_numeric($valor) ? (int) $valor : null;
+    }
 
-                        Tab::make('Historial y Auditoría')
-                            ->icon('heroicon-o-clock')
-                            ->schema([
-                                ViewField::make('historial_transformaciones_tabla')
-                                    ->view('filament.pages.restaurante.components.historial-transformaciones-tabla'),
-                            ]),
-                    ]),
-            ])
-            ->statePath('data');
+    /** @return array{origen: array{cantidad: float, unidad: string, nombre: string, ubicacion: string}, retiro: float, resultados: list<array{nombre: string, cantidad: float, unidad: string, bodega: string, merma: bool}>} */
+    public function resumenPreparacion(): array
+    {
+        $consulta = app(ControlOperacionCocinaQuery::class);
+        $data = $this->data ?? [];
+        $resultados = [];
+        $ubicaciones = $consulta->ubicaciones();
+        $items = is_array($data['items'] ?? null) ? $data['items'] : [];
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $seleccion = $consulta->seleccion(self::idOpcional(! empty($item['es_merma']) ? ($data['variante_origen_id'] ?? null) : ($item['variante_destino_id'] ?? null)), null);
+            $resultados[] = ['nombre' => $seleccion['nombre'], 'cantidad' => is_numeric($item['cantidad'] ?? null) ? (float) $item['cantidad'] : 0.0, 'unidad' => $seleccion['unidad'], 'bodega' => $ubicaciones[self::idOpcional($item['ubicacion_destino_id'] ?? null) ?? 0] ?? 'Por indicar', 'merma' => (bool) ($item['es_merma'] ?? false)];
+        }
+
+        return ['origen' => $consulta->seleccion(self::idOpcional($data['variante_origen_id'] ?? null), self::idOpcional($data['ubicacion_origen_id'] ?? null)), 'retiro' => is_numeric($data['cantidad_procesada'] ?? null) ? (float) $data['cantidad_procesada'] : 0.0, 'resultados' => $resultados];
     }
 
     public function guardar(): void
@@ -259,16 +182,13 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
         }
 
         Notification::make()
-            ->title('Materia prima creada')
+            ->title('Preparación registrada')
             ->body("Transformación {$transformacion->codigo} registrada en inventario.")
             ->success()
             ->send();
 
-        $this->form->fill([
-            'ubicacion_origen_id' => self::ubicacionCocinaId(),
-            'cantidad_procesada' => 1,
-            'items' => [[]],
-        ]);
+        session()->flash('cocina_preparacion_guardada', $transformacion->codigo);
+        $this->redirect(self::getUrl(), navigate: true);
     }
 
     public function table(Table $table): Table
@@ -315,7 +235,7 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
 
                 TextColumn::make('unidad_medida')
                     ->label('Unidad')
-                    ->state(fn (Stock $record): string => $record->variante?->unidadMedida->nombre ?? $record->variante?->producto->unidadMedida->nombre ?? 'unid'),
+                    ->state(fn (Stock $record): string => $record->variante->unidadMedida->nombre ?? $record->variante->producto->unidadMedida->nombre ?? 'unid'),
 
                 MontoMonedaColumn::make('costo_unitario')
                     ->label('Costo Unitario')
@@ -352,113 +272,6 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
         return false;
     }
 
-    /** @return array<int, string> */
-    private static function opcionesUbicaciones(): array
-    {
-        /** @var array<int, string> $opciones */
-        $opciones = Ubicacion::query()
-            ->where('estado', 1)
-            ->orderBy('nombre')
-            ->pluck('nombre', 'id')
-            ->all();
-
-        return $opciones;
-    }
-
-    /** @return array<int, string> */
-    private static function opcionesUbicacionCocina(): array
-    {
-        $cocinaId = self::ubicacionCocinaId();
-
-        if ($cocinaId === null) {
-            return [];
-        }
-
-        /** @var array<int, string> $opciones */
-        $opciones = Ubicacion::query()
-            ->whereKey($cocinaId)
-            ->pluck('nombre', 'id')
-            ->all();
-
-        return $opciones;
-    }
-
-    /** @return array<int, string> */
-    private static function opcionesProductosMateriaPrimaCocina(): array
-    {
-        $cocinaId = self::ubicacionCocinaId();
-
-        if ($cocinaId === null) {
-            return [];
-        }
-
-        $productoIds = self::stockMateriaPrimaCocina()
-            ->where('stockable_type', Ubicacion::class)
-            ->where('stockable_id', $cocinaId)
-            ->whereHas('variante')
-            ->with('variante')
-            ->get()
-            ->map(fn (Stock $stock): ?int => $stock->variante?->producto_id)
-            ->filter(fn (mixed $id): bool => is_numeric($id))
-            ->unique()
-            ->values()
-            ->all();
-
-        /** @var array<int, string> $opciones */
-        $opciones = Producto::query()
-            ->whereIn('id', $productoIds)
-            ->orderBy('nombre')
-            ->pluck('nombre', 'id')
-            ->all();
-
-        return $opciones;
-    }
-
-    /** @return array<int, string> */
-    private static function opcionesVariantesMateriaPrimaCocina(mixed $productoId): array
-    {
-        $cocinaId = self::ubicacionCocinaId();
-
-        if ($cocinaId === null || ! is_numeric($productoId)) {
-            return [];
-        }
-
-        $stockPorVariante = self::stockMateriaPrimaCocina()
-            ->where('stockable_type', Ubicacion::class)
-            ->where('stockable_id', $cocinaId)
-            ->whereHas('variante', fn ($q) => $q->where('producto_id', (int) $productoId))
-            ->with('variante')
-            ->get()
-            ->groupBy('producto_variante_id')
-            ->map(function ($stocks): float {
-                $val = $stocks->sum('cantidad_actual');
-
-                return is_numeric($val) ? (float) $val : 0.0;
-            });
-
-        $varianteIds = $stockPorVariante
-            ->keys()
-            ->filter(fn (mixed $id): bool => is_numeric($id))
-            ->map(fn (mixed $id): int => (int) $id)
-            ->values()
-            ->all();
-
-        /** @var array<int, string> $opciones */
-        $opciones = ProductoVariante::query()
-            ->whereIn('id', $varianteIds)
-            ->orderBy('codigo')
-            ->get()
-            ->mapWithKeys(function (ProductoVariante $variante) use ($stockPorVariante): array {
-                $nombre = $variante->nombre_variante ?: $variante->codigo;
-                $cantidad = number_format((float) ($stockPorVariante->get($variante->id) ?? 0), 3);
-
-                return [(int) $variante->id => "{$variante->codigo} - {$nombre} ({$cantidad} disp.)"];
-            })
-            ->all();
-
-        return $opciones;
-    }
-
     private static function ubicacionCocinaId(): ?int
     {
         $id = Ubicacion::query()
@@ -469,125 +282,11 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
     }
 
     /**
-     * @return Builder<Stock>
-     */
-    private static function stockMateriaPrimaCocina(): Builder
-    {
-        return Stock::query()
-            ->where('cantidad_actual', '>', 0)
-            ->whereNotNull('producto_variante_id')
-            ->whereHas('variante.producto.categoria', function (Builder $cat): void {
-                $cat->whereNotIn('nombre', [
-                    'Amenities',
-                    'Aseo y Limpieza',
-                    'Limpieza',
-                    'Lencería',
-                    'Mantenimiento',
-                    'Equipamiento',
-                    'Oficina',
-                    'Ferretería',
-                    'Herramientas',
-                ]);
-            })
-            ->where(function ($query): void {
-                $query->whereNull('lote_id')
-                    ->orWhereHas('lote', function ($lote): void {
-                        $lote->where('estado', EstadoLote::Disponible)
-                            ->where(function ($fecha): void {
-                                $fecha->whereNull('fecha_vencimiento')
-                                    ->orWhere('fecha_vencimiento', '>=', now()->toDateString());
-                            });
-                    });
-            });
-    }
-
-    /**
-     * Recalcula automáticamente el costo asignado a cada ítem porcionado en base a la proporción
-     * del peso/cantidad neta respecto al costo total del producto origen retirado de inventario.
-     */
-    private static function recalcularCostosTransformacion(Get $get, Set $set): void
-    {
-        $ubicacionOrigenId = $get('ubicacion_origen_id');
-        $varianteOrigenId = $get('variante_origen_id');
-        $cantRaw = $get('cantidad_procesada');
-        $cantidadProcesada = is_numeric($cantRaw) ? (float) $cantRaw : 0.0;
-
-        if ($cantidadProcesada <= 0 || ! is_numeric($varianteOrigenId) || ! is_numeric($ubicacionOrigenId)) {
-            return;
-        }
-
-        $costoUnitarioOrigen = self::obtenerCostoUnitarioVariante((int) $ubicacionOrigenId, (int) $varianteOrigenId);
-        $costoTotalOrigen = round($cantidadProcesada * $costoUnitarioOrigen, 2);
-
-        /** @var array<int, array<string, mixed>> $items */
-        $items = (array) ($get('items') ?? []);
-
-        if (count($items) === 0) {
-            return;
-        }
-
-        // Sumar la cantidad de ítems útiles (sin merma)
-        $sumaCantidadUtil = 0.0;
-        foreach ($items as $item) {
-            $cRaw = $item['cantidad'] ?? 0;
-            $cantidad = is_numeric($cRaw) ? (float) $cRaw : 0.0;
-            if ($cantidad > 0 && empty($item['es_merma'])) {
-                $sumaCantidadUtil += $cantidad;
-            }
-        }
-
-        // Si no hay ítems útiles (todos marcados como merma), sumar todo
-        if ($sumaCantidadUtil <= 0) {
-            foreach ($items as $item) {
-                $cRaw = $item['cantidad'] ?? 0;
-                $cantidad = is_numeric($cRaw) ? (float) $cRaw : 0.0;
-                if ($cantidad > 0) {
-                    $sumaCantidadUtil += $cantidad;
-                }
-            }
-        }
-
-        // Asignar los costos en base a la proporción
-        foreach ($items as $index => $item) {
-            $cRaw = $item['cantidad'] ?? 0;
-            $cantidad = is_numeric($cRaw) ? (float) $cRaw : 0.0;
-            $esMerma = ! empty($item['es_merma']);
-
-            if ($esMerma) {
-                $set("items.{$index}.costo_asignado", 0.0);
-            } elseif ($sumaCantidadUtil > 0 && $cantidad > 0) {
-                $costoProporcional = round(($cantidad / $sumaCantidadUtil) * $costoTotalOrigen, 2);
-                $set("items.{$index}.costo_asignado", $costoProporcional);
-            } else {
-                $set("items.{$index}.costo_asignado", 0.0);
-            }
-        }
-    }
-
-    private static function obtenerCostoUnitarioVariante(int $ubicacionId, int $varianteId): float
-    {
-        $stock = Stock::query()
-            ->where('stockable_type', Ubicacion::class)
-            ->where('stockable_id', $ubicacionId)
-            ->where('producto_variante_id', $varianteId)
-            ->with('lote')
-            ->first();
-
-        if (! $stock instanceof Stock) {
-            return 0.0;
-        }
-
-        $costoUnitario = $stock->lote?->costo_unitario;
-
-        return is_numeric($costoUnitario) ? (float) $costoUnitario : 0.0;
-    }
-
-    /**
      * @return Collection<int, Stock>
      */
     public function obtenerStockCocinaListado(): Collection
     {
-        $cocinaId = self::ubicacionCocinaId();
+        $cocinaId = self::idOpcional($this->data['ubicacion_origen_id'] ?? null) ?? self::ubicacionCocinaId();
 
         if ($cocinaId === null) {
             return new Collection;

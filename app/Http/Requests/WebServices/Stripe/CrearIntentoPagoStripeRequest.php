@@ -19,6 +19,7 @@ final class CrearIntentoPagoStripeRequest extends FormRequest
         return [
             'reserva_id' => ['required', 'integer', 'exists:reservas,id'],
             'codigo_reserva' => ['required', 'string', 'max:80'],
+            'monto' => ['nullable', 'numeric', 'min:0.01'],
         ];
     }
 }

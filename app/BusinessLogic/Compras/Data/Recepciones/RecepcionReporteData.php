@@ -21,6 +21,7 @@ final readonly class RecepcionReporteData
         public ?CarbonInterface $fecha_recepcion,
         public ?string $guia_remision,
         public ?string $factura_referencia,
+        public ?string $notas,
         public ?ColaboradorReporteData $receptor,
         public ?OrdenCompraReporteData $ordenCompra,
         public ?EstadoReporteData $estado,

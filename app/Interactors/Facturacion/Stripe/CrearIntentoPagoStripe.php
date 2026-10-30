@@ -111,7 +111,7 @@ final readonly class CrearIntentoPagoStripe
      *     moneda: string
      * }
      */
-    public function ejecutarParaReserva(Reserva $reserva): array
+    public function ejecutarParaReserva(Reserva $reserva, ?float $montoACobrar = null): array
     {
         $reserva->loadMissing('moneda');
 
@@ -119,14 +119,21 @@ final readonly class CrearIntentoPagoStripe
             throw new DomainException('La reserva no tiene moneda configurada.');
         }
 
-        $monto = $this->politicaPago->obtenerMontoFaltantePolitica($reserva);
+        if ($montoACobrar !== null && $montoACobrar > 0.0) {
+            $monto = round(min($montoACobrar, (float) $reserva->saldo), 2);
+        } else {
+            $monto = $this->politicaPago->obtenerMontoFaltantePolitica($reserva);
+            if ($monto <= 0 && (float) $reserva->saldo > 0) {
+                $monto = (float) $reserva->saldo;
+            }
+        }
 
         if ($monto <= 0) {
-            throw new DomainException('La política de pago de esta reserva no requiere cobro en línea.');
+            throw new DomainException('La política de pago de esta reserva no requiere cobro en línea o no cuenta con saldo pendiente.');
         }
 
         $monedaCodigo = (string) $reserva->moneda->codigo;
-        $idempotencyKey = 'stripe-reserva-'.$reserva->id.'-'.$monto.'-'.$monedaCodigo;
+        $idempotencyKey = 'stripe-reserva-'.$reserva->id.'-'.round($monto, 2).'-'.$monedaCodigo.'-'.Str::random(6);
         $cuenta = $reserva->cuentas()->latest('id')->first();
 
         $emailCliente = is_string($reserva->email_cliente) && trim($reserva->email_cliente) !== ''

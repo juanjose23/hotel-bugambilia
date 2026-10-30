@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Promociones\BeneficioClienteResource\Tables;
 
 use App\Enums\Promociones\TipoBeneficioCliente;
 use App\Filament\Shared\Filters\FiltroEliminados;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

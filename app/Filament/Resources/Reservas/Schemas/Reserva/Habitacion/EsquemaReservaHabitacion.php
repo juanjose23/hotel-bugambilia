@@ -9,10 +9,12 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Reservas\RecursoReservable;
+use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Reservas\ConsultarHabitacionesDisponibles;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -184,6 +186,10 @@ class EsquemaReservaHabitacion
                         ->columns(3)
                         ->itemLabel(fn (array $state): string => (string) ($state['nombre'] ?? 'Acompañante'))
                         ->schema([
+                            Hidden::make('huesped_id'),
+                            Select::make('reserva_detalle_id')->label('Alojamiento reservado')
+                                ->options(fn (?Reserva $record): array => $record?->detalles()->with('reservable')->get()->mapWithKeys(fn ($d): array => [$d->id => (string) ($d->reservable->nombre ?? 'Recurso reservado')])->all() ?? [])
+                                ->visible(fn (?Reserva $record): bool => $record !== null && $record->detalles()->count() > 1),
                             TextInput::make('nombre')
                                 ->label('Nombre Completo')
                                 ->placeholder('Ej. María Pérez')
@@ -200,7 +206,7 @@ class EsquemaReservaHabitacion
                                 ->options([
                                     'adulto' => 'Adulto',
                                     'nino' => 'Niño',
-                                    'infante' => 'Infante',
+                                    'bebe' => 'Infante',
                                 ])
                                 ->default('adulto')
                                 ->native(false)

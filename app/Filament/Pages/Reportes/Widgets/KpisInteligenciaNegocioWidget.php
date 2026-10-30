@@ -6,7 +6,7 @@ namespace App\Filament\Pages\Reportes\Widgets;
 
 use App\Filament\Pages\Reportes\Widgets\Concerns\UsaRangoFechasDashboard;
 use App\Repository\Queries\Reportes\InteligenciaNegocioDashboardQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Carbon\CarbonImmutable;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget;

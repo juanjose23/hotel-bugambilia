@@ -33,6 +33,7 @@ final class ObtenerRecepcionReporteQuery
             'items.producto',
             'items.variante',
             'items.unidadMedida',
+            'items.ordenItem',
         ])->find($id);
 
         if ($recepcion === null) {
@@ -50,6 +51,7 @@ final class ObtenerRecepcionReporteQuery
             fecha_recepcion: $recepcion->fecha_recepcion,
             guia_remision: $recepcion->guia_remision,
             factura_referencia: $recepcion->factura_referencia,
+            notas: $recepcion->notas,
             receptor: $this->mapearReceptor($recepcion->receptor),
             ordenCompra: $this->mapearOrdenCompra($recepcion->ordenCompra),
             estado: $estado,
@@ -75,7 +77,8 @@ final class ObtenerRecepcionReporteQuery
 
         return new ColaboradorReporteData(
             codigo: (string) $receptor->id,
-            persona: $recPersona
+            persona: $recPersona,
+            name: $recPersona->nombre_completo ?? $receptor->name,
         );
     }
 
@@ -133,6 +136,7 @@ final class ObtenerRecepcionReporteQuery
             producto: $producto,
             variante: $variante,
             unidadMedida: $uMedida,
+            cantidad_ordenada: (float) ($item->ordenItem->cantidad ?? 0),
             cantidad_recibida: (float) $item->cantidad_recibida,
             cantidad_rechazada: (float) $item->cantidad_rechazada,
             observaciones: $item->observaciones

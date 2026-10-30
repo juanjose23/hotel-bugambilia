@@ -77,6 +77,8 @@ interface CuentaRepositorioInterface
     /** @return Collection<int, CuentaDetalle> */
     public function detallesActivos(Cuenta $cuenta): Collection;
 
+    public function tieneDetalles(Cuenta $cuenta): bool;
+
     public function cargarPedidoEnCuenta(Pedido $pedido, int $cuentaId): void;
 
     public function pedidoConItemsCargados(Pedido $pedido): Pedido;

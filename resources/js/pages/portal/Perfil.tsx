@@ -15,8 +15,7 @@ interface PerfilPageProps {
 export const Perfil = ({ cliente, estadisticas }: PerfilPageProps) => {
     return (
         <PortalLayout cliente={cliente}>
-            <Head>
-                <title>Mi Perfil — Portal de Huéspedes</title>
+            <Head title="Mi Perfil — Portal de Huéspedes">
                 <meta
                     name="description"
                     content="Administra tus datos de contacto, identificación y preferencias de huésped."

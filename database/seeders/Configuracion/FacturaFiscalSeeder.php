@@ -46,7 +46,6 @@ class FacturaFiscalSeeder extends Seeder
             'codigo' => 'A',
             'nombre' => 'Factura de Crédito Fiscal – Original',
             'sucursal_codigo' => 'SUC-001',
-            'caja_codigo' => 'CAJA-01',
         ]);
 
         $autorizacion = $this->crearAutorizacion($serie, [
@@ -76,7 +75,6 @@ class FacturaFiscalSeeder extends Seeder
             'codigo' => 'B',
             'nombre' => 'Factura de Consumidor Final (FCF)',
             'sucursal_codigo' => 'SUC-001',
-            'caja_codigo' => 'CAJA-02',
         ]);
 
         $this->crearAutorizacion($serie, [

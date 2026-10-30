@@ -73,7 +73,11 @@ class RecepcionTable
                     ->button(),
                 ActionGroup::make([
                     ViewAction::make(),
-                    self::makeImprimirAction('admin.compras.reportes.recepcion', 'Compras:ImprimirRecepcion'),
+                    self::makeImprimirAction(
+                        'admin.compras.reportes.recepcion',
+                        'Compras:ImprimirRecepcion',
+                        urlCallback: fn (RecepcionCompra $record) => route('admin.compras.reportes.recepcion', ['recepcion' => $record->codigo]),
+                    ),
                     EditAction::make(),
                     DeleteAction::make(),
                 ])

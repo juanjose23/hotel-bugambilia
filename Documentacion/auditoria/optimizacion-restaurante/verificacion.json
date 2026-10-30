@@ -1,0 +1,126 @@
+{
+  "estado": "aplicado en codigo del proyecto principal",
+  "cambios_de_esquema": false,
+  "pruebas_modulo_y_reservas": {
+    "tool": "pest",
+    "result": "passed",
+    "tests": 124,
+    "passed": 124,
+    "assertions": 456,
+    "duration_ms": 61418
+  },
+  "pruebas_especificas_finales": {
+    "tool": "pest",
+    "result": "passed",
+    "tests": 14,
+    "passed": 14,
+    "assertions": 44,
+    "duration_ms": 16422
+  },
+  "analisis_estatico_modulo": {
+    "tool": "phpstan",
+    "result": "passed",
+    "errors": 0
+  },
+  "analisis_listado_final": {
+    "tool": "phpstan",
+    "result": "passed",
+    "errors": 0
+  },
+  "medicion_antes": {
+    "cocina_bar": {
+      "consultas": 9,
+      "milisegundos": 82.27,
+      "pedidos": 0,
+      "items": 0
+    },
+    "pantalla": {
+      "consultas": 10,
+      "milisegundos": 14.35
+    },
+    "mapa_mesas": {
+      "consultas": 8,
+      "milisegundos": 288.89
+    }
+  },
+  "medicion_despues": {
+    "cocina_bar": {
+      "consultas": 1,
+      "milisegundos": 35.45,
+      "pedidos": 0,
+      "items": 0
+    },
+    "pantalla": {
+      "consultas": 13,
+      "milisegundos": 45.66
+    },
+    "mapa_mesas": {
+      "consultas": 8,
+      "milisegundos": 279.53
+    }
+  },
+  "pantallas_principal": {
+    "principal": true,
+    "solo_lectura": true,
+    "pantallas": [
+      {
+        "pantalla": "GestionMesas",
+        "renderizada": true
+      },
+      {
+        "pantalla": "CocinaPedidos",
+        "renderizada": true
+      },
+      {
+        "pantalla": "PantallaPedidos",
+        "renderizada": true
+      },
+      {
+        "pantalla": "ReportesRestaurante",
+        "renderizada": true
+      },
+      {
+        "pantalla": "ControlCocina",
+        "renderizada": true
+      },
+      {
+        "pantalla": "MateriaPrimaCocina",
+        "renderizada": true
+      },
+      {
+        "pantalla": "BuffetsCocina",
+        "renderizada": true
+      },
+      {
+        "pantalla": "ListPedidos",
+        "renderizada": true
+      }
+    ],
+    "reporte_2025_2026": {
+      "partidas_entrada": 86244,
+      "filas_agrupadas": 19
+    }
+  },
+  "archivos_sha256": {
+    "app/BusinessLogic/Restaurante/Reportes/CalcularReportesRestaurante.php": "7547cb5b3d9668ac426381e95bb904e525f07b52ae3cb4acef4cea9c06d33346",
+    "app/Filament/Pages/Restaurante/CocinaPedidos.php": "a26eec918fca5ef0c10bb109fbe34461030b15f24fc394f52b78d72431d977ea",
+    "app/Filament/Pages/Restaurante/PantallaPedidos.php": "6bc61d9e084660206c9c46a4193d7f2dc4306b6813ec04f9ab8f562f516b3659",
+    "app/Filament/Pages/Restaurante/ReportesRestaurante.php": "0b33477d3af5c6eda498a14cf9ff0679fdd3351cefba2284b07826c49914cbc4",
+    "app/Filament/Resources/Restaurante/PedidoResource/Tables/PedidoTable.php": "1c8a081663172ea01be48eee48717cba8a75bf3bc800b1d7427cdf220778d789",
+    "app/Repository/Models/Espacios/Espacio.php": "d6ae586d09db3cb98a59c078d3765e02e4ae5939dfb7f430c9c9381d1b848106",
+    "app/Repository/Models/Restaurante/PedidoItem.php": "f8cf68affde053f00a6eddebda6262ef8f715322c672eee6a5844b50f86d8363",
+    "app/Repository/Queries/Restaurante/Cocina/ObtenerOpcionesSustitutosQuery.php": "001da93e056543bd1ce88fdf975b5e8c35503bf1051ac7752fbdfb40e4db9854",
+    "app/Repository/Queries/Restaurante/Mesas/ObtenerMapaMesasQuery.php": "c142c4cb9a367667e43a88897a11e607c6f72d1ac2793bb29185270f638cb619",
+    "app/Repository/Queries/Restaurante/Mesas/ObtenerReservasVigentesMesaQuery.php": "2c36547035e83d547610423c92aea136f6968ec15b581fe769a074291ac5aa06",
+    "app/Repository/Queries/Restaurante/Pedidos/ObtenerComandasMesaConDetalleQuery.php": "a6beaa4039e62bfa75d9ff8438519668068e360c499b06da40dfea51537d85ad",
+    "app/Repository/Queries/Restaurante/Pedidos/ObtenerIngredientesPedidoQuery.php": "3803f3687de5747ae290979035adf0492fd46daaaac594741f5f4e7d469a0c51",
+    "app/Repository/Queries/Restaurante/Pedidos/ObtenerPedidosCocinaQuery.php": "04ec55b591a2cdcdce53a11f2c9c4062097e75f7230c3413b6f802748a88bd4a",
+    "app/Repository/Queries/Restaurante/Pedidos/ObtenerPedidosConItemsQuery.php": "1122d5815ee6fbd89cd00923aa51713fa59569d97e801c0727534bc9e0e66876",
+    "app/Repository/Queries/Restaurante/Pedidos/ObtenerPedidosPantallaQuery.php": "e632d4c834fd584844b1f779016c49d15bae0a555aeb09ecdbdd03fa3fee69bb",
+    "app/Repository/Queries/Restaurante/Reportes/ObtenerReportesRestauranteQuery.php": "df2196a72d365910491a9f607f475b0844d6af9e39776f74461fba7060c7f340",
+    "resources/views/filament/resources/restaurante/cocina-pedidos.blade.php": "23cc72e151d6a86553213d582b064c3b098f9c8c2c86a0cf9c6537923eb2da82",
+    "resources/views/filament/resources/restaurante/reportes-restaurante.blade.php": "b5ae0afd18befe0367bad513bb868cdf55479d6a7b0b20cd5e0a84f55f11ecf6",
+    "tests/Feature/Restaurante/OptimizacionOperacionRestauranteTest.php": "fa30aed25d45d08b796ff503a769b15fdba11a54de06fb85406a0db91685d903"
+  },
+  "limite_medicion": "Muestra local; el numero de consultas depende de los resultados y las relaciones cargadas. No es una prueba de carga concurrente."
+}

@@ -10,9 +10,10 @@ interface PropsErrorBoundary {
 
 interface StateErrorBoundary {
     hasError: boolean;
+    error?: Error | null;
 }
 
-const FallbackDefault = () => (
+const FallbackDefault = ({ error }: { error?: Error | null }) => (
     <div className="relative flex min-h-[70vh] w-full items-center justify-center bg-background px-4 py-12 text-foreground sm:px-6 lg:px-8">
         <div className="relative z-10 w-full max-w-xl text-center">
             <div className="overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-xl backdrop-blur-xl transition-all sm:p-12">
@@ -33,10 +34,23 @@ const FallbackDefault = () => (
                     Algo salió mal en esta sección
                 </h2>
 
-                <p className="mx-auto mb-8 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+                <p className="mx-auto mb-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
                     Ha ocurrido un error inesperado durante el renderizado. Por
                     favor, intente recargar la página.
                 </p>
+
+                {error && (
+                    <div className="mx-auto mb-6 max-h-40 overflow-auto rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-left font-mono text-xs text-destructive">
+                        <div className="font-bold">
+                            {error.name}: {error.message}
+                        </div>
+                        {error.stack && (
+                            <pre className="mt-2 text-[10px] whitespace-pre-wrap text-muted-foreground">
+                                {error.stack.split('\n').slice(0, 5).join('\n')}
+                            </pre>
+                        )}
+                    </div>
+                )}
 
                 <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
                     <Button
@@ -84,13 +98,21 @@ export class ErrorBoundary extends Component<
         this.state = { hasError: false };
     }
 
-    static getDerivedStateFromError(): StateErrorBoundary {
-        return { hasError: true };
+    static getDerivedStateFromError(error: Error): StateErrorBoundary {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+        console.error('ErrorBoundary caught render error:', error, errorInfo);
     }
 
     render() {
         if (this.state.hasError) {
-            return this.props.fallback || <FallbackDefault />;
+            return (
+                this.props.fallback || (
+                    <FallbackDefault error={this.state.error} />
+                )
+            );
         }
 
         return this.props.children;

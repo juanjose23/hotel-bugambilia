@@ -26,7 +26,7 @@
                 <div class="page-top-spacer"></div>
             @endif
 
-            @if($itemsChunk->isNotEmpty())
+            @if($itemsChunk->isNotEmpty() || $loop->first)
                 @include($tableView, array_merge($tableData ?? [], [
                     'items' => $itemsChunk,
                     'paginaIndex' => $i,

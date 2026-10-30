@@ -15,6 +15,7 @@ use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\CuentaCargo;
 use App\Repository\Models\Cuentas\CuentaDetalle;
 use App\Repository\Models\Cuentas\PagoCuenta;
+use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
@@ -26,6 +27,8 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
 {
     public function abrir(Cuenta $cuenta, array $datos): Cuenta
     {
+        $this->validarContexto(array_replace(['estancia_id' => $cuenta->estancia_id, 'reserva_id' => $cuenta->reserva_id], $datos));
+
         $cuenta->update($datos);
 
         return $cuenta->refresh();
@@ -33,11 +36,15 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
 
     public function crear(array $datos): Cuenta
     {
+        $this->validarContexto($datos);
+
         return Cuenta::query()->create($datos);
     }
 
     public function actualizar(Cuenta $cuenta, array $datos): Cuenta
     {
+        $this->validarContexto(array_replace(['estancia_id' => $cuenta->estancia_id, 'reserva_id' => $cuenta->reserva_id], $datos));
+
         $cuenta->update($datos);
 
         return $cuenta->refresh();
@@ -238,6 +245,11 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
             ->exists();
     }
 
+    public function tieneDetalles(Cuenta $cuenta): bool
+    {
+        return $cuenta->detalles()->exists();
+    }
+
     public function detallesActivos(Cuenta $cuenta): Collection
     {
         return $cuenta->detalles()
@@ -429,5 +441,16 @@ final class CuentaRepositorio implements CuentaRepositorioInterface
     public function usuarioExiste(int $usuarioId): bool
     {
         return User::query()->where('id', $usuarioId)->exists();
+    }
+
+    /** @param array<string, mixed> $datos */
+    private function validarContexto(array $datos): void
+    {
+        $estanciaId = $datos['estancia_id'] ?? null;
+        $reservaId = $datos['reserva_id'] ?? null;
+        if (is_numeric($estanciaId) && is_numeric($reservaId)
+            && ! Estancia::query()->whereKey((int) $estanciaId)->where('reserva_id', (int) $reservaId)->exists()) {
+            throw new \DomainException('La estancia y la reserva de la cuenta no corresponden a la misma operacion.');
+        }
     }
 }

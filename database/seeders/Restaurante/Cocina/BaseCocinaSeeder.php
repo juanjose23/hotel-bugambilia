@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Restaurante\Cocina;
 
+use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\User;
 use Illuminate\Database\Seeder;
@@ -15,8 +16,13 @@ abstract class BaseCocinaSeeder extends Seeder
 {
     protected function variantePorNombreProducto(string $nombreProducto): ?ProductoVariante
     {
+        $productoId = Producto::query()->where('nombre', $nombreProducto)->value('id');
+        if (! is_numeric($productoId)) {
+            return null;
+        }
+
         $variante = ProductoVariante::query()
-            ->whereHas('producto', static fn ($query) => $query->where('nombre', $nombreProducto))
+            ->where('producto_id', (int) $productoId)
             ->orderBy('id')
             ->first();
 

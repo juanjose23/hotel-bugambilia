@@ -214,7 +214,7 @@ class CotizacionTable
                         ->url(fn (?Cotizacion $record) => $record ? CotizacionResource::getUrl('comparativa', ['solicitud_id' => $record->solicitud_id]) : '')
                         ->visible(fn () => auth()->user()?->can('Compras:ViewComparativaCotizaciones') ?? false),
 
-                    self::makeImprimirAction('admin.compras.reportes.comparativa', 'Compras:ImprimirComparativa', 'Imprimir Comparativo', fn (?Cotizacion $record) => $record ? route('admin.compras.reportes.comparativa', ['solicitud' => $record->solicitud_id]) : ''),
+                    self::makeImprimirAction('admin.compras.reportes.comparativa', 'Compras:ImprimirComparativa', 'Imprimir Comparativo', fn (?Cotizacion $record) => $record?->solicitud ? route('admin.compras.reportes.comparativa', ['solicitud' => $record->solicitud->codigo]) : ''),
 
                     self::makeImprimirAction('admin.compras.reportes.cotizacion', 'Compras:ImprimirCotizacion', 'Imprimir Cotización'),
 

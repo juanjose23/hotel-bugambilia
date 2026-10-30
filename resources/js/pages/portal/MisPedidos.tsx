@@ -26,8 +26,7 @@ export const MisPedidos = ({
 
     return (
         <PortalLayout cliente={cliente}>
-            <Head>
-                <title>Mis Pedidos de Restaurante — Hotel Bugambilias</title>
+            <Head title="Mis Pedidos de Restaurante — Hotel Bugambilias">
                 <meta
                     name="description"
                     content="Historial y seguimiento de pedidos y comandas de restaurante en Hotel Bugambilias."

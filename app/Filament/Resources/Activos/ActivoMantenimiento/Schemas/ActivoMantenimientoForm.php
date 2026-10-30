@@ -10,7 +10,7 @@ use App\Filament\Shared\Forms\MonedaSelect;
 use App\Filament\Shared\Forms\ProveedorSelect;
 use App\Filament\Shared\Forms\UserSelect;
 use App\Repository\Models\Monedas\Moneda;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;

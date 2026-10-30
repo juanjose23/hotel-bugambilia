@@ -1,128 +1,20 @@
-name: Laravel Dusk E2E Tests
-
+name: Laravel Dusk portable
 on:
-  push:
-    branches: [main, master, develop]
-  pull_request:
-    branches: [main, master, develop]
+  workflow_call:
   workflow_dispatch:
-
+permissions:
+  contents: read
 jobs:
   dusk-tests:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chrome]
-
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_DB: hotel_bugambilias_dusk
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      selenium:
-        image: selenium/standalone-chrome:4.25.0
-        ports:
-          - 4444:4444
-        options: >-
-          --shm-size=2gb
-          --ipc=host
-          --add-host=host.docker.internal:host-gateway
-          --health-cmd "curl -s -f http://localhost:4444/status || exit 1"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-start-period 10s
-          --health-retries 15
-
+    timeout-minutes: 40
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v7
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, pdo, pdo_pgsql, bcmath, gd
-          coverage: none
-
-      - name: Prepare Base Environment File
-        run: php -r "file_exists('.env') || copy('.env.dusk.example', '.env');"
-
-      - name: Install Composer Dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Setup Node.js & Compile Assets
-        uses: actions/setup-node@v7
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-
-      - name: Prepare Environment for Dusk
-        run: |
-          cp .env.dusk.example .env
-          cp .env.dusk.example .env.dusk
-          cp .env.dusk.example .env.dusk.local
-          sed -i 's#^APP_URL=.*#APP_URL=http://host.docker.internal:8000#' .env .env.dusk .env.dusk.local
-          php artisan key:generate
-          php artisan key:generate --env=dusk
-
-      - name: Run Laravel Dusk Database Migrations & Seeds
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: hotel_bugambilias_dusk
-          DB_USERNAME: postgres
-          DB_PASSWORD: password
-        run: |
-          php artisan migrate:fresh --env=dusk --force
-          php artisan db:seed --class=Database\\Seeders\\DuskSeeder --env=dusk --force
-
-      - name: Start Laravel Web Server
-        env:
-          APP_URL: http://host.docker.internal:8000
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: hotel_bugambilias_dusk
-          DB_USERNAME: postgres
-          DB_PASSWORD: password
-        run: php artisan serve --host=0.0.0.0 --port=8000 --env=dusk --no-reload &
-
-      - name: Wait for Laravel Web Server
-        run: |
-          for i in $(seq 1 30); do
-            curl -s -o /dev/null http://127.0.0.1:8000/ && break
-            sleep 1
-          done
-          curl -f http://127.0.0.1:8000/
-
-      - name: Run Laravel Dusk Tests
-        env:
-          APP_URL: http://host.docker.internal:8000
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: hotel_bugambilias_dusk
-          DB_USERNAME: postgres
-          DB_PASSWORD: password
-          BROWSER: chrome
-          DUSK_DRIVER_URL: http://localhost:4444
-        run: php artisan dusk --without-tty
-
-      - name: Upload Artifacts on Failure
+      - uses: actions/checkout@v7
+      - name: Construir herramientas de navegador
+        run: docker compose --profile dusk build dusk
+      - name: Probar la aplicación con Selenium y PostgreSQL aislados
+        run: docker compose --profile dusk run --rm dusk
+      - name: Conservar evidencias
         if: failure()
         uses: actions/upload-artifact@v7
         with:
@@ -130,4 +22,6 @@ jobs:
           path: |
             tests/Browser/screenshots/
             tests/Browser/console/
-            storage/logs/
+      - name: Detener servicios
+        if: always()
+        run: docker compose --profile dusk down --remove-orphans

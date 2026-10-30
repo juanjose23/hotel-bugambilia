@@ -1,3 +1,28 @@
+Producción y CI/CD para Coolify/Dokploy: [guía de despliegue](Documentacion/desarrollo/produccion-coolify-dokploy.md).
+
+## Instalación portable, pruebas y Docker
+
+La guía completa está en [Documentacion/desarrollo/entorno-portable.md](Documentacion/desarrollo/entorno-portable.md).
+
+Con Docker Desktop (contenedores Linux) o Docker Engine y Compose v2:
+
+```sh
+docker compose build app
+docker compose up -d app
+docker compose exec app php artisan migrate --force
+```
+
+Abrir http://localhost:8080. Estos comandos usan una base nueva dentro de Docker.
+
+```sh
+# Pruebas PHP en PostgreSQL aislado
+docker compose --profile quality run --rm --build tools
+# Dusk con Selenium y otra base exclusiva
+docker compose --profile dusk run --rm --build dusk
+# Todos los controles de calidad, pruebas y compilación
+docker compose --profile quality run --rm --build tools node scripts/project.mjs check
+```
+
 # Hotel Bugambilias — Sistema de Gestion Integral
 
 Sistema de gestion integral para Hotel Bugambilias: inventario, activos, limpieza, compras, restaurante, habitaciones y mas.
@@ -227,7 +252,7 @@ Model        --- Entidades Eloquent (app/Repository/Models)
 | tests/Feature/ | 22       | Servicios, Usuarios, Espacios, Limpieza, Compras, Observers |
 | tests/Unit/    | 4        | BusinessLogic, Queries, Rules                               |
 
-**Framework: Pest 4 | Base de datos: SQLite :memory:**
+**Framework: Pest 4 | Base de datos: PostgreSQL aislado (`*_testing` y `*_dusk`).**
 
 ## Desarrollo Local
 
@@ -242,27 +267,27 @@ En otra terminal, ejecuta las validaciones principales cuando cambies codigo:
 
 ```bash
 composer install --no-interaction --prefer-dist --optimize-autoloader
-php artisan test
+composer test
 vendor/bin/phpstan analyse --level=9 --memory-limit=1G
 vendor/bin/pint --test
 ```
 
 ### Dusk local
 
-Las pruebas de navegador usan `.env.dusk.local`, apuntan a `https://hotel-bugambilia.test` y trabajan sobre la base separada `hotel_bugambilias_dusk`.
-
-Antes de correrlas, crea esa base local en PostgreSQL si no existe. Luego prepara datos y ejecuta:
+Las pruebas de navegador utilizan una base PostgreSQL dedicada y un servidor HTTP de pruebas, sin depender de Herd ni de dominios personales.
 
 ```bash
-composer dusk:local:setup
-composer dusk:local
+docker compose --profile dusk run --rm --build dusk
 ```
 
-Para repetir sin TTY, util para ver fallos en consola:
+Para ejecución nativa, copia `.env.dusk.example` a `.env.dusk.local`, configura una base terminada en `_dusk` y ejecuta:
 
 ```bash
-composer dusk:fails
+php artisan dusk:chrome-driver --detect
+composer dusk
 ```
+
+El comando prepara únicamente esa base e inicia y detiene su propio servidor. Consulta [el entorno portable](Documentacion/desarrollo/entorno-portable.md) para configurar las credenciales y las comprobaciones de Husky.
 
 ---
 

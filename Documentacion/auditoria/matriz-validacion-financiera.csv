@@ -1,0 +1,23 @@
+﻿ID,Proceso,Resultado,Evidencia observada
+FI-01,Pago y cierre con emisión fiscal explícita,Aprobado,"Cuenta, venta, detalle y folio consistentes"
+FI-02,Doble emisión secuencial,Aprobado,Una factura; el reintento no consume otro folio
+FI-03,Autorización vencida,Aprobado,Revierte cierre y venta; conserva el pago registrado antes del cierre
+FI-04,Rango de folios agotado,Aprobado,Rechaza emisión fuera de rango sin consumir otro folio
+FI-05,Anulación e intento repetido,Aprobado,Conserva factura y folio anulados; no devuelve dinero automáticamente
+FI-06,Impresión y consecutivo,Aprobado con límite,Genera PDF de una página sin nuevo folio; contenido validado aparte en FI-14
+FI-07,Cobro con opción factura,Falla reproducida,"Cierra cuenta y crea venta, pero genera cero facturas"
+FI-08,Otra moneda sin tasa,Falla reproducida,Permite emitir con equivalencia 1:1
+FI-09,Pago capturado y conciliación,Falla reproducida,Marca conciliada sin liquidación bancaria independiente
+FI-10,Autorización con fecha futura,Falla reproducida,Permite emitir antes de la fecha de autorización configurada
+FI-11,Anulación por usuario de solo lectura,Falla reproducida,La factura queda anulada con permisos View/ViewAny de factura
+FI-12,Motivo de un carácter,Falla reproducida,Acepta un carácter pese al requisito RF-64 de diez
+FI-13,Reserva pública por transferencia,Falla reproducida,Confirma reserva y aplica 2530.00 de 5060.00 sin revisión de comprobante
+FI-14,Importes del detalle impreso,Falla reproducida,La celda imprime C$ 0.00 y el detalle almacenado es 115.00
+CC-01,Dos emisiones sobre la misma venta,Aprobado,Una factura y un rechazo de dominio controlado
+CC-02,Dos ventas usando la misma serie,Aprobado,Dos facturas con correlativos 1 y 2; siguiente 3
+CC-03,Confirmación simultánea de la misma captura,Aprobado,Un pago; ambas respuestas apuntan a la misma transacción
+CC-04,Cierre simultáneo de la misma cuenta,Falla reproducida,Una venta; el segundo cierre devuelve violación técnica de unicidad
+TR-01,Adjuntar imagen de transferencia,No implementado en el circuito revisado,"Falta recepción privada, vínculo a solicitud y pantalla del cliente"
+TR-02,Aprobar/rechazar transferencia,No implementado en el circuito revisado,"Falta bandeja de revisión, permiso y aprobación atómica e idempotente"
+CJ-01,"Apertura, arqueo y cierre por turno",No implementado en el circuito revisado,Requerimientos RF-68 y RF-69 pendientes
+RG-01,Regresión de reservas/cuentas/pasarela,150 de 151 aprobadas,Un error en ReservaSeederTest: transacción abortada; causa inicial pendiente de diagnóstico

@@ -6,6 +6,7 @@ namespace App\Repository\Models\Restaurante;
 
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
+use App\Repository\Models\Inventario\Lote;
 use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,22 @@ final class ProcesoCocina extends Model implements AuditableContract
     protected $table = 'procesos_cocina';
 
     protected $guarded = ['id'];
+
+    protected $attributes = ['tipo_registro' => 'borrador'];
+
+    protected static function booted(): void
+    {
+        self::updating(function (self $proceso): void {
+            if ($proceso->getRawOriginal('confirmado_at') !== null || $proceso->getRawOriginal('tipo_registro') !== 'borrador') {
+                throw new \DomainException('El registro confirmado, histórico o de pedido no se puede modificar.');
+            }
+        });
+        self::deleting(function (self $proceso): void {
+            if ($proceso->getAttribute('confirmado_at') !== null || $proceso->getAttribute('tipo_registro') !== 'borrador') {
+                throw new \DomainException('El registro confirmado, histórico o de pedido no se puede eliminar.');
+            }
+        });
+    }
 
     protected $casts = [
         'cantidad_procesada' => 'decimal:3',
@@ -50,6 +67,12 @@ final class ProcesoCocina extends Model implements AuditableContract
     public function realizadoPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'realizado_por');
+    }
+
+    /** @return BelongsTo<Lote, $this> */
+    public function loteResultado(): BelongsTo
+    {
+        return $this->belongsTo(Lote::class, 'lote_resultado_id');
     }
 
     /** @return HasMany<ProcesoItem, $this> */

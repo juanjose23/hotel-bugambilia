@@ -47,6 +47,7 @@ export const reservasService = {
     async obtenerIntentoPago(payload: {
         reserva_id: number;
         codigo_reserva: string;
+        monto?: number;
     }): Promise<StripePaymentData> {
         const response = await fetch('/pagos/stripe/reservas/intento', {
             method: 'POST',

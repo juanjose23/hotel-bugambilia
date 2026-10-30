@@ -8,9 +8,9 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoCocina;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\HabitacionesEspacios\TipoServicioEspacio;
-use App\Models\Catalogos\Ubicacion;
-use App\Models\Espacios\Espacio;
-use App\Support\MonedaHelper;
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Espacios\Espacio;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -30,6 +30,13 @@ class EspacioForm
         return $schema
             ->columns(1)
             ->components([
+                Section::make('Abastecimiento de cocina y bar')
+                    ->description('Defina las bodegas del punto de venta. Las mesas pueden heredar las del espacio principal.')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('ubicacion_cocina_id')->label('Bodega de cocina')->options(fn (): array => Ubicacion::query()->where('estado', 1)->pluck('nombre', 'id')->all())->searchable(),
+                        Select::make('ubicacion_bar_id')->label('Bodega de bar')->options(fn (): array => Ubicacion::query()->where('estado', 1)->pluck('nombre', 'id')->all())->searchable(),
+                    ]),
                 Section::make('Información General')
                     ->columnSpanFull()
                     ->description('Datos principales para identificar y clasificar el espacio físico')

@@ -77,7 +77,7 @@ final class ObtenerTrazabilidadCompletaQuery
             ->leftJoin('proveedores as prov', 'cot.proveedor_id', '=', 'prov.id')
             ->select(
                 'cot.id',
-                DB::raw("coalesce(obtener_nombre_completo(prov.persona_id), 'Sin Proveedor') as proveedor_nombre"),
+                DB::raw("coalesce(obtener_nombre_completo(prov.persona_id::int), 'Sin Proveedor') as proveedor_nombre"),
                 'cot.total',
                 'cot.tiempo_entrega_dias',
                 'cot.es_elegida'
@@ -113,7 +113,7 @@ final class ObtenerTrazabilidadCompletaQuery
                 'oc.fecha_orden',
                 'oc.total',
                 'cp.nombre as condicion_pago',
-                DB::raw('obtener_nombre_completo(prov.persona_id) as proveedor_nombre')
+                DB::raw('obtener_nombre_completo(prov.persona_id::int) as proveedor_nombre')
             )
             ->where('oc.solicitud_id', $solicitud->id)
             ->whereNull('oc.deleted_at')

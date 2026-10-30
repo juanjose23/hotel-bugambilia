@@ -6,9 +6,9 @@ namespace App\Actions\Compras\Cotizaciones;
 
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerComparativaReporteQuery;
-use App\Support\HotelInfo;
-use App\Support\Pdf\Concerns\GuardaReporte;
-use App\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocumento;
 

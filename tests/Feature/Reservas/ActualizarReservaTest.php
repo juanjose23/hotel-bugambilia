@@ -551,7 +551,10 @@ test('persiste los acompañantes al editar', function (): void {
         'acompanantes' => $acompanantes,
     ]);
 
-    expect($actualizada->acompanantes)->toBe($acompanantes);
+    expect($actualizada->acompanantes)->toHaveCount(2)
+        ->and($actualizada->acompanantes[0])->toMatchArray($acompanantes[0])
+        ->and($actualizada->acompanantes[1])->toMatchArray($acompanantes[1])
+        ->and($actualizada->huespedes()->where('es_titular', false)->count())->toBe(2);
 });
 
 test('no genera conflicto al conservar sus propios espacios adicionales', function (): void {

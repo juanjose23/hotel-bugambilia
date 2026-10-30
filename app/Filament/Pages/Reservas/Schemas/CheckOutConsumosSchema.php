@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Pages\Reservas\Schemas;
 
 use App\Filament\Pages\Reservas\CheckOutPage;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;

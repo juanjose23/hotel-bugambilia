@@ -7,9 +7,11 @@ namespace App\Filament\Resources\Habitaciones\EspacioResource\Pages;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Filament\Resources\Habitaciones\EspacioResource\EspacioResource;
 use App\Interactors\Espacios\ValidarCapacidadMesas;
+use App\Interactors\Espacios\ValidarUbicacionEspacio;
 use App\Repository\Models\Espacios\Espacio;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 use OverflowException;
 
 class CreateEspacio extends CreateRecord
@@ -28,6 +30,12 @@ class CreateEspacio extends CreateRecord
         $tipo = $data['tipo'] ?? null;
         $padreIdRaw = $data['padre_id'] ?? null;
         $padreId = is_numeric($padreIdRaw) ? (int) $padreIdRaw : null;
+
+        try {
+            app(ValidarUbicacionEspacio::class)->ejecutar(null, $padreId);
+        } catch (\DomainException $e) {
+            throw ValidationException::withMessages(['data.padre_id' => $e->getMessage()]);
+        }
 
         if (($tipo === TipoEspacio::MESA->value || $tipo === TipoEspacio::MESA) && $padreId !== null) {
             $padre = Espacio::find($padreId);

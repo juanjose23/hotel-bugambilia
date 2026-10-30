@@ -1,16 +1,1 @@
-#!/usr/bin/env sh
-set -e
-
-HERD_PHP_DIR="/c/Users/jrios/.config/herd/bin/php84"
-if [ -d "$HERD_PHP_DIR" ]; then
-    export PATH="$HERD_PHP_DIR:$PATH"
-fi
-
-echo "[pre-commit] Verificando formato frontend..."
-npx prettier --check "resources/js/**/*.{ts,tsx}"
-
-echo "[pre-commit] Verificando tipos TypeScript..."
-npm run types:check
-
-echo "[pre-commit] Verificando estandar de codigo PHP con Pint..."
-vendor/bin/pint --test
+node scripts/project.mjs pre-commit

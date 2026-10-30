@@ -87,6 +87,7 @@ class EditReserva extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $record = $this->record;
+        $data['acompanantes'] = $record->acompanantes;
         $detalles = $record
             ->load(['detalles.reservable.servicio', 'detalles.reservable.espacio', 'detalles.reservable.habitacion'])
             ->detalles

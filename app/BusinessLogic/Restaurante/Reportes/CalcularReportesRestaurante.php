@@ -28,7 +28,8 @@ final class CalcularReportesRestaurante
     public function calcular(Collection $pedidos, Collection $pedidoItems): array
     {
         $totalPedidos = $pedidos->count();
-        $sumTotal = $pedidos->sum('subtotal');
+        $vigentes = $pedidos->filter(fn ($p): bool => ($p->estado instanceof EstadoPedido ? $p->estado->value : $p->estado) !== EstadoPedido::CANCELADO->value);
+        $sumTotal = $vigentes->sum('subtotal');
         $totalFacturado = is_numeric($sumTotal) ? (float) $sumTotal : 0.0;
 
         $pedidosPagados = $pedidos->filter(fn ($p) => ($p->estado instanceof EstadoPedido ? $p->estado->value : $p->estado) === EstadoPedido::PAGADO->value)->count();
@@ -47,10 +48,13 @@ final class CalcularReportesRestaurante
 
         /** @var array<int, array{plato: string, cantidad: float, total: float}> $topPlatos */
         $topPlatos = $pedidoItems
-            ->groupBy('plato_id')
+            ->groupBy(fn (stdClass $item): string => isset($item->plato_id) ? 'plato:'.$item->plato_id : (isset($item->producto_variante_id) ? 'variante:'.$item->producto_variante_id : 'producto:'.($item->producto_id ?? 'sin-identificar')))
             ->map(function (Collection $grupo): array {
                 $first = $grupo->first();
-                $nombre = is_object($first) && isset($first->plato_nombre) ? (string) $first->plato_nombre : 'Desconocido';
+                $nombre = is_object($first) && isset($first->plato_nombre) ? (string) $first->plato_nombre : (is_object($first) && isset($first->producto_nombre) ? (string) $first->producto_nombre : 'Articulo sin identificar');
+                if (is_object($first) && isset($first->variante_nombre) && $first->variante_nombre !== '') {
+                    $nombre .= ' / '.$first->variante_nombre;
+                }
 
                 $cantSum = $grupo->sum('cantidad');
                 $totSum = $grupo->sum('subtotal');

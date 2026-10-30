@@ -37,11 +37,12 @@ export const EstanciaActivaBanner = ({
 
                     <div>
                         <h3 className="text-xl font-black text-foreground sm:text-2xl">
-                            {reserva.recurso.nombre}
+                            {reserva.recurso?.nombre || 'Hospedaje'}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                            {reserva.recurso.categoria} · {reserva.noches} noche
-                            {reserva.noches > 1 ? 's' : ''} de confort y
+                            {reserva.recurso?.categoria || 'Estancia'} ·{' '}
+                            {reserva.noches || 1} noche
+                            {(reserva.noches || 1) > 1 ? 's' : ''} de confort y
                             descanso
                         </p>
                     </div>
