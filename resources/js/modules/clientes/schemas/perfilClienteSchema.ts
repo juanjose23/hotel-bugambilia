@@ -15,6 +15,7 @@ export const perfilClienteSchema = z
             data.identificacion.trim().length > 0
         ) {
             const regexCedula = /^\d{3}-?\d{6}-?\d{4}[A-Za-z]$/;
+
             if (!regexCedula.test(data.identificacion.trim())) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,

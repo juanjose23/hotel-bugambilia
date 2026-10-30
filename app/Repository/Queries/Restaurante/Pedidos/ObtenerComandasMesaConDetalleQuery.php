@@ -14,7 +14,7 @@ final class ObtenerComandasMesaConDetalleQuery
     public function ejecutar(int $mesaId): Collection
     {
         return Pedido::query()
-            ->with(['items.plato', 'mesa', 'cliente', 'mesero.persona', 'cuenta.pagos'])
+            ->with(['items.plato', 'items.producto', 'items.variante', 'mesa', 'cliente', 'mesero.persona', 'cuenta.pagos'])
             ->where('mesa_id', $mesaId)
             ->whereIn('estado', [
                 EstadoPedido::ABIERTO,

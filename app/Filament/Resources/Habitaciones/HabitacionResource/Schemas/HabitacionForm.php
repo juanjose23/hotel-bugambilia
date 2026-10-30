@@ -6,11 +6,13 @@ namespace App\Filament\Resources\Habitaciones\HabitacionResource\Schemas;
 
 use App\Enums\Catalogos\CatalogoTipo;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
+use App\Filament\Resources\Habitaciones\HabitacionResource\Pages\EditHabitacion;
 use App\Filament\Shared\Forms\CategoriaSelect;
 use App\Interactors\Habitaciones\GenerarCodigoHabitacion;
 use App\Interactors\Habitaciones\GenerarSlugHabitacion;
 use App\Repository\Models\Habitaciones\Habitacion;
-use App\Support\CachedOptions;
+use App\Repository\Queries\Habitaciones\ObtenerVistasHabitacionQuery;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
@@ -20,6 +22,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Livewire\Component;
 
 class HabitacionForm
 {
@@ -94,6 +97,17 @@ class HabitacionForm
                             ->prefixIcon(Heroicon::CheckCircle),
                     ]),
 
+                Section::make('Vistas de la habitación')
+                    ->columnSpanFull()
+                    ->schema([
+                        Select::make('vista_ids')->label('Vistas')->multiple()->searchable()->preload()
+                            ->options(fn (): array => app(ObtenerVistasHabitacionQuery::class)->opciones())
+                            ->default([])->dehydrated(false)
+                            ->afterStateHydrated(function (Select $component, ?Habitacion $record): void {
+                                $component->state($record?->vistas->modelKeys() ?? []);
+                            }),
+                    ]),
+
                 Section::make('Descripción Comercial')
                     ->columnSpanFull()
                     ->schema([
@@ -117,6 +131,12 @@ class HabitacionForm
                             ->directory('habitaciones/galeria')
                             ->maxFiles(8)
                             ->maxSize(4096)
+                            ->afterStateUpdated(function (mixed $state, mixed $old, Component $livewire): void {
+                                if ($livewire instanceof EditHabitacion
+                                    && array_values(is_array($state) ? $state : []) !== array_values(is_array($old) ? $old : [])) {
+                                    $livewire->marcarGaleriaEditada();
+                                }
+                            })
                             ->columnSpanFull()
                             ->afterStateHydrated(function (FileUpload $component, ?Habitacion $record) {
                                 if ($record) {

@@ -32,7 +32,7 @@ final readonly class ObtenerBeneficiosClienteElegiblesQuery
         }
 
         $beneficios = PromocionBeneficio::query()
-            ->with(['reglas', 'segmentoCliente'])
+            ->with(['promocion', 'reglas', 'segmentoCliente'])
             ->vigentes()
             ->where(fn ($query) => $query
                 ->whereNull('segmento_cliente_id')

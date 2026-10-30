@@ -16,21 +16,16 @@ use App\Repository\Queries\Inventario\Mermas\ObtenerMermasTotales;
 use App\Repository\Queries\Inventario\Stock\ObtenerStockPorProducto;
 use App\Repository\Queries\Inventario\Stock\ObtenerValorizacionInventario;
 use App\Repository\Queries\Shared\ObtenerMonedaBase;
-use App\Support\CachedOptions;
-use App\Support\ReporteConfig;
+use App\Support\Barcode\Support\CachedOptions;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use InvalidArgumentException;
 use UnitEnum;
 
 /**
@@ -38,7 +33,9 @@ use UnitEnum;
  */
 class ReportesInventario extends Page implements HasForms
 {
-    use HasPageShield, InteractsWithForms, ManejaPaginaReporte;
+    use HasPageShield, InteractsWithForms, ManejaPaginaReporte {
+        ManejaPaginaReporte::getForms insteadof InteractsWithForms;
+    }
 
     public function getModuloReportes(): string
     {
@@ -103,6 +100,8 @@ class ReportesInventario extends Page implements HasForms
             'fecha_desde' => now()->startOfMonth()->format('Y-m-d'),
             'fecha_hasta' => now()->format('Y-m-d'),
         ];
+
+        $this->reportForm->fill($this->reportData);
     }
 
     protected static ?string $slug = 'reportes-inventario';
@@ -117,158 +116,39 @@ class ReportesInventario extends Page implements HasForms
 
     protected static ?int $navigationSort = 99;
 
-    /** @return array<string, mixed> */
-    protected function getForms(): array
+    /** @return array<int, mixed> */
+    protected function getCamposFiltrosEspecificos(): array
     {
         return [
-            'reportForm' => $this->makeSchema()
-                ->schema([
-                    Select::make('reporte')
-                        ->label('Reporte Analítico')
-                        ->options(ReporteConfig::getSelectOptions('inventario'))
-                        ->required()
-                        ->live()
-                        ->native(false)
-                        ->searchable()
-                        ->placeholder('Selecciona un reporte de la lista...'),
+            ProductoSelect::make()
+                ->label('Filtrar por Producto (Opcional)')
+                ->placeholder('Todos los productos')
+                ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'], true)),
 
-                    TextEntry::make('reporte_descripcion')
-                        ->hiddenLabel()
-                        ->state(fn ($get) => ReporteConfig::getDescripcion('inventario', is_string($get('reporte')) ? $get('reporte') : '') ?? 'Seleccione un reporte de la lista para ver su descripción...')
-                        ->extraAttributes(['class' => 'text-sm text-gray-500 italic mt-1 dark:text-gray-400']),
+            Select::make('categoria_id')
+                ->label('Categoría (Opcional)')
+                ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CATEGORIA_PRODUCTO->value))
+                ->placeholder('Todas las categorías')
+                ->searchable()
+                ->native(false)
+                ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'stock_minimo', 'valorizacion'], true)),
 
-                    ProductoSelect::make()
-                        ->label('Filtrar por Producto (Opcional)')
-                        ->placeholder('Todos los productos')
-                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'], true)),
+            TextInput::make('dias')
+                ->label('Días de anticipación')
+                ->numeric()
+                ->default(30)
+                ->minValue(1)
+                ->required()
+                ->visible(fn ($get) => $get('reporte') === 'proximos_vencer'),
 
-                    Select::make('categoria_id')
-                        ->label('Categoría (Opcional)')
-                        ->options(fn () => CachedOptions::catalogos(CatalogoTipo::CATEGORIA_PRODUCTO->value))
-                        ->placeholder('Todas las categorías')
-                        ->searchable()
-                        ->native(false)
-                        ->visible(fn ($get) => in_array($get('reporte'), ['stock', 'stock_minimo', 'valorizacion'], true)),
-
-                    TextInput::make('dias')
-                        ->label('Días de anticipación')
-                        ->numeric()
-                        ->default(30)
-                        ->minValue(1)
-                        ->required()
-                        ->visible(fn ($get) => $get('reporte') === 'proximos_vencer'),
-
-                    TextInput::make('meses')
-                        ->label('Período de análisis (meses)')
-                        ->numeric()
-                        ->default(3)
-                        ->minValue(1)
-                        ->required()
-                        ->visible(fn ($get) => $get('reporte') === 'rotacion'),
-
-                    DatePicker::make('fecha_inicio')
-                        ->label('Fecha Inicio')
-                        ->default(now()->startOfMonth()->format('Y-m-d'))
-                        ->required()
-                        ->native(false),
-
-                    DatePicker::make('fecha_fin')
-                        ->label('Fecha Fin')
-                        ->default(now()->format('Y-m-d'))
-                        ->required()
-                        ->native(false),
-                ])
-                ->statePath('reportData'),
+            TextInput::make('meses')
+                ->label('Período de análisis (meses)')
+                ->numeric()
+                ->default(3)
+                ->minValue(1)
+                ->required()
+                ->visible(fn ($get) => $get('reporte') === 'rotacion'),
         ];
-    }
-
-    public function descargarReporte(): null
-    {
-        $data = $this->reportForm->getState();
-        $rawReporte = $data['reporte'] ?? null;
-        $reporte = is_string($rawReporte) ? $rawReporte : '';
-        if (! $reporte) {
-            return null;
-        }
-
-        $fechaInicio = $data['fecha_inicio'] ?? $data['fecha_desde'] ?? null;
-        $fechaFin = $data['fecha_fin'] ?? $data['fecha_hasta'] ?? null;
-
-        $params = [
-            'fecha_desde' => $fechaInicio,
-            'fecha_hasta' => $fechaFin,
-            'fecha_inicio' => $fechaInicio,
-            'fecha_fin' => $fechaFin,
-            'periodo_desde' => $fechaInicio,
-            'periodo_hasta' => $fechaFin,
-            'pageSize' => $this->pageSize,
-            'orientation' => $this->orientation,
-        ];
-
-        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'], true)) {
-            $params['producto_id'] = $data['producto_id'] ?? null;
-        }
-        if (in_array($reporte, ['stock', 'stock_minimo', 'valorizacion'], true)) {
-            $params['categoria_id'] = $data['categoria_id'] ?? null;
-        }
-        if ($reporte === 'proximos_vencer') {
-            $params['dias'] = $data['dias'] ?? 30;
-        }
-        if ($reporte === 'rotacion') {
-            $params['meses'] = $data['meses'] ?? 3;
-        }
-
-        $this->procesarDescargaReporte('inventario', $reporte, $params);
-
-        return null;
-    }
-
-    public function descargarExcel(): null
-    {
-        $data = $this->reportForm->getState();
-        $rawReporte = $data['reporte'] ?? null;
-        $reporte = is_string($rawReporte) ? $rawReporte : '';
-        if (! $reporte) {
-            return null;
-        }
-
-        $fechaInicio = $data['fecha_inicio'] ?? $data['fecha_desde'] ?? null;
-        $fechaFin = $data['fecha_fin'] ?? $data['fecha_hasta'] ?? null;
-
-        $params = [
-            'fecha_desde' => $fechaInicio,
-            'fecha_hasta' => $fechaFin,
-            'fecha_inicio' => $fechaInicio,
-            'fecha_fin' => $fechaFin,
-            'periodo_desde' => $fechaInicio,
-            'periodo_hasta' => $fechaFin,
-        ];
-
-        if (in_array($reporte, ['stock', 'movimientos', 'vencidos', 'proximos_vencer', 'cuarentena', 'ajustes'], true)) {
-            $params['producto_id'] = $data['producto_id'] ?? null;
-        }
-        if (in_array($reporte, ['stock', 'stock_minimo', 'valorizacion'], true)) {
-            $params['categoria_id'] = $data['categoria_id'] ?? null;
-        }
-        if ($reporte === 'proximos_vencer') {
-            $params['dias'] = $data['dias'] ?? 30;
-        }
-        if ($reporte === 'rotacion') {
-            $params['meses'] = $data['meses'] ?? 3;
-        }
-
-        try {
-            $url = ReporteConfig::getUrl('inventario', $reporte, $params, 'excel');
-            $this->dispatch('open-new-tab', url: $url);
-        } catch (InvalidArgumentException) {
-            Notification::make()
-                ->title('Reporte no disponible')
-                ->body('Este reporte no está disponible en formato Excel.')
-                ->warning()
-                ->send();
-        }
-
-        return null;
     }
 
     protected function getViewData(): array

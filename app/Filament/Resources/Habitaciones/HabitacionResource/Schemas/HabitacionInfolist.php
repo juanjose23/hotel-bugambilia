@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Habitaciones\HabitacionResource\Schemas;
 
 use App\Filament\Shared\Infolists\TimestampsInfolistEntry;
-use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Shared\Imagen;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -15,7 +14,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\Cache;
 
 class HabitacionInfolist
 {
@@ -147,33 +145,7 @@ class HabitacionInfolist
                 ->icon(Heroicon::Photo)
                 ->description('Vistas panorámicas disponibles.')
                 ->schema([
-                    TextEntry::make('detalle.vistas')
-                        ->hiddenLabel()
-                        ->badge()
-                        ->separator(', ')
-                        ->color('info')
-                        ->formatStateUsing(function (mixed $state): ?string {
-                            if (blank($state)) {
-                                return null;
-                            }
-                            $stateStr = is_scalar($state) ? (string) $state : '';
-                            $ids = is_array($state) ? $state : (array) json_decode($stateStr, true);
-                            $catalogos = Cache::remember(
-                                'catalogos_vistas',
-                                now()->addHour(),
-                                fn () => Catalogo::pluck('nombre', 'id')->toArray()
-                            );
-
-                            return collect($ids)
-                                ->map(function ($id) use ($catalogos) {
-                                    $intId = is_numeric($id) ? (int) $id : 0;
-
-                                    return $catalogos[$intId] ?? null;
-                                })
-                                ->filter()
-                                ->implode(', ');
-                        })
-                        ->placeholder('Sin vistas registradas'),
+                    TextEntry::make('vistas.nombre')->hiddenLabel()->badge()->color('info')->placeholder('Sin vistas registradas'),
                 ]),
 
             // 7. Auditoría y Control

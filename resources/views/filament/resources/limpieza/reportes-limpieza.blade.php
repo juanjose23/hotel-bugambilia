@@ -1,20 +1,9 @@
 <x-filament-panels::page>
-    @php
-        $reporteKey = $reportData['reporte'] ?? 'operacion_hotelera';
-        $reporteConfig = \App\Support\ReporteConfig::getReportes()['limpieza'][$reporteKey] ?? null;
-        $tituloReporte = $reporteConfig['titulo'] ?? 'Reporte de Limpieza y Operación Hotelera';
-        $codigoReporte = $reporteConfig['codigo'] ?? 'HTB-LIM-001';
-    @endphp
-
     <x-reportes.layout
-        titulo="Configuración del Informe"
+        modulo="limpieza"
         subtitulo="Seleccione el período operativo para analizar limpieza, habitaciones, amenidades y productividad"
-        modulo="Módulo de Limpieza & Lavandería"
         icon="heroicon-o-clipboard-document-check"
-        :codigo="$codigoReporte"
-        :tituloReporte="$tituloReporte"
         :reportData="$reportData"
-        :tieneExcel="false"
     >
         <x-slot:kpis>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

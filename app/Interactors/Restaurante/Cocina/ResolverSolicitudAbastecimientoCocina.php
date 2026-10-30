@@ -6,7 +6,6 @@ namespace App\Interactors\Restaurante\Cocina;
 
 use App\Enums\Compras\EstadoSolicitud;
 use App\Notifications\Compras\NotificadorCompras;
-use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Models\Compras\SolicitudItem;
 use App\Repository\Models\Shared\Stock;
@@ -21,12 +20,17 @@ final readonly class ResolverSolicitudAbastecimientoCocina
     public function __construct(
         private RestauranteRepositorioInterface $repositorio,
         private NotificadorCompras $notificadorCompras,
+        private TrasladarExistenciasCocina $trasladar,
     ) {}
 
     public function ejecutar(Solicitud $solicitud, ?int $usuarioId = null): Solicitud
     {
         return DB::transaction(function () use ($solicitud, $usuarioId): Solicitud {
-            $solicitud->loadMissing(['items.producto', 'items.variante.producto']);
+            $solicitud = $this->repositorio->solicitudConLock($solicitud->id);
+            if ($this->repositorio->solicitudYaAbastecida($solicitud->id)) {
+                throw new DomainException('La solicitud ya fue abastecida; no se puede repetir el despacho.');
+            }
+            $solicitud->load(['items.producto', 'items.variante.producto']);
 
             if ($solicitud->estado !== EstadoSolicitud::Aprobada) {
                 throw new DomainException('Solo se puede resolver inventario de una solicitud aprobada.');
@@ -137,39 +141,7 @@ final readonly class ResolverSolicitudAbastecimientoCocina
             $origenId = (int) $stockOrigen->stockable_id;
             $origen = $this->repositorio->obtenerUbicacionPorId($origenId);
             $origenNombre = $origen->nombre ?? "Bodega #{$origenId}";
-            $stockOrigen->cantidad_actual = (float) $stockOrigen->cantidad_actual - $cantidad;
-            $this->repositorio->guardarStock($stockOrigen);
-
-            $stockDestino = $this->repositorio->obtenerStockPorVariante($destinoId, $varianteId);
-            if (! $stockDestino instanceof Stock) {
-                $stockDestino = $this->repositorio->crearStock([
-                    'stockable_type' => Ubicacion::class,
-                    'stockable_id' => $destinoId,
-                    'producto_variante_id' => $varianteId,
-                    'lote_id' => $stockOrigen->lote_id,
-                    'cantidad_ideal' => 0,
-                    'cantidad_actual' => 0,
-                ]);
-            }
-
-            $stockDestino->cantidad_actual = (float) $stockDestino->cantidad_actual + $cantidad;
-            $this->repositorio->guardarStock($stockDestino);
-
-            $costoUnitario = $stockOrigen->lote?->costo_unitario;
-            $this->repositorio->registrarMovimiento([
-                'tipo' => 'TRASLADO',
-                'lote_id' => $stockOrigen->lote_id,
-                'producto_id' => $productoId,
-                'cantidad' => $cantidad,
-                'costo_unitario' => $costoUnitario,
-                'costo_total' => $costoUnitario !== null ? (float) $costoUnitario * $cantidad : null,
-                'ubicacion_origen_id' => $origenId,
-                'ubicacion_destino_id' => $destinoId,
-                'documento_tipo' => 'solicitud_abastecimiento_cocina',
-                'documento_id' => $solicitud->id,
-                'referencia' => "Resolución automática de solicitud {$solicitud->codigo} desde inventario interno",
-                'creado_por_id' => $usuarioId,
-            ]);
+            $this->trasladar->ejecutar($varianteId, $origenId, $destinoId, $cantidad, ['documento_tipo' => 'solicitud_abastecimiento_cocina', 'documento_id' => $solicitud->id, 'referencia' => 'Resolución de '.$solicitud->codigo, 'creado_por_id' => $usuarioId]);
 
             $pendiente -= $cantidad;
             $traslados[] = sprintf(

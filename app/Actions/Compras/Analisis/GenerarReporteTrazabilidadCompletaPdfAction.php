@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Actions\Compras\Analisis;
 
 use App\BusinessLogic\Compras\Data\Reportes\TrazabilidadCompletaReporteData;
-use App\Support\HotelInfo;
-use App\Support\Pdf\Concerns\GuardaReporte;
-use App\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocumento;
 

@@ -12,6 +12,7 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Enums\Restaurante\UbicacionCocina;
 use App\Repository\Models\Catalogos\Catalogo;
+use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
@@ -44,6 +45,24 @@ use Illuminate\Support\Collection;
 
 final class RestauranteRepositorio implements RestauranteRepositorioInterface
 {
+    public function __construct(private readonly ExistenciasCocinaRepositorio $existencias) {}
+
+    public function solicitudYaAbastecida(int $id): bool
+    {
+        return MovimientoStock::query()->where('documento_tipo', 'solicitud_abastecimiento_cocina')->where('documento_id', $id)->where('tipo', 'TRASLADO')->exists();
+    }
+
+    /** @return Collection<int, MovimientoStock> */
+    public function consumosDePartida(int $id): Collection
+    {
+        return MovimientoStock::query()->where('documento_tipo', 'pedido_item')->where('documento_id', $id)->where('tipo', 'CONSUMO')->orderBy('id')->get();
+    }
+
+    public function solicitudConLock(int $id): Solicitud
+    {
+        return Solicitud::query()->lockForUpdate()->findOrFail($id);
+    }
+
     // ============================================================
     // Lectura - Mesas / Espacios
     // ============================================================
@@ -88,7 +107,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     public function obtenerPedidoPorId(int $id): ?Pedido
     {
         /** @var Pedido|null $pedido */
-        $pedido = Pedido::query()->find($id);
+        $pedido = Pedido::query()->lockForUpdate()->find($id);
 
         return $pedido;
     }
@@ -197,15 +216,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
 
     public function obtenerStockConLote(int $ubicacionId, int $varianteId): ?Stock
     {
-        /** @var Stock|null $stock */
-        $stock = Stock::with('lote')
-            ->where('stockable_type', Ubicacion::class)
-            ->where('stockable_id', $ubicacionId)
-            ->where('producto_variante_id', $varianteId)
-            ->where('cantidad_actual', '>', 0)
-            ->first();
-
-        return $stock;
+        return $this->existencias->porVariante($varianteId, $ubicacionId)->first();
     }
 
     public function obtenerStockPorVariante(int $ubicacionId, int $varianteId): ?Stock
@@ -214,7 +225,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
         $stock = Stock::where('stockable_type', Ubicacion::class)
             ->where('stockable_id', $ubicacionId)
             ->where('producto_variante_id', $varianteId)
-            ->first();
+            ->orderBy('id')->lockForUpdate()->first();
 
         return $stock;
     }
@@ -267,6 +278,29 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
         $catalogo = (clone $consulta)->orderBy('orden')->first();
 
         return $catalogo;
+    }
+
+    public function obtenerOCrearCatalogoClienteRegular(): Catalogo
+    {
+        $existente = $this->obtenerCatalogoClienteRegular();
+
+        if ($existente instanceof Catalogo) {
+            return $existente;
+        }
+
+        $tipo = CatalogoTipo::query()->firstOrCreate(
+            ['codigo' => 'TIPO_CLIENTE'],
+            ['nombre' => 'Tipo de cliente', 'estado' => 1],
+        );
+
+        return Catalogo::query()->firstOrCreate(
+            ['codigo' => 'CLI_REGULAR'],
+            [
+                'catalogo_tipo_id' => $tipo->id,
+                'nombre' => 'Regular',
+                'estado' => 1,
+            ],
+        );
     }
 
     // ============================================================
@@ -697,7 +731,7 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
 
     public function obtenerVarianteConProducto(int $varianteId): ?ProductoVariante
     {
-        return ProductoVariante::query()->with('producto')->find($varianteId);
+        return ProductoVariante::query()->with(['producto.unidadMedida', 'unidadMedida'])->find($varianteId);
     }
 
     public function obtenerUsuarioPorId(int $usuarioId): ?User
@@ -729,13 +763,13 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     /** @return Collection<int, Stock> */
     public function obtenerStocksDisponiblesParaTraslado(int $varianteId, int $destinoId): Collection
     {
-        return Stock::query()
+        return $this->existencias->disponibles()
             ->with('lote')
             ->where('stockable_type', Ubicacion::class)
             ->where('stockable_id', '!=', $destinoId)
             ->where('producto_variante_id', $varianteId)
             ->where('cantidad_actual', '>', 0)
-            ->orderByDesc('cantidad_actual')
+            ->orderBy('id')
             ->lockForUpdate()
             ->get();
     }

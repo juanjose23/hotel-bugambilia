@@ -5,122 +5,42 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Cocina;
 
 use App\BusinessLogic\Restaurante\Cocina\CalcularCantidadIngredienteReceta;
-use App\BusinessLogic\Restaurante\Cocina\ValidarDisponibilidadIngredientes;
-use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Restaurante\PedidoItem;
-use App\Repository\Models\Restaurante\SustitucionIngrediente;
-use App\Repository\Models\Shared\Stock;
+use App\Repository\Persistencia\Restaurante\ExistenciasCocinaRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerIngredientesPedidoQuery;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerItemPedidoQuery;
+use DomainException;
+use Illuminate\Support\Facades\DB;
 
 final readonly class ConsumirIngredientesPedido
 {
-    public function __construct(
-        private ObtenerIngredientesPedidoQuery $ingredientesQuery,
-        private ValidarDisponibilidadIngredientes $validarDisponibilidad,
-        private CalcularCantidadIngredienteReceta $calcularCantidadIngrediente,
-        private RestauranteRepositorioInterface $repositorio,
-    ) {}
+    public function __construct(private ObtenerIngredientesPedidoQuery $ingredientesQuery, private CalcularCantidadIngredienteReceta $calcularCantidadIngrediente, private RestauranteRepositorioInterface $repositorio, private ExistenciasCocinaRepositorio $existencias, private ConsumirExistenciasCocina $consumir, private ObtenerItemPedidoQuery $items) {}
 
     public function ejecutar(PedidoItem $item): void
     {
-        $consumo = $this->ingredientesQuery->ejecutar($item);
-
-        if ($consumo === null) {
-            return;
-        }
-
-        foreach ($consumo['ingredientes'] as $ingrediente) {
-            $varianteId = $ingrediente->producto_variante_id;
-            $sustitucion = $this->sustitucionActiva($item, (int) $varianteId);
-            $varianteConsumoId = $sustitucion !== null ? (int) $sustitucion->variante_sustituta_id : (int) $varianteId;
-            $stock = $varianteConsumoId === (int) $varianteId
-                ? $consumo['stocks']->get($varianteId)
-                : $this->repositorio->obtenerStockPorVariante((int) $consumo['ubicacion_id'], $varianteConsumoId);
-            $requerido = $this->calcularCantidadIngrediente->ejecutar($ingrediente, $item);
-            $requerido = $sustitucion !== null ? (float) $sustitucion->cantidad_usada : $requerido;
-            $nombre = $sustitucion !== null
-                ? $this->nombreSustitucion($sustitucion)
-                : $this->nombreIngrediente($ingrediente);
-            $disponible = $stock instanceof Stock ? (float) $stock->cantidad_actual : 0.0;
-
-            $this->validarDisponibilidad->validar($requerido, $disponible, $nombre);
-        }
-
-        foreach ($consumo['ingredientes'] as $ingrediente) {
-            $sustitucion = $this->sustitucionActiva($item, (int) $ingrediente->producto_variante_id);
-            $varianteConsumoId = $sustitucion !== null ? (int) $sustitucion->variante_sustituta_id : (int) $ingrediente->producto_variante_id;
-            $stock = $varianteConsumoId === (int) $ingrediente->producto_variante_id
-                ? $consumo['stocks']->get($ingrediente->producto_variante_id)
-                : $this->repositorio->obtenerStockPorVariante((int) $consumo['ubicacion_id'], $varianteConsumoId);
-
-            if (! $stock instanceof Stock) {
-                continue;
+        DB::transaction(function () use ($item): void {
+            $item = $this->items->bloquear($item->id) ?? throw new DomainException('Partida no encontrada.');
+            if ($this->existencias->tieneConsumo($item->id)) {
+                return;
             }
-
-            $cantidad = $this->calcularCantidadIngrediente->ejecutar($ingrediente, $item);
-            $cantidad = $sustitucion !== null ? (float) $sustitucion->cantidad_usada : $cantidad;
-            $stock->cantidad_actual -= $cantidad;
-            $this->repositorio->guardarStock($stock);
-            $costoUnitario = $stock->lote?->costo_unitario;
-            $productoId = $sustitucion !== null ? $sustitucion->producto_sustituto_id : ($ingrediente->variante !== null ? $ingrediente->variante->producto_id : null);
-            $referencia = $sustitucion !== null
-                ? "Consumo de ingrediente sustituto para pedido #{$item->pedido_id}: {$this->nombreIngrediente($ingrediente)} -> {$this->nombreSustitucion($sustitucion)}"
-                : "Consumo de ingrediente para pedido #{$item->pedido_id}";
-
-            $this->repositorio->registrarMovimiento([
-                'tipo' => 'CONSUMO',
-                'lote_id' => $stock->lote_id,
-                'producto_id' => $productoId,
-                'cantidad' => -$cantidad,
-                'costo_unitario' => $costoUnitario,
-                'costo_total' => $costoUnitario !== null ? (float) $costoUnitario * $cantidad : null,
-                'ubicacion_origen_id' => $consumo['ubicacion_id'],
-                'documento_tipo' => 'pedido_item',
-                'documento_id' => $item->id,
-                'referencia' => $referencia,
-            ]);
-        }
-    }
-
-    private function nombreIngrediente(ProductoKit $ingrediente): string
-    {
-        $variante = $ingrediente->variante;
-        $producto = $variante?->producto;
-        $nombreProducto = is_string($producto?->nombre) && trim($producto->nombre) !== ''
-            ? trim($producto->nombre)
-            : null;
-        $nombreVariante = is_string($variante?->nombre_variante) && trim($variante->nombre_variante) !== ''
-            ? trim($variante->nombre_variante)
-            : null;
-
-        if ($nombreProducto !== null && $nombreVariante !== null) {
-            return "{$nombreProducto} - {$nombreVariante}";
-        }
-
-        return $nombreProducto ?? $nombreVariante ?? "variante {$ingrediente->producto_variante_id}";
-    }
-
-    private function sustitucionActiva(PedidoItem $item, int $varianteOriginalId): ?SustitucionIngrediente
-    {
-        return $this->repositorio->obtenerSustitucionActiva((int) $item->id, $varianteOriginalId);
-    }
-
-    private function nombreSustitucion(SustitucionIngrediente $sustitucion): string
-    {
-        $variante = $sustitucion->varianteSustituta;
-        $producto = $variante?->producto;
-        $nombreProducto = is_string($producto?->nombre) && trim($producto->nombre) !== ''
-            ? trim($producto->nombre)
-            : null;
-        $nombreVariante = is_string($variante?->nombre_variante) && trim($variante->nombre_variante) !== ''
-            ? trim($variante->nombre_variante)
-            : null;
-
-        if ($nombreProducto !== null && $nombreVariante !== null) {
-            return "{$nombreProducto} - {$nombreVariante}";
-        }
-
-        return $nombreProducto ?? $nombreVariante ?? "variante {$sustitucion->variante_sustituta_id}";
+            $consumo = $this->ingredientesQuery->ejecutar($item);
+            if ($consumo === null) {
+                return;
+            }
+            foreach ($consumo['ingredientes'] as $ingrediente) {
+                $varianteId = (int) $ingrediente->producto_variante_id;
+                $sustitucion = $this->repositorio->obtenerSustitucionActiva($item->id, $varianteId);
+                $varianteConsumoId = $sustitucion !== null ? (int) $sustitucion->variante_sustituta_id : $varianteId;
+                $cantidad = $sustitucion !== null ? (float) $sustitucion->cantidad_usada : $this->calcularCantidadIngrediente->ejecutar($ingrediente, $item);
+                $stocks = $this->existencias->porVariante($varianteConsumoId, (int) $consumo['ubicacion_id'], true);
+                $variante = $this->repositorio->obtenerVarianteConProducto($varianteConsumoId);
+                $nombre = trim(($variante->producto->nombre ?? 'Ingrediente').' - '.($variante->nombre_variante ?? ''));
+                if ($this->existencias->cantidad($stocks) + 0.00001 < $cantidad) {
+                    throw new DomainException('Stock insuficiente para '.$nombre);
+                }
+                $this->consumir->ejecutar($stocks, $cantidad, ['documento_tipo' => 'pedido_item', 'documento_id' => $item->id, 'referencia' => 'Consumo de '.$nombre.' para pedido #'.$item->pedido_id]);
+            }
+        });
     }
 }

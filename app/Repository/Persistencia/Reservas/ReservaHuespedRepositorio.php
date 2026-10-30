@@ -42,6 +42,7 @@ final readonly class ReservaHuespedRepositorio
             $tipoRaw = strtolower($this->aString($huesped['tipo'] ?? 'adulto', 'adulto'));
             $tipo = match ($tipoRaw) {
                 'nino', 'niño', 'child' => TipoHuesped::NINO,
+                'bebe', 'infante' => TipoHuesped::INFANTE,
                 default => TipoHuesped::ADULTO,
             };
 

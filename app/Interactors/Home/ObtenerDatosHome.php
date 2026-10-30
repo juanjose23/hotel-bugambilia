@@ -8,7 +8,7 @@ use App\Repository\Queries\Espacios\ObtenerEspaciosHomeQuery;
 use App\Repository\Queries\Habitaciones\ObtenerFiltrosHomeQuery;
 use App\Repository\Queries\Habitaciones\ObtenerHabitacionesHomeQuery;
 use App\Repository\Queries\Servicios\ObtenerServiciosHomeQuery;
-use App\Support\HotelInfo;
+use App\Support\Barcode\Support\HotelInfo;
 
 final class ObtenerDatosHome
 {

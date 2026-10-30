@@ -146,7 +146,7 @@ class ActivoFijoSeeder extends Seeder
                 $sol = Solicitud::create([
                     'codigo' => "SOL-{$f['cod']}",
                     'colaborador_id' => $colaborador->id,
-                    'departamento_solicitante_id' => 1,
+                    'departamento_solicitante_id' => Catalogo::query()->where('codigo', 'DEP_OPERACIONES')->sole()->id,
                     'fecha_solicitud' => now()->subDays($f['dias']),
                     'estado' => EstadoSolicitud::Aprobada,
                     'motivo' => "Equipamiento {$f['label']}",
@@ -266,6 +266,7 @@ class ActivoFijoSeeder extends Seeder
             } catch (\Throwable $e) {
                 $this->command->error("  Flujo {$f['label']}: ".$e->getMessage());
                 $this->command->error('  Line: '.$e->getLine().' File: '.$e->getFile());
+                throw $e;
             }
         }
 
@@ -324,6 +325,7 @@ class ActivoFijoSeeder extends Seeder
             }
         } catch (\Throwable $e) {
             $this->command->error('Error en asignaciones: '.$e->getMessage());
+            throw $e;
         }
 
         // ─── MANTENIMIENTOS DE MUESTRA ───
@@ -345,6 +347,7 @@ class ActivoFijoSeeder extends Seeder
             $this->command->info('Mantenimientos registrados.');
         } catch (\Throwable $e) {
             $this->command->error('Error en mantenimientos: '.$e->getMessage());
+            throw $e;
         }
     }
 

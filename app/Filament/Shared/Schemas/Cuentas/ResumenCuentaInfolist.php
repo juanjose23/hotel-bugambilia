@@ -6,7 +6,7 @@ namespace App\Filament\Shared\Schemas\Cuentas;
 
 use App\Presenters\Cuentas\ResumenCuentaPresenter;
 use App\Repository\Models\Cuentas\Cuenta;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Infolists\Components\TextEntry;
 use Illuminate\Support\HtmlString;
 

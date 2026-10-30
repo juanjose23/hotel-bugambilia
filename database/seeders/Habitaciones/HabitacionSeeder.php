@@ -13,6 +13,7 @@ use App\Enums\Reservas\TipoRecursoReservable;
 use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Habitaciones\GenerarCodigoHabitacion;
 use App\Interactors\Habitaciones\GenerarSlugHabitacion;
+use App\Interactors\Habitaciones\SincronizarVistasHabitacion;
 use App\Repository\Models\Activos\Activo;
 use App\Repository\Models\Activos\ActivoAsignacion;
 use App\Repository\Models\Catalogos\Catalogo;
@@ -303,9 +304,20 @@ class HabitacionSeeder extends Seeder
                     'capacidad_adultos' => $hData['adultos'],
                     'capacidad_ninos' => $hData['ninos'],
                     'medidas' => $hData['medidas'],
-                    'vistas' => $hData['vistas'],
                 ]
             );
+
+            $catalogosVistas = Catalogo::query()
+                ->whereHas('catalogoTipo', fn ($q) => $q->where('codigo', 'TIPO_VISTA'))->get()->keyBy('nombre');
+            $idsVistas = [];
+            foreach ($hData['vistas'] as $nombreVista) {
+                $vista = $catalogosVistas->get($nombreVista);
+                if ($vista === null) {
+                    throw new \RuntimeException('Falta una vista del catalogo de demostracion.');
+                }
+                $idsVistas[] = $vista->id;
+            }
+            app(SincronizarVistasHabitacion::class)->ejecutar($habitacion, $idsVistas);
 
             // 2. Políticas Asociadas
             if (! empty($politicas)) {

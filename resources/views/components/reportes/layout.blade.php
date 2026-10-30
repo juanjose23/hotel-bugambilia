@@ -11,64 +11,38 @@
 ])
 
 @php
+    $reporteKey = (string) ($reportData['reporte'] ?? '');
+    $configReportes = \App\Support\Barcode\Support\ReporteConfig::getReportes()[$modulo] ?? [];
+    $conf = $configReportes[$reporteKey] ?? null;
+
+    $codigo = $codigo ?? ($conf['codigo'] ?? null);
+    $tituloReporte = $tituloReporte ?? ($conf['titulo'] ?? ($reporteKey ?: 'Seleccione un reporte'));
+    $tieneExcel = $tieneExcel || \App\Support\Barcode\Support\ReporteConfig::tieneFormatoExcel($modulo, $reporteKey);
+
     $fechaInicio = $reportData['fecha_inicio'] ?? $reportData['fecha_desde'] ?? '-';
     $fechaFin = $reportData['fecha_fin'] ?? $reportData['fecha_hasta'] ?? '-';
 @endphp
 
 <div
     x-data="{
-        pendingTab: null,
-        isGenerating: false,
-        prepararPestana() {
-            if (this.isGenerating) return;
-            this.isGenerating = true;
-            setTimeout(() => { this.isGenerating = false; }, 30000);
-            try {
-                this.pendingTab = window.open('{{ route('admin.reportes.en-proceso', [], false) }}', '_blank');
-            } catch (e) {
-                this.pendingTab = null;
-            }
-        },
-        abrirReporte(url) {
-            this.isGenerating = false;
-            if (!url) {
-                if (this.pendingTab && !this.pendingTab.closed) {
-                    try { this.pendingTab.close(); } catch (e) {}
-                }
-                this.pendingTab = null;
-                return;
-            }
-            if (this.pendingTab && !this.pendingTab.closed) {
-                try {
-                    this.pendingTab.location.replace(url);
-                    this.pendingTab = null;
-                    return;
-                } catch (e) {
-                    try {
-                        this.pendingTab.location.href = url;
-                        this.pendingTab = null;
-                        return;
-                    } catch (e2) {}
-                }
-            }
-            try {
-                const win = window.open(url, '_blank');
-                if (!win || win.closed || typeof win.closed === 'undefined') {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => a.remove(), 200);
-                }
-            } catch (e) {
-                window.location.assign(url);
-            }
+        abrirReporte(rawUrl) {
+            if (!rawUrl) return;
+
+            const targetUrl = (typeof rawUrl === 'string' && (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')))
+                ? rawUrl
+                : window.location.origin + (typeof rawUrl === 'string' && rawUrl.startsWith('/') ? '' : '/') + rawUrl;
+
+            // Crear un enlace nativo y hacer click para abrir pestaña limpia (evita mini-popups en about:blank)
+            const a = document.createElement('a');
+            a.href = targetUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => a.remove(), 100);
         }
     }"
     x-on:open-new-tab.window="abrirReporte($event.detail?.url || $event.detail?.[0]?.url || (typeof $event.detail === 'string' ? $event.detail : null))"
-    x-on:close-pending-tab.window="isGenerating = false; if (pendingTab && !pendingTab.closed) { try { pendingTab.close(); } catch (e) {} } pendingTab = null;"
     class="w-full space-y-6 font-sans">
 
     {{-- Top Slot: 4 KPI Cards (Obligatorio en todo el proyecto) --}}
@@ -82,11 +56,13 @@
     <div class="reportes-grid">
 
         {{-- Columna Izquierda: Formulario de Configuración --}}
-        <div class="reportes-col-form rounded-3xl border border-gray-200/80 dark:border-gray-800/90 bg-white dark:bg-gray-900 p-6 sm:p-8 shadow-xl space-y-6">
-            
+        <div
+            class="reportes-col-form rounded-3xl border border-gray-200/80 dark:border-gray-800/90 bg-white dark:bg-gray-900 p-6 sm:p-8 shadow-xl space-y-6">
+
             <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
                 <div class="flex items-center gap-3">
-                    <div class="p-2.5 rounded-2xl bg-[#711C37]/10 text-[#711C37] dark:text-[#e87faa] ring-1 ring-[#711C37]/20">
+                    <div
+                        class="p-2.5 rounded-2xl bg-[#711C37]/10 text-[#711C37] dark:text-[#e87faa] ring-1 ring-[#711C37]/20">
                         <x-heroicon-o-adjustments-horizontal class="w-5 h-5" />
                     </div>
                     <div>
@@ -95,11 +71,37 @@
                     </div>
                 </div>
 
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     Listo para exportar
                 </span>
             </div>
+
+            @if(isset($this->reporteListoUrl) && $this->reporteListoUrl)
+                <div
+                    class="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in shadow-sm">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <div class="p-2.5 bg-emerald-500 text-white rounded-xl shadow-sm">
+                            <x-heroicon-s-document-check class="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-emerald-950 dark:text-emerald-100">¡Reporte generado con
+                                éxito!</h4>
+                            <p class="text-xs text-emerald-700 dark:text-emerald-300">{{ $this->reporteListoNombre ?? 'El documento está listo para consultar.' }}</p>
+                        </div>
+                    </div>
+                    <a
+                        href="{{ $this->reporteListoUrl }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        <x-heroicon-o-arrow-top-right-on-square class="w-4 h-4" />
+                        <span>Abrir Documento PDF</span>
+                    </a>
+                </div>
+            @endif
 
             <form wire:submit.prevent="{{ $onSubmit }}" class="space-y-6">
                 <div class="space-y-6">
@@ -107,7 +109,8 @@
                 </div>
 
                 {{-- Acciones de Generación (Botones con Color Corporativo Hotel Bugambilias #711C37) --}}
-                <div class="pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div
+                    class="pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                         <x-heroicon-o-shield-check class="w-4 h-4 text-emerald-500" />
                         <span>Documento oficial con firma y control HTB</span>
@@ -117,30 +120,34 @@
                         @if(isset($extraActions))
                             {{ $extraActions }}
                         @elseif($tieneExcel)
-                            <button 
-                                type="button" 
-                                x-on:click="prepararPestana()"
+                            <button
+                                type="button"
                                 wire:click="descargarExcel"
-                                x-bind:disabled="isGenerating"
                                 wire:loading.attr="disabled"
+                                wire:target="descargarExcel"
                                 class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-5 rounded-2xl shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                             >
-                                <x-heroicon-o-table-cells class="w-4 h-4" />
-                                <span>Exportar Excel</span>
+                                <x-heroicon-o-table-cells class="w-4 h-4" wire:loading.remove
+                                                          wire:target="descargarExcel" />
+                                <x-heroicon-o-arrow-path class="w-4 h-4 animate-spin" wire:loading
+                                                         wire:target="descargarExcel" />
+                                <span wire:loading.remove wire:target="descargarExcel">Exportar Excel</span>
+                                <span wire:loading wire:target="descargarExcel">Exportando...</span>
                             </button>
                         @endif
 
-                        <button 
-                            type="submit" 
-                            x-on:click="prepararPestana()"
-                            x-bind:disabled="isGenerating"
+                        <button
+                            type="submit"
                             wire:loading.attr="disabled"
+                            wire:target="{{ $onSubmit }}"
                             class="w-full sm:w-auto bg-[#711C37] hover:bg-[#59162b] text-white font-bold py-3.5 px-7 rounded-2xl shadow-lg shadow-[#711C37]/30 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                         >
-                            <x-heroicon-o-arrow-down-tray class="w-4 h-4 animate-bounce" wire:loading.remove x-show="!isGenerating" />
-                            <x-heroicon-o-arrow-path class="w-4 h-4 animate-spin" wire:loading x-show="isGenerating" x-cloak />
-                            <span wire:loading.remove x-show="!isGenerating">Generar y Descargar PDF</span>
-                            <span wire:loading x-show="isGenerating">Procesando...</span>
+                            <x-heroicon-o-arrow-down-tray class="w-4 h-4" wire:loading.remove
+                                                          wire:target="{{ $onSubmit }}" />
+                            <x-heroicon-o-arrow-path class="w-4 h-4 animate-spin" wire:loading
+                                                     wire:target="{{ $onSubmit }}" />
+                            <span wire:loading.remove wire:target="{{ $onSubmit }}">Generar y Descargar PDF</span>
+                            <span wire:loading wire:target="{{ $onSubmit }}">Generando documento...</span>
                         </button>
                     </div>
                 </div>
@@ -158,7 +165,8 @@
             @endif
 
             {{-- Tarjeta de Resumen de Parámetros (Corporativa Hotel Bugambilias) --}}
-            <div class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white/95 dark:bg-gray-900 p-6 shadow-xl relative overflow-hidden">
+            <div
+                class="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white/95 dark:bg-gray-900 p-6 shadow-xl relative overflow-hidden">
                 <div class="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
                     <div class="flex items-center gap-2.5">
                         <div class="p-2 bg-[#711C37]/10 text-[#711C37] dark:text-[#e87faa] rounded-xl">
@@ -168,39 +176,47 @@
                     </div>
 
                     @if($codigo)
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#711C37]/10 text-[#711C37] dark:text-[#e87faa] border border-[#711C37]/20">
+                        <span
+                            class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#711C37]/10 text-[#711C37] dark:text-[#e87faa] border border-[#711C37]/20">
                             {{ $codigo }}
                         </span>
                     @endif
                 </div>
 
                 <div class="space-y-3.5 text-xs">
-                    <div class="flex justify-between items-start py-1.5 border-b border-gray-100 dark:border-gray-800/80 gap-3">
+                    <div
+                        class="flex justify-between items-start py-1.5 border-b border-gray-100 dark:border-gray-800/80 gap-3">
                         <span class="text-gray-500 dark:text-gray-400 shrink-0">Reporte:</span>
                         <span class="font-bold text-[#711C37] dark:text-[#e87faa] text-right">
                             {{ $tituloReporte ?? 'Seleccione un reporte' }}
                         </span>
                     </div>
 
-                    <div class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-gray-800/80">
+                    <div
+                        class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-gray-800/80">
                         <span class="text-gray-500 dark:text-gray-400">Fecha Inicio:</span>
-                        <span class="font-mono font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-lg">{{ $fechaInicio }}</span>
+                        <span
+                            class="font-mono font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-lg">{{ $fechaInicio }}</span>
                     </div>
 
-                    <div class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-gray-800/80">
+                    <div
+                        class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-gray-800/80">
                         <span class="text-gray-500 dark:text-gray-400">Fecha Fin:</span>
-                        <span class="font-mono font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-lg">{{ $fechaFin }}</span>
+                        <span
+                            class="font-mono font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-lg">{{ $fechaFin }}</span>
                     </div>
 
                     <div class="flex justify-between items-center py-1.5">
                         <span class="text-gray-500 dark:text-gray-400">Formato de Salida:</span>
                         <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#711C37]/10 text-[#711C37] dark:text-[#e87faa] font-bold border border-[#711C37]/20 text-[10px]">
+                            <span
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#711C37]/10 text-[#711C37] dark:text-[#e87faa] font-bold border border-[#711C37]/20 text-[10px]">
                                 <x-heroicon-o-document-text class="w-3.5 h-3.5" />
                                 PDF Document
                             </span>
                             @if($tieneExcel)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[10px]">
+                                <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[10px]">
                                     <x-heroicon-o-table-cells class="w-3.5 h-3.5" />
                                     Excel
                                 </span>

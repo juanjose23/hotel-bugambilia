@@ -7,7 +7,7 @@ namespace App\BusinessLogic\CheckOut;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Queries\Cuentas\ObtenerSaldoPendienteReservaQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 
 final class ValidarRequisitosCheckOut

@@ -21,6 +21,7 @@ final class ObtenerDetalleReservaPortal
     {
         /** @var Reserva|null $reserva */
         $reserva = Reserva::with([
+            'huespedes',
             'habitacion.categoria',
             'habitacion.imagenes',
             'habitacion.servicioAsignaciones.servicio',
@@ -30,6 +31,7 @@ final class ObtenerDetalleReservaPortal
             'cuentas.cargos.moneda',
             'cuentas.pagos.moneda',
             'detalles.huespedes',
+            'detalles.reservable.habitacion',
         ])->find($reservaId);
 
         if ($reserva === null) {
@@ -51,6 +53,11 @@ final class ObtenerDetalleReservaPortal
         $hab = $reserva->habitacion;
         /** @var Cuenta|null $cuentaPrincipal */
         $cuentaPrincipal = $reserva->cuentas->first();
+
+        $destinos = $reserva->detalles->filter(fn ($d): bool => $d->reservable?->habitacion !== null);
+        if ($destinos->isEmpty()) {
+            $destinos = $reserva->detalles;
+        }
 
         return [
             'id' => $reserva->id,
@@ -88,7 +95,8 @@ final class ObtenerDetalleReservaPortal
                     'nombre' => $sa->servicio !== null ? (string) $sa->servicio->nombre : null,
                 ])->filter(fn ($s) => $s['id'] !== null)->values()->all() : [],
             ],
-            'acompanantes' => is_array($reserva->acompanantes) ? $reserva->acompanantes : [],
+            'alojamientos' => $destinos->map(fn ($d): array => ['id' => $d->id, 'nombre' => (string) ($d->reservable->nombre ?? '')])->values()->all(),
+            'acompanantes' => $reserva->acompanantes,
             'cuenta' => $cuentaPrincipal !== null ? [
                 'id' => $cuentaPrincipal->id,
                 'numero_cuenta' => $cuentaPrincipal->numero_cuenta,
@@ -123,7 +131,10 @@ final class ObtenerDetalleReservaPortal
                 'reserva' => $reserva->id,
                 'codigo' => $reserva->codigo_reserva,
             ]),
-            'url_pago_saldo' => $reserva->saldo > 0 ? route('reservas.pago', ['reserva' => $reserva->id]) : null,
+            'url_pago_saldo' => $reserva->saldo > 0 ? route('reservas.pago', [
+                'reserva' => $reserva->id,
+                'codigo' => $reserva->codigo_reserva,
+            ]) : null,
         ];
     }
 }

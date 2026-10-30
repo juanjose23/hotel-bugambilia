@@ -125,3 +125,6 @@ $registerScheduledEvent(new LimpiarReservacionesNoConfirmadasJob, 'jobs.reservas
 
 // 11. Notificar check-outs próximos a vencer
 $registerScheduledEvent(new NotificarCheckOutsProximosJob, 'jobs.reservas_checkouts_proximos', 'everyfifteenminutes', $timezoneStr);
+
+// 12. Limpiar reportes temporales expirados en storage/app/temp-reportes
+$registerScheduledEvent('reportes:limpiar-temporales', 'jobs.reportes_limpiar_temporales', 'hourly', $timezoneStr);

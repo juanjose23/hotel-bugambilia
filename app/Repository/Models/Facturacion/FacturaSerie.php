@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository\Models\Facturacion;
 
+use App\Repository\Models\Tesoreria\Caja;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
@@ -29,6 +31,12 @@ final class FacturaSerie extends Model implements AuditableContract
             'activa' => 'boolean',
             'siguiente_numero' => 'integer',
         ];
+    }
+
+    /** @return BelongsTo<Caja, $this> */
+    public function caja(): BelongsTo
+    {
+        return $this->belongsTo(Caja::class);
     }
 
     /** @return HasMany<FacturaAutorizacionDgi, $this> */

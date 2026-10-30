@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository\Policies\Reservas;
 
+use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Reservas\Reserva;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
@@ -70,5 +71,26 @@ class ReservaPolicy
     public function reorder(AuthUser $authUser): bool
     {
         return $authUser->can('Reorder:Reserva');
+    }
+
+    public function cancel(AuthUser $authUser, Reserva $reserva): bool
+    {
+        if ($authUser->can('Update:Reserva') || $authUser->can('Delete:Reserva')) {
+            return true;
+        }
+
+        $personaId = (int) $authUser->persona_id;
+
+        if ($personaId > 0) {
+            $clienteId = Cliente::query()->where('persona_id', $personaId)->value('id');
+
+            if (is_numeric($clienteId) && (int) $clienteId === (int) $reserva->cliente_id) {
+                return true;
+            }
+        }
+
+        return is_string($authUser->email)
+            && trim($authUser->email) !== ''
+            && $authUser->email === $reserva->email_cliente;
     }
 }

@@ -8,6 +8,7 @@ import {
     BedDouble,
     Sparkles,
     Clock,
+    CreditCard,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/modules/shared/components/ui/button';
 import type { PortalReservaResumen } from '../../types';
@@ -21,14 +22,24 @@ export const PortalReservaItem = ({
     reserva,
     onCancelar,
 }: PortalReservaItemProps) => {
+    const categoriaLower = reserva.recurso?.categoria?.toLowerCase() || '';
     const esRestaurante =
-        reserva.es_restaurante ||
+        Boolean(reserva.es_restaurante) ||
         reserva.tipo_reserva === 'restaurante' ||
-        reserva.recurso.categoria.toLowerCase().includes('mesa') ||
-        reserva.recurso.categoria.toLowerCase().includes('restaurante');
+        categoriaLower.includes('mesa') ||
+        categoriaLower.includes('restaurante');
 
     const esServicio =
-        reserva.es_servicio || reserva.tipo_reserva === 'servicio';
+        Boolean(reserva.es_servicio) || reserva.tipo_reserva === 'servicio';
+
+    const recursoNombre = reserva.recurso?.nombre || 'Hospedaje';
+    const recursoCategoria =
+        reserva.recurso?.categoria || (esRestaurante ? 'Mesa' : 'Suite');
+    const monedaSimbolo = reserva.moneda_simbolo || '$';
+    const totalNum = Number(reserva.total || 0);
+    const saldoNum = Number(reserva.saldo || 0);
+    const nochesNum = Number(reserva.noches || 1);
+    const estadoLabel = reserva.estado_label || 'Confirmada';
 
     const resolverBadgeTipo = () => {
         if (esRestaurante) {
@@ -58,7 +69,7 @@ export const PortalReservaItem = ({
     };
 
     const resolverBadgeEstado = () => {
-        const est = reserva.estado_label.toLowerCase();
+        const est = estadoLabel.toLowerCase();
 
         if (est.includes('confirmada')) {
             return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
@@ -87,7 +98,7 @@ export const PortalReservaItem = ({
                     <span
                         className={`rounded-full border px-2.5 py-0.5 text-xs font-bold ${resolverBadgeEstado()}`}
                     >
-                        {reserva.estado_label}
+                        {estadoLabel}
                     </span>
                 </div>
 
@@ -96,8 +107,8 @@ export const PortalReservaItem = ({
                         {esRestaurante ? 'Total Reserva' : 'Total Estancia'}
                     </span>
                     <span className="text-lg font-black text-foreground">
-                        {reserva.moneda_simbolo}
-                        {reserva.total.toFixed(2)}
+                        {monedaSimbolo}
+                        {totalNum.toFixed(2)}
                     </span>
                 </div>
             </div>
@@ -111,10 +122,10 @@ export const PortalReservaItem = ({
                             : 'Habitación / Suite'}
                     </span>
                     <h4 className="mt-0.5 font-bold text-foreground">
-                        {reserva.recurso.nombre}
+                        {recursoNombre}
                     </h4>
                     <span className="text-xs text-muted-foreground">
-                        {reserva.recurso.categoria}
+                        {recursoCategoria}
                     </span>
                 </div>
 
@@ -141,8 +152,7 @@ export const PortalReservaItem = ({
                     )}
                     {!esRestaurante && (
                         <span className="text-xs text-muted-foreground">
-                            {reserva.noches} noche
-                            {reserva.noches > 1 ? 's' : ''}
+                            {nochesNum} noche{nochesNum > 1 ? 's' : ''}
                         </span>
                     )}
                 </div>
@@ -163,10 +173,10 @@ export const PortalReservaItem = ({
                                 : ''}
                         </span>
                     </div>
-                    {reserva.saldo > 0 ? (
+                    {saldoNum > 0 ? (
                         <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                            Saldo pendiente: {reserva.moneda_simbolo}
-                            {reserva.saldo.toFixed(2)}
+                            Saldo pendiente: {monedaSimbolo}
+                            {saldoNum.toFixed(2)}
                         </span>
                     ) : (
                         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -235,6 +245,22 @@ export const PortalReservaItem = ({
                         >
                             Cancelar
                         </Button>
+                    )}
+                    {saldoNum > 0 && reserva.url_pago_saldo && (
+                        <Link
+                            href={reserva.url_pago_saldo}
+                            className={buttonVariants({
+                                size: 'sm',
+                                className:
+                                    'gap-1.5 rounded-xl bg-emerald-600 font-bold text-white shadow-xs hover:bg-emerald-700',
+                            })}
+                        >
+                            <CreditCard className="size-3.5" />
+                            <span>
+                                Pagar Saldo ({monedaSimbolo}
+                                {saldoNum.toFixed(2)})
+                            </span>
+                        </Link>
                     )}
                     <Link
                         href={`/portal/reservas/${reserva.id}`}

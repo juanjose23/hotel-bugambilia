@@ -42,6 +42,7 @@ final readonly class ProcesarCobroCuenta
     public function ejecutar(Cuenta $cuenta, ?int $usuarioId, array $data): array
     {
         return DB::transaction(function () use ($cuenta, $usuarioId, $data): array {
+            $cuenta = $this->cuentas->bloquear((int) $cuenta->id);
             $cuenta = $this->asignarCliente($cuenta, $data);
             $this->aplicarBeneficioCliente->aplicar($cuenta, $usuarioId);
             $cuenta = $this->cuentas->refrescar($cuenta);
@@ -55,7 +56,12 @@ final readonly class ProcesarCobroCuenta
                 : null;
 
             $montoRaw = $data['monto'] ?? 0;
-            $montoNIO = $this->convertirMoneda->aBase(is_numeric($montoRaw) ? (float) $montoRaw : 0.0, $monedaId);
+            if (config('tesoreria.habilitado') && $metodoPago === MetodoPago::EFECTIVO && $monedaId !== null && $monedaId !== $cuenta->moneda_id) {
+                throw new \DomainException('Para este turno cobra en la moneda de la cuenta.');
+            }
+            $montoNIO = config('tesoreria.habilitado') && $metodoPago === MetodoPago::EFECTIVO
+                ? (is_numeric($montoRaw) ? (float) $montoRaw : 0.0)
+                : $this->convertirMoneda->aBase(is_numeric($montoRaw) ? (float) $montoRaw : 0.0, $monedaId);
 
             $propinaRaw = isset($data['propina']) && is_numeric($data['propina'])
                 ? (float) $data['propina']
@@ -103,6 +109,8 @@ final readonly class ProcesarCobroCuenta
 
                 $datosFiscales = [
                     'tipo_comprobante' => is_string($tipoComprobante) ? $tipoComprobante : 'voucher',
+                    'emitir_factura' => $tipoComprobante === 'factura',
+                    'factura_serie_id' => is_numeric($data['factura_serie_id'] ?? null) ? (int) $data['factura_serie_id'] : null,
                     'ruc' => $ruc,
                     'razon_social' => $razonSocial,
                     'fecha_emision' => now()->toIso8601String(),

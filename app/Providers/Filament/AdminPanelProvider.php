@@ -7,6 +7,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Limpieza\ReportesLimpieza;
 use App\Filament\Pages\Reportes\TableroInteligenciaNegocio;
+use App\Filament\Support\Guias\CatalogoGuiasOperativas;
 use App\Http\Middleware\RequerirAdmin;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Enums\ThemeMode;
@@ -17,8 +18,10 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -42,6 +45,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\Filament\Clusters')
+            ->authenticatedRoutes(fn () => require base_path('routes/admin/facturacion-compat.php'))
+            ->renderHook(PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
+                fn (array $scopes): View => view('filament.guias.boton', [
+                    'guia' => app(CatalogoGuiasOperativas::class)->paraPagina(array_values(array_filter($scopes, 'is_string'))),
+                ]))
+            ->renderHook(PanelsRenderHook::SCRIPTS_AFTER,
+                fn (): View => view('filament.guias.assets'))
             ->unsavedChangesAlerts()
             ->databaseTransactions()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])

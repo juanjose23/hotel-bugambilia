@@ -11,6 +11,6 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::prefix('servicios/reportes')->name('servicios.reportes.')->group(function () {
-    Route::get('/historico-precios/pdf', [ServicioReportController::class, 'historicoPreciosPdf'])->middleware('can:Servicios:ReporteHistoricoPrecios')->name('historico-precios.pdf');
-    Route::get('/historico-precios/excel', [ServicioReportController::class, 'historicoPreciosExcel'])->middleware('can:Servicios:ReporteHistoricoPrecios')->name('historico-precios.excel');
+    Route::get('/historico-precios/pdf', [ServicioReportController::class, 'historicoPreciosPdf'])->name('historico-precios.pdf');
+    Route::get('/historico-precios/excel', [ServicioReportController::class, 'historicoPreciosExcel'])->name('historico-precios.excel');
 });

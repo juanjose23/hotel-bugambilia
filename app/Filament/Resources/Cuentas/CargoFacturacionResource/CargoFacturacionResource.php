@@ -8,6 +8,7 @@ use App\Enums\Cuentas\BaseCalculo;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Cuentas\TipoCargo;
 use App\Enums\Shared\EstadoGeneral;
+use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
 use App\Repository\Models\Cuentas\CargoFacturacion;
@@ -29,11 +30,13 @@ use UnitEnum;
 
 final class CargoFacturacionResource extends Resource
 {
+    protected static ?string $cluster = FacturacionConfigCluster::class;
+
     protected static ?string $model = CargoFacturacion::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ReceiptPercent;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración fiscal';
 
     protected static ?string $navigationLabel = 'Cargos de Facturación';
 
@@ -41,7 +44,7 @@ final class CargoFacturacionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Cargos de Facturación';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 43;
 
     protected static ?string $slug = 'cargos-facturacion';
 

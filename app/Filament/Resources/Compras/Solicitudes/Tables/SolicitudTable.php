@@ -129,7 +129,7 @@ readonly class SolicitudTable
                         ->label('Imprimir')
                         ->icon(Heroicon::Printer)
                         ->color('gray')
-                        ->url(fn (Solicitud $record) => route('admin.compras.reportes.solicitud', $record))
+                        ->url(fn (Solicitud $record) => route('admin.compras.reportes.solicitud', ['solicitud' => $record->codigo]))
                         ->openUrlInNewTab()
                         ->visible(fn () => auth()->user()?->can('Compras:ImprimirSolicitud') ?? false),
 

@@ -4,16 +4,38 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Database\Seeders\DuskSeeder;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverPlatform;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Laravel\Dusk\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\BeforeClass;
+use Tests\Support\EnsureIsolatedDatabase;
 
 abstract class DuskTestCase extends BaseTestCase
 {
+    protected string $seeder = DuskSeeder::class;
+
+    protected function tearDown(): void
+    {
+        try {
+            static::closeAll();
+        } finally {
+            parent::tearDown();
+        }
+    }
+
+    public function createApplication(): Application
+    {
+        $app = parent::createApplication();
+        EnsureIsolatedDatabase::check($app, true);
+
+        return $app;
+    }
+
     /**
      * Prepare for Dusk test execution.
      */
@@ -52,10 +74,7 @@ abstract class DuskTestCase extends BaseTestCase
      */
     protected static function usingSeleniumGrid(): bool
     {
-        return isset($_ENV['BROWSER'])
-            || isset($_ENV['DUSK_DRIVER_URL'])
-            || getenv('BROWSER') !== false
-            || getenv('DUSK_DRIVER_URL') !== false;
+        return (string) ($_ENV['DUSK_DRIVER_URL'] ?? getenv('DUSK_DRIVER_URL') ?: '') !== '';
     }
 
     /**

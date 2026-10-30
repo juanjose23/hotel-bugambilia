@@ -13,7 +13,7 @@ use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Queries\Monedas\ObtenerMonedaPorIdQuery;
 use App\Repository\Queries\Monedas\ObtenerTasaCambioQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 
 /**
  * Orquesta el cobro completo de una cuenta: calcula el vuelto, registra el

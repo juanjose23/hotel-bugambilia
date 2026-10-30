@@ -10,6 +10,7 @@ import {
     Hotel,
 } from 'lucide-react';
 import { useState } from 'react';
+import { AddOnToStay } from '@/modules/shared/components/booking/AddOnToStay';
 import { Button } from '@/modules/shared/components/ui/button';
 
 export interface DetalleItemReserva {
@@ -29,6 +30,10 @@ export interface ReservaConfirmadaProps {
     textoRetorno?: string;
     variante?: 'pagina' | 'modal';
     alCerrar?: () => void;
+    checkInDate?: string;
+    checkOutDate?: string;
+    guestCount?: number;
+    mostrarAdicionales?: boolean;
 }
 
 export const ReservaConfirmada = ({
@@ -43,6 +48,10 @@ export const ReservaConfirmada = ({
     textoRetorno = 'Volver al Inicio',
     variante = 'pagina',
     alCerrar,
+    checkInDate,
+    checkOutDate,
+    guestCount = 2,
+    mostrarAdicionales = true,
 }: ReservaConfirmadaProps) => {
     const [copiado, setCopiado] = useState(false);
 
@@ -64,10 +73,10 @@ export const ReservaConfirmada = ({
 
     return (
         <div
-            className={`text-center font-sans ${
+            className={`font-sans ${
                 esModal
                     ? 'animate-in fade-in zoom-in-95 flex grow flex-col items-center justify-center p-4 duration-300'
-                    : 'animate-in fade-in zoom-in-95 mx-auto max-w-xl space-y-6 rounded-3xl border border-border/80 bg-card p-6 shadow-xl duration-300 sm:p-8'
+                    : 'animate-in fade-in zoom-in-95 mx-auto max-w-2xl space-y-6 rounded-3xl border border-border/80 bg-card p-6 shadow-xl duration-300 sm:p-8'
             }`}
         >
             {/* Ícono de Éxito */}
@@ -75,7 +84,7 @@ export const ReservaConfirmada = ({
                 <CheckCircle2 className="size-9" />
             </div>
 
-            <div>
+            <div className="text-center">
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-black tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
                     <ShieldCheck className="size-3.5" />
                     <span>Confirmación Garantizada</span>
@@ -142,7 +151,7 @@ export const ReservaConfirmada = ({
             )}
 
             {/* Botones de Acción */}
-            <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row">
+            <div className="flex w-full flex-col gap-3 sm:flex-row">
                 {voucherUrlFinal && (
                     <a
                         href={voucherUrlFinal}
@@ -190,6 +199,17 @@ export const ReservaConfirmada = ({
                     </Link>
                 )}
             </div>
+
+            {/* "Completa tu estancia": Restaurante, Spa, Traslado */}
+            {mostrarAdicionales && (
+                <div className="mt-8 border-t border-border/80 pt-6 text-left">
+                    <AddOnToStay
+                        checkInDate={checkInDate}
+                        checkOutDate={checkOutDate}
+                        guestCount={guestCount}
+                    />
+                </div>
+            )}
         </div>
     );
 };

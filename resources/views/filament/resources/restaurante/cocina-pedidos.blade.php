@@ -23,27 +23,19 @@
 
             <div class="flex flex-wrap items-center gap-2.5">
                 {{-- Filtro de Áreas de Cocina --}}
-                <div class="inline-flex items-center p-1 rounded-2xl bg-gray-100 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 text-xs font-medium">
+                <div data-guia="comandas-areas" class="inline-flex max-w-full flex-wrap items-center gap-1 p-1 rounded-2xl bg-gray-100 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 text-xs font-medium">
                     <button type="button" wire:click="$set('areaSeleccionada', null)"
                         class="px-3 py-1.5 rounded-xl transition font-semibold {{ $areaSeleccionada === null ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white' }}">
                         Todas
                     </button>
-                    <button type="button" wire:click="$set('areaSeleccionada', 'cocina')"
-                        class="px-3 py-1.5 rounded-xl transition font-semibold {{ $areaSeleccionada === 'cocina' ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white' }}">
-                        Cocina
-                    </button>
-                    <button type="button" wire:click="$set('areaSeleccionada', 'postres')"
-                        class="px-3 py-1.5 rounded-xl transition font-semibold {{ $areaSeleccionada === 'postres' ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white' }}">
-                        Postres
-                    </button>
-                    <button type="button" wire:click="$set('areaSeleccionada', 'bar')"
-                        class="px-3 py-1.5 rounded-xl transition font-semibold {{ $areaSeleccionada === 'bar' ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white' }}">
-                        Barra
-                    </button>
-                    <button type="button" wire:click="$set('areaSeleccionada', 'parrilla')"
-                        class="px-3 py-1.5 rounded-xl transition font-semibold {{ $areaSeleccionada === 'parrilla' ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white' }}">
-                        Parrilla
-                    </button>
+                    @foreach(\App\Enums\Restaurante\AreaCocina::cases() as $area)
+                        <button type="button" wire:key="filtro-area-{{ $area->value }}"
+                            wire:click="$set('areaSeleccionada', '{{ $area->value }}')"
+                            aria-pressed="{{ $areaSeleccionada === $area->value ? 'true' : 'false' }}"
+                            class="px-3 py-1.5 rounded-xl transition font-semibold {{ $areaSeleccionada === $area->value ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white' }}">
+                            {{ $area->getLabel() }}
+                        </button>
+                    @endforeach
                 </div>
 
                 {{-- Botón Pantalla Completa --}}
@@ -74,7 +66,7 @@
         </div>
 
         {{-- Grid KDS --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6 items-start">
+        <div data-guia="comandas-cola" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6 items-start">
             @forelse($this->pedidos as $pedido)
                 <div class="transition-all duration-200 hover:-translate-y-0.5">
                     <x-restaurante.pedido-card

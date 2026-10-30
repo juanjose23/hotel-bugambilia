@@ -70,6 +70,7 @@ final readonly class FacturaQuery
         /** @var FacturaAutorizacionDgi|null $autorizacion */
         $autorizacion = $serie->autorizaciones()
             ->where('activa', true)
+            ->where('fecha_autorizacion', '<=', now()->toDateString())
             ->where(function (Builder $query): void {
                 $query->whereNull('vence_at')
                     ->orWhere('vence_at', '>=', now()->toDateString());

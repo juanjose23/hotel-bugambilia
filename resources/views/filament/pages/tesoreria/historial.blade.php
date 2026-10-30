@@ -1,0 +1,2 @@
+<x-filament-panels::page><div class="kitchen-shell">
+        @if(config('cocina.demo'))<div class="kitchen-demo">Demostración · fondos y operaciones ficticios</div>@endif<div class="kitchen-intro"><div><h2>El cierre conserva lo que ocurrió.</h2><p>Consulta el responsable y el arqueo de cada turno. Las diferencias permanecen visibles después de aprobar el cierre.</p></div></div>{{ $this->table }}</div></x-filament-panels::page>

@@ -20,11 +20,14 @@ final readonly class ResolverReservaPagoStripe
         $reserva = $this->reservaRepositorio->obtenerPorIdYCodigoConCuentasYMoneda($reservaId, $codigoReserva);
 
         if (in_array($reserva->estado, [
-            EstadoReserva::PARCIALMENTE_CHECKED_IN,
-            EstadoReserva::CHECKED_IN,
-            EstadoReserva::PARCIALMENTE_CHECKED_OUT,
+            EstadoReserva::CANCELADA,
+            EstadoReserva::NO_SHOW,
         ], true)) {
-            throw new DomainException("La reserva #{$codigoReserva} no se encuentra en un estado que permita cobro por pasarela.");
+            throw new DomainException("La reserva #{$codigoReserva} se encuentra cancelada o en no-show y no permite cobros por pasarela.");
+        }
+
+        if ((float) $reserva->saldo <= 0.0) {
+            throw new DomainException("La reserva #{$codigoReserva} ya no cuenta con saldo pendiente por liquidar.");
         }
 
         return $reserva;

@@ -1,4 +1,4 @@
-@use(App\Support\MonedaHelper)
+@use(App\Support\Barcode\Support\MonedaHelper)
 @php
     $tendenciaColor = abs($deltaOcupacionPuntos) < 0.05
         ? 'text-gray-500 dark:text-gray-400'
@@ -21,11 +21,13 @@
                     role="img"
                     aria-label="Ocupación del período: {{ number_format($ocupacion, 1) }} por ciento"
                 >
-                    <div class="absolute inset-[10px] flex flex-col items-center justify-center rounded-full bg-white shadow-inner dark:bg-gray-900">
+                    <div
+                        class="absolute inset-[10px] flex flex-col items-center justify-center rounded-full bg-white shadow-inner dark:bg-gray-900">
                         <span class="text-3xl font-black tracking-tight text-gray-950 dark:text-white">
                             {{ number_format($ocupacion, 1) }}%
                         </span>
-                        <span class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                        <span
+                            class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                             Ocupación
                         </span>
                     </div>
@@ -57,11 +59,13 @@
 
                 <div class="mt-4 grid grid-cols-2 gap-3">
                     <div>
-                        <span class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">ADR</span>
+                        <span
+                            class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">ADR</span>
                         <p class="text-lg font-bold text-gray-950 dark:text-white">{{ MonedaHelper::formatear($adr) }}</p>
                     </div>
                     <div>
-                        <span class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">RevPAR</span>
+                        <span
+                            class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">RevPAR</span>
                         <p class="text-lg font-bold text-gray-950 dark:text-white">{{ MonedaHelper::formatear($revpar) }}</p>
                     </div>
                 </div>
@@ -71,16 +75,19 @@
             <div class="flex flex-col justify-center gap-3">
                 <div class="grid grid-cols-2 gap-3">
                     <div class="rounded-xl border border-gray-200 p-4 dark:border-white/10">
-                        <span class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Check-in hoy</span>
+                        <span
+                            class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Check-in hoy</span>
                         <p class="mt-1 text-2xl font-bold text-gray-950 dark:text-white">{{ $checkInHoy }}</p>
                     </div>
                     <div class="rounded-xl border border-gray-200 p-4 dark:border-white/10">
-                        <span class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Check-out hoy</span>
+                        <span
+                            class="text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Check-out hoy</span>
                         <p class="mt-1 text-2xl font-bold text-gray-950 dark:text-white">{{ $checkOutHoy }}</p>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 dark:border-white/10">
+                <div
+                    class="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 dark:border-white/10">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Limpiezas pendientes
                     </span>

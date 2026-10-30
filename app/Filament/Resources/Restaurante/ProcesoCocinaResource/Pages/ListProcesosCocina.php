@@ -14,6 +14,6 @@ final class ListProcesosCocina extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()];
+        return [CreateAction::make()->label('Preparar una receta')];
     }
 }

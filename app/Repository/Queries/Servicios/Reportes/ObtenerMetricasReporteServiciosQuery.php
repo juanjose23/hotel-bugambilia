@@ -8,7 +8,7 @@ use App\Enums\Catalogos\CatalogoTipo;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Servicios\Servicio;
 use App\Repository\Models\Shared\Precio;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 
 final class ObtenerMetricasReporteServiciosQuery
 {

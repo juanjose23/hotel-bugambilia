@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Actions\Restaurante;
 
 use App\Interactors\Restaurante\Reportes\GenerarReporteCostosCocina;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;

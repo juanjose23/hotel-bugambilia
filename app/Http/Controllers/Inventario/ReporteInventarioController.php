@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\ReporteController;
 use App\Interactors\Inventario\Reportes\GenerarReporteInventario;
+use App\Repository\Models\Inventario\Lote;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -143,8 +144,10 @@ final class ReporteInventarioController extends ReporteController
         return $this->generarReporteInventario->executeExcel('rotacionExcel', $request->all());
     }
 
-    public function trazabilidadLotePdf(Request $request, int $loteId): Response|StreamedResponse|JsonResponse
+    public function trazabilidadLotePdf(Request $request, Lote $lote): Response|StreamedResponse|JsonResponse
     {
+        $loteId = (int) $lote->id;
+        $codigoLote = (string) $lote->codigo_lote;
         $params = array_merge($request->all(), ['lote_id' => $loteId]);
 
         return $this->manejarReporte(
@@ -153,7 +156,7 @@ final class ReporteInventarioController extends ReporteController
             $params,
             fn () => $this->streamPdf(
                 $this->generarReporteInventario->execute('trazabilidadLotePdf', $params),
-                "HTB-INV-011-Trazabilidad-Lote-{$loteId}.pdf",
+                "HTB-INV-011-Trazabilidad-Lote-{$codigoLote}.pdf",
             ),
         );
     }

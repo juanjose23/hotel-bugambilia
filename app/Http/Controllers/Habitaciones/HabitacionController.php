@@ -9,7 +9,7 @@ use App\Http\Requests\Habitaciones\ConsultarDisponibilidadHabitacionRequest;
 use App\Interactors\Habitaciones\ObtenerHabitacionDetalle;
 use App\Interactors\Habitaciones\ObtenerHabitaciones;
 use App\Interactors\Habitaciones\ObtenerHabitacionReserva;
-use App\Support\Utilidades\FormatearPaginacion;
+use App\Support\Barcode\Support\Utilidades\FormatearPaginacion;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

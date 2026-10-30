@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository\Queries\Restaurante\Reportes;
 
+use App\Enums\Restaurante\EstadoItemPedido;
+use App\Enums\Restaurante\EstadoPedido;
 use App\Repository\Models\Restaurante\Pedido;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -38,20 +40,16 @@ final class ObtenerReportesRestauranteQuery
         return DB::table('pedido_items as pi')
             ->join('pedidos as p', 'pi.pedido_id', '=', 'p.id')
             ->leftJoin('platos as pl', 'pi.plato_id', '=', 'pl.id')
-            ->leftJoin('catalogos as c', 'pl.categoria_id', '=', 'c.id')
+            ->leftJoin('productos as pr', 'pi.producto_id', '=', 'pr.id')
+            ->leftJoin('producto_variantes as pv', 'pi.producto_variante_id', '=', 'pv.id')
+            ->leftJoin('catalogos as c', fn ($join) => $join->on('c.id', '=', DB::raw('COALESCE(pl.categoria_id, pr.categoria_id)')))
             ->whereNull('p.deleted_at')
-            ->whereNull('pl.deleted_at')
+            ->where('p.estado', '!=', EstadoPedido::CANCELADO->value)
+            ->where('pi.estado', '!=', EstadoItemPedido::ANULADO->value)
             ->whereBetween('p.created_at', [$inicio, $fin])
-            ->select(
-                'pi.id',
-                'pi.pedido_id',
-                'pi.plato_id',
-                'pl.nombre as plato_nombre',
-                'c.nombre as categoria_nombre',
-                'pi.cantidad',
-                'pi.precio_unitario',
-                'pi.subtotal',
-            )
+            ->select('pi.plato_id', 'pi.producto_id', 'pi.producto_variante_id', 'pl.nombre as plato_nombre', 'pr.nombre as producto_nombre', 'pv.nombre_variante as variante_nombre', 'c.nombre as categoria_nombre')
+            ->selectRaw('SUM(pi.cantidad) as cantidad, SUM(pi.subtotal) as subtotal')
+            ->groupBy('pi.plato_id', 'pi.producto_id', 'pi.producto_variante_id', 'pl.nombre', 'pr.nombre', 'pv.nombre_variante', 'c.nombre')
             ->get();
     }
 

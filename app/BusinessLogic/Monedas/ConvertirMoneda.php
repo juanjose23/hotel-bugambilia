@@ -72,18 +72,14 @@ final readonly class ConvertirMoneda
             return $monto;
         }
 
-        $tasa = $this->tasaCambioQuery->ejecutar($fecha, $origenCodigo, $destinoCodigo);
-
-        if ($tasa > 0.0 && $tasa !== 1.0) {
-            return round($monto * $tasa, 2);
+        $directa = $this->tasaCambioQuery->ejecutarRegistro($fecha, $origenCodigo, $destinoCodigo);
+        if ($directa !== null && is_finite((float) $directa->tasa) && (float) $directa->tasa > 0) {
+            return round($monto * (float) $directa->tasa, 2);
         }
-
-        $tasaInversa = $this->tasaCambioQuery->ejecutar($fecha, $destinoCodigo, $origenCodigo);
-
-        if ($tasaInversa > 0.0) {
-            return round($monto / $tasaInversa, 2);
+        $inversa = $this->tasaCambioQuery->ejecutarRegistro($fecha, $destinoCodigo, $origenCodigo);
+        if ($inversa !== null && is_finite((float) $inversa->tasa) && (float) $inversa->tasa > 0) {
+            return round($monto / (float) $inversa->tasa, 2);
         }
-
-        return $monto;
+        throw new \DomainException('Configure una tasa de cambio válida antes de convertir monedas.');
     }
 }

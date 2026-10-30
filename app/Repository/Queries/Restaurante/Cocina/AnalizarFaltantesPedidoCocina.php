@@ -8,7 +8,8 @@ use App\BusinessLogic\Restaurante\Cocina\CalcularCantidadIngredienteReceta;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Repository\Models\Inventario\ProductoKit;
 use App\Repository\Models\Restaurante\Pedido;
-use App\Repository\Models\Shared\Stock;
+use App\Repository\Persistencia\Restaurante\ExistenciasCocinaRepositorio;
+use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerIngredientesPedidoQuery;
 use App\Repository\Queries\Restaurante\Stock\ObtenerStockDisponibleRestauranteQuery;
 
@@ -18,6 +19,8 @@ final class AnalizarFaltantesPedidoCocina
         private readonly ObtenerIngredientesPedidoQuery $ingredientesPedido,
         private readonly CalcularCantidadIngredienteReceta $calcularCantidadIngrediente,
         private readonly ObtenerStockDisponibleRestauranteQuery $stockQuery,
+        private readonly RestauranteRepositorioInterface $repositorio,
+        private readonly ExistenciasCocinaRepositorio $existencias,
     ) {}
 
     /**
@@ -80,9 +83,10 @@ final class AnalizarFaltantesPedidoCocina
             }
 
             foreach ($consumo['ingredientes'] as $ingrediente) {
-                $stock = $consumo['stocks']->get($ingrediente->producto_variante_id);
-                $requerido = $this->calcularCantidadIngrediente->ejecutar($ingrediente, $item);
-                $disponible = $stock instanceof Stock ? (float) $stock->cantidad_actual : 0.0;
+                $sustitucion = $this->repositorio->obtenerSustitucionActiva($item->id, (int) $ingrediente->producto_variante_id);
+                $varianteId = $sustitucion !== null ? (int) $sustitucion->variante_sustituta_id : (int) $ingrediente->producto_variante_id;
+                $requerido = $sustitucion !== null ? (float) $sustitucion->cantidad_usada : $this->calcularCantidadIngrediente->ejecutar($ingrediente, $item);
+                $disponible = $this->existencias->cantidad($this->existencias->porVariante($varianteId, (int) $consumo['ubicacion_id']));
 
                 if ($disponible >= $requerido) {
                     continue;

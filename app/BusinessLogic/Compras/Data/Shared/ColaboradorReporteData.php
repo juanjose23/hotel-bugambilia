@@ -9,5 +9,6 @@ final readonly class ColaboradorReporteData
     public function __construct(
         public ?string $codigo,
         public ?PersonaReporteData $persona,
+        public ?string $name = null,
     ) {}
 }

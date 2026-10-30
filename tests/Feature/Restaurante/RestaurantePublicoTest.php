@@ -10,10 +10,12 @@ use App\Repository\Models\Catalogos\CatalogoTipo;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Restaurante\Plato;
+use App\Repository\Models\Restaurante\ZonaDelivery;
 use App\Repository\Models\Shared\Precio;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
+    ZonaDelivery::query()->updateOrCreate(['codigo' => 'EST'], ['nombre' => 'Estelí', 'activo' => true, 'costo_envio' => 50, 'orden' => 1, 'municipios' => ['Estelí', 'La Trinidad', 'Condega', 'Pueblo Nuevo', 'San Juan de Limay', 'San Nicolás']]);
     if (Moneda::query()->where('codigo', 'NIO')->doesntExist()) {
         Moneda::query()->create([
             'codigo' => 'NIO',

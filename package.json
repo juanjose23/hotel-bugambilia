@@ -9,13 +9,22 @@
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "check:prettier": "prettier --check resources/",
-        "lint": "eslint . --fix",
-        "lint:check": "eslint .",
+        "lint": "eslint resources/js scripts .husky/install.mjs --fix",
+        "lint:check": "eslint resources/js scripts .husky/install.mjs",
         "lint:php": "vendor/bin/pint --test",
         "types:check": "tsc --noEmit",
         "phpstan": "vendor/bin/phpstan analyse --level=9 --memory-limit=1G",
-        "test:php": "php artisan test",
-        "prepare": "husky"
+        "test:php": "node scripts/project.mjs test",
+        "test:k6": "k6 run tests/k6/scenarios/05_regression_suite.js",
+        "test:k6:smoke": "k6 run tests/k6/scenarios/01_smoke_landing.js",
+        "test:k6:reserva": "k6 run tests/k6/scenarios/02_reserva_flow.js",
+        "test:k6:restaurante": "k6 run tests/k6/scenarios/03_restaurante_pos.js",
+        "test:k6:auth": "k6 run tests/k6/scenarios/04_auth_registro.js",
+        "test:stress": "vendor/bin/pest stress http://localhost",
+        "prepare": "node .husky/install.mjs",
+        "check": "node scripts/project.mjs check",
+        "test": "node scripts/project.mjs test",
+        "test:dusk": "node scripts/project.mjs dusk"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",
@@ -57,6 +66,7 @@
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
         "date-fns": "^4.4.0",
+        "driver.js": "1.4.0",
         "embla-carousel-react": "^8.6.0",
         "globals": "^15.14.0",
         "husky": "^9.1.7",
@@ -73,9 +83,8 @@
         "vite": "^8.0.0",
         "zustand": "^5.0.14"
     },
-    "optionalDependencies": {
-        "@rollup/rollup-linux-x64-gnu": "4.9.5",
-        "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
-        "lightningcss-linux-x64-gnu": "^1.29.1"
+    "engines": {
+        "node": ">=22.12.0",
+        "npm": ">=10"
     }
 }

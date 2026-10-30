@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Reservas\Schemas\Reserva;
 
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Reservas\Reserva;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;

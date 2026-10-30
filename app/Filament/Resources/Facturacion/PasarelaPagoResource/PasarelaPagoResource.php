@@ -30,13 +30,13 @@ final class PasarelaPagoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CreditCard;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
+    protected static string|UnitEnum|null $navigationGroup = 'Configuración fiscal';
 
     protected static ?string $navigationLabel = 'Pasarelas de pago';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 44;
 
-    protected static ?string $slug = 'facturacion/pasarelas';
+    protected static ?string $slug = 'pasarelas';
 
     public static function form(Schema $schema): Schema
     {

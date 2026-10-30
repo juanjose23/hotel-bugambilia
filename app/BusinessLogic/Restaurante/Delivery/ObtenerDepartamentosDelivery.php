@@ -6,7 +6,8 @@ namespace App\BusinessLogic\Restaurante\Delivery;
 
 use App\Repository\Models\Restaurante\ZonaDelivery;
 use App\Repository\Queries\Restaurante\Delivery\ObtenerZonasDeliveryQuery;
-use Throwable;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 final class ObtenerDepartamentosDelivery
 {
@@ -28,22 +29,26 @@ final class ObtenerDepartamentosDelivery
         try {
             $zonasDb = $this->obtenerZonas->ejecutar($soloActivos);
 
-            if ($zonasDb->isNotEmpty()) {
-                /** @var list<array{codigo: string, nombre: string, activo: bool, costo_envio: float, municipios: list<string>}> $resultado */
-                $resultado = $zonasDb->map(function (ZonaDelivery $zona): array {
-                    return [
-                        'codigo' => (string) $zona->codigo,
-                        'nombre' => (string) $zona->nombre,
-                        'activo' => (bool) $zona->activo,
-                        'costo_envio' => (float) $zona->costo_envio,
-                        'municipios' => $zona->municipios,
-                    ];
-                })->values()->all();
+            /** @var list<array{codigo: string, nombre: string, activo: bool, costo_envio: float, municipios: list<string>}> $resultado */
+            $resultado = $zonasDb->map(function (ZonaDelivery $zona): array {
+                return [
+                    'codigo' => (string) $zona->codigo,
+                    'nombre' => (string) $zona->nombre,
+                    'activo' => (bool) $zona->activo,
+                    'costo_envio' => (float) $zona->costo_envio,
+                    'municipios' => $zona->municipios,
+                ];
+            })->values()->all();
 
-                return $resultado;
+            return $resultado;
+        } catch (QueryException $exception) {
+            if (($exception->errorInfo[0] ?? null) !== '42P01') {
+                throw $exception;
             }
-        } catch (Throwable) {
-            // Fallback a configuración en caso de migración pendiente o error de conexión
+
+            Log::warning('Delivery utiliza configuración porque falta la tabla de zonas.', [
+                'sqlstate' => '42P01',
+            ]);
         }
 
         /** @var list<array{codigo: string, nombre: string, activo: bool, costo_envio: float, municipios: list<string>}> $departamentos */

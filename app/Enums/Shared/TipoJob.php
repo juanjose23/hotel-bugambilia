@@ -26,6 +26,7 @@ enum TipoJob: string implements HasColor, HasLabel
     case LimpiezaMaterializar = 'limpieza_materializar';
     case LimpiezaRecordatorio = 'limpieza_recordatorio';
     case ReservasRecordatorio = 'reservas_recordatorio';
+    case LimpiezaReportesPdf = 'limpieza_reportes_pdf';
 
     public function getLabel(): string
     {
@@ -38,6 +39,7 @@ enum TipoJob: string implements HasColor, HasLabel
             self::LimpiezaMaterializar => 'Materializar Ejecuciones de Limpieza',
             self::LimpiezaRecordatorio => 'Enviar Recordatorios de Limpieza',
             self::ReservasRecordatorio => 'Enviar Recordatorios de Reservas',
+            self::LimpiezaReportesPdf => 'Limpiar Reportes PDF Temporales',
         };
     }
 
@@ -52,6 +54,7 @@ enum TipoJob: string implements HasColor, HasLabel
             self::LimpiezaMaterializar => 'success',
             self::LimpiezaRecordatorio => 'info',
             self::ReservasRecordatorio => 'warning',
+            self::LimpiezaReportesPdf => 'warning',
         };
     }
 
@@ -66,13 +69,14 @@ enum TipoJob: string implements HasColor, HasLabel
             self::LimpiezaMaterializar => 'limpieza:materializar-ejecuciones',
             self::LimpiezaRecordatorio => 'limpieza:enviar-recordatorios',
             self::ReservasRecordatorio => EnviarRecordatoriosReservasJob::class,
+            self::LimpiezaReportesPdf => 'reportes:limpiar-temporales',
         };
     }
 
     public function esComando(): bool
     {
         return match ($this) {
-            self::LimpiezaMaterializar, self::LimpiezaRecordatorio => true,
+            self::LimpiezaMaterializar, self::LimpiezaRecordatorio, self::LimpiezaReportesPdf => true,
             default => false,
         };
     }
@@ -88,6 +92,7 @@ enum TipoJob: string implements HasColor, HasLabel
             self::LimpiezaMaterializar => 'jobs.limpieza_materializar',
             self::LimpiezaRecordatorio => 'jobs.limpieza_recordatorio',
             self::ReservasRecordatorio => 'jobs.reservas_recordatorio',
+            self::LimpiezaReportesPdf => 'jobs.reportes_limpiar_temporales',
         };
 
         $valor = config($clave);

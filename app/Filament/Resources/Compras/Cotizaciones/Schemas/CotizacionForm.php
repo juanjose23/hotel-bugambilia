@@ -13,7 +13,7 @@ use App\Filament\Shared\Forms\ProductoVarianteSelect;
 use App\Filament\Shared\Forms\ProveedorSelect;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Queries\Compras\Solicitudes\ObtenerSolicitudConItems;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;

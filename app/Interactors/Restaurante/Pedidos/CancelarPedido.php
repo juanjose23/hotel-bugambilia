@@ -9,6 +9,7 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Enums\Restaurante\MotivoTransicionMesa;
+use App\Interactors\Restaurante\Cocina\AnularItemPedido;
 use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Restaurante\Pedido;
@@ -23,19 +24,19 @@ final readonly class CancelarPedido
         private RecalcularTotalesPedido $recalcular,
         private CambiarEstadoMesa $cambiarEstadoMesa,
         private ValidarTransicionPedido $validarTransicion,
+        private AnularItemPedido $anularItem,
     ) {}
 
     public function ejecutar(Pedido $pedido): Pedido
     {
-        $this->validarTransicion->puedeCancelar($pedido);
-
         return DB::transaction(function () use ($pedido): Pedido {
-            $pedido->loadMissing('items');
+            $pedido = $this->repositorio->obtenerPedidoPorId((int) $pedido->id) ?? throw new \DomainException('Pedido no encontrado.');
+            $this->validarTransicion->puedeCancelar($pedido);
+            $pedido->load('items');
 
             foreach ($pedido->items as $item) {
                 if ($item->estado !== EstadoItemPedido::ANULADO && $item->estado !== EstadoItemPedido::SERVIDO) {
-                    $item->estado = EstadoItemPedido::ANULADO;
-                    $this->repositorio->guardarItem($item);
+                    $this->anularItem->ejecutar($item->id);
                 }
             }
 

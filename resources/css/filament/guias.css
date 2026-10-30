@@ -1,0 +1,56 @@
+.driver-popover.hotel-guia {
+    font-family: inherit;
+    border-radius: 14px;
+    max-width: min(360px, calc(100vw - 24px));
+    padding: 20px;
+}
+.hotel-guia .driver-popover-title {
+    font-size: 18px;
+    line-height: 1.4;
+}
+.hotel-guia .driver-popover-description {
+    font-size: 14px;
+    line-height: 1.65;
+}
+.hotel-guia .driver-popover-footer button {
+    border-radius: 8px;
+    padding: 7px 11px;
+    text-shadow: none;
+}
+.hotel-guia .driver-popover-next-btn {
+    background: #b45309;
+    color: white;
+    border-color: #b45309;
+}
+.hotel-guia button:focus-visible {
+    outline: 3px solid #d97706;
+    outline-offset: 3px;
+}
+.dark .driver-popover.hotel-guia {
+    background: #18181b;
+    color: #fafafa;
+}
+.dark .hotel-guia .driver-popover-arrow-side-top {
+    border-top-color: #18181b;
+}
+.dark .hotel-guia .driver-popover-arrow-side-bottom {
+    border-bottom-color: #18181b;
+}
+.dark .hotel-guia .driver-popover-arrow-side-left {
+    border-left-color: #18181b;
+}
+.dark .hotel-guia .driver-popover-arrow-side-right {
+    border-right-color: #18181b;
+}
+@media (prefers-reduced-motion: reduce) {
+    .driver-overlay,
+    .driver-popover {
+        transition: none !important;
+    }
+}
+
+.hotel-guia .driver-popover-footer .driver-popover-next-btn:hover,
+.hotel-guia .driver-popover-footer .driver-popover-next-btn:focus {
+    background: #92400e;
+    color: white;
+}

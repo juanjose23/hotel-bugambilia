@@ -9,6 +9,7 @@ use App\Interactors\Cuentas\Gestion\RecalcularCuenta;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
+use App\Repository\Persistencia\Tesoreria\CajaRepositorio;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +30,9 @@ final class AnularPagoCuenta
      */
     public function ejecutar(PagoCuenta $pago, string $motivo, ?int $usuarioId = null): Cuenta
     {
+        if (config('tesoreria.habilitado') && app(CajaRepositorio::class)->pagoTieneEfectivoRegistrado($pago->id)) {
+            throw new DomainException('Este pago tiene movimientos de caja. Requiere una devolución autorizada vinculada al efectivo entregado.');
+        }
         if ($pago->estado === EstadoPago::ANULADO) {
             throw new DomainException('El pago ya se encuentra anulado.');
         }

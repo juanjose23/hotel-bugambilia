@@ -38,11 +38,7 @@ export const Home = ({
 
     return (
         <div className="min-h-screen bg-background font-sans">
-            <Head>
-                <title>
-                    Hotel Bugambilias — Estancia & Restaurante en Estelí,
-                    Nicaragua
-                </title>
+            <Head title="Hotel Bugambilias — Estancia & Restaurante en Estelí, Nicaragua">
                 <meta
                     name="description"
                     content="Reserva en Hotel Bugambilias Estelí. Habitaciones de lujo, piscina tropical, restaurante Absoluto y servicio de primera categoría."

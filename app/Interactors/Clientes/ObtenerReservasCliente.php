@@ -41,6 +41,7 @@ final class ObtenerReservasCliente
         $user = Auth::user();
         /** @var Builder<Reserva> $query */
         $query = Reserva::with([
+            'huespedes',
             'cliente.persona',
             'habitacion.categoria',
             'habitacion.servicioAsignaciones.servicio',
@@ -102,7 +103,7 @@ final class ObtenerReservasCliente
             'hora_reserva' => $r->hora_reserva,
             'adultos' => $r->adultos,
             'ninos' => $r->ninos,
-            'acompanantes' => $r->acompanantes ?? [],
+            'acompanantes' => $r->acompanantes,
             'total' => (float) $r->total,
             'total_pagado' => (float) ($r->total_pagado ?? 0),
             'saldo' => (float) ($r->saldo ?? 0),
@@ -119,6 +120,11 @@ final class ObtenerReservasCliente
                 $r->id,
                 urlencode((string) $r->codigo_reserva),
             ),
+            'url_pago_saldo' => ((float) ($r->saldo ?? 0)) > 0 ? sprintf(
+                '/reservas/%d/pago?codigo=%s',
+                $r->id,
+                urlencode((string) $r->codigo_reserva),
+            ) : null,
             'created_at' => $r->created_at?->format('d/m/Y'),
         ];
     }

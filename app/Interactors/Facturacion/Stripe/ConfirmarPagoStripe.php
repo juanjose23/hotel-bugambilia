@@ -188,11 +188,18 @@ final readonly class ConfirmarPagoStripe
                 $this->resumenPaymentIntent($webhookPayload),
             ));
 
+            $nuevoEstado = in_array($reserva->estado, [
+                EstadoReserva::CHECKED_IN,
+                EstadoReserva::PARCIALMENTE_CHECKED_IN,
+                EstadoReserva::PARCIALMENTE_CHECKED_OUT,
+                EstadoReserva::CHECKED_OUT,
+            ], true) ? $reserva->estado : EstadoReserva::CONFIRMADA;
+
             $this->reservaRepositorio->actualizar($reserva, [
                 'total_pagado' => $totalPagado,
                 'saldo' => $saldo,
                 'tipo_pago' => $saldo <= 0.0 ? TipoPagoReserva::PAGO_COMPLETO : TipoPagoReserva::ABONO_50,
-                'estado' => EstadoReserva::CONFIRMADA,
+                'estado' => $nuevoEstado,
             ]);
 
             return $transaccion->refresh()->load('reserva');

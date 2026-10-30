@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>{{ $codigoReporte ?? $codigo ?? 'HTB' }} - {{ $nombreReporte ?? $titulo ?? 'Reporte Oficial' }}</title>
     @php
-        $reportMarginLeftMm = $pageMarginLeft ?? \App\Support\Pdf\LayoutPdf::MARGEN_LATERAL_MM;
-        $reportMarginRightMm = $pageMarginRight ?? \App\Support\Pdf\LayoutPdf::MARGEN_LATERAL_MM;
+        $reportMarginLeftMm = $pageMarginLeft ?? \App\Support\Barcode\Support\Pdf\LayoutPdf::MARGEN_LATERAL_MM;
+        $reportMarginRightMm = $pageMarginRight ?? \App\Support\Barcode\Support\Pdf\LayoutPdf::MARGEN_LATERAL_MM;
         $reportPageSize = strtolower((string) ($pageSize ?? 'letter'));
         $reportOrientation = strtolower((string) ($orientation ?? 'portrait'));
         $reportBaseWidthMm = match ($reportPageSize) {
@@ -20,11 +20,7 @@
         $reportPageWidthMm = $reportOrientation === 'landscape' ? $reportBaseHeightMm : $reportBaseWidthMm;
         $reportContentWidthMm = $pageContentWidth ?? max(1, $reportPageWidthMm - $reportMarginLeftMm - $reportMarginRightMm);
     @endphp
-         {{-- Preload LCP hero image --}}
-         
-        <link rel="icon" href="/images/hotel-icon.webp" type="image/webp">
-        <link rel="icon" href="/images/hotel-icon.png" type="image/png">
-        <link rel="preload" as="image" type="image/webp" href="/images/hero-main.webp" fetchpriority="high">
+
     <style>
         @page {
             size: {{ $pageSize ?? 'letter' }} {{ $orientation ?? 'portrait' }};
@@ -163,11 +159,12 @@
             overflow-wrap: break-word;
             line-height: 1.25;
         }
+
         /* .data-table td {
             padding: 5px 7px;
             font-size: 8.25pt;
             line-height: 1.2;
-            white-space: nowrap;           
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         } */
@@ -196,68 +193,132 @@
             text-transform: uppercase;
         }
 
-        .badge-success { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-        .badge-warning { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .badge-danger  { background-color: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; }
-        .badge-info    { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
 
-        .amount { text-align: right; white-space: nowrap; }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-left { text-align: left; }
-        .positive { color: #047857; font-weight: bold; }
-        .danger { color: #b91c1c; font-weight: bold; }
-        .empty-row { text-align: center; color: #64748b; padding: 12px; font-size: 8.25pt; }
-        .total-box { margin-top: 10px; padding: 8px 10px; border: 1px solid #c5d0df; background: #f3f6fa; text-align: right; font-size: 8.75pt; page-break-inside: avoid; }
-        .total-box strong { color: #711C37; }
-        .section-title { font-size: 9pt; font-weight: bold; color: #711C37; margin-top: 10px; margin-bottom: 5px; }
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .badge-danger {
+            background-color: #ffe4e6;
+            color: #9f1239;
+            border: 1px solid #fecdd3;
+        }
+
+        .badge-info {
+            background-color: #e0f2fe;
+            color: #075985;
+            border: 1px solid #bae6fd;
+        }
+
+        .amount {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .positive {
+            color: #047857;
+            font-weight: bold;
+        }
+
+        .danger {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        .empty-row {
+            text-align: center;
+            color: #64748b;
+            padding: 12px;
+            font-size: 8.25pt;
+        }
+
+        .total-box {
+            margin-top: 10px;
+            padding: 8px 10px;
+            border: 1px solid #c5d0df;
+            background: #f3f6fa;
+            text-align: right;
+            font-size: 8.75pt;
+            page-break-inside: avoid;
+        }
+
+        .total-box strong {
+            color: #711C37;
+        }
+
+        .section-title {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #711C37;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
 
         @yield('extra-css')
     </style>
 </head>
 <body>
-    <div class="header-fixed">
-        @include('reports.layout.partials.header', [
-            'logo_base64' => $datosHotel['logo_base64'] ?? $logo_base64 ?? null,
-            'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : (is_array($hotelInfo ?? null) ? $hotelInfo : []),
-            'nombreReporte' => $nombreReporte ?? $titulo ?? 'Informe Oficial de Control',
-            'codigoReporte' => $codigoReporte ?? $codigo ?? 'HTB-REP',
-        ])
-    </div>
+<div class="header-fixed">
+    @include('reports.layout.partials.header', [
+        'logo_base64' => $datosHotel['logo_base64'] ?? $logo_base64 ?? null,
+        'hotelInfo' => is_array($datosHotel['hotelInfo'] ?? null) ? $datosHotel['hotelInfo'] : (is_array($hotelInfo ?? null) ? $hotelInfo : []),
+        'nombreReporte' => $nombreReporte ?? $titulo ?? 'Informe Oficial de Control',
+        'codigoReporte' => $codigoReporte ?? $codigo ?? 'HTB-REP',
+    ])
+</div>
 
-    <div class="footer-fixed">
-        @include('reports.layout.partials.footer', [
-            'generadoEn' => $generadoEn ?? $datosHotel['generadoEn'] ?? $fecha ?? now()->format('d/m/Y H:i'),
-            'usuario' => $usuario ?? $datosHotel['usuario'] ?? auth()->user()?->name ?? 'Sistema',
-            'totalRegistros' => $totalRegistros ?? null,
-        ])
-    </div>
+<div class="footer-fixed">
+    @include('reports.layout.partials.footer', [
+        'generadoEn' => $generadoEn ?? $datosHotel['generadoEn'] ?? $fecha ?? now()->format('d/m/Y H:i'),
+        'usuario' => $usuario ?? $datosHotel['usuario'] ?? auth()->user()?->name ?? 'Sistema',
+        'totalRegistros' => $totalRegistros ?? null,
+    ])
+</div>
 
-    <main>
-        @if((isset($fechaInicio) || isset($fechaFin)) && !($hideFilters ?? false))
-            <div class="filtros-box">
-                <strong>Periodo Evaluado:</strong>
-                Desde: <span style="font-family: monospace; font-weight: bold;">{{ $fechaInicio ?? 'Inicio' }}</span>
-                &nbsp;|&nbsp;
-                Hasta: <span style="font-family: monospace; font-weight: bold;">{{ $fechaFin ?? 'Actual' }}</span>
-                @if(isset($estado) && $estado)
-                    &nbsp;|&nbsp; <strong>Estado:</strong> {{ ucfirst((string) $estado) }}
-                @endif
-            </div>
-        @endif
+<main>
+    @if((isset($fechaInicio) || isset($fechaFin)) && !($hideFilters ?? false))
+        <div class="filtros-box">
+            <strong>Periodo Evaluado:</strong>
+            Desde: <span style="font-family: monospace; font-weight: bold;">{{ $fechaInicio ?? 'Inicio' }}</span>
+            &nbsp;|&nbsp;
+            Hasta: <span style="font-family: monospace; font-weight: bold;">{{ $fechaFin ?? 'Actual' }}</span>
+            @if(isset($estado) && $estado)
+                &nbsp;|&nbsp; <strong>Estado:</strong> {{ ucfirst((string) $estado) }}
+            @endif
+        </div>
+    @endif
 
-        @yield('content')
-    </main>
+    @yield('content')
+</main>
 
-    <script type="text/php">
-        if (isset($pdf)) {
-            $font = isset($fontMetrics) ? $fontMetrics->getFont('Helvetica', 'normal') : 'Helvetica';
-            $size = 7;
-            $color = [0.35, 0.40, 0.50];
-            $x = $pdf->get_width() - 90;
-            $y = $pdf->get_height() - 24;
-            $pdf->page_text($x, $y, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, $size, $color);
-        }
-    </script>
+<script type="text/php">
+    if (isset($pdf)) {
+        $font = isset($fontMetrics) ? $fontMetrics->getFont('Helvetica', 'normal') : 'Helvetica';
+        $size = 7;
+        $color = [0.35, 0.40, 0.50];
+        $x = $pdf->get_width() - 90;
+        $y = $pdf->get_height() - 24;
+        $pdf->page_text($x, $y, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, $size, $color);
+    }
+</script>
 </body>
 </html>

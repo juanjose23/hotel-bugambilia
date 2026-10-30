@@ -8,7 +8,7 @@ use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Servicios\Servicio;
-use App\Support\CachedOptions;
+use App\Support\Barcode\Support\CachedOptions;
 use Illuminate\Support\Collection;
 
 /**

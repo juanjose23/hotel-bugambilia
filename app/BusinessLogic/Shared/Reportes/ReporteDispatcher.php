@@ -250,6 +250,10 @@ final class ReporteDispatcher
             throw new InvalidArgumentException("Reporte Activos '{$codigo}' no soportado.");
         }
 
+        if (in_array($codigo, ['HTB-ACT-014', 'ficha_espacio'], true) && ! isset($params['tipo'])) {
+            $params['tipo'] = 'espacio';
+        }
+
         $result = $this->activos->ejecutar($internalName, $params);
 
         if (! $result instanceof PDF) {

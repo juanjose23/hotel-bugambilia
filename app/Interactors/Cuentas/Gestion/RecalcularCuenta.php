@@ -29,7 +29,7 @@ final readonly class RecalcularCuenta
 
         $subtotal = $this->cuentas->subtotalDetallesActivos($cuenta);
         $rawSubtotal = $cuenta->getRawOriginal('subtotal');
-        if ($subtotal === 0.0 && is_numeric($rawSubtotal) && (float) $rawSubtotal > 0 && $this->cuentas->detallesActivos($cuenta)->isEmpty()) {
+        if ($subtotal === 0.0 && is_numeric($rawSubtotal) && (float) $rawSubtotal > 0 && ! $this->cuentas->tieneDetalles($cuenta)) {
             $subtotal = (float) $rawSubtotal;
         }
         $descuentoTotal = $this->cuentas->sumaCargosActivos($cuenta, TipoCargo::Descuento);

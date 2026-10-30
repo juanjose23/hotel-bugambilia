@@ -2,6 +2,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import type { Stripe, StripeElements } from '@stripe/stripe-js';
 import { Loader2, ShieldCheck, Lock, AlertCircle, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { PaymentFormSkeleton } from '@/modules/shared/components/skeletons/PageSkeleton';
 import { Button } from '@/modules/shared/components/ui/button';
 import type { StripePaymentData } from '../types';
 
@@ -181,14 +182,7 @@ export const StripePaymentForm = ({
                 </div>
             )}
 
-            {loadingStripe && (
-                <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground">
-                    <Loader2 className="size-6 animate-spin text-primary" />
-                    <span className="text-xs font-bold">
-                        Cargando pasarela de pago segura...
-                    </span>
-                </div>
-            )}
+            {loadingStripe && <PaymentFormSkeleton />}
 
             {/* Contenedor de Stripe Elements */}
             <div

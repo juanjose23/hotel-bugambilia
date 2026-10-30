@@ -6,11 +6,22 @@ interface DetalleSuiteCardProps {
 }
 
 export const DetalleSuiteCard = ({ reserva }: DetalleSuiteCardProps) => {
-    const { recurso } = reserva;
+    const recurso = reserva?.recurso || {
+        nombre: 'Hospedaje',
+        categoria: 'Suite',
+        imagenes: [],
+        servicios_incluidos: [],
+    };
+
+    const imagenes = Array.isArray(recurso.imagenes) ? recurso.imagenes : [];
     const portada =
-        recurso.imagenes.find((img) => img.es_portada)?.url ||
-        recurso.imagenes[0]?.url ||
+        imagenes.find((img) => img?.es_portada)?.url ||
+        imagenes[0]?.url ||
         '/images/hero-banner.webp';
+
+    const servicios = Array.isArray(recurso.servicios_incluidos)
+        ? recurso.servicios_incluidos
+        : [];
 
     return (
         <div className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-xs">
@@ -18,7 +29,7 @@ export const DetalleSuiteCard = ({ reserva }: DetalleSuiteCardProps) => {
             <div className="relative h-64 w-full sm:h-72">
                 <img
                     src={portada}
-                    alt={recurso.nombre}
+                    alt={recurso.nombre || 'Hospedaje'}
                     className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
@@ -27,10 +38,10 @@ export const DetalleSuiteCard = ({ reserva }: DetalleSuiteCardProps) => {
                     <div className="space-y-1">
                         <span className="inline-flex items-center gap-1 rounded-full bg-primary/90 px-3 py-0.5 text-xs font-bold text-white backdrop-blur-sm">
                             <Sparkles className="size-3" />
-                            <span>{recurso.categoria}</span>
+                            <span>{recurso.categoria || 'Suite'}</span>
                         </span>
                         <h2 className="text-2xl font-black text-white drop-shadow-md sm:text-3xl">
-                            {recurso.nombre}
+                            {recurso.nombre || 'Hospedaje'}
                         </h2>
                     </div>
 
@@ -48,9 +59,9 @@ export const DetalleSuiteCard = ({ reserva }: DetalleSuiteCardProps) => {
                     <h4 className="text-sm font-bold tracking-wider text-muted-foreground uppercase">
                         Servicios y Comodidades Incluidas
                     </h4>
-                    {recurso.servicios_incluidos.length > 0 ? (
+                    {servicios.length > 0 ? (
                         <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                            {recurso.servicios_incluidos.map((s) => (
+                            {servicios.map((s) => (
                                 <div
                                     key={s.id}
                                     className="flex items-center gap-2 rounded-xl border border-border/40 bg-secondary/50 px-3.5 py-2.5 text-xs font-semibold text-foreground"

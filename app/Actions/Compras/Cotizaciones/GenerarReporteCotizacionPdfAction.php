@@ -6,10 +6,10 @@ namespace App\Actions\Compras\Cotizaciones;
 
 use App\Repository\Models\Compras\Cotizacion;
 use App\Repository\Queries\Compras\Cotizaciones\ObtenerCotizacionReporteQuery;
-use App\Support\Barcode\BarcodeGenerator;
-use App\Support\HotelInfo;
-use App\Support\Pdf\Concerns\GuardaReporte;
-use App\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Barcode\BarcodeGenerator;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\Concerns\GuardaReporte;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocumento;
 

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Repository\Models\Monedas\Moneda;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 
 test('moneda helper devuelve codigo y simbolo predeterminado si no se pasa modelo', function (): void {
     MonedaHelper::resetCache();

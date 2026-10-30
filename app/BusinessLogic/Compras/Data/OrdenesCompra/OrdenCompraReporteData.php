@@ -32,5 +32,6 @@ final readonly class OrdenCompraReporteData
         public ?CotizacionReporteData $cotizacion,
         public ?EstadoReporteData $estado,
         public Collection $items,
+        public ?string $notas = null,
     ) {}
 }

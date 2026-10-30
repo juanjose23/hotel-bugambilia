@@ -8,13 +8,15 @@ import {
     Loader2,
     AlertCircle,
     Hotel,
+    Calendar,
+    Users,
+    Clock,
 } from 'lucide-react';
 import { ReservaConfirmada } from '@/modules/reservas/components/ReservaConfirmada';
 import { ReservaPasoCliente } from '@/modules/reservas/components/ReservaPasoCliente';
 import { ReservaPasoFechas } from '@/modules/reservas/components/ReservaPasoFechas';
 import { ReservaPasoPago } from '@/modules/reservas/components/ReservaPasoPago';
 import { ReservaPasoServicios } from '@/modules/reservas/components/ReservaPasoServicios';
-import { ReservaResumenSidebar } from '@/modules/reservas/components/ReservaResumenSidebar';
 import { StripePaymentForm } from '@/modules/reservas/components/StripePaymentForm';
 import { useCrearReservaForm } from '@/modules/reservas/hooks/useCrearReservaForm';
 import type {
@@ -22,7 +24,10 @@ import type {
     ServicioAdicionalItem,
     PoliticaReserva,
 } from '@/modules/reservas/types';
-import { StepperHeader } from '@/modules/shared/components/StepperHeader';
+import {
+    BookingSummary,
+    CompactBookingProgress,
+} from '@/modules/shared/components/booking';
 import { Button } from '@/modules/shared/components/ui/button';
 import type { RoomItem } from '@/modules/shared/types';
 
@@ -48,10 +53,10 @@ interface ReservarHabitacionProps {
 }
 
 const PASOS_HABITACION = [
-    { num: 1, titulo: 'Fechas', subtitulo: 'Entrada y salida' },
-    { num: 2, titulo: 'Huésped', subtitulo: 'Datos de contacto' },
-    { num: 3, titulo: 'Servicios', subtitulo: 'Extras opcionales' },
-    { num: 4, titulo: 'Garantía & Pago', subtitulo: 'Confirmación' },
+    { num: 1, title: 'Estancia', subtitle: 'Fechas y huéspedes' },
+    { num: 2, title: 'Huésped', subtitle: 'Datos de contacto' },
+    { num: 3, title: 'Servicios', subtitle: 'Extras opcionales' },
+    { num: 4, title: 'Garantía & Pago', subtitle: 'Confirmación' },
 ];
 
 export const ReservarHabitacion = ({
@@ -111,6 +116,55 @@ export const ReservarHabitacion = ({
     const imagenPrincipal =
         room.imagenes?.[0] || room.imagen || '/images/main-room.webp';
 
+    const getBotonContinuarTexto = () => {
+        switch (pasoActual) {
+            case 1:
+                return 'Continuar a datos del huésped';
+            case 2:
+                return 'Continuar a servicios y extras';
+            case 3:
+                return 'Continuar al pago seguro';
+            default:
+                return 'Continuar';
+        }
+    };
+
+    const summaryRows = [
+        {
+            label: 'Check-in',
+            value: checkIn || 'Sin seleccionar',
+            icon: <Calendar className="size-3.5 text-primary" />,
+        },
+        {
+            label: 'Check-out',
+            value: checkOut || 'Sin seleccionar',
+            icon: <Calendar className="size-3.5 text-primary" />,
+        },
+        {
+            label: 'Duración',
+            value: `${noches} ${noches === 1 ? 'noche' : 'noches'}`,
+            icon: <Clock className="size-3.5 text-muted-foreground" />,
+        },
+        {
+            label: 'Huéspedes',
+            value: `${adultos} adultos${ninos > 0 ? `, ${ninos} niños` : ''}`,
+            icon: <Users className="size-3.5 text-muted-foreground" />,
+        },
+    ];
+
+    const pricingData = {
+        subtotal: subtotalHabitacion,
+        subtotalLabel: `Habitación (${moneda}${precioNoche} × ${noches} ${noches === 1 ? 'noche' : 'noches'})`,
+        servicesTotal: subtotalServicios,
+        servicesLabel: 'Servicios adicionales',
+        discount: montoDescuento,
+        discountLabel: 'Beneficio exclusivo aplicado',
+        total: totalNeto,
+        dueToday: montoACobrarAhora,
+        dueTodayLabel: 'Monto a pagar hoy:',
+        currency: moneda,
+    };
+
     return (
         <div className="min-h-screen bg-background font-sans text-foreground">
             <Head>
@@ -145,13 +199,14 @@ export const ReservarHabitacion = ({
                     </div>
                 </div>
 
-                {/* Stepper Superior */}
-                <StepperHeader
-                    pasos={PASOS_HABITACION}
-                    pasoActual={pasoActual}
-                    onCambiarPaso={(p) => irAlPaso(p as 1 | 2 | 3 | 4)}
-                    minWidthClass="min-w-[540px]"
-                />
+                {/* Stepper Superior Compacto */}
+                <div className="mb-8">
+                    <CompactBookingProgress
+                        steps={PASOS_HABITACION}
+                        currentStep={pasoActual}
+                        onStepClick={(p) => irAlPaso(p as 1 | 2 | 3 | 4)}
+                    />
+                </div>
 
                 {/* Layout Principal: 2 Columnas */}
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -267,7 +322,9 @@ export const ReservarHabitacion = ({
                                             type="button"
                                             disabled={
                                                 pasoActual === 1 &&
-                                                tieneConflictoFechas
+                                                (tieneConflictoFechas ||
+                                                    !checkIn ||
+                                                    !checkOut)
                                             }
                                             onClick={() =>
                                                 irAlPaso(
@@ -277,7 +334,9 @@ export const ReservarHabitacion = ({
                                             }
                                             className="h-11 rounded-2xl bg-primary px-8 text-xs font-black text-primary-foreground shadow-lg hover:bg-primary/90 disabled:opacity-50"
                                         >
-                                            <span>Continuar</span>
+                                            <span>
+                                                {getBotonContinuarTexto()}
+                                            </span>
                                             <ArrowRight className="ml-2 size-4" />
                                         </Button>
                                     ) : (
@@ -297,8 +356,8 @@ export const ReservarHabitacion = ({
                                                 <>
                                                     <CreditCard className="mr-2 size-4" />
                                                     <span>
-                                                        Proceder al Pago (
-                                                        {moneda}
+                                                        Proceder al Pago Seguro
+                                                        ({moneda}
                                                         {montoACobrarAhora.toFixed(
                                                             2,
                                                         )}
@@ -309,7 +368,8 @@ export const ReservarHabitacion = ({
                                                 <>
                                                     <CheckCircle2 className="mr-2 size-4" />
                                                     <span>
-                                                        Confirmar Reserva
+                                                        Confirmar Reserva de
+                                                        Suite
                                                     </span>
                                                 </>
                                             )}
@@ -320,37 +380,38 @@ export const ReservarHabitacion = ({
                         )}
                     </div>
 
-                    {/* Columna Derecha: Sticky Summary Card */}
+                    {/* Columna Derecha: Sticky BookingSummary & Mobile Bottom Drawer */}
                     <div className="lg:col-span-5 xl:col-span-4">
-                        <ReservaResumenSidebar
-                            room={room}
-                            imagenPrincipal={imagenPrincipal}
-                            checkIn={checkIn}
-                            checkOut={checkOut}
-                            noches={noches}
-                            adultos={adultos}
-                            ninos={ninos}
-                            precioNoche={precioNoche}
-                            subtotalHabitacion={subtotalHabitacion}
-                            subtotalServicios={subtotalServicios}
-                            montoDescuento={montoDescuento}
-                            totalNeto={totalNeto}
-                            montoACobrarAhora={montoACobrarAhora}
-                            moneda={moneda}
+                        <BookingSummary
+                            title="Tu Estancia"
+                            resourceName={room.nombre}
+                            resourceCategory={
+                                room.categoria || 'Suite Boutique'
+                            }
+                            resourceImage={imagenPrincipal}
+                            rows={summaryRows}
+                            pricing={pricingData}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Modal de Reserva Confirmada Exitosamente */}
+            {/* Modal de Reserva Confirmada Exitosamente con "Añadir a mi estancia" */}
             {reservaConfirmada && !stripeData && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
-                    <div className="my-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-border bg-card p-6 shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-md">
+                    <div className="my-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-border bg-card p-6 shadow-2xl">
                         <ReservaConfirmada
                             codigoReserva={reservaConfirmada.codigo_reserva}
                             reservaId={reservaConfirmada.id}
                             titulo="¡Te esperamos en Hotel Bugambilias!"
                             subtitulo="Hemos registrado tu estancia. Guarda tu código de confirmación o descarga tu voucher para el check-in."
+                            checkInDate={
+                                reservaConfirmada.fecha_check_in || checkIn
+                            }
+                            checkOutDate={
+                                reservaConfirmada.fecha_check_out || checkOut
+                            }
+                            guestCount={adultos}
                             detalles={[
                                 ...(reservaConfirmada.habitacion_nombre
                                     ? [
@@ -369,6 +430,10 @@ export const ReservarHabitacion = ({
                                           },
                                       ]
                                     : []),
+                                {
+                                    label: 'Total de la Reserva',
+                                    valor: `${moneda}${totalNeto.toFixed(2)}`,
+                                },
                             ]}
                             urlRetorno="/habitaciones"
                             textoRetorno="Explorar más Suites"

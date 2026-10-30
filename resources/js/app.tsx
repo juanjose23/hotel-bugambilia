@@ -5,6 +5,11 @@ import type { ComponentType, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ErrorBoundary } from '@/modules/shared/components/ErrorBoundary';
 import { Layout } from '@/modules/shared/components/layouts/Layout';
+import { NavigationLoadingProvider } from '@/modules/shared/components/loading/NavigationLoadingProvider';
+import {
+    PageLoadError,
+    PageSkeleton,
+} from '@/modules/shared/components/skeletons/PageSkeleton';
 import 'sonner/dist/styles.css';
 
 type ComponenteConLayout = ComponentType<Record<string, unknown>> & {
@@ -30,6 +35,22 @@ const paginasGlob = import.meta.glob<{ default: ComponenteConLayout }>(
     './pages/**/*.tsx',
 );
 
+const initialElement = document.getElementById('app');
+const initialRoot = initialElement ? createRoot(initialElement) : undefined;
+initialRoot?.render(
+    <PageSkeleton
+        href={window.location.href}
+        layout={
+            window.location.pathname.startsWith('/auth')
+                ? 'auth'
+                : window.location.pathname.startsWith('/portal')
+                  ? 'portal'
+                  : 'public'
+        }
+        initial
+    />,
+);
+
 void createInertiaApp({
     strictMode: true,
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -39,7 +60,10 @@ void createInertiaApp({
                 const page = modulo.default as ComponenteConLayout;
 
                 if (page.layout === undefined) {
-                    if (name.toLowerCase().startsWith('auth/')) {
+                    if (
+                        name.toLowerCase().startsWith('auth/') ||
+                        name.toLowerCase().startsWith('portal/')
+                    ) {
                         page.layout = (pageContent: ReactNode) => pageContent;
                     } else {
                         page.layout = (pageContent: ReactNode) => (
@@ -56,7 +80,9 @@ void createInertiaApp({
         const content = (
             <QueryClientProvider client={queryClient}>
                 <ErrorBoundary>
-                    <App {...props} />
+                    <NavigationLoadingProvider>
+                        <App {...props} />
+                    </NavigationLoadingProvider>
                 </ErrorBoundary>
             </QueryClientProvider>
         );
@@ -65,10 +91,12 @@ void createInertiaApp({
             return content;
         }
 
-        const root = createRoot(el);
+        const root = initialRoot ?? createRoot(el);
         root.render(content);
     },
     progress: {
         color: '#d459ab',
     },
+}).catch(() => {
+    initialRoot?.render(<PageLoadError />);
 });

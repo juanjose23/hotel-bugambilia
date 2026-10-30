@@ -1,0 +1,347 @@
+{
+  "alcance": [
+    "facturacion",
+    "cuentas",
+    "reservas",
+    "habitaciones",
+    "espacios"
+  ],
+  "relaciones_polimorficas": "conservadas; fuera de los cambios",
+  "estado": "primera etapa preparada y ensayada; sin activar en la base principal",
+  "migracion": "2026_10_30_000001_add_missing_financial_foreign_keys",
+  "ensayo": {
+    "base_aislada": "hotel_normalizacion_criticos_20261030_023415",
+    "principal_modificada": false,
+    "tablas_con_huella": 37,
+    "datos_iguales": true,
+    "reversion_y_reaplicacion": true,
+    "restricciones": [
+      {
+        "conname": "cuentas_estancia_id_foreign",
+        "definicion": "FOREIGN KEY (estancia_id) REFERENCES estancias(id) ON DELETE RESTRICT"
+      },
+      {
+        "conname": "pagos_cuenta_venta_id_foreign",
+        "definicion": "FOREIGN KEY (venta_id) REFERENCES ventas(id) ON DELETE RESTRICT"
+      },
+      {
+        "conname": "pedidos_cuenta_id_foreign",
+        "definicion": "FOREIGN KEY (cuenta_id) REFERENCES cuentas(id) ON DELETE RESTRICT"
+      }
+    ],
+    "antes": {
+      "audits": {
+        "filas": 94,
+        "huella": "f91985af4618f5265fedb7a5d9c42ae5"
+      },
+      "compra_historial": {
+        "filas": 36039,
+        "huella": "21e212ba035633ef43e7133e7b15c8d7"
+      },
+      "cuenta_cargos": {
+        "filas": 3,
+        "huella": "b7236c679d754afe37c23982f5f05d11"
+      },
+      "cuenta_detalles": {
+        "filas": 22075,
+        "huella": "6983848d8e91128e2137c60250ad877f"
+      },
+      "cuentas": {
+        "filas": 9771,
+        "huella": "48fffc5fed9a83c9476c9762e1285b01"
+      },
+      "detalles_habitacion": {
+        "filas": 122,
+        "huella": "bc25f1fe8620cbf9784ec232ad2a65eb"
+      },
+      "espacios": {
+        "filas": 13,
+        "huella": "0141de742f81d8a959988193f42acb0c"
+      },
+      "estancias": {
+        "filas": 9702,
+        "huella": "2568da5a2ca9a764dbef7230692943a2"
+      },
+      "factura_autorizaciones_dgi": {
+        "filas": 2,
+        "huella": "a9e5fdee750763dab9531604941f73ce"
+      },
+      "factura_detalles": {
+        "filas": 22036,
+        "huella": "dcfd8c78e9cf4e83546b762fbcfde43b"
+      },
+      "factura_folios": {
+        "filas": 9721,
+        "huella": "968c75c740cc869d32c72973412dcd93"
+      },
+      "factura_series": {
+        "filas": 2,
+        "huella": "44bb0b9bb10c5453ad2d0ea6e8f0dfcb"
+      },
+      "facturas": {
+        "filas": 9726,
+        "huella": "1c98d780c655c55d1e176cd25c532b2e"
+      },
+      "habitacion_historial": {
+        "filas": 1,
+        "huella": "10e2bb8a3b9b2a59d71ca2dadf32e329"
+      },
+      "habitaciones": {
+        "filas": 122,
+        "huella": "9fe52ce8dba6ced7ae4f78454e422ba1"
+      },
+      "imagenes": {
+        "filas": 490,
+        "huella": "41ae20bb6b2789519a33ae3ffda9ef43"
+      },
+      "inv_activo_asignaciones": {
+        "filas": 32432,
+        "huella": "92990e87e96a92ca59aaf1d67ee4a762"
+      },
+      "limp_ejecuciones": {
+        "filas": 26,
+        "huella": "ae4d3974245cf0a0df8f4fd159688d9f"
+      },
+      "limp_horario_detalles": {
+        "filas": 135,
+        "huella": "569e329eb84263102b7018f5400cc9af"
+      },
+      "model_has_permissions": {
+        "filas": 0,
+        "huella": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "model_has_roles": {
+        "filas": 24,
+        "huella": "e6f754ccfb4b0d662db6cc9d5d132214"
+      },
+      "notifications": {
+        "filas": 22,
+        "huella": "1f4344f670e663fbb4466d70f2a761db"
+      },
+      "pagos_cuenta": {
+        "filas": 19445,
+        "huella": "c40f94a3e93a9ce3ade852136d6c7481"
+      },
+      "pedidos": {
+        "filas": 35292,
+        "huella": "b3fe96e4f98791a5d3fb4f80f27a34e7"
+      },
+      "politicaables": {
+        "filas": 1386,
+        "huella": "bc1c14f30ec158eeae58ef0f4258fa53"
+      },
+      "precios": {
+        "filas": 717,
+        "huella": "6cf028f9af462c48e2e2b01a890be1f0"
+      },
+      "promocion_items": {
+        "filas": 14,
+        "huella": "97830c3f1c2b445ea2cccf5a619e29b0"
+      },
+      "recursos_reservables": {
+        "filas": 160,
+        "huella": "841b96d754a7b7805d925cb6e12e8dda"
+      },
+      "reserva_detalles": {
+        "filas": 10106,
+        "huella": "1cf6ebe748e124e442b6143eac1d375d"
+      },
+      "reserva_huespedes": {
+        "filas": 10104,
+        "huella": "53b36711db6faab2e2d8f03fb8f44643"
+      },
+      "reservas": {
+        "filas": 10106,
+        "huella": "3d9ad156f6a10d7bae778d09ea4a71ee"
+      },
+      "servicio_asignaciones": {
+        "filas": 498,
+        "huella": "3028c77f65c7c141ce7641ef1b4cb458"
+      },
+      "servicios": {
+        "filas": 25,
+        "huella": "8521e70ca3ab46a4b8539e18b8315650"
+      },
+      "solicitud_limpiezas": {
+        "filas": 0,
+        "huella": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stocks": {
+        "filas": 2004,
+        "huella": "104989f98fdb0b64aac7ce5864a24455"
+      },
+      "venta_detalles": {
+        "filas": 22045,
+        "huella": "8a171193c5e7638fb1b35431fe143ac5"
+      },
+      "ventas": {
+        "filas": 9735,
+        "huella": "3013c139e84df2421dbc89c703279dd2"
+      }
+    },
+    "despues": {
+      "audits": {
+        "filas": 94,
+        "huella": "f91985af4618f5265fedb7a5d9c42ae5"
+      },
+      "compra_historial": {
+        "filas": 36039,
+        "huella": "21e212ba035633ef43e7133e7b15c8d7"
+      },
+      "cuenta_cargos": {
+        "filas": 3,
+        "huella": "b7236c679d754afe37c23982f5f05d11"
+      },
+      "cuenta_detalles": {
+        "filas": 22075,
+        "huella": "6983848d8e91128e2137c60250ad877f"
+      },
+      "cuentas": {
+        "filas": 9771,
+        "huella": "48fffc5fed9a83c9476c9762e1285b01"
+      },
+      "detalles_habitacion": {
+        "filas": 122,
+        "huella": "bc25f1fe8620cbf9784ec232ad2a65eb"
+      },
+      "espacios": {
+        "filas": 13,
+        "huella": "0141de742f81d8a959988193f42acb0c"
+      },
+      "estancias": {
+        "filas": 9702,
+        "huella": "2568da5a2ca9a764dbef7230692943a2"
+      },
+      "factura_autorizaciones_dgi": {
+        "filas": 2,
+        "huella": "a9e5fdee750763dab9531604941f73ce"
+      },
+      "factura_detalles": {
+        "filas": 22036,
+        "huella": "dcfd8c78e9cf4e83546b762fbcfde43b"
+      },
+      "factura_folios": {
+        "filas": 9721,
+        "huella": "968c75c740cc869d32c72973412dcd93"
+      },
+      "factura_series": {
+        "filas": 2,
+        "huella": "44bb0b9bb10c5453ad2d0ea6e8f0dfcb"
+      },
+      "facturas": {
+        "filas": 9726,
+        "huella": "1c98d780c655c55d1e176cd25c532b2e"
+      },
+      "habitacion_historial": {
+        "filas": 1,
+        "huella": "10e2bb8a3b9b2a59d71ca2dadf32e329"
+      },
+      "habitaciones": {
+        "filas": 122,
+        "huella": "9fe52ce8dba6ced7ae4f78454e422ba1"
+      },
+      "imagenes": {
+        "filas": 490,
+        "huella": "41ae20bb6b2789519a33ae3ffda9ef43"
+      },
+      "inv_activo_asignaciones": {
+        "filas": 32432,
+        "huella": "92990e87e96a92ca59aaf1d67ee4a762"
+      },
+      "limp_ejecuciones": {
+        "filas": 26,
+        "huella": "ae4d3974245cf0a0df8f4fd159688d9f"
+      },
+      "limp_horario_detalles": {
+        "filas": 135,
+        "huella": "569e329eb84263102b7018f5400cc9af"
+      },
+      "model_has_permissions": {
+        "filas": 0,
+        "huella": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "model_has_roles": {
+        "filas": 24,
+        "huella": "e6f754ccfb4b0d662db6cc9d5d132214"
+      },
+      "notifications": {
+        "filas": 22,
+        "huella": "1f4344f670e663fbb4466d70f2a761db"
+      },
+      "pagos_cuenta": {
+        "filas": 19445,
+        "huella": "c40f94a3e93a9ce3ade852136d6c7481"
+      },
+      "pedidos": {
+        "filas": 35292,
+        "huella": "b3fe96e4f98791a5d3fb4f80f27a34e7"
+      },
+      "politicaables": {
+        "filas": 1386,
+        "huella": "bc1c14f30ec158eeae58ef0f4258fa53"
+      },
+      "precios": {
+        "filas": 717,
+        "huella": "6cf028f9af462c48e2e2b01a890be1f0"
+      },
+      "promocion_items": {
+        "filas": 14,
+        "huella": "97830c3f1c2b445ea2cccf5a619e29b0"
+      },
+      "recursos_reservables": {
+        "filas": 160,
+        "huella": "841b96d754a7b7805d925cb6e12e8dda"
+      },
+      "reserva_detalles": {
+        "filas": 10106,
+        "huella": "1cf6ebe748e124e442b6143eac1d375d"
+      },
+      "reserva_huespedes": {
+        "filas": 10104,
+        "huella": "53b36711db6faab2e2d8f03fb8f44643"
+      },
+      "reservas": {
+        "filas": 10106,
+        "huella": "3d9ad156f6a10d7bae778d09ea4a71ee"
+      },
+      "servicio_asignaciones": {
+        "filas": 498,
+        "huella": "3028c77f65c7c141ce7641ef1b4cb458"
+      },
+      "servicios": {
+        "filas": 25,
+        "huella": "8521e70ca3ab46a4b8539e18b8315650"
+      },
+      "solicitud_limpiezas": {
+        "filas": 0,
+        "huella": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stocks": {
+        "filas": 2004,
+        "huella": "104989f98fdb0b64aac7ce5864a24455"
+      },
+      "venta_detalles": {
+        "filas": 22045,
+        "huella": "8a171193c5e7638fb1b35431fe143ac5"
+      },
+      "ventas": {
+        "filas": 9735,
+        "huella": "3013c139e84df2421dbc89c703279dd2"
+      }
+    }
+  },
+  "verificacion_principal": {
+    "consulta_solo_lectura": "on",
+    "nuevas_fk_en_principal": 0,
+    "migracion_en_principal": 0
+  },
+  "pruebas": {
+    "tool": "pest",
+    "result": "passed",
+    "tests": 46,
+    "passed": 46,
+    "assertions": 162,
+    "duration_ms": 26986
+  },
+  "limitacion": "La integridad referencial de esta entrega no certifica 3FN global. La normalizacion restante sigue el plan por modulo."
+}

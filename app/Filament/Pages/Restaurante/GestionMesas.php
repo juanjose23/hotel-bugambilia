@@ -30,7 +30,7 @@ use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Restaurante\Mesas\ObtenerMapaMesasQuery;
 use App\Repository\Queries\Restaurante\Mesas\ObtenerReservasRestauranteQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerComandasMesaConDetalleQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Exception;

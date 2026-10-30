@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -82,6 +83,13 @@ class Habitacion extends Model implements AuditableContract
     public function reservable(): BelongsTo
     {
         return $this->belongsTo(RecursoReservable::class, 'reservable_id');
+    }
+
+    /** @return BelongsToMany<Catalogo, $this> */
+    public function vistas(): BelongsToMany
+    {
+        return $this->belongsToMany(Catalogo::class, 'habitacion_vistas', 'habitacion_id', 'catalogo_id')
+            ->withPivot('orden')->withTimestamps()->orderByPivot('orden');
     }
 
     /**

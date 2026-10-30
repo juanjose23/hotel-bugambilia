@@ -1,4 +1,4 @@
-@use(App\Support\MonedaHelper)
+@use(App\Support\Barcode\Support\MonedaHelper)
 @extends('reports.layout.app', [
     'titulo' => $titulo ?? 'Reporte de Ocupación y Estadías',
     'codigo' => $codigo ?? 'HTB-RES-001',
@@ -48,22 +48,22 @@
 
         <table class="occ-table">
             <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Habitaciones Ocupadas</th>
-                    <th>Total Habitaciones</th>
-                    <th>Ocupación</th>
-                </tr>
+            <tr>
+                <th>Fecha</th>
+                <th>Habitaciones Ocupadas</th>
+                <th>Total Habitaciones</th>
+                <th>Ocupación</th>
+            </tr>
             </thead>
             <tbody>
-                @foreach($ocupacionPorDia as $fecha => $data)
-                    <tr>
-                        <td>{{ \Carbon\CarbonImmutable::parse($fecha)->format('d/m/Y') }}</td>
-                        <td>{{ $data['ocupadas'] }}</td>
-                        <td>{{ $data['total'] }}</td>
-                        <td>{{ number_format((float) ($data['porcentaje'] ?? 0), 1) }}%</td>
-                    </tr>
-                @endforeach
+            @foreach($ocupacionPorDia as $fecha => $data)
+                <tr>
+                    <td>{{ \Carbon\CarbonImmutable::parse($fecha)->format('d/m/Y') }}</td>
+                    <td>{{ $data['ocupadas'] }}</td>
+                    <td>{{ $data['total'] }}</td>
+                    <td>{{ number_format((float) ($data['porcentaje'] ?? 0), 1) }}%</td>
+                </tr>
+            @endforeach
             </tbody>
         </table>
     @endif

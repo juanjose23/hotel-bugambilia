@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Servicios;
 use App\Http\Controllers\Controller;
 use App\Interactors\Servicios\ObtenerServicioDetalle;
 use App\Interactors\Servicios\ObtenerServicios;
-use App\Support\Utilidades\FormatearPaginacion;
+use App\Support\Barcode\Support\Utilidades\FormatearPaginacion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

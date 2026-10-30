@@ -23,7 +23,7 @@
                 <td style="width: 50%; vertical-align: top; text-align: right;">
                     <strong style="color: #711C37; font-size: 8pt; text-transform: uppercase;">Detalles Recepción</strong><br>
                     <span style="font-size: 10pt; font-weight: bold;">Fecha: {{ optional($record->fecha_recepcion)->format('d/m/Y') }}</span><br>
-                    <span class="badge {{ $record->estado === EstadoRecepcion::Completa ? 'badge-success' : 'badge-warning' }}">
+                    <span class="badge {{ (string) EstadoRecepcion::Completa->value === $record->estado?->value ? 'badge-success' : 'badge-warning' }}">
                         {{ $record->estado?->label() ?? 'N/A' }}
                     </span>
                 </td>
@@ -51,7 +51,7 @@
         <tbody>
             @foreach($record->items as $item)
                 @php
-                    $cantidadOrdenada = $item->ordenItem?->cantidad ?? 0;
+                    $cantidadOrdenada = $item->cantidad_ordenada;
                     $diferencia = $cantidadOrdenada - $item->cantidad_recibida;
                 @endphp
                 <tr>
@@ -60,7 +60,7 @@
                         @if($item->variante)
                             <br><span style="font-size: 7.5pt; color: #64748b;">Variante: {{ $item->variante->codigo }}</span>
                         @endif
-                        <br><small style="color: #94a3b8; text-transform: uppercase;">{{ $item->unidadMedida?->valor ?? $item->unidadMedida?->nombre ?? 'Unidad' }}</small>
+                        <br><small style="color: #94a3b8; text-transform: uppercase;">{{ $item->unidadMedida?->valor ?? 'Unidad' }}</small>
                     </td>
                     <td style="text-align: center;">{{ number_format((float)$cantidadOrdenada, 2) }}</td>
                     <td style="text-align: center; font-weight: bold; color: #047857;">{{ number_format((float)$item->cantidad_recibida, 2) }}</td>
@@ -82,7 +82,7 @@
                 <td style="width: 10%;"></td>
                 <td style="width: 45%; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
                     <strong style="font-size: 8pt; text-transform: uppercase; color: #64748b;">Recibido Conforme (Almacén)</strong><br>
-                    <span style="font-size: 8.5pt; font-weight: bold;">{{ $record->receptor?->name }}</span>
+                    <span style="font-size: 8.5pt; font-weight: bold;">{{ $record->receptor?->persona?->nombre_completo ?? '—' }}</span>
                 </td>
             </tr>
         </table>

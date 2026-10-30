@@ -62,7 +62,8 @@ final class ObtenerOrdenCompraReporteQuery
             solicitud: $this->mapearSolicitud($orden->solicitud),
             cotizacion: $this->mapearCotizacion($orden->cotizacion),
             estado: $estado,
-            items: $orden->items->map(fn ($item) => $this->mapearItem($item))
+            items: $orden->items->map(fn ($item) => $this->mapearItem($item)),
+            notas: $orden->notas,
         );
     }
 

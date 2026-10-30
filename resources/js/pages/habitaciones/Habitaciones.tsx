@@ -25,11 +25,16 @@ export const Habitaciones = ({
         categoria,
         buscar,
         huespedes,
+        checkIn,
+        checkOut,
+        noches,
         orden,
         isPending,
         habitacionesFiltradas,
         setBuscar,
         setHuespedes,
+        setCheckIn,
+        setCheckOut,
         setOrden,
         manejarCambioCategoria,
         manejarSubmitBusqueda,
@@ -53,7 +58,7 @@ export const Habitaciones = ({
             {/* Cabecera Hero */}
             <HabitacionHero totalHabitaciones={rooms.length} />
 
-            {/* Barra de Filtros Interactiva */}
+            {/* Barra de Filtros Interactiva con "¿Cuándo te hospedas?" */}
             <HabitacionFiltros
                 categorias={categorias}
                 categoriaActiva={categoria}
@@ -63,6 +68,11 @@ export const Habitaciones = ({
                 alBuscar={manejarSubmitBusqueda}
                 huespedes={huespedes}
                 alCambiarHuespedes={setHuespedes}
+                checkIn={checkIn}
+                alCambiarCheckIn={setCheckIn}
+                checkOut={checkOut}
+                alCambiarCheckOut={setCheckOut}
+                noches={noches}
                 orden={orden}
                 alCambiarOrden={setOrden}
                 alLimpiar={manejarReset}
@@ -81,7 +91,7 @@ export const Habitaciones = ({
                         </h3>
                         <p className="mt-1 max-w-sm text-xs text-muted-foreground">
                             Prueba ajustando los filtros de categoría, cantidad
-                            de huéspedes o término de búsqueda.
+                            de huéspedes o las fechas seleccionadas.
                         </p>
                         <Button
                             type="button"
@@ -89,12 +99,12 @@ export const Habitaciones = ({
                             className="mt-5 cursor-pointer rounded-full bg-primary px-5 py-2 text-xs font-black text-primary-foreground shadow-sm hover:bg-primary/90"
                         >
                             <RotateCcw className="mr-1.5 size-3.5" />
-                            <span>Restablecer todos los filtros</span>
+                            <span>Restablecer búsqueda</span>
                         </Button>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {/* Cabecera móvil con indicador y alternador de vista */}
+                    <div className="space-y-4">
+                        {/* Cabecera móvil con alternador de vista */}
                         <div className="flex items-center justify-between text-xs font-bold text-muted-foreground sm:hidden">
                             <span>
                                 {vistaMobileGrid
@@ -128,7 +138,14 @@ export const Habitaciones = ({
                             /* Vista Cuadrícula Vertical en Móvil */
                             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {habitacionesFiltradas.map((room) => (
-                                    <RoomCard key={room.id} room={room} />
+                                    <RoomCard
+                                        key={room.id}
+                                        room={room}
+                                        noches={noches}
+                                        checkIn={checkIn}
+                                        checkOut={checkOut}
+                                        huespedes={huespedes}
+                                    />
                                 ))}
                             </div>
                         ) : (
@@ -139,7 +156,13 @@ export const Habitaciones = ({
                                         key={room.id}
                                         className="w-[84vw] max-w-[340px] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink"
                                     >
-                                        <RoomCard room={room} />
+                                        <RoomCard
+                                            room={room}
+                                            noches={noches}
+                                            checkIn={checkIn}
+                                            checkOut={checkOut}
+                                            huespedes={huespedes}
+                                        />
                                     </div>
                                 ))}
                             </div>

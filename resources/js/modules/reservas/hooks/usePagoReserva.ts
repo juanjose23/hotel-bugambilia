@@ -5,6 +5,9 @@ import type { StripePaymentData } from '../types';
 interface DatosReservaPago {
     id: number;
     codigoReserva: string;
+    saldo?: number;
+    total?: number;
+    totalPagado?: number;
 }
 
 export const usePagoReserva = (datosReserva?: DatosReservaPago | null) => {
@@ -17,6 +20,7 @@ export const usePagoReserva = (datosReserva?: DatosReservaPago | null) => {
 
     const reservaId = datosReserva?.id;
     const codigoReserva = datosReserva?.codigoReserva;
+    const saldoReserva = datosReserva?.saldo;
 
     useEffect(() => {
         if (!reservaId || !codigoReserva) {
@@ -33,6 +37,10 @@ export const usePagoReserva = (datosReserva?: DatosReservaPago | null) => {
                 const data = await reservasService.obtenerIntentoPago({
                     reserva_id: reservaId,
                     codigo_reserva: codigoReserva,
+                    monto:
+                        saldoReserva !== undefined && saldoReserva > 0
+                            ? saldoReserva
+                            : undefined,
                 });
 
                 if (isMounted) {
@@ -58,7 +66,7 @@ export const usePagoReserva = (datosReserva?: DatosReservaPago | null) => {
         return () => {
             isMounted = false;
         };
-    }, [reservaId, codigoReserva]);
+    }, [reservaId, codigoReserva, saldoReserva]);
 
     const handleStripeSuccess = useCallback(
         async (paymentIntentId: string) => {

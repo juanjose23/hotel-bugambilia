@@ -12,6 +12,7 @@ spl_autoload_register(function (string $class): void {
 
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequerirCambioContrasena;
+use App\Repository\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -33,6 +34,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectTo(
+            guests: '/auth/login',
+            users: function (Request $request): string {
+                $user = $request->user();
+
+                return ($user instanceof User && $user->esAdmin()) ? '/admin' : '/';
+            }
+        );
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Actions\Inventario\Reportes;
 
 use App\Repository\Queries\Inventario\Trazabilidad\TrazabilidadLoteHaciaAdelante;
-use App\Support\HotelInfo;
-use App\Support\Pdf\LayoutPdf;
-use App\Support\Pdf\Orientacion;
-use App\Support\Pdf\TamanoPapel;
+use App\Support\Barcode\Support\HotelInfo;
+use App\Support\Barcode\Support\Pdf\LayoutPdf;
+use App\Support\Barcode\Support\Pdf\Orientacion;
+use App\Support\Barcode\Support\Pdf\TamanoPapel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPdfInstance;
 

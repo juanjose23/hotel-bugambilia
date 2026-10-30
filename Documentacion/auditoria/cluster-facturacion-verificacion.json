@@ -1,0 +1,215 @@
+{
+  "estado": "aplicado en proyecto principal",
+  "entrada": "/admin/facturacion",
+  "accesos_menu_principal": 1,
+  "componentes": 21,
+  "secciones": [
+    "Cobros y documentos",
+    "Caja y cierres",
+    "Fondos y bancos",
+    "Configuración fiscal"
+  ],
+  "redirecciones": [
+    {
+      "antes": "admin/cargos-facturacion",
+      "despues": "admin/facturacion/cargos-facturacion",
+      "componente": "App\\Filament\\Resources\\Cuentas\\CargoFacturacionResource\\Pages\\ListCargosFacturacion"
+    },
+    {
+      "antes": "admin/cargos-facturacion/create",
+      "despues": "admin/facturacion/cargos-facturacion/create",
+      "componente": "App\\Filament\\Resources\\Cuentas\\CargoFacturacionResource\\Pages\\CreateCargoFacturacion"
+    },
+    {
+      "antes": "admin/cargos-facturacion/{record}/edit",
+      "despues": "admin/facturacion/cargos-facturacion/{record}/edit",
+      "componente": "App\\Filament\\Resources\\Cuentas\\CargoFacturacionResource\\Pages\\EditCargoFacturacion"
+    },
+    {
+      "antes": "admin/cuentas",
+      "despues": "admin/facturacion/cuentas",
+      "componente": "App\\Filament\\Resources\\Cuentas\\CuentaResource\\Pages\\ListCuentas"
+    },
+    {
+      "antes": "admin/cuentas/{record}",
+      "despues": "admin/facturacion/cuentas/{record}",
+      "componente": "App\\Filament\\Resources\\Cuentas\\CuentaResource\\Pages\\ViewCuenta"
+    },
+    {
+      "antes": "admin/facturacion-config",
+      "despues": "admin/facturacion",
+      "componente": "App\\Filament\\Clusters\\FacturacionConfig\\FacturacionConfigCluster"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/autorizaciones-dgi",
+      "despues": "admin/facturacion/autorizaciones-dgi",
+      "componente": "App\\Filament\\Resources\\Facturacion\\FacturaAutorizacionDgiResource\\Pages\\ListFacturaAutorizacionesDgi"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/autorizaciones-dgi/create",
+      "despues": "admin/facturacion/autorizaciones-dgi/create",
+      "componente": "App\\Filament\\Resources\\Facturacion\\FacturaAutorizacionDgiResource\\Pages\\CreateFacturaAutorizacionDgi"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/autorizaciones-dgi/{record}/edit",
+      "despues": "admin/facturacion/autorizaciones-dgi/{record}/edit",
+      "componente": "App\\Filament\\Resources\\Facturacion\\FacturaAutorizacionDgiResource\\Pages\\EditFacturaAutorizacionDgi"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/conciliacion",
+      "despues": "admin/facturacion/conciliacion",
+      "componente": "App\\Filament\\Resources\\Facturacion\\PagoConciliacionResource\\Pages\\ListPagoConciliaciones"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/folios",
+      "despues": "admin/facturacion/folios",
+      "componente": "App\\Filament\\Resources\\Facturacion\\FacturaFolioResource\\Pages\\ListFacturaFolios"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/pasarelas",
+      "despues": "admin/facturacion/pasarelas",
+      "componente": "App\\Filament\\Resources\\Facturacion\\PasarelaPagoResource\\Pages\\ListPasarelasPago"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/pasarelas/create",
+      "despues": "admin/facturacion/pasarelas/create",
+      "componente": "App\\Filament\\Resources\\Facturacion\\PasarelaPagoResource\\Pages\\CreatePasarelaPago"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/pasarelas/{record}/edit",
+      "despues": "admin/facturacion/pasarelas/{record}/edit",
+      "componente": "App\\Filament\\Resources\\Facturacion\\PasarelaPagoResource\\Pages\\EditPasarelaPago"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/series",
+      "despues": "admin/facturacion/series",
+      "componente": "App\\Filament\\Resources\\Facturacion\\FacturaSerieResource\\Pages\\ListFacturaSeries"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/series/create",
+      "despues": "admin/facturacion/series/create",
+      "componente": "App\\Filament\\Resources\\Facturacion\\FacturaSerieResource\\Pages\\CreateFacturaSerie"
+    },
+    {
+      "antes": "admin/facturacion-config/facturacion/series/{record}/edit",
+      "despues": "admin/facturacion/series/{record}/edit",
+      "componente": "App\\Filament\\Resources\\Facturacion\\FacturaSerieResource\\Pages\\EditFacturaSerie"
+    },
+    {
+      "antes": "admin/tesoreria/caja-chica",
+      "despues": "admin/facturacion/tesoreria/caja-chica",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\CajaChica"
+    },
+    {
+      "antes": "admin/tesoreria/cajas",
+      "despues": "admin/facturacion/tesoreria/cajas",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\GestionCajas"
+    },
+    {
+      "antes": "admin/tesoreria/cierres",
+      "despues": "admin/facturacion/tesoreria/cierres",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\HistorialCajas"
+    },
+    {
+      "antes": "admin/tesoreria/comprobantes",
+      "despues": "admin/facturacion/tesoreria/comprobantes",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\ComprobantesTransferencia"
+    },
+    {
+      "antes": "admin/tesoreria/conciliacion",
+      "despues": "admin/facturacion/tesoreria/conciliacion",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\ConciliacionBancaria"
+    },
+    {
+      "antes": "admin/tesoreria/devoluciones",
+      "despues": "admin/facturacion/tesoreria/devoluciones",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\DevolucionesCaja"
+    },
+    {
+      "antes": "admin/tesoreria/entregas",
+      "despues": "admin/facturacion/tesoreria/entregas",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\EntregasCaja"
+    },
+    {
+      "antes": "admin/tesoreria/fondos",
+      "despues": "admin/facturacion/tesoreria/fondos",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\FondosTesoreria"
+    },
+    {
+      "antes": "admin/tesoreria/fondos-turno",
+      "despues": "admin/facturacion/tesoreria/fondos-turno",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\FondosTurnoCaja"
+    },
+    {
+      "antes": "admin/tesoreria/libro-fondos",
+      "despues": "admin/facturacion/tesoreria/libro-fondos",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\MovimientosFondos"
+    },
+    {
+      "antes": "admin/tesoreria/mi-turno",
+      "despues": "admin/facturacion/tesoreria/mi-turno",
+      "componente": "App\\Filament\\Pages\\Tesoreria\\MiTurnoCaja"
+    },
+    {
+      "antes": "admin/ventas",
+      "despues": "admin/facturacion/ventas",
+      "componente": "App\\Filament\\Resources\\Cuentas\\VentaResource\\Pages\\ListVentas"
+    },
+    {
+      "antes": "admin/ventas/crear",
+      "despues": "admin/facturacion/ventas/crear",
+      "componente": "App\\Filament\\Resources\\Cuentas\\VentaResource\\Pages\\CreateVenta"
+    },
+    {
+      "antes": "admin/ventas/{record}",
+      "despues": "admin/facturacion/ventas/{record}",
+      "componente": "App\\Filament\\Resources\\Cuentas\\VentaResource\\Pages\\ViewVenta"
+    }
+  ],
+  "pruebas": {
+    "tool": "pest",
+    "result": "passed",
+    "tests": 92,
+    "passed": 92,
+    "assertions": 387,
+    "duration_ms": 44389
+  },
+  "analisis_estatico": {
+    "tool": "phpstan",
+    "result": "passed",
+    "errors": 0
+  },
+  "pantallas_principal": {
+    "principal": true,
+    "solo_lectura": true,
+    "url_cluster": "http://localhost/admin/facturacion",
+    "accesos_principales": [
+      "Facturación y caja"
+    ],
+    "componentes": 21,
+    "pantallas": [
+      {
+        "pantalla": "ComprobantesTransferencia",
+        "url": "http://localhost/admin/facturacion/tesoreria/comprobantes",
+        "renderizada": true
+      },
+      {
+        "pantalla": "MiTurnoCaja",
+        "url": "http://localhost/admin/facturacion/tesoreria/mi-turno",
+        "renderizada": true
+      },
+      {
+        "pantalla": "ListFacturas",
+        "url": "http://localhost/admin/facturacion/facturas",
+        "renderizada": true
+      },
+      {
+        "pantalla": "ListCuentas",
+        "url": "http://localhost/admin/facturacion/cuentas",
+        "renderizada": true
+      }
+    ]
+  },
+  "compilacion": "correcta",
+  "cambios_de_datos_o_permisos": false
+}

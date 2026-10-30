@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Shared\Columns;
 
 use App\Repository\Models\Monedas\Moneda;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use Closure;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;

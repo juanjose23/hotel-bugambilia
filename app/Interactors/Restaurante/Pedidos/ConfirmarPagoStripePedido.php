@@ -11,7 +11,7 @@ use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Facturacion\ObtenerTransaccionPorReferenciaQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerPedidoParaConfirmacionPagoQuery;
-use App\Support\MonedaHelper;
+use App\Support\Barcode\Support\MonedaHelper;
 use App\WebServices\Stripe\StripePaymentIntentClient;
 use DomainException;
 use Illuminate\Support\Facades\DB;
