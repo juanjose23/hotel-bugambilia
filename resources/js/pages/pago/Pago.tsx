@@ -113,10 +113,10 @@ export const Pago = ({ datosReserva }: PagoPageProps) => {
                                 Descargar Comprobante PDF
                             </a>
                             <Link
-                                href="/portal/reservas"
+                                href={`/portal/reservas/${datosReserva.id}?codigo=${encodeURIComponent(datosReserva.codigoReserva)}`}
                                 className="inline-flex h-11 items-center justify-center rounded-2xl bg-primary px-5 text-xs font-bold text-primary-foreground shadow-md hover:bg-primary/90"
                             >
-                                Ir al Portal de Reservas
+                                Ver mi Reserva
                             </Link>
                         </div>
                     </div>

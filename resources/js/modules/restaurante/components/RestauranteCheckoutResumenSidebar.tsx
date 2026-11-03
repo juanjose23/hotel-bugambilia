@@ -19,6 +19,7 @@ interface RestauranteCheckoutResumenSidebarProps {
     departamento?: string;
     municipio?: string;
     pedidoMinimo?: number;
+    totalDefinitivo?: boolean;
     alAbrirReservaMesa?: () => void;
 }
 
@@ -30,6 +31,7 @@ export const RestauranteCheckoutResumenSidebar = ({
     moneda = 'C$',
     departamento = 'Estelí',
     pedidoMinimo = 0,
+    totalDefinitivo = false,
     alAbrirReservaMesa,
 }: RestauranteCheckoutResumenSidebarProps) => {
     const cumpleMinimo = subtotal >= pedidoMinimo;
@@ -113,13 +115,24 @@ export const RestauranteCheckoutResumenSidebar = ({
                     </div>
 
                     <div className="flex items-baseline justify-between border-t border-border/60 pt-3 text-sm font-black text-foreground">
-                        <span>Total a Pagar:</span>
+                        <span>
+                            {totalDefinitivo
+                                ? 'Total a pagar:'
+                                : 'Subtotal estimado:'}
+                        </span>
                         <span className="text-xl font-black text-primary dark:text-rose-400">
                             {moneda} {total.toFixed(2)}
                         </span>
                     </div>
                 </div>
 
+                {!totalDefinitivo && (
+                    <p className="mt-3 text-xs text-muted-foreground">
+                        Los impuestos y cargos configurados se incluyen en la
+                        cuenta final. Antes de pagar con tarjeta verás el
+                        importe exacto.
+                    </p>
+                )}
                 {/* Alerta de Pedido Mínimo si no cumple */}
                 {!cumpleMinimo && pedidoMinimo > 0 && (
                     <div className="mt-4 flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">

@@ -9,11 +9,7 @@ import type { FormPedidoDelivery } from '../schemas/pedidoDeliverySchema';
 import restauranteService from '../services/restauranteService';
 import type { RespuestaPedidoBackend } from '../services/restauranteService';
 import type { DepartamentoDelivery, ItemCarritoRestaurante } from '../types';
-import {
-    abrirWhatsappSiExiste,
-    mapearItemsParaPedido,
-    redirigirAlPortalPedidos,
-} from '../utils/pedidoUtils';
+import { mapearItemsParaPedido } from '../utils/pedidoUtils';
 
 interface PropsUsePedidoDeliveryForm {
     items: ItemCarritoRestaurante[];
@@ -123,6 +119,7 @@ export const usePedidoDeliveryForm = ({
         if (nuevoPaso === 3) {
             trigger([
                 'nombre',
+                'email',
                 'telefono',
                 'departamento',
                 'municipio',
@@ -139,13 +136,28 @@ export const usePedidoDeliveryForm = ({
     const avanzarPaso = () => irAlPaso((pasoActual + 1) as 1 | 2 | 3);
     const retrocederPaso = () => irAlPaso((pasoActual - 1) as 1 | 2 | 3);
 
-    const completarFlujoExitoso = (whatsappUrl?: string) => {
+    const completarFlujoExitoso = () => {
         alEnviarExitoso?.();
-        abrirWhatsappSiExiste(whatsappUrl);
-        redirigirAlPortalPedidos();
+
+        if (pedidoCreado?.url_seguimiento) {
+            window.location.assign(pedidoCreado.url_seguimiento);
+        } else if (pedidoCreado?.pedido_id) {
+            window.location.assign(
+                `/restaurante/pedidos/${pedidoCreado.pedido_id}`,
+            );
+        }
     };
 
     const onSubmit = async (data: FormPedidoDelivery) => {
+        if (pedidoCreado) {
+            window.location.assign(
+                pedidoCreado.url_seguimiento ??
+                    `/restaurante/pedidos/${pedidoCreado.pedido_id}`,
+            );
+
+            return;
+        }
+
         if (items.length === 0) {
             setErrorEnvio(
                 'Tu carrito está vacío. Agrega platillos antes de confirmar.',
@@ -174,7 +186,11 @@ export const usePedidoDeliveryForm = ({
                     moneda: datosPedido.moneda,
                 });
             } else {
-                completarFlujoExitoso(datosPedido.whatsapp_url);
+                alEnviarExitoso?.();
+                window.location.assign(
+                    datosPedido.url_seguimiento ??
+                        `/restaurante/pedidos/${datosPedido.pedido_id}`,
+                );
             }
         } catch (err: unknown) {
             setErrorEnvio(
@@ -204,7 +220,7 @@ export const usePedidoDeliveryForm = ({
                 ...pedidoCreado,
                 whatsapp_url: data.whatsapp_url || pedidoCreado.whatsapp_url,
             });
-            completarFlujoExitoso(data.whatsapp_url);
+            completarFlujoExitoso();
         } catch {
             setErrorEnvio(
                 'No se pudo confirmar el pago de Stripe en el servidor.',

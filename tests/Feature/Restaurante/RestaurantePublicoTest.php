@@ -15,6 +15,7 @@ use App\Repository\Models\Shared\Precio;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
+    Espacio::query()->updateOrCreate(['codigo' => 'REST-TEST-001'], ['nombre' => 'Restaurante', 'tipo' => TipoEspacio::RESTAURANTE, 'estado' => EstadoEspacio::Disponible, 'web' => true, 'reservable' => true]);
     ZonaDelivery::query()->updateOrCreate(['codigo' => 'EST'], ['nombre' => 'Estelí', 'activo' => true, 'costo_envio' => 50, 'orden' => 1, 'municipios' => ['Estelí', 'La Trinidad', 'Condega', 'Pueblo Nuevo', 'San Juan de Limay', 'San Nicolás']]);
     if (Moneda::query()->where('codigo', 'NIO')->doesntExist()) {
         Moneda::query()->create([
@@ -145,7 +146,7 @@ test('crea un pedido de delivery en el backend con calculo de comanda y whatsapp
         'success' => true,
         'subtotal' => 700.0,
         'costo_delivery' => 50.0,
-        'total' => 750.0,
+        'total' => 862.5,
         'metodo_pago' => 'efectivo',
     ]);
     $this->assertDatabaseHas('pedidos', [

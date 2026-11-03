@@ -5,6 +5,24 @@ declare(strict_types=1);
 return [
     'version' => 1,
     'paginas' => [
+        'App\\Filament\\Resources\\Promociones\\PromocionResource\\PromocionResource' => [
+            'id' => 'promociones-administrar', 'titulo' => 'Publicar una promoción reservable',
+            'pasos' => [
+                ['titulo' => 'Configura la oferta', 'descripcion' => 'Define nombre, estado y vigencia. Solo las promociones activas, públicas y vigentes aparecen al cliente.'],
+                ['selector' => '.fi-sc-form', 'titulo' => 'Precio y condiciones', 'descripcion' => 'El precio del paquete usa la moneda predeterminada. Define noches, personas y anticipación; los descuentos se reflejan tanto en el anuncio como en la reserva.'],
+                ['selector' => '.fi-sc-form', 'titulo' => 'Componentes incluidos', 'descripcion' => 'Relaciona las habitaciones, servicios y espacios que forman el paquete. La reserva bloqueará cada recurso; no agregues componentes que aún no puedas entregar.'],
+                ['selector' => '.fi-ta', 'titulo' => 'Comprueba la publicación', 'descripcion' => 'Guarda y revisa la oferta en la web. Realiza una reserva de demostración antes de anunciarla; una consulta por WhatsApp no sustituye el registro.'],
+            ],
+        ],
+        'App\\Filament\\Resources\\Restaurante\\PedidoResource\\PedidoResource' => [
+            'id' => 'restaurante-pedidos-operar', 'titulo' => 'Del pedido al cierre de cuenta',
+            'pasos' => [
+                ['titulo' => 'Comprueba el origen', 'descripcion' => 'Distingue comanda de mesa, preorden y entrega a domicilio. Al confirmar una llegada se recuperan los platillos guardados en la reserva.'],
+                ['selector' => '.fi-ta', 'titulo' => 'Preparación y entrega', 'descripcion' => 'Con tarjeta, espera la confirmación del servidor. Marca los platillos listos y servidos cuando corresponda; un pedido preparado continúa activo hasta su cierre.'],
+                ['selector' => '.fi-header-actions-ctn', 'titulo' => 'Cuenta y pago', 'descripcion' => 'Verifica platillos, envío, pagos y saldo. El efectivo permanece pendiente hasta que caja lo registra. No cobres otra vez un pago de tarjeta aplicado.'],
+                ['titulo' => 'Cierre y anulaciones', 'descripcion' => 'Cierra únicamente con el saldo revisado. Los pedidos con pagos requieren un ajuste o devolución autorizado antes de anular cargos; no borres la trazabilidad de cocina.'],
+            ],
+        ],
         'App\\Filament\\Pages\\Restaurante\\ControlCocina' => [
             'id' => 'cocina-control',
             'titulo' => 'Control diario de cocina',

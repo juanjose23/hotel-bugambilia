@@ -41,7 +41,7 @@ final class ResolverUnionMesasAuto
         // Filtrar mesas en la misma área/padre que estén completamente disponibles
         $candidatas = $mesasDisponibles
             ->filter(function (Espacio $m) use ($mesaPrincipal, $zonaPrincipal, $tipoPrincipal): bool {
-                if ($m->id === $mesaPrincipal->id || $m->estado !== EstadoEspacio::Disponible) {
+                if ($m->padre_id !== $mesaPrincipal->padre_id || $m->id === $mesaPrincipal->id || $m->estado !== EstadoEspacio::Disponible) {
                     return false;
                 }
 

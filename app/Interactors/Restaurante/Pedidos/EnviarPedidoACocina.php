@@ -14,7 +14,10 @@ use App\Interactors\Restaurante\Cocina\ConsumirIngredientesPedido;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Repository\Queries\Restaurante\Pedidos\ItemPreordenIncluidoEnReservaQuery;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerPedidoParaConfirmacionPagoQuery;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +32,9 @@ final readonly class EnviarPedidoACocina
         private NotificadorRestaurante $notificador,
         private RecalcularTotalesPedido $recalcular,
         private BloquearItemsPorFaltaStock $bloquearItemsPorFaltaStock,
+        private CuentaRepositorioInterface $cuentas,
+        private ItemPreordenIncluidoEnReservaQuery $preordenIncluida,
+        private ObtenerPedidoParaConfirmacionPagoQuery $pedidosBloqueados,
     ) {}
 
     /**
@@ -52,10 +58,7 @@ final readonly class EnviarPedidoACocina
         $this->bloquearItemsPorFaltaStock->ejecutar($pedido);
 
         return DB::transaction(function () use ($pedido): Pedido {
-            $pedido = $this->repositorio->obtenerPedidoPorId((int) $pedido->id);
-            if ($pedido === null) {
-                throw new DomainException('Pedido no encontrado.');
-            }
+            $pedido = $this->pedidosBloqueados->ejecutar($pedido->id);
             if ($pedido->estado !== EstadoPedido::ABIERTO) {
                 throw new DomainException('Este pedido ya fue enviado a preparación.');
             }
@@ -108,6 +111,9 @@ final readonly class EnviarPedidoACocina
             // Registrar cada item procesado en la cuenta para que el saldo crezca
             if ($cuenta instanceof Cuenta) {
                 foreach ($nuevosItems as $item) {
+                    if ($this->preordenIncluida->ejecutar($pedido, $item->id) || $this->cuentas->detalleActivoConOrigen($cuenta, $item->getMorphClass(), $item->id) !== null) {
+                        continue;
+                    }
                     $nombreConcepto = match (true) {
                         $item->plato !== null => $item->plato->nombre,
                         $item->producto !== null => $item->producto->nombre.($item->variante !== null ? ' ('.$item->variante->nombre_variante.')' : ''),

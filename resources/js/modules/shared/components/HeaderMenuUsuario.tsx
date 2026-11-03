@@ -102,7 +102,9 @@ export const HeaderMenuUsuario = ({
 
                     {usuario.is_admin && (
                         <DropdownMenuItem
-                            onClick={() => router.visit('/admin')}
+                            onClick={() => {
+                                window.location.href = '/admin';
+                            }}
                             className="cursor-pointer rounded-lg px-2.5 py-2 text-xs font-bold text-primary focus:bg-primary/10 dark:text-rose-400"
                         >
                             <LayoutDashboard className="size-4" />

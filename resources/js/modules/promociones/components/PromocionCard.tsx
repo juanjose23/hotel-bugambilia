@@ -1,10 +1,10 @@
+import { Link } from '@inertiajs/react';
 import {
     Calendar,
     Tag,
     Gift,
     Percent,
     CheckCircle2,
-    MessageCircle,
     ArrowRight,
 } from 'lucide-react';
 import { Button } from '@/modules/shared/components/ui/button';
@@ -19,7 +19,6 @@ interface PromocionCardProps {
 export const PromocionCard = ({
     promocion,
     alSeleccionar,
-    telefonoWhatsApp = '50587136805',
 }: PromocionCardProps) => {
     const tieneDescuento =
         (promocion.descuento_porcentaje &&
@@ -57,12 +56,6 @@ export const PromocionCard = ({
 
     const fechaInicioTxt = formatearFecha(promocion.fecha_inicio);
     const fechaFinTxt = formatearFecha(promocion.fecha_fin);
-
-    const mensajeWhatsApp = encodeURIComponent(
-        `¡Hola Hotel Bugambilias! Deseo reservar la promoción "${promocion.nombre}" (${promocion.codigo}) por ${promocion.moneda}${Number(promocion.precio_final).toFixed(0)}.`,
-    );
-
-    const telefonoLimpio = telefonoWhatsApp.replace(/\D/g, '');
 
     return (
         <div className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl dark:hover:border-rose-500/50">
@@ -160,11 +153,14 @@ export const PromocionCard = ({
                                 )}
                             <div className="flex items-baseline gap-1">
                                 <span className="text-2xl font-black text-foreground">
-                                    {promocion.moneda}
-                                    {Number(promocion.precio_final).toFixed(0)}
+                                    {promocion.precio_original
+                                        ? `${promocion.moneda}${Number(promocion.precio_final).toFixed(0)}`
+                                        : 'Descuento sobre tarifa vigente'}
                                 </span>
                                 <span className="text-xs font-bold text-muted-foreground">
-                                    / paquete
+                                    {promocion.precio_original
+                                        ? '/ paquete'
+                                        : ''}
                                 </span>
                             </div>
                         </div>
@@ -181,15 +177,16 @@ export const PromocionCard = ({
                         </Button>
                     </div>
 
-                    <a
-                        href={`https://wa.me/${telefonoLimpio}?text=${mensajeWhatsApp}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-2.5 text-xs font-black text-white shadow-md transition-all hover:bg-emerald-700 active:scale-95 dark:bg-emerald-700 dark:hover:bg-emerald-800"
+                    <Link
+                        href={
+                            promocion.url_reserva ??
+                            `/promociones/${promocion.id}/reservar`
+                        }
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-2.5 text-xs font-bold text-primary-foreground"
                     >
-                        <MessageCircle className="size-4" />
-                        <span>Aprovechar Oferta</span>
-                    </a>
+                        <ArrowRight className="size-4" />
+                        <span>Reservar esta oferta</span>
+                    </Link>
                 </div>
             </div>
         </div>

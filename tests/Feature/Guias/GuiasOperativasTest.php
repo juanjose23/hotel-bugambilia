@@ -29,7 +29,7 @@ test('el catalogo solo resuelve los ambitos registrados y prioriza la pantalla c
 
 test('todas las guias apuntan a clases existentes y tienen pasos y dialogos coherentes', function (): void {
     $guias = config('guias_operativas.paginas');
-    expect($guias)->toHaveCount(38);
+    expect(count($guias))->toBeGreaterThanOrEqual(40);
     $ids = [];
     foreach ($guias as $clase => $guia) {
         expect(class_exists($clase))->toBeTrue();

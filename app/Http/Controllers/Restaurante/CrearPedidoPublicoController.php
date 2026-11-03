@@ -20,8 +20,12 @@ final class CrearPedidoPublicoController extends Controller
         $validated = $request->validated();
 
         try {
-            /** @var array{nombre: string, telefono: string, departamento?: ?string, municipio?: ?string, direccion: string, metodo_pago: string, monto_paga_con?: ?string, notas?: ?string, items: array<int, array{plato_id: int, cantidad: int, observaciones?: ?string}>} $validated */
+            /** @var array{nombre: string, email?: ?string, telefono: string, departamento?: ?string, municipio?: ?string, direccion: string, metodo_pago: string, monto_paga_con?: ?string, notas?: ?string, items: array<int, array{plato_id: int, cantidad: int, observaciones?: ?string}>} $validated */
             $resultado = $interactor->ejecutar($validated);
+
+            $anteriores = $request->session()->get('pedidos_publicos', []);
+            $request->session()->put('pedidos_publicos', array_values(array_slice(array_unique([...array_filter(is_array($anteriores) ? $anteriores : [], is_int(...)), $resultado['pedido_id']]), -30)));
+            $resultado['url_seguimiento'] = route('restaurante.pedido.seguimiento', ['pedido' => $resultado['pedido_id']]);
 
             return response()->json($resultado, 201);
         } catch (DomainException $e) {

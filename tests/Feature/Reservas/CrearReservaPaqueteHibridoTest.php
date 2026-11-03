@@ -132,6 +132,7 @@ test('calcula y crea correctamente una reserva de paquete hibrido combinando hab
         ->and($reserva->habitacion_id)->toBe($habitacion->id)
         ->and($reserva->espacio_id)->toBe($espacio->id)
         ->and($reserva->estado)->toBe(EstadoReserva::PENDIENTE)
-        ->and((float) $reserva->subtotal)->toBe(1500.0)
+        ->and((float) $reserva->subtotal)->toBe(2000.0)
+        ->and((float) $reserva->descuento)->toBe(500.0)
         ->and((float) $reserva->total)->toBe(1725.0);
 });

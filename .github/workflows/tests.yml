@@ -11,9 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Construir aplicación y herramientas
-        run: docker compose --profile quality build app tools
+        run: docker compose -f compose.ci.yaml --profile quality build app tools
       - name: Formato, análisis, pruebas y compilación
-        run: docker compose --profile quality run --rm tools node scripts/project.mjs check
+        run: docker compose -f compose.ci.yaml --profile quality run --rm tools node scripts/project.mjs check
       - name: Detener los servicios de pruebas
         if: always()
-        run: docker compose --profile quality down --remove-orphans
+        run: docker compose -f compose.ci.yaml --profile quality down --remove-orphans

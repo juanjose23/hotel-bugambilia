@@ -15,10 +15,16 @@ final class ConsultarMesasDisponiblesController extends Controller
         Request $request,
         ObtenerMesasDisponibles $interactor,
     ): JsonResponse {
-        $fecha = (string) $request->query('fecha', date('Y-m-d'));
-        $hora = (string) $request->query('hora', '13:00');
-        $duracion = max(1, (int) $request->query('duracion_horas', 1));
-        $comensales = max(1, (int) $request->query('comensales', 2));
+        $datos = $request->validate([
+            'fecha' => ['sometimes', 'required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'hora' => ['sometimes', 'required', 'date_format:H:i'],
+            'duracion_horas' => ['sometimes', 'integer', 'min:1', 'max:5'],
+            'comensales' => ['sometimes', 'integer', 'min:1', 'max:30'],
+        ]);
+        $fecha = (string) ($datos['fecha'] ?? today()->toDateString());
+        $hora = (string) ($datos['hora'] ?? '13:00');
+        $duracion = (int) ($datos['duracion_horas'] ?? 1);
+        $comensales = (int) ($datos['comensales'] ?? 2);
 
         $resultado = $interactor->ejecutar(
             fecha: $fecha,

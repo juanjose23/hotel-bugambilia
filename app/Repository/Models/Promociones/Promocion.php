@@ -10,6 +10,7 @@ use App\Repository\Models\Politicas\Politica;
 use App\Repository\Models\Shared\Imagen;
 use App\Repository\Models\Shared\Precio;
 use App\Repository\Models\Shared\Stock;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 
+/**
+ * @property ?CarbonImmutable $fecha_inicio
+ * @property ?CarbonImmutable $fecha_fin
+ * @property ?int $noches_incluidas
+ * @property ?int $personas_incluidas
+ * @property int $anticipacion_horas
+ */
 class Promocion extends Model implements AuditableContract
 {
     use Auditable, SoftDeletes;
@@ -30,6 +38,9 @@ class Promocion extends Model implements AuditableContract
 
     protected $casts = [
         'estado' => EstadoGeneral::class,
+        'noches_incluidas' => 'integer',
+        'personas_incluidas' => 'integer',
+        'anticipacion_horas' => 'integer',
         'web' => 'boolean',
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
@@ -51,7 +62,7 @@ class Promocion extends Model implements AuditableContract
      */
     public function getPrecioFinalAttribute(): ?float
     {
-        $precioBase = $this->precio_paquete !== null ? (float) $this->precio_paquete : null;
+        $precioBase = $this->precio_paquete !== null && (float) $this->precio_paquete > 0 ? (float) $this->precio_paquete : null;
 
         if ($precioBase === null) {
             $precioObj = $this->precios->first();
@@ -127,7 +138,7 @@ class Promocion extends Model implements AuditableContract
     public function scopeVigentes(Builder $query): Builder
     {
         return $query->activos()
-            ->where('fecha_inicio', '<=', now()->toDateString())
-            ->where('fecha_fin', '>=', now()->toDateString());
+            ->where(fn ($q) => $q->whereNull('fecha_inicio')->orWhereDate('fecha_inicio', '<=', today()))
+            ->where(fn ($q) => $q->whereNull('fecha_fin')->orWhereDate('fecha_fin', '>=', today()));
     }
 }

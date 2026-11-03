@@ -32,6 +32,6 @@ test('calcula descuento usando precio de paquete prioritario', function (): void
 
     $resultado = $promocion->calcular(300.00, 10.0, 20.0, 250.0);
 
-    expect($resultado['descuento'])->toBe(50.00);
-    expect($resultado['total'])->toBe(250.00);
+    expect($resultado['descuento'])->toBe(75.00);
+    expect($resultado['total'])->toBe(225.00);
 });

@@ -10,6 +10,7 @@ import type {
     PromocionesPageProps,
     PromocionItem,
 } from '@/modules/promociones/types';
+import { GuiaPasoAPaso } from '@/modules/shared/components/GuiaPasoAPaso';
 import { PromocionGridSkeleton } from '@/modules/shared/components/skeletons';
 import { Button } from '@/modules/shared/components/ui/button';
 import { usePropiedadesPagina } from '@/modules/shared/hooks/usePropiedadesPagina';
@@ -57,6 +58,27 @@ export const Promociones = ({
             </Head>
 
             {/* Portada Hero */}
+            <div className="container mx-auto flex justify-end px-4 pt-5">
+                <GuiaPasoAPaso
+                    pasos={[
+                        {
+                            titulo: 'Elige una promoción vigente',
+                            descripcion:
+                                'Revisa el precio, las fechas y los recursos incluidos. Las ofertas privadas, futuras o vencidas no se muestran como reservables.',
+                        },
+                        {
+                            titulo: 'Consulta condiciones y beneficios',
+                            descripcion:
+                                'Comprueba noches, personas y anticipación. Un descuento sin precio fijo se calcula sobre la tarifa del recurso al reservar.',
+                        },
+                        {
+                            titulo: 'Reserva en línea',
+                            descripcion:
+                                'Pulsa Reservar esta oferta para elegir fechas y contacto. El sistema comprueba la disponibilidad y genera una reserva real con seguimiento; WhatsApp queda como ayuda opcional.',
+                        },
+                    ]}
+                />
+            </div>
             <PromocionHero totalPromociones={promociones.length} />
 
             {/* Barra de Filtros */}

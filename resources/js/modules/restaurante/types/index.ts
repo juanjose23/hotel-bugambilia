@@ -89,6 +89,7 @@ export interface RestaurantePageProps {
 }
 
 export interface RestauranteCheckoutPageProps {
+    tarjeta_disponible?: boolean;
     restaurante?: RestauranteData | null;
     menu?: MenuItemData[];
     ambientes?: AmbienteData[];

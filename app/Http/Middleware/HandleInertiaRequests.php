@@ -1,10 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
+use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -13,6 +19,21 @@ class HandleInertiaRequests extends Middleware
     public function __construct(
         private readonly VerificarRestauranteActivo $verificarRestauranteActivo,
     ) {}
+
+    public function handle(Request $request, Closure $next): SymfonyResponse
+    {
+        $response = parent::handle($request, $next);
+
+        if ($request->header('X-Inertia') !== null && $response instanceof RedirectResponse) {
+            $targetUrl = $response->getTargetUrl();
+
+            if (str_contains($targetUrl, '/admin')) {
+                return Inertia::location($targetUrl);
+            }
+        }
+
+        return $response;
+    }
 
     public function version(Request $request): ?string
     {

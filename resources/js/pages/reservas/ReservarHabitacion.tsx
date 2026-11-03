@@ -29,6 +29,13 @@ import {
     CompactBookingProgress,
 } from '@/modules/shared/components/booking';
 import { Button } from '@/modules/shared/components/ui/button';
+import { Checkbox } from '@/modules/shared/components/ui/checkbox';
+import {
+    Field,
+    FieldLabel,
+    FieldError,
+} from '@/modules/shared/components/ui/field';
+import { Input } from '@/modules/shared/components/ui/input';
 import type { RoomItem } from '@/modules/shared/types';
 
 interface ReservarHabitacionProps {
@@ -72,6 +79,7 @@ export const ReservarHabitacion = ({
         register,
         handleSubmit,
         setValue,
+        watch,
         errors,
         isSubmitting,
         pasoActual,
@@ -254,13 +262,80 @@ export const ReservarHabitacion = ({
                                 )}
 
                                 {pasoActual === 2 && (
-                                    <ReservaPasoCliente
-                                        beneficiosCliente={beneficiosCliente}
-                                        register={register}
-                                        errors={errors}
-                                        titulo="Información del Huésped Principal"
-                                        subtitulo="Enviaremos los detalles de confirmación y factura electrónica a estos contactos."
-                                    />
+                                    <>
+                                        <ReservaPasoCliente
+                                            beneficiosCliente={beneficiosCliente}
+                                            register={register}
+                                            errors={errors}
+                                            titulo="Información del Huésped Principal"
+                                            subtitulo="Enviaremos los detalles de confirmación y factura electrónica a estos contactos."
+                                        />
+
+                                        {/* Facturación opcional */}
+                                        <div className="mt-4 space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                                            <div className="flex items-center gap-3">
+                                                <Checkbox
+                                                    id="requiere_factura"
+                                                    checked={watch('requiere_factura') ?? false}
+                                                    onCheckedChange={(val) =>
+                                                        setValue('requiere_factura', !!val)
+                                                    }
+                                                />
+                                                <label
+                                                    htmlFor="requiere_factura"
+                                                    className="cursor-pointer text-xs font-bold"
+                                                >
+                                                    ¿Desea Factura con RUC / Razón Social?
+                                                </label>
+                                            </div>
+                                            {watch('requiere_factura') && (
+                                                <div className="space-y-3 border-t border-border/60 pt-3">
+                                                    <Field>
+                                                        <FieldLabel className="text-xs font-bold">
+                                                            Razón Social *
+                                                        </FieldLabel>
+                                                        <Input
+                                                            {...register('razon_social')}
+                                                            placeholder="Empresa S.A. de C.V."
+                                                        />
+                                                        {errors.razon_social && (
+                                                            <FieldError>
+                                                                {errors.razon_social.message}
+                                                            </FieldError>
+                                                        )}
+                                                    </Field>
+                                                    <Field>
+                                                        <FieldLabel className="text-xs font-bold">
+                                                            RUC / NIT *
+                                                        </FieldLabel>
+                                                        <Input
+                                                            {...register('ruc')}
+                                                            placeholder="J0310000000000"
+                                                        />
+                                                        {errors.ruc && (
+                                                            <FieldError>
+                                                                {errors.ruc.message}
+                                                            </FieldError>
+                                                        )}
+                                                    </Field>
+                                                    <Field>
+                                                        <FieldLabel className="text-xs font-bold">
+                                                            Dirección Fiscal
+                                                        </FieldLabel>
+                                                        <Input
+                                                            {...register('direccion_fiscal')}
+                                                            placeholder="Dirección registrada"
+                                                        />
+                                                        {errors.direccion_fiscal && (
+                                                            <FieldError>
+                                                                {errors.direccion_fiscal.message}
+                                                            </FieldError>
+                                                        )}
+                                                    </Field>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
                                 )}
 
                                 {pasoActual === 3 && (

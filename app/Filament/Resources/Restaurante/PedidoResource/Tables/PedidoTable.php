@@ -8,6 +8,7 @@ use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
+use App\Filament\Shared\Actions\Restaurante\FinalizarPedidoPagadoAction;
 use App\Filament\Shared\Actions\Restaurante\PagarPedidoAction;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\FechaStandardColumn;
@@ -87,6 +88,7 @@ final class PedidoTable
                     EditAction::make()
                         ->disabled(fn (Pedido $record): bool => ! self::pedidoPuedeEditar($record)),
                     PagarPedidoAction::make(),
+                    FinalizarPedidoPagadoAction::make(),
                     CobrarCuentaAction::makeFromResolver(
                         resolverCuenta: fn (mixed $record = null): ?Cuenta => $record instanceof Pedido ? $record->cuenta : null,
                     )

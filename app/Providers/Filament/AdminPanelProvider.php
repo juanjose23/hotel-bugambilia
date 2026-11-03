@@ -52,6 +52,8 @@ class AdminPanelProvider extends PanelProvider
                 ]))
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER,
                 fn (): View => view('filament.guias.assets'))
+            ->renderHook(PanelsRenderHook::BODY_END,
+                fn (): View => view('filament.components.unsaved-changes-modal'))
             ->unsavedChangesAlerts()
             ->databaseTransactions()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])

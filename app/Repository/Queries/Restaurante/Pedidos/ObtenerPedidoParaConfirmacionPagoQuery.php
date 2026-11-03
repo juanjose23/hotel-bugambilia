@@ -11,7 +11,8 @@ final class ObtenerPedidoParaConfirmacionPagoQuery
     public function ejecutar(int $pedidoId): Pedido
     {
         return Pedido::query()
-            ->with(['cliente.persona', 'items.plato'])
+            ->with(['cliente.persona', 'items.plato', 'cuenta.moneda'])
+            ->lockForUpdate()
             ->findOrFail($pedidoId);
     }
 }

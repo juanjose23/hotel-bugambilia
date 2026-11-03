@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Lock, Utensils, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { RestauranteCheckoutResumenSidebar } from '@/modules/restaurante/components/RestauranteCheckoutResumenSidebar';
@@ -10,6 +10,7 @@ import { crearRestaurantePorDefecto } from '@/modules/restaurante/constants';
 import { useCarritoRestaurante } from '@/modules/restaurante/hooks/useCarritoRestaurante';
 import { usePedidoDeliveryForm } from '@/modules/restaurante/hooks/usePedidoDeliveryForm';
 import type { RestauranteCheckoutPageProps } from '@/modules/restaurante/types';
+import { GuiaPasoAPaso } from '@/modules/shared/components/GuiaPasoAPaso';
 import { StepperHeader } from '@/modules/shared/components/StepperHeader';
 
 const PASOS_CHECKOUT = [
@@ -21,6 +22,7 @@ const PASOS_CHECKOUT = [
 export const RestauranteCheckout = ({
     restaurante,
     departamentos_delivery = [],
+    tarjeta_disponible = false,
 }: RestauranteCheckoutPageProps) => {
     const [modalReservaAbierto, setModalReservaAbierto] = useState(false);
 
@@ -109,6 +111,27 @@ export const RestauranteCheckout = ({
                 />
 
                 {/* Error de envío si ocurre */}
+                <div className="mb-4 flex justify-end">
+                    <GuiaPasoAPaso
+                        pasos={[
+                            {
+                                titulo: '1. Revisa el carrito',
+                                descripcion:
+                                    'Comprueba platillos, cantidades y observaciones antes de continuar. El restaurante valida las tarifas vigentes al recibir el pedido.',
+                            },
+                            {
+                                titulo: '2. Entrega y contacto',
+                                descripcion:
+                                    'Indica departamento, municipio y dirección. El costo de envío se incluye en la cuenta del pedido.',
+                            },
+                            {
+                                titulo: '3. Pago y seguimiento',
+                                descripcion:
+                                    'Con tarjeta, cocina espera la confirmación del pago. En efectivo, el pedido se prepara y caja mantiene el cobro pendiente hasta recibirlo. Al finalizar tendrás una pantalla de seguimiento.',
+                            },
+                        ]}
+                    />
+                </div>
                 {errorEnvio && (
                     <div className="animate-in fade-in mb-6 flex items-start gap-2.5 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive duration-200">
                         <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -151,6 +174,7 @@ export const RestauranteCheckout = ({
 
                             {pasoActual === 3 && (
                                 <RestaurantePasoPago
+                                    tarjetaDisponible={tarjeta_disponible}
                                     register={register}
                                     setValue={setValue}
                                     errors={errors}
@@ -163,11 +187,19 @@ export const RestauranteCheckout = ({
                                     confirmandoStripe={confirmandoStripe}
                                     pedidoCreado={pedidoCreado}
                                     total={
+                                        pedidoCreado?.total ??
                                         carrito.subtotal + costoEnvioCalculado
                                     }
                                     moneda={carrito.moneda}
                                     onStripeSuccess={handleStripeSuccess}
-                                    onCancelStripe={() => setStripeData(null)}
+                                    onCancelStripe={() =>
+                                        pedidoCreado
+                                            ? router.visit(
+                                                  pedidoCreado.url_seguimiento ??
+                                                      `/restaurante/pedidos/${pedidoCreado.pedido_id}`,
+                                              )
+                                            : setStripeData(null)
+                                    }
                                     alRetroceder={retrocederPaso}
                                     alReiniciar={reiniciarPedido}
                                 />
@@ -181,10 +213,14 @@ export const RestauranteCheckout = ({
                             items={carrito.items}
                             subtotal={carrito.subtotal}
                             costoDelivery={costoEnvioCalculado}
-                            total={carrito.subtotal + costoEnvioCalculado}
+                            total={
+                                pedidoCreado?.total ??
+                                carrito.subtotal + costoEnvioCalculado
+                            }
                             moneda={carrito.moneda}
                             departamento={departamentoSeleccionado}
                             municipio={municipioSeleccionado}
+                            totalDefinitivo={pedidoCreado !== null}
                             pedidoMinimo={datosRestaurante.pedido_minimo ?? 0}
                             alAbrirReservaMesa={() =>
                                 setModalReservaAbierto(true)
