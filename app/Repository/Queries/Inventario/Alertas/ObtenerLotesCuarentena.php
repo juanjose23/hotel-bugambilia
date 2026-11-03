@@ -29,12 +29,12 @@ class ObtenerLotesCuarentena
             ])
             ->where('estado', EstadoLote::Cuarentena)
             ->when(
-                isset($filtros['producto_id']) && $filtros['producto_id'],
-                fn ($q) => $q->where('producto_id', $filtros['producto_id'])
+                $filtros['producto_id'] ?? null,
+                fn ($q, $productoId) => $q->where('producto_id', $productoId)
             )
             ->when(
-                isset($filtros['fecha_desde']) && $filtros['fecha_desde'],
-                fn ($q) => $q->where('updated_at', '>=', Carbon::parse($filtros['fecha_desde'])->startOfDay())
+                $filtros['fecha_desde'] ?? null,
+                fn ($q, $fechaDesde) => $q->where('updated_at', '>=', Carbon::parse($fechaDesde)->startOfDay())
             )
             ->orderBy('updated_at')
             ->get();

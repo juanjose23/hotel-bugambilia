@@ -81,7 +81,11 @@ export const useCrearReservaForm = ({
     const [errorServidor, setErrorServidor] = useState<string | null>(null);
 
     // 2. Formulario React Hook Form
-    const form = useForm<CrearReservaFormInput, unknown, CrearReservaFormValues>({
+    const form = useForm<
+        CrearReservaFormInput,
+        unknown,
+        CrearReservaFormValues
+    >({
         resolver: zodResolver(crearReservaSchema),
         defaultValues: {
             nombre_cliente: authUser?.name || '',

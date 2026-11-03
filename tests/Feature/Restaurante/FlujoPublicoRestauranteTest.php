@@ -147,7 +147,7 @@ it('no envía a cocina ni registra cobro antes de confirmar Stripe y confirma un
     Livewire::test(ListPedidos::class)
         ->assertActionVisible(TestAction::make('finalizarPedidoPagado')->table($pedido))
         ->callAction(TestAction::make('finalizarPedidoPagado')->table($pedido))
-        ->assertHasNoActionErrors();
+        ->assertHasNoFormErrors();
     expect($pedido->refresh()->estado)->toBe(EstadoPedido::PAGADO)->and(PagoCuenta::query()->where('cuenta_id', $pedido->cuenta_id)->count())->toBe(1)->and($pedido->cuenta->ventas()->count())->toBe(1);
 });
 
@@ -189,6 +189,6 @@ it('permite finalizar desde gestión de mesas una atención servida que ya está
     $usuario->assignRole(Role::findOrCreate('super_admin', 'web'));
     $this->actingAs($usuario);
     Filament::setCurrentPanel(Filament::getPanel('admin'));
-    Livewire::test(GestionMesas::class)->set('pedidoCobroId', $pedido->id)->callAction('finalizarPedidoPagado')->assertHasNoActionErrors();
+    Livewire::test(GestionMesas::class)->set('pedidoCobroId', $pedido->id)->callAction('finalizarPedidoPagado')->assertHasNoFormErrors();
     expect($pedido->refresh()->estado)->toBe(EstadoPedido::PAGADO)->and($pedido->cuenta->ventas()->count())->toBe(1)->and($pedido->cuenta->pagos()->count())->toBe(1);
 });

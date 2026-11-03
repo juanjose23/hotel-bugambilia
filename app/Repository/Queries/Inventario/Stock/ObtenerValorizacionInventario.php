@@ -65,12 +65,12 @@ class ObtenerValorizacionInventario
             ->where('l.estado', EstadoLote::Disponible->value)
             ->where('l.cantidad_disponible', '>', 0)
             ->when(
-                isset($filtros['ubicacion_id']) && $filtros['ubicacion_id'],
-                fn ($q) => $q->where('l.ubicacion_id', $filtros['ubicacion_id'])
+                $filtros['ubicacion_id'] ?? null,
+                fn ($q, $ubicacionId) => $q->where('l.ubicacion_id', $ubicacionId)
             )
             ->when(
-                isset($filtros['producto_id']) && $filtros['producto_id'],
-                fn ($q) => $q->where('l.producto_id', $filtros['producto_id'])
+                $filtros['producto_id'] ?? null,
+                fn ($q, $productoId) => $q->where('l.producto_id', $productoId)
             )
             ->select([
                 'p.id as producto_id',

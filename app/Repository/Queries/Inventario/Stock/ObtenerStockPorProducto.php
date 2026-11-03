@@ -49,16 +49,16 @@ class ObtenerStockPorProducto
             ->leftJoin('catalogos as cat', 'p.categoria_id', '=', 'cat.id')
             ->whereNull('l.deleted_at')
             ->when(
-                isset($filtros['producto_id']) && $filtros['producto_id'],
-                fn ($q) => $q->where('l.producto_id', $filtros['producto_id'])
+                $filtros['producto_id'] ?? null,
+                fn ($q, $productoId) => $q->where('l.producto_id', $productoId)
             )
             ->when(
-                isset($filtros['ubicacion_id']) && $filtros['ubicacion_id'],
-                fn ($q) => $q->where('l.ubicacion_id', $filtros['ubicacion_id'])
+                $filtros['ubicacion_id'] ?? null,
+                fn ($q, $ubicacionId) => $q->where('l.ubicacion_id', $ubicacionId)
             )
             ->when(
-                isset($filtros['categoria_id']) && $filtros['categoria_id'],
-                fn ($q) => $q->where('p.categoria_id', $filtros['categoria_id'])
+                $filtros['categoria_id'] ?? null,
+                fn ($q, $categoriaId) => $q->where('p.categoria_id', $categoriaId)
             )
             ->select([
                 'p.id as producto_id',
