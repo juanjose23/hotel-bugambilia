@@ -264,7 +264,9 @@ export const ReservarHabitacion = ({
                                 {pasoActual === 2 && (
                                     <>
                                         <ReservaPasoCliente
-                                            beneficiosCliente={beneficiosCliente}
+                                            beneficiosCliente={
+                                                beneficiosCliente
+                                            }
                                             register={register}
                                             errors={errors}
                                             titulo="Información del Huésped Principal"
@@ -276,16 +278,24 @@ export const ReservarHabitacion = ({
                                             <div className="flex items-center gap-3">
                                                 <Checkbox
                                                     id="requiere_factura"
-                                                    checked={watch('requiere_factura') ?? false}
+                                                    checked={
+                                                        watch(
+                                                            'requiere_factura',
+                                                        ) ?? false
+                                                    }
                                                     onCheckedChange={(val) =>
-                                                        setValue('requiere_factura', !!val)
+                                                        setValue(
+                                                            'requiere_factura',
+                                                            !!val,
+                                                        )
                                                     }
                                                 />
                                                 <label
                                                     htmlFor="requiere_factura"
                                                     className="cursor-pointer text-xs font-bold"
                                                 >
-                                                    ¿Desea Factura con RUC / Razón Social?
+                                                    ¿Desea Factura con RUC /
+                                                    Razón Social?
                                                 </label>
                                             </div>
                                             {watch('requiere_factura') && (
@@ -295,12 +305,18 @@ export const ReservarHabitacion = ({
                                                             Razón Social *
                                                         </FieldLabel>
                                                         <Input
-                                                            {...register('razon_social')}
+                                                            {...register(
+                                                                'razon_social',
+                                                            )}
                                                             placeholder="Empresa S.A. de C.V."
                                                         />
                                                         {errors.razon_social && (
                                                             <FieldError>
-                                                                {errors.razon_social.message}
+                                                                {
+                                                                    errors
+                                                                        .razon_social
+                                                                        .message
+                                                                }
                                                             </FieldError>
                                                         )}
                                                     </Field>
@@ -314,7 +330,10 @@ export const ReservarHabitacion = ({
                                                         />
                                                         {errors.ruc && (
                                                             <FieldError>
-                                                                {errors.ruc.message}
+                                                                {
+                                                                    errors.ruc
+                                                                        .message
+                                                                }
                                                             </FieldError>
                                                         )}
                                                     </Field>
@@ -323,12 +342,18 @@ export const ReservarHabitacion = ({
                                                             Dirección Fiscal
                                                         </FieldLabel>
                                                         <Input
-                                                            {...register('direccion_fiscal')}
+                                                            {...register(
+                                                                'direccion_fiscal',
+                                                            )}
                                                             placeholder="Dirección registrada"
                                                         />
                                                         {errors.direccion_fiscal && (
                                                             <FieldError>
-                                                                {errors.direccion_fiscal.message}
+                                                                {
+                                                                    errors
+                                                                        .direccion_fiscal
+                                                                        .message
+                                                                }
                                                             </FieldError>
                                                         )}
                                                     </Field>

@@ -162,9 +162,10 @@ function runChangedFilesChecks(hookType) {
         run(php, ['vendor/bin/phpstan', 'analyse', '--level=9', '--memory-limit=2G', ...phpstanFiles]);
     }
 
-    // 4. Filament Check (si hay archivos de Filament modificados)
+    // 4. Filament Check (filacheck + optimize si hay archivos de Filament modificados)
     if (filamentFiles.length > 0) {
-        console.log(`\n🔍 [Filament Check] Verificando componentes y optimización de Filament (${filamentFiles.length} archivo(s))...`);
+        console.log(`\n🔍 [Filament Check] Ejecutando filacheck y optimización (${filamentFiles.length} archivo(s))...`);
+        run(php, ['vendor/bin/filacheck']);
         run(php, ['artisan', 'filament:optimize']);
         run(php, ['artisan', 'filament:optimize-clear']);
     }

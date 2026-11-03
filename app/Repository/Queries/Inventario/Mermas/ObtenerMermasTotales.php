@@ -68,12 +68,12 @@ class ObtenerMermasTotales
             ->leftJoin('orden_compra_items as oci', 'ri.orden_item_id', '=', 'oci.id')
             ->whereIn('m.tipo', array_keys($tiposBaja))
             ->when(
-                isset($filtros['periodo_desde']) && $filtros['periodo_desde'],
-                fn ($q) => $q->where('m.created_at', '>=', Carbon::parse($filtros['periodo_desde'])->startOfDay())
+                $filtros['periodo_desde'] ?? null,
+                fn ($q, $periodoDesde) => $q->where('m.created_at', '>=', Carbon::parse($periodoDesde)->startOfDay())
             )
             ->when(
-                isset($filtros['periodo_hasta']) && $filtros['periodo_hasta'],
-                fn ($q) => $q->where('m.created_at', '<=', Carbon::parse($filtros['periodo_hasta'])->endOfDay())
+                $filtros['periodo_hasta'] ?? null,
+                fn ($q, $periodoHasta) => $q->where('m.created_at', '<=', Carbon::parse($periodoHasta)->endOfDay())
             )
             ->select([
                 'm.tipo as tipo_movimiento',

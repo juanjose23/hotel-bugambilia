@@ -27,19 +27,19 @@ class ObtenerStockPorLote
                 'ubicacion:id,nombre',
             ])
             ->when(
-                isset($filtros['estado']),
-                fn ($q) => $q->where('estado', $filtros['estado'])
+                $filtros['estado'] ?? null,
+                fn ($q, $estado) => $q->where('estado', $estado)
             )
             ->when(
-                isset($filtros['producto_id']) && $filtros['producto_id'],
-                fn ($q) => $q->where('producto_id', $filtros['producto_id'])
+                $filtros['producto_id'] ?? null,
+                fn ($q, $productoId) => $q->where('producto_id', $productoId)
             )
             ->when(
-                isset($filtros['ubicacion_id']) && $filtros['ubicacion_id'],
-                fn ($q) => $q->where('ubicacion_id', $filtros['ubicacion_id'])
+                $filtros['ubicacion_id'] ?? null,
+                fn ($q, $ubicacionId) => $q->where('ubicacion_id', $ubicacionId)
             )
             ->when(
-                isset($filtros['solo_proximos']) && $filtros['solo_proximos'],
+                ! empty($filtros['solo_proximos']),
                 fn ($q) => $q
                     ->whereNotNull('fecha_vencimiento')
                     ->where('fecha_vencimiento', '>', now()->toDateString())

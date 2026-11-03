@@ -88,7 +88,7 @@ final readonly class GenerarReporteReserva
             $totalOcupadas += (int) $data['ocupadas'];
         }
         $diasOcupacion = count($ocupacionPorDia);
-        $porcentajePromedio = $totalHabitaciones > 0 && $diasOcupacion > 0
+        $porcentajePromedio = $totalHabitaciones > 0
             ? round(($totalOcupadas / ($totalHabitaciones * $diasOcupacion)) * 100, 1)
             : 0.0;
 

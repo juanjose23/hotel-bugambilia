@@ -2,7 +2,12 @@ import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useAccesoCodigoForm } from '@/modules/clientes/hooks/useAccesoCodigoForm';
 import { Button } from '@/modules/shared/components/ui/button';
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/modules/shared/components/ui/field';
+import {
+    Field,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+} from '@/modules/shared/components/ui/field';
 import { Input } from '@/modules/shared/components/ui/input';
 import {
     Sheet,
@@ -36,11 +41,17 @@ export const ConsultarReservaDialog = () => {
             </Button>
 
             <Sheet open={abierto} onOpenChange={setAbierto}>
-                <SheetContent side="bottom" className="mx-auto max-w-sm rounded-t-2xl p-6">
+                <SheetContent
+                    side="bottom"
+                    className="mx-auto max-w-sm rounded-t-2xl p-6"
+                >
                     <SheetHeader className="p-0 pb-4">
-                        <SheetTitle className="text-sm font-black">Consultar mi Reserva</SheetTitle>
+                        <SheetTitle className="text-sm font-black">
+                            Consultar mi Reserva
+                        </SheetTitle>
                         <SheetDescription className="text-xs text-muted-foreground">
-                            Ingresa tu código de confirmación para ver el estado de tu reserva.
+                            Ingresa tu código de confirmación para ver el estado
+                            de tu reserva.
                         </SheetDescription>
                     </SheetHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -54,7 +65,9 @@ export const ConsultarReservaDialog = () => {
                                     autoFocus
                                 />
                                 {errors.codigo && (
-                                    <FieldError>{errors.codigo.message}</FieldError>
+                                    <FieldError>
+                                        {errors.codigo.message}
+                                    </FieldError>
                                 )}
                             </Field>
                         </FieldGroup>

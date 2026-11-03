@@ -33,8 +33,8 @@ class ObtenerLotesProximosVencer
             ->where('fecha_vencimiento', '>', now()->toDateString())
             ->where('fecha_vencimiento', '<=', now()->addDays($dias)->toDateString())
             ->when(
-                isset($filtros['producto_id']) && $filtros['producto_id'],
-                fn ($q) => $q->where('producto_id', $filtros['producto_id'])
+                $filtros['producto_id'] ?? null,
+                fn ($q, $productoId) => $q->where('producto_id', $productoId)
             )
             ->orderBy('fecha_vencimiento')
             ->get();

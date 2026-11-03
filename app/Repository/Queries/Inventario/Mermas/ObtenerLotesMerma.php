@@ -29,12 +29,12 @@ class ObtenerLotesMerma
             ])
             ->whereIn('estado', [EstadoLote::Vencido, EstadoLote::Rechazado])
             ->when(
-                isset($filtros['periodo_desde']) && $filtros['periodo_desde'],
-                fn ($q) => $q->where('updated_at', '>=', Carbon::parse($filtros['periodo_desde'])->startOfDay())
+                $filtros['periodo_desde'] ?? null,
+                fn ($q, $periodoDesde) => $q->where('updated_at', '>=', Carbon::parse($periodoDesde)->startOfDay())
             )
             ->when(
-                isset($filtros['periodo_hasta']) && $filtros['periodo_hasta'],
-                fn ($q) => $q->where('updated_at', '<=', Carbon::parse($filtros['periodo_hasta'])->endOfDay())
+                $filtros['periodo_hasta'] ?? null,
+                fn ($q, $periodoHasta) => $q->where('updated_at', '<=', Carbon::parse($periodoHasta)->endOfDay())
             )
             ->when(
                 isset($filtros['motivo']) && $filtros['motivo'] === 'caducidad',
