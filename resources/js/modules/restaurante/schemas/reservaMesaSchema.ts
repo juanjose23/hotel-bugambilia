@@ -21,6 +21,16 @@ export const reservaMesaSchema = z.object({
         .min(1, 'Mínimo 1 comensal')
         .max(30, 'Máximo 30 personas'),
     espacio_id: z.number().optional().nullable(),
+    promocion_id: z.number().int().positive().nullable().optional(),
+    items_preorden: z
+        .array(
+            z.object({
+                plato_id: z.number().int().positive(),
+                cantidad: z.number().int().min(1).max(50),
+                observaciones: z.string().max(150).nullable().optional(),
+            }),
+        )
+        .max(50),
     notas: z
         .string()
         .max(250, 'Las notas no pueden exceder 250 caracteres')

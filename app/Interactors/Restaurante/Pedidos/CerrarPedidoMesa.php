@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Pedidos;
 
 use App\BusinessLogic\Monedas\ConvertirMoneda;
-use App\BusinessLogic\Restaurante\Cobro\CalcularVueltoCobro;
 use App\BusinessLogic\Restaurante\Cobro\ResolverMonedaCobro;
 use App\BusinessLogic\Restaurante\Cobro\ValidarMetodoPago;
 use App\BusinessLogic\Restaurante\Cuentas\CalcularTotalesCuenta;
@@ -19,14 +18,16 @@ use App\Enums\Restaurante\EstadoPedido;
 use App\Enums\Restaurante\MotivoTransicionMesa;
 use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Interactors\Cuentas\Gestion\AbrirCuenta;
-use App\Interactors\Cuentas\Gestion\CerrarCuenta;
+use App\Interactors\Cuentas\Gestion\CerrarCuentaYGenerarVenta;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
 use App\Interactors\Restaurante\Mesas\CambiarEstadoMesa;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Restaurante\Pedido;
+use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerPedidoParaConfirmacionPagoQuery;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -37,16 +38,17 @@ final readonly class CerrarPedidoMesa
         private RegistrarDetalleCuenta $registrarDetalle,
         private AbrirCuenta $abrirCuenta,
         private RegistrarPagoCuenta $registrarPago,
-        private CerrarCuenta $cerrarCuenta,
+        private CerrarCuentaYGenerarVenta $cerrarCuenta,
         private CambiarEstadoMesa $cambiarEstadoMesa,
         private RegistrarSolicitudLimpieza $registrarLimpieza,
         private ValidarMetodoPago $validarMetodoPago,
         private ResolverMonedaCobro $resolverMonedaCobro,
-        private CalcularVueltoCobro $calcularVuelto,
         private RestauranteRepositorioInterface $repositorio,
         private ValidarTransicionPedido $validarTransicion,
         private ValidarMontoSuficienteCobro $validarMontoSuficiente,
         private ConvertirMoneda $convertirMoneda,
+        private CuentaRepositorioInterface $cuentas,
+        private ObtenerPedidoParaConfirmacionPagoQuery $pedidosBloqueados,
     ) {}
 
     /**
@@ -76,7 +78,9 @@ final readonly class CerrarPedidoMesa
             $clienteId,
             $monedaId,
         ): Pedido {
-            $pedido->loadMissing('items.plato', 'mesa');
+            $pedido = $this->pedidosBloqueados->ejecutar($pedido->id);
+            $this->validarTransicion->puedeCerrar($pedido);
+            $pedido->loadMissing('items.plato', 'mesa', 'cuenta');
 
             $totales = $this->calcularTotales->calcular($pedido);
             $subtotalPedido = $totales['subtotal'];
@@ -86,12 +90,14 @@ final readonly class CerrarPedidoMesa
                 $montoRecibido = round($this->convertirMoneda->aBase($montoRecibido, $monedaId), 2);
             }
 
-            if (! $cargarAHabitacion && $metodoPago !== null) {
+            $saldoPendiente = $pedido->cuenta instanceof Cuenta ? max(0.0, (float) $pedido->cuenta->saldo) : $subtotalPedido;
+
+            if (! $cargarAHabitacion && $saldoPendiente > 0 && $metodoPago !== null) {
                 $this->validarMetodoPago->validar($metodoPago, $montoRecibido ?? 0.0);
             }
 
             if (! $cargarAHabitacion && $montoRecibido !== null) {
-                $this->validarMontoSuficiente->validar($montoRecibido, $subtotalPedido);
+                $this->validarMontoSuficiente->validar($montoRecibido, $saldoPendiente);
             }
 
             $pedido->subtotal = $subtotalPedido;
@@ -175,11 +181,23 @@ final readonly class CerrarPedidoMesa
             $pedido->cuenta_id = $cuenta->id;
         }
 
+        if ($this->cuentas->detalleActivoConOrigen($cuenta, $pedido->getMorphClass(), $pedido->id) === null
+            && ! $this->cuentas->tieneDetalles($cuenta)) {
+            $this->registrarDetalle->ejecutar(cuenta: $cuenta, concepto: "Comanda {$pedido->codigo}", precioUnitario: $subtotal, origen: $pedido);
+            $cuenta->refresh();
+        }
+        $saldoPendiente = max(0.0, (float) $cuenta->saldo);
+        if ($saldoPendiente > 0 && ($metodoPago === null || $montoRecibido === null)) {
+            throw new DomainException('Registra el cobro del saldo pendiente antes de cerrar el pedido.');
+        }
+        if ($saldoPendiente > 0 && $montoRecibido !== null) {
+            $this->validarMontoSuficiente->validar($montoRecibido, $saldoPendiente);
+        }
         $pedido->estado = EstadoPedido::PAGADO;
         $pedido->cuenta_id = $cuenta->id;
 
-        if ($metodoPago !== null && $montoRecibido !== null) {
-            $propina = $this->calcularVuelto->calcularPropinaImplicita($montoRecibido, $subtotal);
+        if ($saldoPendiente > 0 && $metodoPago !== null && $montoRecibido !== null) {
+            $propina = 0.0;
 
             $this->registrarPago->ejecutar(
                 cuenta: $cuenta,
@@ -193,9 +211,10 @@ final readonly class CerrarPedidoMesa
             );
 
             $cuenta->refresh();
-            if ((float) $cuenta->saldo <= 0.0) {
-                $this->cerrarCuenta->ejecutar($cuenta, $usuarioId);
-            }
+
+        }
+        if ($cuenta->refresh()->estado->puedeCerrarse() && (float) $cuenta->saldo <= 0.0) {
+            $this->cerrarCuenta->ejecutar($cuenta, $usuarioId);
         }
     }
 

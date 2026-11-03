@@ -46,6 +46,10 @@ export const crearReservaSchema = z
         acompanantes: z.array(acompananteSchema).optional(),
         servicios_adicionales: z.array(servicioAdicionalSchema).optional(),
         beneficio_id: z.number().optional().nullable(),
+        requiere_factura: z.boolean(),
+        razon_social: z.string().max(200).optional(),
+        ruc: z.string().max(20).optional(),
+        direccion_fiscal: z.string().max(300).optional(),
     })
     .refine(
         (data) => {
@@ -62,6 +66,31 @@ export const crearReservaSchema = z
                 'La fecha de salida debe ser posterior a la fecha de llegada',
             path: ['fecha_check_out'],
         },
+    )
+    .refine(
+        (data) => {
+            if (data.requiere_factura) {
+                return (
+                    !!data.razon_social && data.razon_social.trim().length > 0
+                );
+            }
+
+            return true;
+        },
+        {
+            message: 'La razón social es requerida para facturación',
+            path: ['razon_social'],
+        },
+    )
+    .refine(
+        (data) => {
+            if (data.requiere_factura) {
+                return !!data.ruc && data.ruc.trim().length > 0;
+            }
+
+            return true;
+        },
+        { message: 'El RUC/NIT es requerido para facturación', path: ['ruc'] },
     );
 
 export type CrearReservaFormInput = z.input<typeof crearReservaSchema>;

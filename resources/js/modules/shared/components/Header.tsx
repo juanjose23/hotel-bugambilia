@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Button, buttonVariants } from '@/modules/shared/components/ui/button';
 import { usePropiedadesPagina } from '@/modules/shared/hooks/usePropiedadesPagina';
 import { useTema } from '@/modules/shared/hooks/useTema';
+import { ConsultarReservaDialog } from './ConsultarReservaDialog';
 import { HeaderMenuMovil } from './HeaderMenuMovil';
 import { HeaderMenuUsuario } from './HeaderMenuUsuario';
 import { HeaderNavegacion } from './HeaderNavegacion';
@@ -78,6 +79,8 @@ export const Header = () => {
                             <Moon className="size-4 text-slate-700 dark:text-slate-200" />
                         )}
                     </Button>
+
+                    {!usuario && <ConsultarReservaDialog />}
 
                     <HeaderMenuUsuario
                         usuario={usuario}

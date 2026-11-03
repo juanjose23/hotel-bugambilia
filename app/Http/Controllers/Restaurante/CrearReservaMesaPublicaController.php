@@ -10,6 +10,7 @@ use App\Interactors\Restaurante\Mesas\CrearReservaMesaPublica;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 final class CrearReservaMesaPublicaController extends Controller
 {
@@ -20,11 +21,11 @@ final class CrearReservaMesaPublicaController extends Controller
         $validated = $request->validated();
 
         try {
-            /** @var array{nombre_cliente: string, telefono_cliente: string, email_cliente?: ?string, fecha: string, hora: string, duracion_horas?: ?int, adultos: int, espacio_id?: ?int, tipo_pago_reserva?: ?string, canal_pago_reserva?: ?string, notas?: ?string} $validated */
+            /** @var array{nombre_cliente: string, telefono_cliente: string, email_cliente?: ?string, fecha: string, hora: string, duracion_horas?: ?int, adultos: int, espacio_id?: ?int, tipo_pago_reserva?: ?string, canal_pago_reserva?: ?string, promocion_id?: ?int, items_preorden?: array<int, array{plato_id: int, cantidad: int, observaciones?: ?string}>, notas?: ?string} $validated */
             $resultado = $interactor->ejecutar($validated);
 
             return response()->json($resultado, 201);
-        } catch (DomainException $e) {
+        } catch (DomainException|InvalidArgumentException $e) {
             throw ValidationException::withMessages([
                 'fecha' => [$e->getMessage()],
             ]);

@@ -11,9 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Construir herramientas de navegador
-        run: docker compose --profile dusk build dusk
+        run: docker compose -f compose.ci.yaml --profile dusk build dusk
       - name: Probar la aplicación con Selenium y PostgreSQL aislados
-        run: docker compose --profile dusk run --rm dusk
+        run: docker compose -f compose.ci.yaml --profile dusk run --rm dusk
       - name: Conservar evidencias
         if: failure()
         uses: actions/upload-artifact@v7
@@ -24,4 +24,4 @@ jobs:
             tests/Browser/console/
       - name: Detener servicios
         if: always()
-        run: docker compose --profile dusk down --remove-orphans
+        run: docker compose -f compose.ci.yaml --profile dusk down --remove-orphans

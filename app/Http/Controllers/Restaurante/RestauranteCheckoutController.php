@@ -21,6 +21,7 @@ final class RestauranteCheckoutController extends Controller
         }
 
         $datos = $interactor->ejecutar();
+        $datos['tarjeta_disponible'] = filled(config('services.stripe.key')) && filled(config('services.stripe.secret')) && filled(config('services.stripe.webhook_secret'));
 
         if ($datos['restaurante'] === null) {
             abort(404, 'El restaurante no se encuentra disponible actualmente.');

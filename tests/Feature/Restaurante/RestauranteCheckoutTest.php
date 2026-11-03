@@ -136,7 +136,7 @@ test('crea un pedido de delivery con departamento y municipio validos', function
         'success' => true,
         'subtotal' => 160.0,
         'costo_delivery' => 50.0,
-        'total' => 210.0,
+        'total' => 241.5,
         'metodo_pago' => 'efectivo',
     ]);
 });

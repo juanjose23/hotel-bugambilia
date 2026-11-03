@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { format } from 'date-fns';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { usePropiedadesPagina } from '@/modules/shared/hooks/usePropiedadesPagina';
 import { reservaMesaSchema } from '../schemas/reservaMesaSchema';
@@ -13,21 +14,22 @@ import type {
 
 interface PropsUseReservaMesaForm {
     alCerrar?: () => void;
+    promocionId?: number | null;
 }
 
 export const useReservaMesaForm = ({
     alCerrar,
+    promocionId,
 }: PropsUseReservaMesaForm = {}) => {
     const { auth } = usePropiedadesPagina();
     const usuario = auth?.user;
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = format(new Date(), 'yyyy-MM-dd');
 
     const [disponibilidad, setDisponibilidad] =
         useState<DisponibilidadMesasResponse | null>(null);
     const [cargandoDisponibilidad, setCargandoDisponibilidad] = useState(false);
     const [reservaCreada, setReservaCreada] =
         useState<RespuestaReservaMesaBackend | null>(null);
-    const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
 
     const form = useForm<FormReservaMesa>({
         resolver: zodResolver(reservaMesaSchema),
@@ -42,10 +44,17 @@ export const useReservaMesaForm = ({
             adultos: 2,
             espacio_id: null,
             notas: '',
+            promocion_id: promocionId ?? null,
+            items_preorden: [],
         },
     });
 
-    const { setValue } = form;
+    const { setValue, getValues, setError, clearErrors } = form;
+    const ultimaConsulta = useRef(0);
+    const duracionSeleccionada = useWatch({
+        control: form.control,
+        name: 'duracion_horas',
+    });
     const fechaSeleccionada = useWatch({
         control: form.control,
         name: 'fecha',
@@ -61,36 +70,75 @@ export const useReservaMesaForm = ({
         name: 'espacio_id',
     });
 
-    const consultarDisponibilidad = async () => {
-        if (!fechaSeleccionada) {
-            return;
-        }
+    const consultarDisponibilidad = useCallback(
+        async (signal?: AbortSignal) => {
+            const values = getValues();
 
-        setCargandoDisponibilidad(true);
+            if (!values.fecha || !values.hora) {
+                return;
+            }
 
-        try {
-            const data = await restaurantService.consultarMesasDisponibles({
-                fecha: fechaSeleccionada,
-                hora: horaSeleccionada || '13:00',
-                duracion_horas: Number(form.getValues('duracion_horas') || 1),
-                comensales: adultosSeleccionados,
-            });
-            setDisponibilidad(data);
-        } catch (err) {
-            console.error('Error al consultar mesas disponibles:', err);
-        } finally {
-            setCargandoDisponibilidad(false);
-        }
-    };
+            const consulta = ++ultimaConsulta.current;
+            setCargandoDisponibilidad(true);
+            clearErrors('root.disponibilidad');
+
+            try {
+                const data = await restaurantService.consultarMesasDisponibles({
+                    fecha: values.fecha,
+                    hora: values.hora,
+                    duracion_horas: Number(values.duracion_horas || 1),
+                    comensales: Number(values.adultos || 2),
+                });
+
+                if (consulta === ultimaConsulta.current && !signal?.aborted) {
+                    setDisponibilidad(data);
+                }
+            } catch (err) {
+                if (consulta === ultimaConsulta.current && !signal?.aborted) {
+                    setDisponibilidad(null);
+                    setError('root.disponibilidad', {
+                        message:
+                            err instanceof Error
+                                ? err.message
+                                : 'No se pudo consultar la disponibilidad. Intenta nuevamente.',
+                    });
+                }
+            } finally {
+                if (consulta === ultimaConsulta.current && !signal?.aborted) {
+                    setCargandoDisponibilidad(false);
+                }
+            }
+        },
+        [getValues, clearErrors, setError],
+    );
+
+    useEffect(() => {
+        setValue('espacio_id', null);
+        const controller = new AbortController();
+        const timer = window.setTimeout(
+            () => void consultarDisponibilidad(controller.signal),
+            150,
+        );
+
+        return () => {
+            window.clearTimeout(timer);
+            controller.abort();
+        };
+    }, [
+        fechaSeleccionada,
+        horaSeleccionada,
+        adultosSeleccionados,
+        duracionSeleccionada,
+        consultarDisponibilidad,
+        setValue,
+    ]);
 
     const cambiarFecha = (fecha: string) => {
         setValue('fecha', fecha, { shouldValidate: true, shouldDirty: true });
-        void consultarDisponibilidad();
     };
 
     const seleccionarHora = (hora: string) => {
         setValue('hora', hora, { shouldValidate: true, shouldDirty: true });
-        void consultarDisponibilidad();
     };
 
     const ajustarComensales = (delta: number) => {
@@ -102,7 +150,6 @@ export const useReservaMesaForm = ({
             shouldValidate: true,
             shouldDirty: true,
         });
-        void consultarDisponibilidad();
     };
 
     const seleccionarComensales = (numero: number) => {
@@ -110,17 +157,10 @@ export const useReservaMesaForm = ({
             shouldValidate: true,
             shouldDirty: true,
         });
-        void consultarDisponibilidad();
     };
 
     const seleccionarMesaEnPlano = (mesa: MesaSugerida) => {
         setValue('espacio_id', mesa.id, { shouldValidate: true });
-
-        if (mesa.capacidad && mesa.capacidad > adultosSeleccionados) {
-            setValue('adultos', mesa.capacidad, { shouldValidate: true });
-        }
-
-        void consultarDisponibilidad();
     };
 
     const agregarNotaRapida = (tag: string) => {
@@ -133,27 +173,23 @@ export const useReservaMesaForm = ({
     };
 
     const onSubmit = async (data: FormReservaMesa) => {
-        setErrorEnvio(null);
+        clearErrors('root');
 
         try {
             const reservaDatos = await restaurantService.crearReservaMesa(data);
             setReservaCreada(reservaDatos);
-
-            if (reservaDatos.whatsapp_url) {
-                window.open(reservaDatos.whatsapp_url, '_blank');
-            }
         } catch (err: unknown) {
             const msg =
                 err instanceof Error
                     ? err.message
                     : 'No se pudo completar la reservación de mesa. Intenta con otro horario.';
-            setErrorEnvio(msg);
+            setError('root.envio', { message: msg });
         }
     };
 
     const reiniciar = () => {
         setReservaCreada(null);
-        setErrorEnvio(null);
+        clearErrors('root');
         setDisponibilidad(null);
         form.reset();
 
@@ -171,7 +207,9 @@ export const useReservaMesaForm = ({
         disponibilidad,
         cargandoDisponibilidad,
         reservaCreada,
-        errorEnvio,
+        errorEnvio:
+            form.formState.errors.root?.envio?.message ??
+            form.formState.errors.root?.disponibilidad?.message,
         fechaSeleccionada,
         horaSeleccionada,
         adultosSeleccionados,

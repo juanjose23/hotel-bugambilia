@@ -8,6 +8,7 @@ import {
     MessageSquare,
     UtensilsCrossed,
     Hotel,
+    Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { AddOnToStay } from '@/modules/shared/components/booking/AddOnToStay';
@@ -162,6 +163,16 @@ export const ReservaConfirmada = ({
                         <Download className="size-4" />
                         <span>Descargar Voucher PDF</span>
                     </a>
+                )}
+
+                {reservaId && (
+                    <Link
+                        href={`/portal/reservas/${reservaId}?codigo=${encodeURIComponent(codigoReserva)}`}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-xs font-bold text-primary-foreground shadow-md transition-all hover:bg-primary/90 active:scale-95"
+                    >
+                        <Users className="size-4" />
+                        <span>Gestionar Estancia</span>
+                    </Link>
                 )}
 
                 {whatsappUrl && (

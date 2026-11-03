@@ -30,7 +30,7 @@ final class CalcularPeriodoReserva
             if ($fin <= $inicio) {
                 $fin = $fin->modify('+1 day');
             }
-        } elseif ($checkOut !== null) {
+        } elseif ($checkOut !== null && $checkOut->format('Y-m-d') > $checkIn->format('Y-m-d')) {
             $fin = new DateTimeImmutable($checkOut->format('Y-m-d').' 00:00');
         } elseif (is_numeric($datos['duracion_horas'] ?? null)) {
             $fin = $inicio->modify('+'.max(1, (int) $datos['duracion_horas']).' hours');

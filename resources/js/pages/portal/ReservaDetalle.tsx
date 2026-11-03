@@ -11,6 +11,7 @@ import {
 import { PortalLayout } from '@/modules/clientes/components/layouts/PortalLayout';
 import { DetalleSuiteCard } from '@/modules/clientes/components/reservas/DetalleSuiteCard';
 import { EstadoCuentaCard } from '@/modules/clientes/components/reservas/EstadoCuentaCard';
+import { ValoracionEstanciaCard } from '@/modules/clientes/components/reservas/ValoracionEstanciaCard';
 import type { PortalReservaDetalleCompleto } from '@/modules/clientes/types';
 import { useCancelarReserva } from '@/modules/reservas/hooks/useCancelarReserva';
 import { Button, buttonVariants } from '@/modules/shared/components/ui/button';
@@ -40,6 +41,11 @@ export const ReservaDetalle = ({
     const acompanantes = Array.isArray(reserva.acompanantes)
         ? reserva.acompanantes
         : [];
+
+    const estaCheckedOut =
+        reserva.estado === 6 ||
+        reserva.estado_label?.toLowerCase().includes('out') ||
+        reserva.estado_label?.toLowerCase().includes('salida');
 
     const handleCancelarReserva = () => {
         cancelarReserva(reserva.id, reserva.codigo_reserva);
@@ -287,6 +293,14 @@ export const ReservaDetalle = ({
                                 <span>Gestionar Huéspedes</span>
                             </Link>
                         </div>
+
+                        {/* Valoración post-estancia */}
+                        {estaCheckedOut && (
+                            <ValoracionEstanciaCard
+                                reservaId={reserva.id}
+                                codigoReserva={reserva.codigo_reserva}
+                            />
+                        )}
 
                         {/* Cancelación */}
                         {reserva.puede_cancelar && (

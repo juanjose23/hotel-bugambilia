@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Reservas\Handlers;
 
+use App\BusinessLogic\Promociones\ValidarPromocionReserva;
 use App\BusinessLogic\Reservas\Builders\ReservaBuilder;
 use App\BusinessLogic\Reservas\Calculos\AplicarPromocionReserva;
 use App\BusinessLogic\Reservas\Calculos\CalcularPeriodoReserva;
@@ -17,7 +18,6 @@ use App\Enums\Reservas\TipoReserva;
 use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use App\Repository\Queries\Reservas\DisponibilidadRecursoQuery;
-use App\Repository\Queries\Reservas\ObtenerPromocionReservaQuery;
 use App\Repository\Queries\Reservas\ObtenerTarifasReservaQuery;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -30,7 +30,7 @@ final readonly class HabitacionScenarioHandler implements ReservaScenarioHandler
         private DisponibilidadRecursoQuery $disponibilidad,
         private ObtenerTarifasReservaQuery $tarifas,
         private ReservaRepositorioInterface $reservas,
-        private ObtenerPromocionReservaQuery $promociones,
+        private ValidarPromocionReserva $promociones,
         private AplicarPromocionReserva $aplicarPromocion,
         private CalcularPeriodoReserva $calcularPeriodo,
         private CalcularUnidadesReserva $calcularUnidades,
@@ -90,7 +90,7 @@ final readonly class HabitacionScenarioHandler implements ReservaScenarioHandler
 
         // 6. Promoción
         $promocionId = is_numeric($input->datosOriginales['promocion_id'] ?? null) ? (int) $input->datosOriginales['promocion_id'] : null;
-        $promocion = $promocionId !== null ? $this->promociones->vigente($promocionId) : null;
+        $promocion = $promocionId !== null ? $this->promociones->vigente($promocionId, $checkIn, $input->datosOriginales) : null;
         $totales = $this->aplicarPromocion->calcular(
             $subtotal,
             $promocion?->descuento_porcentaje !== null ? (float) $promocion->descuento_porcentaje : null,

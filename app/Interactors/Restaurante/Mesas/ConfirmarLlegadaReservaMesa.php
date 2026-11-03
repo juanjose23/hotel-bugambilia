@@ -4,20 +4,16 @@ declare(strict_types=1);
 
 namespace App\Interactors\Restaurante\Mesas;
 
-use App\Enums\Cuentas\MetodoPago;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Restaurante\MotivoTransicionMesa;
-use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
-use App\Interactors\Restaurante\Cuentas\AbrirCuentaYConsumoRestaurante;
 use App\Interactors\Restaurante\Pedidos\AbrirPedidoMesa;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
-use App\Repository\Models\Espacios\Espacio;
-use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Repository\Queries\Restaurante\Mesas\BloquearLlegadaReservaMesaQuery;
 use App\Repository\Queries\Restaurante\Mesas\ObtenerReservasVigentesMesaQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerDatosPedidoFormQuery;
 use DomainException;
@@ -33,10 +29,9 @@ final readonly class ConfirmarLlegadaReservaMesa
         private ReservaRepositorioInterface $reservas,
         private ObtenerReservasVigentesMesaQuery $reservasVigentes,
         private ObtenerDatosPedidoFormQuery $datosPedido,
-        private AbrirCuentaYConsumoRestaurante $abrirCuentaRestaurante,
-        private RegistrarPagoCuenta $registrarPago,
         private CuentaRepositorioInterface $cuentas,
         private CambiarEstadoMesa $cambiarEstadoMesa,
+        private BloquearLlegadaReservaMesaQuery $bloqueos,
     ) {}
 
     /**
@@ -44,22 +39,23 @@ final readonly class ConfirmarLlegadaReservaMesa
      */
     public function ejecutar(int $mesaId, ?int $meseroId = null): Pedido
     {
-        $mesa = $this->repositorio->obtenerEspacioPorId($mesaId);
-
-        if (! $mesa instanceof Espacio) {
-            throw new DomainException('Mesa no encontrada.');
-        }
-
-        $meta = is_array($mesa->meta_datos) ? $mesa->meta_datos : [];
-        $reservaId = isset($meta['reserva_id']) && is_numeric($meta['reserva_id'])
-            ? (int) $meta['reserva_id']
-            : $this->reservasVigentes->paraMesa($mesaId)?->id;
-
-        return DB::transaction(function () use ($mesa, $reservaId, $meseroId, $meta): Pedido {
-            $reserva = $reservaId !== null ? $this->reservas->obtenerPorId($reservaId) : null;
-            $clienteId = $reserva?->cliente_id;
-            $nombreCliente = $reserva instanceof Reserva ? $reserva->nombre_cliente : (is_string($meta['nombre_cliente'] ?? null) ? $meta['nombre_cliente'] : null);
-            $preordenDatos = $reserva instanceof Reserva ? $reserva->ultimaEntradaBitacora('preorden') : null;
+        return DB::transaction(function () use ($mesaId, $meseroId): Pedido {
+            $mesa = $this->bloqueos->mesa($mesaId);
+            if (! in_array($mesa->estado, [EstadoEspacio::Disponible, EstadoEspacio::Reservado], true)) {
+                throw new DomainException('La mesa ya está ocupada o no permite confirmar otra llegada.');
+            }
+            $reservaVigente = $this->reservasVigentes->paraMesa($mesaId);
+            if ($reservaVigente === null) {
+                throw new DomainException('No existe una reserva vigente para confirmar en este horario.');
+            }
+            $reserva = $this->bloqueos->reserva($reservaVigente->id);
+            if (! in_array($reserva->estado, [EstadoReserva::PENDIENTE, EstadoReserva::CONFIRMADA], true)) {
+                throw new DomainException('La llegada de esta reserva ya fue confirmada o la reserva no está vigente.');
+            }
+            $meta = is_array($mesa->meta_datos) ? $mesa->meta_datos : [];
+            $clienteId = $reserva->cliente_id;
+            $nombreCliente = $reserva->nombre_cliente;
+            $preordenDatos = $reserva->ultimaEntradaBitacora('preorden');
             $platosPreordenados = is_array($meta['platos_preordenados'] ?? null)
                 ? $meta['platos_preordenados']
                 : ($preordenDatos['items'] ?? []);
@@ -67,11 +63,7 @@ final readonly class ConfirmarLlegadaReservaMesa
             $itemsPreorden = $this->normalizarItemsPreorden($platosPreordenados);
 
             // 1. Marcar reservación como completada
-            if ($reserva instanceof Reserva) {
-                $this->reservas->actualizar($reserva, [
-                    'estado' => EstadoReserva::CHECKED_IN,
-                ]);
-            }
+            $this->reservas->actualizar($reserva, ['estado' => EstadoReserva::CHECKED_IN]);
 
             // 2. Abrir comanda en la mesa cargando los platillos pre-ordenados
             $pedido = $this->abrirPedido->ejecutar(
@@ -82,24 +74,19 @@ final readonly class ConfirmarLlegadaReservaMesa
                 items: $itemsPreorden,
             );
 
-            // 3. Si existe abono previo registrado en la reserva, transferirlo como saldo abonado en la cuenta del pedido
-            if ($reserva instanceof Reserva && (float) $reserva->total_pagado > 0) {
-                $abonoPrevio = (float) $reserva->total_pagado;
-                $cuentaComanda = $pedido->cuenta;
-                if ($cuentaComanda === null) {
-                    $resAbrir = $this->abrirCuentaRestaurante->ejecutar($pedido, $meseroId);
-                    $cuentaComanda = $resAbrir['cuenta'];
-                }
-                if ($this->cuentas->sumaPagosAplicados($cuentaComanda) < $abonoPrevio) {
-                    $this->registrarPago->ejecutar(
-                        cuenta: $cuentaComanda,
-                        metodoPago: MetodoPago::TRANSFERENCIA,
-                        monto: $abonoPrevio,
-                        referenciaTransaccion: "ABONO-RES-{$reserva->codigo_reserva}",
-                        observaciones: "Abono de garantía transferido desde la reserva {$reserva->codigo_reserva}",
-                    );
-                }
+            // La reserva ya contiene los cargos de mesa, menú, descuentos y abonos.
+            // La comanda conserva ese folio sin volver a ingresar dinero ni duplicar la preorden.
+            $cuentaReserva = $this->cuentas->primeraCuentaDeReserva($reserva->id);
+            if ($cuentaReserva === null) {
+                throw new DomainException('La reserva no tiene una cuenta válida. Recepción debe revisarla antes de confirmar.');
             }
+            $this->repositorio->actualizarPedido($pedido, ['cuenta_id' => $cuentaReserva->id]);
+            $pedido->setRelation('cuenta', $cuentaReserva);
+            $reserva->crearEntradaBitacora('llegada_restaurante', [
+                'pedido_id' => $pedido->id,
+                'mesa_id' => $mesa->id,
+                'items_incluidos' => $pedido->items->pluck('id')->all(),
+            ]);
 
             // 3. Si se pre-ordenaron platillos, enviarlos inmediatamente a cocina (KDS)
             if ($this->repositorio->contarItemsDePedido($pedido) > 0) {

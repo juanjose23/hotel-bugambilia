@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\BusinessLogic\Reservas\Handlers;
 
+use App\BusinessLogic\Promociones\ValidarPromocionReserva;
 use App\BusinessLogic\Reservas\Builders\ReservaBuilder;
 use App\BusinessLogic\Reservas\Calculos\AplicarPromocionReserva;
 use App\BusinessLogic\Reservas\Calculos\CalcularPeriodoReserva;
@@ -15,7 +16,6 @@ use App\BusinessLogic\Reservas\Validaciones\ValidarSeleccionAdicionales;
 use App\Enums\Reservas\TipoReserva;
 use App\Repository\Persistencia\Reservas\ReservaRepositorioInterface;
 use App\Repository\Queries\Reservas\DisponibilidadRecursoQuery;
-use App\Repository\Queries\Reservas\ObtenerPromocionReservaQuery;
 use App\Repository\Queries\Reservas\ObtenerTarifasReservaQuery;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -30,7 +30,7 @@ final readonly class PaqueteScenarioHandler implements ReservaScenarioHandlerInt
         private CalcularPeriodoReserva $calcularPeriodo,
         private CalcularUnidadesReserva $calcularUnidades,
         private ValidarSeleccionAdicionales $validarAdicionales,
-        private ObtenerPromocionReservaQuery $promociones,
+        private ValidarPromocionReserva $promociones,
         private AplicarPromocionReserva $aplicarPromocion,
     ) {}
 
@@ -89,18 +89,13 @@ final readonly class PaqueteScenarioHandler implements ReservaScenarioHandlerInt
 
         // 6. Promoción
         $promocionId = is_numeric($input->datosOriginales['promocion_id'] ?? null) ? (int) $input->datosOriginales['promocion_id'] : null;
-        $promocion = $promocionId !== null ? $this->promociones->vigente($promocionId) : null;
-        if ($promocion?->precio_paquete !== null && (float) $promocion->precio_paquete > 0) {
-            $subtotal = (float) $promocion->precio_paquete;
-            $totales = ['subtotal' => $subtotal, 'descuento' => 0.0, 'total' => $subtotal];
-        } else {
-            $totales = $this->aplicarPromocion->calcular(
-                $subtotal,
-                $promocion?->descuento_porcentaje !== null ? (float) $promocion->descuento_porcentaje : null,
-                $promocion?->descuento_monto !== null ? (float) $promocion->descuento_monto : null,
-                $promocion?->precio_paquete !== null ? (float) $promocion->precio_paquete : null,
-            );
-        }
+        $promocion = $promocionId !== null ? $this->promociones->vigente($promocionId, $checkIn, $input->datosOriginales) : null;
+        $totales = $this->aplicarPromocion->calcular(
+            $subtotal,
+            $promocion?->descuento_porcentaje !== null ? (float) $promocion->descuento_porcentaje : null,
+            $promocion?->descuento_monto !== null ? (float) $promocion->descuento_monto : null,
+            $promocion?->precio_paquete !== null ? (float) $promocion->precio_paquete : null,
+        );
 
         $huespedes = $input->huespedes !== []
             ? $input->huespedes

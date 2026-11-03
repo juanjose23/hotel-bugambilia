@@ -1,5 +1,10 @@
 export interface PromocionItem {
     id: number | string;
+    url_reserva?: string;
+    noches_incluidas?: number | null;
+    personas_incluidas?: number | null;
+    anticipacion_horas?: number;
+    condiciones?: string | null;
     codigo: string;
     slug: string;
     nombre: string;
@@ -24,6 +29,8 @@ export interface PromocionItem {
     items?: {
         id: number | string;
         tipo: string;
+        nombre?: string;
+        recurso_id?: number;
         precio_especial?: number | null;
         incluido: boolean;
     }[];
@@ -34,4 +41,12 @@ export interface PromocionesPageProps {
     categorias?: string[];
     selectedCategory?: string | null;
     searchQuery?: string;
+}
+
+export interface OpcionReservaPromocion {
+    key: string;
+    tipo: string;
+    recurso_id: number;
+    nombre: string;
+    necesita_salida: boolean;
 }

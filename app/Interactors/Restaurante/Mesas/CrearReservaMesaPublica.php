@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Mesas;
 
 use App\Actions\Restaurante\ConstruirUrlWhatsapp;
+use App\BusinessLogic\Restaurante\Mesas\ResolverUnionMesasAuto;
+use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\Facturacion\PasarelaCodigo;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoReserva;
 use App\Interactors\Reservas\Gestion\CrearReserva;
 use App\Interactors\Restaurante\Pedidos\RegistrarClienteRapido;
 use App\Repository\Models\Clientes\Cliente;
+use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Queries\Restaurante\Mesas\ObtenerMesaQuery;
+use App\Repository\Queries\Restaurante\Mesas\ObtenerMesasActivasQuery;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerPreordenPublicaQuery;
 use DomainException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +31,10 @@ final readonly class CrearReservaMesaPublica
         private ObtenerMesasDisponibles $obtenerMesasDisponibles,
         private ObtenerMesaQuery $obtenerMesa,
         private ConstruirUrlWhatsapp $construirUrlWhatsapp,
+        private ObtenerPreordenPublicaQuery $preordenPublica,
+        private ObtenerMesasActivasQuery $mesasActivas,
+        private ResolverUnionMesasAuto $unionMesas,
+        private VerificarRestauranteActivo $restauranteActivo,
     ) {}
 
     /**
@@ -40,6 +49,8 @@ final readonly class CrearReservaMesaPublica
      *     espacio_id?: int|null,
      *     tipo_pago_reserva?: string|null,
      *     canal_pago_reserva?: string|null,
+     *     promocion_id?: int|null,
+     *     items_preorden?: array<int, array{plato_id: int, cantidad: int, observaciones?: ?string}>,
      *     notas?: string|null
      * } $datos
      * @return array{
@@ -53,11 +64,16 @@ final readonly class CrearReservaMesaPublica
      *     requiere_pago_stripe: bool,
      *     stripe_pago: ?array<string, mixed>,
      *     whatsapp_url: string,
+     *     resumen: ?array<string, mixed>,
+     *     url_detalle: string,
      *     mensaje: string
      * }
      */
     public function ejecutar(array $datos): array
     {
+        if (! $this->restauranteActivo->estaHabilitadoWeb()) {
+            throw new DomainException('El restaurante no está disponible para reservaciones.');
+        }
         $comensales = max(1, (int) $datos['adultos']);
         $duracion = max(1, (int) ($datos['duracion_horas'] ?? 1));
         $fecha = $datos['fecha'];
@@ -87,21 +103,22 @@ final readonly class CrearReservaMesaPublica
                 throw new ModelNotFoundException('Mesa no encontrada para la reserva.');
             }
 
-            $espaciosAdicionales = [];
-            $nombresMesasUnidas = [(string) $mesa->nombre];
-
-            if (! empty($disponibilidad['requiere_union']) && ! empty($disponibilidad['mesas_sugeridas_union'])) {
-                // Agregar las mesas sugeridas de unión
-                foreach ($disponibilidad['mesas_sugeridas_union'] as $mSugerida) {
-                    if ($mSugerida['id'] !== $mesa->id) {
-                        $espaciosAdicionales[] = [
-                            'espacio_id' => $mSugerida['id'],
-                            'cantidad' => 1,
-                        ];
-                        $nombresMesasUnidas[] = $mSugerida['nombre'];
-                    }
-                }
+            $idsDisponibles = array_column($disponibilidad['mesas_disponibles'], 'id');
+            if (! in_array($mesa->id, $idsDisponibles, true)) {
+                throw new DomainException('La mesa seleccionada ya no está disponible. Elige otra mesa u horario.');
             }
+            $libres = $this->mesasActivas->ejecutar()->whereIn('id', $idsDisponibles);
+            $adicionales = $this->unionMesas->resolver($mesa, $comensales, $libres);
+            $capacidad = (int) $mesa->capacidad_personas + $libres->whereIn('id', $adicionales)->sum(fn (Espacio $secundaria): int => (int) $secundaria->capacidad_personas);
+            if ($capacidad < $comensales) {
+                throw new DomainException('No hay capacidad suficiente en mesas compatibles para este grupo. Selecciona otro horario.');
+            }
+            $espaciosAdicionales = array_map(static fn (int $id): array => ['espacio_id' => $id, 'cantidad' => 1], $adicionales);
+            $nombresMesasUnidas = [(string) $mesa->nombre];
+            foreach ($libres->whereIn('id', $adicionales) as $adicional) {
+                $nombresMesasUnidas[] = (string) $adicional->nombre;
+            }
+            $preorden = $this->preordenPublica->ejecutar($datos['items_preorden'] ?? []);
 
             $tipoPago = $datos['tipo_pago_reserva'] ?? TipoPagoReserva::SIN_PAGO->value;
 
@@ -112,6 +129,7 @@ final readonly class CrearReservaMesaPublica
                     'telefono_cliente' => $datos['telefono_cliente'],
                     'email_cliente' => $datos['email_cliente'] ?? null,
                     'tipo_reserva' => TipoReserva::RESTAURANTE->value,
+                    'origen_pago_reserva' => 'publico',
                     'espacio_id' => $mesa->id,
                     'fecha_check_in' => $fecha,
                     'fecha_check_out' => $fecha,
@@ -121,6 +139,8 @@ final readonly class CrearReservaMesaPublica
                     'ninos' => 0,
                     'tipo_pago_reserva' => $tipoPago,
                     'canal_pago_reserva' => $datos['canal_pago_reserva'] ?? ($tipoPago === TipoPagoReserva::SIN_PAGO->value ? null : PasarelaCodigo::Stripe->value),
+                    'items_preorden' => $preorden,
+                    'promocion_id' => $datos['promocion_id'] ?? null,
                     'notas' => $datos['notas'] ?? "Reserva de mesa para {$comensales} personas.",
                 ],
                 serviciosAdicionales: [],
@@ -152,6 +172,8 @@ final readonly class CrearReservaMesaPublica
                 'requiere_pago_stripe' => $resultado->requierePagoStripe,
                 'stripe_pago' => $resultado->stripePago,
                 'whatsapp_url' => $whatsappUrl,
+                'resumen' => $reserva->ultimaEntradaBitacora('resumen_restaurante'),
+                'url_detalle' => route('portal.reservas.show', ['id' => $reserva->id, 'codigo' => $reserva->codigo_reserva]),
                 'mensaje' => "¡Reserva #{$reserva->codigo_reserva} creada exitosamente para {$comensales} personas!",
             ];
         });
