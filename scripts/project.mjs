@@ -375,7 +375,11 @@ try {
             }
 
             test();
-            run(...commands.build);
+
+            if (!existsSync('public/build/manifest.json')) {
+                run(...commands.build);
+            }
+
             break;
         default:
             throw new Error(

@@ -10,8 +10,17 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
-      - name: Construir aplicación y herramientas
-        run: docker compose -f compose.ci.yaml --profile quality build app tools
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Construir imagen de herramientas con caché
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: tooling
+          load: true
+          tags: hotel-bugambilia:tools
+          cache-from: type=gha,scope=hotel-tools
+          cache-to: type=gha,mode=max,scope=hotel-tools
       - name: Formato, análisis, pruebas y compilación
         run: docker compose -f compose.ci.yaml --profile quality run --rm tools node scripts/project.mjs check
       - name: Detener los servicios de pruebas

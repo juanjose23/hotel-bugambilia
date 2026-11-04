@@ -8,8 +8,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ci-cd-${{ github.ref }}
-  cancel-in-progress: false
+  group: ci-cd-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   quality:
     uses: ./.github/workflows/tests.yml

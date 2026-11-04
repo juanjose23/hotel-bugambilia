@@ -10,8 +10,17 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
-      - name: Construir herramientas de navegador
-        run: docker compose -f compose.ci.yaml --profile dusk build dusk
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Construir imagen de herramientas con caché
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: tooling
+          load: true
+          tags: hotel-bugambilia:tools
+          cache-from: type=gha,scope=hotel-tools
+          cache-to: type=gha,mode=max,scope=hotel-tools
       - name: Probar la aplicación con Selenium y PostgreSQL aislados
         run: docker compose -f compose.ci.yaml --profile dusk run --rm dusk
       - name: Conservar evidencias
