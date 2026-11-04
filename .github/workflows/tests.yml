@@ -11,9 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Construir imagen de herramientas con caché
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: tooling
