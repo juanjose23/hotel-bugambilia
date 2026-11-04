@@ -26,6 +26,7 @@ import type { RespuestaPedidoBackend } from '../services/restauranteService';
 import { RestaurantePedidoCompletado } from './RestaurantePedidoCompletado';
 
 interface RestaurantePasoPagoProps {
+    tarjetaDisponible?: boolean;
     register: UseFormRegister<FormPedidoDelivery>;
     setValue: UseFormSetValue<FormPedidoDelivery>;
     errors: FieldErrors<FormPedidoDelivery>;
@@ -44,6 +45,7 @@ interface RestaurantePasoPagoProps {
 
 export const RestaurantePasoPago = ({
     register,
+    tarjetaDisponible = false,
     setValue,
     errors,
     metodoPagoSeleccionado,
@@ -179,6 +181,12 @@ export const RestaurantePasoPago = ({
                                 <Button
                                     type="button"
                                     variant="ghost"
+                                    disabled={!tarjetaDisponible}
+                                    title={
+                                        tarjetaDisponible
+                                            ? undefined
+                                            : 'El hotel aún no tiene habilitado el pago con tarjeta'
+                                    }
                                     onClick={() =>
                                         setValue('metodoPago', 'stripe', {
                                             shouldValidate: true,

@@ -24,6 +24,7 @@ import {
     BookingSummary,
     CompactBookingProgress,
 } from '@/modules/shared/components/booking';
+import { GuiaPasoAPaso } from '@/modules/shared/components/GuiaPasoAPaso';
 import { Button } from '@/modules/shared/components/ui/button';
 
 const PASOS_RESTAURANTE = [
@@ -40,6 +41,7 @@ export const RestauranteReservar = ({
     const datosRestaurante = restaurante || crearRestaurantePorDefecto();
 
     const {
+        form,
         register,
         onSubmit,
         errors,
@@ -71,7 +73,7 @@ export const RestauranteReservar = ({
         categoriasMenu,
         menuFiltrado,
         subtotalPreorden,
-    } = useReservaFlujoReserva(menu);
+    } = useReservaFlujoReserva(menu, form);
 
     const mesaAsignada = disponibilidad?.mesa_asignada?.nombre
         ? disponibilidad.mesa_asignada.nombre
@@ -137,6 +139,39 @@ export const RestauranteReservar = ({
                     </span>
                 </div>
 
+                <div className="mb-5 flex justify-end">
+                    <GuiaPasoAPaso
+                        pasos={[
+                            {
+                                elemento:
+                                    pasoActual === 1
+                                        ? '[data-guia="reserva-mesa-horario"]'
+                                        : undefined,
+                                titulo: '1. Fecha, horario y personas',
+                                descripcion:
+                                    'Consulta las mesas libres para tu grupo. Si cambias el horario o el número de personas, vuelve a revisar la asignación.',
+                            },
+                            {
+                                elemento:
+                                    pasoActual === 2
+                                        ? '[data-guia="reserva-mesa-preorden"]'
+                                        : undefined,
+                                titulo: '2. Preorden opcional',
+                                descripcion:
+                                    'Agrega platillos y cantidades si deseas anticipar tu selección. Quedarán guardados con la reserva y cocina los recibirá al confirmar tu llegada.',
+                            },
+                            {
+                                elemento:
+                                    pasoActual === 3
+                                        ? '[data-guia="reserva-mesa-contacto"]'
+                                        : undefined,
+                                titulo: '3. Contacto y confirmación',
+                                descripcion:
+                                    'Revisa tu contacto y confirma una sola vez. Conserva el código y el enlace de la reserva. Reservar una mesa no significa que ya hayas pagado.',
+                            },
+                        ]}
+                    />
+                </div>
                 {/* Stepper Compacto */}
                 <div className="mb-8">
                     <CompactBookingProgress
@@ -146,6 +181,14 @@ export const RestauranteReservar = ({
                     />
                 </div>
 
+                {errorEnvio && pasoActual !== 3 && (
+                    <p
+                        role="alert"
+                        className="mb-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+                    >
+                        {errorEnvio}
+                    </p>
+                )}
                 {reservaCreada ? (
                     <ReservaConfirmada
                         codigoReserva={reservaCreada.codigo_reserva}
@@ -162,9 +205,10 @@ export const RestauranteReservar = ({
                                 valor: reservaCreada.mesas_unidas.join(' + '),
                             },
                         ]}
+                        mostrarAdicionales={false}
                         whatsappUrl={reservaCreada.whatsapp_url}
-                        urlRetorno="/restaurante"
-                        textoRetorno="Volver al Menú"
+                        urlRetorno={reservaCreada.url_detalle ?? '/restaurante'}
+                        textoRetorno="Ver mi reservación"
                         variante="pagina"
                     />
                 ) : (
@@ -172,7 +216,10 @@ export const RestauranteReservar = ({
                         {/* Columna Izquierda: Pasos de Reserva */}
                         <div className="space-y-6 lg:col-span-8">
                             {pasoActual === 1 && (
-                                <div className="space-y-6">
+                                <div
+                                    className="space-y-6"
+                                    data-guia="reserva-mesa-horario"
+                                >
                                     <RestaurantePasoMesaHorario
                                         register={register}
                                         errors={errors}
@@ -227,7 +274,10 @@ export const RestauranteReservar = ({
                             )}
 
                             {pasoActual === 2 && (
-                                <div className="space-y-6">
+                                <div
+                                    data-guia="reserva-mesa-preorden"
+                                    className="space-y-6"
+                                >
                                     <RestaurantePasoPreordenMenu
                                         menu={menu}
                                         platosPreorden={platosPreorden}
@@ -270,7 +320,11 @@ export const RestauranteReservar = ({
                             )}
 
                             {pasoActual === 3 && (
-                                <form onSubmit={onSubmit} className="space-y-6">
+                                <form
+                                    data-guia="reserva-mesa-contacto"
+                                    onSubmit={onSubmit}
+                                    className="space-y-6"
+                                >
                                     <ReservaPasoCliente
                                         register={register}
                                         errors={errors}

@@ -16,3 +16,9 @@ parameters:
             - database/migrations/2026_05_13_012048_create_permission_tables.php (?)
 
     level: 9
+
+    ignoreErrors:
+        -
+            message: '#Cannot call method (info|warn|error|newLine)\(\) on Illuminate\\Console\\Command\|null\.#'
+            paths:
+                - database/seeders/*

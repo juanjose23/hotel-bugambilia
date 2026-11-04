@@ -8,6 +8,7 @@ use App\Enums\Facturacion\EstadoTransaccionPago;
 use App\Repository\Models\Facturacion\PagoTransaccion;
 use App\Repository\Persistencia\Facturacion\PagoTransaccionPersistencia;
 use App\Repository\Queries\Facturacion\PagoTransaccionQuery;
+use Illuminate\Support\Facades\DB;
 
 final readonly class MarcarPagoStripeFallido
 {
@@ -21,18 +22,17 @@ final readonly class MarcarPagoStripeFallido
      */
     public function ejecutar(string $paymentIntentId, array $webhookPayload): ?PagoTransaccion
     {
-        $transaccion = $this->pagoTransaccionQuery->porReferenciaPasarela($paymentIntentId);
+        return DB::transaction(function () use ($paymentIntentId, $webhookPayload): ?PagoTransaccion {
+            $transaccion = $this->pagoTransaccionQuery->porReferenciaPasarela($paymentIntentId, lock: true);
+            if ($transaccion === null || ! in_array($transaccion->estado, [EstadoTransaccionPago::Pendiente, EstadoTransaccionPago::Autorizada, EstadoTransaccionPago::Fallida], true)) {
+                return null;
+            }
 
-        if ($transaccion === null) {
-            return null;
-        }
-
-        $this->pagoTransaccionPersistencia->actualizar($transaccion, [
-            'estado' => EstadoTransaccionPago::Fallida,
-            'fallida_at' => now(),
-            'webhook_payload' => $webhookPayload,
-        ]);
-
-        return $transaccion;
+            return $this->pagoTransaccionPersistencia->actualizar($transaccion, [
+                'estado' => EstadoTransaccionPago::Fallida,
+                'fallida_at' => now(),
+                'webhook_payload' => $webhookPayload,
+            ]);
+        });
     }
 }

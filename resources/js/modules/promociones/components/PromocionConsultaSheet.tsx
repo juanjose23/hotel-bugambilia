@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import {
     Calendar,
     Tag,
@@ -100,8 +101,9 @@ export const PromocionConsultaSheet = ({
                             </span>
                             <div className="flex items-baseline gap-2">
                                 <span className="text-2xl font-black text-foreground">
-                                    {promocion.moneda}
-                                    {Number(promocion.precio_final).toFixed(0)}
+                                    {promocion.precio_original
+                                        ? `${promocion.moneda}${Number(promocion.precio_final).toFixed(0)}`
+                                        : 'Descuento sobre tarifa vigente'}
                                 </span>
                                 {promocion.precio_original &&
                                     promocion.precio_original >
@@ -156,6 +158,15 @@ export const PromocionConsultaSheet = ({
                 )}
 
                 {/* Formulario de Consulta / Reserva */}
+                <Link
+                    href={
+                        promocion.url_reserva ??
+                        `/promociones/${promocion.id}/reservar`
+                    }
+                    className="my-4 block rounded-xl bg-primary p-3 text-center font-bold text-primary-foreground"
+                >
+                    Reservar esta promoción en línea
+                </Link>
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                     <div className="text-xs font-black text-foreground uppercase">
                         Tus Datos para la Reserva:
@@ -273,7 +284,7 @@ export const PromocionConsultaSheet = ({
                         ) : (
                             <>
                                 <MessageCircle className="mr-2 size-4" />
-                                <span>Solicitar Oferta por WhatsApp</span>
+                                <span>Consultar dudas por WhatsApp</span>
                             </>
                         )}
                     </Button>

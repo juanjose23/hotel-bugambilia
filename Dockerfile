@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM php:8.4-apache-bookworm AS php-base
+FROM php:8.4-apache-trixie AS php-base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git unzip curl libpq-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libsqlite3-dev libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -22,27 +22,26 @@ RUN composer install --prefer-dist --no-interaction --no-progress --no-scripts -
 COPY . .
 RUN cp .env.example .env \
     && composer dump-autoload --no-scripts --optimize \
-    && php artisan package:discover --ansi \
-    && php artisan filament:upgrade
-
-FROM node:22-bookworm-slim AS frontend
+    && php -d memory_limit=512M artisan package:discover --ansi \
+    && php -d memory_limit=512M artisan filament:upgrade
+FROM oven/bun:1-debian AS frontend
 WORKDIR /build
 ENV HUSKY=0
 COPY package.json package-lock.json ./
-COPY .husky/install.mjs .husky/install.mjs
-RUN npm ci --no-audit --no-fund
+RUN bun install --frozen-lockfile --ignore-scripts || bun install --ignore-scripts
 COPY resources ./resources
 COPY app ./app
 COPY public ./public
 COPY vite.config.ts tsconfig.json .gitignore ./
-COPY --from=dependencies /var/www/html/vendor ./vendor
-RUN npm run build
+COPY --from=dependencies /var/www/html/vendor/filament ./vendor/filament
+COPY --from=dependencies /var/www/html/vendor/laravel/framework/src/Illuminate/Pagination ./vendor/laravel/framework/src/Illuminate/Pagination
+RUN bun run build
 
 FROM dependencies AS tooling
-COPY --from=frontend /usr/local/bin/node /usr/local/bin/node
-COPY --from=frontend /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-    && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+COPY --from=frontend /usr/local/bin/bun /usr/local/bin/bun
+RUN ln -s /usr/local/bin/bun /usr/local/bin/node \
+    && ln -s /usr/local/bin/bun /usr/local/bin/npm \
+    && ln -s /usr/local/bin/bun /usr/local/bin/npx
 COPY --from=frontend /build/node_modules ./node_modules
 COPY --from=frontend /build/public/build ./public/build
 COPY docker/php.ini /usr/local/etc/php/conf.d/hotel.ini

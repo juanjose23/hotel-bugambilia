@@ -22,11 +22,7 @@ final readonly class ObtenerPromocionesPublicasQuery
             'items.item',
             'precios.moneda',
         ])
-            ->activos()
-            ->where(function ($q) {
-                $q->whereNull('fecha_fin')
-                    ->orWhere('fecha_fin', '>=', now()->toDateString());
-            });
+            ->vigentes()->where('web', true);
 
         if ($categoria !== null && trim($categoria) !== '' && strtoupper(trim($categoria)) !== 'TODAS') {
             $query->whereHas('tipo', function ($q) use ($categoria) {
@@ -50,7 +46,7 @@ final readonly class ObtenerPromocionesPublicasQuery
      */
     public function obtenerCategorias(): array
     {
-        $tipoIds = Promocion::activos()->whereNotNull('tipo_promocion_id')->pluck('tipo_promocion_id')->unique();
+        $tipoIds = Promocion::vigentes()->where('web', true)->whereNotNull('tipo_promocion_id')->pluck('tipo_promocion_id')->unique();
 
         return Catalogo::query()
             ->whereIn('id', $tipoIds)

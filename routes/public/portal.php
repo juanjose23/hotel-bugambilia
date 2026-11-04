@@ -9,6 +9,7 @@ use App\Http\Controllers\Clientes\PortalPedidosController;
 use App\Http\Controllers\Clientes\PortalPerfilController;
 use App\Http\Controllers\Clientes\PortalReservasController;
 use App\Http\Controllers\Clientes\PortalServiciosEstanciaController;
+use App\Http\Controllers\Clientes\PortalValoracionController;
 use App\Http\Controllers\Tesoreria\ArchivosTesoreriaController;
 use App\Http\Controllers\Tesoreria\ComprobanteClienteController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ Route::prefix('portal')->name('portal.')->group(function (): void {
     // Rutas públicas/híbridas con soporte de código de reserva
     Route::get('/reservas', [PortalReservasController::class, 'index'])->name('reservas.index');
     Route::get('/reservas/{id}', [PortalReservasController::class, 'show'])->name('reservas.show');
+    Route::post('/reservas/{id}/valoracion', [PortalValoracionController::class, 'store'])->name('reservas.valoracion.store');
 
     // Rutas protegidas bajo autenticación de cliente/huésped
     Route::middleware('auth')->group(function (): void {

@@ -38,7 +38,9 @@ export const usePromocionConsultaForm = ({
 
     const onSubmit = (data: PromocionConsultaFormValues) => {
         const telefonoLimpio = telefonoWhatsApp.replace(/\D/g, '');
-        const precioTxt = `${promocion.moneda}${Number(promocion.precio_final).toFixed(0)}`;
+        const precioTxt = promocion.precio_original
+            ? `${promocion.moneda}${Number(promocion.precio_final).toFixed(0)}`
+            : 'Descuento sobre la tarifa vigente';
 
         const texto =
             `¡Hola Hotel Bugambilias! 👋\n\n` +

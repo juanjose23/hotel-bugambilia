@@ -22,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class AuthController extends Controller
 {
@@ -31,19 +32,23 @@ final class AuthController extends Controller
         private readonly ConstruirDatosCliente $construirDatosCliente,
     ) {}
 
-    public function mostrarLogin(): RedirectResponse|Response
+    public function mostrarLogin(): SymfonyResponse|Response
     {
         if (Auth::check()) {
             /** @var User|null $user */
             $user = Auth::user();
 
-            return redirect($user !== null && $user->esAdmin() ? '/admin' : route('home'));
+            if ($user !== null && $user->esAdmin()) {
+                return Inertia::location('/admin');
+            }
+
+            return redirect()->route('home');
         }
 
         return Inertia::render('auth/IniciarSesion');
     }
 
-    public function iniciarSesion(LoginRequest $request): RedirectResponse
+    public function iniciarSesion(LoginRequest $request): SymfonyResponse
     {
         $credenciales = $request->validated();
         $recordar = (bool) $request->boolean('remember');
@@ -60,7 +65,7 @@ final class AuthController extends Controller
                 $intendedStr = is_string($intended) ? $intended : '';
                 $destino = str_contains($intendedStr, '/admin') ? $intendedStr : '/admin';
 
-                return redirect($destino)->with('exito', '¡Bienvenido al panel administrativo!');
+                return Inertia::location($destino);
             }
 
             return redirect()->intended(route('home'))->with('exito', '¡Bienvenido de vuelta!');
@@ -71,13 +76,17 @@ final class AuthController extends Controller
         ]);
     }
 
-    public function mostrarRegistro(): RedirectResponse|Response
+    public function mostrarRegistro(): SymfonyResponse|Response
     {
         if (Auth::check()) {
             /** @var User|null $user */
             $user = Auth::user();
 
-            return redirect($user !== null && $user->esAdmin() ? '/admin' : route('home'));
+            if ($user !== null && $user->esAdmin()) {
+                return Inertia::location('/admin');
+            }
+
+            return redirect()->route('home');
         }
 
         return Inertia::render('auth/Registro');

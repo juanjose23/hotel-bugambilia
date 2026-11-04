@@ -9,14 +9,13 @@ final class AplicarPromocionReserva
     /** @return array{subtotal: float, descuento: float, total: float} */
     public function calcular(float $subtotal, ?float $porcentaje, ?float $monto, ?float $precioPaquete = null): array
     {
-        if ($precioPaquete !== null && $precioPaquete > 0) {
-            $descuento = max(0.0, $subtotal - $precioPaquete);
-        } else {
-            $descuento = $porcentaje !== null
-                ? $subtotal * min(100, max(0, $porcentaje)) / 100
-                : min($subtotal, max(0, $monto ?? 0));
-        }
-        $descuento = round(min($subtotal, $descuento), 2);
+        $base = $precioPaquete !== null && $precioPaquete > 0 ? $precioPaquete : max(0.0, $subtotal);
+        $descuentoDirecto = $porcentaje !== null
+            ? $base * min(100, max(0, $porcentaje)) / 100
+            : min($base, max(0, $monto ?? 0));
+        $total = round(max(0.0, $base - $descuentoDirecto), 2);
+        $subtotal = round(max($subtotal, $base), 2);
+        $descuento = round($subtotal - $total, 2);
 
         return ['subtotal' => round($subtotal, 2), 'descuento' => $descuento, 'total' => round($subtotal - $descuento, 2)];
     }

@@ -31,20 +31,20 @@ class ObtenerHistoricoServiciosPrecios
             ->leftJoin('catalogos as c', 's.categoria_id', '=', 'c.id')
             ->whereNull('p.deleted_at')
             ->when(
-                isset($filtros['servicio_id']) && $filtros['servicio_id'],
-                fn ($q) => $q->where('p.priceable_id', $filtros['servicio_id'])
+                $filtros['servicio_id'] ?? null,
+                fn ($q, $servicioId) => $q->where('p.priceable_id', $servicioId)
             )
             ->when(
-                isset($filtros['moneda_id']) && $filtros['moneda_id'],
-                fn ($q) => $q->where('p.moneda_id', $filtros['moneda_id'])
+                $filtros['moneda_id'] ?? null,
+                fn ($q, $monedaId) => $q->where('p.moneda_id', $monedaId)
             )
             ->when(
-                isset($filtros['categoria_id']) && $filtros['categoria_id'],
-                fn ($q) => $q->where('s.categoria_id', $filtros['categoria_id'])
+                $filtros['categoria_id'] ?? null,
+                fn ($q, $categoriaId) => $q->where('s.categoria_id', $categoriaId)
             )
             ->when(
-                ! empty($filtros['estado']),
-                fn ($q) => $q->where('p.estado', (int) $filtros['estado'])
+                $filtros['estado'] ?? null,
+                fn ($q, $estado) => $q->where('p.estado', (int) $estado)
             )
             ->select(
                 'p.id',

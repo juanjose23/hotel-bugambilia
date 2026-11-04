@@ -6,6 +6,7 @@ import {
     LogIn,
     LogOut,
     Menu,
+    Search,
 } from 'lucide-react';
 import { buttonVariants } from '@/modules/shared/components/ui/button';
 import {
@@ -81,7 +82,9 @@ export const HeaderMenuMovil = ({
                         <>
                             {usuario.is_admin && (
                                 <DropdownMenuItem
-                                    onClick={() => router.visit('/admin')}
+                                    onClick={() => {
+                                        window.location.href = '/admin';
+                                    }}
                                     className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary dark:text-rose-400"
                                 >
                                     <LayoutDashboard className="size-3.5" />
@@ -127,13 +130,22 @@ export const HeaderMenuMovil = ({
                             </DropdownMenuItem>
                         </>
                     ) : (
-                        <DropdownMenuItem
-                            onClick={() => router.visit('/auth/login')}
-                            className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-bold text-foreground"
-                        >
-                            <LogIn className="size-3.5" />
-                            <span>Iniciar Sesión / Registro</span>
-                        </DropdownMenuItem>
+                        <>
+                            <DropdownMenuItem
+                                onClick={() => router.visit('/portal/reservas')}
+                                className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground"
+                            >
+                                <Search className="size-3.5 text-muted-foreground" />
+                                <span>Consultar mi Reserva</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => router.visit('/auth/login')}
+                                className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-bold text-foreground"
+                            >
+                                <LogIn className="size-3.5" />
+                                <span>Iniciar Sesión / Registro</span>
+                            </DropdownMenuItem>
+                        </>
                     )}
 
                     <DropdownMenuItem

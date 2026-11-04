@@ -72,10 +72,12 @@ final readonly class ObtenerMesasDisponibles
         $mesasLibres = [];
         $mesasCollectionLibres = collect();
         $capacidadTotal = 0;
+        $recursos = [];
 
         foreach ($mesas as $mesa) {
             $recurso = $this->reservasRepositorio->resolverRecurso(TipoReserva::RESTAURANTE, (int) $mesa->id);
 
+            $recursos[$mesa->id] = $recurso;
             $hayConflicto = false;
             if ($recurso->control_disponibilidad !== ControlDisponibilidad::SIN_BLOQUEO) {
                 $hayConflicto = $this->disponibilidadQuery->existeConflicto(
@@ -114,14 +116,18 @@ final readonly class ObtenerMesasDisponibles
             $slotInicio = new DateTimeImmutable($fechaCarbon->format('Y-m-d').' '.$slot['hora']);
             $slotFin = $slotInicio->modify("+{$duracionHoras} hours");
 
-            $alMenosUnaLibre = false;
-            foreach ($mesas as $m) {
-                $rec = $this->reservasRepositorio->resolverRecurso(TipoReserva::RESTAURANTE, (int) $m->id);
-                if (! $this->disponibilidadQuery->existeConflicto((int) $rec->id, $slotInicio, $slotFin)) {
-                    $alMenosUnaLibre = true;
-                    break;
+            $libresEnHorario = collect();
+            if (Carbon::instance($slotInicio)->greaterThanOrEqualTo(now())) {
+                foreach ($mesas as $m) {
+                    $rec = $recursos[$m->id];
+                    if ($rec->control_disponibilidad === ControlDisponibilidad::SIN_BLOQUEO
+                        || ! $this->disponibilidadQuery->existeConflicto((int) $rec->id, $slotInicio, $slotFin)) {
+                        $libresEnHorario->push($m);
+                    }
                 }
             }
+            $asignacionHorario = $this->resolverUnionMesas->seleccionarMejorAsignacion($comensales, $libresEnHorario);
+            $alMenosUnaLibre = $asignacionHorario['mesa_principal'] instanceof Espacio;
 
             $horariosDisponibles[] = [
                 'hora' => $slot['hora'],

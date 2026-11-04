@@ -51,6 +51,10 @@ final class CrearReservaRequest extends FormRequest
             'espacios_adicionales' => ['nullable', 'array', 'max:20'],
             'espacios_adicionales.*.espacio_id' => ['required', 'integer', 'distinct', 'exists:espacios,id'],
             'espacios_adicionales.*.cantidad' => ['nullable', 'integer', 'min:1', 'max:1'],
+            'requiere_factura' => ['nullable', 'boolean'],
+            'razon_social' => ['nullable', 'required_if:requiere_factura,true', 'string', 'max:200'],
+            'ruc' => ['nullable', 'required_if:requiere_factura,true', 'string', 'max:20'],
+            'direccion_fiscal' => ['nullable', 'string', 'max:300'],
         ];
     }
 }

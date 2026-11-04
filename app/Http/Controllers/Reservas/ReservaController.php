@@ -48,7 +48,7 @@ final class ReservaController extends Controller
                 return $this->construirRespuestaJson($reserva, $resultado);
             }
 
-            $destino = $this->resolverDestinoRedirect($resultado, $request->user());
+            $destino = $this->resolverDestinoRedirect($resultado);
             $codigo = $reserva->codigo_reserva;
 
             return redirect($destino)
@@ -104,7 +104,7 @@ final class ReservaController extends Controller
     /**
      * Resuelve la URL de destino para el redirect post-creación.
      */
-    private function resolverDestinoRedirect(ReservaPasarelaResultado $resultado, ?object $usuario): string
+    private function resolverDestinoRedirect(ReservaPasarelaResultado $resultado): string
     {
         $reserva = $resultado->reserva;
 
@@ -112,11 +112,7 @@ final class ReservaController extends Controller
             return route('reservas.pago', ['reserva' => $reserva, 'codigo' => $reserva->codigo_reserva]);
         }
 
-        if ($usuario !== null) {
-            return route('mis-reservas', ['codigo' => $reserva->codigo_reserva]);
-        }
-
-        return route('home');
+        return route('portal.reservas.show', ['id' => $reserva->id, 'codigo' => $reserva->codigo_reserva]);
     }
 
     public function cancelar(Request $request, Reserva $reserva): RedirectResponse|JsonResponse

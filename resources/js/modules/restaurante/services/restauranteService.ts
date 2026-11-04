@@ -43,6 +43,8 @@ export interface RespuestaReservaMesaBackend {
     requiere_pago_stripe: boolean;
     stripe_pago: Record<string, unknown> | null;
     whatsapp_url: string;
+    url_detalle?: string;
+    resumen?: Record<string, unknown> | null;
     mensaje: string;
 }
 
@@ -53,6 +55,7 @@ export interface StripePedidoPayment {
 }
 
 export interface RespuestaPedidoBackend {
+    url_seguimiento?: string;
     success: boolean;
     pedido_id: number;
     codigo: string;
@@ -175,6 +178,8 @@ export const restauranteService = {
                 adultos: Number(datos.adultos || 2),
                 espacio_id: datos.espacio_id || null,
                 tipo_pago_reserva: 'sin_pago',
+                promocion_id: datos.promocion_id || null,
+                items_preorden: datos.items_preorden,
                 notas: datos.notas || null,
             }),
         });

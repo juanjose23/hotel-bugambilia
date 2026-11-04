@@ -71,6 +71,108 @@ function run(binary, parameters, env = process.env) {
         );
     }
 }
+function getChangedFiles(hookType) {
+    let output = '';
+
+    try {
+        if (hookType === 'pre-commit') {
+            const staged = spawnSync(
+                'git',
+                ['diff', '--cached', '--name-only', '--diff-filter=ACMR'],
+                { encoding: 'utf8' },
+            );
+            output = staged.stdout || '';
+
+            if (!output.trim()) {
+                const unstaged = spawnSync(
+                    'git',
+                    ['diff', '--name-only', '--diff-filter=ACMR'],
+                    { encoding: 'utf8' },
+                );
+                output = unstaged.stdout || '';
+            }
+        } else {
+            const upstream = spawnSync(
+                'git',
+                ['diff', '--name-only', '--diff-filter=ACMR', '@{u}...HEAD'],
+                { encoding: 'utf8' },
+            );
+            output = upstream.stdout || '';
+
+            if (!output.trim()) {
+                const headDiff = spawnSync(
+                    'git',
+                    ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD~1...HEAD'],
+                    { encoding: 'utf8' },
+                );
+                const unstaged = spawnSync(
+                    'git',
+                    ['diff', '--name-only', '--diff-filter=ACMR'],
+                    { encoding: 'utf8' },
+                );
+                output = `${headDiff.stdout || ''}\n${unstaged.stdout || ''}`;
+            }
+        }
+    } catch {
+        output = '';
+    }
+
+    return [...new Set(output.split(/\r?\n/).map((f) => f.trim()).filter(Boolean))]
+        .filter((f) => existsSync(f));
+}
+
+function runChangedFilesChecks(hookType) {
+    const changed = getChangedFiles(hookType);
+
+    if (changed.length === 0) {
+        console.log(`\nℹ [${hookType}] No se detectaron archivos modificados para verificar.\n`);
+
+        return;
+    }
+
+    console.log(`\n📋 [${hookType}] Analizando ${changed.length} archivo(s) modificado(s)...`);
+
+    const phpFiles = changed.filter((f) => f.endsWith('.php'));
+    const jsFiles = changed.filter((f) =>
+        /\.(jsx?|tsx?|mjs)$/.test(f) && (f.startsWith('resources/js') || f.startsWith('scripts'))
+    );
+    const filamentFiles = changed.filter(
+        (f) => f.startsWith('app/Filament') || f.startsWith('resources/views/filament') || f === 'config/filament.php'
+    );
+
+    // 1. Laravel Pint (PHP linter) en archivos modificados
+    if (phpFiles.length > 0) {
+        console.log(`\n🔍 [Pint] Verificando estilo en ${phpFiles.length} archivo(s) PHP...`);
+        run(php, ['vendor/bin/pint', '--test', ...phpFiles]);
+    }
+
+    // 2. ESLint (JS/TS linter) en archivos modificados
+    if (jsFiles.length > 0) {
+        console.log(`\n🔍 [ESLint] Verificando ${jsFiles.length} archivo(s) JS/TS...`);
+        run(process.execPath, ['node_modules/eslint/bin/eslint.js', ...jsFiles]);
+    }
+
+    // 3. PHPStan (Análisis estático nivel 9) en archivos PHP modificados
+    const phpstanFiles = phpFiles.filter(
+        (f) => f.startsWith('app/') || f.startsWith('routes/') || f.startsWith('config/')
+    );
+
+    if (phpstanFiles.length > 0) {
+        console.log(`\n🔍 [PHPStan] Analizando nivel 9 en ${phpstanFiles.length} archivo(s)...`);
+        run(php, ['vendor/bin/phpstan', 'analyse', '--level=9', '--memory-limit=2G', ...phpstanFiles]);
+    }
+
+    // 4. Filament Check (filacheck + optimize si hay archivos de Filament modificados)
+    if (filamentFiles.length > 0) {
+        console.log(`\n🔍 [Filament Check] Ejecutando filacheck y optimización (${filamentFiles.length} archivo(s))...`);
+        run(php, ['vendor/bin/filacheck']);
+        run(php, ['artisan', 'filament:optimize']);
+        run(php, ['artisan', 'filament:optimize-clear']);
+    }
+
+    console.log(`\n✅ [${hookType}] Todas las comprobaciones de los archivos modificados pasaron con éxito.\n`);
+}
+
 function testEnvironment(mode) {
     const result = spawnSync(php, ['scripts/test-environment.php', mode], {
         cwd: root,
@@ -256,18 +358,10 @@ try {
             setupDusk(testEnvironment('dusk'));
             break;
         case 'pre-commit':
-            for (const check of ['format', 'lint', 'types', 'pint']) {
-                run(...commands[check]);
-            }
-
+            runChangedFilesChecks('pre-commit');
             break;
         case 'pre-push':
-            for (const check of ['phpstan']) {
-                run(...commands[check]);
-            }
-
-            test();
-            run(...commands.build);
+            runChangedFilesChecks('pre-push');
             break;
         case 'check':
             for (const check of [

@@ -49,24 +49,24 @@ class ObtenerMovimientosInventario
     {
         return $query
             ->when(
-                isset($filtros['tipo']) && $filtros['tipo'],
-                fn ($q) => $q->where('tipo', $filtros['tipo'])
+                $filtros['tipo'] ?? null,
+                fn ($q, $tipo) => $q->where('tipo', $tipo)
             )
             ->when(
-                isset($filtros['producto_id']) && $filtros['producto_id'],
-                fn ($q) => $q->where('producto_id', $filtros['producto_id'])
+                $filtros['producto_id'] ?? null,
+                fn ($q, $productoId) => $q->where('producto_id', $productoId)
             )
             ->when(
-                isset($filtros['lote_id']) && $filtros['lote_id'],
-                fn ($q) => $q->where('lote_id', $filtros['lote_id'])
+                $filtros['lote_id'] ?? null,
+                fn ($q, $loteId) => $q->where('lote_id', $loteId)
             )
             ->when(
-                isset($filtros['fecha_desde']) && $filtros['fecha_desde'],
-                fn ($q) => $q->where('created_at', '>=', Carbon::parse($filtros['fecha_desde'])->startOfDay())
+                $filtros['fecha_desde'] ?? null,
+                fn ($q, $fechaDesde) => $q->where('created_at', '>=', Carbon::parse($fechaDesde)->startOfDay())
             )
             ->when(
-                isset($filtros['fecha_hasta']) && $filtros['fecha_hasta'],
-                fn ($q) => $q->where('created_at', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay())
+                $filtros['fecha_hasta'] ?? null,
+                fn ($q, $fechaHasta) => $q->where('created_at', '<=', Carbon::parse($fechaHasta)->endOfDay())
             );
     }
 }

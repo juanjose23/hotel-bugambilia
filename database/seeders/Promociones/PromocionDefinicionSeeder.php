@@ -26,7 +26,7 @@ class PromocionDefinicionSeeder extends Seeder
         $tipoCambio = 36.5;
 
         if (! $nio || ! $usd) {
-            $this->command->warn('Monedas no encontradas. Ejecute MonedaSeeder / TasaCambioSeeder primero.');
+            $this->command?->warn('Monedas no encontradas. Ejecute MonedaSeeder / TasaCambioSeeder primero.');
 
             return;
         }
@@ -85,6 +85,9 @@ class PromocionDefinicionSeeder extends Seeder
             // ─── 01. ESCAPADA ROMÁNTICA TODO INCLUIDO ───
             [
                 'codigo' => 'PROM-ROMANTICA',
+                'noches_incluidas' => 1,
+                'personas_incluidas' => 2,
+                'anticipacion_horas' => 48,
                 'nombre' => 'Escapada Romántica Todo Incluido',
                 'tipo_promocion_id' => $tipoPaquete?->id,
                 'fecha_inicio' => now()->startOfYear()->toDateString(),
@@ -116,6 +119,9 @@ class PromocionDefinicionSeeder extends Seeder
             // ─── 02. ESTANCIA PROLONGADA 7X6 ───
             [
                 'codigo' => 'PROM-ESTANCIA7X6',
+                'noches_incluidas' => 7,
+                'personas_incluidas' => 2,
+                'anticipacion_horas' => 0,
                 'nombre' => 'Estancia Prolongada 7x6 (Pague 6, Duerma 7)',
                 'tipo_promocion_id' => $tipoEstancia?->id,
                 'fecha_inicio' => now()->startOfYear()->toDateString(),
@@ -171,6 +177,9 @@ class PromocionDefinicionSeeder extends Seeder
             // ─── 04. FIN DE SEMANA GASTRONÓMICO & RELAX ───
             [
                 'codigo' => 'PROM-GASTRONOMICO',
+                'noches_incluidas' => 2,
+                'personas_incluidas' => 2,
+                'anticipacion_horas' => 0,
                 'nombre' => 'Fin de Semana Gastronómico & Relax',
                 'tipo_promocion_id' => $tipoPaquete?->id,
                 'fecha_inicio' => now()->startOfYear()->toDateString(),
@@ -331,6 +340,6 @@ class PromocionDefinicionSeeder extends Seeder
             }
         });
 
-        $this->command->info('Definición de paquetes promocionales, ítems, precios e imágenes sembrada con éxito.');
+        $this->command?->info('Definición de paquetes promocionales, ítems, precios e imágenes sembrada con éxito.');
     }
 }

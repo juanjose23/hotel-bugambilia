@@ -11,6 +11,7 @@ use App\Interactors\Promociones\SincronizarGaleriaPromocion;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Habitaciones\Habitacion;
 use App\Repository\Models\Promociones\Promocion;
+use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\Servicios\Servicio;
 use App\Support\Barcode\Support\MonedaHelper;
 use Filament\Forms\Components\DatePicker;
@@ -22,6 +23,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
@@ -90,6 +92,7 @@ class PromocionForm
 
                         DatePicker::make('fecha_fin')
                             ->label('Fecha de Fin')
+                            ->afterOrEqual('fecha_inicio')
                             ->required()
                             ->prefixIcon(Heroicon::Calendar),
 
@@ -117,6 +120,11 @@ class PromocionForm
                             ->prefix(MonedaHelper::simbolo())
                             ->prefixIcon(Heroicon::CurrencyDollar),
 
+                        TextInput::make('noches_incluidas')->label('Noches incluidas')->numeric()->minValue(1)->maxValue(365)
+                            ->helperText('Obligatorio para vender paquetes de alojamiento a precio fijo. Una oferta 7x6 incluye 7 noches.'),
+                        TextInput::make('personas_incluidas')->label('Máximo de personas incluidas')->numeric()->minValue(1)->maxValue(30)
+                            ->helperText('Evita reservar para más personas que las cubiertas por el precio del paquete.'),
+                        TextInput::make('anticipacion_horas')->label('Anticipación mínima (horas)')->numeric()->minValue(0)->maxValue(8760)->default(0),
                         TextInput::make('orden')
                             ->label('Orden')
                             ->numeric()
@@ -172,8 +180,8 @@ class PromocionForm
                             }),
                     ]),
 
-                Section::make('Servicios y Habitaciones Incluidos en el Paquete')
-                    ->description('Agregue los ítems que componen este paquete único.')
+                Section::make('Habitaciones, espacios, servicios y platillos incluidos')
+                    ->description('Cada elemento se incluye una vez por reserva. Los platillos se guardan en la preorden; los consumos adicionales se cobran por separado.')
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('items')
@@ -186,9 +194,11 @@ class PromocionForm
                                         Servicio::class => 'Servicio',
                                         Habitacion::class => 'Habitación',
                                         Espacio::class => 'Espacio (Restaurante, Salón, etc.)',
+                                        Plato::class => 'Platillo del menú',
                                     ])
                                     ->required()
                                     ->live()
+                                    ->afterStateUpdated(fn (Set $set) => $set('item_id', null))
                                     ->columnSpan(6),
 
                                 Select::make('item_id')
@@ -203,6 +213,9 @@ class PromocionForm
                                         }
                                         if ($type === Habitacion::class) {
                                             return Habitacion::activas()->pluck('nombre', 'id')->toArray();
+                                        }
+                                        if ($type === Plato::class) {
+                                            return Plato::query()->where('estado', 1)->where('web', true)->pluck('nombre', 'id')->toArray();
                                         }
                                         if ($type === Espacio::class) {
                                             return Espacio::where('estado', 1)->pluck('nombre', 'id')->toArray();

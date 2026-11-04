@@ -35,8 +35,8 @@ class ObtenerLotesVencidos
                     });
             })
             ->when(
-                isset($filtros['producto_id']) && $filtros['producto_id'],
-                fn ($q) => $q->where('producto_id', $filtros['producto_id'])
+                $filtros['producto_id'] ?? null,
+                fn ($q, $productoId) => $q->where('producto_id', $productoId)
             )
             ->orderBy('fecha_vencimiento', 'desc')
             ->get();

@@ -10,6 +10,7 @@ use App\Repository\Models\Restaurante\Pedido;
 use App\Repository\Models\Restaurante\PedidoItem;
 use App\Repository\Persistencia\Restaurante\CargosPedidoRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
+use App\Repository\Queries\Restaurante\Pedidos\ItemPreordenIncluidoEnReservaQuery;
 use App\Repository\Queries\Restaurante\Pedidos\ObtenerItemPedidoQuery;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ final readonly class AnularItemPedido
         private RestauranteRepositorioInterface $repositorio,
         private RecalcularTotalesPedido $recalcular,
         private CargosPedidoRepositorio $cargos,
+        private ItemPreordenIncluidoEnReservaQuery $preordenIncluida,
     ) {}
 
     public function ejecutar(int $itemId): ?PedidoItem
@@ -36,6 +38,9 @@ final readonly class AnularItemPedido
                 throw new DomainException('No se puede anular un plato que ya fue servido al cliente.');
             }
 
+            if ($item->pedido instanceof Pedido && $this->preordenIncluida->ejecutar($item->pedido, $item->id)) {
+                throw new DomainException('Este platillo está incluido en una reserva. Recepción debe ajustar primero la reserva y su cuenta.');
+            }
             $this->cargos->anular($item);
             $item->estado = EstadoItemPedido::ANULADO;
             $this->repositorio->guardarItem($item);

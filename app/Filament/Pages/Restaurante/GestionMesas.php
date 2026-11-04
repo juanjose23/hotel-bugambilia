@@ -9,9 +9,11 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Limpieza\EstadoLimpieza;
 use App\Enums\Reservas\TipoReserva;
+use App\Enums\Restaurante\EstadoPedido;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
 use App\Filament\Shared\Actions\Restaurante\AplicarDescuentoPedidoAction;
+use App\Filament\Shared\Actions\Restaurante\FinalizarPedidoPagadoAction;
 use App\Filament\Shared\Actions\Restaurante\MoverCuentaMesaAction;
 use App\Filament\Shared\Actions\Restaurante\UnirMesasAction;
 use App\Interactors\Limpieza\Ejecucion\RegistrarSolicitudLimpieza;
@@ -364,6 +366,14 @@ final class GestionMesas extends Page
         );
     }
 
+    public function finalizarPedidoPagadoAction(): Action
+    {
+        return FinalizarPedidoPagadoAction::make(
+            resolverPedido: fn (): ?Pedido => is_numeric($this->pedidoCobroId) ? $this->repositorio->obtenerPedidoPorId((int) $this->pedidoCobroId) : null,
+            alFinalizar: fn () => $this->recargarMesas(),
+        );
+    }
+
     public function cobrarCuentaAction(): Action
     {
         return CobrarCuentaAction::makeFromResolver(
@@ -588,9 +598,15 @@ final class GestionMesas extends Page
             return;
         }
 
-        $this->pedidoCobroId = $this->pedidoDetalle->id;
+        $pedido = $this->pedidoDetalle;
+        $this->pedidoCobroId = $pedido->id;
         $this->cerrarDetallePedido();
-        $this->mountAction('cobrarCuenta');
+        if ($pedido->cuenta !== null && (float) $pedido->cuenta->saldo <= 0 && $pedido->estado !== EstadoPedido::SERVIDO) {
+            Notification::make()->title('Pago recibido')->body('Completa la entrega de los platillos antes de finalizar la atención.')->info()->send();
+
+            return;
+        }
+        $this->mountAction($pedido->cuenta !== null && (float) $pedido->cuenta->saldo <= 0 ? 'finalizarPedidoPagado' : 'cobrarCuenta');
     }
 
     public function iniciarCobroMesa(int $mesaId): void
@@ -613,7 +629,12 @@ final class GestionMesas extends Page
         }
 
         $this->pedidoCobroId = $primerPedido->id;
-        $this->mountAction('cobrarCuenta');
+        if ($primerPedido->cuenta !== null && (float) $primerPedido->cuenta->saldo <= 0 && $primerPedido->estado !== EstadoPedido::SERVIDO) {
+            Notification::make()->title('Pago recibido')->body('Completa la entrega de los platillos antes de finalizar la atención.')->info()->send();
+
+            return;
+        }
+        $this->mountAction($primerPedido->cuenta !== null && (float) $primerPedido->cuenta->saldo <= 0 ? 'finalizarPedidoPagado' : 'cobrarCuenta');
     }
 
     // ────────────────────────────────────────────

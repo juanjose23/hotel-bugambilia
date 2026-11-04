@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Interactors\Auth\ProcesarGoogleCallback;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -45,7 +44,7 @@ final class GoogleAuthController extends Controller
         }
     }
 
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request): Response
     {
         Log::info('[GoogleAuth] Callback recibido', [
             'has_code' => $request->has('code'),
@@ -80,7 +79,7 @@ final class GoogleAuthController extends Controller
                 $intendedStr = is_string($intended) ? $intended : '';
                 $destino = str_contains($intendedStr, '/admin') ? $intendedStr : '/admin';
 
-                return redirect($destino)->with('exito', '¡Has iniciado sesión en el panel administrativo!');
+                return Inertia::location($destino);
             }
 
             return redirect()->intended(route('home'))->with('exito', '¡Has iniciado sesión con Google exitosamente!');

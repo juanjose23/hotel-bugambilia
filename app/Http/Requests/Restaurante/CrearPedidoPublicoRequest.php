@@ -26,8 +26,8 @@ final class CrearPedidoPublicoRequest extends FormRequest
             'metodo_pago' => ['required', 'string', 'in:efectivo,stripe'],
             'monto_paga_con' => ['nullable', 'string', 'max:50'],
             'notas' => ['nullable', 'string', 'max:255'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.plato_id' => ['required', 'integer', 'exists:platos,id'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.plato_id' => ['required', 'integer', 'distinct', 'exists:platos,id'],
             'items.*.cantidad' => ['required', 'integer', 'min:1', 'max:50'],
             'items.*.observaciones' => ['nullable', 'string', 'max:150'],
         ];

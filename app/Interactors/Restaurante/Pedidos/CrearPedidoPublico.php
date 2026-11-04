@@ -9,6 +9,7 @@ use App\Actions\Facturacion\StripeMontoMenorUnidad;
 use App\Actions\Restaurante\ConstruirUrlWhatsapp;
 use App\BusinessLogic\Restaurante\Delivery\ObtenerDepartamentosDelivery;
 use App\BusinessLogic\Restaurante\Delivery\ValidarDepartamentoDelivery;
+use App\BusinessLogic\Restaurante\Mesas\VerificarRestauranteActivo;
 use App\Enums\Facturacion\EstadoTransaccionPago;
 use App\Enums\Facturacion\PasarelaCodigo;
 use App\Enums\Restaurante\AreaCocina;
@@ -22,6 +23,7 @@ use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\User;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
+use App\Repository\Queries\Restaurante\Pedidos\ObtenerPreordenPublicaQuery;
 use App\Repository\Queries\Restaurante\Platos\ObtenerPlatosPorIdsQuery;
 use App\WebServices\Stripe\StripePaymentIntentClient;
 use DomainException;
@@ -43,6 +45,10 @@ final readonly class CrearPedidoPublico
         private ObtenerMonedaPredeterminadaQuery $obtenerMoneda,
         private ObtenerPlatosPorIdsQuery $obtenerPlatos,
         private ConstruirUrlWhatsapp $construirUrlWhatsapp,
+        private ObtenerPreordenPublicaQuery $preordenPublica,
+        private PrepararCuentaPedidoPublico $prepararCuenta,
+        private BloquearItemsPorFaltaStock $validarStock,
+        private VerificarRestauranteActivo $restauranteActivo,
         private ValidarDepartamentoDelivery $validarDepartamentoDelivery = new ValidarDepartamentoDelivery(
             new ObtenerDepartamentosDelivery
         ),
@@ -77,6 +83,9 @@ final readonly class CrearPedidoPublico
      */
     public function ejecutar(array $datos): array
     {
+        if (! $this->restauranteActivo->estaHabilitadoWeb()) {
+            throw new DomainException('El restaurante no está disponible para pedidos.');
+        }
         if (empty($datos['items'])) {
             throw new DomainException('El pedido debe contener al menos un platillo.');
         }
@@ -97,11 +106,12 @@ final readonly class CrearPedidoPublico
             $platoIds = array_map(static fn (mixed $id): int => (int) $id, array_column($datos['items'], 'plato_id'));
             $platos = $this->obtenerPlatos->ejecutar($platoIds);
 
+            $preorden = $this->preordenPublica->ejecutar($datos['items']);
             $itemsParaInsertar = [];
             $subtotalCalculado = 0.0;
-            $monedaSimbolo = 'C$';
+            $monedaSimbolo = $this->obtenerMoneda->ejecutar()->simbolo ?? 'C$';
 
-            foreach ($datos['items'] as $itemData) {
+            foreach ($preorden as $itemData) {
                 $platoId = (int) $itemData['plato_id'];
                 $plato = $platos->get($platoId);
 
@@ -110,9 +120,7 @@ final readonly class CrearPedidoPublico
                 }
 
                 $cantidad = max(1, (int) $itemData['cantidad']);
-                $precioObj = $plato->precios->first();
-                $precioUnitario = $precioObj !== null ? (float) $precioObj->precio : 0.0;
-                $monedaSimbolo = $precioObj->moneda->simbolo ?? $monedaSimbolo;
+                $precioUnitario = $itemData['precio_unitario'];
                 $itemSubtotal = round($precioUnitario * $cantidad, 2);
                 $subtotalCalculado += $itemSubtotal;
 
@@ -182,7 +190,11 @@ final readonly class CrearPedidoPublico
 
             // 8. Recalcular y enviar comanda a cocina
             $this->recalcularTotales->ejecutar($pedido);
-            $this->enviarACocina->ejecutar($pedido);
+            $cuenta = $this->prepararCuenta->ejecutar($pedido, $costoDelivery);
+            $totalCalculado = (float) $cuenta->total;
+            if ($datos['metodo_pago'] !== PasarelaCodigo::Stripe->value) {
+                $this->enviarACocina->ejecutar($pedido);
+            }
 
             // 9. Construir URL de WhatsApp con comanda oficial
             $whatsappUrl = $this->construirUrlWhatsapp(
@@ -202,6 +214,7 @@ final readonly class CrearPedidoPublico
             // 10. Procesamiento con Stripe si aplica
             $stripePago = null;
             if ($datos['metodo_pago'] === PasarelaCodigo::Stripe->value) {
+                $this->validarStock->ejecutar($pedido);
                 $stripePago = $this->generarIntentoStripe($pedido, $totalCalculado, $datos);
             }
 
@@ -302,6 +315,7 @@ final readonly class CrearPedidoPublico
 
         $this->registrarTransaccion->ejecutar(
             pasarela: $pasarela,
+            cuenta: $pedido->cuenta,
             monto: $total,
             moneda: $moneda,
             idempotencyKey: $idempotencyKey,

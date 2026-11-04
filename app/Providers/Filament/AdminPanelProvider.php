@@ -52,7 +52,6 @@ class AdminPanelProvider extends PanelProvider
                 ]))
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER,
                 fn (): View => view('filament.guias.assets'))
-            ->unsavedChangesAlerts()
             ->databaseTransactions()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->plugin(FilamentShieldPlugin::make()->navigationGroup('Seguridad'))

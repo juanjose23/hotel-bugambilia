@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react';
+import { useWatch } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
+import type { FormReservaMesa } from '../schemas/reservaMesaSchema';
 import type { MenuItemData } from '../types';
 
 export interface PlatoPreorden {
@@ -6,52 +9,68 @@ export interface PlatoPreorden {
     cantidad: number;
 }
 
-export const useReservaFlujoReserva = (menu: MenuItemData[]) => {
+export const useReservaFlujoReserva = (
+    menu: MenuItemData[],
+    form: UseFormReturn<FormReservaMesa>,
+) => {
     const [pasoActual, setPasoActual] = useState<1 | 2 | 3>(1);
-    const [platosPreorden, setPlatosPreorden] = useState<PlatoPreorden[]>([]);
+    const items =
+        useWatch({ control: form.control, name: 'items_preorden' }) ?? [];
+    const platosPreorden: PlatoPreorden[] = items.flatMap((item) => {
+        const plato = menu.find((p) => p.id === item.plato_id);
+
+        return plato ? [{ plato, cantidad: item.cantidad }] : [];
+    });
     const [categoriaMenuFiltro, setCategoriaMenuFiltro] =
         useState<string>('todos');
 
     const agregarPlatoPreorden = (plato: MenuItemData) => {
-        setPlatosPreorden((prev) => {
-            const index = prev.findIndex((p) => p.plato.id === plato.id);
-
-            if (index >= 0) {
-                const nuevo = [...prev];
-                nuevo[index] = {
-                    ...nuevo[index],
-                    cantidad: nuevo[index].cantidad + 1,
-                };
-
-                return nuevo;
-            }
-
-            return [...prev, { plato, cantidad: 1 }];
-        });
+        const actuales = form.getValues('items_preorden');
+        const existente = actuales.find((item) => item.plato_id === plato.id);
+        form.setValue(
+            'items_preorden',
+            existente
+                ? actuales.map((item) =>
+                      item.plato_id === plato.id
+                          ? {
+                                ...item,
+                                cantidad: Math.min(50, item.cantidad + 1),
+                            }
+                          : item,
+                  )
+                : [...actuales, { plato_id: plato.id, cantidad: 1 }],
+            { shouldValidate: true, shouldDirty: true },
+        );
     };
-
     const removerPlatoPreorden = (platoId: number) => {
-        setPlatosPreorden((prev) => {
-            const index = prev.findIndex((p) => p.plato.id === platoId);
+        form.setValue(
+            'items_preorden',
+            form
+                .getValues('items_preorden')
+                .map((item) =>
+                    item.plato_id === platoId
+                        ? { ...item, cantidad: item.cantidad - 1 }
+                        : item,
+                )
+                .filter((item) => item.cantidad > 0),
+            { shouldValidate: true, shouldDirty: true },
+        );
+    };
+    const irPaso = async (paso: 1 | 2 | 3) => {
+        if (
+            paso > pasoActual &&
+            !(await form.trigger([
+                'fecha',
+                'hora',
+                'duracion_horas',
+                'adultos',
+                'items_preorden',
+            ]))
+        ) {
+            return;
+        }
 
-            if (index < 0) {
-                return prev;
-            }
-
-            const item = prev[index];
-
-            if (item.cantidad > 1) {
-                const nuevo = [...prev];
-                nuevo[index] = {
-                    ...nuevo[index],
-                    cantidad: nuevo[index].cantidad - 1,
-                };
-
-                return nuevo;
-            }
-
-            return prev.filter((p) => p.plato.id !== platoId);
-        });
+        setPasoActual(paso);
     };
 
     const categoriasMenu = useMemo(
@@ -83,7 +102,7 @@ export const useReservaFlujoReserva = (menu: MenuItemData[]) => {
 
     return {
         pasoActual,
-        irPaso: setPasoActual,
+        irPaso,
         platosPreorden,
         agregarPlatoPreorden,
         removerPlatoPreorden,

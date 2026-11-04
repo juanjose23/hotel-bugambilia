@@ -4,7 +4,10 @@ import { useState, useMemo, useCallback } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { RoomItem } from '@/modules/shared/types';
 import { crearReservaSchema } from '../schemas/crearReservaSchema';
-import type { CrearReservaFormValues } from '../schemas/crearReservaSchema';
+import type {
+    CrearReservaFormInput,
+    CrearReservaFormValues,
+} from '../schemas/crearReservaSchema';
 import { reservasService } from '../services/reservasService';
 import type {
     BeneficioClienteItem,
@@ -78,7 +81,11 @@ export const useCrearReservaForm = ({
     const [errorServidor, setErrorServidor] = useState<string | null>(null);
 
     // 2. Formulario React Hook Form
-    const form = useForm<CrearReservaFormValues>({
+    const form = useForm<
+        CrearReservaFormInput,
+        unknown,
+        CrearReservaFormValues
+    >({
         resolver: zodResolver(crearReservaSchema),
         defaultValues: {
             nombre_cliente: authUser?.name || '',
@@ -97,6 +104,10 @@ export const useCrearReservaForm = ({
             acompanantes: [],
             servicios_adicionales: [],
             beneficio_id: beneficiosCliente[0]?.id || null,
+            requiere_factura: false,
+            razon_social: '',
+            ruc: '',
+            direccion_fiscal: '',
         },
     });
 
@@ -104,6 +115,7 @@ export const useCrearReservaForm = ({
         register,
         handleSubmit,
         setValue,
+        watch,
         control,
         trigger,
         formState: { errors, isSubmitting },
@@ -326,6 +338,7 @@ export const useCrearReservaForm = ({
         register,
         handleSubmit: handleSubmit(onSubmit),
         setValue,
+        watch,
         errors,
         isSubmitting,
         pasoActual,
