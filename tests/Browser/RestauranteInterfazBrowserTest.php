@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Enums\Activos\EstadoActivo;
 use App\Enums\Activos\EstadoAsignacion;
+use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\MetodoPago;
+use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\HabitacionesEspacios\TipoEspacio;
 use App\Enums\Inventario\EstadoLote;
@@ -29,6 +31,7 @@ use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Colaboradores\Colaborador;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Espacios\Espacio;
 use App\Repository\Models\Inventario\Lote;
 use App\Repository\Models\Inventario\Stock;
@@ -39,6 +42,7 @@ use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Restaurante\Plato;
 use App\Repository\Models\User;
+use Illuminate\Support\Str;
 use Laravel\Dusk\Browser;
 use Spatie\Permission\Models\Role;
 
@@ -167,6 +171,20 @@ test('flujo de mesa con reservacion: confirmacion de llegada y apertura automati
             'codigo_reserva' => $reserva->codigo_reserva,
             'nombre_cliente' => $reserva->nombre_cliente,
         ],
+    ]);
+
+    $moneda = Moneda::query()->where('codigo', 'NIO')->first() ?? Moneda::query()->firstOrFail();
+    Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-RES-'.Str::random(5),
+        'tipo_cuenta' => TipoCuenta::RESTAURANTE_DIRECTO,
+        'estado' => EstadoCuenta::ABIERTA,
+        'reserva_id' => $reserva->id,
+        'moneda_id' => $moneda->id,
+        'subtotal' => 0,
+        'total' => 0,
+        'total_pagado' => 0,
+        'saldo' => 0,
+        'abierta_at' => now(),
     ]);
 
     $this->browse(function (Browser $browser) use ($user, $mesaReservada): void {
@@ -447,7 +465,7 @@ test('flujo E2E integrado multi-modulo: cierre de pedido -> mesa sucia -> solici
     app(CerrarPedidoMesa::class)->ejecutar(
         pedido: $pedido,
         metodoPago: MetodoPago::EFECTIVO,
-        montoRecibido: (float) ($pedido->subtotal > 0 ? $pedido->subtotal : 100.0),
+        montoRecibido: 500.0,
         usuarioId: $user->id
     );
 
