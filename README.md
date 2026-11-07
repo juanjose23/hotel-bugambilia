@@ -4,23 +4,22 @@ Producción y CI/CD para Coolify/Dokploy: [guía de despliegue](Documentacion/de
 
 La guía completa está en [Documentacion/desarrollo/entorno-portable.md](Documentacion/desarrollo/entorno-portable.md).
 
-Con Docker Desktop (contenedores Linux) o Docker Engine y Compose v2:
+Con Docker Desktop en modo Linux o Docker Engine con Compose:
 
 ```sh
 docker compose build app
-docker compose up -d app
-docker compose exec app php artisan migrate --force
+docker compose up -d app worker scheduler
 ```
 
-Abrir http://localhost:8080. Estos comandos usan una base nueva dentro de Docker.
+Abrir http://localhost con el puerto predeterminado. La imagen de review usa el PostgreSQL configurado en `.env`. Para acceder al PostgreSQL del equipo desde Docker, usa `DB_HOST=host.docker.internal`. El arranque omite las migraciones y las semillas automáticas.
 
 ```sh
 # Pruebas PHP en PostgreSQL aislado
-docker compose --profile quality run --rm --build tools
-# Dusk con Selenium y otra base exclusiva
-docker compose --profile dusk run --rm --build dusk
-# Todos los controles de calidad, pruebas y compilación
-docker compose --profile quality run --rm --build tools node scripts/project.mjs check
+docker compose -f compose.ci.yaml --profile quality run --rm --build tools
+# Dusk con Selenium y una base exclusiva
+docker compose -f compose.ci.yaml --profile dusk run --rm --build dusk
+# Imagen local de producción
+docker build --target production -t hotel-bugambilia:production .
 ```
 
 # Hotel Bugambilias — Sistema de Gestion Integral

@@ -47,6 +47,19 @@ beforeEach(function (): void {
 });
 
 test('un error interno de pedido se registra y no se expone al cliente', function (): void {
+    Schema::create('espacios', function (Blueprint $table): void {
+        $table->id();
+        $table->string('tipo');
+        $table->integer('estado')->default(1);
+        $table->boolean('web')->default(true);
+        $table->softDeletes();
+    });
+    DB::table('espacios')->insert([
+        'tipo' => 'restaurante',
+        'estado' => 1,
+        'web' => 1,
+    ]);
+
     $request = new CrearPedidoPublicoRequest;
     $request->setValidator(Validator::make(['items' => [['plato_id' => 1, 'cantidad' => 1]]], ['items' => 'array']));
     $interactor = app(CrearPedidoPublico::class);

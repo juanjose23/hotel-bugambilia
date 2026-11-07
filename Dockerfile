@@ -1,19 +1,21 @@
 # syntax=docker/dockerfile:1
-FROM php:8.4-apache-trixie AS php-base
+FROM php:8.4-fpm-trixie AS php-base
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git unzip curl libpq-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libsqlite3-dev libonig-dev \
+    git unzip curl nginx supervisor libpq-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libsqlite3-dev libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_pgsql pdo_sqlite bcmath intl zip gd pcntl exif mbstring opcache \
-    && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html
-COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/supervisord.conf /etc/supervisor/hotel.conf
+RUN printf '[www]\nlisten = 127.0.0.1:9000\n' > /usr/local/etc/php-fpm.d/zzz-hotel.conf \
+    && nginx -t
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/hotel-entrypoint
 RUN sed -i 's/\r$//' /usr/local/bin/hotel-entrypoint
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+STOPSIGNAL SIGTERM
 ENTRYPOINT ["hotel-entrypoint"]
-CMD ["apache2-foreground"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/hotel.conf"]
 
 FROM php-base AS dependencies
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -52,10 +54,12 @@ RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-
     && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
     && php artisan package:discover --ansi
 
-FROM php-base AS runtime
+FROM php-base AS review
 COPY --from=production-dependencies /var/www/html /var/www/html
 COPY --from=frontend /build/public/build /var/www/html/public/build
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN rm -f .env \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && ln -s /var/www/html/storage/app/public public/storage
 COPY docker/php.ini /usr/local/etc/php/conf.d/hotel.ini
 EXPOSE 80
 
