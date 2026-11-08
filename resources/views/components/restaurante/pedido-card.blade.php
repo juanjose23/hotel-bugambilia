@@ -101,6 +101,15 @@
                         $estadoItemEnum = $item->estado instanceof \App\Enums\Restaurante\EstadoItemPedido
                             ? $item->estado
                             : (is_string($item->estado) ? \App\Enums\Restaurante\EstadoItemPedido::tryFrom($item->estado) : null);
+                        $retiro = null;
+                        $errorRetiro = null;
+                        if ($modo === 'kds' && $estadoItemEnum === \App\Enums\Restaurante\EstadoItemPedido::EN_PREPARACION) {
+                            try {
+                                $retiro = app(\App\Interactors\Restaurante\Cocina\ConfirmarRetiroComanda::class)->plan($item);
+                            } catch (\DomainException $exception) {
+                                $errorRetiro = $exception->getMessage();
+                            }
+                        }
                     @endphp
                     @if($estadoItemEnum !== \App\Enums\Restaurante\EstadoItemPedido::ANULADO)
                         <div class="flex items-start justify-between p-3 rounded-2xl bg-gray-50/80 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-colors">
@@ -126,6 +135,7 @@
                                         dusk="kds-item-{{ $item->id }}-listo"
                                         type="button"
                                         wire:click="marcarItemListo({{ $item->id }})"
+                                        @disabled($retiro !== null || $errorRetiro !== null)
                                         title="Marcar como listo para servir"
                                                 class="w-6 h-6 rounded-full border border-emerald-500/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-xs"
                                             >
@@ -157,7 +167,7 @@
                                         @elseif($item->producto)
                                             {{ $item->producto->nombre }}{{ $item->variante ? ' ('.$item->variante->nombre_variante.')' : '' }}
                                             <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
-                                                Stock Bar
+                                                Producto de inventario
                                             </span>
                                         @else
                                             Ítem
@@ -175,6 +185,29 @@
                                 ×{{ (int) $item->cantidad }}
                             </span>
                         </div>
+                        @if($retiro !== null)
+                            <div class="space-y-2 rounded-xl border border-amber-200 p-3 text-sm dark:border-amber-800">
+                                <p class="font-semibold">Lotes a retirar</p>
+                                <ul class="list-disc space-y-1 pl-5">
+                                    @foreach($retiro['lineas'] as $linea)
+                                        <li>{{ $linea }}</li>
+                                    @endforeach
+                                </ul>
+                                @if($retiro['completo'])
+                                    <x-filament::button
+                                        size="sm"
+                                        dusk="kds-item-{{ $item->id }}-retiro"
+                                        wire:click="confirmarRetiroComanda({{ $item->id }}, '{{ $retiro['confirmacion'] }}')"
+                                        wire:confirm="¿Retiraste los lotes y cantidades de esta lista?"
+                                        wire:loading.attr="disabled"
+                                    >
+                                        Confirmar retiro
+                                    </x-filament::button>
+                                @endif
+                            </div>
+                        @elseif($errorRetiro !== null)
+                            <p class="text-sm text-danger-600">{{ $errorRetiro }}</p>
+                        @endif
                     @endif
                 @endforeach
             </div>

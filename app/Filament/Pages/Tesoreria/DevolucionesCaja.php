@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Tesoreria;
 
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Cajas\CajasCluster;
 use App\Interactors\Tesoreria\GestionarDevoluciones;
 use App\Repository\Models\Tesoreria\DevolucionCaja;
 use App\Repository\Queries\Tesoreria\TesoreriaQuery;
@@ -22,13 +22,13 @@ use UnitEnum;
 
 final class DevolucionesCaja extends Page implements HasTable
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = CajasCluster::class;
 
     use AccionesCaja,DatosTesoreria,InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-uturn-left';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja y cierres';
+    protected static string|UnitEnum|null $navigationGroup = 'Operaciones de caja';
 
     protected static ?string $navigationLabel = 'Devoluciones de efectivo';
 
@@ -36,7 +36,7 @@ final class DevolucionesCaja extends Page implements HasTable
 
     protected static ?string $slug = 'tesoreria/devoluciones';
 
-    protected static ?int $navigationSort = 24;
+    protected static ?int $navigationSort = 20;
 
     protected string $view = 'filament.pages.tesoreria.devoluciones';
 

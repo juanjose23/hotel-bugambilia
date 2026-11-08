@@ -8,7 +8,6 @@ use App\Enums\Restaurante\EstadoItemPedido;
 use App\Events\Restaurante\PedidoEnviadoACocina;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Interactors\Restaurante\Pedidos\BloquearItemsPorFaltaStock;
-use App\Interactors\Restaurante\Pedidos\DescontarStockProductoPedido;
 use App\Interactors\Restaurante\Pedidos\RecalcularTotalesPedido;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -20,8 +19,6 @@ use Illuminate\Support\Facades\DB;
 final readonly class ReenviarItemsPendientesACocina
 {
     public function __construct(
-        private ConsumirIngredientesPedido $consumirIngredientes,
-        private DescontarStockProductoPedido $descontarProducto,
         private RestauranteRepositorioInterface $repositorio,
         private RegistrarDetalleCuenta $registrarDetalle,
         private NotificadorRestaurante $notificador,
@@ -56,11 +53,6 @@ final readonly class ReenviarItemsPendientesACocina
                 $item->estado = EstadoItemPedido::EN_PREPARACION;
                 $this->repositorio->guardarItem($item);
 
-                if ($item->esProducto()) {
-                    $this->descontarProducto->ejecutar($item);
-                } else {
-                    $this->consumirIngredientes->ejecutar($item);
-                }
                 $procesados[] = $item->id;
             }
 

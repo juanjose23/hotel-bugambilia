@@ -251,6 +251,117 @@ final readonly class StripePaymentIntentClient
     }
 
     /**
+     * Procesa un cobro con tarjeta directamente en Stripe (Virtual Terminal).
+     * Crea un PaymentMethod y crea y confirma el PaymentIntent.
+     *
+     * @param  array{
+     *     numero: string,
+     *     exp_mes: int|string,
+     *     exp_anio: int|string,
+     *     cvc: string,
+     *     titular?: ?string,
+     * }  $tarjeta
+     * @param  array<string, string>  $metadata
+     * @return array<string, mixed>
+     */
+    public function cobrarConTarjetaDirecta(
+        int $montoMenorUnidad,
+        string $moneda,
+        array $tarjeta,
+        string $idempotencyKey,
+        array $metadata = [],
+        ?string $receiptEmail = null,
+        ?string $description = null,
+    ): array {
+        $secret = config('services.stripe.secret');
+
+        if (! is_string($secret) || trim($secret) === '') {
+            throw new DomainException('Stripe no tiene STRIPE_SECRET configurado.');
+        }
+
+        $numeroLimpio = preg_replace('/\D/', '', $tarjeta['numero']) ?? '';
+        $cvcLimpio = preg_replace('/\D/', '', $tarjeta['cvc']) ?? '';
+
+        try {
+            // 1. Crear PaymentMethod tipo tarjeta
+            /** @var array<string, mixed> $pmParams */
+            $pmParams = [
+                'type' => 'card',
+                'card' => [
+                    'number' => $numeroLimpio,
+                    'exp_month' => (int) $tarjeta['exp_mes'],
+                    'exp_year' => (int) $tarjeta['exp_anio'],
+                    'cvc' => $cvcLimpio,
+                ],
+            ];
+
+            if (isset($tarjeta['titular']) && trim((string) $tarjeta['titular']) !== '') {
+                $pmParams['billing_details'] = [
+                    'name' => trim((string) $tarjeta['titular']),
+                ];
+            }
+
+            $pmResponse = Http::asForm()
+                ->withToken($secret)
+                ->timeout(12)
+                ->connectTimeout(4)
+                ->post('https://api.stripe.com/v1/payment_methods', $pmParams)
+                ->throw();
+
+            $paymentMethodId = $pmResponse->json('id');
+            if (! is_string($paymentMethodId) || $paymentMethodId === '') {
+                throw new DomainException('Stripe no pudo generar el método de pago con la tarjeta proporcionada.');
+            }
+
+            // 2. Crear y Confirmar PaymentIntent
+            $piParams = array_filter([
+                'amount' => $montoMenorUnidad,
+                'currency' => mb_strtolower($moneda),
+                'payment_method' => $paymentMethodId,
+                'confirm' => 'true',
+                'automatic_payment_methods' => [
+                    'enabled' => 'true',
+                    'allow_redirects' => 'never',
+                ],
+                'metadata' => $metadata,
+                'receipt_email' => $receiptEmail,
+                'description' => $description,
+            ], fn ($val) => $val !== null && $val !== '');
+
+            $piResponse = Http::asForm()
+                ->withToken($secret)
+                ->withHeaders(['Idempotency-Key' => $idempotencyKey])
+                ->timeout(15)
+                ->connectTimeout(4)
+                ->post('https://api.stripe.com/v1/payment_intents', $piParams)
+                ->throw();
+
+            /** @var array<string, mixed> $payload */
+            $payload = $piResponse->json();
+
+            return $payload;
+        } catch (RequestException $exception) {
+            $response = $exception->response;
+            $stripeError = $response->json('error');
+            $mensaje = is_array($stripeError) ? ($stripeError['message'] ?? null) : null;
+
+            throw new StripeApiException(
+                is_string($mensaje) ? $mensaje : 'Stripe no pudo procesar el cobro con la tarjeta.',
+                [
+                    'http_status' => $response->status(),
+                    'stripe_type' => is_array($stripeError) ? ($stripeError['type'] ?? null) : null,
+                    'stripe_code' => is_array($stripeError) ? ($stripeError['code'] ?? null) : null,
+                    'decline_code' => is_array($stripeError) ? ($stripeError['decline_code'] ?? null) : null,
+                    'param' => is_array($stripeError) ? ($stripeError['param'] ?? null) : null,
+                    'request_id' => $response->header('Request-Id'),
+                    'raw' => app()->hasDebugModeEnabled() ? $response->json() : null,
+                ],
+                $response->status(),
+            );
+        }
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function cancelarPaymentIntent(

@@ -95,7 +95,7 @@ final readonly class GestionarComprobantes
                 $m = $this->fondos->anotar($f, $o, $actor, (float) $v->importe, 'Transferencia verificada de cuenta '.$cuenta->numero_cuenta, $v->referencia);
                 $this->repo->crearConciliacion(['extracto_id' => $e->id, 'movimiento_id' => $m, 'usuario_id' => $actor]);
                 $cuenta->refresh();
-                if ((float) $cuenta->saldo <= 0 && $cuenta->estado->puedeCerrarse()) {
+                if ((float) $cuenta->saldo <= 0 && $cuenta->estado->puedeCerrarse() && ! $cuenta->tieneEstanciaActiva()) {
                     $this->cierre->ejecutar($cuenta, $actor, ['emitir_factura' => $emitirFactura, 'factura_serie_id' => $serieId]);
                 } elseif ($emitirFactura) {
                     throw new DomainException('La cuenta debe estar liquidada y habilitada para cierre antes de emitir la factura.');

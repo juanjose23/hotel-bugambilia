@@ -8,11 +8,10 @@ use App\Enums\Compras\EstadoSolicitud;
 use App\Notifications\Compras\NotificadorCompras;
 use App\Repository\Models\Compras\Solicitud;
 use App\Repository\Models\Compras\SolicitudItem;
-use App\Repository\Models\Shared\Stock;
 use App\Repository\Models\User;
+use App\Repository\Persistencia\Restaurante\ExistenciasCocinaRepositorio;
 use App\Repository\Persistencia\Restaurante\RestauranteRepositorioInterface;
 use DomainException;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 final readonly class ResolverSolicitudAbastecimientoCocina
@@ -21,11 +20,12 @@ final readonly class ResolverSolicitudAbastecimientoCocina
         private RestauranteRepositorioInterface $repositorio,
         private NotificadorCompras $notificadorCompras,
         private TrasladarExistenciasCocina $trasladar,
+        private ExistenciasCocinaRepositorio $existencias,
     ) {}
 
-    public function ejecutar(Solicitud $solicitud, ?int $usuarioId = null): Solicitud
+    public function ejecutar(Solicitud $solicitud, ?int $usuarioId = null, ?string $confirmacion = null): Solicitud
     {
-        return DB::transaction(function () use ($solicitud, $usuarioId): Solicitud {
+        return DB::transaction(function () use ($solicitud, $usuarioId, $confirmacion): Solicitud {
             $solicitud = $this->repositorio->solicitudConLock($solicitud->id);
             if ($this->repositorio->solicitudYaAbastecida($solicitud->id)) {
                 throw new DomainException('La solicitud ya fue abastecida; no se puede repetir el despacho.');
@@ -39,26 +39,29 @@ final readonly class ResolverSolicitudAbastecimientoCocina
             $this->validarAutorizacionInventario($usuarioId);
 
             $destinoId = $this->repositorio->obtenerUbicacionCocinaId();
-            $faltantes = $this->faltantesInventarioInterno($solicitud, $destinoId);
-
-            if ($faltantes !== []) {
-                $this->notificadorCompras->abastecimientoCocinaRequiereCompra($solicitud, $faltantes);
+            $plan = $this->plan($solicitud, $destinoId);
+            if ($plan['faltantes'] !== []) {
+                $this->notificadorCompras->abastecimientoCocinaRequiereCompra($solicitud, $plan['faltantes']);
 
                 throw new DomainException(
-                    'Inventario interno insuficiente. Genere cotización / orden de compra para: '.implode('; ', $faltantes).'.'
+                    'Inventario interno insuficiente. Genere cotización / orden de compra para: '.implode('; ', $plan['faltantes']).'.'
                 );
             }
-
-            $traslados = [];
-
-            foreach ($solicitud->items as $item) {
-                $traslados = [
-                    ...$traslados,
-                    ...$this->resolverItemDesdeBodegas($solicitud, $item, $destinoId, $usuarioId),
-                ];
+            if ($confirmacion !== null && ! hash_equals($plan['confirmacion'], $confirmacion)) {
+                throw new DomainException('Los lotes sugeridos cambiaron. Vuelva a abrir el despacho y revise la lista de retiro.');
             }
 
-            $destino = $this->repositorio->obtenerUbicacionPorId($destinoId);
+            $this->existencias->bloquearUbicaciones([$destinoId, ...array_column($plan['filas'], 'origen_id')]);
+            $traslados = [];
+            foreach ($plan['filas'] as $fila) {
+                $this->trasladar->ejecutar($fila['variante_id'], $fila['origen_id'], $destinoId, $fila['cantidad'], [
+                    'documento_tipo' => 'solicitud_abastecimiento_cocina',
+                    'documento_id' => $solicitud->id,
+                    'referencia' => 'Resolución de '.$solicitud->codigo,
+                    'creado_por_id' => $usuarioId,
+                ], $fila['stock_id']);
+                $traslados[] = $fila['texto'];
+            }
             $detalle = implode('; ', array_slice($traslados, 0, 8));
             $nota = '['.now()->format('d/m/Y H:i').'] RESUELTO CON INVENTARIO: '.$detalle;
             $solicitud->notas = trim((string) ($solicitud->notas ?? '')."\n".$nota);
@@ -80,88 +83,57 @@ final readonly class ResolverSolicitudAbastecimientoCocina
     }
 
     /**
-     * @return list<string>
+     * @return array{filas: list<array{variante_id: int, origen_id: int, stock_id: int, cantidad: float, texto: string}>, faltantes: list<string>, confirmacion: string}
      */
-    private function faltantesInventarioInterno(Solicitud $solicitud, int $destinoId): array
+    public function plan(Solicitud $solicitud, ?int $destinoId = null): array
     {
+        $destinoId ??= $this->repositorio->obtenerUbicacionCocinaId();
+        $destino = $this->repositorio->obtenerUbicacionPorId($destinoId);
+        $solicitud->loadMissing(['items.producto', 'items.variante.producto']);
+        $filas = [];
         $faltantes = [];
-
+        $asignados = [];
         foreach ($solicitud->items as $item) {
             $varianteId = (int) ($item->producto_variante_id ?? 0);
-            $cantidad = $this->cantidadAResolver($item);
-
-            if ($varianteId <= 0 || $cantidad <= 0) {
+            $pendiente = $requerido = $this->cantidadAResolver($item);
+            if ($varianteId <= 0 || $pendiente <= 0 || (int) $item->producto_id <= 0) {
                 continue;
             }
 
-            $sum = $this->stocksDisponibles($varianteId, $destinoId)->sum('cantidad_actual');
-            $disponible = is_numeric($sum) ? (float) $sum : 0.0;
+            foreach ($this->repositorio->obtenerStocksDisponiblesParaTraslado($varianteId, $destinoId) as $stock) {
+                $cantidad = round(min($pendiente, (float) $stock->cantidad_actual - ($asignados[$stock->id] ?? 0.0)), 4);
+                if ($cantidad <= 0) {
+                    continue;
+                }
 
-            if ($disponible < $cantidad) {
-                $faltantes[] = sprintf(
-                    '%s disponible %s / requerido %s',
-                    $this->nombreItem($item),
-                    number_format($disponible, 2),
-                    number_format($cantidad, 2),
-                );
+                $origenId = (int) $stock->stockable_id;
+                $origen = $this->repositorio->obtenerUbicacionPorId($origenId);
+                $codigo = $stock->lote->codigo_lote ?? 'Sin lote';
+                $vence = $stock->lote?->fecha_vencimiento?->format('d/m/Y') ?? 'Sin vencimiento';
+                $filas[] = [
+                    'variante_id' => $varianteId,
+                    'origen_id' => $origenId,
+                    'stock_id' => $stock->id,
+                    'cantidad' => $cantidad,
+                    'texto' => sprintf('%s → %s · %s · %s · %s · Retirar %s', $origen->nombre ?? 'Bodega', $destino->nombre ?? 'Cocina', $this->nombreItem($item), $codigo, $vence, $cantidad),
+                ];
+                $asignados[$stock->id] = ($asignados[$stock->id] ?? 0.0) + $cantidad;
+                $pendiente = round($pendiente - $cantidad, 4);
+                if ($pendiente <= 0.00001) {
+                    break;
+                }
+            }
+
+            if ($pendiente > 0.00001) {
+                $faltantes[] = sprintf('%s disponible %s / requerido %s', $this->nombreItem($item), $requerido - $pendiente, $requerido);
             }
         }
 
-        return $faltantes;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function resolverItemDesdeBodegas(Solicitud $solicitud, SolicitudItem $item, int $destinoId, ?int $usuarioId): array
-    {
-        $varianteId = (int) ($item->producto_variante_id ?? 0);
-        $productoId = (int) ($item->producto_id ?? 0);
-        $pendiente = $this->cantidadAResolver($item);
-        $traslados = [];
-
-        if ($varianteId <= 0 || $productoId <= 0 || $pendiente <= 0) {
-            return [];
-        }
-
-        $destino = $this->repositorio->obtenerUbicacionPorId($destinoId);
-        $destinoNombre = $destino->nombre ?? 'Cocina';
-
-        foreach ($this->stocksDisponibles($varianteId, $destinoId) as $stockOrigen) {
-            if ($pendiente <= 0) {
-                break;
-            }
-
-            $cantidad = min($pendiente, (float) $stockOrigen->cantidad_actual);
-
-            if ($cantidad <= 0) {
-                continue;
-            }
-
-            $origenId = (int) $stockOrigen->stockable_id;
-            $origen = $this->repositorio->obtenerUbicacionPorId($origenId);
-            $origenNombre = $origen->nombre ?? "Bodega #{$origenId}";
-            $this->trasladar->ejecutar($varianteId, $origenId, $destinoId, $cantidad, ['documento_tipo' => 'solicitud_abastecimiento_cocina', 'documento_id' => $solicitud->id, 'referencia' => 'Resolución de '.$solicitud->codigo, 'creado_por_id' => $usuarioId]);
-
-            $pendiente -= $cantidad;
-            $traslados[] = sprintf(
-                '%s -> %s: %s x %s',
-                $origenNombre,
-                $destinoNombre,
-                $this->nombreItem($item),
-                number_format($cantidad, 2),
-            );
-        }
-
-        return $traslados;
-    }
-
-    /**
-     * @return Collection<int, Stock>
-     */
-    private function stocksDisponibles(int $varianteId, int $destinoId): Collection
-    {
-        return $this->repositorio->obtenerStocksDisponiblesParaTraslado($varianteId, $destinoId);
+        return [
+            'filas' => $filas,
+            'faltantes' => $faltantes,
+            'confirmacion' => hash('sha256', json_encode([$solicitud->id, $destinoId, $filas, $faltantes], JSON_THROW_ON_ERROR)),
+        ];
     }
 
     private function cantidadAResolver(SolicitudItem $item): float

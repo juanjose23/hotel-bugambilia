@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Reservas\Schemas\Reserva\Comun;
 
 use App\BusinessLogic\Monedas\ConvertirMoneda;
+use App\BusinessLogic\Reservas\Resolutores\ResolverTipoPagoReserva;
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Cuentas\ModoCargo;
 use App\Enums\Reservas\TipoPagoReserva;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Queries\Cuentas\ObtenerCargosFacturacionReservaQuery;
 use App\Repository\Queries\Cuentas\ObtenerCuentaReservaQuery;
 use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
@@ -20,6 +22,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Gate;
 
 final class ResumenFinancieroYAbonoSeccion
 {
@@ -62,10 +65,23 @@ final class ResumenFinancieroYAbonoSeccion
             ->icon(Heroicon::CreditCard)
             ->columns(['default' => 1, 'sm' => 2])
             ->schema([
+                TextEntry::make('politica_pago_cliente')
+                    ->label('Política de pago del cliente')
+                    ->state(fn (Get $get): ?string => self::politicaDelCliente($get)?->getLabel())
+                    ->visible(fn (Get $get): bool => self::politicaDelCliente($get) !== null)
+                    ->columnSpanFull(),
+
+                TextEntry::make('permiso_cobro_inicial')
+                    ->hiddenLabel()
+                    ->state('Solicite a un usuario autorizado que registre el anticipo requerido.')
+                    ->visible(fn (Get $get): bool => Gate::denies('registrarPago', Cuenta::class)
+                        && self::tipoPagoEfectivo($get) !== TipoPagoReserva::SIN_PAGO)
+                    ->columnSpanFull(),
+
                 ToggleButtons::make('tipo_pago_reserva')
                     ->label('¿Cuánto pagará ahora?')
                     ->options(TipoPagoReserva::options())
-                    ->default(TipoPagoReserva::ABONO_50->value)
+                    ->default(TipoPagoReserva::SIN_PAGO->value)
                     ->required()
                     ->validationMessages([
                         'required' => 'Seleccione si registrará la reserva sin pago, con abono del 50 % o con pago completo.',
@@ -74,7 +90,7 @@ final class ResumenFinancieroYAbonoSeccion
                     ->inline()
                     ->columnSpanFull()
                     ->helperText('Para un abono se sugiere el 50 %, pero puede ingresar el monto realmente recibido. El pago completo debe coincidir con el total.')
-                    ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)),
+                    ->visible(fn (Get $get, string $operation, $record): bool => Gate::allows('registrarPago', Cuenta::class) && self::politicaDelCliente($get) === null && self::mostrarCobroInicial($get, $operation, $record)),
 
                 TextInput::make('monto_pago_reserva')
                     ->label('Monto recibido')
@@ -88,7 +104,7 @@ final class ResumenFinancieroYAbonoSeccion
                     ->numeric()
                     ->minValue(0.01)
                     ->step(0.01)
-                    ->required(fn (Get $get): bool => $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value)
+                    ->required(fn (Get $get): bool => self::tipoPagoEfectivo($get) !== TipoPagoReserva::SIN_PAGO)
                     ->validationMessages([
                         'required' => 'Ingrese el monto recibido del cliente.',
                         'numeric' => 'El monto recibido debe ser un número válido.',
@@ -101,11 +117,12 @@ final class ResumenFinancieroYAbonoSeccion
 
                         return number_format($monto, 2, '.', '');
                     })
-                    ->helperText(fn (Get $get): string => $get('tipo_pago_reserva') === TipoPagoReserva::PAGO_COMPLETO->value
+                    ->helperText(fn (Get $get): string => self::tipoPagoEfectivo($get) === TipoPagoReserva::PAGO_COMPLETO
                         ? 'Ingrese el total indicado para dejar la reserva completamente pagada.'
                         : 'En edición se sugiere solo el faltante para que el pago acumulado cubra el 50 % del total.')
                     ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
-                        && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value),
+                        && Gate::allows('registrarPago', Cuenta::class)
+                        && self::tipoPagoEfectivo($get) !== TipoPagoReserva::SIN_PAGO),
 
                 Select::make('moneda_id')
                     ->label('Moneda del pago')
@@ -120,18 +137,19 @@ final class ResumenFinancieroYAbonoSeccion
                     ->live()
                     ->native(false)
                     ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
-                        && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value),
+                        && Gate::allows('registrarPago', Cuenta::class)
+                        && self::tipoPagoEfectivo($get) !== TipoPagoReserva::SIN_PAGO),
 
                 Select::make('metodo_pago_reserva')
                     ->label('Forma de pago')
                     ->options(MetodoPago::options())
                     ->default(MetodoPago::EFECTIVO->value)
-                    ->required(fn (Get $get): bool => $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value)
+                    ->required(fn (Get $get): bool => self::tipoPagoEfectivo($get) !== TipoPagoReserva::SIN_PAGO)
                     ->validationMessages([
                         'required' => 'Seleccione la forma de pago utilizada por el cliente.',
                     ])
                     ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
-                        && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value)
+                        && self::tipoPagoEfectivo($get) !== TipoPagoReserva::SIN_PAGO)
                     ->native(false),
 
                 TextInput::make('referencia_pago_reserva')
@@ -139,7 +157,8 @@ final class ResumenFinancieroYAbonoSeccion
                     ->placeholder('Ej: Voucher #9876, Transf. #1234')
                     ->maxLength(100)
                     ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record)
-                        && $get('tipo_pago_reserva') !== TipoPagoReserva::SIN_PAGO->value),
+                        && Gate::allows('registrarPago', Cuenta::class)
+                        && self::tipoPagoEfectivo($get) !== TipoPagoReserva::SIN_PAGO),
             ])
             ->visible(fn (Get $get, string $operation, $record): bool => self::mostrarCobroInicial($get, $operation, $record));
     }
@@ -171,6 +190,19 @@ final class ResumenFinancieroYAbonoSeccion
             ->columnSpanFull();
     }
 
+    private static function politicaDelCliente(Get $get): ?TipoPagoReserva
+    {
+        return app(ResolverTipoPagoReserva::class)->resolverDesdeCliente(['cliente_id' => $get('cliente_id')]);
+    }
+
+    private static function tipoPagoEfectivo(Get $get): TipoPagoReserva
+    {
+        return app(ResolverTipoPagoReserva::class)->resolver([
+            'cliente_id' => $get('cliente_id'),
+            'tipo_pago_reserva' => $get('tipo_pago_reserva'),
+        ]);
+    }
+
     private static function mostrarCobroInicial(Get $get, string $operation, mixed $record): bool
     {
         if ($operation === 'create') {
@@ -191,16 +223,15 @@ final class ResumenFinancieroYAbonoSeccion
     private static function montoSugeridoPago(Get $get, string $operation, mixed $record): float
     {
         $resumen = ResumenFinancieroVistaPrevia::calcular($get);
-        $valor = $get('tipo_pago_reserva');
-        $tipoPago = is_string($valor) ? TipoPagoReserva::tryFrom($valor) : null;
+        $tipoPago = self::tipoPagoEfectivo($get);
 
-        if ($operation === 'edit' && $record !== null && ($tipoPago ?? TipoPagoReserva::ABONO_50) === TipoPagoReserva::ABONO_50) {
+        if ($operation === 'edit' && $record !== null && $tipoPago === TipoPagoReserva::ABONO_50) {
             return self::montoFaltante50($get, $record);
         }
 
         $total = is_numeric($resumen['total'] ?? null) ? (float) $resumen['total'] : 0.0;
 
-        return ($tipoPago ?? TipoPagoReserva::ABONO_50)->monto($total);
+        return $tipoPago->monto($total);
     }
 
     private static function montoFaltante50(Get $get, mixed $record): float

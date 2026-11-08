@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interactors\Restaurante\Cocina;
 
 use App\BusinessLogic\Restaurante\Cocina\MedidasCocina;
+use App\Enums\Catalogos\TipoProducto;
 use App\Enums\Inventario\EstadoLote;
 use App\Repository\Models\Catalogos\Producto;
 use App\Repository\Models\Catalogos\ProductoVariante;
@@ -20,6 +21,40 @@ use Illuminate\Support\Str;
 final readonly class TransformarMateriaPrimaCocina
 {
     public function __construct(private RestauranteRepositorioInterface $repositorio, private ExistenciasCocinaRepositorio $existencias, private ConsumirExistenciasCocina $consumir, private MedidasCocina $medidas) {}
+
+    /** @return array{retiro: string, confirmacion: string} */
+    public function plan(int $varianteId, int $ubicacionId, float $cantidad): array
+    {
+        $lineas = [];
+        $retiros = [];
+        $pendiente = $cantidad;
+        foreach ($this->existencias->porVariante($varianteId, $ubicacionId) as $stock) {
+            if ($pendiente <= 0.00001) {
+                break;
+            }
+
+            $retiro = round(min($pendiente, (float) $stock->cantidad_actual), 4);
+            $retiros[$stock->id] = $retiro;
+            $codigo = $stock->lote->codigo_lote ?? 'Sin lote';
+            $vence = $stock->lote?->fecha_vencimiento?->format('d/m/Y') ?? 'Sin vencimiento';
+            $lineas[] = "{$codigo} · {$vence} · Retirar {$retiro}";
+            $pendiente = round($pendiente - $retiro, 4);
+        }
+        if ($pendiente > 0.00001) {
+            $lineas[] = "Faltan {$pendiente}";
+        }
+
+        return ['retiro' => implode("\n", $lineas), 'confirmacion' => $this->confirmacion($varianteId, $ubicacionId, $retiros)];
+    }
+
+    /** @param array<int, float> $retiros */
+    private function confirmacion(int $varianteId, int $ubicacionId, array $retiros): string
+    {
+        ksort($retiros);
+        $retiros = array_map(static fn (float $cantidad): float => round($cantidad, 4), $retiros);
+
+        return hash('sha256', json_encode([$varianteId, $ubicacionId, $retiros], JSON_THROW_ON_ERROR));
+    }
 
     /** @param array<string, mixed> $data */
     public function ejecutar(array $data, ?int $usuarioId = null): TransformacionMateriaPrima
@@ -41,6 +76,7 @@ final readonly class TransformarMateriaPrimaCocina
             }
             $items = [];
             $salidaBase = 0.0;
+            $requiereVencimiento = false;
             foreach ($itemsRaw as $raw) {
                 if (! is_array($raw)) {
                     throw new DomainException('Resultado de transformación inválido.');
@@ -53,6 +89,7 @@ final readonly class TransformarMateriaPrimaCocina
                 if (! $producto instanceof Producto || $cantidadSalida <= 0 || ! is_finite($cantidadSalida) || (! $esMerma && ($destino === null || $destino->producto_id !== $producto->id)) || (! $esMerma && $this->repositorio->obtenerUbicacionPorId($ubicacionSalida) === null)) {
                     throw new DomainException('Cada resultado debe tener producto, variante, ubicación y cantidad válidos.');
                 }
+                $requiereVencimiento = $requiereVencimiento || (! $esMerma && $producto->tipo === TipoProducto::Perecedero->value);
                 $unidad = $destino !== null ? $this->unidad($destino) : $this->unidadProducto($producto);
                 if ($unidad['dimension'] !== $origen['dimension']) {
                     throw new DomainException('Configure unidades compatibles antes de transformar.');
@@ -77,6 +114,10 @@ final readonly class TransformarMateriaPrimaCocina
                 'tipo' => 'TRANSFORMACION_SALIDA', 'documento_tipo' => 'transformacion_materia_prima', 'documento_id' => $transformacion->id,
                 'referencia' => 'Salida por transformación '.$transformacion->codigo, 'creado_por_id' => $usuarioId,
             ]);
+            if (is_string($data['confirmacion_lotes'] ?? null)
+                && ! hash_equals($this->confirmacion($varianteId, $ubicacionId, array_column($consumos, 'cantidad', 'stock_id')), $data['confirmacion_lotes'])) {
+                throw new DomainException('Los lotes cambiaron. Revisa el insumo y la cantidad antes de confirmar de nuevo.');
+            }
             $costo = round(array_sum(array_column($consumos, 'costo_total')), 2);
             if ($costo < 0) {
                 throw new DomainException('El costo de origen debe conciliarse antes de transformar.');
@@ -91,6 +132,10 @@ final readonly class TransformarMateriaPrimaCocina
                 }
                 $vencimiento = $fechaSolicitada;
             }
+            if ($requiereVencimiento && $vencimiento === null) {
+                throw new DomainException('Indique el vencimiento de la preparación perecedera que quedará en inventario.');
+            }
+
             $util = array_sum(array_map(fn (array $i): float => $i['es_merma'] ? 0.0 : $i['base'], $items));
             $indices = array_keys(array_filter($items, fn (array $i): bool => $util > 0 ? ! $i['es_merma'] : true));
             $ultimo = end($indices);

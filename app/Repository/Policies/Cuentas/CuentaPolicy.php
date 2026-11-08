@@ -32,6 +32,12 @@ class CuentaPolicy
         return $authUser->can('Update:Cuenta');
     }
 
+    public function registrarPago(AuthUser $authUser, ?Cuenta $cuenta = null): bool
+    {
+        return $authUser->can('Operar:Caja')
+            || ($cuenta === null ? $this->create($authUser) : $this->update($authUser, $cuenta));
+    }
+
     public function delete(AuthUser $authUser, Cuenta $cuenta): bool
     {
         return $authUser->can('Delete:Cuenta');

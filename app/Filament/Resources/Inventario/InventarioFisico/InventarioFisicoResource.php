@@ -50,7 +50,7 @@ class InventarioFisicoResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['creador']);
+            ->with(['creador', 'ubicacion']);
     }
 
     public static function getPages(): array

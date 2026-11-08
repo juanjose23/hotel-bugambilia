@@ -36,7 +36,7 @@ final class CargoFacturacionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ReceiptPercent;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración fiscal';
+    protected static string|UnitEnum|null $navigationGroup = 'Reglas y pasarelas';
 
     protected static ?string $navigationLabel = 'Cargos de Facturación';
 
@@ -44,7 +44,7 @@ final class CargoFacturacionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Cargos de Facturación';
 
-    protected static ?int $navigationSort = 43;
+    protected static ?int $navigationSort = 40;
 
     protected static ?string $slug = 'cargos-facturacion';
 

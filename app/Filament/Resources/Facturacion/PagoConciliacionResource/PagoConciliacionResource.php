@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\PagoConciliacionResource;
 
 use App\Enums\Facturacion\EstadoConciliacionPago;
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Tesoreria\TesoreriaCluster;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
@@ -19,17 +19,17 @@ use UnitEnum;
 
 final class PagoConciliacionResource extends Resource
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = TesoreriaCluster::class;
 
     protected static ?string $model = PagoConciliacion::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ReceiptPercent;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Fondos y bancos';
+    protected static string|UnitEnum|null $navigationGroup = 'Conciliaciones';
 
     protected static ?string $navigationLabel = 'Conciliación de pasarela';
 
-    protected static ?int $navigationSort = 35;
+    protected static ?int $navigationSort = 60;
 
     protected static ?string $slug = 'conciliacion';
 

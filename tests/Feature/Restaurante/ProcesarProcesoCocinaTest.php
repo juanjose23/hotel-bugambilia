@@ -95,6 +95,7 @@ test('transforma producto en materia prima y registra merma en inventario', func
         'variante_origen_id' => $varianteOrigen->id,
         'ubicacion_origen_id' => $cocina->id,
         'cantidad_procesada' => 4,
+        'fecha_vencimiento' => today()->addDay()->toDateString(),
         'items' => [
             [
                 'producto_destino_id' => $productoDestino->id,

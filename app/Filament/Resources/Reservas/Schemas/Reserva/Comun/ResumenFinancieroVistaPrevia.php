@@ -51,7 +51,6 @@ final class ResumenFinancieroVistaPrevia
         $descuento = is_numeric($resumen['descuento'] ?? null) ? (float) $resumen['descuento'] : 0.0;
         $totalCargos = is_numeric($resumen['total_cargos'] ?? null) ? (float) $resumen['total_cargos'] : 0.0;
         $total = is_numeric($resumen['total'] ?? null) ? (float) $resumen['total'] : 0.0;
-        $abono50 = is_numeric($resumen['abono_50'] ?? null) ? (float) $resumen['abono_50'] : 0.0;
 
         /** @var array<int, array{nombre: string, monto: float, obligatorio: bool}> $cargosList */
         $cargosList = is_array($resumen['cargos'] ?? null) ? $resumen['cargos'] : [];
@@ -76,10 +75,6 @@ final class ResumenFinancieroVistaPrevia
                         '</div>'.
                         '<div class="text-2xl font-black tracking-tight text-white">%s</div>'.
                     '</div>'.
-                    '<div class="w-full rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 dark:border-emerald-500/20 dark:bg-emerald-500/5 flex items-center justify-between gap-3">'.
-                        '<div class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Abono sugerido (50 %%)</div>'.
-                        '<div class="text-lg font-black text-emerald-800 dark:text-emerald-300">%s</div>'.
-                    '</div>'.
                 '</div>',
                 implode('', [
                     self::tarjetaResumen('Estancia', e($duracionStr), true),
@@ -88,7 +83,6 @@ final class ResumenFinancieroVistaPrevia
                     self::tarjetaResumen('Descuento', '- '.$dinero($descuento), true),
                 ]),
                 $dinero($total),
-                $dinero($abono50),
             ));
         }
 
@@ -111,10 +105,6 @@ final class ResumenFinancieroVistaPrevia
                         '</div>'.
                         '<div class="text-2xl font-black tracking-tight text-white">%s</div>'.
                     '</div>'.
-                    '<div class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/5 flex items-center justify-between gap-3">'.
-                        '<div class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Abono automático (50 %%)</div>'.
-                        '<div class="text-2xl font-black tracking-tight text-emerald-800 dark:text-emerald-300">%s</div>'.
-                    '</div>'.
                 '</div>'.
             '</div>',
             implode('', [
@@ -126,7 +116,6 @@ final class ResumenFinancieroVistaPrevia
             $cargos,
             $dinero($totalCargos),
             $dinero($total),
-            $dinero($abono50),
         ));
     }
 

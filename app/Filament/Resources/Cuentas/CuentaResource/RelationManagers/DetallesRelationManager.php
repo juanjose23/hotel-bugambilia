@@ -21,6 +21,7 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Gate;
 
 final class DetallesRelationManager extends RelationManager
 {
@@ -29,6 +30,11 @@ final class DetallesRelationManager extends RelationManager
     protected static ?string $title = 'Detalles de Consumo';
 
     protected static BackedEnum|string|null $icon = 'heroicon-m-document-text';
+
+    public function isReadOnly(): bool
+    {
+        return Gate::denies('update', $this->getOwnerRecord());
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -119,11 +125,18 @@ final class DetallesRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->label('Registrar cargo manual')
+                    ->visible(function (): bool {
+                        $cuenta = $this->getOwnerRecord();
+
+                        return $cuenta instanceof Cuenta && ! $this->isReadOnly() && $cuenta->permiteNuevosCargos();
+                    })
                     ->icon('heroicon-o-plus')
                     ->action(function (array $data): void {
                         try {
                             /** @var Cuenta $cuenta */
                             $cuenta = $this->getOwnerRecord();
+
+                            Gate::authorize('update', $cuenta);
 
                             /** @var int|null $userId */
                             $userId = auth()->id();

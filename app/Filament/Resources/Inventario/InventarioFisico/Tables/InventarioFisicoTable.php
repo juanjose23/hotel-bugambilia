@@ -51,6 +51,14 @@ readonly class InventarioFisicoTable
                     ->date('d/m/Y')
                     ->sortable(),
 
+                TextColumn::make('ubicacion.nombre')
+                    ->label('Ubicación / Almacén')
+                    ->placeholder('Todo el Hotel')
+                    ->badge()
+                    ->color('info')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('creador.name')
                     ->label('Responsable')
                     ->searchable()

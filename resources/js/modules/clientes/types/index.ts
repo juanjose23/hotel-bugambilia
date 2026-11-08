@@ -123,6 +123,7 @@ export interface CuentaEstanciaDetalle {
 }
 
 export interface PortalReservaDetalleCompleto {
+    puede_reportar_transferencia?: boolean;
     id: number;
     codigo_reserva: string;
     estado: number;

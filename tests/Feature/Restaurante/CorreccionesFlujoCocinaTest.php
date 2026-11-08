@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Interactors\Restaurante\Cocina\AnularItemPedido;
+use App\Interactors\Restaurante\Cocina\ConfirmarRetiroComanda;
 use App\Interactors\Restaurante\Cocina\RegistrarMermaCocina;
 use App\Interactors\Restaurante\Cocina\TransformarMateriaPrimaCocina;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
@@ -11,11 +12,18 @@ use App\Repository\Models\Shared\Stock;
 
 require_once __DIR__.'/../../Support/CocinaFixtures.php';
 
-test('enviar a cocina consume una sola vez y repetir el envío no duplica consumo', function () {
+test('enviar la comanda solo sugiere lotes y confirmar el retiro registra un solo consumo', function () {
     $f = fixtureCorreccionesCocina();
     [$pedido,$item] = pedidoCorreccionesCocina($f);
     app(EnviarPedidoACocina::class)->ejecutar($pedido);
+    $retiro = app(ConfirmarRetiroComanda::class);
+    $plan = $retiro->plan($item->refresh());
+    expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(10.0);
+    expect(fn () => $retiro->ejecutar($item->id, 'lista-desactualizada', null))->toThrow(DomainException::class);
+    expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(10.0);
+    $retiro->ejecutar($item->id, $plan['confirmacion'], null);
     expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(9.0);
+    $retiro->ejecutar($item->id, $plan['confirmacion'], null);
     expect(fn () => app(EnviarPedidoACocina::class)->ejecutar($pedido))->toThrow(DomainException::class);
     expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(9.0);
 });
@@ -23,6 +31,9 @@ test('anular partida ajusta la cuenta pero conserva el consumo físico realizado
     $f = fixtureCorreccionesCocina();
     [$pedido,$item] = pedidoCorreccionesCocina($f);
     app(EnviarPedidoACocina::class)->ejecutar($pedido);
+    $retiro = app(ConfirmarRetiroComanda::class);
+    $plan = $retiro->plan($item->refresh());
+    $retiro->ejecutar($item->id, $plan['confirmacion'], null);
     app(AnularItemPedido::class)->ejecutar($item->id);
     expect((float) $pedido->refresh()->cuenta->saldo)->toBe(0.0)->and((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(9.0);
 });
@@ -72,4 +83,14 @@ test('el reparto de centavos conserva el costo sin producir resultados negativos
     $resultado = app(TransformarMateriaPrimaCocina::class)->ejecutar($data);
     expect((float) $resultado->items()->sum('costo_asignado'))->toBe(.02)
         ->and($resultado->items()->where('costo_asignado', '<', 0)->exists())->toBeFalse();
+});
+
+test('una transformación perecedera sin vencimiento de origen exige una fecha y revierte el retiro', function (): void {
+    $f = fixtureCorreccionesCocina();
+    $datos = datosTransformacionCocina($f);
+    unset($datos['fecha_vencimiento']);
+
+    expect(fn () => app(TransformarMateriaPrimaCocina::class)->ejecutar($datos))
+        ->toThrow(DomainException::class, 'Indique el vencimiento');
+    expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(10.0);
 });

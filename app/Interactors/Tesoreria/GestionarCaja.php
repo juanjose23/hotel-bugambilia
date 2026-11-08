@@ -32,16 +32,24 @@ final readonly class GestionarCaja
     }
 
     /** @param list<int> $monedas */
-    public function crear(int $actorId, string $codigo, string $nombre, string $ubicacion, array $monedas): Caja
+    public function crear(int $actorId, string $codigo, string $nombre, string $ubicacion, array $monedas, ?int $ubicacionId = null, ?int $tipoCajaId = null): Caja
     {
-        return DB::transaction(function () use ($actorId, $codigo, $nombre, $ubicacion, $monedas): Caja {
+        return DB::transaction(function () use ($actorId, $codigo, $nombre, $ubicacion, $monedas, $ubicacionId, $tipoCajaId): Caja {
             $this->autorizar($actorId, 'Create:Caja');
             $codigo = strtoupper(trim($codigo));
             if (preg_match('/^[A-Z0-9_-]{2,30}$/', $codigo) !== 1 || trim($nombre) === '' || mb_strlen($nombre) > 100 || trim($ubicacion) === '' || mb_strlen($ubicacion) > 150 || $monedas === [] || count(array_unique($monedas)) !== count($monedas) || ! $this->cajas->monedasValidas($monedas) || $this->cajas->codigoExiste($codigo)) {
                 throw new DomainException('Revisa el código, nombre, ubicación y monedas de la caja. El código debe ser único.');
             }
 
-            return $this->cajas->crearCaja(['codigo' => $codigo, 'nombre' => trim($nombre), 'ubicacion' => trim($ubicacion), 'activa' => true, 'creada_por' => $actorId], $monedas);
+            return $this->cajas->crearCaja([
+                'codigo' => $codigo,
+                'nombre' => trim($nombre),
+                'ubicacion' => trim($ubicacion),
+                'ubicacion_id' => $ubicacionId,
+                'tipo_caja_id' => $tipoCajaId,
+                'activa' => true,
+                'creada_por' => $actorId,
+            ], $monedas);
         });
     }
 

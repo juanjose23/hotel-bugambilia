@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use Database\Seeders\Activos\ActivosSeeder;
+use Database\Seeders\Activos\Recalificar\RecalificarProductosActivoFijoSeeder;
 use Database\Seeders\Clientes\BeneficioClienteSeeder;
 use Database\Seeders\Clientes\ClientesDemoSeeder;
 use Database\Seeders\Clientes\ClientesMasivoSeeder;
@@ -20,6 +23,7 @@ use Database\Seeders\Inventario\InventarioSeeder;
 use Database\Seeders\Limpieza\LimpiezaSeeder;
 use Database\Seeders\Restaurante\RestauranteSeeder;
 use Database\Seeders\Servicios\ServicioActivoAsignacionSeeder;
+use Database\Seeders\Tesoreria\CajasInicialesSeeder;
 use Database\Seeders\Tesoreria\TesoreriaRolesSeeder;
 use Database\Seeders\Usuarios\RolAdministracionSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -46,8 +50,9 @@ class DatabaseSeeder extends Seeder
         $this->call(TasaCambioSeeder::class);
         $this->call(PasarelaPagoSeeder::class);
 
-        // ─── CONFIGURACIÓN FISCAL DGI (NICARAGUA) ───
+        // ─── CONFIGURACIÓN FISCAL DGI (NICARAGUA) Y CAJAS OPERATIVAS ───
         $this->call(FacturaFiscalSeeder::class);
+        $this->call(CajasInicialesSeeder::class);
 
         // ─── 02. GOBERNANZA & PERSONAL (COLABORADORES) ───
         $this->call(ColaboradorBaseSeeder::class);
@@ -56,6 +61,7 @@ class DatabaseSeeder extends Seeder
 
         // ─── 03. COMPRAS, BODEGA & INVENTARIO ───
         $this->call(ProductoSeeder::class);
+        $this->call(RecalificarProductosActivoFijoSeeder::class);
         $this->call(ComprasSeeder::class);
         $this->call(InventarioSeeder::class);
 
@@ -69,8 +75,6 @@ class DatabaseSeeder extends Seeder
 
         // Flota de activos fijos asignados a servicios (requiere ActivosSeeder)
         $this->call(ServicioActivoAsignacionSeeder::class);
-
-        $this->call(KitSeeder::class);
 
         // ─── 06. RESTAURANTE, MESAS, MENÚ, COCINA & ZONAS ───
         $this->call(RestauranteSeeder::class);

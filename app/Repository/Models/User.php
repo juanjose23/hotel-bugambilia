@@ -7,6 +7,7 @@ use App\Repository\Models\Personas\Persona;
 use App\Repository\Models\Usuarios\SocialAccount;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,10 +21,15 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * @use HasFactory<UserFactory>
  */
-class User extends Authenticatable implements AuditableContract, FilamentUser
+class User extends Authenticatable implements AuditableContract, FilamentUser, HasName
 {
     /** @phpstan-ignore missingType.generics */
     use Auditable, HasFactory, HasRoles, Notifiable;
+
+    public function getFilamentName(): string
+    {
+        return $this->persona?->nombre_completo ?: ($this->name ?: ($this->email ?: 'Usuario'));
+    }
 
     protected static function newFactory(): UserFactory
     {

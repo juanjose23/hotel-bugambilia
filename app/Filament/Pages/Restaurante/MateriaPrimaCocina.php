@@ -21,6 +21,7 @@ use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -98,14 +99,24 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
                                     ->afterStateUpdated(function (Set $set, mixed $state): void {
                                         $set('producto_origen_id', null);
                                         $set('variante_origen_id', null);
+                                        $set('retiro_lotes', null);
+                                        $set('confirmacion_lotes', null);
                                         $set('items', [['ubicacion_destino_id' => is_numeric($state) ? (int) $state : null]]);
                                     }),
                                 Select::make('producto_origen_id')->label('Insumo que vas a usar')->options(fn (Get $get): array => $consulta->productos(self::idOpcional($get('ubicacion_origen_id'))))->native(false)->searchable()->required()->live()
-                                    ->afterStateUpdated(fn (Set $set) => $set('variante_origen_id', null)),
-                                Select::make('variante_origen_id')->label('Presentación disponible')->options(fn (Get $get): array => $consulta->variantes(self::idOpcional($get('producto_origen_id')), self::idOpcional($get('ubicacion_origen_id'))))->native(false)->searchable()->required()->live(),
+                                    ->afterStateUpdated(function (Set $set): void {
+                                        $set('variante_origen_id', null);
+                                        $set('retiro_lotes', null);
+                                        $set('confirmacion_lotes', null);
+                                    }),
+                                Select::make('variante_origen_id')->label('Presentación disponible')->options(fn (Get $get): array => $consulta->variantes(self::idOpcional($get('producto_origen_id')), self::idOpcional($get('ubicacion_origen_id'))))->native(false)->searchable()->required()->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => $this->actualizarLotes($get, $set)),
                                 TextInput::make('cantidad_procesada')->label('Cantidad que vas a retirar')->numeric()->minValue(.001)->required()->live(onBlur: true)
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => $this->actualizarLotes($get, $set))
                                     ->maxValue(fn (Get $get): float => $consulta->seleccion(self::idOpcional($get('variante_origen_id')), self::idOpcional($get('ubicacion_origen_id')))['cantidad'])
                                     ->helperText(fn (Get $get): string => 'Escribe la cantidad en '.$consulta->seleccion(self::idOpcional($get('variante_origen_id')), null)['unidad'].'.'),
+                                Hidden::make('confirmacion_lotes')->required(),
+                                Textarea::make('retiro_lotes')->label('Lotes a retirar')->rows(4)->disabled()->dehydrated(false)->columnSpanFull(),
                             ]),
                         ]),
                         Step::make('Registrar resultado')->description('Lo útil y lo que se perdió')->icon('heroicon-o-beaker')->schema([
@@ -130,7 +141,7 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
                                             TextInput::make('observaciones')->label('Detalle opcional')->placeholder('Ej.: cortes para el almuerzo')->columnSpanFull(),
                                         ]),
                                     ]),
-                                DatePicker::make('fecha_vencimiento')->label('Usar hasta (opcional)')->minDate(today())->helperText('Puedes indicar una fecha menor que la del insumo original.'),
+                                DatePicker::make('fecha_vencimiento')->label('Usar hasta')->minDate(today())->helperText('Si el resultado perecedero no hereda un vencimiento, indica hasta cuándo puede usarse. Puedes indicar una fecha anterior a la del insumo.'),
                                 Textarea::make('observaciones')->label('Nota para el equipo (opcional)')->rows(2),
                             ]),
                         ]),
@@ -144,6 +155,19 @@ final class MateriaPrimaCocina extends Page implements HasForms, HasTable
                 Tab::make('Movimientos recientes')->icon('heroicon-o-clock')->schema([ViewField::make('historial_transformaciones_tabla')->view('filament.pages.restaurante.components.historial-transformaciones-tabla')->dehydrated(false)]),
             ]),
         ])->statePath('data');
+    }
+
+    private function actualizarLotes(Get $get, Set $set): void
+    {
+        $variante = self::idOpcional($get('variante_origen_id'));
+        $ubicacion = self::idOpcional($get('ubicacion_origen_id'));
+        $cantidad = $get('cantidad_procesada');
+        $plan = $variante !== null && $ubicacion !== null && is_numeric($cantidad) && (float) $cantidad > 0
+            ? app(TransformarMateriaPrimaCocina::class)->plan($variante, $ubicacion, (float) $cantidad)
+            : null;
+
+        $set('retiro_lotes', $plan['retiro'] ?? null);
+        $set('confirmacion_lotes', $plan['confirmacion'] ?? null);
     }
 
     private static function idOpcional(mixed $valor): ?int

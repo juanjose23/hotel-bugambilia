@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Tesoreria;
 
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Facturacion\FacturacionCluster;
 use App\Filament\Shared\Actions\VerGuiaAction;
 use App\Interactors\Tesoreria\GestionarComprobantes;
 use App\Repository\Models\Tesoreria\ComprobanteTransferencia;
@@ -26,13 +26,13 @@ use UnitEnum;
 
 final class ComprobantesTransferencia extends Page implements HasTable
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = FacturacionCluster::class;
 
     use AccionesCaja,DatosTesoreria,InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-photo';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Cobros y documentos';
+    protected static string|UnitEnum|null $navigationGroup = 'Cobros y pagos';
 
     protected static ?string $navigationLabel = 'Comprobantes pendientes';
 
@@ -40,7 +40,7 @@ final class ComprobantesTransferencia extends Page implements HasTable
 
     protected static ?string $slug = 'tesoreria/comprobantes';
 
-    protected static ?int $navigationSort = 14;
+    protected static ?int $navigationSort = 50;
 
     protected string $view = 'filament.pages.tesoreria.comprobantes';
 

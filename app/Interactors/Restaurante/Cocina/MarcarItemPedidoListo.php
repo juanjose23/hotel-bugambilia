@@ -20,6 +20,7 @@ final readonly class MarcarItemPedidoListo
         private ObtenerItemPedidoQuery $items,
         private RestauranteRepositorioInterface $repositorio,
         private RecalcularTotalesPedido $recalcular,
+        private ConfirmarRetiroComanda $retiro,
     ) {}
 
     public function ejecutar(int $itemId): ?PedidoItem
@@ -33,6 +34,10 @@ final readonly class MarcarItemPedidoListo
 
             if ($item->estado !== EstadoItemPedido::EN_PREPARACION) {
                 throw new DomainException('El plato debe estar en preparación antes de marcarlo como listo.');
+            }
+
+            if ($this->retiro->plan($item) !== null) {
+                throw new DomainException('Confirma los lotes retirados antes de marcar la partida como lista.');
             }
 
             $item->estado = EstadoItemPedido::LISTO;

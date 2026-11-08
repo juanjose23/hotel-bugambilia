@@ -13,21 +13,24 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 final class CheckOutRegistrarPagoAction
 {
     public static function make(CheckOutPage $page): Action
     {
         return Action::make('registrar_pago')
-            ->label('Registrar Pago de Saldo')
+            ->label('Registrar abono o pago')
             ->icon('heroicon-o-banknotes')
             ->color('success')
-            ->visible(fn (): bool => $page->reserva !== null && $page->saldoCuenta() > 0)
+            ->authorize(fn (): bool => $page->cuentaActiva() !== null && Gate::allows('registrarPago', $page->cuentaActiva()))
+            ->visible(fn (): bool => $page->reserva !== null && $page->cuentaActiva()?->estado->permitePagos() === true && $page->saldoCuenta() > 0)
             ->schema([
                 Select::make('forma_pago')
                     ->label('Método de Pago')
                     ->options(MetodoPago::class)
-                    ->default(MetodoPago::EFECTIVO)
+                    ->default(MetodoPago::EFECTIVO->value)
                     ->required(),
                 TextInput::make('monto')
                     ->label('Monto a Pagar')
@@ -56,9 +59,15 @@ final class CheckOutRegistrarPagoAction
                     return;
                 }
 
-                $metodo = $data['forma_pago'] instanceof MetodoPago
-                    ? $data['forma_pago']
-                    : (is_string($data['forma_pago']) ? MetodoPago::tryFrom($data['forma_pago']) : null) ?? MetodoPago::EFECTIVO;
+                Gate::authorize('registrarPago', $cuenta);
+
+                $valor = $data['forma_pago'] ?? null;
+                $metodo = $valor instanceof MetodoPago
+                    ? $valor
+                    : (is_numeric($valor) ? MetodoPago::tryFrom((int) $valor) : null);
+                if ($metodo === null) {
+                    throw ValidationException::withMessages(['forma_pago' => 'Seleccione una forma de pago válida.']);
+                }
 
                 $usuarioId = auth()->id();
                 $pago = $registrarPago->ejecutar(

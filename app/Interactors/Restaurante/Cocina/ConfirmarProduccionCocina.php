@@ -19,9 +19,53 @@ final readonly class ConfirmarProduccionCocina
 {
     public function __construct(private ProduccionCocinaRepositorio $produccion, private ExistenciasCocinaRepositorio $existencias, private ConsumirExistenciasCocina $consumir, private MedidasCocina $medidas) {}
 
-    public function ejecutar(int $procesoId, int $varianteResultadoId, int $ubicacionId, float $cantidadObtenida, string $fechaVencimiento, ?int $usuarioId = null): ProcesoCocina
+    /** @return array{retiro: string, confirmacion: string} */
+    public function plan(ProcesoCocina $proceso, int $ubicacionId): array
     {
-        return DB::transaction(function () use ($procesoId, $varianteResultadoId, $ubicacionId, $cantidadObtenida, $fechaVencimiento, $usuarioId): ProcesoCocina {
+        $rendimiento = (float) ($proceso->productoOrigen->rendimiento_porciones ?? 1);
+        $rendimiento = $rendimiento > 0 ? $rendimiento : 1.0;
+        $retiros = [];
+        $lineas = [];
+        foreach ($this->produccion->ingredientes((int) $proceso->producto_origen_id) as $ingrediente) {
+            $pendiente = round((float) $ingrediente->cantidad * (float) $proceso->cantidad_platos / $rendimiento, 4);
+            $nombre = $ingrediente->variante->producto->nombre ?? 'Ingrediente';
+            foreach ($this->existencias->porVariante((int) $ingrediente->producto_variante_id, $ubicacionId) as $stock) {
+                $cantidad = round(min($pendiente, (float) $stock->cantidad_actual - ($retiros[$stock->id] ?? 0.0)), 4);
+                if ($cantidad <= 0) {
+                    continue;
+                }
+
+                $retiros[$stock->id] = ($retiros[$stock->id] ?? 0.0) + $cantidad;
+                $codigo = $stock->lote->codigo_lote ?? 'Sin lote';
+                $vence = $stock->lote?->fecha_vencimiento?->format('d/m/Y') ?? 'Sin vencimiento';
+                $unidad = $ingrediente->variante->unidadMedida->nombre ?? $ingrediente->variante->producto->unidadMedida->nombre ?? 'unidades';
+                $lineas[] = "{$nombre} · {$codigo} · {$vence} · Retirar {$cantidad} {$unidad}";
+                $pendiente = round($pendiente - $cantidad, 4);
+                if ($pendiente <= 0.00001) {
+                    break;
+                }
+            }
+
+            if ($pendiente > 0.00001) {
+                $lineas[] = "{$nombre} · Faltan {$pendiente}";
+            }
+        }
+
+        return ['retiro' => implode("\n", $lineas), 'confirmacion' => $this->confirmacion($proceso->id, $ubicacionId, $retiros)];
+    }
+
+    /** @param array<int, float> $retiros */
+    private function confirmacion(int $procesoId, int $ubicacionId, array $retiros): string
+    {
+        ksort($retiros);
+        $retiros = array_map(static fn (float $cantidad): float => round($cantidad, 4), $retiros);
+
+        return hash('sha256', json_encode([$procesoId, $ubicacionId, $retiros], JSON_THROW_ON_ERROR));
+    }
+
+    public function ejecutar(int $procesoId, int $varianteResultadoId, int $ubicacionId, float $cantidadObtenida, string $fechaVencimiento, ?int $usuarioId = null, ?string $confirmacion = null): ProcesoCocina
+    {
+        return DB::transaction(function () use ($procesoId, $varianteResultadoId, $ubicacionId, $cantidadObtenida, $fechaVencimiento, $usuarioId, $confirmacion): ProcesoCocina {
             $proceso = $this->produccion->bloquear($procesoId);
             if ($proceso->getAttribute('confirmado_at') !== null) {
                 throw new DomainException('La producción ya está confirmada.');
@@ -44,6 +88,7 @@ final readonly class ConfirmarProduccionCocina
             $unidadResultado = $this->unidad($resultado);
             $baseEntrada = 0.0;
             $costo = 0.0;
+            $retiros = [];
             foreach ($ingredientes as $ingrediente) {
                 if ((int) $ingrediente->producto_variante_id === $varianteResultadoId) {
                     throw new DomainException('El resultado no puede ser un ingrediente de su propia producción.');
@@ -61,10 +106,15 @@ final readonly class ConfirmarProduccionCocina
                 $consumos = $this->consumir->ejecutar($this->existencias->porVariante((int) $ingrediente->producto_variante_id, $ubicacionId, true), $cantidad, ['documento_tipo' => 'produccion_cocina', 'documento_id' => $proceso->id, 'referencia' => 'Producción '.$proceso->codigo, 'creado_por_id' => $usuarioId]);
                 $costo += array_sum(array_column($consumos, 'costo_total'));
                 foreach ($consumos as $consumo) {
+                    $stockId = $consumo['stock_id'];
+                    $retiros[$stockId] = ($retiros[$stockId] ?? 0.0) + $consumo['cantidad'];
                     if ($consumo['vencimiento'] !== null && $consumo['vencimiento'] < $vencimiento) {
                         $vencimiento = $consumo['vencimiento'];
                     }
                 }
+            }
+            if ($confirmacion !== null && ! hash_equals($this->confirmacion($proceso->id, $ubicacionId, $retiros), $confirmacion)) {
+                throw new DomainException('Los lotes de producción cambiaron. Vuelve a abrir la preparación y revisa la lista de retiro.');
             }
             if ($cantidadObtenida * $unidadResultado['factor'] > $baseEntrada + 0.0001) {
                 throw new DomainException('La cantidad obtenida supera las entradas de la receta.');

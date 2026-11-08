@@ -6,6 +6,7 @@ namespace App\Repository\Models\Inventario;
 
 use App\Actions\Inventario\GenerarHojaInicialInventarioFisicoAction;
 use App\Enums\Inventario\EstadoInventarioFisico;
+use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,14 @@ class InventarioFisico extends Model implements AuditableContract
     public function creador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creado_por_id');
+    }
+
+    /**
+     * @return BelongsTo<Ubicacion, $this>
+     */
+    public function ubicacion(): BelongsTo
+    {
+        return $this->belongsTo(Ubicacion::class, 'ubicacion_id');
     }
 
     /**
@@ -130,19 +139,38 @@ class InventarioFisico extends Model implements AuditableContract
 
             // Pre-populate sheet data if not provided
             if (! $model->datos_hoja) {
-                $model->datos_hoja = self::generarHojaInicial();
+                $model->datos_hoja = self::generarHojaInicial(
+                    ubicacionId: $model->ubicacion_id,
+                );
             }
         });
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public static function plantillaVacia(): array
+    {
+        return (new GenerarHojaInicialInventarioFisicoAction)->plantillaVacia();
+    }
+
+    /**
      * Generates a default pre-populated Univer Sheet JSON configuration
-     * with all currently active lotes (not Agotado).
+     * with all currently active lotes (not Agotado), optionally filtered by location or category.
      *
      * @return array<string, mixed>
      */
-    public static function generarHojaInicial(): array
-    {
-        return (new GenerarHojaInicialInventarioFisicoAction)->ejecutar();
+    public static function generarHojaInicial(
+        ?int $ubicacionId = null,
+        ?int $categoriaId = null,
+        bool $precargarIgual = true,
+        bool $conteoCiego = false,
+    ): array {
+        return (new GenerarHojaInicialInventarioFisicoAction)->ejecutar(
+            ubicacionId: $ubicacionId,
+            categoriaId: $categoriaId,
+            precargarIgual: $precargarIgual,
+            conteoCiego: $conteoCiego,
+        );
     }
 }

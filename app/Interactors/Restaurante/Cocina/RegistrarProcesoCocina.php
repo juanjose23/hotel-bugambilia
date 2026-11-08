@@ -18,7 +18,7 @@ final readonly class RegistrarProcesoCocina
 
     /**
      * Registra un proceso de cocina basado en la receta de un plato.
-     * El costo se obtiene del Stock en Cocina Restaurante â†’ Lote â†’ costo_unitario.
+     * El costo se obtiene del Stock en Cocina Restaurante → Lote → costo_unitario.
      *
      * @param  array{codigo: string, plato_id: int, cantidad_platos: int, pedido_item_id?: int, realizado_por?: int|null, observaciones?: string|null}  $data
      */

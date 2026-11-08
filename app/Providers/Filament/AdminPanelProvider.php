@@ -15,6 +15,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -28,6 +29,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Qalainau\UniverSheet\UniverSheetPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -55,8 +57,24 @@ class AdminPanelProvider extends PanelProvider
             ->databaseTransactions()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->plugin(FilamentShieldPlugin::make()->navigationGroup('Seguridad'))
+            ->plugin(UniverSheetPlugin::make())
             ->path('admin')
             ->login()
+            ->profile()
+            ->userMenuItems([
+                'portal' => MenuItem::make()
+                    ->label('Portal de Huéspedes')
+                    ->icon('heroicon-o-home')
+                    ->url('/portal'),
+                'reservas' => MenuItem::make()
+                    ->label('Mis Reservas & Estancias')
+                    ->icon('heroicon-o-calendar-days')
+                    ->url('/portal/reservas'),
+                'sitio' => MenuItem::make()
+                    ->label('Ir al Sitio Web')
+                    ->icon('heroicon-o-globe-alt')
+                    ->url('/'),
+            ])
             ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
                 'primary' => Color::hex('#6b003e'),

@@ -763,15 +763,10 @@ final class RestauranteRepositorio implements RestauranteRepositorioInterface
     /** @return Collection<int, Stock> */
     public function obtenerStocksDisponiblesParaTraslado(int $varianteId, int $destinoId): Collection
     {
-        return $this->existencias->disponibles()
-            ->with('lote')
+        return $this->existencias->obtener($this->existencias->disponibles()
             ->where('stockable_type', Ubicacion::class)
             ->where('stockable_id', '!=', $destinoId)
-            ->where('producto_variante_id', $varianteId)
-            ->where('cantidad_actual', '>', 0)
-            ->orderBy('id')
-            ->lockForUpdate()
-            ->get();
+            ->where('producto_variante_id', $varianteId));
     }
 
     public function obtenerSustitucionActiva(int $pedidoItemId, int $varianteOriginalId): ?SustitucionIngrediente

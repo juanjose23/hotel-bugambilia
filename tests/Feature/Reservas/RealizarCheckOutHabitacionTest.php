@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 use App\BusinessLogic\Reservas\Data\RealizarCheckOutData;
 use App\Enums\Cuentas\EstadoCuenta;
+use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Estancias\EstadoEstancia;
 use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReserva;
 use App\Enums\Reservas\EstadoReservaDetalle;
+use App\Enums\Reservas\TipoPagoReserva;
 use App\Enums\Reservas\TipoRecursoReservable;
 use App\Enums\Reservas\TipoReserva;
 use App\Events\Reservas\CheckOutRegistrado;
 use App\Events\Reservas\HabitacionPendienteDeLimpieza;
+use App\Interactors\Cuentas\Cobros\ProcesarCobroCuenta;
+use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Interactors\Reservas\Habitaciones\RealizarCheckOutHabitacion;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Habitaciones\Habitacion;
+use App\Repository\Models\Monedas\Moneda;
+use App\Repository\Models\Monedas\TasaCambio;
 use App\Repository\Models\Reservas\RecursoReservable;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\Reservas\ReservaDetalle;
@@ -60,6 +66,30 @@ test('realizar check-out completa estancia y detalle, marca habitacion sucia y e
         'estado' => EstadoEstancia::ACTIVA,
     ]);
 
+    $reserva->update(['tipo_pago' => TipoPagoReserva::SIN_PAGO]);
+    $nio = Moneda::query()->firstOrCreate(['codigo' => 'NIO'], ['nombre' => 'Córdoba', 'simbolo' => 'C$', 'es_predeterminada' => true]);
+    $usd = Moneda::query()->firstOrCreate(['codigo' => 'USD'], ['nombre' => 'Dólar', 'simbolo' => '$', 'es_predeterminada' => false]);
+    TasaCambio::query()->updateOrCreate(['fecha' => today()->toDateString(), 'moneda_origen_id' => $usd->id, 'moneda_destino_id' => $nio->id], ['tasa' => 36.5]);
+    $cuenta = Cuenta::query()->create([
+        'numero_cuenta' => 'CTA-TEST-CHECKOUT-PAGADO',
+        'tipo_cuenta' => TipoCuenta::ESTANCIA,
+        'reserva_id' => $reserva->id,
+        'estancia_id' => $estancia->id,
+        'moneda_id' => $usd->id,
+        'estado' => EstadoCuenta::ABIERTA,
+        'abierta_at' => now(),
+    ]);
+    app(RegistrarDetalleCuenta::class)->ejecutar(cuenta: $cuenta, concepto: 'Hospedaje', precioUnitario: 100);
+    $cobro = app(ProcesarCobroCuenta::class);
+    $datos = ['forma_pago' => MetodoPago::TARJETA_CREDITO->value, 'moneda_pago_id' => $nio->id];
+    $saldoEsperado = round((float) $cuenta->refresh()->saldo - 20, 2);
+    $parcial = $cobro->ejecutar($cuenta, null, $datos + ['monto' => 730]);
+    expect($parcial['saldo'])->toBe($saldoEsperado)->and($reserva->fresh()->tipo_pago)->toBe(TipoPagoReserva::SIN_PAGO);
+    $final = $cobro->ejecutar($cuenta, null, $datos + ['monto' => round($saldoEsperado * 36.5, 2)]);
+    expect($final['saldo'])->toBe(0.0)->and($final['cerrada'])->toBeFalse()
+        ->and($cuenta->fresh()->estado)->toBe(EstadoCuenta::ABIERTA)
+        ->and($cuenta->ventas()->count())->toBe(0);
+
     $dto = new RealizarCheckOutData(
         estanciaId: $estancia->id,
         autorizarSaldoPendiente: true,
@@ -70,6 +100,7 @@ test('realizar check-out completa estancia y detalle, marca habitacion sucia y e
     $estanciaFinal = $interactor->ejecutar($dto);
 
     expect($estanciaFinal->estado)->toBe(EstadoEstancia::FINALIZADA);
+    expect($cuenta->fresh()->estado)->toBe(EstadoCuenta::CERRADA)->and($cuenta->ventas()->count())->toBe(1);
     expect($detalle->fresh()->estado)->toBe(EstadoReservaDetalle::COMPLETADO);
     expect($habitacion->fresh()->estado)->toBe(EstadoEspacio::Sucio);
     expect($reserva->fresh()->estado)->toBe(EstadoReserva::CHECKED_OUT);

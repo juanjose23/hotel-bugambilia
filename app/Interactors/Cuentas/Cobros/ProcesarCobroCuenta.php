@@ -59,28 +59,30 @@ final readonly class ProcesarCobroCuenta
             if (config('tesoreria.habilitado') && $metodoPago === MetodoPago::EFECTIVO && $monedaId !== null && $monedaId !== $cuenta->moneda_id) {
                 throw new \DomainException('Para este turno cobra en la moneda de la cuenta.');
             }
-            $montoNIO = config('tesoreria.habilitado') && $metodoPago === MetodoPago::EFECTIVO
-                ? (is_numeric($montoRaw) ? (float) $montoRaw : 0.0)
-                : $this->convertirMoneda->aBase(is_numeric($montoRaw) ? (float) $montoRaw : 0.0, $monedaId);
+            $montoCuenta = $this->convertirMoneda->entre(
+                is_numeric($montoRaw) ? (float) $montoRaw : 0.0,
+                $monedaId ?? $cuenta->moneda_id,
+                $cuenta->moneda_id,
+            );
 
-            $propinaRaw = isset($data['propina']) && is_numeric($data['propina'])
-                ? (float) $data['propina']
+            $propinaRaw = isset($data['propina']) && is_numeric($data['propina']) ? (float) $data['propina'] : 0.0;
+            $propinaCuenta = $propinaRaw > 0
+                ? $this->convertirMoneda->entre($propinaRaw, $monedaId ?? $cuenta->moneda_id, $cuenta->moneda_id)
                 : 0.0;
-            $propinaNIO = $propinaRaw > 0 ? $this->convertirMoneda->aBase($propinaRaw, $monedaId) : 0.0;
 
             $saldo = (float) $cuenta->saldo;
             $cargosObligatoriosTotal = $this->cuentas->totalCargosObligatorios($cuenta);
 
-            $this->validarPago->validar($montoNIO, $saldo, $cargosObligatoriosTotal);
+            $this->validarPago->validar($montoCuenta, $saldo, $cargosObligatoriosTotal);
 
             $this->registrarPago->ejecutar(
                 cuenta: $cuenta,
                 metodoPago: $metodoPago,
-                monto: $montoNIO,
-                propina: $propinaNIO,
+                monto: $montoCuenta,
+                propina: $propinaCuenta,
                 referenciaTransaccion: is_string($data['referencia_transaccion'] ?? null) ? $data['referencia_transaccion'] : null,
                 observaciones: is_string($data['observaciones'] ?? null) ? $data['observaciones'] : null,
-                monedaId: $monedaId,
+                monedaId: $cuenta->moneda_id,
                 usuarioId: $usuarioId,
             );
 
@@ -88,7 +90,7 @@ final readonly class ProcesarCobroCuenta
             $saldoRestante = (float) $cuenta->saldo;
 
             $venta = null;
-            if ($saldoRestante <= 0) {
+            if ($saldoRestante <= 0 && ! $cuenta->tieneEstanciaActiva()) {
                 $tipoComprobante = $data['tipo_comprobante'] ?? 'voucher';
                 $ruc = is_string($data['ruc_factura'] ?? null) && trim($data['ruc_factura']) !== '' ? trim($data['ruc_factura']) : null;
                 $razonSocial = is_string($data['razon_social_factura'] ?? null) && trim($data['razon_social_factura']) !== '' ? trim($data['razon_social_factura']) : null;
@@ -109,7 +111,7 @@ final readonly class ProcesarCobroCuenta
 
                 $datosFiscales = [
                     'tipo_comprobante' => is_string($tipoComprobante) ? $tipoComprobante : 'voucher',
-                    'emitir_factura' => $tipoComprobante === 'factura',
+                    'emitir_factura' => in_array($tipoComprobante, ['factura', 'factura_empresarial'], true),
                     'factura_serie_id' => is_numeric($data['factura_serie_id'] ?? null) ? (int) $data['factura_serie_id'] : null,
                     'ruc' => $ruc,
                     'razon_social' => $razonSocial,
@@ -125,7 +127,7 @@ final readonly class ProcesarCobroCuenta
                 'cuenta' => $cuenta,
                 'venta' => $venta,
                 'saldo' => $saldoRestante,
-                'cerrada' => $saldoRestante <= 0,
+                'cerrada' => $venta !== null,
             ];
         });
     }

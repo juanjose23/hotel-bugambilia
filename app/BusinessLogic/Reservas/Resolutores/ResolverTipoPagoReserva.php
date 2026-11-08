@@ -42,7 +42,7 @@ final readonly class ResolverTipoPagoReserva
     /**
      * @param  array<string, mixed>  $datos
      */
-    private function resolverDesdeCliente(array $datos): ?TipoPagoReserva
+    public function resolverDesdeCliente(array $datos): ?TipoPagoReserva
     {
         $clienteId = $datos['cliente_id'] ?? null;
 
@@ -76,6 +76,10 @@ final readonly class ResolverTipoPagoReserva
     private function extraerTipoPago(string $valor): ?TipoPagoReserva
     {
         $normalizado = strtolower(trim($valor));
+
+        if (preg_match('/\bsin[ _-]+(?:abono|anticipo|pago)\b/', $normalizado) === 1) {
+            return TipoPagoReserva::SIN_PAGO;
+        }
 
         if (str_contains($normalizado, '50') || str_contains($normalizado, 'mitad') || str_contains($normalizado, 'anticipo') || str_contains($normalizado, 'abono')) {
             return TipoPagoReserva::ABONO_50;

@@ -14,9 +14,15 @@ use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 
 class ViewSolicitud extends ViewRecord
@@ -27,7 +33,7 @@ class ViewSolicitud extends ViewRecord
     {
         /** @var Solicitud $record */
         $record = parent::getRecord();
-        $record->loadMissing('items.productoVariante');
+        $record->loadMissing(['items.productoVariante', 'items.producto']);
 
         return $record;
     }
@@ -48,20 +54,33 @@ class ViewSolicitud extends ViewRecord
                 ->label('Resolver con Inventario')
                 ->icon(Heroicon::ArrowsRightLeft)
                 ->color('success')
-                ->requiresConfirmation()
-                ->modalHeading('Resolver solicitud con inventario interno')
-                ->modalDescription('El sistema buscará stock disponible en bodegas y trasladará las cantidades aprobadas hacia cocina. Si no alcanza, deberá crear cotización u orden de compra.')
-                ->action(function (): void {
+                ->modalHeading('Confirmar retiro para cocina')
+                ->modalDescription('Verifica el lote y la cantidad en cada bodega. Para cambiar de lote, usa Despacho Manual a Cocina.')
+                ->fillForm(function (): array {
+                    $plan = app(ResolverSolicitudAbastecimientoCocina::class)->plan($this->getRecord());
+
+                    return [
+                        'confirmacion' => $plan['confirmacion'],
+                        'retiro' => implode("\n", [...array_column($plan['filas'], 'texto'), ...$plan['faltantes']]),
+                    ];
+                })
+                ->schema([
+                    Hidden::make('confirmacion')->required(),
+                    Textarea::make('retiro')->label('Lista de retiro y faltantes')->rows(8)->disabled()->dehydrated(false),
+                ])
+                ->modalSubmitActionLabel('Confirmar retiro y despacho')
+                ->action(function (array $data): void {
                     $record = $this->getRecord();
 
                     try {
                         app(ResolverSolicitudAbastecimientoCocina::class)->ejecutar(
                             solicitud: $record,
                             usuarioId: auth()->id() !== null ? (int) auth()->id() : null,
+                            confirmacion: (string) $data['confirmacion'],
                         );
                     } catch (DomainException $exception) {
                         Notification::make()
-                            ->title('Debe ir a compra')
+                            ->title('No se pudo completar el despacho')
                             ->body($exception->getMessage())
                             ->warning()
                             ->send();
@@ -90,10 +109,17 @@ class ViewSolicitud extends ViewRecord
                     ->icon(Heroicon::ArchiveBoxArrowDown)
                     ->color('success')
                     ->modalHeading('Despachar abastecimiento a cocina')
-                    ->modalDescription('Use esta opción solo si necesita seleccionar una bodega específica. La opción recomendada es Resolver con Inventario.')
-                    ->schema([
+                    ->modalDescription('Coteja el código de cada lote con su etiqueta y confirma las cantidades que retiraste de la bodega.')
+                    ->schema(fn (): array => [
                         Select::make('ubicacion_origen_id')
                             ->label('Bodega origen')
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, mixed $state): void {
+                                $despacho = app(DespacharSolicitudAbastecimientoCocina::class);
+                                foreach ($this->getRecord()->items as $item) {
+                                    $set('lotes_'.$item->id, is_numeric($state) ? $despacho->sugerencia($item, (int) $state) : []);
+                                }
+                            })
                             ->options(fn (): array => self::opcionesUbicaciones())
                             ->searchable()
                             ->preload()
@@ -105,9 +131,17 @@ class ViewSolicitud extends ViewRecord
                             ->searchable()
                             ->preload()
                             ->native(false),
+                        ...$this->camposLotesDespacho(),
+                        TextInput::make('motivo_lotes')->label('Motivo si cambiaste los lotes sugeridos')->maxLength(255),
                     ])
+                    ->modalSubmitActionLabel('Confirmar retiro y despacho')
                     ->action(function (array $data): void {
                         $record = $this->getRecord();
+
+                        $lotes = [];
+                        foreach ($record->items as $item) {
+                            $lotes[$item->id] = $data['lotes_'.$item->id] ?? [];
+                        }
 
                         try {
                             app(DespacharSolicitudAbastecimientoCocina::class)->ejecutar(
@@ -117,6 +151,8 @@ class ViewSolicitud extends ViewRecord
                                     ? (int) $data['ubicacion_destino_id']
                                     : null,
                                 usuarioId: auth()->id() !== null ? (int) auth()->id() : null,
+                                lotes: $lotes,
+                                motivo: $data['motivo_lotes'] ?? null,
                             );
                         } catch (DomainException $exception) {
                             Notification::make()->title('No se pudo despachar')->body($exception->getMessage())->danger()->send();
@@ -149,6 +185,42 @@ class ViewSolicitud extends ViewRecord
                     return $record->estado === EstadoSolicitud::Borrador;
                 }),
         ];
+    }
+
+    /** @return list<Repeater> */
+    private function camposLotesDespacho(): array
+    {
+        $despacho = app(DespacharSolicitudAbastecimientoCocina::class);
+        $campos = [];
+        foreach ($this->getRecord()->items as $item) {
+            $cantidad = $despacho->cantidad($item);
+            if ($item->producto_variante_id === null || $cantidad <= 0) {
+                continue;
+            }
+
+            $nombre = $item->productoVariante->nombre_variante ?? $item->producto->nombre ?? 'Producto';
+            $campos[] = Repeater::make('lotes_'.$item->id)
+                ->label("{$nombre} · Retirar {$cantidad}")
+                ->visible(fn (Get $get): bool => is_numeric($get('ubicacion_origen_id')))
+                ->minItems(1)
+                ->defaultItems(0)
+                ->reorderable(false)
+                ->schema([
+                    Select::make('stock_id')
+                        ->label('Lote y vencimiento')
+                        ->options(function (Get $get) use ($despacho, $item): array {
+                            $origen = $get('../../ubicacion_origen_id');
+
+                            return is_numeric($origen) ? $despacho->opciones($item, (int) $origen) : [];
+                        })
+                        ->searchable()
+                        ->required(),
+                    TextInput::make('cantidad')->label('Cantidad retirada')->numeric()->minValue(0.0001)->required(),
+                ])
+                ->columns(2);
+        }
+
+        return $campos;
     }
 
     /** @return array<int, string> */

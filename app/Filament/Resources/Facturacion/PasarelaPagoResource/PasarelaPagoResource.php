@@ -30,11 +30,11 @@ final class PasarelaPagoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CreditCard;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración fiscal';
+    protected static string|UnitEnum|null $navigationGroup = 'Reglas y pasarelas';
 
     protected static ?string $navigationLabel = 'Pasarelas de pago';
 
-    protected static ?int $navigationSort = 44;
+    protected static ?int $navigationSort = 50;
 
     protected static ?string $slug = 'pasarelas';
 

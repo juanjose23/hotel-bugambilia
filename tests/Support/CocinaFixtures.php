@@ -99,7 +99,7 @@ function fixtureCorreccionesCocina(): array
 
 function datosTransformacionCocina(array $f, float $cantidad = 1): array
 {
-    return ['codigo' => 'REG-'.bin2hex(random_bytes(4)), 'producto_origen_id' => $f['productoOrigen']->id, 'variante_origen_id' => $f['varianteOrigen']->id, 'ubicacion_origen_id' => $f['cocina']->id, 'cantidad_procesada' => 1, 'items' => [['producto_destino_id' => $f['productoDestino']->id, 'variante_destino_id' => $f['varianteDestino']->id, 'ubicacion_destino_id' => $f['cocina']->id, 'cantidad' => $cantidad, 'costo_asignado' => 0, 'es_merma' => false]]];
+    return ['codigo' => 'REG-'.bin2hex(random_bytes(4)), 'producto_origen_id' => $f['productoOrigen']->id, 'variante_origen_id' => $f['varianteOrigen']->id, 'ubicacion_origen_id' => $f['cocina']->id, 'cantidad_procesada' => 1, 'fecha_vencimiento' => today()->addDay()->toDateString(), 'items' => [['producto_destino_id' => $f['productoDestino']->id, 'variante_destino_id' => $f['varianteDestino']->id, 'ubicacion_destino_id' => $f['cocina']->id, 'cantidad' => $cantidad, 'costo_asignado' => 0, 'es_merma' => false]]];
 }
 function pedidoCorreccionesCocina(array $f): array
 {

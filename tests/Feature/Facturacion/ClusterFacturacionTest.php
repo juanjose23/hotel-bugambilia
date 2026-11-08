@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Filament\Clusters\Cajas\CajasCluster;
+use App\Filament\Clusters\Facturacion\FacturacionCluster;
 use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Tesoreria\TesoreriaCluster;
 use App\Filament\Pages\Tesoreria\ComprobantesTransferencia;
 use App\Filament\Pages\Tesoreria\MiTurnoCaja;
 use App\Filament\Resources\Cuentas\CuentaResource;
@@ -27,36 +30,64 @@ function usuarioClusterFacturacion(bool $superAdmin = true): User
     return $user;
 }
 
-test('el menu principal contiene un solo acceso para los 21 componentes financieros', function (): void {
+test('el menu principal organiza los 21 componentes financieros en 4 clusters especializados', function (): void {
     usuarioClusterFacturacion();
     $grupo = collect(Filament::getNavigation())->first(fn ($g): bool => $g->getLabel() === 'Caja & Facturación');
-    expect($grupo)->not->toBeNull()->and(collect($grupo->getItems())->map(fn ($i): string => $i->getLabel())->values()->all())->toBe(['Facturación y caja']);
-    expect(FacturacionConfigCluster::getClusteredComponents())->toHaveCount(21);
+    expect($grupo)->not->toBeNull()->and(collect($grupo->getItems())->map(fn ($i): string => $i->getLabel())->values()->all())->toBe([
+        'Cajas y Turnos',
+        'Facturación y Cobros',
+        'Tesorería y Bancos',
+        'Configuración Fiscal',
+    ]);
+    expect(CajasCluster::getClusteredComponents())->toHaveCount(5);
+    expect(FacturacionCluster::getClusteredComponents())->toHaveCount(5);
+    expect(TesoreriaCluster::getClusteredComponents())->toHaveCount(6);
+    expect(FacturacionConfigCluster::getClusteredComponents())->toHaveCount(5);
 });
 
-test('el inicio reune cobros caja bancos y configuracion y sus enlaces son canonicos', function (): void {
+test('cada cluster reune sus secciones y sus enlaces son canonicos', function (): void {
     usuarioClusterFacturacion();
-    $this->get(FacturacionConfigCluster::getUrl())->assertOk()
-        ->assertSee('Cobros y documentos')->assertSee('Caja y cierres')
-        ->assertSee('Fondos y bancos')->assertSee('Configuración fiscal')
-        ->assertSee(CuentaResource::getUrl(), false)->assertSee(FacturaResource::getUrl(), false)
+
+    $this->get(CajasCluster::getUrl())->assertOk()
+        ->assertSee('Operaciones de caja')->assertSee('Control y cierres')
         ->assertSee(MiTurnoCaja::getUrl(), false);
+
+    $this->get(FacturacionCluster::getUrl())->assertOk()
+        ->assertSee('Documentos y ventas')->assertSee('Cobros y pagos')
+        ->assertSee(CuentaResource::getUrl(), false)->assertSee(FacturaResource::getUrl(), false);
+
+    $this->get(TesoreriaCluster::getUrl())->assertOk()
+        ->assertSee('Fondos y cuentas')->assertSee('Conciliaciones');
+
+    $this->get(FacturacionConfigCluster::getUrl())->assertOk()
+        ->assertSee('Resoluciones y folios')->assertSee('Reglas y pasarelas');
+
     expect(CuentaResource::getUrl())->toContain('/admin/facturacion/')
-        ->and(MiTurnoCaja::getUrl())->toContain('/admin/facturacion/');
+        ->and(MiTurnoCaja::getUrl())->toContain('/admin/cajas/');
 });
 
-test('cada usuario ve solamente las opciones financieras que puede utilizar', function (): void {
+test('cada usuario ve solamente los clusters y opciones financieras que puede utilizar', function (): void {
     $user = usuarioClusterFacturacion(false);
     Permission::findOrCreate('Operar:Caja', 'web');
     $user->givePermissionTo('Operar:Caja');
-    $this->get(FacturacionConfigCluster::getUrl())->assertOk()->assertSee('Mi turno de caja')
-        ->assertDontSee('Autorizaciones DGI')->assertDontSee('Fondos y bancos');
-    expect(FacturacionConfigCluster::canAccess())->toBeTrue();
+
+    expect(CajasCluster::canAccess())->toBeTrue()
+        ->and(FacturacionConfigCluster::canAccess())->toBeFalse();
+
+    $this->get(CajasCluster::getUrl())->assertOk()->assertSee('Mi turno de caja');
+    $this->get(FacturacionConfigCluster::getUrl())->assertForbidden();
 });
 
-test('un usuario sin opciones financieras no puede abrir el cluster', function (): void {
+test('un usuario sin opciones financieras no puede abrir los clusters', function (): void {
     usuarioClusterFacturacion(false);
-    expect(FacturacionConfigCluster::canAccess())->toBeFalse();
+    expect(CajasCluster::canAccess())->toBeFalse()
+        ->and(FacturacionCluster::canAccess())->toBeFalse()
+        ->and(TesoreriaCluster::canAccess())->toBeFalse()
+        ->and(FacturacionConfigCluster::canAccess())->toBeFalse();
+
+    $this->get(CajasCluster::getUrl())->assertForbidden();
+    $this->get(FacturacionCluster::getUrl())->assertForbidden();
+    $this->get(TesoreriaCluster::getUrl())->assertForbidden();
     $this->get(FacturacionConfigCluster::getUrl())->assertForbidden();
 });
 

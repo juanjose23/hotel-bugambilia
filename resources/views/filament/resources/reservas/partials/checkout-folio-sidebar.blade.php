@@ -59,7 +59,7 @@
                     size="sm"
                     class="w-full justify-start text-xs font-semibold"
                 >
-                    Cobro con Pasarela Stripe 💳
+                    Cobro con Pasarela Stripe (Terminal POS)
                 </x-filament::button>
             </div>
         </div>

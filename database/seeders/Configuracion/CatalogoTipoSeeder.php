@@ -32,6 +32,10 @@ class CatalogoTipoSeeder extends Seeder
             ['codigo' => 'CONDICION_PAGO', 'nombre' => 'Condición de pago', 'estado' => 1],
             ['codigo' => 'TIPO_PROVEEDOR', 'nombre' => 'Tipo de proveedor', 'estado' => 1],
 
+            // ─── Tesorería y finanzas ───
+            ['codigo' => 'BANCO', 'nombre' => 'Entidad Bancaria', 'estado' => 1],
+            ['codigo' => 'TIPO_CAJA', 'nombre' => 'Tipo de caja operativa', 'estado' => 1],
+
             // ─── Servicios y promociones ───
             ['codigo' => 'CATEGORIA_SERVICIO', 'nombre' => 'Categoría de servicio', 'estado' => 1],
             ['codigo' => 'TIPO_SERVICIO', 'nombre' => 'Tipo de servicio', 'estado' => 1],

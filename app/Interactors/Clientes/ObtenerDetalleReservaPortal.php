@@ -10,6 +10,7 @@ use App\Repository\Models\Cuentas\CuentaDetalle;
 use App\Repository\Models\Cuentas\PagoCuenta;
 use App\Repository\Models\Reservas\Reserva;
 use App\Repository\Models\User;
+use App\Repository\Persistencia\Tesoreria\TesoreriaRepositorio;
 use DomainException;
 
 final class ObtenerDetalleReservaPortal
@@ -125,13 +126,15 @@ final class ObtenerDetalleReservaPortal
                     'fecha_pago' => $p->created_at->format('d/m/Y H:i'),
                 ])->all(),
             ] : null,
+            'puede_reportar_transferencia' => $cuentaPrincipal !== null
+                && app(TesoreriaRepositorio::class)->reservaAdmitePago($cuentaPrincipal),
             'puede_cancelar' => in_array($reserva->estado, [EstadoReserva::PENDIENTE, EstadoReserva::CONFIRMADA], true),
             'puede_solicitar_servicios' => in_array($reserva->estado, [EstadoReserva::CONFIRMADA, EstadoReserva::CHECKED_IN], true),
             'url_voucher' => route('reservas.voucher', [
                 'reserva' => $reserva->id,
                 'codigo' => $reserva->codigo_reserva,
             ]),
-            'url_pago_saldo' => $reserva->saldo > 0 ? route('reservas.pago', [
+            'url_pago_saldo' => $reserva->admitePagoPortal() ? route('reservas.pago', [
                 'reserva' => $reserva->id,
                 'codigo' => $reserva->codigo_reserva,
             ]) : null,

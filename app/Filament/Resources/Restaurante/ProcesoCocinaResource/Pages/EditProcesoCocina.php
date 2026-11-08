@@ -17,12 +17,15 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ViewField;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\Eloquent\Model;
@@ -48,7 +51,17 @@ final class EditProcesoCocina extends EditRecord
                 ->visible(fn (): bool => $this->getRecord()->getAttribute('confirmado_at') === null && $this->getRecord()->getAttribute('pedido_item_id') === null && $this->getRecord()->getAttribute('tipo_registro') === 'borrador')
                 ->steps([
                     Step::make('Bodega e ingredientes')->description('Revisa antes de confirmar')->schema([
-                        Select::make('ubicacion_id')->label('¿En qué bodega preparaste?')->options(fn (): array => app(ControlOperacionCocinaQuery::class)->ubicaciones())->live()->required(),
+                        Select::make('ubicacion_id')->label('¿En qué bodega preparaste?')->options(fn (): array => app(ControlOperacionCocinaQuery::class)->ubicaciones())->live()->required()
+                            ->afterStateUpdated(function (Set $set, mixed $state): void {
+                                $record = $this->getRecord();
+                                $plan = $record instanceof ProcesoCocina && is_numeric($state)
+                                    ? app(ConfirmarProduccionCocina::class)->plan($record, (int) $state)
+                                    : null;
+                                $set('retiro', $plan['retiro'] ?? null);
+                                $set('confirmacion', $plan['confirmacion'] ?? null);
+                            }),
+                        Hidden::make('confirmacion')->required(),
+                        Textarea::make('retiro')->label('Lotes a retirar de la bodega')->rows(5)->disabled()->dehydrated(false),
                         ViewField::make('guia')->view('filament.pages.restaurante.components.guia-ingredientes-receta')->dehydrated(false)->viewData(function (Get $get): array {
                             $id = $get('ubicacion_id');
                             $record = $this->getRecord();
@@ -59,14 +72,14 @@ final class EditProcesoCocina extends EditRecord
                     Step::make('Resultado real')->description('Qué obtuviste y hasta cuándo usarlo')->schema([
                         Select::make('variante_id')->label('Producto terminado que obtuviste')->options(fn (): array => ProductoVariante::query()->with(['producto', 'unidadMedida'])->where('estado', 1)->get()->mapWithKeys(fn (ProductoVariante $variante): array => [$variante->id => ($variante->producto->nombre ?? '').' · '.$variante->nombre_variante.' / '.($variante->unidadMedida->nombre ?? 'unidades')])->all())->searchable()->live()->required(),
                         TextInput::make('cantidad')->label('Cantidad realmente obtenida')->helperText(fn (Get $get): string => 'Escribe la cantidad en '.app(ControlOperacionCocinaQuery::class)->seleccion(is_numeric($get('variante_id')) ? (int) $get('variante_id') : null, null)['unidad'].'.')->numeric()->minValue(0.0001)->required(),
-                        DatePicker::make('vence')->label('Vencimiento de la preparación')->minDate(today())->required(),
+                        DatePicker::make('vence')->label('Vencimiento de la preparación')->helperText('Indica la vida útil de la preparación. Se aplica el vencimiento anterior si un insumo vence antes.')->minDate(today())->required(),
                     ]),
                 ])
                 ->requiresConfirmation()
                 ->action(function (array $data): void {
-                    /** @var array{variante_id: int, ubicacion_id: int, cantidad: float, vence: string} $data */
+                    /** @var array{variante_id: int, ubicacion_id: int, cantidad: float, vence: string, confirmacion: string} $data */
                     try {
-                        app(ConfirmarProduccionCocina::class)->ejecutar(is_numeric($this->getRecord()->getKey()) ? (int) $this->getRecord()->getKey() : 0, (int) $data['variante_id'], (int) $data['ubicacion_id'], (float) $data['cantidad'], (string) $data['vence'], auth()->id() !== null ? (int) auth()->id() : null);
+                        app(ConfirmarProduccionCocina::class)->ejecutar(is_numeric($this->getRecord()->getKey()) ? (int) $this->getRecord()->getKey() : 0, (int) $data['variante_id'], (int) $data['ubicacion_id'], (float) $data['cantidad'], (string) $data['vence'], auth()->id() !== null ? (int) auth()->id() : null, $data['confirmacion']);
                         Notification::make()->title('Producción confirmada')->success()->send();
                         $this->redirect($this->getResource()::getUrl('index'));
                     } catch (\DomainException $e) {

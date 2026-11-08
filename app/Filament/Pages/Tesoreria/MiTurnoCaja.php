@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Tesoreria;
 
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Cajas\CajasCluster;
 use App\Filament\Shared\Actions\VerGuiaAction;
 use App\Interactors\Tesoreria\CobrarDesdeCaja;
 use App\Interactors\Tesoreria\GestionarCaja;
@@ -30,13 +30,13 @@ use UnitEnum;
 
 final class MiTurnoCaja extends Page implements HasTable
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = CajasCluster::class;
 
     use AccionesCaja, InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calculator';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja y cierres';
+    protected static string|UnitEnum|null $navigationGroup = 'Operaciones de caja';
 
     protected static ?string $navigationLabel = 'Mi turno de caja';
 
@@ -44,7 +44,7 @@ final class MiTurnoCaja extends Page implements HasTable
 
     protected static ?string $slug = 'tesoreria/mi-turno';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 10;
 
     protected string $view = 'filament.pages.tesoreria.mi-turno';
 

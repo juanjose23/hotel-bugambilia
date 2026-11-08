@@ -11,7 +11,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -56,11 +55,8 @@ class CatalogosTable
                 FiltroEstado::make(EstadoGeneral::class),
             ])
             ->actions([
-                ViewAction::make()
-                    ->modalWidth(Width::FourExtraLarge),
-                EditAction::make()
-                    ->modalHeading('Editar catálogo')
-                    ->modalWidth(Width::FourExtraLarge),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

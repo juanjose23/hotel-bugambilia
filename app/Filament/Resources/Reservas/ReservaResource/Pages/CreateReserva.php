@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\ReservaResource\Pages;
 
+use App\BusinessLogic\Reservas\Resolutores\ResolverTipoPagoReserva;
+use App\Enums\Reservas\TipoPagoReserva;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Interactors\Reservas\Gestion\CrearReserva;
+use App\Repository\Models\Cuentas\Cuenta;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -54,6 +58,10 @@ class CreateReserva extends CreateRecord
         $habitaciones = $data['habitaciones_adicionales'] ?? [];
 
         try {
+            if (app(ResolverTipoPagoReserva::class)->resolver($data) !== TipoPagoReserva::SIN_PAGO) {
+                Gate::authorize('registrarPago', Cuenta::class);
+            }
+
             return $this->crearReserva->ejecutar(
                 $data,
                 is_array($servicios) ? $servicios : [],

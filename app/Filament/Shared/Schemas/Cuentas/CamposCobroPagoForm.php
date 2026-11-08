@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Shared\Schemas\Cuentas;
 
+use App\BusinessLogic\Monedas\ConvertirMoneda;
 use App\Enums\Cuentas\MetodoPago;
 use App\Filament\Shared\Forms\MonedaSelect;
+use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Monedas\Moneda;
 use App\Repository\Models\Monedas\TasaCambio;
 use App\Support\Barcode\Support\MonedaHelper;
@@ -15,11 +17,12 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\HtmlString;
 
 final class CamposCobroPagoForm
 {
-    public static function make(): Group
+    public static function make(?Cuenta $cuenta = null): Group
     {
         return Group::make([
             Grid::make(2)->schema([
@@ -39,13 +42,27 @@ final class CamposCobroPagoForm
 
                 MonedaSelect::make('moneda_pago_id')
                     ->label('Moneda Pago')
+                    ->afterStateUpdated(function (mixed $state, Set $set) use ($cuenta): void {
+                        $set('monto_recibido', null);
+                        if ($cuenta === null || ! is_numeric($state)) {
+                            $set('monto', null);
+
+                            return;
+                        }
+
+                        try {
+                            $set('monto', app(ConvertirMoneda::class)->entre((float) $cuenta->saldo, $cuenta->moneda_id, (int) $state));
+                        } catch (\DomainException) {
+                            $set('monto', null);
+                        }
+                    })
                     ->required()
                     ->live()
                     ->extraAttributes(['dusk' => 'cobro-moneda-pago'])
                     ->columnSpan(1),
 
                 TextInput::make('monto')
-                    ->label('Monto a Cobrar')
+                    ->label('Importe a aplicar')
                     ->numeric()
                     ->prefix(function (Get $get): string {
                         $id = $get('moneda_pago_id');
@@ -55,12 +72,12 @@ final class CamposCobroPagoForm
                     })
                     ->required()
                     ->minValue(0.01)
-                    ->readOnly()
                     ->live()
                     ->extraInputAttributes(['dusk' => 'cobro-monto'])
                     ->columnSpan(1),
 
                 TextInput::make('monto_recibido')
+                    ->visible(fn (Get $get): bool => in_array($get('forma_pago'), [MetodoPago::EFECTIVO->value, (string) MetodoPago::EFECTIVO->value], true))
                     ->label('Paga con (Recibido)')
                     ->numeric()
                     ->prefix(function (Get $get): string {
@@ -76,6 +93,7 @@ final class CamposCobroPagoForm
             ]),
 
             TextEntry::make('calculo_vuelto')
+                ->visible(fn (Get $get): bool => in_array($get('forma_pago'), [MetodoPago::EFECTIVO->value, (string) MetodoPago::EFECTIVO->value], true))
                 ->hiddenLabel()
                 ->html()
                 ->state(function (Get $get): HtmlString {
@@ -108,7 +126,7 @@ final class CamposCobroPagoForm
 
                     // Convertir monto recibido a moneda base según moneda de pago
                     $montoRecibidoBase = $codPago !== $codBase ? $montoRecibido * $tasa : $montoRecibido;
-                    $montoCobrarBase = $montoCobrar;
+                    $montoCobrarBase = $codPago !== $codBase ? $montoCobrar * $tasa : $montoCobrar;
 
                     $diferenciaBase = $montoRecibidoBase - $montoCobrarBase;
 
@@ -154,6 +172,7 @@ final class CamposCobroPagoForm
 
             Grid::make(2)->schema([
                 MonedaSelect::make('moneda_vuelto_id')
+                    ->visible(fn (Get $get): bool => in_array($get('forma_pago'), [MetodoPago::EFECTIVO->value, (string) MetodoPago::EFECTIVO->value], true))
                     ->label('Moneda Vuelto')
                     ->required()
                     ->default(fn () => MonedaHelper::obtenerMonedaPredeterminada()?->id)

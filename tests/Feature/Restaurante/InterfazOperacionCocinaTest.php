@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use App\Filament\Pages\Restaurante\BuffetsCocina;
+use App\Filament\Pages\Restaurante\CocinaPedidos;
 use App\Filament\Pages\Restaurante\ControlCocina;
 use App\Filament\Pages\Restaurante\MateriaPrimaCocina;
+use App\Interactors\Restaurante\Cocina\ConfirmarRetiroComanda;
 use App\Interactors\Restaurante\Cocina\GestionarBuffet;
+use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Ubicacion;
 use App\Repository\Models\Espacios\Espacio;
@@ -52,7 +55,14 @@ test('el asistente guarda una preparación y actualiza existencias', function ()
     $unidad = Catalogo::create(['catalogo_tipo_id' => $f['tipo']->id, 'nombre' => 'Unidad', 'codigo' => 'und-'.bin2hex(random_bytes(4)), 'estado' => 1]);
     $f['varianteDestino']->update(['unidad_medida_id' => $unidad->id, 'peso' => 200]);
     $data = datosTransformacionCocina($f, 4);
-    Livewire::test(MateriaPrimaCocina::class)->set('data', $data)->call('guardar')->assertHasNoFormErrors()->assertRedirect(MateriaPrimaCocina::getUrl());
+    $data['variante_origen_id'] = null;
+    Livewire::test(MateriaPrimaCocina::class)
+        ->set('data', $data)
+        ->set('data.variante_origen_id', $f['varianteOrigen']->id)
+        ->assertSee('Lotes a retirar')
+        ->call('guardar')
+        ->assertHasNoFormErrors()
+        ->assertRedirect(MateriaPrimaCocina::getUrl());
     expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(9.0);
     expect((float) Stock::query()->where('producto_variante_id', $f['varianteDestino']->id)->sum('cantidad_actual'))->toBe(4.0);
 });
@@ -70,4 +80,20 @@ test('el cierre de buffet exige medir sobrantes y desperdicios explícitamente',
     expect($b->refresh()->estado)->toBe('abierto');
     $page->fillForm(['comensales' => 10, 'mediciones' => [$key => ['stock_id' => $b->existencias()->firstOrFail()->id, 'sobrante' => 0, 'merma' => 0]]])->callMountedAction()->assertHasNoFormErrors();
     expect($b->refresh()->estado)->toBe('cerrado');
+});
+
+test('la pantalla de cocina muestra la lista y consume solo al confirmar el retiro', function (): void {
+    Gate::before(fn () => true);
+    $f = fixtureCorreccionesCocina();
+    Espacio::create(['nombre' => 'Restaurante prueba', 'codigo' => 'KDS-'.bin2hex(random_bytes(4)), 'tipo' => 'restaurante', 'estado' => 1]);
+    [$pedido, $item] = pedidoCorreccionesCocina($f);
+    app(EnviarPedidoACocina::class)->ejecutar($pedido);
+
+    $plan = app(ConfirmarRetiroComanda::class)->plan($item->refresh());
+    $page = Livewire::test(CocinaPedidos::class)->assertSee('Lotes a retirar')->assertSee('Confirmar retiro');
+    expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(10.0);
+    $page->call('confirmarRetiroComanda', $item->id, $plan['confirmacion'])
+        ->assertNotified('Lotes retirados y registrados')
+        ->assertDontSee('Lotes a retirar');
+    expect((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(9.0);
 });

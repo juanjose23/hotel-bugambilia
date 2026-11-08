@@ -113,6 +113,10 @@ final readonly class CrearIntentoPagoStripe
      */
     public function ejecutarParaReserva(Reserva $reserva, ?float $montoACobrar = null): array
     {
+        if (! $reserva->admitePagoPortal()) {
+            throw new DomainException('La reserva no admite pagos en línea o no tiene saldo pendiente.');
+        }
+
         $reserva->loadMissing('moneda');
 
         if ($reserva->moneda === null) {

@@ -252,9 +252,19 @@ final class TesoreriaRepositorio
 
     public function reservaAdmitePago(Cuenta $cuenta): bool
     {
+        if (! $cuenta->estado->permitePagos() || ! $cuenta->tieneSaldoPendiente()) {
+            return false;
+        }
+
         $reserva = $cuenta->reserva;
 
-        return $reserva === null || in_array($reserva->estado, [EstadoReserva::PENDIENTE, EstadoReserva::CONFIRMADA, EstadoReserva::CHECKED_IN], true) && $reserva->fecha_check_in !== null && $reserva->fecha_check_in->toDateString() >= today()->toDateString();
+        if ($reserva === null || in_array($reserva->estado, [EstadoReserva::CHECKED_IN, EstadoReserva::PARCIALMENTE_CHECKED_IN, EstadoReserva::PARCIALMENTE_CHECKED_OUT], true)) {
+            return true;
+        }
+
+        return in_array($reserva->estado, [EstadoReserva::PENDIENTE, EstadoReserva::CONFIRMADA], true)
+            && $reserva->fecha_check_in !== null
+            && $reserva->fecha_check_in->toDateString() >= today()->toDateString();
     }
 
     public function cuentaDeComprobante(int $id): int

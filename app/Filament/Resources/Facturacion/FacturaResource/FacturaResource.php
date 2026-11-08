@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Facturacion\FacturaResource;
 
 use App\Enums\Facturacion\EstadoFactura;
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Facturacion\FacturacionCluster;
 use App\Filament\Shared\Columns\EstadoBadgeColumn;
 use App\Filament\Shared\Columns\MontoMonedaColumn;
 use App\Filament\Shared\Filters\FiltroEstado;
@@ -33,13 +33,13 @@ use UnitEnum;
 
 final class FacturaResource extends Resource
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = FacturacionCluster::class;
 
     protected static ?string $model = Factura::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Cobros y documentos';
+    protected static string|UnitEnum|null $navigationGroup = 'Documentos y ventas';
 
     protected static ?string $navigationLabel = 'Facturas';
 

@@ -16,6 +16,7 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 
 final class ViewCuenta extends ViewRecord
 {
@@ -37,6 +38,7 @@ final class ViewCuenta extends ViewRecord
             // ─── 1. ABRIR CUENTA (SOLICITADA → ABIERTA) ────────────────────
             Action::make('abrir_cuenta')
                 ->label('Abrir Cuenta')
+                ->authorize(fn (): bool => Gate::allows('update', $this->getRecord()))
                 ->icon('heroicon-o-folder-open')
                 ->color('info')
                 ->requiresConfirmation()
@@ -51,6 +53,7 @@ final class ViewCuenta extends ViewRecord
                 ->action(function (): void {
                     /** @var Cuenta $cuenta */
                     $cuenta = $this->getRecord();
+                    Gate::authorize('update', $cuenta);
                     $userId = auth()->id() !== null ? (int) auth()->id() : null;
 
                     try {
@@ -92,6 +95,7 @@ final class ViewCuenta extends ViewRecord
             // ─── 3. SOLICITAR COBRO (ABIERTA → PENDIENTE_PAGO) ─────────────
             Action::make('solicitar_cobro')
                 ->label('Solicitar Cobro')
+                ->authorize(fn (): bool => Gate::allows('update', $this->getRecord()))
                 ->icon('heroicon-o-clock')
                 ->color('warning')
                 ->requiresConfirmation()
@@ -101,14 +105,21 @@ final class ViewCuenta extends ViewRecord
                 ->visible(function (): bool {
                     $rec = $this->getRecord();
 
-                    return $rec instanceof Cuenta && $rec->estado === EstadoCuenta::ABIERTA;
+                    return $rec instanceof Cuenta && $rec->estado === EstadoCuenta::ABIERTA && $rec->tieneSaldoPendiente() && ! $rec->tieneEstanciaActiva();
                 })
                 ->action(function (): void {
                     /** @var Cuenta $cuenta */
                     $cuenta = $this->getRecord();
+                    Gate::authorize('update', $cuenta);
                     $userId = auth()->id() !== null ? (int) auth()->id() : null;
 
-                    app(SolicitarCobroCuenta::class)->ejecutar($cuenta, $userId);
+                    try {
+                        app(SolicitarCobroCuenta::class)->ejecutar($cuenta, $userId);
+                    } catch (DomainException $e) {
+                        Notification::make()->title('No se pudo solicitar el cobro')->body($e->getMessage())->danger()->send();
+
+                        return;
+                    }
 
                     Notification::make()
                         ->title('Cuenta marcada como Pendiente de Pago')
@@ -122,6 +133,7 @@ final class ViewCuenta extends ViewRecord
             // ─── 4. CERRAR Y GENERAR VENTA (saldo = 0) ─────────────────────
             Action::make('cerrar_y_generar_venta')
                 ->label('Cerrar y Generar Venta')
+                ->authorize(fn (): bool => Gate::allows('update', $this->getRecord()))
                 ->icon('heroicon-o-check-badge')
                 ->color('success')
                 ->requiresConfirmation()
@@ -131,11 +143,12 @@ final class ViewCuenta extends ViewRecord
                 ->visible(function (): bool {
                     $rec = $this->getRecord();
 
-                    return $rec instanceof Cuenta && ! $rec->tieneSaldoPendiente() && $rec->estado->puedeCerrarse();
+                    return $rec instanceof Cuenta && ! $rec->tieneSaldoPendiente() && $rec->estado->puedeCerrarse() && ! $rec->tieneEstanciaActiva();
                 })
                 ->action(function (): void {
                     /** @var Cuenta $cuenta */
                     $cuenta = $this->getRecord();
+                    Gate::authorize('update', $cuenta);
                     $userId = auth()->id() !== null ? (int) auth()->id() : null;
 
                     try {

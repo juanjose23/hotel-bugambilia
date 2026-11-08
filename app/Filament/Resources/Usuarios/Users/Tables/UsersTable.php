@@ -104,8 +104,7 @@ class UsersTable
             ])
             ->recordActions([
                 ActionGroup::make([
-                    EditAction::make()
-                        ->modalWidth('2xl'),
+                    EditAction::make(),
                     DeleteAction::make(),
                 ])
                     ->icon(Heroicon::EllipsisVertical)

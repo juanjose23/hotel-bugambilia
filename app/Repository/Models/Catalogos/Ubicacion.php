@@ -7,6 +7,7 @@ use App\Repository\Models\Limpieza\LimpiezaEjecucion;
 use App\Repository\Models\Limpieza\LimpiezaHorarioDetalle;
 use App\Repository\Models\Limpieza\SolicitudLimpieza;
 use App\Repository\Models\Shared\Stock;
+use App\Repository\Models\Tesoreria\Caja;
 use Database\Factories\Catalogos\UbicacionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -125,5 +126,13 @@ class Ubicacion extends Model implements AuditableContract
     public function stocks(): MorphMany
     {
         return $this->morphMany(Stock::class, 'stockable');
+    }
+
+    /**
+     * @return HasMany<Caja, $this>
+     */
+    public function cajas(): HasMany
+    {
+        return $this->hasMany(Caja::class, 'ubicacion_id');
     }
 }

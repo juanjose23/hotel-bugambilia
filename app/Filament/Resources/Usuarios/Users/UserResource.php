@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Usuarios\Users;
 
-use App\Filament\Resources\Usuarios\Users\Pages\ManageUsers;
+use App\Filament\Resources\Usuarios\Users\Pages\CreateUser;
+use App\Filament\Resources\Usuarios\Users\Pages\EditUser;
+use App\Filament\Resources\Usuarios\Users\Pages\ListUsers;
 use App\Filament\Resources\Usuarios\Users\Schemas\UserForm;
 use App\Filament\Resources\Usuarios\Users\Tables\UsersTable;
 use App\Repository\Models\User;
@@ -44,7 +46,9 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ManageUsers::route('/'),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'edit' => EditUser::route('/{record}/edit'),
         ];
     }
 }

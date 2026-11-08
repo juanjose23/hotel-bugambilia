@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <p class="text-sm text-gray-600 dark:text-gray-400">
-        Accede a tus cobros, documentos y controles de caja desde un solo lugar.
+        {{ method_exists($this, 'getSubtitulo') ? $this->getSubtitulo() : 'Accede a tus cobros, documentos y controles desde un solo lugar.' }}
     </p>
 
     <div data-guia="facturacion-accesos" class="grid grid-cols-1 gap-5 xl:grid-cols-2">

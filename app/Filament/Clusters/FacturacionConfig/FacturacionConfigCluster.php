@@ -13,21 +13,26 @@ use UnitEnum;
 
 final class FacturacionConfigCluster extends Cluster
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedReceiptPercent;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
-    protected static ?string $navigationLabel = 'Facturación y caja';
+    protected static ?string $navigationLabel = 'Configuración Fiscal';
 
-    protected static ?string $title = 'Facturación y caja';
+    protected static ?string $title = 'Configuración Fiscal';
 
-    protected static ?string $clusterBreadcrumb = 'Facturación y caja';
+    protected static ?string $clusterBreadcrumb = 'Fiscal';
 
     protected static string|UnitEnum|null $navigationGroup = 'Caja & Facturación';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 4;
 
-    protected static ?string $slug = 'facturacion';
+    protected static ?string $slug = 'configuracion-fiscal';
 
     protected string $view = 'filament.clusters.facturacion.inicio';
+
+    public function getSubtitulo(): string
+    {
+        return 'Configuración de series fiscales, autorizaciones DGI, folios y pasarelas de pago.';
+    }
 
     public function mount(): void {}
 

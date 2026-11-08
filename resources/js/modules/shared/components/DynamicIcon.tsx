@@ -1,24 +1,92 @@
 import type { LucideProps } from 'lucide-react';
-import { icons, Sparkles } from 'lucide-react';
+import {
+    ArrowUpCircle,
+    Bath,
+    Bed,
+    Bike,
+    Briefcase,
+    Building2,
+    Cake,
+    CalendarDays,
+    Car,
+    Clock,
+    Clock3,
+    Coffee,
+    ConciergeBell,
+    CreditCard,
+    Flame,
+    Gift,
+    Heart,
+    Laptop,
+    LogOut,
+    Map,
+    MapPin,
+    Plane,
+    Presentation,
+    Scissors,
+    Shirt,
+    Sparkles,
+    Star,
+    Sun,
+    Tag,
+    Utensils,
+    Wifi,
+    Wine,
+} from 'lucide-react';
 import React from 'react';
+
+const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
+    ArrowUpCircle,
+    Bath,
+    Bed,
+    Bike,
+    Briefcase,
+    Building2,
+    Cake,
+    CalendarDays,
+    Car,
+    Clock,
+    Clock3,
+    Coffee,
+    ConciergeBell,
+    CreditCard,
+    Flame,
+    Gift,
+    Heart,
+    Laptop,
+    LogOut,
+    Map,
+    MapPin,
+    Plane,
+    Presentation,
+    Scissors,
+    Shirt,
+    Sparkles,
+    Star,
+    Sun,
+    Tag,
+    Utensils,
+    Wifi,
+    Wine,
+};
 
 export interface DynamicIconProps extends Omit<LucideProps, 'name'> {
     name?: string | null;
-    fallback?: keyof typeof icons;
+    fallback?: string;
 }
 
 /**
- * Renderiza de forma dinámica cualquier icono de Lucide React a partir de su nombre (kebab-case, camelCase o PascalCase).
- * Compatible con los nombres provistos por node_modules/lucide-react e importados desde la base de datos.
+ * Renderiza de forma dinámica iconos de Lucide React a partir de su nombre (kebab-case, camelCase o PascalCase).
+ * Optimizado para importar únicamente los iconos usados por el dominio del hotel evitando cargar 1500+ iconos innecesarios.
  */
 export const DynamicIcon = ({
     name,
     fallback = 'Sparkles',
     ...props
 }: DynamicIconProps) => {
-    if (!name || typeof name !== 'string') {
-        const FallbackComponent = icons[fallback] ?? Sparkles;
+    const FallbackComponent = ICON_MAP[fallback] ?? Sparkles;
 
+    if (!name || typeof name !== 'string') {
         return <FallbackComponent {...props} />;
     }
 
@@ -33,9 +101,9 @@ export const DynamicIcon = ({
                 segment.charAt(0).toUpperCase() +
                 segment.slice(1).toLowerCase(),
         )
-        .join('') as keyof typeof icons;
+        .join('');
 
-    const IconComponent = icons[pascalName] ?? icons[fallback] ?? Sparkles;
+    const IconComponent = ICON_MAP[pascalName] ?? FallbackComponent;
 
     return <IconComponent {...props} />;
 };

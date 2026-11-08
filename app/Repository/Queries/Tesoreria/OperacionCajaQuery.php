@@ -20,7 +20,10 @@ final readonly class OperacionCajaQuery
     /** @return Builder<Caja> */
     public function listado(): Builder
     {
-        return Caja::query()->with(['monedas', 'sesionActiva.usuario'])->orderBy('codigo');
+        return Caja::query()
+            ->with(['monedas', 'sesionActiva.usuario', 'tipoCaja', 'ubicacionRelacionada'])
+            ->withCount('seriesFiscales')
+            ->orderBy('codigo');
     }
 
     /** @return array<int,string> */
@@ -122,6 +125,6 @@ final readonly class OperacionCajaQuery
     /** @return Builder<SesionCaja> */
     public function historial(int $actorId, bool $auditor): Builder
     {
-        return SesionCaja::query()->when(! $auditor, fn ($q) => $q->where('usuario_id', $actorId))->with(['caja', 'usuario', 'saldos.moneda'])->orderByDesc('id');
+        return SesionCaja::query()->when(! $auditor, fn ($q) => $q->where('usuario_id', $actorId))->with(['caja', 'usuario', 'saldos.moneda'])->withCount('movimientos')->orderByDesc('id');
     }
 }

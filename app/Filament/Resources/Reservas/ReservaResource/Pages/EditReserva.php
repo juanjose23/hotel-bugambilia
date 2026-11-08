@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Reservas\ReservaResource\Pages;
 
-use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Reservas\TipoPagoReserva;
 use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Filament\Resources\Reservas\ReservaResource;
 use App\Filament\Resources\Reservas\Schemas\Reserva\AccionesReserva;
 use App\Filament\Shared\Actions\Cuentas\CobrarCuentaAction;
-use App\Interactors\Cuentas\Cobros\ProcesarCobroCuenta;
 use App\Interactors\Reservas\Gestion\ActualizarReserva;
 use App\Interactors\Reservas\Operaciones\RegistrarCobroInicialReserva;
 use App\Repository\Models\Cuentas\Cuenta;
@@ -38,17 +36,13 @@ class EditReserva extends EditRecord
 
     protected ActualizarReserva $actualizarReserva;
 
-    protected ProcesarCobroCuenta $procesarCobroCuenta;
-
     protected RegistrarCobroInicialReserva $registrarCobroInicialReserva;
 
     public function boot(
         ActualizarReserva $actualizarReserva,
-        ProcesarCobroCuenta $procesarCobroCuenta,
         RegistrarCobroInicialReserva $registrarCobroInicialReserva,
     ): void {
         $this->actualizarReserva = $actualizarReserva;
-        $this->procesarCobroCuenta = $procesarCobroCuenta;
         $this->registrarCobroInicialReserva = $registrarCobroInicialReserva;
     }
 
@@ -61,10 +55,7 @@ class EditReserva extends EditRecord
 
         try {
             $reserva = $this->actualizarReserva->ejecutar($record, $data);
-            $cobroRegistradoAlCrearCuenta = $this->crearCuentaSiFalta($reserva, $data);
-            if (! $cobroRegistradoAlCrearCuenta) {
-                $this->registrarPagoSiAplica($reserva, $data);
-            }
+            $this->crearCuentaSiFalta($reserva);
 
             return $reserva->refresh();
         } catch (DomainException|InvalidArgumentException $exception) {
@@ -136,12 +127,6 @@ class EditReserva extends EditRecord
             ], array_filter($preorden, 'is_array')));
         }
 
-        if ((float) $record->saldo > 0) {
-            $data['tipo_pago_reserva'] = 'abono_50';
-            $data['moneda_id'] = $record->moneda_id;
-            $data['monto_pago_reserva'] = $this->faltanteParaCubrir50($record);
-        }
-
         return $data;
     }
 
@@ -160,13 +145,13 @@ class EditReserva extends EditRecord
                 },
             )
                 ->name('cobrarReserva')
-                ->label('Cobrar reserva'),
+                ->label('Cobrar saldo'),
 
             Action::make('gestionarPagos')
-                ->label((float) $this->record->saldo > 0 ? 'Registrar abono o pago' : 'Ver pagos')
+                ->label('Ver folio y pagos')
                 ->icon('heroicon-o-banknotes')
-                ->color((float) $this->record->saldo > 0 ? 'warning' : 'success')
-                ->visible($cuenta !== null)
+                ->color('gray')
+                ->visible($cuenta !== null && CuentaResource::canView($cuenta))
                 ->url($cuenta !== null ? CuentaResource::getUrl('view', ['record' => $cuenta]) : null),
         ];
     }
@@ -188,99 +173,20 @@ class EditReserva extends EditRecord
         };
     }
 
-    /** @param array<string, mixed> $data */
-    private function registrarPagoSiAplica(Reserva $reserva, array $data): void
-    {
-        $tipoPago = $data['tipo_pago_reserva'] ?? null;
-        $monto = $data['monto_pago_reserva'] ?? null;
-
-        if (! is_string($tipoPago) || $tipoPago === 'sin_pago') {
-            return;
-        }
-
-        $montoCobrar = is_numeric($monto) && (float) $monto > 0
-            ? (float) $monto
-            : $this->montoSugeridoParaPago($reserva, $tipoPago);
-
-        if ($montoCobrar <= 0) {
-            return;
-        }
-
-        $cuenta = app(ObtenerCuentaReservaQuery::class)->ejecutar((int) $reserva->id);
-
-        if (! $cuenta instanceof Cuenta) {
-            throw new DomainException('La reserva no tiene una cuenta abierta para registrar el cobro.');
-        }
-
-        $this->procesarCobroCuenta->ejecutar($cuenta, $this->usuarioId(), [
-            'forma_pago' => $data['metodo_pago_reserva'] ?? 1,
-            'moneda_pago_id' => $data['moneda_id'] ?? $cuenta->moneda_id,
-            'monto' => $montoCobrar,
-            'referencia_transaccion' => $data['referencia_pago_reserva'] ?? null,
-            'observaciones' => "Abono registrado desde edición de reserva {$reserva->codigo_reserva}",
-            'tipo_comprobante' => 'voucher',
-        ]);
-    }
-
-    /** @param array<string, mixed> $data */
-    private function crearCuentaSiFalta(Reserva $reserva, array $data): bool
+    private function crearCuentaSiFalta(Reserva $reserva): void
     {
         if (app(ObtenerCuentaReservaQuery::class)->ejecutar((int) $reserva->id) instanceof Cuenta) {
-            return false;
+            return;
         }
-
-        $tipoPagoValor = $data['tipo_pago_reserva'] ?? null;
-        $tipoPago = is_string($tipoPagoValor) && TipoPagoReserva::tryFrom($tipoPagoValor) !== null
-            ? TipoPagoReserva::from($tipoPagoValor)
-            : TipoPagoReserva::SIN_PAGO;
-
-        $metodoValor = $data['metodo_pago_reserva'] ?? null;
-        $metodoPago = is_numeric($metodoValor) ? MetodoPago::tryFrom((int) $metodoValor) : null;
 
         $this->registrarCobroInicialReserva->ejecutar(
             reserva: $reserva,
-            tipoPago: $tipoPago,
-            monedaId: is_numeric($data['moneda_id'] ?? null) ? (int) $data['moneda_id'] : null,
-            metodoPago: $metodoPago,
-            referencia: is_string($data['referencia_pago_reserva'] ?? null) ? $data['referencia_pago_reserva'] : null,
+            tipoPago: TipoPagoReserva::SIN_PAGO,
+            monedaId: $reserva->moneda_id,
+            metodoPago: null,
+            referencia: null,
             usuarioId: $this->usuarioId(),
-            montoSolicitado: $this->montoSolicitadoParaCuentaNueva($reserva, $tipoPago, $data),
-            cargosFacturacionIds: [],
         );
-
-        return $tipoPago !== TipoPagoReserva::SIN_PAGO;
-    }
-
-    /** @param array<string, mixed> $data */
-    private function montoSolicitadoParaCuentaNueva(Reserva $reserva, TipoPagoReserva $tipoPago, array $data): ?float
-    {
-        $monto = $data['monto_pago_reserva'] ?? null;
-
-        if (is_numeric($monto) && (float) $monto > 0) {
-            return (float) $monto;
-        }
-
-        return match ($tipoPago) {
-            TipoPagoReserva::SIN_PAGO => null,
-            TipoPagoReserva::ABONO_50 => $this->faltanteParaCubrir50($reserva),
-            TipoPagoReserva::PAGO_COMPLETO => (float) $reserva->saldo,
-        };
-    }
-
-    private function montoSugeridoParaPago(Reserva $reserva, string $tipoPago): float
-    {
-        $tipo = TipoPagoReserva::tryFrom($tipoPago);
-
-        return match ($tipo) {
-            TipoPagoReserva::ABONO_50 => $this->faltanteParaCubrir50($reserva),
-            TipoPagoReserva::PAGO_COMPLETO => (float) $reserva->saldo,
-            default => 0.0,
-        };
-    }
-
-    private function faltanteParaCubrir50(Reserva $reserva): float
-    {
-        return round(max(0.0, ((float) $reserva->total * 0.5) - (float) $reserva->total_pagado), 2);
     }
 
     private function usuarioId(): ?int

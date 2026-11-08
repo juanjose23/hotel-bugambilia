@@ -98,6 +98,12 @@ final class Reserva extends Model implements AuditableContract
         'acompanantes_legacy' => 'array',
     ];
 
+    public function admitePagoPortal(): bool
+    {
+        return (float) $this->saldo > 0
+            && ! in_array($this->estado, [EstadoReserva::CANCELADA, EstadoReserva::NO_SHOW], true);
+    }
+
     /** @return Attribute<array<int, array{huesped_id: int, reserva_detalle_id: int, nombre: string, identificacion: string|null, tipo: string}>, never> */
     protected function acompanantes(): Attribute
     {

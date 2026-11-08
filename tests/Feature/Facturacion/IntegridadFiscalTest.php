@@ -100,11 +100,11 @@ test('FI-06 reimprimir produce PDF y no reserva otro folio', function () {
     expect($pdf)->toStartWith('%PDF-')->and(FacturaFolio::count())->toBe(1)->and($f['serie']->refresh()->siguiente_numero)->toBe(2);
 });
 
-test('FI-07 elegir factura en cobro debe emitir el documento fiscal', function () {
+test('FI-07 elegir factura en cobro debe emitir el documento fiscal', function (string $comprobante) {
     $f = escenarioIntegridadFiscal();
-    $r = app(ProcesarCobroCuenta::class)->ejecutar($f['cuenta'], $f['usuario']->id, ['forma_pago' => MetodoPago::EFECTIVO->value, 'moneda_pago_id' => $f['moneda']->id, 'monto' => (float) $f['cuenta']->total, 'tipo_comprobante' => 'factura', 'factura_serie_id' => $f['serie']->id, 'ruc_factura' => 'DEMO', 'razon_social_factura' => 'Cliente de demostración']);
+    $r = app(ProcesarCobroCuenta::class)->ejecutar($f['cuenta'], $f['usuario']->id, ['forma_pago' => MetodoPago::EFECTIVO->value, 'moneda_pago_id' => $f['moneda']->id, 'monto' => (float) $f['cuenta']->total, 'tipo_comprobante' => $comprobante, 'factura_serie_id' => $f['serie']->id, 'ruc_factura' => 'DEMO', 'razon_social_factura' => 'Cliente de demostración']);
     expect($r['cerrada'])->toBeTrue()->and($r['venta']->facturas()->count())->toBe(1);
-});
+})->with(['factura', 'factura_empresarial']);
 
 test('FI-08 moneda distinta sin tasa debe impedir emitir en equivalencia 1 a 1', function () {
     $f = escenarioIntegridadFiscal();

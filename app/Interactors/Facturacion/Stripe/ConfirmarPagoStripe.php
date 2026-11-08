@@ -198,7 +198,7 @@ final readonly class ConfirmarPagoStripe
             $this->reservaRepositorio->actualizar($reserva, [
                 'total_pagado' => $totalPagado,
                 'saldo' => $saldo,
-                'tipo_pago' => $saldo <= 0.0 ? TipoPagoReserva::PAGO_COMPLETO : TipoPagoReserva::ABONO_50,
+                'tipo_pago' => $saldo <= 0.0 ? TipoPagoReserva::PAGO_COMPLETO : ($reserva->tipo_pago ?? TipoPagoReserva::SIN_PAGO),
                 'estado' => $nuevoEstado,
             ]);
 

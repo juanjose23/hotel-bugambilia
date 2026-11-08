@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Compras\Historico;
 
+use App\Repository\Models\Catalogos\Catalogo;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;
@@ -28,6 +29,16 @@ final class HistoricoComprasMasivoSeeder extends Seeder
 
     public const CHUNK_SIZE = 2000;
 
+    private const CATEGORIAS_POR_DEPARTAMENTO = [
+        'DEP_COCINA' => ['CAT_PRO_ALIM_PEREC', 'CAT_PRO_ALIM_NOPER', 'CAT_PRO_ABARROTES'],
+        'DEP_RESTAURANTE' => ['CAT_PRO_ALIM_NOPER', 'CAT_PRO_ABARROTES', 'CAT_PRO_BEBIDAS'],
+        'DEP_AMA_LLAVES' => ['CAT_PRO_AMEN_BANIO', 'CAT_PRO_AMEN_HABIT', 'CAT_PRO_LIMP_QUIM', 'CAT_PRO_LIMP_HERR', 'CAT_PRO_LIMP_LAVANDERIA', 'CAT_PRO_BLAN_SABANAS', 'CAT_PRO_BLAN_TOALLAS', 'CAT_PRO_BLAN_OTROS'],
+        'DEP_MANTENIMIENTO' => ['CAT_PRO_MANT', 'CAT_PRO_ELECTRO', 'CAT_PRO_MOB'],
+        'DEP_RECEPCION' => ['CAT_PRO_GENERAL', 'CAT_PRO_UNIFORMES', 'CAT_PRO_ELECTRO'],
+        'DEP_SEGURIDAD' => ['CAT_PRO_ELECTRO', 'CAT_PRO_UNIFORMES', 'CAT_PRO_GENERAL'],
+        'DEP_CONTABILIDAD' => ['CAT_PRO_GENERAL', 'CAT_PRO_ELECTRO'],
+    ];
+
     /** @var array<int, int> */
     private array $proveedorIds = [];
 
@@ -39,6 +50,12 @@ final class HistoricoComprasMasivoSeeder extends Seeder
 
     /** @var array<int, int> */
     private array $departamentoIds = [];
+
+    /** @var array<int, string> */
+    private array $codigosDepartamento = [];
+
+    /** @var array<int, list<array{id: int, tipo: int, um: int|null, nombre: string}>> */
+    private array $productosPorDepartamento = [];
 
     /** @var array<int, int> */
     private array $condicionPagoIds = [];
@@ -127,8 +144,16 @@ final class HistoricoComprasMasivoSeeder extends Seeder
     {
         $this->proveedorIds = $this->aEnteros(DB::table('proveedores')->pluck('id')->all());
         $this->colaboradorIds = $this->aEnteros(DB::table('colaboradores')->pluck('id')->all());
-        $this->departamentoIds = $this->aEnteros(DB::table('catalogos')->where('catalogo_tipo_id', 2)->pluck('id')->all());
-        $this->condicionPagoIds = $this->aEnteros(DB::table('catalogos')->where('catalogo_tipo_id', 9)->pluck('id')->all());
+        $departamentos = Catalogo::query()
+            ->whereHas('catalogoTipo', fn ($query) => $query->where('codigo', 'DEPARTAMENTO'))
+            ->orderBy('id')
+            ->get(['id', 'codigo']);
+        $this->codigosDepartamento = [];
+        foreach ($departamentos as $departamento) {
+            $this->codigosDepartamento[$departamento->id] = $departamento->codigo;
+        }
+        $this->departamentoIds = array_keys($this->codigosDepartamento);
+        $this->condicionPagoIds = $this->aEnteros(Catalogo::query()->whereHas('catalogoTipo', fn ($query) => $query->where('codigo', 'CONDICION_PAGO'))->pluck('id')->all());
 
         $this->usuarioIds = $this->aEnteros(
             DB::table('users')
@@ -142,7 +167,14 @@ final class HistoricoComprasMasivoSeeder extends Seeder
             $this->adminId = (int) $admin->id;
         }
 
-        $productos = DB::table('productos')->whereNotNull('tipo')->get(['id', 'nombre', 'tipo', 'unidad_medida_id']);
+        $productos = DB::table('productos as p')
+            ->join('catalogos as c', 'c.id', '=', 'p.categoria_id')
+            ->where('p.estado', 1)
+            ->whereIn('p.tipo', [1, 2, 3])
+            ->whereExists(fn ($query) => $query->selectRaw('1')->from('producto_variantes as v')
+                ->whereColumn('v.producto_id', 'p.id')->where('v.estado', 1))
+            ->orderBy('p.id')
+            ->get(['p.id', 'p.nombre', 'p.tipo', 'p.unidad_medida_id', 'c.codigo as categoria']);
         foreach ($productos as $p) {
             $tipo = (int) $p->tipo;
             $item = [
@@ -151,6 +183,11 @@ final class HistoricoComprasMasivoSeeder extends Seeder
                 'um' => $p->unidad_medida_id !== null ? (int) $p->unidad_medida_id : null,
                 'nombre' => (string) $p->nombre,
             ];
+            foreach ($this->codigosDepartamento as $id => $codigo) {
+                if (in_array($p->categoria, self::CATEGORIAS_POR_DEPARTAMENTO[$codigo] ?? [], true)) {
+                    $this->productosPorDepartamento[$id][] = $item;
+                }
+            }
             if ($tipo === 3) {
                 $this->equipos[] = $item;
             } else {
@@ -158,7 +195,7 @@ final class HistoricoComprasMasivoSeeder extends Seeder
             }
         }
 
-        $variantes = DB::table('producto_variantes')->get(['id', 'producto_id']);
+        $variantes = DB::table('producto_variantes')->where('estado', 1)->orderBy('id')->get(['id', 'producto_id']);
         foreach ($variantes as $v) {
             $this->variantesPorProducto[(int) $v->producto_id][] = (int) $v->id;
         }
@@ -191,10 +228,11 @@ final class HistoricoComprasMasivoSeeder extends Seeder
 
     private function generar(): void
     {
-        $ahora = now();
+        // Una recepción puede ocurrir hasta 25 días después de la solicitud.
+        $corte = now()->subDays(26);
 
         for ($mesIdx = 0; $mesIdx < self::MESES; $mesIdx++) {
-            $mes = $ahora->copy()->startOfMonth()->subMonths(self::MESES - 1 - $mesIdx);
+            $mes = $corte->copy()->startOfMonth()->subMonths(self::MESES - 1 - $mesIdx);
 
             $totalSolicitudes = mt_rand(380, 620);
             $info = "  -> Mes {$mes->format('Y-m')}: {$totalSolicitudes} solicitudes";
@@ -242,7 +280,7 @@ final class HistoricoComprasMasivoSeeder extends Seeder
         $items = [];
 
         if ($aprobada || $estadoSolicitud === 2 || $estadoSolicitud === 1) {
-            $items = $this->generarItemsSolicitud($mesIdx, $solicitudId, $aprobada, $fechaSolicitud);
+            $items = $this->generarItemsSolicitud($departamentoId, $solicitudId, $aprobada, $fechaSolicitud);
         }
 
         $this->histBatch[] = $this->historial(
@@ -292,13 +330,13 @@ final class HistoricoComprasMasivoSeeder extends Seeder
     /**
      * @return list<array{producto: array{id:int, tipo:int, um:int|null, nombre:string}, variante:int|null, cantidad:float}>
      */
-    private function generarItemsSolicitud(int $mesIdx, int $solicitudId, bool $aprobada, string $fechaSolicitud): array
+    private function generarItemsSolicitud(int $departamentoId, int $solicitudId, bool $aprobada, string $fechaSolicitud): array
     {
         $items = [];
         $cantItems = mt_rand(2, 8);
 
         for ($k = 0; $k < $cantItems; $k++) {
-            $producto = $this->elegirProducto();
+            $producto = $this->elegirProducto($departamentoId);
             $cantidad = $this->cantidadPara($producto['tipo']);
             $items[] = [
                 'producto' => $producto,
@@ -606,8 +644,13 @@ final class HistoricoComprasMasivoSeeder extends Seeder
     }
 
     /** @return array{id:int, tipo:int, um:int|null, nombre:string} */
-    private function elegirProducto(): array
+    private function elegirProducto(int $departamentoId): array
     {
+        $productosDelArea = $this->productosPorDepartamento[$departamentoId] ?? [];
+        if ($productosDelArea !== []) {
+            return $productosDelArea[array_rand($productosDelArea)];
+        }
+
         $esEquipo = mt_rand(1, 100) <= 22;
         $pool = $esEquipo && $this->equipos !== [] ? $this->equipos : $this->consumibles;
 
@@ -627,7 +670,7 @@ final class HistoricoComprasMasivoSeeder extends Seeder
     {
         $variantes = $this->variantesPorProducto[$productoId] ?? [];
 
-        return $variantes === [] || mt_rand(1, 100) <= 62 ? null : $variantes[mt_rand(0, count($variantes) - 1)];
+        return $variantes === [] ? null : $variantes[mt_rand(0, count($variantes) - 1)];
     }
 
     /**
@@ -836,7 +879,9 @@ final class HistoricoComprasMasivoSeeder extends Seeder
 
     private function fechaEnMes(CarbonInterface $mesBase): string
     {
-        $dia = mt_rand(1, (int) $mesBase->daysInMonth);
+        $corte = now()->subDays(26);
+        $ultimoDia = $mesBase->isSameMonth($corte) ? $corte->day : $mesBase->daysInMonth;
+        $dia = mt_rand(1, (int) $ultimoDia);
 
         return $mesBase->copy()->day($dia)->format('Y-m-d');
     }

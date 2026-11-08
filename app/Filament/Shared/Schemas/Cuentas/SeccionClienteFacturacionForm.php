@@ -24,10 +24,9 @@ final class SeccionClienteFacturacionForm
             Grid::make(2)->schema([
                 Select::make('tipo_comprobante')
                     ->label('Tipo de Comprobante')
-                    ->options([
-                        'voucher' => 'Voucher / Ticket de Consumo',
-                        'factura_empresarial' => 'Factura Fiscal (Empresa o Persona Natural)',
-                    ])
+                    ->options(fn (): array => auth()->user()?->can('Create:Factura')
+                        ? ['voucher' => 'Voucher / Ticket de Consumo', 'factura_empresarial' => 'Factura Fiscal (Empresa o Persona Natural)']
+                        : ['voucher' => 'Voucher / Ticket de Consumo'])
                     ->default('voucher')
                     ->required()
                     ->native(false)

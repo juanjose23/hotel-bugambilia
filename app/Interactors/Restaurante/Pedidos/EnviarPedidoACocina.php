@@ -10,7 +10,6 @@ use App\Enums\Restaurante\EstadoPedido;
 use App\Events\Restaurante\PedidoEnviadoACocina;
 use App\Interactors\Cuentas\Gestion\AbrirCuenta;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
-use App\Interactors\Restaurante\Cocina\ConsumirIngredientesPedido;
 use App\Notifications\Restaurante\NotificadorRestaurante;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Models\Restaurante\Pedido;
@@ -24,8 +23,6 @@ use Illuminate\Support\Facades\DB;
 final readonly class EnviarPedidoACocina
 {
     public function __construct(
-        private ConsumirIngredientesPedido $consumirIngredientes,
-        private DescontarStockProductoPedido $descontarStockProducto,
         private RestauranteRepositorioInterface $repositorio,
         private AbrirCuenta $abrirCuenta,
         private RegistrarDetalleCuenta $registrarDetalle,
@@ -78,12 +75,6 @@ final readonly class EnviarPedidoACocina
                 if ($item->estado === EstadoItemPedido::PENDIENTE) {
                     $item->estado = EstadoItemPedido::EN_PREPARACION;
                     $this->repositorio->guardarItem($item);
-
-                    if ($item->esProducto()) {
-                        $this->descontarStockProducto->ejecutar($item);
-                    } else {
-                        $this->consumirIngredientes->ejecutar($item);
-                    }
 
                     $procesados[] = $item->id;
                     $nuevosItems[] = $item;
