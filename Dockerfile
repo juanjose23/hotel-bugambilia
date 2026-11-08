@@ -26,6 +26,17 @@ RUN cp .env.example .env \
     && composer dump-autoload --no-scripts --optimize \
     && php -d memory_limit=512M artisan package:discover --ansi \
     && php -d memory_limit=512M artisan filament:upgrade
+FROM php-base AS production-dependencies
+ENV COMPOSER_ALLOW_SUPERUSER=1
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --no-autoloader
+COPY . .
+RUN cp .env.example .env \
+    && composer dump-autoload --no-dev --no-scripts --optimize \
+    && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
+    && php -d memory_limit=512M artisan package:discover --ansi \
+    && php -d memory_limit=512M artisan filament:upgrade
+
 FROM oven/bun:1-debian AS frontend
 WORKDIR /build
 ENV HUSKY=0
@@ -35,8 +46,8 @@ COPY resources ./resources
 COPY app ./app
 COPY public ./public
 COPY vite.config.ts tsconfig.json .gitignore ./
-COPY --from=dependencies /var/www/html/vendor/filament ./vendor/filament
-COPY --from=dependencies /var/www/html/vendor/laravel/framework/src/Illuminate/Pagination ./vendor/laravel/framework/src/Illuminate/Pagination
+COPY --from=production-dependencies /var/www/html/vendor/filament ./vendor/filament
+COPY --from=production-dependencies /var/www/html/vendor/laravel/framework/src/Illuminate/Pagination ./vendor/laravel/framework/src/Illuminate/Pagination
 RUN bun run build
 
 FROM dependencies AS tooling
@@ -48,11 +59,6 @@ COPY --from=frontend /build/node_modules ./node_modules
 COPY --from=frontend /build/public/build ./public/build
 COPY docker/php.ini /usr/local/etc/php/conf.d/hotel.ini
 ENV HUSKY=0
-
-FROM dependencies AS production-dependencies
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --optimize-autoloader \
-    && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
-    && php artisan package:discover --ansi
 
 FROM php-base AS review
 COPY --from=production-dependencies /var/www/html /var/www/html
