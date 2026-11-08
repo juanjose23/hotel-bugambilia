@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Interactors\Restaurante\Cocina\AutorizarSustitucionIngrediente;
+use App\Interactors\Restaurante\Cocina\ConfirmarRetiroComanda;
 use App\Interactors\Restaurante\Cocina\ConsumirIngredientesPedido;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
 use App\Interactors\Restaurante\Pedidos\ResolverFaltanteStockPedido;
@@ -522,5 +523,8 @@ test('bloquea pedido por falta de stock y permite resolver con sustitucion autor
         ->and($item->bloqueo_stock_detalle)->toBeNull();
 
     app(EnviarPedidoACocina::class)->ejecutar($pedido->refresh());
+    $retiro = app(ConfirmarRetiroComanda::class);
+    $plan = $retiro->plan($item->refresh());
+    $retiro->ejecutar($item->id, $plan['confirmacion'], null);
     expect((float) Stock::query()->where('stockable_id', $cocina->id)->where('producto_variante_id', $varianteSustituta->id)->value('cantidad_actual'))->toBe(3.0);
 });

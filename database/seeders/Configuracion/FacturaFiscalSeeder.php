@@ -48,14 +48,16 @@ class FacturaFiscalSeeder extends Seeder
             'sucursal_codigo' => 'SUC-001',
         ]);
 
+        $fecha = now()->subDays(max(1, config()->integer('demo.dias_historicos')) + 4);
         $autorizacion = $this->crearAutorizacion($serie, [
             'numero_autorizacion' => 'DGI-0042-2026',
-            'fecha_autorizacion' => '2026-01-15',
+            'fecha_autorizacion' => $fecha->toDateString(),
             'rango_desde' => 1,
             'rango_hasta' => 25000,
             'pie_imprenta_fiscal' => sprintf(
-                'AUTORIZADO POR LA DGI. RES. N° 0042-2026 DEL 15/01/2026. '.
+                'AUTORIZADO POR LA DGI. RES. N° 0042-2026 DEL %s. '.
                 'RANGO 00000001 - 00025000. IMPRESO POR: %s',
+                $fecha->format('d/m/Y'),
                 self::IMPRENTA,
             ),
         ]);
@@ -77,14 +79,16 @@ class FacturaFiscalSeeder extends Seeder
             'sucursal_codigo' => 'SUC-001',
         ]);
 
+        $fecha = now()->subDays(max(1, config()->integer('demo.dias_historicos')) + 4);
         $this->crearAutorizacion($serie, [
             'numero_autorizacion' => 'DGI-0043-2026',
-            'fecha_autorizacion' => '2026-02-01',
+            'fecha_autorizacion' => $fecha->toDateString(),
             'rango_desde' => 1,
             'rango_hasta' => 40000,
             'pie_imprenta_fiscal' => sprintf(
-                'AUTORIZADO POR LA DGI. RES. N° 0043-2026 DEL 01/02/2026. '.
+                'AUTORIZADO POR LA DGI. RES. N° 0043-2026 DEL %s. '.
                 'RANGO 00000001 - 00040000. EQUIPO FISCAL HOMOLOGADO. IMPRESO POR: %s',
+                $fecha->format('d/m/Y'),
                 self::IMPRENTA,
             ),
         ]);

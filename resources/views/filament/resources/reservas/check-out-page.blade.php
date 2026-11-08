@@ -71,4 +71,7 @@
         @endif
 
     </div>
+
+    {{-- Contenedor de Modales de Acciones (Requerido cuando se oculta el Table en modo Command Center) --}}
+    <x-filament-actions::modals />
 </x-filament-panels::page>

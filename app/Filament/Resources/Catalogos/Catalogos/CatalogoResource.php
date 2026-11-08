@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Catalogos\Catalogos;
 
-use App\Filament\Resources\Catalogos\Catalogos\Pages\ListCatalogos;
 use App\Filament\Resources\Catalogos\Catalogos\Schemas\CatalogoForm;
 use App\Filament\Resources\Catalogos\Catalogos\Schemas\CatalogoInfolist;
 use App\Filament\Resources\Catalogos\Catalogos\Tables\CatalogosTable;
@@ -59,7 +58,10 @@ class CatalogoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListCatalogos::route('/'),
+            'index' => Pages\ListCatalogos::route('/'),
+            'create' => Pages\CreateCatalogo::route('/create'),
+            'view' => Pages\ViewCatalogo::route('/{record}'),
+            'edit' => Pages\EditCatalogo::route('/{record}/edit'),
         ];
     }
 

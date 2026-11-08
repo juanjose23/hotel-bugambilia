@@ -96,7 +96,13 @@ final class BuffetsCocina extends Page implements HasTable
 
             Action::make('abastecer')->extraModalFooterActions([VerGuiaAction::make('buffet-abastecer')])->label('Enviar o reponer alimentos')->visible(fn (Buffet $record): bool => $record->estado === 'abierto' && $record->getAttribute('menu_exists') === true)
                 ->schema([
-                    Select::make('stock_id')->extraAttributes(['data-guia' => 'buffet-stock'])->label('Existencia de cocina / bar (cantidad y unidad de la variante)')->options(fn (Buffet $record): array => app(ExistenciasCocinaRepositorio::class)->disponibles()->when($record->menu()->exists(), fn (Builder $query) => $query->whereIn('producto_variante_id', $record->menu()->select('producto_variante_id')))->with(['variante.unidadMedida', 'variante.producto.unidadMedida', 'producto.unidadMedida', 'stockable'])->where('stockable_type', Ubicacion::class)->where('cantidad_actual', '>', 0)->get()->mapWithKeys(fn (Stock $stock): array => [$stock->id => ($stock->variante->producto->nombre ?? $stock->producto->nombre ?? 'Producto').' / '.($stock->variante->nombre_variante ?? '').' — '.$stock->cantidad_actual.' '.($stock->variante->unidadMedida->nombre ?? $stock->variante->producto->unidadMedida->nombre ?? $stock->producto->unidadMedida->nombre ?? 'unidades')])->all())->searchable()->required(),
+                    Select::make('stock_id')
+                        ->extraAttributes(['data-guia' => 'buffet-stock'])
+                        ->label('Lote para abastecer el buffet')
+                        ->options(fn (Buffet $record): array => $this->opcionesExistencias($record))
+                        ->helperText('Verifica el código en el envase antes de confirmar. Los lotes que vencen primero aparecen arriba.')
+                        ->searchable()
+                        ->required(),
                     TextInput::make('cantidad')->extraAttributes(['data-guia' => 'buffet-cantidad'])->label('Cantidad de producto terminado enviada')->helperText('Usa la unidad de la presentación seleccionada. Este envío no vuelve a consumir ingredientes de la receta.')->numeric()->minValue(0.0001)->required(),
                 ])->action(function (Buffet $record, array $data): void {
                     /** @var array{stock_id: int, cantidad: float} $data */
@@ -142,5 +148,26 @@ final class BuffetsCocina extends Page implements HasTable
         } catch (DomainException $e) {
             Notification::make()->title($e->getMessage())->danger()->send();
         }
+    }
+
+    /** @return array<int, string> */
+    private function opcionesExistencias(Buffet $buffet): array
+    {
+        $existencias = app(ExistenciasCocinaRepositorio::class);
+        $query = $existencias->disponibles()
+            ->when($buffet->menu()->exists(), fn (Builder $query) => $query->whereIn('producto_variante_id', $buffet->menu()->select('producto_variante_id')))
+            ->where('stockable_type', Ubicacion::class)
+            ->with(['variante.unidadMedida', 'variante.producto.unidadMedida', 'producto.unidadMedida', 'stockable']);
+
+        return $existencias->obtener($query)->mapWithKeys(function (Stock $stock): array {
+            $producto = $stock->variante->producto->nombre ?? $stock->producto->nombre ?? 'Producto';
+            $variante = $stock->variante?->nombre_variante;
+            $ubicacion = $stock->stockable instanceof Ubicacion ? $stock->stockable->nombre : 'Ubicación desconocida';
+            $lote = $stock->lote->codigo_lote ?? 'Sin lote';
+            $vencimiento = $stock->lote?->fecha_vencimiento?->format('d/m/Y') ?? 'Sin vencimiento';
+            $unidad = $stock->variante->unidadMedida->nombre ?? $stock->variante->producto->unidadMedida->nombre ?? $stock->producto->unidadMedida->nombre ?? 'unidades';
+
+            return [$stock->id => implode(' · ', array_filter([$producto, $variante, $ubicacion, $lote, $vencimiento, "{$stock->cantidad_actual} {$unidad}"]))];
+        })->all();
     }
 }

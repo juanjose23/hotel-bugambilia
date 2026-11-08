@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Restaurante\Historico;
 
+use App\Enums\Catalogos\TipoProducto;
 use App\Enums\Inventario\EstadoLote;
 use App\Enums\Restaurante\EstadoItemPedido;
 use App\Enums\Restaurante\EstadoPedido;
@@ -40,8 +41,6 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
     private const FLUSH_STOCK = 5000;
 
     private const MAX_SEQ = 99999999;
-
-    private const MAX_ACTIVE_LOTES = 40;
 
     /** @var list<array{id: int, nombre: string, area: string, precio: float, receta: list<array{variante_id: int, cantidad: float}>}> */
     private array $platos = [];
@@ -121,7 +120,7 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
 
         $escalaConfig = config('restaurante.historico.merma_cocina_escala', 1.0);
         $this->escala = max(0.5, is_numeric($escalaConfig) ? (float) $escalaConfig : 1.0);
-        $this->inicio = now()->startOfDay()->subDays(self::DIAS - 1);
+        $this->inicio = now()->startOfDay()->subDays(self::DIAS);
 
         $this->cargarMetadatos();
 
@@ -225,6 +224,7 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
     {
         $variantes = DB::table('producto_variantes as pv')
             ->join('productos as p', 'p.id', '=', 'pv.producto_id')
+            ->whereIn('p.tipo', [TipoProducto::Perecedero->value, TipoProducto::NoPerecedero->value])
             ->whereIn('pv.id', function ($q): void {
                 $q->select('producto_variante_id')
                     ->from('stocks')
@@ -284,20 +284,21 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
     {
         $platos = Plato::query()
             ->where('estado', 1)
-            ->with('precios')
+            ->with(['precios', 'receta'])
             ->get();
 
         foreach ($platos as $p) {
             $precio = (float) $p->precios->first()?->precio;
 
             $receta = [];
+            $rendimiento = max(1.0, (float) ($p->receta->rendimiento_porciones ?? 1));
             $kit = DB::table('producto_kit')->where('producto_padre_id', (int) $p->producto_receta_id)->get();
             foreach ($kit as $k) {
                 $varianteId = (int) $k->producto_variante_id;
                 if (! isset($this->variantes[$varianteId])) {
                     continue;
                 }
-                $receta[] = ['variante_id' => $varianteId, 'cantidad' => max(0.01, (float) $k->cantidad)];
+                $receta[] = ['variante_id' => $varianteId, 'cantidad' => (float) $k->cantidad / $rendimiento];
             }
 
             $area = (string) $p->area_cocina?->value;
@@ -363,13 +364,17 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
 
         DB::table('inv_movimientos')
             ->whereNull('lote_id')
-            ->where(fn ($q) => $q->where('documento_tipo', 'pedido_item')->where('documento_id', null)
-                ->orWhere('referencia', 'like', 'KM-%')
+            ->where(fn ($q) => $q->where('referencia', 'like', 'KM-%')
                 ->orWhere('referencia', 'like', 'Merma por vencimiento del lote KM-%')
                 ->orWhere('referencia', 'like', 'Merma final de KM-%'))
             ->delete();
 
-        $lotesIniciales = DB::table('inv_lotes')->where('codigo_lote', 'like', 'LOTE-INICIAL-%')->pluck('id')->all();
+        $lotesIniciales = DB::table('inv_lotes')
+            ->where('ubicacion_id', $this->cocinaId)
+            ->whereIn('producto_variante_id', array_keys($this->variantes))
+            ->where('codigo_lote', 'like', 'LOTE-INICIAL-%')
+            ->pluck('id')
+            ->all();
         foreach (array_chunk($lotesIniciales, 10000) as $chunk) {
             DB::table('inv_stock')->whereIn('lote_id', $chunk)->delete();
         }
@@ -396,7 +401,7 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
 
         foreach (array_keys($this->variantes) as $varianteId) {
             $cantidad = mt_rand(40, 120);
-            $this->stockCocina[$varianteId] = ['cantidad' => $cantidad, 'lotes' => []];
+            $this->stockCocina[$varianteId] = ['cantidad' => 0.0, 'lotes' => []];
             $this->crearLoteYEntrada($varianteId, $cantidad, $this->inicio->copy()->setHour(6)->setMinute(0));
         }
     }
@@ -1068,21 +1073,12 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
 
     /**
      * Agrega un lote con existencia viva manteniendo la lista acotada.
-     * Si la variante supera MAX_ACTIVE_LOTES, fusiona la cantidad del lote
-     * más antiguo dentro del más reciente para no perder stock.
      *
      * @param  array{id: int, qty: float, venc: string|null, costo: float, codigo: string}  $lote
      */
     private function agregarLoteActivo(int $varianteId, array $lote): void
     {
-        $lotes = &$this->stockCocina[$varianteId]['lotes'];
-        $lotes[] = $lote;
-
-        while (count($lotes) > self::MAX_ACTIVE_LOTES) {
-            $viejo = array_shift($lotes);
-            $ultimo = count($lotes) - 1;
-            $lotes[$ultimo]['qty'] = round((float) $lotes[$ultimo]['qty'] + (float) $viejo['qty'], 4);
-        }
+        $this->stockCocina[$varianteId]['lotes'][] = $lote;
     }
 
     private function generarVenc(int $elTipo, CarbonInterface $desde): ?string
@@ -1187,18 +1183,22 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
 
     private function sincronizarLotes(): void
     {
-        $today = now()->format('Y-m-d');
         $ahora = now()->format('Y-m-d H:i:s');
 
         DB::table('inv_lotes')
             ->where('codigo_lote', 'like', 'KM-%')
-            ->whereNotNull('fecha_vencimiento')
-            ->where('fecha_vencimiento', '<', $today)
             ->update([
-                'estado' => EstadoLote::Vencido->value,
+                'estado' => EstadoLote::Agotado->value,
                 'cantidad_disponible' => 0,
                 'updated_at' => $ahora,
             ]);
+
+        DB::table('inv_lotes')
+            ->where('codigo_lote', 'like', 'KM-%')
+            ->whereExists(fn ($query) => $query->selectRaw('1')->from('inv_movimientos as movimiento')
+                ->whereColumn('movimiento.lote_id', 'inv_lotes.id')
+                ->where('movimiento.referencia', 'like', 'Vencimiento lote KM-%'))
+            ->update(['estado' => EstadoLote::Vencido->value]);
 
         $porLote = [];
 
@@ -1223,23 +1223,11 @@ final class MermaCocinaHistoricoMasivoSeeder extends Seeder
 
             DB::statement('UPDATE inv_lotes SET cantidad_disponible = (CASE id'.$caseCantidad.' ELSE cantidad_disponible END), estado = (CASE id'.$caseEstado.' ELSE estado END), updated_at = NOW() WHERE id IN ('.implode(',', $chunkIds).')');
         }
-
-        DB::table('inv_lotes')
-            ->where('codigo_lote', 'like', 'KM-%')
-            ->where('estado', '!=', EstadoLote::Vencido->value)
-            ->where('cantidad_disponible', '<=', 0.001)
-            ->update([
-                'estado' => EstadoLote::Agotado->value,
-                'cantidad_disponible' => 0,
-                'updated_at' => $ahora,
-            ]);
     }
 
     private function sincronizarStocksCocina(): void
     {
         $ahora = now()->format('Y-m-d H:i:s');
-
-        DB::table('inv_stock')->where('ubicacion_id', $this->cocinaId)->delete();
 
         foreach ($this->stockCocina as $varianteId => $stock) {
             $cantidad = max(0.0, round((float) $stock['cantidad'], 4));

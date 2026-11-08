@@ -11,6 +11,7 @@ use App\Filament\Shared\Actions\Restaurante\MermaGlobalDiariaAction;
 use App\Filament\Shared\Actions\Restaurante\SolicitudAbastecimientoCocinaAction;
 use App\Interactors\Restaurante\Cocina\AnularItemPedido;
 use App\Interactors\Restaurante\Cocina\AutorizarSustitucionIngrediente;
+use App\Interactors\Restaurante\Cocina\ConfirmarRetiroComanda;
 use App\Interactors\Restaurante\Cocina\MarcarItemPedidoListo;
 use App\Interactors\Restaurante\Cocina\MarcarItemServido;
 use App\Interactors\Restaurante\Pedidos\EnviarPedidoACocina;
@@ -155,6 +156,23 @@ final class CocinaPedidos extends Page implements HasForms
     public function updatedAreaSeleccionada(): void
     {
         $this->cocinaInicializada = false;
+        $this->cargarPedidos();
+    }
+
+    public function confirmarRetiroComanda(int $itemId, string $confirmacion): void
+    {
+        abort_unless(self::canAccess(), 403);
+
+        try {
+            app(ConfirmarRetiroComanda::class)->ejecutar($itemId, $confirmacion, auth()->id() !== null ? (int) auth()->id() : null);
+        } catch (DomainException $exception) {
+            Notification::make()->title('No se pudo confirmar el retiro')->body($exception->getMessage())->danger()->send();
+            $this->cargarPedidos();
+
+            return;
+        }
+
+        Notification::make()->title('Lotes retirados y registrados')->success()->send();
         $this->cargarPedidos();
     }
 

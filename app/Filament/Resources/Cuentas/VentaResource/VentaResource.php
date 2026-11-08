@@ -7,7 +7,7 @@ namespace App\Filament\Resources\Cuentas\VentaResource;
 use App\Enums\Cuentas\EstadoVenta;
 use App\Enums\Facturacion\EstadoFactura;
 use App\Enums\Facturacion\TipoFactura;
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Facturacion\FacturacionCluster;
 use App\Filament\Resources\Cuentas\VentaResource\Schemas\VentaDirectaForm;
 use App\Filament\Resources\Cuentas\VentaResource\Widgets\VentaStatsOverview;
 use App\Filament\Shared\Columns\FechaStandardColumn;
@@ -46,13 +46,13 @@ use UnitEnum;
 
 final class VentaResource extends Resource
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = FacturacionCluster::class;
 
     protected static ?string $model = Venta::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentCurrencyDollar;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Cobros y documentos';
+    protected static string|UnitEnum|null $navigationGroup = 'Documentos y ventas';
 
     protected static ?string $navigationLabel = 'Ventas';
 
@@ -60,7 +60,7 @@ final class VentaResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Ventas';
 
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 30;
 
     protected static ?string $slug = 'ventas';
 

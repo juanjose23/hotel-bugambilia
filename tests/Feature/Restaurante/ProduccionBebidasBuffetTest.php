@@ -7,6 +7,7 @@ use App\Enums\Cuentas\TipoCuenta;
 use App\Enums\Restaurante\AreaCocina;
 use App\Filament\Pages\Restaurante\BuffetsCocina;
 use App\Interactors\Restaurante\Cocina\ConfirmarProduccionCocina;
+use App\Interactors\Restaurante\Cocina\ConfirmarRetiroComanda;
 use App\Interactors\Restaurante\Cocina\GestionarBuffet;
 use App\Interactors\Restaurante\Cocina\ProcesarProcesoCocina;
 use App\Interactors\Restaurante\Cocina\TransformarMateriaPrimaCocina;
@@ -48,6 +49,9 @@ test('la venta de producto repartido consume todas las filas y registra movimien
     $f['stockOrigen']->update(['producto_id' => $f['productoOrigen']->id, 'lote_id' => $lote1->id, 'cantidad_actual' => 2]);
     Stock::query()->create(['stockable_type' => $f['stockOrigen']->stockable_type, 'stockable_id' => $f['cocina']->id, 'producto_id' => $f['productoOrigen']->id, 'producto_variante_id' => $f['varianteOrigen']->id, 'lote_id' => $lote2->id, 'cantidad_ideal' => 0, 'cantidad_actual' => 3]);
     app(EnviarPedidoACocina::class)->ejecutar($pedido);
+    $retiro = app(ConfirmarRetiroComanda::class);
+    $plan = $retiro->plan($item->refresh());
+    $retiro->ejecutar($item->id, $plan['confirmacion'], null);
     expect((float) Stock::query()->where('producto_variante_id', $f['varianteOrigen']->id)->sum('cantidad_actual'))->toBe(0.0)
         ->and(MovimientoStock::query()->where('documento_tipo', 'pedido_item')->where('documento_id', $item->id)->count())->toBe(2)
         ->and((float) $lote1->refresh()->cantidad_disponible)->toBe(0.0)->and((float) $lote2->refresh()->cantidad_disponible)->toBe(0.0);
@@ -73,6 +77,9 @@ test('una receta de bar consume del bar y no de cocina', function () {
     $bar = Ubicacion::query()->create(['nombre' => 'Bar regresión', 'tipo' => 'bar', 'estado' => 1, 'orden' => 999]);
     $stockBar = Stock::query()->create(['stockable_type' => $f['stockOrigen']->stockable_type, 'stockable_id' => $bar->id, 'producto_variante_id' => $f['varianteOrigen']->id, 'cantidad_ideal' => 0, 'cantidad_actual' => 5]);
     app(EnviarPedidoACocina::class)->ejecutar($pedido);
+    $retiro = app(ConfirmarRetiroComanda::class);
+    $plan = $retiro->plan($item->refresh());
+    $retiro->ejecutar($item->id, $plan['confirmacion'], null);
     expect((float) $stockBar->refresh()->cantidad_actual)->toBe(4.0)->and((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(10.0);
 });
 
@@ -184,5 +191,8 @@ test('los pedidos consumen de la bodega configurada para su espacio', function (
     $pedido->update(['mesa_id' => $espacio->id]);
     $stock = Stock::query()->create(['stockable_type' => $f['stockOrigen']->stockable_type, 'stockable_id' => $bodega->id, 'producto_variante_id' => $f['varianteOrigen']->id, 'cantidad_actual' => 5, 'cantidad_ideal' => 0]);
     app(EnviarPedidoACocina::class)->ejecutar($pedido);
+    $retiro = app(ConfirmarRetiroComanda::class);
+    $plan = $retiro->plan($item->refresh());
+    $retiro->ejecutar($item->id, $plan['confirmacion'], null);
     expect((float) $stock->refresh()->cantidad_actual)->toBe(4.0)->and((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(10.0);
 });

@@ -49,7 +49,7 @@ final readonly class CobrarDesdeCaja
             $pago = $this->pago->ejecutar($cuenta, MetodoPago::EFECTIVO, $recibido, monedaId: $cuenta->moneda_id, usuarioId: $actorId);
             $cuenta = $this->cuentas->refrescar($cuenta);
             $venta = null;
-            if ((float) $cuenta->saldo <= 0) {
+            if ((float) $cuenta->saldo <= 0 && ! $cuenta->tieneEstanciaActiva()) {
                 $venta = $this->cierre->ejecutar($cuenta, $actorId, ['emitir_factura' => $factura, 'factura_serie_id' => $serieId]);
             }
 

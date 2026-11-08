@@ -1,6 +1,4 @@
-import { Link } from '@inertiajs/react';
-import { CreditCard, CheckCircle2, Clock } from 'lucide-react';
-import { buttonVariants } from '@/modules/shared/components/ui/button';
+import { CheckCircle2, Clock } from 'lucide-react';
 import type { PortalReservaDetalleCompleto } from '../../types';
 
 interface EstadoCuentaCardProps {
@@ -115,33 +113,6 @@ export const EstadoCuentaCard = ({ reserva }: EstadoCuentaCardProps) => {
                             );
                         })}
                     </div>
-                </div>
-            )}
-
-            {/* Botón Pagar Saldo con Stripe si hay saldo pendiente */}
-            {reserva.url_pago_saldo && saldoNum > 0 && (
-                <div className="flex flex-col items-end gap-3 border-t border-border/40 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="flex size-2 rounded-full bg-emerald-500" />
-                        <span>
-                            Pasarela segura · Liquidación inmediata con Stripe
-                        </span>
-                    </div>
-
-                    <Link
-                        href={reserva.url_pago_saldo}
-                        className={buttonVariants({
-                            size: 'lg',
-                            className:
-                                'w-full gap-2 rounded-2xl bg-emerald-600 font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 sm:w-auto',
-                        })}
-                    >
-                        <CreditCard className="size-4" />
-                        <span>
-                            Pagar Saldo con Stripe ({simbolo}
-                            {saldoNum.toFixed(2)})
-                        </span>
-                    </Link>
                 </div>
             )}
         </div>

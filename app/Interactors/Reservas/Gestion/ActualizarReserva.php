@@ -91,7 +91,7 @@ final class ActualizarReserva
 
             $reserva = $this->reservas->actualizar($reserva, $this->construirAtributosActualizacion(
                 $datos, $datosRecalculo, $tipo, $entidadPrincipalId,
-                $checkIn, $checkOut, $horaReserva, $resumen, $totalPagado, $saldo,
+                $checkIn, $checkOut, $horaReserva, $resumen, $reserva->tipo_pago ?? TipoPagoReserva::SIN_PAGO, $totalPagado, $saldo,
             ));
 
             if (is_array($datos['acompanantes'] ?? null)) {
@@ -195,6 +195,7 @@ final class ActualizarReserva
         ?DateTimeImmutable $checkOut,
         ?string $horaReserva,
         array $resumen,
+        TipoPagoReserva $politicaPago,
         float $totalPagado,
         float $saldo,
     ): array {
@@ -223,7 +224,7 @@ final class ActualizarReserva
             'subtotal' => $resumen['subtotal'],
             'descuento' => $resumen['descuento'],
             'total' => $total,
-            'tipo_pago' => $this->tipoPagoActualizado($totalPagado, $saldo),
+            'tipo_pago' => $this->tipoPagoActualizado($politicaPago, $totalPagado, $saldo),
             'saldo' => $saldo,
         ];
     }
@@ -377,13 +378,9 @@ final class ActualizarReserva
         }
     }
 
-    private function tipoPagoActualizado(float $totalPagado, float $saldo): TipoPagoReserva
+    private function tipoPagoActualizado(TipoPagoReserva $politica, float $totalPagado, float $saldo): TipoPagoReserva
     {
-        if ($totalPagado <= 0) {
-            return TipoPagoReserva::SIN_PAGO;
-        }
-
-        return $saldo <= 0 ? TipoPagoReserva::PAGO_COMPLETO : TipoPagoReserva::ABONO_50;
+        return $totalPagado > 0 && $saldo <= 0 ? TipoPagoReserva::PAGO_COMPLETO : $politica;
     }
 
     /** @return array<int, mixed> */

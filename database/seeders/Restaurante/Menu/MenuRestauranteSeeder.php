@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Restaurante\Menu;
 
+use App\Enums\Catalogos\TipoProducto;
 use App\Enums\Inventario\EstadoLote;
 use App\Enums\Restaurante\AreaCocina;
 use App\Repository\Models\Catalogos\Catalogo;
@@ -29,27 +30,30 @@ final class MenuRestauranteSeeder extends Seeder
      * busca por código y, si el producto/variante no existe, se crea como
      * insumo propio del restaurante (fallback).
      *
-     * @var array<string, array{producto: string, variante: string}>
+     * @var array<string, array{variante: string, porcion: float}>
      */
     private const REUSO_CATALOGO = [
-        'Filete de res' => ['producto' => 'Carne de res seleccionada', 'variante' => 'RES-1KG'],
-        'Pechuga de pollo' => ['producto' => 'Pollo entero', 'variante' => 'POLLO-1KG'],
-        'Camarones' => ['producto' => 'Langostinos congelados', 'variante' => 'LANG-1KG'],
-        'Filete de pescado' => ['producto' => 'Pescado fresco del día', 'variante' => 'PESC-1KG'],
-        'Arroz blanco porcion' => ['producto' => 'Arroz blanco', 'variante' => 'ARR-1KG'],
-        'Frijoles molidos porcion' => ['producto' => 'Frijoles rojos', 'variante' => 'FRI-1KG'],
-        'Papas fritas porcion' => ['producto' => 'Papas de temporada', 'variante' => 'PAPAS-1KG'],
-        'Tajadas de maduro' => ['producto' => 'Plátanos verdes y maduros', 'variante' => 'PLAT-1KG'],
-        'Ensalada fresca porcion' => ['producto' => 'Hortalizas surtidas', 'variante' => 'HOT-CAJA-1KG'],
-        'Mantequilla' => ['producto' => 'Mantequilla de cocina', 'variante' => 'MANT-COC-1KG'],
-        'Aceite vegetal' => ['producto' => 'Aceite de cocina', 'variante' => 'ACE-1L'],
-        'Sal y pimienta mix' => ['producto' => 'Sal de mesa', 'variante' => 'SAL-1KG'],
-        'Cebolla' => ['producto' => 'Cebollas de cocina', 'variante' => 'CEBOLLA-1KG'],
-        'Tortilla de maiz' => ['producto' => 'Tortillas de maíz hecho a mano', 'variante' => 'TMAZ-50-UD'],
-        'Queso' => ['producto' => 'Queso fresco', 'variante' => 'QF-500G'],
-        'Crema' => ['producto' => 'Crema de leche', 'variante' => 'CREM-LEC-1L'],
-        'Leche' => ['producto' => 'Leche fresca', 'variante' => 'LEC-1L'],
-        'Huevo' => ['producto' => 'Huevos de granja', 'variante' => 'HUE-CUB-12'],
+        'Filete de res' => ['variante' => 'RES-1KG', 'porcion' => 0.3],
+        'Pechuga de pollo' => ['variante' => 'POLLO-1KG', 'porcion' => 0.2],
+        'Camarones' => ['variante' => 'LANG-1KG', 'porcion' => 0.2],
+        'Filete de pescado' => ['variante' => 'PESC-1KG', 'porcion' => 0.25],
+        'Arroz blanco porcion' => ['variante' => 'ARR-1KG', 'porcion' => 0.25],
+        'Frijoles molidos porcion' => ['variante' => 'FRI-1KG', 'porcion' => 0.2],
+        'Papas fritas porcion' => ['variante' => 'PAPAS-1KG', 'porcion' => 0.2],
+        'Tajadas de maduro' => ['variante' => 'PLAT-1KG', 'porcion' => 0.15],
+        'Ensalada fresca porcion' => ['variante' => 'HOT-CAJA-1KG', 'porcion' => 0.2],
+        'Mantequilla' => ['variante' => 'MANT-COC-1KG', 'porcion' => 0.015],
+        'Aceite vegetal' => ['variante' => 'ACE-1L', 'porcion' => 0.03],
+        'Sal y pimienta mix' => ['variante' => 'SAL-1KG', 'porcion' => 0.005],
+        'Cebolla' => ['variante' => 'CEBOLLA-1KG', 'porcion' => 0.1],
+        'Tortilla de maiz' => ['variante' => 'TMAZ-50-UD', 'porcion' => 0.04],
+        'Queso' => ['variante' => 'QF-500G', 'porcion' => 0.1],
+        'Crema' => ['variante' => 'CREM-LEC-1L', 'porcion' => 0.03],
+        'Leche' => ['variante' => 'LEC-1L', 'porcion' => 0.2],
+        'Huevo' => ['variante' => 'HUE-CUB-12', 'porcion' => 1 / 6],
+        'Ron Blanco Flor de Cana' => ['variante' => 'RON-BLAN-750', 'porcion' => 0.06],
+        'Vino Tinto de la Casa' => ['variante' => 'VTINTO-750ML', 'porcion' => 0.2],
+        'Jugo de Pina Natural' => ['variante' => 'JUG-PIN-1L', 'porcion' => 0.12],
     ];
 
     public function run(): void
@@ -271,6 +275,8 @@ final class MenuRestauranteSeeder extends Seeder
         $unidadMedidaId = $this->unidadMedidaId();
         $usaRendimientoPorciones = Schema::hasColumn('productos', 'rendimiento_porciones');
 
+        $porcionesPorSku = array_column(self::REUSO_CATALOGO, 'porcion', 'variante');
+
         foreach ($platos as $p) {
             $datosProductoReceta = ['categoria_id' => $defaultCatId, 'unidad_medida_id' => $unidadMedidaId, 'estado' => 1];
             if ($usaRendimientoPorciones) {
@@ -288,10 +294,15 @@ final class MenuRestauranteSeeder extends Seeder
 
             $productoPadre->forceFill($datosActualizarReceta)->save();
 
+            ProductoKit::query()->where('producto_padre_id', $productoPadre->id)
+                ->whereHas('variante.producto', fn ($query) => $query->where('tipo', TipoProducto::ActivoFijo->value))
+                ->delete();
+
             foreach ($p['receta'] as [$variante, $cantidad]) {
-                ProductoKit::firstOrCreate(
+                $porcion = $porcionesPorSku[$variante->codigo] ?? 1.0;
+                ProductoKit::updateOrCreate(
                     ['producto_padre_id' => $productoPadre->id, 'producto_variante_id' => $variante->id],
-                    ['cantidad' => $cantidad]
+                    ['cantidad' => round($cantidad * $porcion, 4)]
                 );
             }
 
@@ -346,20 +357,11 @@ final class MenuRestauranteSeeder extends Seeder
     /** @param Collection<int, Ubicacion> $ubicacionesCocina */
     private function variante(string $nombreProducto, string $nombreVariante, int $categoriaId, mixed $ubicacionesCocina): ProductoVariante
     {
-        $producto = null;
-        $variante = null;
-
         $reuso = self::REUSO_CATALOGO[$nombreProducto] ?? null;
-        if (is_array($reuso)) {
-            $producto = Producto::query()->where('nombre', $reuso['producto'])->first();
-
-            if ($producto instanceof Producto) {
-                $variante = ProductoVariante::query()
-                    ->where('producto_id', $producto->id)
-                    ->where('codigo', $reuso['variante'])
-                    ->first();
-            }
-        }
+        $variante = $reuso === null
+            ? null
+            : ProductoVariante::query()->where('codigo', $reuso['variante'])->first();
+        $producto = $variante?->producto;
 
         if (! $producto instanceof Producto) {
             $producto = Producto::firstOrCreate(
@@ -368,8 +370,8 @@ final class MenuRestauranteSeeder extends Seeder
             );
         }
 
-        if (! $variante instanceof ProductoVariante) {
-            $variante = ProductoVariante::query()->where('producto_id', $producto->id)->first();
+        if ($producto->tipo === TipoProducto::ActivoFijo->value) {
+            throw new \DomainException("El producto {$producto->nombre} es un activo fijo y no se puede usar como ingrediente.");
         }
 
         if (! $variante instanceof ProductoVariante) {
@@ -423,7 +425,8 @@ final class MenuRestauranteSeeder extends Seeder
         ];
 
         $data = $preciosMercado[$nombreProducto] ?? ['precio' => 15, 'base' => 'kg', 'cantidad_variante' => 1];
-        $costoUnitario = round($data['precio'] * $data['cantidad_variante'], 2);
+        $porcion = isset($reuso) && $variante->codigo === $reuso['variante'] ? $reuso['porcion'] : 1.0;
+        $costoUnitario = round($data['precio'] * $data['cantidad_variante'] / $porcion, 2);
 
         foreach ($ubicacionesCocina as $cocina) {
             // Stock moderno (inv_lotes + inv_stock) — usado por costoRealUnitario y ObtenerStockParaConsumo
@@ -445,7 +448,7 @@ final class MenuRestauranteSeeder extends Seeder
             );
 
             // Stock legacy (tabla `stocks`) — usado por ConsumirIngredientesPedido y MateriaPrimaCocina
-            SharedStock::updateOrCreate(
+            SharedStock::firstOrCreate(
                 [
                     'stockable_type' => Ubicacion::class,
                     'stockable_id' => $cocina->id,
@@ -453,12 +456,12 @@ final class MenuRestauranteSeeder extends Seeder
                 ],
                 [
                     'lote_id' => $lote->id,
-                    'cantidad_actual' => 500.0,
+                    'cantidad_actual' => $lote->cantidad_disponible,
                     'cantidad_ideal' => 500.0,
                 ]
             );
 
-            Stock::updateOrCreate(
+            Stock::firstOrCreate(
                 [
                     'producto_id' => $producto->id,
                     'lote_id' => $lote->id,
@@ -466,7 +469,7 @@ final class MenuRestauranteSeeder extends Seeder
                 ],
                 [
                     'producto_variante_id' => $variante->id,
-                    'cantidad' => 500.0,
+                    'cantidad' => $lote->cantidad_disponible,
                 ]
             );
         }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Tesoreria;
 
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Cajas\CajasCluster;
 use App\Interactors\Tesoreria\GestionarEntregas;
 use App\Repository\Models\Tesoreria\EntregaCaja;
 use App\Repository\Queries\Tesoreria\TesoreriaQuery;
@@ -21,13 +21,13 @@ use UnitEnum;
 
 final class EntregasCaja extends Page implements HasTable
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = CajasCluster::class;
 
     use AccionesCaja,DatosTesoreria,InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-truck';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Caja y cierres';
+    protected static string|UnitEnum|null $navigationGroup = 'Control y cierres';
 
     protected static ?string $navigationLabel = 'Entregas y depósitos';
 
@@ -35,7 +35,7 @@ final class EntregasCaja extends Page implements HasTable
 
     protected static ?string $slug = 'tesoreria/entregas';
 
-    protected static ?int $navigationSort = 23;
+    protected static ?int $navigationSort = 50;
 
     protected string $view = 'filament.pages.tesoreria.entregas';
 

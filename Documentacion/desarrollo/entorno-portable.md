@@ -30,6 +30,19 @@ Las imágenes de review y producción incluyen Nginx, PHP-FPM y los recursos com
 
 Para usar un nombre como `review.hotel.test`, agrega `127.0.0.1 review.hotel.test` al archivo de hosts del equipo y ajusta `APP_URL=http://review.hotel.test:8080` al puerto publicado. Nginx recibe el nombre en el mismo puerto. El bloque `server` de `docker/nginx.conf` permite declarar los nombres en `server_name` o definir bloques adicionales si cada subdominio necesita reglas propias.
 
+## Carga inicial e histórica de demostración
+
+Crea un PostgreSQL vacío cuyo nombre termine en `_demo`. Configura sus credenciales en un entorno Laravel separado y usa `APP_ENV=local` o `APP_ENV=testing`. Confirma la conexión antes de migrar. La carga completa rechaza bases pobladas y se ejecuta en una transacción.
+
+```sh
+php artisan migrate
+php artisan db:seed --class=DemostracionCompletaSeeder
+```
+
+El escenario reúne catálogos, habitaciones, servicios y promociones, clientes y reservas con sus folios, personal, compras y recepciones, inventario, activos y mantenimiento, cocina y bar, limpieza y lavandería, y una operación inicial de tesorería. Los históricos usan las variantes del catálogo y los pedidos de cocina generan consumo y merma.
+
+Para ensayar con menos datos, configura `DEMO_RESERVAS_HISTORICAS=144` y `MERMA_COCINA_ESCALA=0.5` en el entorno de demostración. La carga normal solicita 15.000 reservas en 730 días. Ajusta `DEMO_DIAS_HISTORICOS` si necesitas ampliar el calendario. La escala de cocina regula el volumen de pedidos dentro del año simulado. El arranque de review y el despliegue conservan su flujo habitual.
+
 ## Pruebas y Dusk
 
 ```sh
@@ -76,7 +89,7 @@ Los únicos hooks del proyecto son `pre-commit` y `pre-push`; siempre se ejecuta
 
 No se omiten fallos automáticamente. Si un control falla, corrige lo indicado y repite. Los controles no reformatean ni guardan archivos durante un commit o push.
 
-Las pruebas funcionales usan 144 reservas históricas sintéticas mediante `DEMO_RESERVAS_HISTORICAS`. La demostración normal conserva 10.000; esa carga masiva puede configurarse por separado para pruebas de rendimiento. Los escenarios de reservas, cobros y facturación permanecen activos.
+Las pruebas funcionales usan 144 reservas históricas sintéticas mediante `DEMO_RESERVAS_HISTORICAS`. La demostración normal solicita 15.000; esa carga masiva puede configurarse por separado para pruebas de rendimiento. Los escenarios de reservas, cobros y facturación permanecen activos.
 
 La imagen fija 512 MB para PHP y el lanzador asigna 1 GB a Pest/Dusk, evitando diferencias con el límite de memoria del PHP instalado en cada equipo.
 

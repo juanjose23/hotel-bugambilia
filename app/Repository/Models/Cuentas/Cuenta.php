@@ -6,6 +6,7 @@ namespace App\Repository\Models\Cuentas;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
+use App\Enums\Estancias\EstadoEstancia;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Models\Facturacion\Factura;
@@ -178,6 +179,17 @@ final class Cuenta extends Model implements AuditableContract
     public function permiteNuevosCargos(): bool
     {
         return $this->estado->permiteNuevosCargos();
+    }
+
+    public function tieneEstanciaActiva(): bool
+    {
+        $estadosActivos = [EstadoEstancia::ACTIVA, EstadoEstancia::EXTENDIDA];
+        if ($this->estancia_id !== null) {
+            return in_array($this->estancia?->estado, $estadosActivos, true);
+        }
+
+        return $this->tipo_cuenta === TipoCuenta::ESTANCIA
+            && $this->reserva?->estancias()->whereIn('estado', $estadosActivos)->exists() === true;
     }
 
     public function tieneSaldoPendiente(): bool

@@ -12,6 +12,7 @@ use App\Enums\Reservas\TipoReserva;
 use App\Enums\Shared\EstadoGeneral;
 use App\Interactors\Clientes\ObtenerDetalleReservaPortal;
 use App\Interactors\Clientes\ObtenerReservasCliente;
+use App\Interactors\Facturacion\Stripe\CrearIntentoPagoStripe;
 use App\Repository\Models\Catalogos\Catalogo;
 use App\Repository\Models\Catalogos\Pais;
 use App\Repository\Models\Clientes\Cliente;
@@ -99,6 +100,15 @@ test('genera url_pago_saldo valida con codigo en el portal cuando hay saldo pend
     expect($reservaLista)->not->toBeNull()
         ->and($reservaLista['url_pago_saldo'])->not->toBeNull()
         ->and($reservaLista['url_pago_saldo'])->toContain('codigo=RES-TEST-PORTAL-01');
+
+    Http::preventStrayRequests();
+    foreach ([EstadoReserva::CANCELADA, EstadoReserva::NO_SHOW] as $estado) {
+        $reserva->update(['estado' => $estado]);
+        expect(app(ObtenerDetalleReservaPortal::class)->ejecutar($reserva->id)['url_pago_saldo'])->toBeNull()
+            ->and(collect(app(ObtenerReservasCliente::class)->ejecutar())->firstWhere('id', $reserva->id)['url_pago_saldo'])->toBeNull();
+        expect(fn () => app(CrearIntentoPagoStripe::class)->ejecutarParaReserva($reserva->refresh()))
+            ->toThrow(DomainException::class, 'La reserva no admite pagos en línea');
+    }
 });
 
 test('permite crear intento y confirmar pago de saldo restante con Stripe en reserva checked_in', function (): void {

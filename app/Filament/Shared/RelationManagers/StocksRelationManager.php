@@ -92,7 +92,7 @@ class StocksRelationManager extends RelationManager
                     ->icon(fn (EstadoStock $state) => $state->getIcon()),
 
                 TextColumn::make('ultima_verificacion')
-                    ->label('Ãšlt. Verificación')
+                    ->label('Últ. Verificación')
                     ->dateTime()
                     ->placeholder('Nunca')
                     ->sortable(),

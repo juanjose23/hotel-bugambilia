@@ -360,9 +360,6 @@ class EsquemaReservaRestaurante
                     TextEntry::make('resumen_subtotal_restaurante')
                         ->label('Subtotal de la reserva')
                         ->state(fn (Get $get): string => MonedaHelper::formatear(self::resumen($get)['subtotal'])),
-                    TextEntry::make('resumen_abono_restaurante')
-                        ->label('Abono exacto del 50 %')
-                        ->state(fn (Get $get): string => MonedaHelper::formatear(self::resumen($get)['abono_50'])),
                 ]),
         ];
     }

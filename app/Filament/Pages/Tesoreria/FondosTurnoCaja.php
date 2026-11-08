@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Tesoreria;
 
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Tesoreria\TesoreriaCluster;
 use App\Interactors\Tesoreria\AbastecerTurnoCaja;
 use App\Repository\Models\Tesoreria\AbastecimientoCaja;
 use App\Repository\Queries\Tesoreria\TesoreriaQuery;
@@ -22,13 +22,13 @@ use UnitEnum;
 
 final class FondosTurnoCaja extends Page implements HasTable
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = TesoreriaCluster::class;
 
     use AccionesCaja,DatosTesoreria,InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-down-tray';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Fondos y bancos';
+    protected static string|UnitEnum|null $navigationGroup = 'Fondos y cuentas';
 
     protected static ?string $navigationLabel = 'Fondos para turnos';
 
@@ -36,7 +36,7 @@ final class FondosTurnoCaja extends Page implements HasTable
 
     protected static ?string $slug = 'tesoreria/fondos-turno';
 
-    protected static ?int $navigationSort = 32;
+    protected static ?int $navigationSort = 30;
 
     protected string $view = 'filament.pages.tesoreria.fondos-turno';
 

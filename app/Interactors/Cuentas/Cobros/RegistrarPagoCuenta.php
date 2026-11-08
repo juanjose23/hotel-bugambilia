@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Interactors\Cuentas\Cobros;
 
 use App\BusinessLogic\Cuentas\Calculos\CalcularVuelto;
-use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\EstadoPago;
 use App\Enums\Cuentas\MetodoPago;
 use App\Enums\Reservas\TipoPagoReserva;
@@ -54,14 +53,7 @@ final readonly class RegistrarPagoCuenta
         ): PagoCuenta {
             $cuentaBloqueada = $this->cuentas->bloquear((int) $cuenta->id);
 
-            $estadosQueAceptanPagos = [
-                EstadoCuenta::SOLICITADA,
-                EstadoCuenta::ABIERTA,
-                EstadoCuenta::BLOQUEADA,
-                EstadoCuenta::PENDIENTE_PAGO,
-            ];
-
-            if (! in_array($cuentaBloqueada->estado, $estadosQueAceptanPagos, true)) {
+            if (! $cuentaBloqueada->estado->permitePagos()) {
                 throw new DomainException(
                     "La cuenta {$cuentaBloqueada->numero_cuenta} está en estado '{$cuentaBloqueada->estado->getLabel()}' y no acepta pagos.",
                 );
@@ -120,7 +112,7 @@ final readonly class RegistrarPagoCuenta
                         'saldo' => $cuentaActualizada->saldo,
                         'tipo_pago' => (float) $cuentaActualizada->saldo <= 0
                             ? TipoPagoReserva::PAGO_COMPLETO
-                            : TipoPagoReserva::ABONO_50,
+                            : ($reserva->tipo_pago ?? TipoPagoReserva::SIN_PAGO),
                     ]);
                 }
             }

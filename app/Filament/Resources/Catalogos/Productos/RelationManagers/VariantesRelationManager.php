@@ -137,17 +137,17 @@ class VariantesRelationManager extends RelationManager
 
                 TextColumn::make('unidadMedida.nombre')
                     ->label('Unidad')
-                    ->placeholder('â€”'),
+                    ->placeholder('—'),
 
                 TextColumn::make('peso')
                     ->label('Peso (kg)')
                     ->numeric(decimalPlaces: 2)
-                    ->placeholder('â€”'),
+                    ->placeholder('—'),
 
                 TextColumn::make('volumen')
                     ->label('Volumen (lt)')
                     ->numeric(decimalPlaces: 2)
-                    ->placeholder('â€”'),
+                    ->placeholder('—'),
 
                 EstadoBadgeColumn::make(EstadoGeneral::class),
 
@@ -204,19 +204,19 @@ class VariantesRelationManager extends RelationManager
 
                                 TextEntry::make('unidadMedida.nombre')
                                     ->label('Unidad de medida')
-                                    ->placeholder('â€”')
+                                    ->placeholder('—')
                                     ->icon(Heroicon::Scale),
 
                                 TextEntry::make('peso')
                                     ->label('Peso')
                                     ->suffix(' kg')
-                                    ->placeholder('â€”')
+                                    ->placeholder('—')
                                     ->icon(Heroicon::Scale),
 
                                 TextEntry::make('volumen')
                                     ->label('Volumen')
                                     ->suffix(' lt')
-                                    ->placeholder('â€”')
+                                    ->placeholder('—')
                                     ->icon(Heroicon::Beaker),
 
                                 TextEntry::make('atributos')

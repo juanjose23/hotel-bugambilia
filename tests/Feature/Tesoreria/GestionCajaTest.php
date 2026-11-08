@@ -8,6 +8,8 @@ use App\Enums\Cuentas\TipoCuenta;
 use App\Filament\Pages\Tesoreria\GestionCajas;
 use App\Filament\Pages\Tesoreria\HistorialCajas;
 use App\Filament\Pages\Tesoreria\MiTurnoCaja;
+use App\Filament\Resources\Cuentas\CuentaResource\Pages\ViewCuenta;
+use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\PagosRelationManager;
 use App\Interactors\Cuentas\Cobros\RegistrarPagoCuenta;
 use App\Interactors\Cuentas\Gestion\RegistrarDetalleCuenta;
 use App\Interactors\Tesoreria\CobrarDesdeCaja;
@@ -49,6 +51,48 @@ beforeEach(function () {
     $this->cuenta = Cuenta::create(['numero_cuenta' => 'DEMO-'.Str::uuid(), 'tipo_cuenta' => TipoCuenta::RESTAURANTE_DIRECTO, 'moneda_id' => $this->moneda->id, 'estado' => EstadoCuenta::ABIERTA, 'abierta_at' => now()]);
     app(RegistrarDetalleCuenta::class)->ejecutar(cuenta: $this->cuenta, concepto: 'Consumo de demostración', precioUnitario: 100.0);
     $this->cuenta->refresh();
+});
+
+test('el boton de abono se habilita en el folio solo con permiso y saldo', function () {
+    $params = ['ownerRecord' => $this->cuenta, 'pageClass' => ViewCuenta::class];
+    $boton = TestAction::make('create')->table();
+
+    $this->actingAs($this->actor);
+    Livewire::test(PagosRelationManager::class, $params)->assertActionVisible($boton);
+
+    $lector = User::factory()->create(['is_admin' => true]);
+    $this->actingAs($lector);
+    Livewire::test(PagosRelationManager::class, $params)->assertActionHidden($boton);
+
+    $this->cuenta->update(['saldo' => 0]);
+    $this->actingAs($this->actor);
+    Livewire::test(PagosRelationManager::class, $params)->assertActionHidden($boton);
+});
+
+test('la vista administrativa separa consulta cobro y cambios de estado del folio', function () {
+    Filament\Facades\Filament::setCurrentPanel(Filament\Facades\Filament::getPanel('admin'));
+    $lector = User::factory()->create(['is_admin' => true]);
+    foreach (['ViewAny:Cuenta', 'View:Cuenta'] as $nombre) {
+        $permiso = Permission::firstOrCreate(['name' => $nombre, 'guard_name' => 'web']);
+        $lector->givePermissionTo($permiso);
+        $this->actor->givePermissionTo($permiso);
+    }
+
+    $this->actingAs($lector);
+    Livewire::test(ViewCuenta::class, ['record' => $this->cuenta->id])->assertSuccessful()
+        ->assertActionHidden('cobrar_cuenta')
+        ->assertActionHidden('solicitar_cobro')
+        ->assertActionHidden('cerrar_y_generar_venta');
+
+    $this->actingAs($this->actor);
+    Livewire::test(ViewCuenta::class, ['record' => $this->cuenta->id])->assertSuccessful()
+        ->assertActionVisible('cobrar_cuenta')
+        ->assertActionHidden('solicitar_cobro');
+
+    $this->actor->givePermissionTo(Permission::firstOrCreate(['name' => 'Update:Cuenta', 'guard_name' => 'web']));
+    Livewire::test(ViewCuenta::class, ['record' => $this->cuenta->id])->assertSuccessful()
+        ->assertActionVisible('solicitar_cobro')
+        ->assertActionHidden('cerrar_y_generar_venta');
 });
 
 test('apertura exige cada moneda y evita dos turnos activos', function () {

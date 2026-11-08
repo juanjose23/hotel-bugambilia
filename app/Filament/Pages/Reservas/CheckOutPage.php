@@ -32,6 +32,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Throwable;
 use UnitEnum;
@@ -237,7 +238,7 @@ final class CheckOutPage extends Page implements HasForms, HasTable
             $dto = new RealizarCheckOutData(
                 estanciaId: (int) $estanciaId,
                 observaciones: is_string($formData['observaciones'] ?? null) ? $formData['observaciones'] : null,
-                autorizarSaldoPendiente: (bool) ($formData['credito_autorizado'] ?? false),
+                autorizarSaldoPendiente: $this->puedeAutorizarSaldo() && (bool) ($formData['credito_autorizado'] ?? false),
                 llavesDevueltas: is_numeric($formData['llaves_devueltas'] ?? null) ? (int) $formData['llaves_devueltas'] : 1,
                 autorizarLlavesPendientes: (bool) ($formData['autorizar_llaves_pendientes'] ?? false),
                 usuarioId: $userId,
@@ -351,9 +352,16 @@ final class CheckOutPage extends Page implements HasForms, HasTable
         return $this->montoCuenta('saldo');
     }
 
+    public function puedeAutorizarSaldo(): bool
+    {
+        $cuenta = $this->cuentaActiva();
+
+        return $cuenta !== null && Gate::allows('update', $cuenta);
+    }
+
     public function saldoPermitido(): bool
     {
-        return $this->saldoCuenta() <= 0.0 || (bool) ($this->data['credito_autorizado'] ?? false);
+        return $this->saldoCuenta() <= 0.0 || ($this->puedeAutorizarSaldo() && (bool) ($this->data['credito_autorizado'] ?? false));
     }
 
     public function llavesPermitidas(): bool

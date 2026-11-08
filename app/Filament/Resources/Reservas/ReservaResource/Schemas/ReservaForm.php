@@ -28,11 +28,11 @@ class ReservaForm
             ->columns(1)
             ->components([
                 // Aviso de pago pendiente en edición
-                Callout::make('Pago del 50 % pendiente')
-                    ->description('Esta reserva aún no está pagada. Tiene que abonar el 50 % del total antes de confirmar la reserva.')
+                Callout::make('Pago requerido para confirmar')
+                    ->description('Registre el pago desde el folio de la reserva para completar el importe requerido.')
                     ->warning()
                     ->visibleOn('edit')
-                    ->visible(fn ($record): bool => $record !== null && $record->tipo_pago !== TipoPagoReserva::PAGO_COMPLETO && (float) $record->total_pagado < $record->tipo_pago->monto((float) $record->total)),
+                    ->visible(fn ($record): bool => $record !== null && $record->tipo_pago instanceof TipoPagoReserva && (float) $record->total_pagado < $record->tipo_pago->monto((float) $record->total)),
 
                 // =====================================================================
                 // LAYOUT CREATE — panel izquierdo (detalles) + panel derecho (resumen+pago)
@@ -89,7 +89,6 @@ class ReservaForm
                             ...EsquemaReservaEspacio::make(),
                             ...EsquemaReservaServicio::make(),
                             SelectorServiciosAdicionales::make(),
-                            ResumenFinancieroYAbonoSeccion::make(),
                             NotasReservaSeccion::make(),
                         ])
                             ->columnSpan(['default' => 1, 'lg' => 7, 'xl' => 8]),

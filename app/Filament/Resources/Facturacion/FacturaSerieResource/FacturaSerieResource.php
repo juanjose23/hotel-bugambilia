@@ -29,7 +29,7 @@ final class FacturaSerieResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QueueList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración fiscal';
+    protected static string|UnitEnum|null $navigationGroup = 'Resoluciones y folios';
 
     protected static ?string $navigationLabel = 'Series fiscales';
 
@@ -37,7 +37,7 @@ final class FacturaSerieResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Series fiscales';
 
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 10;
 
     protected static ?string $slug = 'series';
 

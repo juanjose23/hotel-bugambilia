@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Inventario\InventarioFisico\Schemas;
 
+use App\Repository\Models\Catalogos\Ubicacion;
+use App\Repository\Models\Inventario\InventarioFisico;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -37,6 +40,25 @@ class InventarioFisicoForm
                             ->disabled(fn ($record) => $record?->estado === 'procesado')
                             ->prefixIcon(Heroicon::Calendar),
 
+                        Select::make('ubicacion_id')
+                            ->label('Ubicación / Almacén')
+                            ->placeholder('Todas las Ubicaciones (Hotel Completo)')
+                            ->options(fn () => Ubicacion::query()->orderBy('nombre')->pluck('nombre', 'id'))
+                            ->searchable()
+                            ->nullable()
+                            ->disabled(fn ($record) => $record?->estado === 'procesado')
+                            ->prefixIcon(Heroicon::BuildingOffice)
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set, $record) {
+                                if ($record?->estado === 'procesado') {
+                                    return;
+                                }
+                                $hoja = InventarioFisico::generarHojaInicial(
+                                    ubicacionId: $state ? (int) $state : null,
+                                );
+                                $set('datos_hoja', $hoja);
+                            }),
+
                         TextInput::make('creador_nombre')
                             ->label('Responsable')
                             ->disabled()
@@ -54,7 +76,7 @@ class InventarioFisicoForm
                     ]),
 
                 Section::make('Hoja de Conciliación (Físico vs Sistema)')
-                    ->description('Utilice la hoja de cálculo interactiva para registrar las cantidades reales contadas físicamente.')
+                    ->description('Seleccione una Ubicación / Almacén arriba para cargar los lotes específicos de esa área, o utilice la hoja interactiva para registrar las cantidades reales contadas físicamente.')
                     ->columnSpanFull()
                     ->schema([
                         (class_exists(SpreadsheetField::class)
@@ -63,6 +85,7 @@ class InventarioFisicoForm
                                 ->height('600px')
                                 ->minHeight('400px')
                                 ->columnSpanFull()
+                                ->default(fn () => InventarioFisico::generarHojaInicial())
                                 ->disabled(fn ($record) => $record?->estado === 'procesado')
                                 ->ribbonType('collapsed')
                                 ->showToolbar(fn ($record) => $record?->estado !== 'procesado')
@@ -70,6 +93,7 @@ class InventarioFisicoForm
                                 ->showContextMenu(fn ($record) => $record?->estado !== 'procesado')
                             : Textarea::make('datos_hoja')
                                 ->label('Hoja de Conciliación (Formato JSON)')
+                                ->default(fn () => json_encode(InventarioFisico::plantillaVacia(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))
                                 ->helperText('Nota: Instale el paquete "qalainau/filament-univer-sheet" y ejecute "php artisan filament:assets" para habilitar la hoja de cálculo interactiva de Univer Sheet.')
                                 ->rows(15)
                                 ->columnSpanFull()

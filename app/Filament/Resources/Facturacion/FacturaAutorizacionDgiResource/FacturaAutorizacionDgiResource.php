@@ -31,7 +31,7 @@ final class FacturaAutorizacionDgiResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ShieldCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración fiscal';
+    protected static string|UnitEnum|null $navigationGroup = 'Resoluciones y folios';
 
     protected static ?string $navigationLabel = 'Autorizaciones DGI';
 
@@ -39,7 +39,7 @@ final class FacturaAutorizacionDgiResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Autorizaciones DGI';
 
-    protected static ?int $navigationSort = 41;
+    protected static ?int $navigationSort = 20;
 
     protected static ?string $slug = 'autorizaciones-dgi';
 

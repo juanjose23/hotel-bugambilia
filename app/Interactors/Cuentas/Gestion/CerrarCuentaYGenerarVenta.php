@@ -50,6 +50,10 @@ final class CerrarCuentaYGenerarVenta
                 throw new DomainException('La cuenta ya fue cerrada o cambió de estado. Consulta su venta existente.');
             }
 
+            if ($cuenta->tieneEstanciaActiva()) {
+                throw new DomainException('Finaliza la estancia desde Check-out antes de cerrar el folio.');
+            }
+
             // Recalcular por última vez antes de congelar
             $cuenta = $this->recalcularCuenta->ejecutar($cuenta, $usuarioId);
 

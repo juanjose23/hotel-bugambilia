@@ -286,7 +286,15 @@ test('resuelve solicitud de cocina tomando stock de varias bodegas internas', fu
 
     $usuario = usuarioAutorizaInventario();
 
-    app(ResolverSolicitudAbastecimientoCocina::class)->ejecutar($solicitud, (int) $usuario->id);
+    $resolver = app(ResolverSolicitudAbastecimientoCocina::class);
+    $plan = $resolver->plan($solicitud);
+    expect(array_column($plan['filas'], 'cantidad'))->toBe([3.0, 3.0]);
+    $stockUno->update(['cantidad_actual' => 2]);
+    expect(fn () => $resolver->ejecutar($solicitud, $usuario->id, $plan['confirmacion']))
+        ->toThrow(DomainException::class, 'Los lotes sugeridos cambiaron');
+    expect((float) $stockDos->refresh()->cantidad_actual)->toBe(4.0);
+    $stockUno->update(['cantidad_actual' => 3]);
+    $resolver->ejecutar($solicitud, $usuario->id, $plan['confirmacion']);
 
     $stockCocina = Stock::query()
         ->where('stockable_type', Ubicacion::class)
@@ -434,10 +442,16 @@ test('un despacho confirmado no puede repetirse con la misma solicitud', functio
     $stock = Stock::query()->create(['stockable_type' => Ubicacion::class, 'stockable_id' => $bodega->id, 'producto_variante_id' => $f['varianteOrigen']->id, 'cantidad_actual' => 10, 'cantidad_ideal' => 10]);
     $colaborador = Colaborador::factory()->create();
     $solicitud = app(CrearSolicitudAbastecimientoCocina::class)->ejecutar(motivo: 'Abastecimiento único', items: [['producto_variante_id' => $f['varianteOrigen']->id, 'cantidad' => 3]], colaboradorId: $colaborador->id);
-    $solicitud->items()->firstOrFail()->update(['cantidad_aprobada' => 3]);
+    $item = $solicitud->items()->firstOrFail();
+    $item->update(['cantidad_aprobada' => 3]);
     $solicitud->update(['estado' => EstadoSolicitud::Aprobada]);
     $usuario = usuarioAutorizaInventario();
-    app(DespacharSolicitudAbastecimientoCocina::class)->ejecutar($solicitud, $bodega->id, $f['cocina']->id, $usuario->id);
+    $despacho = app(DespacharSolicitudAbastecimientoCocina::class);
+    $seleccion = [$item->id => $despacho->sugerencia($item, $bodega->id)];
+    expect($seleccion[$item->id])->toBe([['stock_id' => $stock->id, 'cantidad' => 3.0]])
+        ->and((float) $stock->refresh()->cantidad_actual)->toBe(10.0);
+
+    $despacho->ejecutar($solicitud, $bodega->id, $f['cocina']->id, $usuario->id, $seleccion);
     expect(fn () => app(DespacharSolicitudAbastecimientoCocina::class)->ejecutar($solicitud, $bodega->id, $f['cocina']->id, $usuario->id))->toThrow(DomainException::class, 'ya fue abastecida');
     expect((float) $stock->refresh()->cantidad_actual)->toBe(7.0)
         ->and((float) $f['stockOrigen']->refresh()->cantidad_actual)->toBe(13.0);

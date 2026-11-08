@@ -41,7 +41,7 @@ class ViewReserva extends ViewRecord
                 },
             )
                 ->name('cobrarReserva')
-                ->label('Cobrar reserva'),
+                ->label('Cobrar saldo'),
 
             Actions\EditAction::make(),
         ];

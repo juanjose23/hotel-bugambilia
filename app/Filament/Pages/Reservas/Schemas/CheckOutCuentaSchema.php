@@ -65,13 +65,13 @@ final class CheckOutCuentaSchema
                         ->label('Saldo pendiente autorizado por crédito')
                         ->helperText('Usar solo cuando exista autorización real. Si no hay autorización, primero registre el pago.')
                         ->live()
-                        ->visible(fn (): bool => $page->saldoCuenta() > 0)
+                        ->visible(fn (): bool => $page->saldoCuenta() > 0 && $page->puedeAutorizarSaldo())
                         ->columnSpanFull(),
                     Textarea::make('motivo_credito')
                         ->label('Motivo de autorización')
                         ->maxLength(500)
                         ->rows(2)
-                        ->visible(fn (): bool => $page->saldoCuenta() > 0 && (bool) ($page->data['credito_autorizado'] ?? false))
+                        ->visible(fn (): bool => $page->saldoCuenta() > 0 && $page->puedeAutorizarSaldo() && (bool) ($page->data['credito_autorizado'] ?? false))
                         ->columnSpanFull(),
                 ]),
         ];

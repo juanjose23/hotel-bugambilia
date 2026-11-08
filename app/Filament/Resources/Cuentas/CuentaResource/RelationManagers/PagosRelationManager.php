@@ -29,6 +29,7 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\HtmlString;
 
 final class PagosRelationManager extends RelationManager
@@ -38,6 +39,11 @@ final class PagosRelationManager extends RelationManager
     protected static ?string $title = 'Pagos y Abonos';
 
     protected static BackedEnum|string|null $icon = 'heroicon-m-banknotes';
+
+    public function isReadOnly(): bool
+    {
+        return Gate::denies('registrarPago', $this->getOwnerRecord());
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -83,7 +89,12 @@ final class PagosRelationManager extends RelationManager
             ->defaultSort('created_at', 'desc')
             ->headerActions([
                 CreateAction::make()
-                    ->label('Registrar Pago / Abono')
+                    ->label('Registrar abono o pago')
+                    ->visible(function (): bool {
+                        $cuenta = $this->getOwnerRecord();
+
+                        return $cuenta instanceof Cuenta && ! $this->isReadOnly() && $cuenta->estado->permitePagos() && $cuenta->tieneSaldoPendiente();
+                    })
                     ->icon('heroicon-o-banknotes')
                     ->modalWidth('lg')
                     ->schema(function (): array {
@@ -160,6 +171,8 @@ final class PagosRelationManager extends RelationManager
                         try {
                             /** @var Cuenta $cuenta */
                             $cuenta = $this->getOwnerRecord();
+
+                            Gate::authorize('registrarPago', $cuenta);
 
                             /** @var int|null $userId */
                             $userId = auth()->id();

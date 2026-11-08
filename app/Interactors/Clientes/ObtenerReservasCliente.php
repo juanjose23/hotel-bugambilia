@@ -120,7 +120,7 @@ final class ObtenerReservasCliente
                 $r->id,
                 urlencode((string) $r->codigo_reserva),
             ),
-            'url_pago_saldo' => ((float) ($r->saldo ?? 0)) > 0 ? sprintf(
+            'url_pago_saldo' => $r->admitePagoPortal() ? sprintf(
                 '/reservas/%d/pago?codigo=%s',
                 $r->id,
                 urlencode((string) $r->codigo_reserva),

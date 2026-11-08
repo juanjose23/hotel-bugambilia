@@ -6,7 +6,7 @@ namespace App\Filament\Resources\Cuentas;
 
 use App\Enums\Cuentas\EstadoCuenta;
 use App\Enums\Cuentas\TipoCuenta;
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Facturacion\FacturacionCluster;
 use App\Filament\Resources\Cuentas\CuentaResource\Pages;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\DetallesRelationManager;
 use App\Filament\Resources\Cuentas\CuentaResource\RelationManagers\PagosRelationManager;
@@ -34,13 +34,13 @@ use UnitEnum;
 
 final class CuentaResource extends Resource
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = FacturacionCluster::class;
 
     protected static ?string $model = Cuenta::class;
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::FolderOpen;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Cobros y documentos';
+    protected static string|UnitEnum|null $navigationGroup = 'Documentos y ventas';
 
     protected static ?int $navigationSort = 10;
 

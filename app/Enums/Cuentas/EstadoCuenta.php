@@ -77,6 +77,11 @@ enum EstadoCuenta: int implements HasColor, HasIcon, HasLabel
         return $this === self::ABIERTA;
     }
 
+    public function permitePagos(): bool
+    {
+        return in_array($this, [self::SOLICITADA, self::ABIERTA, self::BLOQUEADA, self::PENDIENTE_PAGO], true);
+    }
+
     /** Determina si la cuenta puede ser cerrada definitivamente */
     public function puedeCerrarse(): bool
     {

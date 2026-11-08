@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Tesoreria;
 
-use App\Filament\Clusters\FacturacionConfig\FacturacionConfigCluster;
+use App\Filament\Clusters\Tesoreria\TesoreriaCluster;
 use App\Repository\Queries\Tesoreria\TesoreriaQuery;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -18,13 +18,13 @@ use UnitEnum;
 
 final class MovimientosFondos extends Page implements HasTable
 {
-    protected static ?string $cluster = FacturacionConfigCluster::class;
+    protected static ?string $cluster = TesoreriaCluster::class;
 
     use AccionesCaja,DatosTesoreria,InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Fondos y bancos';
+    protected static string|UnitEnum|null $navigationGroup = 'Fondos y cuentas';
 
     protected static ?string $navigationLabel = 'Libro de fondos';
 
@@ -32,7 +32,7 @@ final class MovimientosFondos extends Page implements HasTable
 
     protected static ?string $slug = 'tesoreria/libro-fondos';
 
-    protected static ?int $navigationSort = 31;
+    protected static ?int $navigationSort = 20;
 
     protected string $view = 'filament.pages.tesoreria.libro-fondos';
 

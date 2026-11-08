@@ -37,7 +37,7 @@ final class DuskSeeder extends Seeder
         $this->call(UbicacionSeeder::class);
 
         // 2. Menú del restaurante (categorías, platos, recetas y stock en cocina)
-        $this->call(MenuRestauranteSeeder::class);
+        $this->call([ProductoSeeder::class, MenuRestauranteSeeder::class]);
 
         // 3. Espacio principal del restaurante y mesas hijas
         $espacio = Espacio::updateOrCreate(

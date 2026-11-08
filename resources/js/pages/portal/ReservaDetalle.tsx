@@ -167,7 +167,7 @@ export const ReservaDetalle = ({
                         <EstadoCuentaCard reserva={reserva} />
                         {tesoreria_habilitada &&
                             reserva.cuenta &&
-                            saldoNum > 0 && (
+                            reserva.puede_reportar_transferencia && (
                                 <Link
                                     href={`/portal/cuentas/${reserva.cuenta.id}/comprobantes`}
                                     className={buttonVariants({

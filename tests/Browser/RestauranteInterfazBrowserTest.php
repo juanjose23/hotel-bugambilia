@@ -349,8 +349,16 @@ test('flujo E2E completo: apertura de comanda, envio a cocina, transiciones KDS 
         $browser->loginAs($user)
             ->visit('/admin/restaurante/cocina')
             ->waitForText('Comandas en Preparación')
-            ->waitFor("@kds-pedido-{$pedido->id}")
-            ->assertPresent("@kds-item-{$item->id}-listo")
+            ->waitFor("@kds-pedido-{$pedido->id}");
+
+        if ($browser->element("@kds-item-{$item->id}-retiro") !== null) {
+            $browser->click("@kds-item-{$item->id}-retiro")
+                ->waitForDialog()
+                ->acceptDialog()
+                ->waitUntilMissing("@kds-item-{$item->id}-retiro");
+        }
+
+        $browser->assertPresent("@kds-item-{$item->id}-listo")
             ->click("@kds-item-{$item->id}-listo")
             ->pause(1500);
 

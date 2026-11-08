@@ -84,7 +84,7 @@ final class PortalPresenter
                 'reserva' => $reserva->id,
                 'codigo' => $reserva->codigo_reserva,
             ]),
-            'url_pago_saldo' => (float) $reserva->saldo > 0 ? route('reservas.pago', [
+            'url_pago_saldo' => $reserva->admitePagoPortal() ? route('reservas.pago', [
                 'reserva' => $reserva->id,
                 'codigo' => $reserva->codigo_reserva,
             ]) : null,

@@ -63,8 +63,6 @@ use Illuminate\Support\Facades\DB;
  */
 final class ReservaHistoricaSeeder extends Seeder
 {
-    private const DIAS_HISTORICOS = 365;
-
     private const TASA_CAMBIO = 36.50;
 
     private const IVA = 0.15;
@@ -123,109 +121,73 @@ final class ReservaHistoricaSeeder extends Seeder
 
         DB::disableQueryLog();
 
-        $creadas = $this->programarAnioCompleto($monedaUsd, $monedaNio);
+        $creadas = $this->programarHistorico($monedaUsd, $monedaNio);
 
-        $this->command->info("Ciclo histórico completo: {$creadas} reservas en el último año.");
+        $this->command->info("Ciclo histórico completo: {$creadas} reservas con estancias y fechas de demostración.");
     }
 
-    private function programarAnioCompleto(Moneda $monedaUsd, Moneda $monedaNio): int
+    private function programarHistorico(Moneda $monedaUsd, Moneda $monedaNio): int
     {
-        $totalReservas = max(1, config()->integer('demo.reservas_historicas'));
-        $tamanoBloque = 100;
-
-        DB::beginTransaction();
-
-        $inicio = Carbon::today()->subDays(self::DIAS_HISTORICOS - 1)->startOfDay();
-
+        $total = max(1, config()->integer('demo.reservas_historicas'));
+        $dias = max(1, config()->integer('demo.dias_historicos'));
+        $fin = Carbon::today()->subDays(3);
+        $inicio = $fin->copy()->subDays($dias);
         $habitaciones = $this->habitaciones->values();
-        $habitacionesCount = $habitaciones->count();
+        $porHabitacion = intdiv($total, $habitaciones->count());
+        $sobrante = $total % $habitaciones->count();
+        $agenda = [];
 
-        $porHabitacion = intdiv($totalReservas, $habitacionesCount);
-        $sobrante = $totalReservas - ($porHabitacion * $habitacionesCount);
-
-        $secuencia = 0;
-        $pendientesEnBloque = 0;
-
-        foreach ($habitaciones as $habitacionIndex => $habitacion) {
-            if ($secuencia >= $totalReservas) {
-                break;
+        foreach ($habitaciones as $indice => $habitacion) {
+            $estadias = $porHabitacion + ($indice < $sobrante ? 1 : 0);
+            $margen = $indice % min(25, $dias);
+            $diasUtiles = $dias - $margen;
+            if ($estadias > intdiv($diasUtiles + 1, 2)) {
+                throw new \RuntimeException('La cantidad de reservas excede el calendario disponible. Aumenta DEMO_DIAS_HISTORICOS o reduce DEMO_RESERVAS_HISTORICAS.');
             }
 
-            $estadias = $porHabitacion + ($habitacionIndex < $sobrante ? 1 : 0);
-            $margenInicio = $habitacionIndex % 25;
-
             $longitudes = $this->longitudesPara($estadias);
-            $diasUtiles = self::DIAS_HISTORICOS - 1 - $margenInicio;
             $diasLibres = $diasUtiles - array_sum($longitudes);
-
-            // Garantiza huecos mínimos de limpieza entre estadías.
-            while ($diasLibres < max(0, $estadias - 1)) {
-                $maxIndex = null;
-                $maxLongitud = -1;
-                foreach ($longitudes as $candIndex => $cand) {
-                    if ($cand > $maxLongitud) {
-                        $maxLongitud = $cand;
-                        $maxIndex = $candIndex;
-                    }
-                }
-
-                if ($maxIndex === null || $longitudes[$maxIndex] <= 1) {
-                    break;
-                }
-                $longitudes[$maxIndex] -= 1;
-                $diasLibres += 1;
+            while ($longitudes !== [] && $diasLibres < max(0, $estadias - 1)) {
+                $indiceMayor = array_search(max($longitudes), $longitudes, true);
+                $longitudes[$indiceMayor]--;
+                $diasLibres++;
             }
 
             $gaps = $this->repartirGaps($diasLibres, max(0, $estadias - 1));
-
-            $cursor = $inicio->copy()->addDays($margenInicio);
-
+            $entrada = $inicio->copy()->addDays($margen);
             foreach ($longitudes as $index => $noches) {
-                if ($secuencia >= $totalReservas) {
-                    break 2;
-                }
-
-                $entrada = $cursor->copy();
                 $salida = $entrada->copy()->addDays($noches);
-
-                if ($salida->greaterThan(Carbon::today())) {
-                    break;
-                }
-
-                $secuencia++;
-                $cliente = $this->clientes->get(($secuencia * 7 + $habitacionIndex * 3) % $this->clientes->count());
-                if ($cliente === null) {
-                    break;
-                }
-
-                $escenario = $this->escenario();
-                if ($escenario === 'CANCELADA' || $escenario === 'NO_SHOW') {
-                    $this->crearExcepcion($secuencia, $habitacion, $cliente, $entrada, $noches, $escenario, $monedaUsd);
-                } else {
-                    $this->crearEstadiaCompleta($secuencia, $habitacion, $cliente, $entrada, $noches, $monedaUsd, $monedaNio);
-                }
-
-                $pendientesEnBloque++;
-                if ($pendientesEnBloque >= $tamanoBloque) {
-                    DB::commit();
-                    $this->command->info("  bloque confirmado: {$secuencia} / ".$totalReservas);
-                    DB::beginTransaction();
-                    $pendientesEnBloque = 0;
-                }
-
-                if ($secuencia % 1000 === 0) {
-                    $this->command->info("  progreso: {$secuencia} / ".$totalReservas);
-                }
-
-                $cursor = $salida;
-                if ($index < count($gaps)) {
-                    $cursor = $cursor->addDays($gaps[$index]);
-                }
+                $agenda[] = [
+                    'habitacion' => $habitacion,
+                    'indice' => $indice,
+                    'entrada' => $entrada,
+                    'salida' => $salida->getTimestamp(),
+                    'noches' => $noches,
+                ];
+                $entrada = $salida->copy()->addDays($gaps[$index] ?? 0);
             }
         }
 
-        if (DB::transactionLevel() > 0) {
-            DB::commit();
+        // Los folios se asignan en orden de salida, que es la fecha de emisión.
+        usort($agenda, static fn (array $a, array $b): int => [$a['salida'], $a['indice']] <=> [$b['salida'], $b['indice']]);
+        $secuencia = 0;
+        foreach (array_chunk($agenda, 100) as $bloque) {
+            DB::transaction(function () use ($bloque, &$secuencia, $monedaUsd, $monedaNio): void {
+                foreach ($bloque as $estadia) {
+                    $secuencia++;
+                    $cliente = $this->clientes[($secuencia * 7 + $estadia['indice'] * 3) % $this->clientes->count()];
+                    if (! $cliente instanceof Cliente) {
+                        throw new \RuntimeException('No se encontró el cliente de la reserva histórica.');
+                    }
+                    $escenario = $this->escenario();
+                    if ($escenario === 'COMPLETADA') {
+                        $this->crearEstadiaCompleta($secuencia, $estadia['habitacion'], $cliente, $estadia['entrada'], $estadia['noches'], $monedaUsd, $monedaNio);
+                    } else {
+                        $this->crearExcepcion($secuencia, $estadia['habitacion'], $cliente, $estadia['entrada'], $estadia['noches'], $escenario, $monedaUsd);
+                    }
+                }
+            });
+            $this->command->info("  reservas históricas: {$secuencia} / {$total}");
         }
 
         return $secuencia;
@@ -498,7 +460,7 @@ final class ReservaHistoricaSeeder extends Seeder
                 'concepto' => "Consumo de Minibar ({$items} ítems) - Hab. {$habitacion->numero}",
                 'cantidad' => $items,
                 'precio_unitario' => round($monto / $items, 2),
-                'subtotal' => $monto,
+                'subtotal' => round(round($monto / $items, 2) * $items, 2),
                 'servicio_id' => null,
             ];
         }
@@ -511,7 +473,7 @@ final class ReservaHistoricaSeeder extends Seeder
                 'concepto' => "Servicio de Lavandería ({$prendas} prendas) - Hab. {$habitacion->numero}",
                 'cantidad' => $prendas,
                 'precio_unitario' => round($monto / $prendas, 2),
-                'subtotal' => $monto,
+                'subtotal' => round(round($monto / $prendas, 2) * $prendas, 2),
                 'servicio_id' => null,
             ];
         }
@@ -722,6 +684,9 @@ final class ReservaHistoricaSeeder extends Seeder
         ]);
 
         $conceptoHospedaje = "Hospedaje {$noches} noches - Hab. {$habitacion->numero}";
+        $ivaCargos = array_map(static fn (array $cargo): float => round($cargo['subtotal'] * self::IVA, 2), $cargos);
+        $ivaHospedaje = round($iva - array_sum($ivaCargos), 2);
+        $totalHospedaje = round($subtotalHospedaje - $montoDescuento + $ivaHospedaje, 2);
         $ventaDetalle = VentaDetalle::query()->create([
             'venta_id' => $venta->id,
             'concepto' => $conceptoHospedaje,
@@ -729,8 +694,8 @@ final class ReservaHistoricaSeeder extends Seeder
             'precio_unitario' => $tarifaNoche,
             'subtotal' => $subtotalHospedaje,
             'descuento' => $montoDescuento,
-            'impuesto' => round($subtotalHospedaje * self::IVA, 2),
-            'total_linea' => $subtotalHospedaje,
+            'impuesto' => $ivaHospedaje,
+            'total_linea' => $totalHospedaje,
             'origen_type' => Estancia::class,
             'origen_id' => $estancia->id,
         ]);
@@ -742,9 +707,13 @@ final class ReservaHistoricaSeeder extends Seeder
             'precio_unitario' => $tarifaNoche,
             'subtotal' => $subtotalHospedaje,
             'descuento' => $montoDescuento,
+            'iva' => $ivaHospedaje,
+            'total_linea' => $totalHospedaje,
         ]];
 
-        foreach ($cargos as $cargo) {
+        foreach ($cargos as $indice => $cargo) {
+            $ivaCargo = $ivaCargos[$indice];
+            $totalCargo = round($cargo['subtotal'] + $ivaCargo, 2);
             $detalleVenta = VentaDetalle::query()->create([
                 'venta_id' => $venta->id,
                 'concepto' => $cargo['concepto'],
@@ -752,8 +721,8 @@ final class ReservaHistoricaSeeder extends Seeder
                 'precio_unitario' => $cargo['precio_unitario'],
                 'subtotal' => $cargo['subtotal'],
                 'descuento' => 0.00,
-                'impuesto' => round($cargo['subtotal'] * self::IVA, 2),
-                'total_linea' => $cargo['subtotal'],
+                'impuesto' => $ivaCargo,
+                'total_linea' => $totalCargo,
                 'origen_type' => Estancia::class,
                 'origen_id' => $estancia->id,
             ]);
@@ -765,6 +734,8 @@ final class ReservaHistoricaSeeder extends Seeder
                 'precio_unitario' => $cargo['precio_unitario'],
                 'subtotal' => $cargo['subtotal'],
                 'descuento' => 0.00,
+                'iva' => $ivaCargo,
+                'total_linea' => $totalCargo,
             ];
         }
 
@@ -846,8 +817,8 @@ final class ReservaHistoricaSeeder extends Seeder
                 'subtotal' => $linea['subtotal'],
                 'descuento' => $linea['descuento'],
                 'iva_porcentaje' => 15.00,
-                'iva' => round($linea['subtotal'] * self::IVA, 2),
-                'total_linea' => $linea['subtotal'],
+                'iva' => $linea['iva'],
+                'total_linea' => $linea['total_linea'],
             ]);
         }
     }

@@ -13,13 +13,13 @@ use App\Interactors\Cuentas\Cobros\CobrarCuenta;
 use App\Repository\Models\Clientes\Cliente;
 use App\Repository\Models\Cuentas\Cuenta;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
-use App\Repository\Queries\Monedas\ObtenerMonedaPredeterminadaQuery;
 use App\Support\Barcode\Support\MonedaHelper;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Acción reutilizable de "Cobrar Cuenta" para el panel administrativo y móvil.
@@ -73,6 +73,11 @@ final class CobrarCuentaAction
             ->icon('heroicon-o-banknotes')
             ->color('success')
             ->modalWidth('2xl')
+            ->authorize(function (mixed $record = null) use ($resolverCuenta): bool {
+                $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
+
+                return $cuenta instanceof Cuenta && Gate::allows('registrarPago', $cuenta);
+            })
             ->visible(function (mixed $record = null) use ($resolverCuenta): bool {
                 $cuenta = $record instanceof Cuenta ? $record : $resolverCuenta($record);
 
@@ -102,8 +107,6 @@ final class CobrarCuentaAction
                     }
                 }
 
-                $monedaDefaultId = app(ObtenerMonedaPredeterminadaQuery::class)->ejecutar()?->id;
-
                 $rucFiscal = null;
                 $razonSocialFiscal = null;
 
@@ -129,7 +132,8 @@ final class CobrarCuentaAction
                     'ruc_factura' => $rucFiscal,
                     'razon_social_factura' => $razonSocialFiscal,
                     'forma_pago' => MetodoPago::EFECTIVO->value,
-                    'moneda_pago_id' => $monedaDefaultId,
+                    'moneda_pago_id' => $cuenta->moneda_id,
+                    'moneda_vuelto_id' => $cuenta->moneda_id,
                     'monto' => (float) $cuenta->saldo > 0 ? (float) $cuenta->saldo : 0.0,
                     'propina' => 0.0,
                     'referencia_transaccion' => null,
@@ -146,7 +150,7 @@ final class CobrarCuentaAction
                                 ->icon('heroicon-o-banknotes')
                                 ->schema([
                                     ResumenCuentaInfolist::makeHeader($cuenta),
-                                    CamposCobroPagoForm::make(),
+                                    CamposCobroPagoForm::make($cuenta),
                                 ]),
 
                             Tab::make('Consumos')
@@ -156,6 +160,7 @@ final class CobrarCuentaAction
                                 ]),
 
                             Tab::make('Facturación')
+                                ->visible(! $cuenta?->tieneEstanciaActiva())
                                 ->icon('heroicon-o-user')
                                 ->schema([
                                     SeccionClienteFacturacionForm::make(),
@@ -170,13 +175,18 @@ final class CobrarCuentaAction
                     return;
                 }
 
+                Gate::authorize('registrarPago', $cuenta);
+                if (in_array($data['tipo_comprobante'] ?? null, ['factura', 'factura_empresarial'], true)) {
+                    Gate::authorize('Create:Factura');
+                }
+
                 $userId = auth()->id() !== null ? (int) auth()->id() : null;
 
                 try {
                     $resultado = app(CobrarCuenta::class)->ejecutar($cuenta, $userId, $data);
 
                     if ($resultado['cerrada']) {
-                        $tipoLabel = ($data['tipo_comprobante'] ?? '') === 'factura_empresarial' ? 'Factura Empresarial' : 'Voucher';
+                        $tipoLabel = ($resultado['venta']?->facturas->isNotEmpty() ?? false) ? 'Factura fiscal' : 'Voucher';
                         $bodyMsg = "Cuenta #{$resultado['cuenta']->numero_cuenta} — Se generó {$tipoLabel} automáticamente.";
                         if ($resultado['vueltoTexto'] !== '') {
                             $bodyMsg .= " {$resultado['vueltoTexto']}.";
@@ -193,7 +203,7 @@ final class CobrarCuentaAction
                     } else {
                         $simboloCuenta = MonedaHelper::simbolo($resultado['cuenta']->moneda);
                         Notification::make()
-                            ->title('Abono registrado')
+                            ->title($resultado['saldo'] <= 0 ? 'Saldo pagado; el folio sigue abierto' : 'Abono registrado')
                             ->body("Saldo restante: {$simboloCuenta} ".number_format($resultado['saldo'], 2))
                             ->warning()
                             ->send();

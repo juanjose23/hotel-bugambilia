@@ -13,6 +13,7 @@ use App\Enums\HabitacionesEspacios\EstadoEspacio;
 use App\Enums\Reservas\EstadoReservaDetalle;
 use App\Events\Reservas\CheckOutRegistrado;
 use App\Events\Reservas\HabitacionPendienteDeLimpieza;
+use App\Interactors\Cuentas\Gestion\CerrarCuentaYGenerarVenta;
 use App\Repository\Models\Estancias\Estancia;
 use App\Repository\Persistencia\Cuentas\CuentaRepositorioInterface;
 use App\Repository\Persistencia\Habitaciones\HabitacionRepositorioInterface;
@@ -32,6 +33,7 @@ final readonly class RealizarCheckOutHabitacion
         private HabitacionRepositorioInterface $habitaciones,
         private CuentaRepositorioInterface $cuentas,
         private ValidarRequisitosCheckOut $validarRequisitos,
+        private CerrarCuentaYGenerarVenta $cerrarCuenta,
     ) {}
 
     public function ejecutar(RealizarCheckOutData $data): Estancia
@@ -64,14 +66,6 @@ final readonly class RealizarCheckOutHabitacion
                 throw new DomainException("No se puede realizar Check-Out: La cuenta #{$cuenta->numero_cuenta} tiene un saldo pendiente de {$cuenta->saldo} sin autorizar.");
             }
 
-            if ($cuenta) {
-                $this->cuentas->actualizar($cuenta, [
-                    'estado' => EstadoCuenta::CERRADA,
-                    'cerrada_at' => now(),
-                    'cerrada_por' => $data->usuarioId,
-                ]);
-            }
-
             $this->reservas->actualizarEstancia($estancia, [
                 'estado' => EstadoEstancia::FINALIZADA,
                 'check_out_at' => now(),
@@ -79,6 +73,17 @@ final readonly class RealizarCheckOutHabitacion
                 'usuario_check_out_id' => $data->usuarioId,
                 'observaciones_salida' => $data->observaciones,
             ]);
+
+            if ($cuenta && $cuenta->estado !== EstadoCuenta::CERRADA && ! $cuenta->tieneEstanciaActiva()) {
+                if (! $cuenta->tieneSaldoPendiente() && $cuenta->estado->puedeCerrarse()) {
+                    $this->cerrarCuenta->ejecutar($cuenta, $data->usuarioId);
+                } elseif ($cuenta->tieneSaldoPendiente() && $data->autorizarSaldoPendiente) {
+                    $this->cuentas->actualizar($cuenta, [
+                        'estado' => EstadoCuenta::PENDIENTE_PAGO,
+                        'actualizado_por' => $data->usuarioId,
+                    ]);
+                }
+            }
 
             $this->reservas->actualizarDetalle($detalle, [
                 'estado' => EstadoReservaDetalle::COMPLETADO,
